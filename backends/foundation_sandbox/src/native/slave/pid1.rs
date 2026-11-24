@@ -60,16 +60,8 @@ pub fn finish_and_power_off(host: &Arc<SlaveHost>) -> ! {
         Ok(never) => match never {},
         Err(error) => {
             let text = format!("agent-slave: the power off failed: {error}\n");
-            if let Ok(message) = std::ffi::CString::new(text) {
-                // SAFETY: the message is a valid zero-terminated string.
-                unsafe {
-                    libc::write(
-                        2,
-                        message.as_ptr().cast::<libc::c_void>(),
-                        message.as_bytes().len(),
-                    );
-                }
-            }
+            // The console is descriptor 2. A failed write has no other report.
+            let _ = sys::write(2, text.as_bytes());
             sys::pause_forever()
         }
     }

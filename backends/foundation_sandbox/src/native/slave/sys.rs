@@ -80,17 +80,92 @@ pub fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
 /// # Errors
 /// The operating system error of `fcntl`.
 pub fn set_nonblocking(fd: RawFd) -> io::Result<()> {
+    set_nonblocking_mode(fd, true)
+}
+
+/// Sets (`true`) or clears (`false`) the non-blocking flag of `fd`.
+///
+/// # Errors
+/// The operating system error of `fcntl`.
+pub fn set_nonblocking_mode(fd: RawFd, nonblocking: bool) -> io::Result<()> {
     // SAFETY: `fd` is an open descriptor of this process.
     let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
     if flags < 0 {
         return Err(io::Error::last_os_error());
     }
+    let flags = if nonblocking {
+        flags | libc::O_NONBLOCK
+    } else {
+        flags & !libc::O_NONBLOCK
+    };
     // SAFETY: the same descriptor, with a valid flag set.
-    let result = unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) };
+    let result = unsafe { libc::fcntl(fd, libc::F_SETFL, flags) };
     if result < 0 {
         return Err(io::Error::last_os_error());
     }
     Ok(())
+}
+
+/// Creates a listening `AF_VSOCK` socket on `VMADDR_CID_ANY` and `port`.
+///
+/// `backlog` bounds the connections that the kernel queues before an accept.
+///
+/// # Errors
+/// The operating system error of `socket`, `bind` or `listen`.
+pub fn vsock_listen(port: u32, backlog: i32) -> io::Result<OwnedFd> {
+    // SAFETY: `socket` takes three integers.
+    let fd = unsafe { libc::socket(libc::AF_VSOCK, libc::SOCK_STREAM | libc::SOCK_CLOEXEC, 0) };
+    if fd < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: the call returned a new descriptor that this process owns.
+    let socket = unsafe { OwnedFd::from_raw_fd(fd) };
+    let address = libc::sockaddr_vm {
+        svm_family: u16::try_from(libc::AF_VSOCK).map_err(|_| error_of(libc::EINVAL))?,
+        svm_reserved1: 0,
+        svm_port: port,
+        svm_cid: libc::VMADDR_CID_ANY,
+        svm_zero: [0; 4],
+    };
+    let length = libc::socklen_t::try_from(std::mem::size_of::<libc::sockaddr_vm>())
+        .map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `address` has the kernel layout of `sockaddr_vm`.
+    let result = unsafe {
+        libc::bind(
+            socket.as_raw_fd(),
+            std::ptr::addr_of!(address).cast::<libc::sockaddr>(),
+            length,
+        )
+    };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: the descriptor is a socket that is ready to listen.
+    if unsafe { libc::listen(socket.as_raw_fd(), backlog) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(socket)
+}
+
+/// Accepts one connection from a listening socket, close-on-exec.
+///
+/// # Errors
+/// The operating system error of `accept4`.
+pub fn accept_stream(fd: RawFd) -> io::Result<OwnedFd> {
+    // SAFETY: the descriptor stays open for the life of the caller.
+    let accepted = unsafe {
+        libc::accept4(
+            fd,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            libc::SOCK_CLOEXEC,
+        )
+    };
+    if accepted < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: the call returned a new descriptor that this process owns.
+    Ok(unsafe { OwnedFd::from_raw_fd(accepted) })
 }
 
 /// Reads at most one buffer from `fd`.

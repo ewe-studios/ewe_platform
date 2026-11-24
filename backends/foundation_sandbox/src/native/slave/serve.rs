@@ -2,7 +2,7 @@
 
 use std::io;
 use std::net::SocketAddr;
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::net::UnixListener;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -144,6 +144,11 @@ impl Acceptor for UnixAcceptor {
     }
 }
 
+/// The number of connections that the kernel queues for a vsock listener
+/// before an accept. 128 bounds the queue and costs little memory; the kernel
+/// caps it at `somaxconn`.
+const VSOCK_BACKLOG: i32 = 128;
+
 /// The acceptor of an `AF_VSOCK` port.
 struct VsockAcceptor {
     socket: OwnedFd,
@@ -151,79 +156,24 @@ struct VsockAcceptor {
 
 impl VsockAcceptor {
     /// Binds `VMADDR_CID_ANY` and `port`.
+    ///
+    /// # Errors
+    /// The operating system error of the socket, bind or listen call.
     fn bind(port: u32) -> io::Result<Self> {
-        // SAFETY: `socket` takes three integers.
-        let fd = unsafe { libc::socket(libc::AF_VSOCK, libc::SOCK_STREAM | libc::SOCK_CLOEXEC, 0) };
-        if fd < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: the call returned a new descriptor that this process owns.
-        let socket = unsafe { OwnedFd::from_raw_fd(fd) };
-        let address = libc::sockaddr_vm {
-            svm_family: u16::try_from(libc::AF_VSOCK).expect("a valid address family"),
-            svm_reserved1: 0,
-            svm_port: port,
-            svm_cid: libc::VMADDR_CID_ANY,
-            svm_zero: [0; 4],
-        };
-        // SAFETY: `address` has the kernel layout of `sockaddr_vm`.
-        let result = unsafe {
-            libc::bind(
-                socket.as_raw_fd(),
-                std::ptr::addr_of!(address).cast::<libc::sockaddr>(),
-                libc::socklen_t::try_from(std::mem::size_of::<libc::sockaddr_vm>())
-                    .expect("a socket address fits"),
-            )
-        };
-        if result < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: the descriptor is a socket that is ready to listen.
-        if unsafe { libc::listen(socket.as_raw_fd(), 128) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(Self { socket })
+        Ok(Self {
+            socket: super::sys::vsock_listen(port, VSOCK_BACKLOG)?,
+        })
     }
 }
 
 impl Acceptor for VsockAcceptor {
     fn accept_connection(&self) -> io::Result<(Connection, SocketAddr)> {
-        // SAFETY: the descriptor stays open for the life of the acceptor.
-        let fd = unsafe {
-            libc::accept4(
-                self.socket.as_raw_fd(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                libc::SOCK_CLOEXEC,
-            )
-        };
-        if fd < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: the call returned a new descriptor that this process owns.
-        let stream = unsafe { OwnedFd::from_raw_fd(fd) };
+        let stream = super::sys::accept_stream(self.socket.as_raw_fd())?;
         Ok((Connection::from_stream_fd(stream), placeholder_address()))
     }
 
     fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
-        let flags = if nonblocking { libc::O_NONBLOCK } else { 0 };
-        // SAFETY: the descriptor is an open socket.
-        let current = unsafe { libc::fcntl(self.socket.as_raw_fd(), libc::F_GETFL) };
-        if current < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: the same descriptor, with a valid flag set.
-        let result = unsafe {
-            libc::fcntl(
-                self.socket.as_raw_fd(),
-                libc::F_SETFL,
-                (current & !libc::O_NONBLOCK) | flags,
-            )
-        };
-        if result < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(())
+        super::sys::set_nonblocking_mode(self.socket.as_raw_fd(), nonblocking)
     }
 
     fn local_addr(&self) -> io::Result<SocketAddr> {

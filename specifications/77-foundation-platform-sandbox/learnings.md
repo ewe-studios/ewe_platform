@@ -902,3 +902,12 @@ packages.
   `foundation_nativeapis`, which declares `["rlib", "cdylib"]`. The warning is old and
   does not affect the slave, which links the rlib. The feature's musl check is the first
   build that shows it.
+
+### 12.10 The `unsafe` placement rule
+
+Feature section 6.2 allows `unsafe` only in `sys.rs` and the `fork` child block of
+`exec.rs`. The first commit also held raw `libc` calls in `serve.rs` (vsock socket, bind,
+listen, `accept4` and `fcntl`) and in `pid1.rs` (the console write of a failed power off).
+They are now `sys::vsock_listen`, `sys::accept_stream`, `sys::set_nonblocking_mode` and
+`sys::write`. A review found this. The check is `grep -rn unsafe src/native/slave/`: only
+`sys.rs` and the fork child block of `exec.rs` may appear.
