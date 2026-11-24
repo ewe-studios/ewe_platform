@@ -304,3 +304,6 @@ The npm archive in the generated lock file must match the candidate checksum. An
 
 Wrangler accepts `d1 migrations apply DATABASE --local`. It rejects the earlier execute command.
 Configuration output can report whether a token exists without printing its value.
+
+Cargo NDK checks dependency artifacts when its output directory option is set. A dependency can declare a shared library but produce only a Rust library.
+Stage the declared application library from each completed target build. Keep the framework library in its Android library package.

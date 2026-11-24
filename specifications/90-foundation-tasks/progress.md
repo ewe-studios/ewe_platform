@@ -466,3 +466,6 @@ The checks use local release candidates. The public native release tag, Maven pa
 
 Seven Cloudflare operations now run through typed Rust tasks. All 26 continuous integration tests pass. The platform command compiles with the same tasks.
 The local database migration uses Wrangler's supported apply command. Issue #805 tracks the remaining object listing.
+
+The installed command builds and launches the Android on-device starter. A tap changes its local Rust counter from zero to one.
+The application archive contains one application library and one framework library for each selected architecture.

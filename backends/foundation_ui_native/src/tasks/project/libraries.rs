@@ -68,6 +68,24 @@ pub(super) async fn android(
     lib: &NativeLibrary,
     release: bool,
 ) -> TaskResult {
+    let targets = app
+        .architectures
+        .iter()
+        .map(|abi| {
+            let triple = match abi.as_str() {
+                "armeabi-v7a" => "armv7-linux-androideabi",
+                "arm64-v8a" => "aarch64-linux-android",
+                "x86" => "i686-linux-android",
+                "x86_64" => "x86_64-linux-android",
+                _ => {
+                    return Err(TaskError::operation(format!(
+                        "Unsupported Android architecture {abi}"
+                    )))
+                }
+            };
+            Ok((abi, triple))
+        })
+        .collect::<Result<Vec<_>, TaskError>>()?;
     let module = root.join(&app.directory).join(&app.module);
     let temp = tempfile::tempdir_in(&module).map_err(TaskError::operation)?;
     let output = temp.path().join("generated");
@@ -77,24 +95,24 @@ pub(super) async fn android(
         ProcessCommand::new("cargo")
             .current_dir(&directory)
             .args(["ndk", "--platform", "26"]);
-    for abi in &app.architectures {
-        cmd = cmd.arg("-t").arg(abi);
+    for (abi, _) in &targets {
+        cmd = cmd.arg("-t").arg(*abi);
     }
     cmd = cmd
-        .arg("-o")
-        .arg(temp.path().join("libs"))
+        .env_remove("CARGO_NDK_OUTPUT_PATH")
         .args(["build", "--lib", "--target-dir"])
-        .arg(target);
+        .arg(&target);
     if release {
         cmd = cmd.arg("--release");
     }
     ctx.exec(cmd).await?;
-    for abi in &app.architectures {
+    let profile = if release { "release" } else { "debug" };
+    for (abi, triple) in targets {
         let name = format!("lib{}.so", lib.library);
         let out = output.join("jniLibs").join(abi);
         fs::create_dir_all(&out).map_err(TaskError::operation)?;
         fs::copy(
-            temp.path().join("libs").join(abi).join(&name),
+            target.join(triple).join(profile).join(&name),
             out.join(name),
         )
         .map_err(TaskError::operation)?;
