@@ -25,7 +25,7 @@ Existing graphics, audio, and native data contracts still apply. Feature 32 trac
 ## One live server
 
 In `examples/ui_todo/src/bin/server.rs`, bind the configured address, open the configured services, construct the app once, and serve.
-Expose one full server constructor that accepts the prepared Todo store and live channel. Its callers supply configuration independently.
+Expose `app_with_store(store, channel)` for the full server. Its callers supply configuration independently.
 The persistent store owns its file path and format. Opening the same store after restart makes previous writes available through KV operations.
 Use the store's documented empty state for a new path. Propagate malformed contents and read failures. Preserve the original file on failure.
 Keep confirmed server records and idempotency receipts durable. A delayed retry after deletion must never recreate the record.
@@ -38,7 +38,8 @@ Remove these paths from production startup:
 - Remove `--data-only` and `data_app()`. Move the seeded service and its launcher under `examples/ui_todo/tests/`.
 - Keep the real typed data procedure on the full server. Update the iPhone and Android test runners to launch the independent fixture.
 - Remove `--restore` and backup parsing from normal startup. Put legacy import and conversion in maintenance tooling.
-- Remove `app_with_todos`, `app_with_channel`, and other constructors that only select inputs for the full app.
+- Keep `app_with_todos(items)` as the convenience constructor. It validates identifiers and supplies a fresh channel.
+- Remove `app`, `app_with_channel`, and `app_with_public_directory`. Configure the browser binary name in `build.rs`.
 - Remove the `EWE_TODO_HISTORY` startup branch. Configure replay capacity on the supplied channel. Replay tests construct their own channel.
 - Remove `web_module()`, runtime module validation, and `EWE_TODO_MODULE`.
 
@@ -49,6 +50,7 @@ The hook uses the resource manifest, builds missing browser modules, generates C
 Framework providers own tool invocation, change tracking, output directories, validation, and failure reporting.
 Use those same providers for command-line tasks. Retire `examples/ui_todo/build-module.sh` and migrate its callers.
 A clean Cargo build must prepare the browser application without a separate script or a prebuilt module.
+
 ### Proposed browser output amendment
 
 Produce readable `bundle.js` and minified `bundle.min.js` in development and release builds.
@@ -119,11 +121,13 @@ Open two tabs in the same namespace. Write distinct pending changes concurrently
 Confirm one change in the first tab. Verify the other change remains pending in the second tab.
 Check namespace isolation and propagate denied access, quota errors, and failed IndexedDB transactions to the caller.
 
-The proposed application startup shape is:
+The build script sets the public WebAssembly path and generates the browser configuration.
+The browser entry imports that configuration when it starts the application.
 
 ```js
-const module = await loadWasm("/module.wasm");
-const app = createApp({ module, mount, initialRoute, storage });
+import { moduleUrl } from "./ewe-app-config.js";
+
+const app = createApp({ moduleLoader, moduleUrl, mount, initialRoute, storage });
 await app.boot();
 ```
 
