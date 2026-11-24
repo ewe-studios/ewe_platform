@@ -1,3 +1,4 @@
+import * as bindings from "./bindings/ui_todo_bg.js";
 import { WasmLoader } from "./foundation-wasm.js";
 import { createApp } from "./foundation-ui-actions.js";
 
@@ -30,10 +31,6 @@ export async function openResource(name) {
 
 async function boot() {
     const moduleLoader = new WasmLoader();
-    const storageKey = "ewe.todo.pending.v1";
-    const encoder = new TextEncoder(), decoder = new TextDecoder();
-    const memory = (offset, length) => new Uint8Array(moduleLoader.runtime.bridge.memory.buffer, offset, length);
-    let stored;
     const params = new URL(location.href).searchParams;
     const notice = document.querySelector("#notice");
     const app = createApp({
@@ -43,20 +40,8 @@ async function boot() {
         viewDataAction: "host:apply_todo_delivery",
         transport: params.has("socket") ? {socket: "/socket"} : params.has("rpc") ? connectSender : undefined,
         onError(error) { notice.value = error.code; console.error(error); },
-        imports: {
-            ewe_todo_storage_size() {
-                try { stored = encoder.encode(localStorage.getItem(storageKey) ?? ""); return stored.length; }
-                catch { return -1; }
-            },
-            ewe_todo_storage_read(offset, length) {
-                if (!stored || stored.length !== length) return -1;
-                memory(offset, length).set(stored); stored = undefined; return 0;
-            },
-            ewe_todo_storage_save(offset, length) {
-                try { localStorage.setItem(storageKey, decoder.decode(memory(offset, length))); return 0; }
-                catch { return -1; }
-            },
-        },
+        bindings,
+        storage: {provider: "indexedDB", namespace: "todo:" + location.origin},
     });
 
     await app.boot();

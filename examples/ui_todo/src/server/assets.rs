@@ -21,6 +21,7 @@ pub(super) fn register(
         get(StaticFileHandler::file(module, StaticFileConfig::default())),
     )?;
     if let Some(root) = module.parent() {
+        router.at("/bindings/*", get(StaticFileHandler::new(root)))?;
         router.at("/rpc/*", get(StaticFileHandler::new(root)))?;
         router.at("/resources-wasm/*", get(StaticFileHandler::new(root)))?;
     }

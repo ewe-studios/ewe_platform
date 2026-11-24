@@ -68,3 +68,26 @@ async fn concurrent_tabs_recover_pending_changes_and_report_failures() {
         .unwrap();
     verify_tabs().await.unwrap();
 }
+
+#[wasm_bindgen_test]
+async fn import_preserves_destination_and_confirmed_records() {
+    use std::collections::BTreeMap;
+    let store = BrowserStore::new(BrowserBackend::IndexedDb, "import-receipts");
+    let old = BTreeMap::from([("add:a".to_owned(), 1), ("add:b".to_owned(), u64::MAX)]);
+    store.set("pending/add:a", 7).await.unwrap();
+    store
+        .import_once("pending/", "receipts/", &old)
+        .await
+        .unwrap();
+    assert_eq!(store.get::<i32>("pending/add:a").await.unwrap(), Some(7));
+    assert_eq!(
+        store.get::<u64>("pending/add:b").await.unwrap(),
+        Some(u64::MAX)
+    );
+    store.delete("pending/add:b").await.unwrap();
+    store
+        .import_once("pending/", "receipts/", &old)
+        .await
+        .unwrap();
+    assert!(!store.exists("pending/add:b").await.unwrap());
+}

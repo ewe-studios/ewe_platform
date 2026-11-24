@@ -10,7 +10,7 @@ description = "Serve Foundation view trees through native HTTP routes."
 autotests = false
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.11", optional = true }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.12", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.16" }
 foundation_http = { path = "../foundation_http", version = "0.0.15" }

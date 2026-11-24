@@ -1281,3 +1281,48 @@ The macOS database suite passes 255 tests.
 Todo still uses the legacy browser callbacks. Issue #728 remains open until application tests verify independent pending changes.
 The standalone consumer dependency check excludes the user interface runtime and the Cloudflare Worker crate.
 Feature 37 scopes pending changes to the Todo server. Older browser records use the server at their original browser origin.
+
+## Feature 37 browser pending records
+
+The browser runtime installs the configured store during startup.
+Todo selects IndexedDB and uses its server origin as the namespace.
+Each pending Add or Delete has a separate record.
+Startup validates the old localStorage map before it writes any records.
+IndexedDB commits imported records and their receipts together. The old map remains available to older tabs.
+
+The Linux database runner passes 535 tests across its configurations. Its package formatting check passes.
+The browser runtime JavaScript suite passes 159 tests and skips one test.
+Two Todo tests pass for shared connections and concurrent snapshots.
+
+The macOS Chromium database suite passes four tests. The tests include transaction rollback and concurrent writes from two tabs.
+The live mobile-peer test needs a separate server and remains disabled by default.
+Two tabs submit different changes at the same time. Both changes survive reload and independent retries with their original identifiers.
+Migration tests cover a corrupt source, a transaction abort, concurrent import, a late source write, and receipts after confirmation.
+The lifecycle test boots all three providers from one cached binding module. It also retries after a failed boot.
+The JavaScript loader suite passes 78 tests and skips 20. The eight loader-specific tests pass.
+
+The native browser runtime passes 114 Rust tests in the `uat` profile. Two documentation examples are disabled.
+The Todo release build produces the application bindings and all three WebAssembly modules.
+The checked-in runtime bundles match the output of `ewe-wasm-bundle runtime --check`.
+The tests use the working tree based on `b05f4a5a8`. The final macOS run includes documentation changes through `32379fa98`.
+
+All changed Rust files pass the formatting check. The workspace check reports existing differences in 26 unchanged files.
+Issue [#782](https://github.com/ewe-studios/ewe_platform/issues/782) tracks the loader restart fix.
+Issue [#784](https://github.com/ewe-studios/ewe_platform/issues/784) tracks a module request that waits for HTTP response headers during Chromium navigation.
+
+The native and WebAssembly Clippy checks finish successfully. Todo still reports existing warnings in its shared and theme code.
+
+| macOS check | Command |
+|---|---|
+| Todo release modules | `examples/ui_todo/build-module.sh` |
+| Runtime Rust tests | `cargo test --locked --offline --profile uat -p foundation_wasm_ui` |
+| Todo integration tests | `cargo test --locked --offline --profile uat -p ui_todo --features browser-tests,mobile --no-fail-fast -- --test-threads=1` |
+| Storage in Chromium | `mise exec -- target/uat/wasm-testbed bindgen backends/foundation_db/integration/browser --headless` |
+| Runtime JavaScript tests | `node --test backends/foundation_wasm_ui/integration/test/*.test.js` |
+| Loader JavaScript tests | `node --test backends/foundation_wasm/integration/test/*.test.js` |
+
+The standalone storage test starts Chromium with popup windows enabled. The native Todo test sets this browser option itself.
+
+The final default-server Todo run passes 14 tests on macOS and ignores one live mobile-peer test.
+The two browser storage tests pass in 29.03 seconds. The server and host action test also passes.
+The new test targets verify concurrent confirmation and migration separately. Issue #784 remains open for the independent HTTP stall.

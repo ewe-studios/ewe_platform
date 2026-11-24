@@ -34,6 +34,8 @@ pub mod protocol;
 pub mod reactive;
 pub mod runtime;
 pub mod slots;
+#[cfg(all(feature = "browser-storage", target_family = "wasm"))]
+pub mod storage;
 pub mod theme;
 pub mod wasm;
 

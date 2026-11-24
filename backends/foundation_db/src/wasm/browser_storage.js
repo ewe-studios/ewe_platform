@@ -12,31 +12,59 @@ async function indexedOperation(namespace, operation, key, value, after, limit) 
     const database = await openDatabase(namespace);
     try {
         return await new Promise((resolve, reject) => {
-            const writes = operation === "set" || operation === "delete";
+            const writes = ["set", "delete", "change", "import"].includes(operation);
             const tx = database.transaction("records", writes ? "readwrite" : "readonly");
             const records = tx.objectStore("records");
             let result = null;
             tx.oncomplete = () => resolve(result);
             tx.onabort = () => reject(tx.error ?? new DOMException("Storage transaction aborted", "AbortError"));
-            if (operation === "list") {
-                const page = [];
-                result = page;
-                const cursor = records.openKeyCursor(IDBKeyRange.lowerBound(after ?? key, after != null));
-                cursor.onsuccess = () => {
-                    const entry = cursor.result;
-                    if (!entry || !entry.key.startsWith(key)) return;
-                    page.push(entry.key);
-                    if (page.length < limit) entry.continue();
-                };
-            } else if (operation === "get") {
-                const request = records.get(key);
-                request.onsuccess = () => { result = request.result ?? null; };
-            } else if (operation === "exists") {
-                const request = records.count(key);
-                request.onsuccess = () => { result = request.result !== 0; };
-            } else if (operation === "set") records.put(value, key);
-            else if (operation === "delete") records.delete(key);
-            else throw new TypeError("Unknown storage operation");
+            try {
+                if (operation === "list") {
+                    const page = [];
+                    result = page;
+                    const cursor = records.openKeyCursor(IDBKeyRange.lowerBound(after ?? key, after != null));
+                    cursor.onsuccess = () => {
+                        const entry = cursor.result;
+                        if (!entry || !entry.key.startsWith(key)) return;
+                        page.push(entry.key);
+                        if (page.length < limit) entry.continue();
+                    };
+                } else if (operation === "get") {
+                    const request = records.get(key);
+                    request.onsuccess = () => { result = request.result ?? null; };
+                } else if (operation === "exists") {
+                    const request = records.count(key);
+                    request.onsuccess = () => { result = request.result !== 0; };
+                } else if (operation === "import") {
+                    for (const [id, record] of JSON.parse(value)) {
+                        const receipt = after + id;
+                        const seen = records.count(receipt);
+                        seen.onsuccess = () => {
+                            if (seen.result) return;
+                            const present = records.count(key + id);
+                            present.onsuccess = () => {
+                                if (!present.result) records.put(record, key + id);
+                                records.put("true", receipt);
+                            };
+                        };
+                    }
+                } else if (operation === "change") {
+                    const [inserts, updates, removals] = JSON.parse(value);
+                    for (const [id, record] of inserts) records.put(record, key + id);
+                    for (const [id, record] of updates) {
+                        const present = records.count(key + id);
+                        present.onsuccess = () => {
+                            if (present.result) records.put(record, key + id);
+                        };
+                    }
+                    for (const id of removals) records.delete(key + id);
+                } else if (operation === "set") records.put(value, key);
+                else if (operation === "delete") records.delete(key);
+                else throw new TypeError("Unknown storage operation");
+            } catch (error) {
+                tx.abort();
+                reject(error);
+            }
         });
     } finally {
         database.close();
@@ -51,6 +79,16 @@ function localOperation(namespace, operation, key, value, after, limit) {
         case "exists": return storage.getItem(scope + key) !== null;
         case "set": storage.setItem(scope + key, value); return null;
         case "delete": storage.removeItem(scope + key); return null;
+        case "change": {
+            const [inserts, updates, removals] = JSON.parse(value);
+            for (const [id, record] of inserts) storage.setItem(scope + key + id, record);
+            for (const [id, record] of updates) {
+                const name = scope + key + id;
+                if (storage.getItem(name) !== null) storage.setItem(name, record);
+            }
+            for (const id of removals) storage.removeItem(scope + key + id);
+            return null;
+        }
         case "list": {
             // Web Storage does not provide sorted iteration. Keep the next page in key order.
             const page = [];
@@ -71,6 +109,7 @@ function localOperation(namespace, operation, key, value, after, limit) {
 }
 
 export async function browserOperation(indexed, namespace, operation, key, value, after, limit) {
+    if (operation === "legacy") return globalThis.localStorage.getItem(key);
     const run = indexed ? indexedOperation : localOperation;
     return run(namespace, operation, key, value, after, limit);
 }

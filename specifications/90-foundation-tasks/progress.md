@@ -239,3 +239,8 @@ The native tasks use ZIP 9.4.1 for archive creation and signature verification.
 All 20 native integration tests and one documentation test pass on macOS. One documentation test remains ignored.
 All 151 continuous integration runner tests pass. Cargo resolves all 29 tracked lockfiles.
 The WebAssembly test packages for HTTP, ConnectRPC, and the Cloudflare network client pass the compiler checks.
+
+The next merge includes the Todo checkpoint at `78f67835e`.
+The database version is 0.0.11. The WebAssembly user interface version is 0.1.12.
+All 29 lockfiles resolve. The JavaScript runtime passes 159 tests. The loader passes 78 tests.
+The WebAssembly user interface compiles with browser storage enabled.

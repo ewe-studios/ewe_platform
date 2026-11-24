@@ -158,3 +158,6 @@ A package manifest can declare JavaScript modules with a .js extension. The curr
 
 ZIP 9 returns a result when it decodes an archive member name. The verifier propagates that error before it checks the path.
 The wire bundle and manifest fixtures each affect two test selections. Each change also selects the package that owns the changed file.
+
+The Todo checkpoint changes two package versions. Standalone example and test workspaces keep their own copies of these versions.
+Each lockfile needs a separate dependency check after the merge.

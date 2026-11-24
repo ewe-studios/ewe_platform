@@ -87,3 +87,15 @@ test("loadURL preserves the network failure and distinguishes incompatible impor
     headers: {"Content-Type": "application/wasm"},
   })), {code: "Imports"});
 });
+
+test("loading after disposal keeps old timers cancelled and starts a fresh host", async () => {
+  const loader = new WasmLoader();
+  const bytes = Uint8Array.of(0, 97, 115, 109, 1, 0, 0, 0);
+  await loader.loadBytes(bytes);
+  const old = loader.runtime;
+  old.dispose();
+  await loader.loadBytes(bytes);
+  assert.notEqual(loader.runtime, old);
+  assert.equal(old.timers.disposed, true);
+  assert.equal(loader.runtime.timers.disposed, false);
+});

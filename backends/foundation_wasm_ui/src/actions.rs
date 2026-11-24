@@ -40,6 +40,8 @@ pub struct LocalApp(foundation_ui_runtime::dispatch::LocalDispatcher);
 pub struct LocalAppBuilder {
     ctx: foundation_core::valtron::Ctx,
     actions: foundation_ui_runtime::action::ActionRegistry,
+    #[cfg(all(feature = "browser-storage", target_family = "wasm"))]
+    startup: Option<crate::storage::Startup>,
 }
 
 impl LocalApp {
@@ -48,7 +50,12 @@ impl LocalApp {
         ctx: foundation_core::valtron::Ctx,
         actions: foundation_ui_runtime::action::ActionRegistry,
     ) -> LocalAppBuilder {
-        LocalAppBuilder { ctx, actions }
+        LocalAppBuilder {
+            ctx,
+            actions,
+            #[cfg(all(feature = "browser-storage", target_family = "wasm"))]
+            startup: None,
+        }
     }
 
     /// Starts the browser task pool and installs the action dispatcher.
@@ -58,7 +65,7 @@ impl LocalApp {
         install_local_dispatcher(self.0);
     }
 
-    /// Install browser child calls. The host supplies the imports from WasmActionTransport.
+    /// Install browser child calls. The host supplies the imports from `WasmActionTransport`.
     #[cfg(target_family = "wasm")]
     pub fn install_with_child_actions(self) {
         single::initialize_pool_with_ctx(0, self.0.context().clone());
@@ -81,6 +88,17 @@ impl LocalApp {
 }
 
 impl LocalAppBuilder {
+    /// Run application setup after service installation and before the first view opens.
+    #[cfg(all(feature = "browser-storage", target_family = "wasm"))]
+    #[must_use]
+    pub fn on_boot(
+        mut self,
+        task: impl core::future::Future<Output = Result<(), alloc::string::String>> + 'static,
+    ) -> Self {
+        self.startup = Some(alloc::boxed::Box::pin(task));
+        self
+    }
+
     /// Publish this registry to the browser and start the local action dispatcher.
     #[cfg(target_family = "wasm")]
     pub fn install(self) {
@@ -89,7 +107,15 @@ impl LocalAppBuilder {
         extern "C" {
             fn ewe_ui_declare(origin: u32, name: *const u8, length: usize, scope: u32);
         }
-        for (name, origin, scope) in self.actions.declarations() {
+        #[cfg(feature = "browser-storage")]
+        let builder = {
+            let mut builder = self;
+            crate::storage::install(&builder.ctx, builder.startup.take());
+            builder
+        };
+        #[cfg(not(feature = "browser-storage"))]
+        let builder = self;
+        for (name, origin, scope) in builder.actions.declarations() {
             let origin = match origin {
                 None => 0,
                 Some(Origin::Host) => 1,
@@ -103,7 +129,7 @@ impl LocalAppBuilder {
             // The browser reads the name before this call returns.
             unsafe { ewe_ui_declare(origin, name.as_ptr(), name.len(), scope) };
         }
-        self.build().install_with_child_actions();
+        builder.build().install_with_child_actions();
     }
 
     #[must_use]

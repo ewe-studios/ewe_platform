@@ -442,33 +442,46 @@ export class WasmActionTransport {
   constructor(bridge) { this.bridge = bridge; }
 
   /** Load a browser action module and run its exported host initializer. */
-  static async boot(loader, url, {registry, start, imports = {}, window = globalThis.window}) {
-    const runtime = loader.runtime;
+  static async boot(loader, url, {registry, start, imports = {}, bindings, storage, window = globalThis.window}) {
     const dom = new ui.DomHeap({window, document: window.document});
     const decoder = new TextDecoder("utf-8", {fatal: true});
     let local;
     const previous = loader.environment;
+    // A factory scopes memory views and finalizers to this instance.
+    const glue = bindings?.createBindings();
     loader.environment = {
       ...previous,
-      abi: {...runtime.web_abi, ...ui.domAbi(runtime, dom), ...previous.abi},
+      ...(glue && {[bindings.importName]: glue}),
+      get abi() {
+        const runtime = loader.runtime;
+        return {...runtime.web_abi, ...ui.domAbi(runtime, dom), ...previous.abi};
+      },
       env: {
         ...previous.env, ...imports, ...WasmActionTransport.imports(() => local),
         ewe_ui_declare(origin, pointer, length, scope) {
-          const name = decoder.decode(new Uint8Array(runtime.bridge.memory.buffer, pointer, length));
+          const name = decoder.decode(new Uint8Array(loader.runtime.bridge.memory.buffer, pointer, length));
           registry.declare([null, "host", "server"][origin], name, ["all", "web", "mobile"][scope]);
         },
       },
     };
     try {
       await loader.loadURL(url);
+      const runtime = loader.runtime;
       const api = loader.module.instance.exports;
+      if (glue) {
+        glue.__wbg_set_wasm(api);
+        api.__wbindgen_start?.();
+      }
+      if (storage && !glue?.configureHostStorage) throw new Error("Missing browser storage bindings");
+      glue?.configureHostStorage?.(storage?.provider ?? "memory", storage?.namespace ?? "");
       if (typeof api[start] !== "function") throw new Error("Missing host initializer: " + start);
       local = new WasmActionTransport({exports: api, memory: () => runtime.bridge.memory});
       const status = api[start]();
       if (status !== 0) throw new Error("Host initializer " + start + " returned " + status);
+      await glue?.prepareBrowserHost?.();
       return local;
     } catch (error) {
-      try { local?.close(); } finally { runtime.dispose(); }
+      try { local?.close(); } finally { loader.runtime.dispose(); }
       throw error;
     } finally {
       loader.environment = previous;
@@ -612,6 +625,7 @@ export function createApp(options) {
     const registry = new JsActionRegistry();
     const local = await WasmActionTransport.boot(moduleLoader, options.moduleUrl, {
       registry, start: options.start, imports: options.imports, window: doc.defaultView,
+      bindings: options.bindings, storage: options.storage,
     });
     cleanup.push(() => moduleLoader.runtime.dispose(), () => local.close());
     const runtime = ui.Patcher.runtime;
@@ -638,9 +652,12 @@ export function createApp(options) {
     cleanup.push(() => server.close?.());
     manager = installActionRuntime(ui, {registry, frames, server, local, behaviours, document: doc, onError});
     cleanup.push(manager.dispose);
+    let initialDeliveries = [];
     if (options.viewDataAction) {
       const receive = event => {
-        void manager.deliverViewData(options.viewDataAction, event.target, event.detail.bytes).catch(onError);
+        const delivery = manager.deliverViewData(options.viewDataAction, event.target, event.detail.bytes);
+        if (initialDeliveries) initialDeliveries.push(delivery);
+        else delivery.catch(onError);
       };
       mount.addEventListener("ewe:data", receive);
       cleanup.push(() => mount.removeEventListener("ewe:data", receive));
@@ -653,6 +670,10 @@ export function createApp(options) {
       return readViewResponse(response, frames.maxFrameBytes);
     }, {onError: error => onError({code: "ViewRecovery", detail: error.message})});
     await view.open();
+    const deliveries = initialDeliveries;
+    initialDeliveries = null;
+    await Promise.all(deliveries);
+    frames.flush();
     return manager;
   }
   return {

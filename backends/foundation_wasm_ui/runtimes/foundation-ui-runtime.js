@@ -2051,15 +2051,24 @@
         }
     }
     class WasmLoader {
+        #options;
         constructor(opts = {}){
-            this.runtime = new FoundationWasm(opts);
+            this.#options = {
+                ...opts
+            };
             this.environment = opts.environment ?? {};
             this.compileOptions = WasmLoader.compileOptionsOf(opts.compileOptions);
-            this.memory = new WebAssembly.Memory({
-                initial: opts.initialMemory ?? 10,
-                maximum: opts.maximumMemory ?? 200
-            });
-            this.module = null;
+            this.#prepareRuntime();
+        }
+        #prepareRuntime() {
+            if (!this.runtime || this.runtime.timers.disposed) {
+                this.runtime = new FoundationWasm(this.#options);
+                this.memory = new WebAssembly.Memory({
+                    initial: this.#options.initialMemory ?? 10,
+                    maximum: this.#options.maximumMemory ?? 200
+                });
+                this.module = null;
+            }
         }
         static compileOptionsOf(compileOptions) {
             return {
@@ -2079,6 +2088,7 @@
             };
         }
         async loadURL(url, fetchModule = globalThis.fetch) {
+            this.#prepareRuntime();
             let response;
             try {
                 response = await fetchModule(url);
@@ -2104,6 +2114,7 @@
             return this;
         }
         async loadBytes(bytes) {
+            this.#prepareRuntime();
             const module = await WebAssembly.instantiate(bytes, this.imports, this.compileOptions);
             this.#bind(module);
             return this;
@@ -15122,8 +15133,7 @@
         constructor(bridge){
             this.bridge = bridge;
         }
-        static async boot(loader, url, { registry, start, imports = {}, window: window1 = globalThis.window }) {
-            const runtime = loader.runtime;
+        static async boot(loader, url, { registry, start, imports = {}, bindings, storage, window: window1 = globalThis.window }) {
             const dom = new mod1.DomHeap({
                 window: window1,
                 document: window1.document
@@ -15133,19 +15143,26 @@
             });
             let local;
             const previous = loader.environment;
+            const glue = bindings?.createBindings();
             loader.environment = {
                 ...previous,
-                abi: {
-                    ...runtime.web_abi,
-                    ...mod1.domAbi(runtime, dom),
-                    ...previous.abi
+                ...glue && {
+                    [bindings.importName]: glue
+                },
+                get abi () {
+                    const runtime = loader.runtime;
+                    return {
+                        ...runtime.web_abi,
+                        ...mod1.domAbi(runtime, dom),
+                        ...previous.abi
+                    };
                 },
                 env: {
                     ...previous.env,
                     ...imports,
                     ...WasmActionTransport.imports(()=>local),
                     ewe_ui_declare (origin, pointer, length, scope) {
-                        const name = decoder.decode(new Uint8Array(runtime.bridge.memory.buffer, pointer, length));
+                        const name = decoder.decode(new Uint8Array(loader.runtime.bridge.memory.buffer, pointer, length));
                         registry.declare([
                             null,
                             "host",
@@ -15160,7 +15177,14 @@
             };
             try {
                 await loader.loadURL(url);
+                const runtime = loader.runtime;
                 const api = loader.module.instance.exports;
+                if (glue) {
+                    glue.__wbg_set_wasm(api);
+                    api.__wbindgen_start?.();
+                }
+                if (storage && !glue?.configureHostStorage) throw new Error("Missing browser storage bindings");
+                glue?.configureHostStorage?.(storage?.provider ?? "memory", storage?.namespace ?? "");
                 if (typeof api[start] !== "function") throw new Error("Missing host initializer: " + start);
                 local = new WasmActionTransport({
                     exports: api,
@@ -15168,12 +15192,13 @@
                 });
                 const status = api[start]();
                 if (status !== 0) throw new Error("Host initializer " + start + " returned " + status);
+                await glue?.prepareBrowserHost?.();
                 return local;
             } catch (error) {
                 try {
                     local?.close();
                 } finally{
-                    runtime.dispose();
+                    loader.runtime.dispose();
                 }
                 throw error;
             } finally{
@@ -15332,7 +15357,9 @@
                 registry,
                 start: options.start,
                 imports: options.imports,
-                window: doc.defaultView
+                window: doc.defaultView,
+                bindings: options.bindings,
+                storage: options.storage
             });
             cleanup.push(()=>moduleLoader.runtime.dispose(), ()=>local.close());
             const runtime = mod1.Patcher.runtime;
@@ -15375,9 +15402,12 @@
                 onError
             });
             cleanup.push(manager.dispose);
+            let initialDeliveries = [];
             if (options.viewDataAction) {
                 const receive = (event)=>{
-                    void manager.deliverViewData(options.viewDataAction, event.target, event.detail.bytes).catch(onError);
+                    const delivery = manager.deliverViewData(options.viewDataAction, event.target, event.detail.bytes);
+                    if (initialDeliveries) initialDeliveries.push(delivery);
+                    else delivery.catch(onError);
                 };
                 mount.addEventListener("ewe:data", receive);
                 cleanup.push(()=>mount.removeEventListener("ewe:data", receive));
@@ -15398,6 +15428,10 @@
                     })
             });
             await view.open();
+            const deliveries = initialDeliveries;
+            initialDeliveries = null;
+            await Promise.all(deliveries);
+            frames.flush();
             return manager;
         }
         return {
