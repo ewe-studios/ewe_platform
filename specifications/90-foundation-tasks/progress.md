@@ -425,3 +425,9 @@ A Rust client sends two distinct Todo requests and receives confirmation frames 
 The Android provider tests verify both architectures and the example and framework library destinations.
 The shared launch operation serves the generated command and an application-specific simulator test.
 The public iOS version and native Rust tag remain unavailable. Local candidate builds are in progress.
+
+## Installed command guide
+
+The guide includes build, device, and task examples for a generated project.
+A test follows the installed command tree. All 41 command paths and their options appear in the guide.
+Two independent applications list their custom task only after its declaration. Both return the expected child status.

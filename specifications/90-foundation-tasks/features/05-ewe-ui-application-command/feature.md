@@ -247,5 +247,5 @@ Give complete noninteractive examples for web, each mobile target, and a combine
 ## Source locations
 
 - [AnswerMe terminal integration](../../../../apps/answerme-agent/src/main.rs) and [shared terminal crate](../../../../backends/foundation_repl/src/lib.rs).
-- [Current project generator](../../../../bin/platform/src/generate/mod.rs) and [mobile template generation](../../../../bin/platform/src/generate/mobile.rs).
-- [Native task registry](../../../../backends/foundation_ui_native/src/tasks/mod.rs) and [Todo Apple package preparation](../../../../backends/foundation_ui_native/src/tasks/todo.rs).
+- [Current project generator](../../../../backends/foundation_ui_project/src/application.rs) and [mobile template generation](../../../../backends/foundation_ui_project/src/mobile.rs).
+- [Native task registry](../../../../backends/foundation_ui_native/src/tasks/mod.rs) and [Todo Apple package preparation](../../../../examples/ui_todo/tools/tasks/src/todo.rs).

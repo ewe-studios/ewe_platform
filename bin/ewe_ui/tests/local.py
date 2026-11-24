@@ -17,6 +17,7 @@ with tempfile.TemporaryDirectory() as directory:
     for name in ["Ledger", "Orchard"]:
         subprocess.run([binary, "new", "--name", name, "--target", "web"], cwd=base, check=True)
         root = base / name
+        assert "sample:mark" not in subprocess.check_output([binary,"task","list"],cwd=root,text=True)
         tasks = root / "tools/tasks"
         (tasks / "src").mkdir(parents=True)
         (tasks / "Cargo.toml").write_text(f"""[package]

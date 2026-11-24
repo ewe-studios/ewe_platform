@@ -79,7 +79,7 @@ fn inventory(mut command: Command, path: &str) {
 async fn help(ctx: TaskContext, args: Help) -> TaskResult {
     let guide = ctx.require::<Guide>()?;
     if args.llm {
-        println!("Create a web application: ewe_ui new --name FieldNotes --target web\nCreate Android: ewe_ui new --name FieldNotes --target android --app-id com.example.fieldnotes\nCreate iOS: ewe_ui new --name FieldNotes --target ios --app-id com.example.fieldnotes\nCombine all hosts: ewe_ui new --name FieldNotes --target web --target ios --target android --app-id com.example.fieldnotes\nGeneration writes one new directory. Existing destinations produce an error. Escape cancels with status 130. Correct invalid arguments before retrying. Publication requires a release tag, an integrity digest, and NPM_TOKEN.");
+        print!("{}", include_str!("guide.txt"));
         inventory(guide.0.clone(), "ewe_ui");
     } else {
         println!("{}", guide.0.clone().render_long_help());

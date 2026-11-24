@@ -278,3 +278,6 @@ The available Android 0.1.0 package lacks the resource interfaces used by the ge
 The older Apple archive also lacks current binding symbols.
 Testing the current application requires building the native libraries and bindings from the same source.
 An installed command test confirms Android startup failure and cancellation remove the supervised emulator process.
+
+The installed command tree can validate the full guide without a separate list of commands.
+Each command's help supplies the child names, usage line, and available options.
