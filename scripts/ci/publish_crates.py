@@ -130,11 +130,20 @@ def order(metadata: dict) -> list[dict]:
 
 
 def retry_after(output: str) -> int | None:
+    """Seconds to wait, from the message crates.io gave."""
     for pattern in (r"try again after .*?(\d+) (?:seconds|minutes)", r"retry-after[: ]+(\d+)", r"(\d+) seconds"):
         match = re.search(pattern, output, re.IGNORECASE)
         if match:
             value = int(match.group(1))
             return value * 60 if "minute" in match.group(0).lower() else value
+    # crates.io usually gives a timestamp: "try again after 2026-11-25T03:10:00Z".
+    match = re.search(r"try again after (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)", output)
+    if match:
+        from datetime import datetime, timezone
+
+        retry_at = datetime.strptime(match.group(1), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        wait = int((retry_at - datetime.now(timezone.utc)).total_seconds())
+        return max(wait + 5, 30)
     return None
 
 
@@ -197,8 +206,9 @@ def main() -> int:
             return 1
 
         # The sparse index updates a moment after the upload; wait for it so the
-        # next crate's verification sees this version.
-        for _ in range(60):
+        # next crate's verification sees this version. Ten minutes covers a slow
+        # CDN edge.
+        for _ in range(300):
             if is_published(name, version):
                 break
             time.sleep(2)
