@@ -395,3 +395,6 @@ Chromium records the game request only after the Play action. This distinguishes
 
 The provisioning command must preserve the installer exit status when it also writes a log.
 The guest shell enables pipeline failure reporting. A loopback SSH test verified status 37 and guest cleanup.
+
+A generated companion entry can import more JavaScript files below its snippets directory.
+The build keeps the complete private JavaScript tree so the independent game test can load those imports.

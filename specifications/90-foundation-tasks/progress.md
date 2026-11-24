@@ -580,3 +580,8 @@ The local Secure Shell (SSH) test transferred the selected layer and ran its ins
 A second installer returned status 37. The task kept its log and removed the temporary directory.
 The Rust test checks missing containers, optional layers, and command failures.
 Native macOS and Windows guest verification still needs the guest images and a compatible host.
+
+The seeded Chromium test now opens Mathalley twice with the packaged script and its private generated imports.
+The test checks the graphics device, independent sound, scene changes, and the live Todo subscription.
+The browser action test and the separate packaged icon test also pass.
+The standalone replay fixture supplies the real initial screen to the proxy. The proxy accepts its replay and action controls.
