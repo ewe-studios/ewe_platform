@@ -1,6 +1,9 @@
 package ewe.todo.local
 
 import ewe.ui.android.AndroidResourceSource
+import java.security.SecureRandom
+import ewe.todo.game.MathalleyRoute
+import androidx.compose.runtime.mutableStateOf
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +20,13 @@ import io.github.ewe_studios.ewe.todo.createLocalTodoCore
 import io.github.ewe_studios.ewe.todo.initialTodoFrame
 
 class MainActivity : ComponentActivity() {
+    private val foreground = mutableStateOf(false)
+    private val game = MathalleyRoute {
+        intent.getStringExtra("gameSeed")?.toULongOrNull() ?: SecureRandom().nextLong().toULong()
+    }
+    override fun onResume() { super.onResume(); foreground.value = true }
+    override fun onPause() { foreground.value = false; super.onPause() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -35,7 +45,9 @@ class MainActivity : ComponentActivity() {
                     initialFrame = ::initialTodoFrame,
                     theme = theme,
                     viewDataAction = "host:apply_todo_delivery",
+                    onAttached = game::attach,
                 )
+                game.Screen(foreground.value)
             }
         }
     }

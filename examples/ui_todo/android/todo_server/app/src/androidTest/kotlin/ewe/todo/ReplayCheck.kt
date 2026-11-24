@@ -19,6 +19,7 @@ class ReplayCheck : Instrumentation() {
 
     private var echoEndpoint: String? = null
     private var resourceHash: String? = null
+    private var gameSound = false
     private var dataOnly = false
     private var subscriptions = false
 
@@ -26,6 +27,7 @@ class ReplayCheck : Instrumentation() {
         super.onCreate(arguments)
         base = arguments?.getString("server") ?: base
         subscriptions = arguments?.getString("subscriptions") == "true"
+        gameSound = arguments?.getString("gameSound") == "true"
         dataOnly = arguments?.getString("data") == "true"
         echoEndpoint = arguments?.getString("socket_echo")
         resourceHash = arguments?.getString("resource_hash")
@@ -79,6 +81,11 @@ class ReplayCheck : Instrumentation() {
                 }
                 resourceHash?.let {
                     verifyInstalledResources(targetContext.assets, it)
+                    return@runBlocking
+                }
+                if (gameSound) {
+                    verifyGameSound()
+                    results.putString("stream", "The second game output plays after the first closes.")
                     return@runBlocking
                 }
                 if (subscriptions) {

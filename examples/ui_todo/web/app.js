@@ -1,3 +1,4 @@
+import { installMathalley } from "./game-view.js";
 import * as bindings from "./bindings/ui_todo_bg.js";
 import { WasmLoader } from "./foundation-wasm.js";
 import { createApp } from "./foundation-ui-actions.js";
@@ -33,6 +34,7 @@ async function boot() {
     const moduleLoader = new WasmLoader();
     const params = new URL(location.href).searchParams;
     const notice = document.querySelector("#notice");
+    let hostBindings;
     const app = createApp({
         moduleLoader, moduleUrl: "/module.wasm", start: "init_todo_host",
         view: "todos", mount: document.querySelector("#page"),
@@ -40,11 +42,22 @@ async function boot() {
         viewDataAction: "host:apply_todo_delivery",
         transport: params.has("socket") ? {socket: "/socket"} : params.has("rpc") ? connectSender : undefined,
         onError(error) { notice.value = error.code; console.error(error); },
-        bindings,
+        bindings: {
+            importName: bindings.importName,
+            createBindings() { hostBindings = bindings.createBindings(); return hostBindings; },
+        },
         storage: {provider: "indexedDB", namespace: "todo:" + location.origin},
     });
 
-    await app.boot();
+    const manager = await app.boot();
+    const game = installMathalley(manager.deps.frames);
+    document.querySelector("#page").addEventListener("ewe:data", event => {
+        const bytes = event.detail.bytes;
+        if (bytes && hostBindings.is_mathalley_open(bytes)) {
+            event.stopImmediatePropagation();
+            game.open();
+        }
+    }, { capture: true });
     window.todoReady = true;
 }
 boot().catch(error => {

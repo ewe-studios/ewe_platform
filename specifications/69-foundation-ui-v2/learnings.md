@@ -1107,3 +1107,37 @@ Android sets its light status bar flag when it draws dark icons. The flag clears
 
 The on-device build registered the display actions without a sender for business actions.
 An independent local dispatcher can own the task store and send typed confirmations to the display cache.
+
+## Feature 36. Mathalley
+
+The reference separates the game, scene, renderer, and sound score. Its browser host owns the frame loop.
+The reference commit is `11052a15411ed1534c2ba9e5f982fd7dc975ffaf`.
+
+## Mathalley sound
+
+The reference separates the Rust score from browser playback. Its playback clock controls note timing independently of frame timing.
+
+The drawing surface owner must present each frame after the game submits its drawing commands.
+A game can keep its pipeline between frames and release it without closing the host device.
+Pause clears the previous frame timestamp. The first frame after resume advances the game by zero.
+A sound session needs its own playback position and lifetime. Two tracks can share a host without sharing their cues.
+
+A navigation test can pass while the graphics worker fails. Check a presented game frame before accepting a game screenshot.
+The downlevel graphics limits permit textures up to 2048 pixels wide or high. Modern phone display surfaces can exceed either dimension.
+The compositor can discard a browser canvas after presentation. A screenshot preserves the pixels that the user saw.
+
+The iPhone host must finish removing a named surface before a new view can use its name.
+The iPhone regression checks both an unsupported resize and a later successful presentation.
+Seed 13 uses the same six Train answers on every host. A pixel from the sky identifies Train.
+A pixel from the machine base identifies Gumball. A landscape capture can rotate its underlying image.
+The Android test checks the visible orientation. The Apple test checks the scene color across the capture.
+The Android test device renders game surfaces with Vulkan. The Google APIs emulator also captures ordinary Todo controls.
+
+The game command contains fourteen bytes. The previous host listeners expected thirteen.
+All hosts call one Rust decoder that requires the complete string value.
+
+
+The server test uses a second browser to add a Todo while the iPhone shows the game.
+A matching row and count after return confirm that the subscription still delivers updates.
+The offline test uses two consecutive game visits to check surface cleanup and Todo state together.
+Simulated audio rendering verifies generated samples. A phone is necessary to check its speaker and operating system interruptions.

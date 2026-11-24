@@ -1376,3 +1376,54 @@ The open count changed from zero to one after Add and returned to zero after Del
 The deleted title disappeared from the device tree. The Pixel then returned to Todo Server and displayed both original tasks.
 The iPhone 17e simulator passed the same workflow. Its test also verified that the Pending label cleared after Add.
 All four Rust mobile tests passed. The new regression test checks the actual operations each platform receives.
+
+## Feature 36. Mathalley
+
+The owner approves Feature 36. Work starts on branch `work/69-mathalley` at `279a5fa2b`.
+The reference commit is `11052a15411ed1534c2ba9e5f982fd7dc975ffaf`.
+
+## Shared audio proposal
+
+The owner approves the Feature 36 host sound session. The graphics agent owns implementation and playback checks.
+
+### Mathalley integration checkpoint
+
+The game runs on branch `work/69-mathalley` in `.worktrees/mathalley`.
+Five Rust tests pass on macOS. A seeded run completes both games, three rounds, the tally, and restart.
+The other tests check letterbox input, paused time, cues, volume, and independent sound sessions.
+
+Chrome opens both games through the shared entry. A second client changes the count while the game is open.
+Chrome retains the selected filter across two opens. Its independent sound output test passes.
+The browser host copies a presented game pixel to its own texture. The Rust device lease exchanges red and blue.
+The host reads the changed pixel from the same texture.
+
+The iPhone 17 simulator presents the game twice and returns to the selected filter.
+A second client adds a task while the iPhone displays the game. The server-backed test passes.
+The iPhone drawable measures 1206 by 2241 pixels. Issue #722 tracks the old device limit of 2048 pixels.
+The repair requests the adapter resolution limit and rejects unsupported surface sizes before configuration.
+
+The Android application displays Train on the Arm emulator with the Vulkan graphics backend.
+Two open and close cycles preserve the task and filter. The application also survives a background and foreground transition.
+Browser, iPhone, and Android game captures are in the Feature 36 screenshots directory.
+
+Chrome, iPhone, and Android each receive a task from a second client while Mathalley is open.
+Each host shows both tasks when the user returns. The iPhone and Android tests use simulators.
+Seed 13 selects two Train levels followed by Gumball. All three hosts display both scenes and receive answer input.
+The iPhone and Android tests rotate the game. The rendered Gumball scene survives the change.
+The screenshots directory contains the Train and Gumball scenes for each host.
+The iPhone screenshots also include Gumball in landscape.
+The iPhone Metal regression passes with a large drawable and rejects an unsupported resize.
+All ten native graphics tests pass on macOS. Strict Clippy passes for the mobile and WebAssembly example builds.
+
+Each native sound test compares seeded music with the same music plus the intro cue.
+Both hosts preserve mute across a pause and resume. Closing the game releases only its own output.
+Apple renders samples from the second view through its audio engine. Android advances playback through its audio track.
+The browser uses Web Audio. Physical phone speakers and operating system interruption notifications still need a device review.
+
+### Mathalley and offline Todo integration
+
+The merged mobile hosts share the game command decoder and the local Todo service.
+The signed iPhone server test opens the game, receives a peer update, and restores the filter and count.
+The signed iPhone 17e passed both offline tests on commit `e114627ee`. Two game visits preserved the selected filter and Todo.
+Train and Gumball passed the seeded input and rotation test. The captures show both scenes and the restored list.
+The independent Apple audio test also passed. Physical playback and interruption tests remain open.

@@ -70,6 +70,13 @@ final class GraphicsTests: XCTestCase {
     let left = layer(), right = layer()
     let size: UInt32 = 64
     let a = try await gpu.attach(name: "first", layer: left, width: size, height: size)
+    try await a.resize(width: 1206, height: 2241)
+    try await a.clear(red: 0, green: 0, blue: 0, alpha: 1)
+    do {
+      try await a.resize(width: UInt32.max, height: 1)
+      XCTFail("The device must reject oversized targets")
+    } catch GraphicsError.Unsupported {}
+    try await a.resize(width: size, height: size)
     let b = try await gpu.attach(name: "second", layer: right, width: size, height: size)
     try await a.resize(width: 0, height: 0)
     do { try await a.clear(red: 0, green: 1, blue: 0, alpha: 1); XCTFail("A suspended surface presented") }
