@@ -111,6 +111,7 @@ Test renamed groups, empty member lists, invalid references, platform opt-outs, 
 | Virtual machine host | `images:vm-up` and `images:vm-down` | Nushell forwards host options. A Docker fixture verifies both commands, storage, and loopback ports. |
 | Guest readiness | `images:vm-wait` | An isolated SSH service verified login, a missing marker, and a completed marker. Fixtures check replacement and failed provisioning. |
 | Guest transfer | `images:vm-push` and `images:vm-pull` | OpenSSH transferred binary data in both directions. Tests check exclusions, retry errors, and existing local files. |
+| Guest provisioning | `images:vm-provision` | A loopback guest installed the selected image layer. Installer failure returned status 37 and kept its log. |
 | Guest diagnostics | `images:vm-logs` | A real loopback service returned a log. Disconnection preserved the previous file and returned status 255. |
 | Guest runner status | `images:vm-runner-alive` and `images:vm-wait-runner` | Both Nushell commands preserve connection failures. Tests check running, finished, and timeout cases. |
 | Container execution | `linux`, `link-submodules`, and virtual machine host checks | Local Linux containers exercise command failure, cleanup, and console access. Git fixtures verify baked source selection. |
@@ -124,7 +125,7 @@ Make and mise dispatch those operations to the same task set.
 1. Verify the CUDA archive and the complete release package selection. The default Linux image built a real plugin archive and verified it with protoc.
 2. Verify release installation on a clean hosted runner. Local tests cover cached release tools, new tags, and partial dispatch failures.
 3. Supply a verified first-stage tool for fresh guests. A new guest starts without Cargo or a repository checkout.
-4. Migrate virtual machine operations and guest provisioning. The image builder and Linux image smoke checks now use the Rust task runner.
+4. Migrate guest command execution and runner startup. Verify the supported commands on native guests.
 5. Migrate the remaining generators and supported legacy WebAssembly builds. Issue #792 tracks the fixture decision. Issue #794 tracks the Google Cloud input format.
 6. Select the supported manual publication packages. Issue #793 tracks the retired package names. Verify guest tests on supported hosts.
 
