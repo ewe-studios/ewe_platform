@@ -174,11 +174,19 @@ pub async fn launch(
                     ]),
                 )
                 .await?;
-                if !report.lines().any(|line| line.trim() == "Status: ok") {
+                let status = report
+                    .lines()
+                    .find_map(|line| line.trim().strip_prefix("Status: "));
+                if !matches!(status, Some("ok" | "timeout")) {
                     return Err(TaskError::operation(format!(
                         "Android launch failed: {report}"
                     )));
                 }
+                let class = component.strip_prefix('.').map_or_else(
+                    || component.to_owned(),
+                    |short| format!("{application_id}.{short}"),
+                );
+                wait_for_window(ctx, adb()?, &format!("{application_id}/{class}"), &report).await?;
             }
             Target::Ios => {
                 ctx.exec(devices::simctl(ctx)?.args(["install", id]).arg(artifact))
@@ -195,6 +203,50 @@ pub async fn launch(
         task: format!("Launch {} on {id}", target.directory()),
         source: Box::new(e),
     })
+}
+
+async fn wait_for_window(
+    ctx: &TaskContext,
+    adb: ProcessCommand,
+    expected: &str,
+    report: &str,
+) -> TaskResult {
+    let env = ctx.require::<super::NativeBuildEnv>()?;
+    if env.window_poll.is_zero() {
+        return Err(TaskError::operation(
+            "Android window polling interval must be positive",
+        ));
+    }
+    let clock = ctx.context().clock();
+    let deadline = clock
+        .now()
+        .checked_add(env.window_wait)
+        .ok_or_else(|| TaskError::operation("Android window deadline exceeds the clock range"))?;
+    loop {
+        let focus = text(
+            ctx,
+            adb.clone()
+                .args(["shell", "dumpsys window | grep mCurrentFocus="]),
+        )
+        .await?;
+        let mut windows = focus.lines().filter_map(|line| {
+            line.trim()
+                .strip_prefix("mCurrentFocus=Window{")?
+                .strip_suffix('}')?
+                .split_whitespace()
+                .last()
+        });
+        if windows.any(|name| name == expected) {
+            return Ok(());
+        }
+        let remaining = deadline.saturating_duration_since(clock.now());
+        if remaining.is_zero() || focus.contains("Application Not Responding:") {
+            return Err(TaskError::operation(format!(
+                "Android launch did not focus {expected}: {report}\n{focus}"
+            )));
+        }
+        super::device::sleep(ctx, env.window_poll.min(remaining)).await?;
+    }
 }
 
 async fn verify_android(

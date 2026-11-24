@@ -445,3 +445,143 @@ fn sync_checks_nested_files_and_replaces_the_owned_tree() {
         "second"
     );
 }
+
+struct WindowTimer(Arc<foundation_core::valtron::SimulatedClock>);
+
+impl foundation_context::env::Timer for WindowTimer {
+    fn sleep_until(
+        &self,
+        ctx: Ctx,
+        deadline: foundation_context::Instant,
+    ) -> foundation_context::env::TimerFuture {
+        self.0
+            .advance(deadline.saturating_duration_since(ctx.clock().now()));
+        Box::pin(async {})
+    }
+}
+
+struct LaunchReport {
+    status: &'static str,
+    focus: &'static str,
+    pending: std::sync::atomic::AtomicBool,
+}
+
+impl TaskProcess for LaunchReport {
+    fn run(
+        &self,
+        cmd: ProcessCommand,
+        out: Arc<dyn TaskOutput>,
+        _: Cancellation,
+    ) -> BoxFuture<'_, TaskResult> {
+        Box::pin(async move {
+            let args: Vec<_> = cmd.args.iter().map(|s| s.to_str().unwrap()).collect();
+            let report = match &args[..] {
+                ["-s", "phone", "install", "-r", "test.apk"] => "",
+                ["-s", "phone", "shell", "am", "start", "-W", "-n", "example.app/.Main"] => {
+                    self.status
+                }
+                ["-s", "phone", "shell", "dumpsys window | grep mCurrentFocus="] => {
+                    if self
+                        .pending
+                        .swap(false, std::sync::atomic::Ordering::Relaxed)
+                    {
+                        "mCurrentFocus=null"
+                    } else {
+                        self.focus
+                    }
+                }
+                _ => panic!("unexpected Android command {args:?}"),
+            };
+            out.write(OutputStream::Stdout, report.as_bytes())
+                .await
+                .map_err(TaskError::operation)
+        })
+    }
+}
+
+#[test]
+fn android_timeout_requires_the_requested_window_to_have_focus() {
+    use foundation_tasks::TaskSet;
+    use foundation_ui_project::application::Target;
+    for (status, focus, success) in [
+        (
+            "Status: ok",
+            "mCurrentFocus=Window{1 u0 example.app/example.app.Main}",
+            true,
+        ),
+        (
+            "Status: ok",
+            "mCurrentFocus=Window{1 u0 other.app/other.app.Main}",
+            false,
+        ),
+        (
+            "Status: timeout",
+            "  mCurrentFocus=Window{1 u0 example.app/example.app.Main}",
+            true,
+        ),
+        (
+            "Status: timeout",
+            "mCurrentFocus=Window{1 u0 example.app/example.app.MainOther}",
+            false,
+        ),
+        ("Status: timeout", "mCurrentFocus=null", false),
+        (
+            "Error: Activity does not exist",
+            "mCurrentFocus=Window{1 u0 example.app/example.app.Main}",
+            false,
+        ),
+    ] {
+        let clock = Arc::new(foundation_core::valtron::SimulatedClock::new(
+            std::time::Duration::ZERO,
+        ));
+        let ctx = Ctx::fixed(clock.clone());
+        ctx.store(foundation_context::env::Env::new(
+            Arc::new(WindowTimer(clock)),
+            Arc::new(foundation_context::env::SeededEntropy::new(1)),
+            Arc::new(foundation_context::env::CounterSource::new(0)),
+        ));
+        ctx.store(NativeBuildEnv::new(".".into()).with_window_wait(
+            if success {
+                std::time::Duration::from_secs(2)
+            } else {
+                std::time::Duration::ZERO
+            },
+            std::time::Duration::from_millis(1),
+        ));
+        ctx.store(TaskEnv {
+            process: Arc::new(LaunchReport {
+                status,
+                focus,
+                pending: std::sync::atomic::AtomicBool::new(success),
+            }),
+            output: Arc::new(Capture::default()),
+            cancellation: Cancellation::new(),
+        });
+        let mut tasks = TaskSet::new("test");
+        tasks
+            .add_command(
+                "launch",
+                "Launch the application",
+                clap::Command::new("launch"),
+                |ctx, _| async move {
+                    tasks::project::launch(
+                        &ctx,
+                        Target::Android,
+                        "phone",
+                        "example.app",
+                        ".Main",
+                        Path::new("test.apk"),
+                    )
+                    .await
+                },
+            )
+            .unwrap();
+        let mut runner = TaskRunner::new(
+            ctx,
+            ["test", "task", "run", "launch"].map(Into::into).into(),
+        );
+        runner.register(tasks).unwrap();
+        let result = futures_lite::future::block_on(runner.run());
+        assert_eq!(result.is_ok(), success, "{status} {focus}: {result:?}");
+    }
+}

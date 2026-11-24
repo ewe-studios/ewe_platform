@@ -469,3 +469,7 @@ The local database migration uses Wrangler's supported apply command. Issue #805
 
 The installed command builds and launches the Android on-device starter. A tap changes its local Rust counter from zero to one.
 The application archive contains one application library and one framework library for each selected architecture.
+
+The installed Android launch command waits for the requested activity to own the focused window.
+CedarBoard started on the emulator and displayed its server data. Grove displayed its counter and accepted a tap.
+An installed command test supplied two empty focus reports before the requested activity appeared.

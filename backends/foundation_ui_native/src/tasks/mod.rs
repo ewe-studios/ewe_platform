@@ -32,6 +32,8 @@ pub struct NativeBuildEnv {
     signing_job: Option<sign::JobEnv>,
     pub devices: device::Options,
     server_wait: std::time::Duration,
+    window_wait: std::time::Duration,
+    window_poll: std::time::Duration,
     signing_key: Option<String>,
     developer_dir: Option<OsString>,
     home: Option<OsString>,
@@ -50,6 +52,8 @@ impl NativeBuildEnv {
             signing_job: None,
             devices: device::Options::default(),
             server_wait: std::time::Duration::from_secs(30),
+            window_wait: std::time::Duration::from_secs(30),
+            window_poll: std::time::Duration::from_secs(1),
             signing_key: None,
             developer_dir: None,
             home: None,
@@ -109,6 +113,19 @@ impl NativeBuildEnv {
     #[must_use]
     pub fn server_wait(&self) -> std::time::Duration {
         self.server_wait
+    }
+
+    /// Set the Android window deadline and polling interval.
+    /// The defaults allow 30 seconds for a cold activity and check once per second.
+    #[must_use]
+    pub fn with_window_wait(
+        mut self,
+        timeout: std::time::Duration,
+        interval: std::time::Duration,
+    ) -> Self {
+        self.window_wait = timeout;
+        self.window_poll = interval;
+        self
     }
 
     /// Set the deadline for a local server to report its port.

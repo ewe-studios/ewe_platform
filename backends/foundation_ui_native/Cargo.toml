@@ -63,7 +63,7 @@ objc2-metal = { workspace = true, features = ["MTLCommandQueue", "MTLDevice", "M
 
 [dev-dependencies]
 futures-lite.workspace = true
-foundation_core = { path = "../foundation_core" }
+foundation_core = { path = "../foundation_core", features = ["test-clock"] }
 
 [[bin]]
 name = "uniffi-bindgen"

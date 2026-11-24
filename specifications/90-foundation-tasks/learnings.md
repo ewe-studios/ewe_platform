@@ -307,3 +307,7 @@ Configuration output can report whether a token exists without printing its valu
 
 Cargo NDK checks dependency artifacts when its output directory option is set. A dependency can declare a shared library but produce only a Rust library.
 Stage the declared application library from each completed target build. Keep the framework library in its Android library package.
+
+Android can report a successful activity start while another application owns the focused window.
+Under load, Android can report a timeout before the requested window appears.
+Check the exact activity name until the configured deadline. Treat an application error dialog as a launch failure.
