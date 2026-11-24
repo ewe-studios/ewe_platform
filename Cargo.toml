@@ -49,6 +49,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+foundation_core = { path = "backends/foundation_core", version = "0.0.23" }
 rustix = "1.1.4"
 foundation_ui_project = { path = "backends/foundation_ui_project", version = "0.1.0" }
 # plist 1.7 requires quick-xml 0.38 for its property list parser.

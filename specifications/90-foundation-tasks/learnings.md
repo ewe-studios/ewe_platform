@@ -296,3 +296,5 @@ Validate target selection before checking for a native library. Server applicati
 Java 27 writes 17,006 bytes when verifying the generated Android bundle with a test key. Match the complete success line while streaming all output.
 
 Inspect resources inside the installed Apple bundle and built Android archive. A successful compiler exit alone does not check the application title.
+
+Cargo unifies features across dependencies on the same target. Select the JavaScript event loop in the WebAssembly dependency table.

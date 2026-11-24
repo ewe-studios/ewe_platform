@@ -450,3 +450,6 @@ The installed command builds a signed Android App Bundle and verifies its signat
 
 The installed command builds and launches CedarBoard on Android and iOS with local release inputs.
 Both installed applications contain the same shared title. The Android screen shows the server count and refresh action.
+
+The installed native command parks while a child runs. Its processor time fell from 4.744 seconds to 0.073 seconds for the same wait.
+The browser still enables its JavaScript event loop.
