@@ -398,3 +398,6 @@ The guest shell enables pipeline failure reporting. A loopback SSH test verified
 
 A generated companion entry can import more JavaScript files below its snippets directory.
 The build keeps the complete private JavaScript tree so the independent game test can load those imports.
+
+Xcode's generic simulator destination can request two architectures.
+The generated application library contains the host simulator architecture. The generic command selects the same architecture.
