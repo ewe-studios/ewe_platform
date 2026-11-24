@@ -1,4 +1,6 @@
 //! Bundle local ECMAScript modules into classic browser scripts.
+mod application;
+pub use application::{application, ApplicationScript};
 use anyhow::{Context, Result, bail};
 use std::{
     collections::{BTreeSet, HashMap},
