@@ -19,7 +19,7 @@ pub extern "C" fn init_todo_host() -> u32 {
     let Ok(actions) = crate::host_registry() else {
         return 2;
     };
-    let migration = crate::shared::pending::browser::migrate(ctx.clone());
+    let migration = crate::shared::pending::records::migrate(ctx.clone());
     LocalApp::builder(ctx, actions).on_boot(migration).install();
     0
 }

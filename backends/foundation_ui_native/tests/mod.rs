@@ -9,3 +9,5 @@ mod resource_tests;
 
 #[cfg(feature = "tasks")]
 mod android_library;
+#[cfg(feature = "storage")]
+mod storage;

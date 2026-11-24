@@ -1,7 +1,7 @@
 //! Browser storage selected when an application boots.
 extern crate std;
 use alloc::string::String;
-use alloc::{boxed::Box, collections::BTreeMap, format};
+use alloc::{boxed::Box, collections::BTreeMap};
 use core::cell::RefCell;
 use foundation_db::wasm::browser::{BrowserBackend, BrowserStore};
 pub use foundation_db::KeyValueStore;
@@ -148,21 +148,7 @@ impl HostStorage {
                     .change_records(prefix, inserts, updates, removals)
                     .await
             }
-            Provider::Memory(store) => {
-                for (&key, &value) in inserts {
-                    store.set(&format!("{prefix}{key}"), value.clone()).await?;
-                }
-                for (&key, &value) in updates {
-                    let key = format!("{prefix}{key}");
-                    if store.exists(&key).await? {
-                        store.set(&key, value.clone()).await?;
-                    }
-                }
-                for key in removals {
-                    store.delete(&format!("{prefix}{key}")).await?;
-                }
-                Ok(())
-            }
+            Provider::Memory(store) => store.change_records(prefix, inserts, updates, removals),
         }
     }
 }

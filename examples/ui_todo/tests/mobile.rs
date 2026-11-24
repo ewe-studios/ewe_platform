@@ -237,7 +237,8 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
     let payload = transport.0.lock().unwrap()[0].clone();
     let key = payload["id"].as_str().unwrap();
     assert_eq!(payload["title"], "Keep this title");
-    assert!(path.is_file());
+    assert!(path.with_added_extension("sqlite3").is_file());
+    assert!(!path.exists());
     drop(first);
     let next = open();
     let ops = operations(&initial_todo_frame(next.clone()).await.unwrap());
@@ -283,13 +284,22 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
     };
     let reply = corrected.trigger("host:submit_todo".into(), event).await.unwrap().unwrap();
     assert!(shows(&operations(&reply), "Try again"));
-    let requests = transport.0.lock().unwrap();
-    assert_eq!(requests[2]["title"], "Corrected title");
-    assert_ne!(requests[2]["id"], payload["id"]);
-    let saved: std::collections::BTreeMap<String, ui_todo::Pending> =
-        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    assert_eq!(saved.len(), 1);
-    assert!(!saved.contains_key(&format!("add:{key}")));
+    let corrected_key = {
+        let requests = transport.0.lock().unwrap();
+        assert_eq!(requests[2]["title"], "Corrected title");
+        assert_ne!(requests[2]["id"], payload["id"]);
+        format!("pending/add:{}", requests[2]["id"].as_str().unwrap())
+    };
+    use foundation_db::KeyValueStore;
+    let database = pending_database(&path).await;
+    let keys = database
+        .list_keys(Some("pending/"))
+        .await
+        .unwrap()
+        .collect_all()
+        .await
+        .unwrap();
+    assert_eq!(keys, [corrected_key]);
 }
 
 #[valtron_test]
@@ -366,7 +376,29 @@ async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
     assert!(!shows(&confirmed, "Task one"));
     assert!(shows(&confirmed, "Task two"));
     assert!(shows(&confirmed, "0 open todos"));
-    assert_eq!(std::fs::read(path).unwrap(), b"{}");
+    use foundation_db::KeyValueStore;
+    assert!(path.is_file());
+    let database = pending_database(&path).await;
+    assert!(!database
+        .exists(&format!("pending/delete:{first}"))
+        .await
+        .unwrap());
+    assert!(database
+        .exists(&format!("imported/v1/delete:{first}"))
+        .await
+        .unwrap());
+    drop(core);
+    let restarted = ui_todo::create_persistent_todo_core(
+        NativePlatform::Android,
+        Arc::new(FailTransport::default()),
+        path.to_str().unwrap().into(),
+    )
+    .unwrap();
+    let _ = initial_todo_frame(restarted).await.unwrap();
+    assert!(!database
+        .exists(&format!("pending/delete:{first}"))
+        .await
+        .unwrap());
 }
 
 #[derive(Default)]
@@ -457,5 +489,111 @@ async fn on_device_mutations_update_the_receiving_view() {
         let _ = trigger(&core, &dialog, "host:submit_delete", &id).await;
         let removed = frames.apply_data(&core).await;
         assert!(shows(&removed, "0 open todos") && !shows(&removed, "Buy milk"));
+    }
+}
+
+async fn pending_database(path: &std::path::Path) -> foundation_db::LibsqlStore {
+    foundation_db::LibsqlStore::new_kv(
+        path.with_added_extension("sqlite3").to_str().unwrap(),
+        None,
+        Ctx::host(),
+    )
+    .await
+    .unwrap()
+}
+
+#[valtron_test]
+async fn concurrent_mobile_cores_keep_independent_pending_keys() {
+    use futures_util::TryStreamExt;
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("pending.json");
+    let open = || {
+        let core = ui_todo::create_persistent_todo_core(
+            NativePlatform::Android,
+            Arc::new(FailTransport::default()),
+            path.to_str().unwrap().into(),
+        )
+        .unwrap();
+        core.set_frame_listener(Arc::new(LocalFrames::default()));
+        core
+    };
+    let left = open();
+    let right = open();
+    let first = operations(&initial_todo_frame(left.clone()).await.unwrap());
+    let second = operations(&initial_todo_frame(right.clone()).await.unwrap());
+    let left_sheet = trigger(&left, &first, "host:open_add_dialog", "").await;
+    let right_sheet = trigger(&right, &second, "host:open_add_dialog", "").await;
+    futures_util::join!(
+        trigger(&left, &left_sheet, "host:submit_todo", "Left addition"),
+        trigger(&right, &right_sheet, "host:submit_todo", "Right addition"),
+    );
+    let db = pending_database(&path).await;
+    let records: Vec<_> = db
+        .records::<ui_todo::Pending>("pending/")
+        .await
+        .unwrap()
+        .try_collect()
+        .await
+        .unwrap();
+    assert_eq!(records.len(), 2);
+    let left_id = records
+        .iter()
+        .find_map(|(_, entry)| match &entry.change {
+            ui_todo::PendingChange::Add { id, title } if title == "Left addition" => {
+                Some(id.to_string())
+            }
+            _ => None,
+        })
+        .unwrap();
+    let change = serde_json::json!({"Committed":{"position":1,"change":{"Upsert":{"id":left_id,"text":"Left addition","done":false}}}});
+    let bytes = rmp_serde::to_vec_named(&("ewe.todo.v1", change)).unwrap();
+    left.trigger_structured(
+        "host:apply_todo_delivery".into(),
+        EventInput::receiving_view(),
+        serde_json::to_vec(&bytes).unwrap(),
+    )
+    .await
+    .unwrap();
+    drop(left);
+    drop(right);
+    let restarted = operations(&initial_todo_frame(open()).await.unwrap());
+    assert!(shows(&restarted, "Right addition"));
+    assert!(shows(&restarted, "Try again"));
+    assert!(!shows(&restarted, "Left addition"));
+}
+
+#[valtron_test]
+async fn mobile_storage_uses_the_full_legacy_filename_for_each_namespace() {
+    use foundation_db::KeyValueStore;
+    let dir = tempfile::tempdir().unwrap();
+    for (index, name) in ["records.json", "records.bak", "records.sqlite3"]
+        .into_iter()
+        .enumerate()
+    {
+        let path = dir.path().join(name);
+        let id = format!("00000000-0000-4000-8000-{index:012}");
+        let legacy = serde_json::to_vec(&serde_json::json!({
+            (format!("add:{id}")): {"change":{"Add":{"id":id,"title":name}}, "retry": true}
+        }))
+        .unwrap();
+        std::fs::write(&path, &legacy).unwrap();
+        let core = ui_todo::create_persistent_todo_core(
+            NativePlatform::Ios,
+            Arc::new(FailTransport::default()),
+            path.to_str().unwrap().into(),
+        )
+        .unwrap();
+        let frame = operations(&initial_todo_frame(core).await.unwrap());
+        assert!(shows(&frame, name));
+        assert_eq!(std::fs::read(&path).unwrap(), legacy);
+        let db = pending_database(&path).await;
+        let keys = db
+            .list_keys(Some("pending/"))
+            .await
+            .unwrap()
+            .collect_all()
+            .await
+            .unwrap();
+        assert_eq!(keys, [format!("pending/add:{id}")]);
     }
 }

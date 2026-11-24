@@ -7022,6 +7022,7 @@ dependencies = [
  "foundation_connectrpc",
  "foundation_context",
  "foundation_core",
+ "foundation_db",
  "foundation_netio",
  "foundation_resources",
  "foundation_tasks",
@@ -16945,7 +16946,6 @@ name = "ui_todo"
 version = "0.0.3"
 dependencies = [
  "async-trait",
- "blocking",
  "buffa",
  "bytemuck",
  "font8x8",
@@ -16956,6 +16956,7 @@ dependencies = [
  "foundation_connectrpc_codegen",
  "foundation_context",
  "foundation_core",
+ "foundation_db",
  "foundation_errstacks",
  "foundation_http",
  "foundation_macros",

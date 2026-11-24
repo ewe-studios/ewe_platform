@@ -1440,3 +1440,11 @@ The signed iPhone 17e opens Mathalley, keeps the Todo subscription, and passes t
 Chromium opens the game from the production bundle and returns to Todo. Android verification remains in progress.
 
 The integrated package passed six Mathalley tests and four mobile Todo tests after the fix for issue 840.
+
+### Native pending records
+
+Issue #728 replaces the native pending file adapter with the framework key-value store.
+Each Todo server has its own SQLite file. Each pending request uses its original operation identifier as the key.
+A transaction writes each imported record and its receipt together. The old JSON file remains available for recovery.
+Four database tests passed. They cover rollback, concurrent connections, import receipts, and timestamps from the host clock.
+The SQLite provider passed release checks for Android arm64 and the iPhone arm64 simulator. Application tests are in progress.

@@ -6,6 +6,8 @@ mod core;
 pub mod graphics;
 mod host;
 pub mod rpc;
+#[cfg(feature = "storage")]
+pub mod storage;
 pub mod websocket;
 #[cfg(not(target_family = "wasm"))]
 pub mod resources;

@@ -1,6 +1,4 @@
 //! Build the native todo core with the same host actions and views as the browser.
-#[path = "mobile_pending.rs"]
-mod pending;
 use foundation_context::Ctx;
 use foundation_ui_native::{
     CoreError, EventInput, HostTransport, NativeCore, NativeCoreBuilder, NativePlatform,
@@ -51,7 +49,10 @@ fn todo_core(
 ) -> Result<NativeCoreBuilder, CoreError> {
     let ctx = todo_context(Origin::Host)?;
     if let Some(path) = path {
-        crate::install_pending_storage(&ctx, Arc::new(pending::FileStorage(path)));
+        ctx.store(foundation_ui_native::storage::NativeRecordFile::new(
+            path.with_added_extension("sqlite3"),
+            path,
+        ));
     }
     let registry = crate::host_registry().map_err(|e| CoreError::BadReference {
         detail: e.to_string(),

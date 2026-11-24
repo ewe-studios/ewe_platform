@@ -13,11 +13,13 @@ autotests = false
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [features]
+storage = ["dep:foundation_db", "dep:serde", "dep:serde_json"]
 tasks = ["dep:foundation_ui_project", "dep:foundation_tasks", "dep:clap", "dep:tempfile", "dep:serde_json", "dep:sha2", "dep:hex", "dep:zip", "dep:plist", "dep:regex", "dep:serde", "dep:toml", "dep:quick-xml", "dep:sha1", "dep:base64", "dep:uuid"]
 bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
 
 [dependencies]
+foundation_db = { workspace = true, features = ["libsql"], optional = true }
 futures-lite.workspace = true
 async-channel.workspace = true
 foundation_ui_gpu.workspace = true
@@ -62,6 +64,7 @@ objc2.workspace = true
 objc2-metal = { workspace = true, features = ["MTLCommandQueue", "MTLDevice", "MTLTexture"] }
 
 [dev-dependencies]
+tempfile.workspace = true
 futures-lite.workspace = true
 foundation_core = { path = "../foundation_core", features = ["test-clock"] }
 

@@ -1151,3 +1151,10 @@ One typed Rust command removes manual length calculations from each host.
 
 Both parent branches declared the game route module at different positions. Git retained both declarations without a conflict.
 Building the merged crate exposed the duplicate.
+
+### Native pending records
+
+An old pending file can outlive a confirmed request. A durable import receipt prevents that request from returning after restart.
+Conditional database updates protect a confirmed removal when a second screen retries with an older display cache.
+The database filename includes the complete old filename. This keeps same-stem files and old SQLite-named files separate.
+The database connection needs the host clock. An empty context map preserves that clock without keeping the closed screen alive.

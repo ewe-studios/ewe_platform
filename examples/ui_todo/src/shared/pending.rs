@@ -6,8 +6,7 @@ use foundation_ui_runtime::action::{ActionError, ActionResult, Context, Interact
 use foundation_ui_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-#[cfg(not(all(feature = "web", target_family = "wasm")))]
-use std::sync::{Arc, Mutex};
+pub(crate) mod records;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PendingChange {
@@ -31,56 +30,13 @@ pub struct Pending {
 
 type Entries = BTreeMap<String, Pending>;
 
-#[cfg(not(all(feature = "web", target_family = "wasm")))]
-#[async_trait::async_trait]
-pub trait PendingStorage: Send + Sync {
-    async fn load(&self) -> Result<Vec<u8>, String>;
-    async fn save(&self, contents: Vec<u8>) -> Result<(), String>;
-}
-
-#[cfg(not(all(feature = "web", target_family = "wasm")))]
-#[derive(Default)]
-pub(super) struct MemoryStorage(Mutex<Vec<u8>>);
-
-#[cfg(not(all(feature = "web", target_family = "wasm")))]
-#[async_trait::async_trait]
-impl PendingStorage for MemoryStorage {
-    async fn load(&self) -> Result<Vec<u8>, String> {
-        Ok(self
-            .0
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .clone())
-    }
-    async fn save(&self, contents: Vec<u8>) -> Result<(), String> {
-        *self
-            .0
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner) = contents;
-        Ok(())
-    }
-}
-
 struct Outbox {
-    #[cfg(not(all(feature = "web", target_family = "wasm")))]
-    storage: Arc<dyn PendingStorage>,
     initialized: futures_util::lock::Mutex<bool>,
 }
 
-/// Install the storage selected by this host.
-#[cfg(not(all(feature = "web", target_family = "wasm")))]
-pub fn install_pending_storage(ctx: &Ctx, storage: Arc<dyn PendingStorage>) {
-    ctx.store(Outbox {
-        storage,
-        initialized: futures_util::lock::Mutex::new(false),
-    });
-}
-
-#[cfg(all(feature = "web", target_family = "wasm"))]
-pub(crate) mod browser;
-
-#[cfg(all(feature = "web", target_family = "wasm"))]
-pub(super) fn install_browser(ctx: &Ctx) {
+pub(super) fn install(ctx: &Ctx) {
+    #[cfg(not(all(feature = "web", target_family = "wasm")))]
+    ctx.store(foundation_db::MemoryStorage::new());
     ctx.store(Outbox {
         initialized: futures_util::lock::Mutex::new(false),
     });
@@ -103,34 +59,16 @@ async fn change_pending<T>(
             .pending
             .clone()
     } else {
-        #[cfg(all(feature = "web", target_family = "wasm"))]
-        let mut entries = browser::load(ctx).await?;
-        #[cfg(not(all(feature = "web", target_family = "wasm")))]
-        let mut entries = {
-            let bytes = outbox.storage.load().await.map_err(|e| error(&e))?;
-            if bytes.is_empty() {
-                Entries::new()
-            } else {
-                serde_json::from_slice(&bytes).map_err(|e| error(&e.to_string()))?
-            }
-        };
+        let mut entries = records::load(ctx).await?;
         for entry in entries.values_mut() {
             entry.retry = true;
         }
         entries
     };
-    #[cfg(all(feature = "web", target_family = "wasm"))]
     let previous = entries.clone();
     let (changed, result) = change(&mut entries)?;
     if changed {
-        #[cfg(all(feature = "web", target_family = "wasm"))]
-        browser::save(ctx, &previous, &entries).await?;
-        #[cfg(not(all(feature = "web", target_family = "wasm")))]
-        outbox
-            .storage
-            .save(serde_json::to_vec(&entries).map_err(|e| error(&e.to_string()))?)
-            .await
-            .map_err(|e| error(&e))?;
+        records::save(ctx, &previous, &entries).await?;
     }
     store
         .0

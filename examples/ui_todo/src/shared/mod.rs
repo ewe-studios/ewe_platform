@@ -1,8 +1,6 @@
 //! Shared todo views and actions for server and on-device stores.
 pub use foundation_compact::uuid::UuidV4 as TodoId;
 pub(crate) mod pending;
-#[cfg(not(all(feature = "web", target_family = "wasm")))]
-pub use pending::{install_pending_storage, PendingStorage};
 use pending::{retry_todo, submit_delete, submit_todo};
 pub use pending::{Pending, PendingChange};
 
@@ -765,10 +763,7 @@ async fn initialize_todos(ctx: &Context, _event: Interaction<()>) -> ActionResul
 /// Install the local display cache.
 pub fn install_cache(ctx: &Ctx) {
     ctx.store(TodoStore::default());
-    #[cfg(all(feature = "web", target_family = "wasm"))]
-    pending::install_browser(ctx);
-    #[cfg(not(all(feature = "web", target_family = "wasm")))]
-    install_pending_storage(ctx, Arc::new(pending::MemoryStorage::default()));
+    pending::install(ctx);
 }
 
 fn action_registry(
