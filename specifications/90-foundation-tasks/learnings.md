@@ -367,3 +367,5 @@ Mount only the finished archive and checksum. Extract the plugin and generate a 
 Guest destination paths use different quoting rules in the two shells. Issue #826 records the apostrophe case.
 A temporary guest archive in the Windows user directory permits uploads before the target directory exists.
 Download into staging before replacing local files. Preserve unrelated files when the destination directory already exists.
+
+Android reads the launch theme from the manifest before Compose draws. iOS reads its launch declaration before SwiftUI draws.

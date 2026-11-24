@@ -204,6 +204,32 @@ Both the command and the native project build use the same preparation provider.
 Build output identifies the artifact path, target, profile, and architecture.
 Device commands report an ambiguous selection, missing system image, failed installation, or launch failure with the device identifier.
 
+### Shared mobile startup (proposed)
+
+The operating system displays the launch screen before application code draws the first view.
+The platform library owns common startup controls. The application supplies branding, its first view, and its startup operation.
+
+```mermaid
+flowchart LR
+    Generator[Project generator] --> Settings[Launch settings in the app]
+    Settings --> Launch[System launch screen]
+    Launch --> Host[Shared Ewe startup view]
+    Host --> Content[First application view]
+    Host --> Error[Startup error]
+```
+
+Both local and server hosts follow this sequence.
+
+- Android supplies a launch theme through the Ewe Android library. The generated manifest selects it.
+- The generated activity calls `installSplashScreen()` before `super.onCreate()`. It then displays the Ewe Compose host.
+- The Android theme uses the application icon and a configurable background. It selects the application theme after launch.
+- On iOS, the generator supplies the launch declaration and any required assets in the application target.
+- The iOS entry imports `EweUI` for the shared SwiftUI startup view.
+- Each host displays progress while the application starts. It displays an actionable error when startup fails.
+- Local hosts open the first view without a server address or a network connection.
+- Generate an application with its own name and icon. Launch it in both host modes on each platform.
+- Check a cold start in light and dark mode. Verify the transition to content and the startup error view.
+
 ## Human help and agent guide
 
 `ewe_ui help` and `--help` explain application creation first. Show supported targets, a quick start, and common build and test commands.

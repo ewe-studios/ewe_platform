@@ -543,3 +543,5 @@ The public guest upload and download commands transferred one MiB of binary data
 The path contained spaces and an apostrophe. The upload excluded the build directory.
 A failed download kept previous files. All 34 integration tests and strict Clippy passed.
 The owner defers hosted workflow changes, dispatches, and CUDA publication or uploads. The CUDA release check remains open.
+
+Feature 5 now proposes shared startup views and generated launch settings for Android and iOS. The amendment awaits review.
