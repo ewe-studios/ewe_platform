@@ -8,6 +8,7 @@ pub use foundation_macros::{
 pub mod action;
 pub mod dispatch;
 pub mod network;
+pub mod sound;
 pub mod state;
 pub mod view;
 

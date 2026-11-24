@@ -45,6 +45,7 @@ fun RemoteEweScreen(
     transport: ActionTransport = ActionTransport.Http,
     connections: ConnectionManager? = null,
     viewDataAction: String? = null,
+    onAttached: (NativeCore, NodeStore) -> Unit = { _, _ -> },
 ) {
     EweHost(listOf(endpoint, initialPath, actionPath, transport, connections ?: ""), "Connecting…", modifier, theme) { host ->
         val client = OkHttpClient()
@@ -68,7 +69,9 @@ fun RemoteEweScreen(
                 override suspend fun send(request: ByteArray): ByteArray? = rpc.exchange(request)
             }
         }
-        val binding = host.attach(createCore(sender), factory, manager, viewDataAction)
+        val core = createCore(sender)
+        val binding = host.attach(core, factory, manager, viewDataAction)
+        onAttached(core, host.store)
         val hello = socket?.let { binding.helloFor(it.requestTag) } ?: binding.hello()
         connection.configure(hello)
         host.apply(requireNotNull(sender.send(hello)) { "Missing server capabilities" }, "capabilities")
@@ -84,10 +87,12 @@ fun LocalEweScreen(
     modifier: Modifier = Modifier,
     theme: EweTheme = EweTheme(),
     viewDataAction: String? = null,
+    onAttached: (NativeCore, NodeStore) -> Unit = { _, _ -> },
 ) {
     EweHost(emptyList(), "Loading…", modifier, theme) { host ->
         val core = createCore()
         host.attach(core, null, viewDataAction = viewDataAction)
+        onAttached(core, host.store)
         host.applyInitial(initialFrame(core))
     }
 }

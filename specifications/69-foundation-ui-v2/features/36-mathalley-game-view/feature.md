@@ -1,6 +1,9 @@
 # Feature 36. Play Mathalley in a second todo view
 
-Status: Proposed for review. Implement this feature last, after every other feature in Specification 69 is complete.
+The owner approves implementation on 2026-11-22.
+
+The reference is `ewe_gamify` commit `11052a15411ed1534c2ba9e5f982fd7dc975ffaf`.
+Use its 390 by 844 scene coordinates, bitmap letters, colors, score rules, sound score, and hit regions.
 
 ## Glossary
 
@@ -22,6 +25,10 @@ flowchart LR
 ```
 
 The game owns its surface. The todo view keeps its own mount and subscriptions.
+
+![Mathalley title on the reference browser surface](screenshots/reference-title.png)
+
+The reference title uses the full 390 by 844 surface.
 
 ## Stage 1. Port the reference game
 
@@ -56,3 +63,50 @@ Use the reference’s 390 by 844 design space for drawing and input. Exclude the
 6. Verify an input hit and a known rendered scene on real graphics backends. Record hardware and simulator coverage separately.
 7. Capture the game and the return to Todos on web, iOS, and Android. Compare key scenes against the reference.
 8. Update the todo README with launch commands, controls, navigation, and graphics ownership for each platform.
+
+## Shared audio output
+
+A cue is a short sound that signals a game event.
+A sound session groups all sounds that belong to one open view.
+
+```mermaid
+flowchart LR
+    Score[Mathalley score and cues] --> Session[View sound session]
+    Session --> Browser[Browser audio output]
+    Session --> Apple[Apple audio output]
+    Session --> Android[Android audio output]
+```
+
+Each host plays the same score through its sound session.
+
+- Keep the jazz score, seeded wind, instruments, and answer cues in Mathalley.
+- Provide a host interface for timed sound output, volume changes, pause, and close.
+- Inject the interface through the host context. Use its playback clock to schedule sound.
+- Start browser playback on the first user gesture. Report playback errors and keep the game controls available.
+- On interruption, suspend output. On resume, discard expired notes and keep the mute setting.
+- On close, cancel queued sounds for that view and release its output resources.
+- Test the score with a recording host and a controlled clock.
+- On browser, iPhone, and Android, verify the cue, mute, interruption, resume, and close behavior.
+- After closing the game, verify that a second view can still play sound.
+
+The owner approves the audio extension for implementation. The existing game and its controls use the approved visual design.
+
+## Verification record
+
+| Host | Graphics and input | Todo subscription | Sound |
+| --- | --- | --- | --- |
+| Chrome on macOS | Train and Gumball receive input. A host texture returns the expected pixel after Rust compute. | A peer adds a task while the game is open. | Web Audio renders separate views. The first view keeps its mute setting after interruption. |
+| iPhone 17 simulator | Metal presents both games. Gumball rotates to landscape and accepts the next answer. | A browser peer adds a task while the game is open. | The game adds an intro cue. An independent Apple audio engine renders the second view after the first closes. |
+| Android Arm emulator | Vulkan presents both games. Gumball rotates to landscape and accepts the next answer. | A browser peer adds a task while the game is open. | The game adds an intro cue. An independent Android audio track advances after the first view closes. |
+
+The Android and Apple sound tests check silence while paused and after a muted resume.
+The simulator runs do not measure sound at a physical speaker. Physical phone coverage remains open.
+The reference and port share the title lettering, five lamps, and dark background.
+All three ports show the same train cars, answer chips, gumball machine, and score controls.
+Each host fits the scene within its available surface.
+
+| Host | Train | Gumball | Return |
+| --- | --- | --- | --- |
+| Chrome | [Train](screenshots/browser-game.png) | [Gumball](screenshots/browser-gumball.png) | [Todos](screenshots/browser-return.png) |
+| iPhone | [Train](screenshots/ios-game.png) | [Gumball](screenshots/ios-gumball.png) and [landscape](screenshots/ios-gumball-landscape.png) | [Todos](screenshots/ios-return.png) |
+| Android | [Train](screenshots/android-game.png) | [Gumball](screenshots/android-gumball.png) | [Todos](screenshots/android-return.png) |

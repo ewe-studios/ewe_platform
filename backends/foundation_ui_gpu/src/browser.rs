@@ -147,6 +147,7 @@ impl BrowserGraphics {
             .await
             .map_err(|_| GpuError::Cancelled)?;
         Ok(BrowserSurface {
+            local: self.local.clone(),
             id: rx.recv().await.map_err(|_| GpuError::Cancelled)??,
             service: self.service.clone(),
         })
@@ -158,7 +159,9 @@ impl BrowserGraphics {
 }
 
 #[wasm_bindgen]
+#[derive(Clone)]
 pub struct BrowserSurface {
+    local: Sender<LocalWork>,
     id: SurfaceId,
     service: GpuService,
 }
@@ -192,5 +195,34 @@ impl BrowserSurface {
             .service
             .run(move |owner| Box::pin(async move { owner.detach(&id) }))
             .await?)
+    }
+}
+
+impl BrowserSurface {
+    /// Draw a frame on the canvas owner.
+    ///
+    /// # Errors
+    /// Returns an error if the surface is unavailable or the draw fails.
+    pub async fn present(
+        &self,
+        draw: impl FnOnce(
+                &crate::GraphicsDevice,
+                &wgpu::Texture,
+                wgpu::TextureFormat,
+            ) -> Result<(), GpuError>
+            + 'static,
+    ) -> Result<(), GpuError> {
+        let id = self.id.clone();
+        let (reply, result) = async_channel::bounded(1);
+        self.local
+            .send(Box::new(move |owner| {
+                Box::pin(async move {
+                    let frame = owner.present(id, draw).await;
+                    let _ = reply.send(frame).await;
+                })
+            }))
+            .await
+            .map_err(|_| GpuError::Cancelled)?;
+        result.recv().await.map_err(|_| GpuError::Cancelled)?
     }
 }

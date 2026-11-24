@@ -272,6 +272,7 @@ pub(crate) fn page_tree(state: &TodoApp) -> Html {
     html! { <Stack>
         <NavigationTitle>Todos</NavigationTitle>
         <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
+        <Button on:tap={open_mathalley}>Play Mathalley</Button>
         {search}
         {controls}{rows}{footer}
         <Text id="notification"/><Stack id="dialog"/>
@@ -351,6 +352,13 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
         </Either>
     </Stack> };
     replace(ctx, "#dialog", tree)
+}
+
+#[action(host)]
+async fn open_mathalley(ctx: &Context, _event: Interaction<()>) -> ActionResult {
+    let signal = crate::mathalley::route::open_command().map_err(|cause| error(&cause.to_string()))?;
+    ctx.receiver().data_in_view(signal);
+    Ok(())
 }
 
 #[action(host)]
@@ -767,6 +775,7 @@ fn action_registry(
 ) -> Result<ActionRegistry, RegistrationError> {
     let mut registry = ActionRegistry::new();
     registry.register_for(owner, initialize_todos)?;
+    registry.register_for(owner, open_mathalley)?;
     registry.register_for(owner, open_add_dialog)?;
     registry.register_for(owner, open_delete_dialog)?;
     registry.register_for(owner, close_dialog)?;

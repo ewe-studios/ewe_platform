@@ -12,6 +12,7 @@
 		12EDCE4434F17C2B2334F513 /* TodoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBB7CFD9FE593F477A3429B9 /* TodoTests.swift */; };
 		EE9000030000000000000005 /* ResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE9000030000000000000004 /* ResourceTests.swift */; };
 		5DAC712F52D8B5AD4E7E3073 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 306DBC8958E95277691BA73A /* App.swift */; };
+		ADAC712F52D8B5AD4E7E3073 /* MathalleyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A06DBC8958E95277691BA73A /* MathalleyView.swift */; };
 		79F34E4A5A3127244828D20A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
 		7DF26539FAB5A03767555C17 /* EweTodoCore in Frameworks */ = {isa = PBXBuildFile; productRef = 687EA8B759975BC70FBB8399 /* EweTodoCore */; };
 		9AABEF70D9842747AE1C2CD5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 960E82007BA4E62435E20FA6 /* Foundation.framework */; };
@@ -34,6 +35,7 @@
         EE9000030000000000000006 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		EE9000030000000000000002 /* EweResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EweResourceStage/EweResources; sourceTree = DERIVED_FILE_DIR; };
 		306DBC8958E95277691BA73A /* App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		A06DBC8958E95277691BA73A /* MathalleyView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ../../Shared/MathalleyView.swift; sourceTree = "<group>"; };
 		35DBB79263E15025D7F23DAA /* TodoServerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TodoServerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		960E82007BA4E62435E20FA6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		9947D29C522D037A5BA87A3D /* TodoServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -114,6 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				306DBC8958E95277691BA73A /* App.swift */,
+				A06DBC8958E95277691BA73A /* MathalleyView.swift */,
                 EE9000030000000000000006 /* LaunchScreen.storyboard */,
 			);
 			name = App;
@@ -246,6 +249,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5DAC712F52D8B5AD4E7E3073 /* App.swift in Sources */,
+				ADAC712F52D8B5AD4E7E3073 /* MathalleyView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
