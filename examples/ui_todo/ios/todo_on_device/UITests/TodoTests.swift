@@ -72,8 +72,8 @@ final class TodoTests: XCTestCase {
     let cancel = app.buttons["Cancel"]
     let submit = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable })
     XCTAssertLessThanOrEqual(max(submit.frame.maxY, cancel.frame.maxY), keyboard.frame.minY + 1)
+    typeWithKeyboard("Review search", keyboard)
     capture(app, "ios-\(appearance)-entry-keyboard")
-    input.typeText("Review search")
     submit.tap()
     let row = app.staticTexts["Review search"]
     XCTAssertTrue(row.waitForExistence(timeout: 10))
@@ -119,13 +119,7 @@ final class TodoTests: XCTestCase {
       let visible = expectation(for: visibleKeyboard, evaluatedWith: keyboard)
       wait(for: [visible], timeout: 5)
       XCTAssertTrue(keyboard.keys.allElementsBoundByIndex.contains { $0.isHittable })
-      // XCTest attaches a hardware keyboard for typeText. Tap the software keys for this review.
-      for character in title {
-        let label = character == " " ? "space" : String(character)
-        let key = keyboard.keys.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
-        XCTAssertTrue(key.exists, "Missing software key \(label)")
-        key.tap()
-      }
+      typeWithKeyboard(title, keyboard)
       XCTAssertGreaterThan(app.frame.intersection(keyboard.frame).height, 100)
       let cancelButton = app.buttons["Cancel"]
       let submitButton = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable })
@@ -145,6 +139,16 @@ final class TodoTests: XCTestCase {
       XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
       capture(app, "ios-\(mode)-confirmation")
       app.terminate()
+    }
+  }
+
+  /// Tap the software keys to keep the keyboard visible for the capture.
+  private func typeWithKeyboard(_ text: String, _ keyboard: XCUIElement) {
+    for character in text {
+      let label = character == " " ? "space" : String(character)
+      let key = keyboard.keys.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
+      XCTAssertTrue(key.exists, "Missing software key \(label)")
+      key.tap()
     }
   }
 
