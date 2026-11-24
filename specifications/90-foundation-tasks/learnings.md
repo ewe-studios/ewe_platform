@@ -369,3 +369,5 @@ A temporary guest archive in the Windows user directory permits uploads before t
 Download into staging before replacing local files. Preserve unrelated files when the destination directory already exists.
 
 Android reads the launch theme from the manifest before Compose draws. iOS reads its launch declaration before SwiftUI draws.
+
+The project packager copies binary template files unchanged. Android and iOS can share the same source images.

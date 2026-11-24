@@ -204,7 +204,9 @@ Both the command and the native project build use the same preparation provider.
 Build output identifies the artifact path, target, profile, and architecture.
 Device commands report an ambiguous selection, missing system image, failed installation, or launch failure with the device identifier.
 
-### Shared mobile startup (proposed)
+### Shared mobile startup
+
+The owner approves the shared startup design and editable project assets on 2026-11-25.
 
 The operating system displays the launch screen before application code draws the first view.
 The platform library owns common startup controls. The application supplies branding, its first view, and its startup operation.
@@ -229,6 +231,31 @@ Both local and server hosts follow this sequence.
 - Local hosts open the first view without a server address or a network connection.
 - Generate an application with its own name and icon. Launch it in both host modes on each platform.
 - Check a cold start in light and dark mode. Verify the transition to content and the startup error view.
+
+#### Editable launch files
+
+The generator places the following defaults in the project root for Android and iOS applications.
+
+| File | Purpose |
+|---|---|
+| `public/icon.png` | A square, opaque launcher icon in Portable Network Graphics (PNG) format. |
+| `public/splash.png` | A centered launch image. Transparent pixels reveal the launch background. |
+| `public/launch-theme.toml` | Light and dark background colors in Tom's Obvious Minimal Language (TOML). |
+
+```toml
+[background]
+light = "#F8FAFC"
+dark = "#101820"
+```
+
+1. Replace either image under its original filename. Edit the theme file to change the background.
+2. The application build script calls the shared native resource helper.
+3. The helper tracks all three inputs and compiles them into resources for the selected platform.
+4. Report the input path for an unreadable image, an invalid color, or an invalid theme file.
+5. Preserve the developer's source files during builds. Write generated resources in the build directory.
+6. Android uses the launch theme before Compose starts. iOS uses the named colors and image before SwiftUI starts.
+7. Build each platform with the defaults. Replace all three files and rebuild without cleaning.
+8. Inspect the installed launcher icon and capture the cold start in light and dark modes.
 
 ## Human help and agent guide
 

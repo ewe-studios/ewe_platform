@@ -37,6 +37,14 @@ fn compose_every_selection_and_share_native_inputs() {
         assert!(root.join("application/resources.toml").is_file());
         assert_eq!(root.join("native-core/Cargo.toml").is_file(), mask & 6 != 0);
         if mask & 6 != 0 {
+            let theme = std::fs::read_to_string(root.join("public/launch-theme.toml")).unwrap();
+            assert!(theme.contains("[background]"));
+            assert!(theme.contains("light = \"#F8FAFC\""));
+            assert!(theme.contains("dark = \"#101820\""));
+            for image in ["public/icon.png", "public/splash.png"] {
+                let bytes = std::fs::read(root.join(image)).unwrap();
+                assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+            }
             let core = std::fs::read_to_string(root.join("native-core/Cargo.toml")).unwrap();
             assert!(!core.contains("foundation_resources"));
         }

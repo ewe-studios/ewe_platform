@@ -264,6 +264,9 @@ impl Application {
                     format!("Render {template} at {}: {e}", root.join(folder).display()).into()
                 })
         };
+        if self.targets.iter().any(|target| *target != Target::Web) {
+            render("mobile-launch", "public")?;
+        }
         render("mobile-resources", "application")?;
         render("ui-application", "application")?;
         if self.host == Host::OnDevice {

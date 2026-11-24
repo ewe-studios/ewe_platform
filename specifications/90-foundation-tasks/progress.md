@@ -545,3 +545,6 @@ A failed download kept previous files. All 34 integration tests and strict Clipp
 The owner defers hosted workflow changes, dispatches, and CUDA publication or uploads. The CUDA release check remains open.
 
 Feature 5 now proposes shared startup views and generated launch settings for Android and iOS. The amendment awaits review.
+
+Feature 5 now includes editable launch assets. The generator supplies two images and a theme file for each mobile project.
+Native build integration and replacement checks remain open.
