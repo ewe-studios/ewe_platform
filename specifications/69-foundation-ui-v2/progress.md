@@ -1408,3 +1408,8 @@ Chromium opens the game from the production bundle and returns to Todo. Android 
 The installed Android application opens the game title and returns to the Todo list on the dedicated emulator.
 The captured title shows the five score markers and the play prompt. The seeded gameplay check remains open.
 Issue #841 tracks the missing Android accessibility label after presentation.
+
+The seeded Android replay reached Train and Gumball. Rotation kept Gumball visible.
+The former frame check then timed out because it sampled the side inset. Issue #843 tracks the correction.
+The corrected frame check recognizes all four captured scenes and measures the landscape surface at 1477 by 540 pixels.
+The device returned to Todo. A full replay with the corrected command remains in progress.

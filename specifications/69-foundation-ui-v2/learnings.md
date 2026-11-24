@@ -1126,3 +1126,6 @@ One typed Rust command removes manual length calculations from each host.
 
 Android can present the Mathalley title while its accessibility tree exposes only the return button.
 Use a frame capture to check rendered pixels. Check the native surface label separately.
+
+The landscape Android game window can start past the left edge of the display.
+The side inset leaves Todo visible at x=0. Frame sampling and taps must use the game window bounds.
