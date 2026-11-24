@@ -193,5 +193,6 @@ Issue #556 records the set across the split specifications. It is closed.
 - `infrastructure/llama-bindings` no longer forces llama.cpp to the static
   runtime; the `msvc_static_runtime.cmake` fragment is deleted.
 - Verified locally: the patched `esaxx-rs` builds on macOS, and
-  `cargo check -p infrastructure_llama_bindings` passes. The Windows link is
-  verified by the `foundation_agent_rpc` shard of the CI run.
+  `cargo check -p infrastructure_llama_bindings` passes. CI run `45340309029`
+  passes its `Windows 1/1` shard, so the gguf test links and runs on Windows.
+  #772 is closed.
