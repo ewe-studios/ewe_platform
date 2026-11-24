@@ -54,6 +54,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-f
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { version = "0.2", optional = true }
+# The wasm-bindgen macro expands every exported `async fn` with this crate.
 wasm-bindgen-futures = { version = "0.4", optional = true }
 js-sys = { version = "0.3", optional = true }
 web-sys = { version = "0.3", features = [

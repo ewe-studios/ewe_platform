@@ -298,6 +298,7 @@ a `SimpleIncomingRequest` (`request_from_web`), forks the app context, dispatche
 | 7 | `middleware_runs_in_registration_order` | the recorded order equals the registration order | model |
 | 8 | `duplicate_response_headers_keep_their_order` | two `Set-Cookie` values stay in order | example |
 | 9 | `handler_panic_becomes_a_500` | a panicking handler does not abort the host | fault |
+| 9c | `handler_panic_after_a_yield_becomes_a_500` | a panic in a later poll is caught too | fault |
 | 10 | `request_fork_keeps_ctx_inserts_private` | an insert in request A is absent in request B | expected outcome |
 | 11 | `injected_clock_reaches_the_handler` | a simulated clock in `Ctx` is what the handler reads | expected outcome |
 
@@ -308,7 +309,11 @@ host (rule 9: file it and fix it, or gate the case with the issue).
 **Measured 2026-11-23.** A panic does not become a 500. It aborts the wasm module
 (`RuntimeError: unreachable`), and the wasm-bindgen-test host reports the case as failed. A
 `wasm32-unknown-unknown` build uses `panic = "abort"`, so `catch_unwind` cannot answer 500.
-The case is gated by the crate feature `panicking-handler-case`, and issue #742 holds the fix.
+
+**Fixed 2026-11-24 (#742).** The bridge polls each dispatch inside a guarded JavaScript call
+(`wasm/panic_guard.rs`). The guard catches the trap, answers 500, and a second request still
+reaches the app. The guard leaks the trapped future: dropping it corrupts the allocator, so
+the next allocation traps. Cases 9, 9b and 9c need no feature gate.
 
 Case 10 uses `Ctx::store`/`get` on a value the handler inserts, then a second request that must
 not see it.
@@ -325,6 +330,7 @@ exists, `cf.rs:61-65`) and dispatches. Cases:
 | 13 | `cf_dispatch_without_a_binding_stores_none` | a handler that asks for `D1Database` finds none, and does not panic | expected outcome |
 | 14 | `cf_dispatch_sees_the_real_db_binding` | on workerd, a handler finds the real local D1 | example |
 | 15 | `cf_conn_into_response_preserves_status_and_headers` | `CfConn::into_response` keeps both | example |
+| 9b | `cf_handler_panic_becomes_a_500` | the Cloudflare entry has the same panic boundary (issue #742) | fault |
 
 Case 14 reads `globalThis.__CF_TEST_ENV__`, the global the testbed's wrangler worker sets
 (`bindgen-wrangler/worker.js`; the same contract `foundation_db/integration/wasm_cf/src/lib.rs`
@@ -491,7 +497,7 @@ needed a `#[cfg(feature = "wasm-fetch")]` gate: the only netio types the pure-Ru
 | Step that fails | What the runner does | What the contributor sees | What is left behind |
 |---|---|---|---|
 | the crate does not build for wasm32 | the build step fails | the compiler error | nothing |
-| a handler panics | case 9 says what the host did | the case name and the panic | the module instance is dropped |
+| a handler panics | the guarded poll answers 500 and logs the trap | the case name and the trap | the trapped future and its discarded frames stay allocated |
 | a request is built with a bad URL | the case fails at construction | `Request::new` error and the URL | nothing |
 | a case waits on its own response forever | the dispatch deadline fails it | the case name | the module instance is dropped |
 | the worker has no binding | case 13 asserts `None` | nothing; the case passes | nothing |
@@ -513,7 +519,7 @@ that lands it.
 | 5 | `%2F` never decoded | `bridge::parse_request_uri` decodes only the path | #746 |
 | 16 | The writer path routed on the full URL, so every route missed | route on `request_uri.path()` | #747 |
 | 18 | No writer-path body limit | `HttpApp::max_writer_body_bytes` (1 MiB) | none (a new field) |
-| 9 | A panic aborts the module | none yet; the case is gated | #742 |
+| 9 | A panic aborts the module | a guarded host poll answers 500 (`wasm/panic_guard.rs`) | #742 |
 | - | The native HTTP/1 server answers 404 for a wrong method | none yet | #743 |
 | 2 | `AsyncSendSafeBody` self-wakes without a host yield on workerd | the suite yields per `Data::Retry`; netio keeps the defect | #749 |
 
@@ -562,9 +568,9 @@ cargo clippy -p foundation_http --all-targets -- -D warnings
 ## 9. Done when
 
 - [x] The crate builds for wasm32 and has one test target.
-- [x] Nineteen cases pass on Deno, Chromium and workerd. Case 14 passes on workerd and states
-      why it does not run elsewhere. Case 9 is gated by `panicking-handler-case` with issue
-      #742: a wasm panic aborts the module, so it cannot answer 500.
+- [x] Twenty-two cases pass on Deno, Chromium and workerd. Case 14 passes on workerd and states
+      why it does not run elsewhere. Cases 9, 9b and 9c answer 500 after a handler panic and
+      prove that the host keeps serving (#742 closed).
 - [x] `cargo test -p foundation_http --features wasm-test` is a CI step (#570 closed).
 - [x] The owned package builds without the fetch client, the import measurement shows no
       `__wbindgen_` import, and its 40 cases pass on Deno and Chromium.

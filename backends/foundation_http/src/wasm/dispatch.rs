@@ -23,9 +23,11 @@ use crate::shared::web_conn::{WebConn, WebConnectionResult};
 use crate::wasm::cf_conn::{CfConn, CfConnectionResult};
 use crate::wasm::serve_cf::CfServe;
 
-/// Build a `web_sys::Response` for a web route miss: a status and a short
-/// text body.
-fn web_status_response(
+/// Build a `web_sys::Response` that carries only a status and a short text
+/// body.
+///
+/// Used for a route miss and for the 500 of a caught handler panic.
+pub(crate) fn web_status_response(
     status: u16,
     text: &str,
 ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
@@ -42,9 +44,11 @@ fn web_status_response(
     })
 }
 
-/// Build a `web_sys::Response` for a Cloudflare route miss: a status and a
-/// short text body.
-fn cf_status_response(
+/// Build a `web_sys::Response` that carries only a status and a short text
+/// body for the Cloudflare entry.
+///
+/// Used for a route miss and for the 500 of a caught handler panic.
+pub(crate) fn cf_status_response(
     status: u16,
     text: &str,
 ) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {

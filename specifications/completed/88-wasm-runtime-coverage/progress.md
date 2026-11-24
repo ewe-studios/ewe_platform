@@ -291,18 +291,20 @@ Merged as `c12e94aec`, on branch `spec88/f02-http-runtime-final` from base `93f9
 
 | Host | Harness | Cases |
 |---|---|---|
-| wasm-bindgen Deno | `test bindgen-deno` | 19 pass (case 9 gated; case 14 skips) |
-| wasm-bindgen Chromium | `test bindgen-web` | 19 pass (case 9 gated; case 14 skips) |
-| workerd | `test bindgen-wrangler` | 19 pass (case 9 gated; case 14 passes with the real D1) |
+| wasm-bindgen Deno | `test bindgen-deno` | 22 pass |
+| wasm-bindgen Chromium | `test bindgen-web` | 22 pass |
+| workerd | `test bindgen-wrangler` | 22 pass (case 14 uses the real D1) |
 | owned Deno | `deno integration/wasm_owned` | 40 pass |
 | owned Chromium | `browser integration/wasm_owned --headless` | 40 pass |
 | native `wasm-test` | `cargo test -p foundation_http --features wasm-test` | 40 pass (9 response, 22 stream, 9 server) |
 
-Case 9 (`handler_panic_becomes_a_500`) is gated by the crate feature
-`panicking-handler-case`. Measured: a handler panic aborts the module
-(`RuntimeError: unreachable`), and the wasm-bindgen-test host reports the case as failed. A
-`wasm32-unknown-unknown` build uses `panic = "abort"`, so the bridge cannot answer 500. Issue
-#742 holds the fix.
+Cases 9 (`handler_panic_becomes_a_500`), 9b (`cf_handler_panic_becomes_a_500`) and 9c
+(`handler_panic_after_a_yield_becomes_a_500`) run on every host (#742 closed). A handler panic
+traps the module. The bridge now runs each dispatch poll inside a guarded JavaScript call
+(`wasm/panic_guard.rs`). The guard catches the trap, answers 500, and the next request still
+reaches the app. Each case also proves liveness with a second request. Case 9c panics after a
+suspension, so it covers a trap in a later poll. The guard leaks the trapped future: dropping
+it corrupts the allocator, and the next request then traps with "memory access out of bounds".
 
 ### Verification
 
@@ -310,9 +312,9 @@ Case 9 (`handler_panic_becomes_a_500`) is gated by the crate feature
 |---|---|
 | `cargo check -p foundation_http --target wasm32-unknown-unknown --features wasm-bindgen-http` | `Finished` |
 | `cargo check --tests --target wasm32-unknown-unknown --manifest-path .../integration/wasm/Cargo.toml` | `Finished` |
-| `test bindgen-deno backends/foundation_http/integration/wasm` | `19 passed; 0 failed` |
-| `test bindgen-web ... --headless` | `19 passed; 0 failed` |
-| `test bindgen-wrangler ...` | `{"passed":true}`, `19 passed; 0 failed` |
+| `test bindgen-deno backends/foundation_http/integration/wasm` | `22 passed; 0 failed` |
+| `test bindgen-web ... --headless` | `22 passed; 0 failed` |
+| `test bindgen-wrangler ...` | `{"passed":true}`, `22 passed; 0 failed` |
 | `cargo test -p foundation_http --features wasm-test` (three files) | `9`, `22` and `9` passed |
 | `wasm-testbed deno .../integration/wasm_owned` | `40 passed; 0 failed` |
 | `wasm-testbed browser .../integration/wasm_owned --headless` | `40 passed; 0 failed` |
@@ -354,7 +356,7 @@ and every workspace consumer moves to `0.0.14`.
 
 | Issue | Severity | Problem |
 |---|---|---|
-| #742 | high | a panicking wasm handler aborts the module; it cannot answer 500 |
+| #742 | high | a panicking wasm handler aborts the module; it cannot answer 500 — fixed 2026-11-24 |
 | #743 | medium | the native HTTP/1 server answers 404 for a known path with a wrong method |
 | #744 | high | the wasm bridge rejected the JS promise for a route miss |
 | #745 | medium | the router could not report a method miss |
@@ -363,8 +365,8 @@ and every workspace consumer moves to `0.0.14`.
 | #749 | medium | `AsyncSendSafeBody` self-wakes without a host yield on workerd |
 | #750 | low | the `foundation_http` wasm feature tree fails `clippy -D warnings` |
 
-#744, #745, #746 and #747 are fixed on the branch and close when it lands. #570 is closed by
-T5.
+#744, #745, #746, #747 and #742 are fixed and closed. #750 stays open: the wasm feature tree
+still fails `clippy -D warnings`. #570 is closed by T5.
 
 ### Notes and corrections
 

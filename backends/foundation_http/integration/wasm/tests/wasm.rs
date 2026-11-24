@@ -17,6 +17,8 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::Ctx;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
 use foundation_http::shared::serve::{ConnectionResult, ServeWriter};
+use foundation_http::shared::serve_web::WebServe;
+use foundation_http::shared::web_conn::{WebConn, WebConnectionResult};
 use foundation_http::wasm::cf_conn::CfConn;
 use foundation_http::wasm::response::{WasmResponse, from_wasm};
 use foundation_http::wasm::serve_writer::{
@@ -32,6 +34,7 @@ use foundation_http_wasm_tests::{
     host_name, request, request_db, test_env, web_app_with, web_app_with_ctx,
 };
 use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
 use wasm_bindgen_test::wasm_bindgen_test;
 
 const GET: SimpleMethod = SimpleMethod::GET;
@@ -349,9 +352,9 @@ async fn duplicate_response_headers_keep_their_order() {
 
 /// Case 9. Oracle: fault. A panicking handler answers 500 and the host stays up.
 ///
-/// Gated: on `wasm32-unknown-unknown` a Rust panic aborts the module, so the
-/// case traps the host before it can assert. Issue #742 tracks the fix.
-#[cfg(feature = "panicking-handler-case")]
+/// A panic in a wasm handler traps the module. The guarded host entry catches
+/// the trap and answers 500, and the next request still reaches the app
+/// (issue #742).
 #[wasm_bindgen_test]
 async fn handler_panic_becomes_a_500() {
     let app = web_app_with(|app| {
@@ -360,6 +363,13 @@ async fn handler_panic_becomes_a_500() {
             "/panic",
             FnHandler::new(|_ctx, _req, _conn| panic!("the handler panics")),
         );
+        app.router.add_route_web(
+            GET,
+            "/alive",
+            FnHandler::new(|_ctx, _req, conn| {
+                conn.set_status(200);
+            }),
+        );
     });
 
     let response = app
@@ -367,6 +377,106 @@ async fn handler_panic_becomes_a_500() {
         .await
         .expect("the bridge turns the panic into a response");
     assert_eq!(response.status(), 500, "{}: case 9: status", host_name());
+
+    let response = app
+        .handle_request(request("GET", &format!("{ORIGIN}/alive"), &[], None))
+        .await
+        .expect("the module keeps serving after a panic");
+    assert_eq!(
+        response.status(),
+        200,
+        "{}: case 9: the module stays up",
+        host_name()
+    );
+}
+
+/// Case 9b. Oracle: fault. The Cloudflare entry has the same panic boundary.
+#[wasm_bindgen_test]
+async fn cf_handler_panic_becomes_a_500() {
+    let app = cf_app_with(|app| {
+        app.router.add_route_cf(
+            GET,
+            "/panic",
+            CfFnHandler::new(|_ctx, _req, _conn| panic!("the CF handler panics")),
+        );
+        app.router.add_route_cf(
+            GET,
+            "/alive",
+            CfFnHandler::new(|_ctx, _req, conn| {
+                conn.set_status(200);
+            }),
+        );
+    });
+
+    let response = app
+        .handle_request(
+            request("GET", &format!("{ORIGIN}/panic"), &[], None),
+            JsValue::UNDEFINED,
+        )
+        .await
+        .expect("the CF bridge turns the panic into a response");
+    assert_eq!(response.status(), 500, "{}: case 9b: status", host_name());
+
+    let response = app
+        .handle_request(
+            request("GET", &format!("{ORIGIN}/alive"), &[], None),
+            JsValue::UNDEFINED,
+        )
+        .await
+        .expect("the isolate keeps serving after a panic");
+    assert_eq!(
+        response.status(),
+        200,
+        "{}: case 9b: the isolate stays up",
+        host_name()
+    );
+}
+
+/// Case 9c. Oracle: fault. A panic after an await point still answers 500.
+///
+/// The guard wraps every poll, not only the first one. The handler yields to
+/// the host, so the first poll returns `Pending` and the panic happens in a
+/// later poll (issue #742).
+#[wasm_bindgen_test]
+async fn handler_panic_after_a_yield_becomes_a_500() {
+    struct PanicAfterYield;
+
+    #[async_trait::async_trait(?Send)]
+    impl WebServe for PanicAfterYield {
+        async fn serve_web(
+            &self,
+            _ctx: Ctx,
+            _req: SimpleIncomingRequest,
+            _conn: &mut WebConn,
+        ) -> WebConnectionResult {
+            // A promise resolves in a later microtask, so this poll returns
+            // `Pending` and the panic happens in the next poll.
+            let _ = JsFuture::from(js_sys::Promise::resolve(&JsValue::UNDEFINED)).await;
+            panic!("the handler panics after a yield");
+        }
+    }
+
+    let app = web_app_with(|app| {
+        app.router
+            .add_route_web(GET, "/panic-late", Arc::new(PanicAfterYield));
+    });
+
+    let response = app
+        .handle_request(request("GET", &format!("{ORIGIN}/panic-late"), &[], None))
+        .await
+        .expect("the bridge turns the late panic into a response");
+    assert_eq!(response.status(), 500, "{}: case 9c: status", host_name());
+
+    let response = app
+        .handle_request(request("GET", &format!("{ORIGIN}/missing"), &[], None))
+        .await
+        .expect("the module keeps serving after a late panic");
+    assert_eq!(
+        response.status(),
+        404,
+        "{}: case 9c: the module stays up",
+        host_name()
+    );
 }
 
 /// Case 10. Oracle: expected outcome. An insert in request A is absent in B.

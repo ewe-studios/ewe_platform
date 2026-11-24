@@ -105,15 +105,15 @@ pub fn header_values(response: &Response, name: &str) -> Vec<String> {
         let getter = js_sys::Reflect::get(&headers, &JsValue::from_str("getSetCookie"))
             .ok()
             .and_then(|value| value.dyn_into::<js_sys::Function>().ok());
-        if let Some(getter) = getter {
-            if let Ok(result) = getter.call0(&headers) {
-                let values: Vec<String> = js_sys::Array::from(&result)
-                    .iter()
-                    .filter_map(|item| item.as_string())
-                    .collect();
-                if !values.is_empty() {
-                    return values;
-                }
+        if let Some(getter) = getter
+            && let Ok(result) = getter.call0(&headers)
+        {
+            let values: Vec<String> = js_sys::Array::from(&result)
+                .iter()
+                .filter_map(|item| item.as_string())
+                .collect();
+            if !values.is_empty() {
+                return values;
             }
         }
     }
@@ -142,6 +142,8 @@ where
     F: Fn(&Ctx, &SimpleIncomingRequest, &mut WebConn) + Send + Sync + 'static,
 {
     /// Wrap `handler` as a shared `WebServe` handler.
+    // A route helper asks for the shared trait object, not the adapter type.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(handler: F) -> Arc<dyn WebServe> {
         Arc::new(Self(handler))
     }
@@ -251,6 +253,8 @@ where
     F: Fn(&Ctx, &SimpleIncomingRequest, &mut CfConn) + Send + Sync + 'static,
 {
     /// Wrap `handler` as a shared `CfServe` handler.
+    // A route helper asks for the shared trait object, not the adapter type.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(handler: F) -> Arc<dyn CfServe> {
         Arc::new(Self(handler))
     }

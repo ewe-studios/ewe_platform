@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A panicking wasm handler answers 500 and the module keeps serving. The host entries run each dispatch poll inside a guarded JavaScript call (issue #742). The guarded future is public as `wasm::panic_guard::catch_panic`.
+
 ## [0.0.12](https://github.com/ewe-studios/ewe_platform/compare/foundation_http-v0.0.11...foundation_http-v0.0.12) - 2026-11-12
 
 ### Other

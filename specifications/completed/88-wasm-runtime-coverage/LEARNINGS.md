@@ -601,21 +601,37 @@ append order, which is the property under test. The case comment names the reaso
 **Rule for the future.** Test header order with a normal header. `Set-Cookie` is special in the
 Fetch API, and its order is not portable across hosts.
 
-## 27. A wasm panic aborts the module (feature 02 case 9)
+## 27. A wasm panic traps the module; a guarded host call makes it a 500 (feature 02)
 
 **Expected.** A panicking handler becomes a 500 and the host stays up.
 
-**Measured.** The panic left `serve_web` and aborted the module (`RuntimeError: unreachable`).
-wasm-bindgen-test caught it at the test boundary and reported `handler_panic_becomes_a_500 ...
-FAIL`. A `wasm32-unknown-unknown` build uses `panic = "abort"`, so `catch_unwind` cannot catch
-it.
+**Measured.** A panic in a handler emits `RuntimeError: unreachable`, a wasm trap. A
+`wasm32-unknown-unknown` build uses `panic = "abort"`, so `catch_unwind` cannot catch it. A
+`wasm-bindgen-futures` promise does not reject the trap in that build: its catch path compiles
+only under `panic = "unwind"`. The promise stays pending.
 
-**Result.** The case is gated by the crate feature `panicking-handler-case`. Issue #742 records
-the defect and the two possible fixes (a guarded host call, or unwinding when the target
-supports it).
+**Fix.** `foundation_http/src/wasm/panic_guard.rs` imports one JavaScript function with
+`inline_js`. The function calls a Rust callback inside `try`. Each poll of the dispatch future
+runs in that callback. The trap discards the wasm frames below the call; the JavaScript
+`catch` returns `false`; the Rust frame above the call resumes with `PanicCaught`, and the
+bridge answers 500. The engine restores the wasm stack on a trap, so the module keeps serving.
+The trap does not run the destructors of the discarded frames, so the failed request leaks its
+memory. That is the cost of serving again under `panic = "abort"`; log the trap and fix the
+handler.
 
-**Rule for the future.** Do not promise a 500 from a panic in a `panic = "abort"` module. The
-module stops.
+**Leak the future.** A future that trapped mid-poll can hold values whose ownership
+bookkeeping is now inconsistent. Dropping it corrupts the allocator: the next request trapped
+with `memory access out of bounds` inside `dlmalloc::malloc`. The guard leaks the future after
+a trap with `core::mem::forget`. The cost is the future and the allocations of the discarded
+frames, once per panicking request.
+
+**Proof.** Cases 9, 9b and 9c pass on Deno, Chromium and workerd. Each asserts a 500 and then
+a live answer from a second request on the same app. Case 9c panics after a suspension, so it
+covers a trap in a later poll, and it failed on the earlier drop-based guard.
+
+**Rule for the future.** Under `panic = "abort"`, a host call is the only panic boundary. The
+call must be synchronous and the JavaScript side must use `try`/`catch`. Do not rely on a
+promise to reject a trap.
 
 ## 28. The wasm-bindgen crate must not use `host-abi` (feature 03)
 

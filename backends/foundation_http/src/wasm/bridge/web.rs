@@ -98,11 +98,16 @@ impl WasmHttpApp {
             self.inner.body_queue_chunks,
         )?;
         let app_ctx = self.app_ctx.fork();
-        Ok(self
-            .inner
-            .dispatch_web(app_ctx, simple_req)
+        // A panic in a handler traps the module. The guarded poll turns the
+        // trap into a value, so the entry answers 500 and the module keeps
+        // serving (issue #742).
+        match crate::wasm::panic_guard::catch_panic(self.inner.dispatch_web(app_ctx, simple_req))
             .await
-            .map_err(|e| JsError::new(&format!("dispatch failed: {e:?}")))?)
+        {
+            Ok(result) => result.map_err(|e| JsError::new(&format!("dispatch failed: {e:?}"))),
+            Err(_) => crate::wasm::dispatch::web_status_response(500, "Internal Server Error")
+                .map_err(|e| JsError::new(&format!("build the 500 response: {e:?}"))),
+        }
     }
 }
 

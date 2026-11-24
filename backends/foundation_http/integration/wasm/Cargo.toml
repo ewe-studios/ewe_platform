@@ -45,12 +45,6 @@ async-trait = "0.1"
 [dev-dependencies]
 wasm-bindgen-test = "=0.3.76"
 
-[features]
-# Off by default. The gated case proves a panicking handler becomes a 500. On
-# wasm32-unknown-unknown a Rust panic aborts the module, so the case traps the
-# host instead (issue #742). Turn it on only to reproduce that measurement.
-panicking-handler-case = []
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
