@@ -3,7 +3,7 @@ feature: "Worker Host and Web Client"
 description: "agent-rpc on Cloudflare Workers (the host entry over foundation_http's CfHttpApp and the ConnectService adapter, DoSqlStore, one Durable Object per instance, the cf-agent-rpc example), the browser client over H1Transport::default(), and the history archive to R2 on DestroyInstance."
 status: "pending"
 priority: "medium"
-depends_on: ["specifications/85-wasm-fetch-transport", "specifications/completed/80-platform-prerequisites", "03-agent-rpc-core"]
+depends_on: ["specifications/completed/85-wasm-fetch-transport", "specifications/completed/80-platform-prerequisites", "03-agent-rpc-core"]
 part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
@@ -51,7 +51,7 @@ Not part of the native proof of concept. It can start once feature 03 is done.
 | T22 | Web client: `WebClient`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
 | T26 | History archive to R2 on `DestroyInstance` (Worker and native) | `host/worker/object.rs`, `core/archive.rs` | the archive tests pass; a failed upload deletes nothing |
 
-Task T19 (`FetchServe`, `FetchTransport`) and the transport part of task T21 (`DoStubTransport`) moved to [spec 85](../../../85-wasm-fetch-transport/requirements.md) on 2026-11-15. Spec 85 now delivers the wasm gaps inside the existing `HttpClient`, `DynNetClient` and `H1Transport` instead: the streaming response body (T1), the exchange over its own client (T2), `streaming_response_with` (T3), the streaming bridges and sink (T4) and `StubHttpClient` (T5). This feature uses those and writes no fetch pump. T21 here is the host wiring only.
+Task T19 (`FetchServe`, `FetchTransport`) and the transport part of task T21 (`DoStubTransport`) moved to [spec 85](../../../completed/85-wasm-fetch-transport/requirements.md) on 2026-11-15. Spec 85 now delivers the wasm gaps inside the existing `HttpClient`, `DynNetClient` and `H1Transport` instead: the streaming response body (T1), the exchange over its own client (T2), `streaming_response_with` (T3), the streaming bridges and sink (T4) and `StubHttpClient` (T5). This feature uses those and writes no fetch pump. T21 here is the host wiring only.
 
 ## 4. Done when
 

@@ -2,7 +2,7 @@
 feature: "Verify the full path against the real services and migrate"
 status: "planned"
 priority: "medium"
-depends_on: ["03-registry-backend", "04-vm-disk-store", "05-ci-wiring-and-docs", "06-cost-report"]
+depends_on: ["03-registry-backend", "04-vm-volume-image", "05-ci-wiring-and-docs", "06-cost-report"]
 crates: []
 issues: []
 model: "sonnet"

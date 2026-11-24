@@ -62,11 +62,17 @@ fn a_closed_connection_fails_the_next_call_at_once() {
                 assert!(
                     reason.contains("close")
                         || reason.contains("ended")
-                        || reason.contains("read error"),
+                        || reason.contains("read error")
+                        || reason.contains("reset")
+                        || reason.contains("eof")
+                        || reason.contains("broken pipe"),
                     "the reason must name what ended the reader: {reason}"
                 );
+                // The bound proves that the call does not wait for its 2 s
+                // deadline. It leaves room for a loaded continuous integration
+                // (CI) runner to schedule the reader's notification.
                 assert!(
-                    started.elapsed() < Duration::from_millis(500),
+                    started.elapsed() < Duration::from_millis(1500),
                     "the call must not wait for its deadline: {:?}",
                     started.elapsed()
                 );

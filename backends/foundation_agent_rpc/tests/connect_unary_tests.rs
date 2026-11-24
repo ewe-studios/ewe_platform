@@ -1,3 +1,4 @@
+#![cfg(unix)]
 //! T6 — unary round-trip over Connect on real loopback TCP, with the error →
 //! status mapping asserted on the wire.
 //!

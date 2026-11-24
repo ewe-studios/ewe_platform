@@ -42,9 +42,11 @@ other feature invents a key, a default or a retention rule.
 2. Every default in section 7.1 has a comment with its source. The loader rejects a value
    that is out of range: part size below 5 MiB or above 5 GiB, concurrency below 1 or above
    32, retries below 0 or above 10, presign expiry below 60 s or above 604,800 s, retention
-   below 1.
-3. The manifest type and its validation live in one module. A manifest that breaks any rule
-   in `requirements.md` section 6.2 is a typed error with the field name and the reason.
+   below 1. It also rejects an unknown `[storage.bulk] backend` (`r2`, `s3`, `gcs`, `mega`,
+   `local`) and an unknown `format` (`tar.zst`, `qcow2`, `ova`, `vhdx`, `raw`).
+3. The manifest type and its validation live in one module. The manifest records the bulk
+   backend and the file format. A manifest that breaks any rule in `requirements.md`
+   section 6.2 is a typed error with the field name and the reason.
 4. The key layout is a function, not a string built at each call site. Given an OS, a base
    hash and a SHA-256, it returns the three object keys (body, checksum file, manifest).
 5. Retention is a pure function. Given the manifests, it returns the current version, the

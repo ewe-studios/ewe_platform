@@ -658,6 +658,22 @@ wasm-runs = [
 wasm = "enforce"
 wasm-runs = [""]
 
+[packages.foundation_installer]
+# The end-to-end target talks to a real Docker daemon and skips itself when no
+# daemon answers. The systemd end-to-end case runs only on a Linux host.
+runs = ["", "docker-tests"]
+
+[packages.foundation_registrar]
+# The Docker discovery and the end-to-end target need a Docker daemon; systemd
+# discovery needs `systemctl` and cgroup metrics need `/sys/fs/cgroup`. The
+# GitHub macOS and Windows runners have none of them.
+macos-tests = "none"
+macos-reason = "Docker discovery, systemd discovery and cgroup metrics need Linux tools: /var/run/docker.sock, systemctl and /sys/fs/cgroup."
+windows-tests = "none"
+windows-reason = "Docker discovery, systemd discovery and cgroup metrics need Linux tools: /var/run/docker.sock, systemctl and /sys/fs/cgroup."
+# The end-to-end run skips itself when no Docker daemon answers.
+runs = ["", "docker-tests"]
+
 [packages.foundation_connectrpc]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 macos-tests = "none"
@@ -726,6 +742,20 @@ wasm = "off"
 # Spec 88 T8: five executors plus a browser download and a wrangler start.
 timeout-minutes = 120
 env = { MISE_ENV = "wasm" }
+
+# ---------------------------------------------------------------------------
+# Manifest contract (spec 78)
+
+[packages.manifest-contract]
+# The contract is JSON and Python, not a crate. The synthetic package
+# (`manifest_contract_commands` in scripts/ci/ci.py) validates the schema and
+# every fixture, then compares each reader's copy with the canonical file by
+# SHA-256.
+fmt = "off"
+build = "enforce"
+clippy = "off"
+test = "off"
+wasm = "off"
 
 # At zero clippy warnings (spec 70 feature 55): a new one fails CI.
 [packages.foundation_openapi]

@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS vault_accounts (
     password_iterations    INTEGER NOT NULL,
     security_stamp         TEXT NOT NULL,   -- rotates on password change; invalidates tokens
     akey                   TEXT,            -- protected symmetric key ("Key")
+    public_key             TEXT,            -- base64 DER of the account RSA public key
+    encrypted_private_key  TEXT,            -- account RSA private key, protected by the user key
     client_kdf_type        INTEGER NOT NULL,
     client_kdf_iter        INTEGER NOT NULL,
     client_kdf_memory      INTEGER,

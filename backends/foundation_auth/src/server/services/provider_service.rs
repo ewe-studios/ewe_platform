@@ -145,6 +145,21 @@ impl ProviderCrypto {
         Ok(out)
     }
 
+    /// Decrypt a stored secret (`nonce || ciphertext`) to its text.
+    ///
+    /// The caller holds the plaintext only for the token request and never
+    /// logs it. The returned value is zeroed on drop.
+    ///
+    /// # Errors
+    ///
+    /// `Crypto` for a short blob, a wrong key or a secret that is not text.
+    pub fn decrypt_secret(&self, blob: &[u8]) -> Result<zeroize::Zeroizing<String>> {
+        let plaintext = self.decrypt(blob)?;
+        String::from_utf8(plaintext)
+            .map(zeroize::Zeroizing::new)
+            .map_err(|e| ProviderServiceError::Crypto(format!("secret not utf8: {e}")))
+    }
+
     /// Decrypt `nonce || ciphertext` → plaintext.
     fn decrypt(&self, blob: &[u8]) -> Result<Vec<u8>> {
         if blob.len() < NONCE_LEN {
@@ -440,12 +455,29 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             .find_by_id(id)
             .await?
             .ok_or(ProviderServiceError::NotFound)?;
-        let blob = provider
-            .client_secret_ciphertext
+        let secret = self
+            .decrypt_provider_secret(&provider)?
             .ok_or_else(|| ProviderServiceError::Validation("no secret set".into()))?;
-        let plaintext = self.crypto.decrypt(&blob)?;
-        String::from_utf8(plaintext)
-            .map_err(|e| ProviderServiceError::Crypto(format!("secret not utf8: {e}")))
+        Ok(secret.to_string())
+    }
+
+    /// Decrypt the client secret of a provider that the caller already loaded.
+    ///
+    /// `None` means the provider has no secret: it is a public client, and its
+    /// token request carries no `client_secret`. The value is zeroed on drop.
+    ///
+    /// # Errors
+    ///
+    /// `Crypto` if the stored blob or the key is bad.
+    pub fn decrypt_provider_secret(
+        &self,
+        provider: &UpstreamProvider,
+    ) -> Result<Option<zeroize::Zeroizing<String>>> {
+        provider
+            .client_secret_ciphertext
+            .as_deref()
+            .map(|blob| self.crypto.decrypt_secret(blob))
+            .transpose()
     }
 
     fn validate(provider: &UpstreamProvider) -> Result<()> {

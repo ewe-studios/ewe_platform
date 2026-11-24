@@ -1,0 +1,25 @@
+{
+  "manifest_version": 1,
+  "entries": [
+    {
+      "name": "agent-rpc",
+      "version": "0.4.0",
+      "source": {
+        "kind": "url",
+        "url": "https://example.com/releases/agent-rpc-0.4.0",
+        "sha256": "1aa649039098a78de6d11eb4531d0caed6140f94697109882cdbc1c5db1fc9d6"
+      },
+      "deploy": { "kind": "none" }
+    },
+    {
+      "name": "agent-rpc",
+      "version": "0.4.1",
+      "source": {
+        "kind": "url",
+        "url": "https://example.com/releases/agent-rpc-0.4.1",
+        "sha256": "859fd72bf17963e7c6b2329f1a851c760fc6a09ca42be72da3c462f2315f58a1"
+      },
+      "deploy": { "kind": "none" }
+    }
+  ]
+}

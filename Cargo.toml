@@ -106,6 +106,10 @@ derive_more = { version = ">=2.0", features = ["full"] }
 # Async stream combinators (bounded concurrency in the migration fleet runner).
 futures-util = "0.3"
 
+# Classless Inter-Domain Routing (CIDR) networks and address membership. The
+# proxy's registration address policy checks a backend address against them.
+ipnet = { version = "2.12", features = ["serde"] }
+
 # Transport Layer Security (TLS) and X.509 support. Spec 87 moves these with the
 # certificate authority, the trust store and the verifier into foundation_auth.
 rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
@@ -155,6 +159,9 @@ shlex = "2.0.1"
 concurrent-queue = { version = "2.5.0"}
 # The concrete RNG type that `Ctx` names. The workspace pins it here, so a consumer
 # that names `ChaCha8Rng` uses the workspace version.
+# A second version (0.3) is intentional: `foundation_auth`'s `secret-rsa` feature
+# seeds a `ChaCha12Rng` for RSA-PSS and gives it to `rsa` 0.9, which needs
+# `rand_core` 0.6. `rand_chacha` 0.3 is the version on that `rand_core`.
 rand_chacha = { version = "0.10", default-features = false }
 
 # tracing
@@ -185,10 +192,12 @@ walrus = "0.23"
 # Match the wire compiler pin. Arrow IPC also accepts this release.
 flatbuffers = { version = "=25.9.23", default-features = false }
 portpicker = "0.1"
-reqwest = { version = "0.12", features = ["blocking", "json"] }
-fs_extra = "1.3"
 # Use the pure-Rust FUSE mount implementation. It needs no system libfuse3 dev package.
-fuser = { version = "0.15", default-features = false }
+# Held at 0.16 (the first release that fixes the extraction advisory). 0.19 is
+# the latest stable, but it changes the whole `Filesystem` trait: `&self`
+# instead of `&mut self`, `INodeNo`/`FileHandle`/`OpenFlags` newtypes. The port
+# is issue #779.
+fuser = { version = "0.16", default-features = false }
 
 # Vendored patch of gemm-common 0.19.0. Its `init_gemm_fn` chose the `fma`
 # kernel from the `fma` CPU feature alone, but that kernel needs the whole V3
@@ -202,7 +211,13 @@ fuser = { version = "0.15", default-features = false }
 # gemm-f16 (0.19.0, pulled in by candle-core through gemm) has the same dispatch
 # fix in patches/gemm-f16. Its upstream note is in patches/gemm-common/UPSTREAM.md.
 # (boringtun is no longer patched: backends/foundation_boringtun is a published fork.)
+# Vendored patch of esaxx-rs 0.1.10. Its `build.rs` forces the static MSVC
+# runtime (`/MT`) on every platform, while Rust and every other C++ object in
+# the link use the dynamic runtime (`/MD`); a Windows binary that uses it fails
+# to link (issue #772). The patch lets `cc` follow the target. The upstream note
+# is in patches/esaxx-rs/UPSTREAM.md.
 [patch.crates-io]
+esaxx-rs = { path = "patches/esaxx-rs" }
 gemm-common = { path = "patches/gemm-common" }
 gemm-f16 = { path = "patches/gemm-f16" }
 

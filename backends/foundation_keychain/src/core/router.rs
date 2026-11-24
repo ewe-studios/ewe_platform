@@ -113,10 +113,39 @@ pub async fn route(
 
     // ── Server config (bw initial contact) ──────────────────────────────────
     if s == ["api"] || s == ["api", "config"] {
+        // The client reads the environment from `/api/config` at start. A
+        // self-hosted server names no cloud region and no default URLs.
         return Ok((
             200,
             serde_json::json!({
                 "version": env!("CARGO_PKG_VERSION"),
+                "gitHash": null,
+                "server": { "name": "ewe-keychain", "url": null },
+                "environment": {
+                    "cloudRegion": null,
+                    "urls": {
+                        "base": null,
+                        "api": null,
+                        "identity": null,
+                        "icons": null,
+                        "notifications": null,
+                        "events": null,
+                    },
+                    "object": "environment",
+                },
+                // The client gates the SDK cipher paths on these. A self-hosted
+                // proof-of-concept server disables them, so the client uses
+                // its legacy path with complete view data.
+                "featureStates": {
+                    "pm-27632-cipher-crud-operations-to-sdk": true,
+                    "pm-28190-cipher-sharing-ops-to-sdk": false,
+                    "pm-28191-cipher-admin-ops-to-sdk": false,
+                    "pm-28192-cipher-attachment-ops-to-sdk": false,
+                    "pm-22134-sdk-cipher-list-view": false,
+                    "pm-32009-new-item-types": false,
+                    "cipher-key-encryption": false,
+                },
+                "object": "config",
             }),
         ));
     }

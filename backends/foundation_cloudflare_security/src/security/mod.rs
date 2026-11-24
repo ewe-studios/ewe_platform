@@ -1228,10 +1228,21 @@ pub struct GetAttackerListResponse {
 /// Same shape as `super::shared::TypeObject`.
 pub type GetAttackerListResponseItems = super::shared::TypeObject;
 
+/// `GetCategoryListCompleteResponseItem` type.
+///
+/// Same shape as `super::shared::GetCategoryListCompleteResponseItemShape`.
+pub type GetCategoryListCompleteResponseItem =
+    super::shared::GetCategoryListCompleteResponseItemShape;
+
+/// `GetCategoryListResponseItem` type.
+///
+/// Same shape as `super::shared::GetCategoryListCompleteResponseItemShape`.
+pub type GetCategoryListResponseItem = super::shared::GetCategoryListCompleteResponseItemShape;
+
 /// `GetCategoryReadResponse` type.
 ///
-/// Same shape as `super::shared::GetCategoryReadResponseShape`.
-pub type GetCategoryReadResponse = super::shared::GetCategoryReadResponseShape;
+/// Same shape as `super::shared::GetCategoryListCompleteResponseItemShape`.
+pub type GetCategoryReadResponse = super::shared::GetCategoryListCompleteResponseItemShape;
 
 /// `GetConfigFetchResponse` type.
 ///
@@ -1239,20 +1250,59 @@ pub type GetCategoryReadResponse = super::shared::GetCategoryReadResponseShape;
 pub type GetConfigFetchResponse =
     super::shared::ApiEnvelope<Option<Vec<CloudforceOnePortScanApiScanConfig>>>;
 
+/// `GetCountryReadResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetCountryReadResponseItem {
+    /// `result` property.
+    pub result: Vec<GetCountryReadResponseItemResultItem>,
+    /// `success` property.
+    pub success: String,
+}
+
+/// `GetCountryReadResponseItemResultItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetCountryReadResponseItemResultItem {
+    /// `alpha3` property.
+    pub alpha3: String,
+    /// `name` property.
+    pub name: String,
+}
+
+/// `GetDatasetListResponseItem` type.
+///
+/// Same shape as `super::shared::IsPublicNameUuidObject`.
+pub type GetDatasetListResponseItem = super::shared::IsPublicNameUuidObject;
+
 /// `GetDatasetReadResponse` type.
 ///
 /// Same shape as `super::shared::IsPublicNameUuidObject`.
 pub type GetDatasetReadResponse = super::shared::IsPublicNameUuidObject;
 
+/// `GetEventListGetResponseItem` type.
+///
+/// Same shape as `super::shared::GetEventListGetResponseItemShape`.
+pub type GetEventListGetResponseItem = super::shared::GetEventListGetResponseItemShape;
+
+/// `GetEventQueryAlertListResponseItem` type.
+///
+/// Same shape as `super::shared::GetEventQueryAlertListResponseItemShape`.
+pub type GetEventQueryAlertListResponseItem =
+    super::shared::GetEventQueryAlertListResponseItemShape;
+
 /// `GetEventQueryAlertReadResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryAlertReadResponseShape`.
-pub type GetEventQueryAlertReadResponse = super::shared::GetEventQueryAlertReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryAlertListResponseItemShape`.
+pub type GetEventQueryAlertReadResponse = super::shared::GetEventQueryAlertListResponseItemShape;
+
+/// `GetEventQueryListResponseItem` type.
+///
+/// Same shape as `super::shared::GetEventQueryListResponseItemShape`.
+pub type GetEventQueryListResponseItem = super::shared::GetEventQueryListResponseItemShape;
 
 /// `GetEventQueryReadResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryReadResponseShape`.
-pub type GetEventQueryReadResponse = super::shared::GetEventQueryReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryListResponseItemShape`.
+pub type GetEventQueryReadResponse = super::shared::GetEventQueryListResponseItemShape;
 
 /// `GetEventRawReadDsResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1292,8 +1342,32 @@ pub struct GetEventRawReadResponse {
 
 /// `GetEventReadResponse` type.
 ///
-/// Same shape as `super::shared::GetEventReadResponseShape`.
-pub type GetEventReadResponse = super::shared::GetEventReadResponseShape;
+/// Same shape as `super::shared::GetEventListGetResponseItemShape`.
+pub type GetEventReadResponse = super::shared::GetEventListGetResponseItemShape;
+
+/// `GetEventRelationshipsResponseItem` type.
+///
+/// Same shape as `super::shared::GetEventListGetResponseItemShape`.
+pub type GetEventRelationshipsResponseItem = super::shared::GetEventListGetResponseItemShape;
+
+/// `GetGetLogoQueriesResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGetLogoQueriesResponseItem {
+    /// `content_type` property.
+    pub content_type: Option<String>,
+    /// `id` property.
+    pub id: i64,
+    /// `image_data` property.
+    pub image_data: Option<String>,
+    /// `r2_path` property.
+    pub r2_path: String,
+    /// `similarity_threshold` property.
+    pub similarity_threshold: f64,
+    /// `tag` property.
+    pub tag: String,
+    /// `uploaded_at` property.
+    pub uploaded_at: Option<String>,
+}
 
 /// `GetGetOpenPortsResponse` type.
 ///
@@ -1307,6 +1381,16 @@ pub struct GetGetOpenPortsResponseResult {
     #[serde(rename = "1.1.1.1")]
     pub field_1_1_1_1: Vec<CloudforceOnePortScanApiPort>,
 }
+
+/// `GetGroupListResponseItem` type.
+///
+/// Same shape as `super::shared::GetGroupListResponseItemShape`.
+pub type GetGroupListResponseItem = super::shared::GetGroupListResponseItemShape;
+
+/// `GetGroupMemberListResponseItem` type.
+///
+/// Same shape as `super::shared::GetGroupMemberListResponseItemShape`.
+pub type GetGroupMemberListResponseItem = super::shared::GetGroupMemberListResponseItemShape;
 
 /// `GetGroupReadResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1329,8 +1413,8 @@ pub struct GetGroupReadResponse {
 
 /// `GetGroupReadResponseMembersItem` type.
 ///
-/// Same shape as `super::shared::GetGroupReadResponseMembersItemShape`.
-pub type GetGroupReadResponseMembersItem = super::shared::GetGroupReadResponseMembersItemShape;
+/// Same shape as `super::shared::GetGroupMemberListResponseItemShape`.
+pub type GetGroupReadResponseMembersItem = super::shared::GetGroupMemberListResponseItemShape;
 
 /// `GetIndicatorListResponse` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1525,6 +1609,11 @@ pub struct GetLogoMatchListResponseMatchesItem {
     pub url_scan_id: Option<String>,
 }
 
+/// `GetPermissionListResponseItem` type.
+///
+/// Same shape as `super::shared::GetPermissionListResponseItemShape`.
+pub type GetPermissionListResponseItem = super::shared::GetPermissionListResponseItemShape;
+
 /// `GetSecurityCenterIssueTypesResponse` type.
 ///
 /// Same shape as `super::shared::ApiEnvelope<Option<serde_json::Value>>`.
@@ -1660,6 +1749,13 @@ pub struct GetTargetIndustryListResponse {
 ///
 /// Same shape as `super::shared::TypeObject`.
 pub type GetTargetIndustryListResponseItems = super::shared::TypeObject;
+
+/// `GetTotalQueriesResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetTotalQueriesResponseItem {
+    /// `total_queries` property.
+    pub total_queries: i64,
+}
 
 /// `IntelApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1908,8 +2004,8 @@ pub type PatchCategoryUpdateRequest = super::shared::PatchCategoryUpdateRequestS
 
 /// `PatchCategoryUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetCategoryReadResponseShape`.
-pub type PatchCategoryUpdateResponse = super::shared::GetCategoryReadResponseShape;
+/// Same shape as `super::shared::GetCategoryListCompleteResponseItemShape`.
+pub type PatchCategoryUpdateResponse = super::shared::GetCategoryListCompleteResponseItemShape;
 
 /// `PatchDatasetUpdateRequest` type.
 ///
@@ -1928,8 +2024,9 @@ pub type PatchEventQueryAlertUpdateRequest = super::shared::EnabledFrequencyNoti
 
 /// `PatchEventQueryAlertUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryAlertReadResponseShape`.
-pub type PatchEventQueryAlertUpdateResponse = super::shared::GetEventQueryAlertReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryAlertListResponseItemShape`.
+pub type PatchEventQueryAlertUpdateResponse =
+    super::shared::GetEventQueryAlertListResponseItemShape;
 
 /// `PatchEventQueryUpdateRequest` type.
 ///
@@ -1938,8 +2035,8 @@ pub type PatchEventQueryUpdateRequest = super::shared::PatchEventQueryUpdateRequ
 
 /// `PatchEventQueryUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryReadResponseShape`.
-pub type PatchEventQueryUpdateResponse = super::shared::GetEventQueryReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryListResponseItemShape`.
+pub type PatchEventQueryUpdateResponse = super::shared::GetEventQueryListResponseItemShape;
 
 /// `PatchEventRawUpdateRequest` type.
 ///
@@ -2074,8 +2171,8 @@ pub type PatchEventUpdateRequestRaw = super::shared::DataSourceTlpObject;
 
 /// `PatchEventUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventReadResponseShape`.
-pub type PatchEventUpdateResponse = super::shared::GetEventReadResponseShape;
+/// Same shape as `super::shared::GetEventListGetResponseItemShape`.
+pub type PatchEventUpdateResponse = super::shared::GetEventListGetResponseItemShape;
 
 /// `PatchIndicatorUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -2236,8 +2333,8 @@ pub struct PostCategoryCreateRequest {
 
 /// `PostCategoryCreateResponse` type.
 ///
-/// Same shape as `super::shared::GetCategoryReadResponseShape`.
-pub type PostCategoryCreateResponse = super::shared::GetCategoryReadResponseShape;
+/// Same shape as `super::shared::GetCategoryListCompleteResponseItemShape`.
+pub type PostCategoryCreateResponse = super::shared::GetCategoryListCompleteResponseItemShape;
 
 /// `PostCategoryUpdateRequest` type.
 ///
@@ -2246,8 +2343,8 @@ pub type PostCategoryUpdateRequest = super::shared::PatchCategoryUpdateRequestSh
 
 /// `PostCategoryUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetCategoryReadResponseShape`.
-pub type PostCategoryUpdateResponse = super::shared::GetCategoryReadResponseShape;
+/// Same shape as `super::shared::GetCategoryListCompleteResponseItemShape`.
+pub type PostCategoryUpdateResponse = super::shared::GetCategoryListCompleteResponseItemShape;
 
 /// `PostConfigCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -2991,8 +3088,8 @@ pub type PostEventCreateRequestRaw = super::shared::DataSourceTlpObject;
 
 /// `PostEventCreateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventReadResponseShape`.
-pub type PostEventCreateResponse = super::shared::GetEventReadResponseShape;
+/// Same shape as `super::shared::GetEventListGetResponseItemShape`.
+pub type PostEventCreateResponse = super::shared::GetEventListGetResponseItemShape;
 
 /// `PostEventDoRevertRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -3123,8 +3220,8 @@ pub struct PostEventQueryAlertCreateRequest {
 
 /// `PostEventQueryAlertCreateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryAlertReadResponseShape`.
-pub type PostEventQueryAlertCreateResponse = super::shared::GetEventQueryAlertReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryAlertListResponseItemShape`.
+pub type PostEventQueryAlertCreateResponse = super::shared::GetEventQueryAlertListResponseItemShape;
 
 /// `PostEventQueryAlertUpdateRequest` type.
 ///
@@ -3133,8 +3230,8 @@ pub type PostEventQueryAlertUpdateRequest = super::shared::EnabledFrequencyNotif
 
 /// `PostEventQueryAlertUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryAlertReadResponseShape`.
-pub type PostEventQueryAlertUpdateResponse = super::shared::GetEventQueryAlertReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryAlertListResponseItemShape`.
+pub type PostEventQueryAlertUpdateResponse = super::shared::GetEventQueryAlertListResponseItemShape;
 
 /// `PostEventQueryCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -3155,8 +3252,8 @@ pub struct PostEventQueryCreateRequest {
 
 /// `PostEventQueryCreateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryReadResponseShape`.
-pub type PostEventQueryCreateResponse = super::shared::GetEventQueryReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryListResponseItemShape`.
+pub type PostEventQueryCreateResponse = super::shared::GetEventQueryListResponseItemShape;
 
 /// `PostEventQueryUpdateRequest` type.
 ///
@@ -3165,8 +3262,8 @@ pub type PostEventQueryUpdateRequest = super::shared::PatchEventQueryUpdateReque
 
 /// `PostEventQueryUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventQueryReadResponseShape`.
-pub type PostEventQueryUpdateResponse = super::shared::GetEventQueryReadResponseShape;
+/// Same shape as `super::shared::GetEventQueryListResponseItemShape`.
+pub type PostEventQueryUpdateResponse = super::shared::GetEventQueryListResponseItemShape;
 
 /// `PostEventRawUpdateRequest` type.
 ///
@@ -3257,8 +3354,8 @@ pub type PostEventUpdateRequestRaw = super::shared::DataSourceTlpObject;
 
 /// `PostEventUpdateResponse` type.
 ///
-/// Same shape as `super::shared::GetEventReadResponseShape`.
-pub type PostEventUpdateResponse = super::shared::GetEventReadResponseShape;
+/// Same shape as `super::shared::GetEventListGetResponseItemShape`.
+pub type PostEventUpdateResponse = super::shared::GetEventListGetResponseItemShape;
 
 /// `PostGroupCreateRequest` type.
 ///
@@ -3267,8 +3364,8 @@ pub type PostGroupCreateRequest = super::shared::DescriptionNameObject;
 
 /// `PostGroupCreateResponse` type.
 ///
-/// Same shape as `super::shared::PostGroupCreateResponseShape`.
-pub type PostGroupCreateResponse = super::shared::PostGroupCreateResponseShape;
+/// Same shape as `super::shared::GetGroupListResponseItemShape`.
+pub type PostGroupCreateResponse = super::shared::GetGroupListResponseItemShape;
 
 /// `PostGroupMemberCreateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -3283,8 +3380,8 @@ pub struct PostGroupMemberCreateRequest {
 
 /// `PostGroupMemberCreateResponse` type.
 ///
-/// Same shape as `super::shared::GetGroupReadResponseMembersItemShape`.
-pub type PostGroupMemberCreateResponse = super::shared::GetGroupReadResponseMembersItemShape;
+/// Same shape as `super::shared::GetGroupMemberListResponseItemShape`.
+pub type PostGroupMemberCreateResponse = super::shared::GetGroupMemberListResponseItemShape;
 
 /// `PostIndicatorCreateBulkRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -3440,31 +3537,9 @@ pub struct PostPermissionCreateRequest {
 }
 
 /// `PostPermissionCreateResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostPermissionCreateResponse {
-    /// `createdAt` property.
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    /// `resourceId` property.
-    #[serde(rename = "resourceId")]
-    pub resource_id: Option<String>,
-    /// `resourceType` property.
-    #[serde(rename = "resourceType")]
-    pub resource_type: String,
-    /// `role` property.
-    pub role: String,
-    /// `subjectId` property.
-    #[serde(rename = "subjectId")]
-    pub subject_id: String,
-    /// `subjectType` property.
-    #[serde(rename = "subjectType")]
-    pub subject_type: String,
-    /// `updatedAt` property.
-    #[serde(rename = "updatedAt")]
-    pub updated_at: String,
-    /// `uuid` property.
-    pub uuid: String,
-}
+///
+/// Same shape as `super::shared::GetPermissionListResponseItemShape`.
+pub type PostPermissionCreateResponse = super::shared::GetPermissionListResponseItemShape;
 
 /// `PostSearchLogoSimilarityRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -3590,8 +3665,8 @@ pub type PutGroupUpdateRequest = super::shared::DescriptionNameObject;
 
 /// `PutGroupUpdateResponse` type.
 ///
-/// Same shape as `super::shared::PostGroupCreateResponseShape`.
-pub type PutGroupUpdateResponse = super::shared::PostGroupCreateResponseShape;
+/// Same shape as `super::shared::GetGroupListResponseItemShape`.
+pub type PutGroupUpdateResponse = super::shared::GetGroupListResponseItemShape;
 
 /// `PutPermissionUpdateRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -5264,6 +5339,28 @@ pub struct UrlscannerCreateScanBulkV2RequestItem {
     pub visibility: Option<String>,
 }
 
+/// `UrlscannerCreateScanBulkV2ResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UrlscannerCreateScanBulkV2ResponseItem {
+    /// `api` property.
+    pub api: String,
+    /// `options` property.
+    pub options: Option<UrlscannerCreateScanBulkV2ResponseItemOptions>,
+    /// `result` property.
+    pub result: String,
+    /// `url` property.
+    pub url: String,
+    /// `uuid` property.
+    pub uuid: String,
+    /// `visibility` property.
+    pub visibility: String,
+}
+
+/// `UrlscannerCreateScanBulkV2ResponseItemOptions` type.
+///
+/// Same shape as `super::shared::UseragentObject`.
+pub type UrlscannerCreateScanBulkV2ResponseItemOptions = super::shared::UseragentObject;
+
 /// `UrlscannerCreateScanV2Request` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct UrlscannerCreateScanV2Request {
@@ -5305,11 +5402,9 @@ pub struct UrlscannerCreateScanV2Response {
 }
 
 /// `UrlscannerCreateScanV2ResponseOptions` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct UrlscannerCreateScanV2ResponseOptions {
-    /// `useragent` property.
-    pub useragent: Option<String>,
-}
+///
+/// Same shape as `super::shared::UseragentObject`.
+pub type UrlscannerCreateScanV2ResponseOptions = super::shared::UseragentObject;
 
 /// `UrlscannerGetScanHarV2Response` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -9458,7 +9553,7 @@ pub async fn get_event_list_get_request<F>(
     args: &GetEventListGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetEventListGetResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -9570,7 +9665,7 @@ pub async fn get_category_list_request<F>(
     args: &GetCategoryListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetCategoryListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -9621,7 +9716,7 @@ pub async fn get_category_list_complete_request<F>(
     args: &GetCategoryListCompleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetCategoryListCompleteResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -9915,7 +10010,7 @@ pub async fn get_country_read_request<F>(
     args: &GetCountryReadArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetCountryReadResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -10061,7 +10156,7 @@ pub async fn get_dataset_list_request<F>(
     args: &GetDatasetListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetDatasetListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -10108,7 +10203,7 @@ pub async fn get_group_list_request<F>(
     args: &GetGroupListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetGroupListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -10351,7 +10446,7 @@ pub async fn get_group_member_list_request<F>(
     args: &GetGroupMemberListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetGroupMemberListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -11247,7 +11342,7 @@ pub async fn get_permission_list_request<F>(
     args: &GetPermissionListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetPermissionListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -11868,7 +11963,7 @@ pub async fn get_event_query_list_request<F>(
     args: &GetEventQueryListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetEventQueryListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -11915,7 +12010,7 @@ pub async fn get_event_query_alert_list_request<F>(
     args: &GetEventQueryAlertListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetEventQueryAlertListResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -13554,7 +13649,7 @@ pub async fn get_event_relationships_request<F>(
     args: &GetEventRelationshipsArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetEventRelationshipsResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -15453,7 +15548,7 @@ pub async fn get_get_logo_queries_request<F>(
     args: &GetGetLogoQueriesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetGetLogoQueriesResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -15655,7 +15750,7 @@ pub async fn get_total_queries_request<F>(
     args: &GetTotalQueriesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<GetTotalQueriesResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
@@ -17177,7 +17272,7 @@ pub async fn urlscanner_create_scan_bulk_v2_request<F>(
     args: &UrlscannerCreateScanBulkV2Args,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<UrlscannerCreateScanBulkV2ResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {

@@ -48,8 +48,7 @@ async fn image_history() {
         .image_history("alpine:latest")
         .await
         .expect("image_history");
-    let arr = history.as_array().expect("history must be a JSON array");
-    assert!(!arr.is_empty(), "history must have at least one entry");
+    assert!(!history.is_empty(), "history must have at least one entry");
 }
 
 #[valtron_test]
@@ -59,13 +58,12 @@ async fn image_search() {
         .image_search(Some("alpine"), None, None)
         .await
         .expect("image_search");
-    let arr = results
-        .as_array()
-        .expect("search results must be a JSON array");
-    assert!(!arr.is_empty(), "search must return at least one result");
-    let first = &arr[0];
     assert!(
-        first.get("name").is_some(),
+        !results.is_empty(),
+        "search must return at least one result"
+    );
+    assert!(
+        results[0].name.is_some(),
         "first search result must have a 'name' field"
     );
 }
@@ -98,8 +96,8 @@ async fn image_delete_untagged() {
         .await
         .expect("image_delete");
     assert!(
-        deleted.is_array(),
-        "delete must return a JSON array of deleted layers"
+        !deleted.is_empty(),
+        "delete must return at least one deleted layer"
     );
 }
 

@@ -627,9 +627,27 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             }
         }
 
-        // Build transport request.
+        // Build transport request. A transport that cannot stream a request
+        // body on this host (a browser fetch to an HTTP/1.1 origin, #753) takes
+        // the whole frame at open; the call sends exactly one message anyway.
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST)?;
-        let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
+        let fixed_body = if self.transport.uses_fixed_request_body() {
+            Some(self.protocol.encode_request_frame(
+                body.clone(),
+                self.resolve_send_compressor()?,
+                self.config.limits.compress_min_bytes,
+                self.config.limits.send_max_bytes,
+            )?)
+        } else {
+            None
+        };
+        let transport_stream = match &fixed_body {
+            Some(wire) => self
+                .transport
+                .open_with_body(desc, wire.clone())
+                .map_err(ConnectError::from)?,
+            None => self.transport.open(desc).map_err(ConnectError::from)?,
+        };
 
         // Build the ClientExchange with linked cancel.
         let exchange =
@@ -644,9 +662,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         let (mut sender, mut receiver) = exchange.conn.split();
 
-        // Send the request frame and close.
-        sender.send(body).await?;
-        sender.close_send().await?;
+        if fixed_body.is_some() {
+            // The body went out with the open; dropping the sender half-closes
+            // the request so the peer sees end of stream.
+            drop(sender);
+        } else {
+            // Send the request frame and close.
+            sender.send(body).await?;
+            sender.close_send().await?;
+        }
 
         // Await the response head so the caller's `response_headers()` is sync-OK.
         let response_headers = receiver.response_headers().await?.clone();
@@ -886,6 +910,22 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         }
     }
 
+    /// Resolve the outgoing compressor once per call.
+    ///
+    /// `None` and `identity` mean that no frame is compressed. An unknown name
+    /// is an internal configuration error, the same one the unary path reports.
+    fn resolve_send_compressor(&self) -> ConnectResult<Option<Arc<dyn Compressor>>> {
+        match self.config.send_compression.as_deref() {
+            None | Some("identity") => Ok(None),
+            Some(name) => {
+                let compressor = self.config.compression.get(name).cloned().ok_or_else(|| {
+                    ConnectError::internal(format!("unknown compression algorithm: {name}"))
+                })?;
+                Ok(Some(compressor))
+            }
+        }
+    }
+
     /// Build a [`ClientExchange`] with the cancel signal linked to the call ctx.
     fn build_streaming_exchange(
         &self,
@@ -894,15 +934,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         stream: TransportStream,
         ctx: &RpcCtx,
     ) -> ConnectResult<ClientExchange> {
-        // Resolve the outgoing compressor once per call. `None` and `identity`
-        // mean that no frame is compressed. An unknown name is an internal
-        // configuration error, the same one the unary path reports.
-        let send_compressor = match self.config.send_compression.as_deref() {
-            None | Some("identity") => None,
-            Some(name) => Some(self.config.compression.get(name).cloned().ok_or_else(|| {
-                ConnectError::internal(format!("unknown compression algorithm: {name}"))
-            })?),
-        };
+        let send_compressor = self.resolve_send_compressor()?;
         self.protocol.new_conn(
             spec,
             headers,
@@ -1910,15 +1942,12 @@ async fn do_unary_round_trip(
     read_max_bytes: usize,
     error_body_max_bytes: usize,
 ) -> ConnectResult<UnaryReply> {
-    let mut stream = transport.open(desc).map_err(ConnectError::from)?;
-
-    // Push request body.
-    if !body.is_empty() {
-        stream.send_body.try_send(body).map_err(|()| {
-            ConnectError::internal("failed to push request body into transport pipe")
-        })?;
-    }
-    stream.send_body.close();
+    // Hand the whole body to the transport. A transport that cannot stream a
+    // request body on this host sends it with a known length (#753); the
+    // default pushes it into the streaming exchange.
+    let mut stream = transport
+        .open_with_body(desc, body)
+        .map_err(ConnectError::from)?;
 
     // Await response head.
     let (status, resp_headers) = stream

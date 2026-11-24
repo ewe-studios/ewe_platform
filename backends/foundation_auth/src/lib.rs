@@ -10,6 +10,18 @@ pub mod shared;
 
 pub mod server_credential;
 
+/// Lowercase hexadecimal SHA-256 fingerprints (spec 81).
+pub mod fingerprint;
+
+/// Signed secrets: the issuer signs with a private key, the verifier checks
+/// with public keys only (spec 81, T5).
+#[cfg(feature = "secret")]
+pub mod secret;
+
+/// Operator key files: OpenSSH, PKCS#8 and SEC1 PEM (spec 81, T7).
+#[cfg(feature = "secret")]
+pub mod keys;
+
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
@@ -48,7 +60,9 @@ pub use shared::jwks::{Jwk, Jwks, JwksError, JwksManager};
 pub use shared::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 
 // Feature 03: Unified Upstream OIDC/OAuth2 Client (cross-platform — native + wasm)
-pub use shared::upstream_client::{UpstreamClientError, UpstreamOidcClient, UpstreamProfile};
+pub use shared::upstream_client::{
+    GithubEmail, UpstreamClientError, UpstreamOidcClient, UpstreamProfile,
+};
 
 // Feature 01/03: Upstream provider models (cross-platform, pure serde)
 pub use shared::provider::{ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider};

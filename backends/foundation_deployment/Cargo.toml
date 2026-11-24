@@ -36,7 +36,7 @@ sha2 = { workspace = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.10" }
 foundation_macros = { workspace = true }
 

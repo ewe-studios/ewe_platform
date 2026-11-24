@@ -17,6 +17,14 @@ pub struct SyncData {
     pub collections: Vec<serde_json::Value>,
     pub sends: Vec<Send>,
     pub domains: Option<EquivalentDomains>,
+    /// The organizations the user belongs to (a summary each).
+    pub organizations: Vec<serde_json::Value>,
+    /// The policies that apply to the user.
+    pub policies: Vec<serde_json::Value>,
+    /// The newer policy list. The client reads both.
+    pub policies_new: Vec<serde_json::Value>,
+    /// User decryption options. The server keeps none for this account.
+    pub user_decryption: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Serialize)]

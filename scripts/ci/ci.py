@@ -95,6 +95,14 @@ GLOBAL_PATHS = (
 )
 
 STEPS = ("fmt", "build", "clippy", "test", "wasm")
+
+# The manifest contract fixtures (spec 78) live in the spec directory, and each
+# reader keeps a copy in its own crate. A change to a copy must run the
+# `manifest-contract` package, even though the file is not Rust source.
+MANIFEST_CONSUMER_PREFIXES = (
+    "backends/foundation_installer/tests/fixtures/manifest/",
+    "backends/foundation_registrar/tests/fixtures/manifest/",
+)
 MODES = ("enforce", "report", "off")
 PLATFORMS = ("linux", "macos", "windows")
 
@@ -288,6 +296,15 @@ def load_workspace() -> dict[str, Package]:
     packages["wasm-tests"] = Package(
         name="wasm-tests",
         dir="backends/foundation_core/integration/wasm_tests",
+        needs_llama=False,
+    )
+
+    # The manifest contract (spec 78) is JSON and Python, not a crate. Add one
+    # synthetic package that owns the spec directory and runs the schema,
+    # fixture and consumer-copy checks. See `manifest_contract_commands`.
+    packages["manifest-contract"] = Package(
+        name="manifest-contract",
+        dir="specifications/completed/78-manifest-contract",
         needs_llama=False,
     )
     return packages
@@ -632,6 +649,13 @@ def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dic
             direct.setdefault("foundation_ui_wire", f"{path} affects the wire bindings")
             if owner := owning_package(path, packages):
                 direct.setdefault(owner, f"{path} changed")
+        elif path.startswith(MANIFEST_CONSUMER_PREFIXES):
+            # A reader's copy of a manifest fixture (spec 78). The drift check
+            # runs once, in the synthetic package, so the fault names both
+            # sides; the reader that owns the copy also runs its own tests.
+            only.setdefault("manifest-contract", f"{path} changed")
+            if owner := owning_package(path, packages):
+                direct.setdefault(owner, f"{path} changed")
         elif is_global(path):
             return everything(f"{path} changed")
         elif owner := owning_package(path, packages):
@@ -762,10 +786,20 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "-p", "foundation_core", *feature_flags("--no-default-features --features std,js-wasmbindgen")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch")],
+        # Spec 85 T5: the Durable Object stub client sits behind the `cloudflare`
+        # feature, which no other step enables. A compile check keeps it honest.
+        ["cargo", "check", "--lib", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch,cloudflare")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+        # Spec 85 T6: the standalone wasm test crate for the connectrpc streaming
+        # sink and the foundation_http streaming inbound bridge. A package-level
+        # `--tests` check is not possible for either crate (#576).
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm/Cargo.toml"],
         # Spec 70 feature 76: the standalone Cloudflare wasm store tests. The
         # wrangler run below compiles them too, but this step names a compile
         # break directly, before the harness starts.
@@ -775,13 +809,41 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
          "--manifest-path", "backends/foundation_db/integration/browser/Cargo.toml"],
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_db/integration/browser/Cargo.toml", "--check"],
+        # Spec 85 T5: the Durable Object stub client on the real local bindings.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_netio/integration/wasm_cf/Cargo.toml"],
         # This package sets fmt = "off" (the workspace fmt step cannot see a
         # crate outside the workspace), so the standalone crate's formatting
         # is checked here.
         ["cargo", "fmt", "--manifest-path",
          "backends/foundation_db/integration/wasm_cf/Cargo.toml", "--check"],
         ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_netio/integration/wasm_cf/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
          "backends/foundation_core/integration/wasm_tests/Cargo.toml", "--check"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm/Cargo.toml", "--check"],
+        # Spec 88 feature 02: the foundation_http wasm-bindgen crate. It is
+        # outside the root workspace, so a `--tests` check by manifest is the
+        # form, and its formatting is checked here (the package sets fmt = off).
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_http/integration/wasm/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_http/integration/wasm/Cargo.toml", "--check"],
+        # Spec 88 feature 02 T6: the owned-harness package. It leaves out the
+        # fetch client, so its wasm module imports no wasm-bindgen glue.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_http/integration/wasm_owned/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_http/integration/wasm_owned/Cargo.toml", "--check"],
+        # Spec 88 feature 03 T7: the foundation_connectrpc owned-harness package.
+        # It leaves out the fetch client, so its wasm module imports only `abi`.
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml", "--check"],
         # Spec 88 T8: the wasm bridge of foundation_http and the wasm build of
         # foundation_connectrpc were compiled by no CI run. A package-level
         # `--tests` check is not possible for foundation_http (#576), so these
@@ -803,17 +865,56 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         ["mise", "run", "test:wasm-bindgen:deno"],
         # Spec 88 #575: the 19 `dual!` wasm-bindgen cases.
         ["mise", "run", "test:wasm-bindgen:core"],
+        # Spec 85 T6: foundation_netio's wasm suite executes (it was compile
+        # checked only), and the standalone connectrpc/http wasm tests.
+        ["mise", "run", "test:wasm-bindgen:netio"],
+        ["mise", "run", "test:wasm-bindgen:connectrpc"],
         # Spec 70 feature 76: the D1/R2/KV wasm stores on the real local
         # bindings (`wrangler dev --local`). The REST clients use the same
         # local D1/R2 state through the explorer API.
         ["mise", "run", "test:wasm-testbed:wrangler"],
+        # Spec 85 T5: the Durable Object stub client on the real local bindings.
+        ["mise", "run", "test:wasm-testbed:wrangler-netio"],
         # The owned browser host, then the wasm-bindgen web host on
         # foundation_core's 34 cases (spec 88 T9, #586).
         ["mise", "run", "test:wasm-testbed:browser"],
         ["mise", "run", "test:wasm-bindgen:web"],
+        # Spec 88 feature 02: the native pure-Rust wasm module suite (#570), then
+        # the foundation_http bridge and writer cases on the three hosts.
+        ["cargo", "test", "--profile", "uat", "-p", "foundation_http",
+         *feature_flags("--features wasm-test")],
+        ["mise", "run", "test:wasm-bindgen:http:deno"],
+        ["mise", "run", "test:wasm-bindgen:http:web"],
+        ["mise", "run", "test:wasm-bindgen:http:wrangler"],
+        # Spec 88 feature 02 T6: the same pure-Rust cases on the owned harness,
+        # with no fetch client in the module.
+        ["mise", "run", "test:wasm-testbed:http:deno"],
+        ["mise", "run", "test:wasm-testbed:http:browser"],
+        # Spec 88 feature 03: the foundation_connectrpc wasm cases on the web and
+        # workerd hosts, then the pure-Rust cases on the owned harness. The
+        # Deno wasm-bindgen run is `test:wasm-bindgen:connectrpc` above.
+        ["mise", "run", "test:wasm-bindgen:connectrpc:web"],
+        ["mise", "run", "test:wasm-bindgen:connectrpc:wrangler"],
+        ["mise", "run", "test:wasm-testbed:connectrpc:deno"],
+        ["mise", "run", "test:wasm-testbed:connectrpc:browser"],
         # The suite proves it can fail: both bindgen runners must reject the
         # fixture's failing case (rules I1, I7).
         ["mise", "run", "test:wasm-testbed:bindgen-fails"],
+    ]
+    return plan
+
+
+def manifest_contract_commands() -> dict[str, list[list[str]]]:
+    """Commands for the synthetic `manifest-contract` package (spec 78).
+
+    (1) Validate the schema document and every canonical fixture. (2) Compare
+    each reader's copy with the canonical file by SHA-256. The copy check
+    passes while a reader has no copies yet.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    plan["build"] = [
+        [sys.executable, "scripts/ci/manifest_contract.py", "--check-schema"],
+        [sys.executable, "scripts/ci/manifest_contract.py", "--check-copies"],
     ]
     return plan
 
@@ -861,6 +962,8 @@ def commands(
         return examples_commands(profile)
     if name == "wasm-tests":
         return wasm_tests_commands()
+    if name == "manifest-contract":
+        return manifest_contract_commands()
     plan: dict[str, list[list[str] | PlannedCommand]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])

@@ -1,0 +1,568 @@
+---
+feature: "ConnectRPC Runtime"
+description: "Deep foundation_connectrpc cases on embedded Deno, headless Chromium and workerd: the router and its four stream types, the response-sink contract, the error model, the deadline through an injected clock, and H1Transport against each host's real fetch."
+status: "completed"
+priority: "high"
+depends_on: ["00-executors"]
+estimated_effort: "large"
+created: 2026-11-15
+last_updated: 2026-11-23
+author: "Main Agent"
+model: "sonnet"
+tasks:
+  completed: 7
+  uncompleted: 0
+  total: 7
+  completion_percentage: 100%
+---
+
+# ConnectRPC Runtime
+
+_Status: **done and merged** as `c05d0e0d7`, feature 03 of spec 88. Written in ASD-STE100 Simplified Technical English
+(STE). Code and identifiers stay as they are._
+
+**Abbreviations.** Remote procedure call (RPC); Connect protocol (Connect); JavaScript (JS);
+WebAssembly (wasm); HTTP/1.1 (H1); Simplified Technical English (STE); continuous integration
+(CI); Cloudflare (CF).
+
+## 1. Goal
+
+Prove `foundation_connectrpc` on the three hosts:
+
+| Host | What it proves |
+|---|---|
+| embedded Deno | dispatch, the sink contract, the error model, the deadline, and `H1Transport` over the real fetch |
+| headless Chromium | the same, over the browser's fetch and with a real origin |
+| workerd | dispatch, the sink contract, the error model and the deadline; the transport only if the measurement in 6.5 allows it |
+
+The transport cases use the wasm-bindgen harness, because their wasm module imports wasm-bindgen
+glue through `foundation_netio` (spec 88 section 2.7). The pure-Rust cases also run on the owned
+harness, from a second package built without the fetch client. The owner asked for both harnesses
+where the crate allows it (spec 88 section 4, D2). T7 builds and measures that package. The crate
+builds for wasm32 with `default-features = false, features = ["rpc"]`; the default `rpc_multi`
+turns on `foundation_core/multi`, which is a hard error on wasm (measured 2026-11-15: the check
+finishes clean with the `rpc` feature set).
+
+## 2. Story
+
+| ID | Actor | Trigger | Result |
+|---|---|---|---|
+| S1 | a case | dispatches one unary request through the router | 200, a Connect envelope and the handler's message |
+| S2 | a case | calls a procedure the router does not have | `unimplemented`, and no handler runs |
+| S3 | a case | a handler returns an error | the Connect error frame carries the code and the message |
+| S4 | a case | a server-stream handler emits three frames | the sink receives open, three chunks, then finish, in that order |
+| S5 | a case | the sink fails on the second chunk | dispatch returns the error and the handler is not polled again |
+| S6 | a case | the call deadline passes while the handler waits | `deadline_exceeded` reaches the client, on the injected clock |
+| S7 | a case | two services share one router | each procedure reaches its own handler |
+| S8 | a case | `H1Transport` calls the host's endpoint | the response decodes and the status is 200 |
+| S9 | a case | the endpoint answers a non-200 status | the client returns a typed `ConnectError` |
+| S10 | a case | a server stream crosses the transport | every frame arrives, in order |
+| S11 | a maintainer | change `dispatch_to` to call `finish` before the last chunk | `server_stream_frames_arrive_in_order` turns red on every host (R14) |
+
+## 3. Bounded context
+
+### 3.1 Inside
+
+| Entity | Meaning | Owner (one writer) |
+|---|---|---|
+| `integration/wasm/` | the new standalone wasm-bindgen crate | this feature |
+| `Router` and `ConnectRpcHandler` | route table, `dispatch` and `dispatch_to` | `foundation_connectrpc/src/shared/router/` |
+| `ResponseSink` and `CollectingSink` | the response contract | `shared/router/dispatch.rs:375,406` |
+| `CallHooks` and `DeadlineTimer` | the cancel signal and the deadline | `shared/router/dispatch.rs:167,181` |
+| `Client` and `H1Transport` | the client over a `DynNetClient` | `shared/client.rs`, `shared/transport/h1.rs` |
+| the `/connect` route | the real endpoint on the testbed server | `foundation_testbed/src/wasm/server.rs` |
+
+### 3.2 Outside
+
+| Thing | Owner | This feature touches it? |
+|---|---|---|
+| the runners and `--filter` | feature 00 | no |
+| the `/echo` route and `__FWT_BASE_URL__` | feature 00 | no; it adds a second route |
+| `foundation_netio`'s fetch client | spec 85 | no; it uses it |
+| `foundation_http`'s bridges | feature 02 | no; it uses the native server path |
+
+### 3.3 Verbs
+
+| Verb | Kind | Effect |
+|---|---|---|
+| `dispatch` | story verb | route one request and produce one response, in memory |
+| `dispatch_to` | story verb | route one request into a sink, frame by frame |
+| `open` / `chunk` / `finish` | entity verbs | write a streamed response |
+| `whole` | entity verb | write a complete response |
+| `call` | story verb | send one request through a transport and decode the answer |
+| `sleep_until` | entity verb | resolve when a deadline passes |
+
+## 4. Rules
+
+### 4.1 Law worksheet
+
+```
+Entity: a dispatched call
+Conserved value:    one request -> one response; frames written == frames produced
+Bound:              every call ends by its deadline; every case has its own bound
+Inverse pairs:      open / finish; send / receive
+Idempotent verbs:   none (a call has one response)
+Ordering pairs:     head before chunk; every chunk before finish; open exactly once
+Monotone values:    the frame index
+Freeze points:      the sink is closed after finish and refuses a later chunk
+Links to other entities: the handler's frames, the sink's calls, the client's decode
+
+Entity: a response sink
+Conserved value:    bytes handed to the sink == bytes handed to the peer
+Bound:              a slow sink slows the handler; it never buffers without limit
+Inverse pairs:      nothing
+Idempotent verbs:   none
+Ordering pairs:     open, chunk*, finish OR one whole
+Monotone values:    the byte count
+Freeze points:      a failed sink stops the handler
+Links to other entities: the handler's poll count, the sink's recorded calls
+```
+
+### 4.2 Invariants
+
+- **I1.** A streamed response is `open`, then zero or more `chunk`, then `finish`, in that
+  order, and never a `whole` after an `open`.
+- **I2.** A failed sink stops the handler: no later frame is produced.
+- **I3.** A missing procedure never runs a handler.
+- **I4.** A deadline is enforced by a `DeadlineTimer` the caller supplies, against the clock in
+  `Ctx` (root rule 11), never against a wall clock read inside the layer.
+- **I5.** The transport advertises only what the host's fetch can do (`WASM_FETCH_CAPABILITIES`).
+- **I6.** Every case names its host, its case and the first unexpected value (R3).
+
+### 4.3 Must have
+
+- the standalone crate with one test target (R10, R11);
+- the `/connect` route on the testbed server, on the same origin as the suite;
+- a recording `ResponseSink` in the crate, which keeps the call order and the bytes;
+- the deadline case on an injected clock;
+- the transport cases on the hosts whose fetch can reach the endpoint;
+- the R14 break recorded.
+
+### 4.4 Must do
+
+- build the client with `ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec)`, as
+  `tests/client_core_tests.rs:298` does, so no schema is needed;
+- use the real `DynNetClient` from `HttpClientBuilder::new().build()`;
+- give each case its own router and its own client;
+- measure, do not assume, what workerd allows (6.5).
+
+### 4.5 Must not
+
+- must not stub `fetch` (R1);
+- must not assert a wall-clock deadline; use a simulated clock (root rule 11);
+- must not add a second `tests/*.rs` file (R10);
+- must not add `#[cfg(test)] mod tests` to a source file (root rule 7);
+- must not make a private item public for a test (R13).
+
+## 5. Acceptance scenarios
+
+```gherkin
+Scenario: A unary call reaches its handler
+  Given a router with one unary procedure
+  When the case dispatches a request for it
+  Then the response status is 200
+  And the body is one Connect envelope with the handler's message
+
+Scenario: A missing procedure runs no handler
+  Given the same router
+  When the case dispatches a request for "missing.Procedure"
+  Then the response carries the "unimplemented" code
+  And the handler's poll count is zero
+
+Scenario: A handler error keeps its code
+  Given a unary procedure that returns an error with code "invalid_argument"
+  When the case dispatches it
+  Then the Connect error frame carries "invalid_argument"
+  And the message is the handler's message
+
+Scenario: A server stream writes in order
+  Given a server-stream procedure that emits three frames
+  When the case dispatches it into a recording sink
+  Then the sink's calls are open, chunk, chunk, chunk, finish
+  And the concatenated chunks are the three frames
+
+Scenario: A failed sink stops the handler
+  Given a sink that fails on the second chunk
+  When the case dispatches the server stream
+  Then dispatch returns the sink's error
+  And the handler produced no fourth frame
+
+Scenario: A deadline ends the call
+  Given a simulated clock and a handler that waits forever
+  When the call's deadline passes on that clock
+  Then the response carries "deadline_exceeded"
+
+Scenario: The transport reaches the endpoint
+  Given the testbed's /connect route and a real DynNetClient
+  When the case calls the unary procedure through H1Transport
+  Then the decoded response holds the handler's message
+
+Scenario: The suite proves it can fail
+  Given dispatch_to is changed to finish before the last chunk
+  When each host runs the suite
+  Then "server_stream_frames_arrive_in_order" fails on that host
+```
+
+## 6. Technical breakdown
+
+### 6.1 Tasks
+
+| Task | What | Files | Done when |
+|---|---|---|---|
+| T1 | Create the standalone crate and one unary case | `backends/foundation_connectrpc/integration/wasm/{Cargo.toml,src/lib.rs,tests/wasm.rs}` | the unary case passes on Deno, Chromium and workerd |
+| T2 | The router, error and sink cases | `tests/wasm.rs` | cases 1-10 pass on all three |
+| T3 | The deadline cases on an injected clock | `tests/wasm.rs`, `src/lib.rs` | cases 11-13 pass on all three |
+| T4 | The `/connect` route on the testbed server | `foundation_testbed/src/wasm/server.rs`, `Cargo.toml` | `curl http://127.0.0.1:<port>/connect/…` returns a Connect response |
+| T5 | The transport cases and the workerd measurement | `tests/wasm.rs`, `foundation_testbed/src/wasm/server.rs` | cases 14-17 pass on the hosts that can reach the endpoint, and the reason is recorded for the others |
+| T6 | CI: the crate's checks and the three runs | `scripts/ci/ci.py`, `ci/packages.toml`, `mise.toml` | CI builds the crate and runs it on each host |
+| T7 | The owned-harness package: gate `wasm-fetch` behind a crate feature, build a second package without it, measure the imports, run the pure-Rust cases on the owned harness | `backends/foundation_connectrpc/Cargo.toml`, `backends/foundation_connectrpc/src/…`, `backends/foundation_connectrpc/integration/wasm_owned/{Cargo.toml,src/lib.rs,tests/owned.rs}`, `scripts/ci/ci.py`, `ci/packages.toml`, `mise.toml` | the module has no `__wbindgen_` import and its cases pass on Deno and Chromium; a case that keeps a glue import stays on the wasm-bindgen harness, and T7 records why |
+
+Order: T1, T2, T3 need no endpoint. T4 then T5. T6 is CI. T7 extends CI with the second package.
+
+### 6.2 T1: the crate
+
+```
+backends/foundation_connectrpc/integration/wasm/
+├── Cargo.toml
+├── src/lib.rs        # codec, procedures, recording sink, request builder
+└── tests/wasm.rs     # every case, one target
+```
+
+`Cargo.toml`:
+
+```toml
+[package]
+name = "foundation_connectrpc_wasm_tests"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+foundation_connectrpc = { path = "../..", default-features = false, features = ["rpc"] }
+foundation_netio = { path = "../../../foundation_netio", default-features = false, features = ["wasm-fetch"] }
+foundation_core = { path = "../../../foundation_core", default-features = false, features = ["std", "js-wasmbindgen"] }
+foundation_context = { path = "../../../foundation_context", features = ["host-abi"] }
+foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["host-abi"] }
+wasm-bindgen = "=0.2.126"
+js-sys = "=0.3.103"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.76"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
+```
+
+`src/lib.rs` holds:
+
+- `IdentityCodec` — a `CodecFor<Vec<u8>>` that passes bytes through, copied in shape from
+  `tests/client_core_tests.rs:298`;
+- `RecordingSink` — a `ResponseSink` that appends `("open", bytes)`, `("chunk", bytes)`,
+  `("finish", bytes)` and `("whole", bytes)` to a shared `Vec`, and can be told to fail on the
+  n-th call;
+- `request(service, procedure, method, body)` — a `SimpleIncomingRequest` with the Connect
+  content type and a body;
+- `ctx()` — `Ctx::host()` for the cases that do not read a clock, and a simulated bundle for
+  the deadline cases.
+
+Every case is `#[wasm_bindgen_test] async fn`. The dispatch paths return a `BoxFuture`; the
+case awaits it. On wasm the future needs no executor beyond the host's own microtask loop,
+which `foundation_core`'s `js-wasmbindgen` backend already drives for `#[valtron_bindgen]`;
+if a case needs to drive a future explicitly, use `valtron::execute(...).into_collect_future()`
+and await it, as the valtron skill shows.
+
+### 6.3 T2: the router, the error model and the sink
+
+`ConnectRpcHandler::dispatch(&self, app_ctx, request) ->
+BoxFuture<'static, SimpleOutgoingResponse>` (`shared/router/dispatch.rs:97`) collects the
+response in memory. `dispatch_to(&self, app_ctx, request, body, sink, hooks)` streams it
+(`:145`).
+
+| # | Case | What it proves | Oracle |
+|---|---|---|---|
+| 1 | `unary_round_trip_through_the_router` | 200 and one Connect envelope | example |
+| 2 | `unknown_service_returns_unimplemented` | code `unimplemented`, handler never polled | expected outcome + counter |
+| 3 | `wrong_method_reports_the_documented_status` | the status the layer documents for a bad method | example, measured first |
+| 4 | `handler_error_keeps_its_code_and_message` | the error frame's code and message | example |
+| 5 | `server_stream_frames_arrive_in_order` | open, chunk×3, finish; bytes equal the frames | model |
+| 6 | `server_stream_stops_when_the_sink_fails` | dispatch returns `Err`, no fourth frame | fault |
+| 7 | `unary_uses_whole_and_never_open` | the sink's call list is exactly one `whole` | model |
+| 8 | `client_stream_reads_every_frame` | three request frames reach the handler in order | example |
+| 9 | `bidi_echoes_in_order` | three echoes in request order | example |
+| 10 | `two_services_keep_their_procedures_apart` | each procedure reaches its own handler | example |
+
+Case 3: measure the answer first and write it down (R7). Do not guess a status.
+
+The recording sink implements `whole`, `open`, `chunk` and `finish` with
+`Box::pin(std::future::ready(Ok(())))` bodies, like `CollectingSink` does, and records before
+it returns. `ResponseSink: Send` is satisfied on wasm32 because the target is single-threaded.
+
+### 6.4 T3: the deadline on an injected clock
+
+`CallHooks::with_timer(&dyn DeadlineTimer)` attaches a timer (`:199`). `DeadlineTimer::sleep_until`
+receives the deadline and the `Ctx` (`:167-172`), so the test supplies a timer that reads the
+simulated clock from the context. The frame:
+
+1. build a `Ctx` with the deterministic bundle (simulated clock), as
+   `specifications/completed/84-context-injection` describes;
+2. build a `DeadlineTimer` whose `sleep_until` awaits that clock;
+3. set a deadline already in the past for case 11, and one in the future for case 12;
+4. dispatch a handler that never resolves;
+5. assert `deadline_exceeded` for the past deadline, and that the future deadline lets the
+   handler finish.
+
+| # | Case | Oracle |
+|---|---|---|
+| 11 | `past_deadline_ends_the_call` | expected outcome (`deadline_exceeded`) |
+| 12 | `future_deadline_lets_the_handler_finish` | example |
+| 13 | `handler_sees_the_remaining_deadline` | example (the value the handler reads) |
+
+If `DeadlineTimer` cannot read the simulated clock (for example it uses `Instant::now()`
+inside), that is a defect against root rule 11: file it and fix it.
+
+### 6.5 T4 and T5: the endpoint and the transport
+
+**T4 — the route.** `foundation_testbed` already serves the suite's files from a native
+`HttpApp::new_serve()` with `StaticFileHandler` on `/*` (`wasm/server.rs:70-76`). Add a route
+on `/connect/*` before it:
+
+- `RpcRoute` implements `foundation_http::native::serve::Serve`;
+- its `serve` returns `ConnectionResult::Async(Box::pin(async move { … }))`;
+- inside, it calls `ConnectRpcHandler::dispatch(ctx, req)`, renders the response with
+  `foundation_http::native::writer::render_message` (`native/writer.rs:349`), writes the bytes
+  to the connection and returns `Keep`;
+- the handler holds one service with three procedures: `Unary`, `ServerStream` and `Fail`. The
+  codec is JSON, so a client can read the response without a schema.
+
+Add `foundation_connectrpc` to `foundation_testbed`'s dependencies (native only; the wasm
+fallback feature does not need it). Bump `foundation_testbed`'s version for the new public
+route type if it is exported.
+
+Same origin matters: the browser suite loads its files from this server, so a fetch to
+`/connect/…` on the same origin needs no CORS header. Do not add a second server.
+
+**T5 — the client.** `H1Transport::new(client)` takes a `DynNetClient`
+(`shared/transport/h1.rs:47`); `HttpClientBuilder::new().build()` gives the wasm
+`FetchHttpClient` (`network_client.rs:440-453`). Build the client:
+
+```rust
+let codecs = ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+let client = Client::new(
+    Arc::new(H1Transport::new(HttpClientBuilder::new().build())),
+    &format!("{base}/connect/case.CaseService/Unary"),
+    codecs,
+    ClientOptions::default(),
+)?;
+```
+
+| # | Case | Hosts | Oracle |
+|---|---|---|---|
+| 14 | `h1_transport_unary_over_the_host_fetch` | Deno, Chromium, workerd if allowed | example (200 and the handler's message) |
+| 15 | `h1_transport_error_status_is_typed` | the same | expected outcome (`ConnectError` with the code) |
+| 16 | `h1_transport_server_stream_delivers_frames` | the same | example (three frames, in order) |
+| 17 | `wasm_fetch_capabilities_match_the_transport` | all | expected outcome (the constant equals `transport.capabilities()`) |
+
+`__FWT_BASE_URL__` (feature 00 T6) is the base. For workerd, feature 00 sets it to the
+worker's own origin, so the transport cases need a second global: the testbed passes the
+Rust endpoint as `__FWT_RPC_BASE_URL__` in the worker template, and the case reads it.
+
+**Measure the workerd path first.** A workerd `fetch` to `127.0.0.1:<port>` may be refused.
+Run one probe case and record the answer:
+
+- **allowed**: run cases 14-16 on workerd too, and say so in `LEARNINGS.md`;
+- **refused**: run 14-16 on Deno and Chromium only, print
+  `skipped: workerd cannot fetch the host loopback (<error text>)` on workerd, and file an
+  issue with `severity: medium` that says what a future service binding would need.
+
+Do not fake the endpoint to make workerd green. A green case on a stub is the defect this
+whole specification exists to remove.
+
+### 6.6 T7: the owned-harness package
+
+The owned harness needs a module with no wasm-bindgen import (spec 88 section 2.7). The import
+enters through `foundation_netio`'s `wasm-fetch` feature, which the wasm target dependency turns
+on (`Cargo.toml:51-53`). Six steps, in order:
+
+1. Add the crate feature `wasm-fetch` to `foundation_connectrpc`. It turns on
+   `foundation_netio/wasm-fetch` and `foundation_http/wasm-fetch`. Keep it on inside the
+   transport feature set, so every current build keeps the fetch client.
+2. Put each use of a netio type or a `foundation_http` wasm-fetch type behind
+   `#[cfg(feature = "wasm-fetch")]`. The `H1Transport` and the exchange code are the first
+   users. A type that cannot compile without netio stays in the gated code. Do not stub it.
+3. Create the second package. Features unify inside one package, so the second module needs its
+   own manifest. Copy the layout of `foundation_core/integration/wasm_tests`, the working owned
+   crate:
+
+   ```toml
+   [package]
+   name = "foundation_connectrpc_wasm_owned_tests"
+   version = "0.0.1"
+   publish = false
+   edition = "2021"
+
+   [dependencies]
+   foundation_connectrpc = { path = "../..", default-features = false, features = ["rpc"] }
+   foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+   foundation_macros = { path = "../../../foundation_macros" }
+   foundation_context = { path = "../../../foundation_context", features = ["host-abi"] }
+   foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
+
+   [lib]
+   crate-type = ["cdylib"]
+
+   [workspace]
+   ```
+
+   The package names no `wasm-bindgen`, no `foundation_netio` and no `foundation_http`. A host
+   function that the cases need comes from `abi::web::register_function` (spec 88 section 2.7).
+4. Measure the module's imports before you promise a case:
+
+   ```
+   cargo build --manifest-path backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml \
+     --target wasm32-unknown-unknown --profile uat
+   wasm2wat <artifact> | rg '\(import '
+   ```
+
+   The second command must print no `__wbindgen_` line. A line that stays keeps its case on the
+   wasm-bindgen harness, and this section records the symbol.
+5. Write the cases under `#[wasm_test]` in `tests/owned.rs`: the router, the error model, the
+   recording sink, and the deadline on the injected clock (S1 to S7, S11). The transport cases
+   (S8 to S10) stay on the wasm-bindgen harness.
+6. Run the package on the owned harness, and add both to the tasks and to CI:
+
+   ```
+   wasm-testbed deno    backends/foundation_connectrpc/integration/wasm_owned
+   wasm-testbed browser backends/foundation_connectrpc/integration/wasm_owned --headless
+   cargo check --tests --target wasm32-unknown-unknown \
+     --manifest-path backends/foundation_connectrpc/integration/wasm_owned/Cargo.toml
+   ```
+
+A step that fails stops T7 with a report: the cases stay on the wasm-bindgen harness, and the
+reason goes into this section and `LEARNINGS.md`. Do not fake a module with a shim.
+
+### 6.7 Fault table
+
+| Step that fails | What the runner does | What the contributor sees | What is left behind |
+|---|---|---|---|
+| the crate does not build for wasm32 | the build step fails | the compiler error | nothing |
+| the default feature set is used | the build fails on `foundation_core/multi` | the `compile_error!` text | nothing |
+| a handler panics | the case fails | the case name and the panic | the module instance is dropped |
+| the sink fails | dispatch returns `Err`; case 6 asserts it | the sink's error | nothing |
+| the endpoint is not up | the transport case fails | the URL and the fetch error | the server thread is stopped by feature 00's guard |
+| the deadline never fires | the case's own bound fails it | the case name and the bound | nothing |
+
+## 7. Tests
+
+| Law or scenario | Test | Oracle |
+|---|---|---|
+| I1, S4 | cases 5, 7 | model (the recorded call list) |
+| I2, S5 | case 6 | fault |
+| I3, S2 | case 2 | expected outcome + counter |
+| I4, S6 | cases 11-13 | model (simulated clock) |
+| I5 | case 17 | expected outcome |
+| I6 | every failure message | review |
+| R14 | the break in 6.3 | expected outcome per host |
+
+## 8. Verify
+
+```bash
+# build (the rpc feature set is the wasm one)
+cargo check -p foundation_connectrpc --target wasm32-unknown-unknown \
+  --no-default-features --features rpc
+env -u CARGO_PROFILE_DEV_CODEGEN_BACKEND -u CARGO_PROFILE_UAT_CODEGEN_BACKEND \
+  cargo check --tests --target wasm32-unknown-unknown \
+  --manifest-path backends/foundation_connectrpc/integration/wasm/Cargo.toml
+
+# the route
+cargo test -p foundation_testbed
+
+# the three hosts
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat \
+  --bin wasm-testbed -- test bindgen-deno backends/foundation_connectrpc/integration/wasm
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat \
+  --bin wasm-testbed -- test bindgen-web backends/foundation_connectrpc/integration/wasm
+cargo run -p foundation_testbed --no-default-features --features wasm --profile uat \
+  --bin wasm-testbed -- test bindgen-wrangler backends/foundation_connectrpc/integration/wasm
+
+# hygiene
+cargo fmt --check -p foundation_connectrpc -p foundation_testbed
+cargo fmt --manifest-path backends/foundation_connectrpc/integration/wasm/Cargo.toml --check
+cargo clippy -p foundation_connectrpc -p foundation_testbed --all-targets -- -D warnings
+```
+
+## 9. Done when
+
+- [x] The crate builds for wasm32 with the `rpc` feature set and has one test target.
+- [x] Cases 1-13 pass on Deno, Chromium and workerd.
+- [x] The `/connect` route answers on the testbed server, on the same origin as the suite.
+- [x] Cases 14-16 pass on Deno, Chromium and workerd.
+- [x] Case 17 passes on all three.
+- [x] The deadline cases run on a simulated clock, and no layer code reads a wall clock.
+- [x] The owned package builds without the fetch client, `wasm2wat` shows no `__wbindgen_`
+      import, and its cases pass on Deno and Chromium. A case that keeps a glue import stays on
+      the wasm-bindgen harness, and 6.6 records its symbol.
+- [x] The R14 break is recorded per host and reverted.
+- [x] `progress.md` and `LEARNINGS.md` name what landed and what is next.
+
+---
+
+_Created: 2026-11-15_
+
+## 10. What landed (2026-11-23)
+
+The work is on branch `spec88/f03-connectrpc-runtime`, in the working tree.
+
+| Task | State | Measured result |
+|---|---|---|
+| T1 | done | `integration/wasm` (created by spec 85; extended here, one target `tests/wasm.rs`) builds for wasm32 and runs 22 cases on Deno, Chromium and workerd |
+| T2 | done | Cases 1 to 10 pass on all three hosts |
+| T3 | done | Cases 11 to 13 pass on a deterministic clock the crate supplies |
+| T4 | done | `/connect/*` answers on the testbed server; `tests/connect_server_tests.rs` has 3 native cases |
+| T5 | done | Cases 14 to 16 pass on Deno (`22 passed`), Chromium (`22 passed`) and workerd (`{"passed":true}`, `22 passed`). #752 and #753 are fixed, with #757 to #759 found and fixed on the way |
+| T6 | done | four new `mise.wasm.toml` tasks and their CI steps |
+| T7 | done | `integration/wasm_owned` imports only `abi` and runs 13 cases on Deno and 13 on Chromium |
+
+### Corrections to this document
+
+- Section 6.2 gives `foundation_context` and `foundation_compact` the `host-abi` feature. That is
+  wrong for the wasm-bindgen crate: the module then imports `abi`, which the Deno host does not
+  supply. The crate uses the wasm-bindgen clock backend (LEARNINGS 28).
+- Section 6.6 step 3 builds the owned package with `features = ["rpc"]`. Measured: `rpc` pulls
+  wasm-bindgen glue through `foundation_auth` (#756). The package uses no features.
+- Case 5 sees four chunks, not three: the Connect EndStream frame is its own chunk
+  (LEARNINGS 33).
+- Case 2: the router answers a path miss with a bare HTTP 404, which Decision 03 maps to
+  `unimplemented`. The case asserts the raw status, the zero handler count and that mapping.
+  The client's own fallback maps it to `NotFound` (#755).
+- Section 6.5 says the transport cases run on Deno and Chromium. Measured and fixed: Deno and
+  workerd answer `/connect` from their own JS server (#752); `H1Transport` sends a fixed-length
+  body for unary and server-streaming calls on wasm (#753). Cases 14 to 16 run on all three
+  hosts.
+- The wasm test driver does not poll a future by hand. It puts the call on the engine with
+  `from_future` and loops `run_until_complete()` plus a 1 ms host sleep (LEARNINGS 35).
+- A kept-alive `/connect` response now declares `Content-Length` (#758), and the fetch client
+  drops the stale `content-encoding` header because the body is decoded (#759).
+- The `/connect` route reads a chunked body into memory, bounded by
+  `ServerLimits::max_connect_body`, because the router's in-memory dispatch cannot wait on a
+  connection. It also adds a framing header when a route miss leaves the header map empty.
+
+### New issues
+
+| Issue | Severity | Problem |
+|---|---|---|
+| #752 | medium | no wasm host could run the transport cases; fixed (the JS templates answer `/connect`) and closed |
+| #753 | high | `H1Transport` could not stream a body from a browser to HTTP/1.1; fixed (fixed-length body) and closed |
+| #754 | high | the fetch client omitted `RequestInit.duplex`; fixed and closed |
+| #755 | medium | the client maps a non-Connect 404 to `NotFound`, not `unimplemented` |
+| #756 | medium | `rpc` pulls wasm-bindgen glue through `foundation_auth` |
+| #757 | high | wasm `run_until` spins with runnable work and starves the JS event loop; fixed and closed |
+| #758 | high | the `/connect` route sent a keep-alive response with no `Content-Length`; fixed and closed |
+| #759 | high | the fetch client returned a decoded body with the stale `Content-Encoding` header; fixed and closed |
+
+The R14 break: `dispatch_to` called `finish` before the first chunk. It turned
+`server_stream_frames_arrive_in_order` red on all five hosts (Deno, Chromium, workerd, owned
+Deno, owned Chromium). The break is reverted.

@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
 
 use foundation_context::Ctx;
 use foundation_netio::http3::connection::{H3Connection, H3Request};
@@ -23,7 +23,32 @@ const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
 const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 
-const BUDGET: Duration = Duration::from_secs(5);
+/// A loaded host or an emulated CI image can be slow. The loops below yield
+/// when both drivers are idle, so a parallel test run is not starved.
+const BUDGET: Duration = Duration::from_secs(30);
+
+/// Pump both drivers once. Sleep one millisecond when neither had work.
+///
+/// The arguments take `BorrowMut`, because the `until!` macro receives a plain
+/// driver in some tests and a `&mut QuicDriver` in others.
+fn pump<S, C>(server: &mut S, client: &mut C)
+where
+    S: std::borrow::BorrowMut<QuicDriver>,
+    C: std::borrow::BorrowMut<QuicDriver>,
+{
+    let server_status = server.borrow_mut().next_status(Ctx::host());
+    let client_status = client.borrow_mut().next_status(Ctx::host());
+    let worked = matches!(
+        server_status,
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
+    ) || matches!(
+        client_status,
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
+    );
+    if !worked {
+        std::thread::sleep(Duration::from_millis(1));
+    }
+}
 
 macro_rules! until {
     ($server:expr, $client:expr, $expr:expr) => {{
@@ -35,8 +60,7 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status(Ctx::host());
-            let _ = $client.next_status(Ctx::host());
+            pump(&mut $server, &mut $client);
         }
     }};
 }
@@ -61,8 +85,7 @@ fn h3_pair() -> (
             break conn;
         }
         assert!(Instant::now() < deadline, "server never accepted");
-        let _ = sq.next_status(Ctx::host());
-        let _ = cq.next_status(Ctx::host());
+        pump(&mut sq, &mut cq);
     };
 
     let mut server = H3Connection::new(server_conn);
@@ -75,8 +98,8 @@ fn h3_pair() -> (
 }
 
 fn send(
-    sq: &mut QuicDriver,
-    cq: &mut QuicDriver,
+    mut sq: &mut QuicDriver,
+    mut cq: &mut QuicDriver,
     req: &mut H3Request<QuinnBidiStream>,
     mut bytes: Bytes,
 ) {
@@ -115,8 +138,7 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
             !matches!(server.poll_accept_webtransport(), Stream::Next(_)),
             "nothing is complete yet"
         );
-        let _ = sq.next_status(Ctx::host());
-        let _ = cq.next_status(Ctx::host());
+        pump(&mut sq, &mut cq);
     }
 
     let fields: Vec<(&[u8], &[u8])> = vec![

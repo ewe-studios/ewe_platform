@@ -9,9 +9,26 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 use crate::shared::app::HttpApp;
 use crate::shared::context::Ctx;
 use crate::shared::middleware::MiddlewareResult;
+use crate::shared::router::RouteOp;
 use crate::shared::serve::{ConnectionResult, ServeError, ServeWriter};
 use crate::wasm::response::WasmResponse;
 use crate::wasm::stream::WasmStream;
+
+/// The declared length of a sized request body, or `None` for a stream.
+fn declared_body_len(body: &Option<SendSafeBody>) -> Option<usize> {
+    match body {
+        Some(SendSafeBody::Bytes(bytes)) => Some(bytes.len()),
+        Some(SendSafeBody::Text(text)) => Some(text.len()),
+        _ => None,
+    }
+}
+
+/// A plain-text `WasmResponse` for a status.
+fn status_response(status: u16, text: &str) -> WasmResponse {
+    WasmResponse::new(status)
+        .with_header("content-type", "text/plain")
+        .with_body(text.as_bytes().to_vec())
+}
 
 /// Dispatch a request through the app's middleware and router,
 /// returning a structured `WasmResponse` (status, body, headers).
@@ -29,7 +46,19 @@ pub fn handle_request_with_bag(
     req: SimpleIncomingRequest,
 ) -> Result<WasmResponse, ErrorTrace<ServeError>> {
     let method = req.method.clone();
-    let path = req.request_url.url.clone();
+    // Route on the path, not the full URL, exactly as the web and Cloudflare
+    // bridges do. The old form passed `request_url.url` (the whole URL) to the
+    // router, so every writer route missed.
+    let path = req.request_uri.path().to_string();
+
+    // The in-memory writer path refuses a sized body above its configured
+    // limit. A stream keeps the wasm bridge's own bound (spec 88 feature 02,
+    // case 18).
+    if let Some(len) = declared_body_len(&req.body) {
+        if len > app.max_writer_body_bytes {
+            return Ok(status_response(413, "Payload Too Large"));
+        }
+    }
 
     // Run middleware chain
     let (req, short_circuit) = run_middleware_writer(app, ctx.clone(), req);
@@ -37,14 +66,13 @@ pub fn handle_request_with_bag(
         return Ok(response);
     }
 
-    // Dispatch to router
-    let handler = app
-        .router()
-        .dispatch(&method, &path)
-        .ok_or_else(|| ServeError::BadRequest {
-            status: 404,
-            reason: format!("no route for {method:?} {path}"),
-        })?;
+    // Dispatch to router. A matched path with no handler for the method is a
+    // 405; a path that matches nothing is a 404.
+    let handler = match app.router().dispatch_result(&method, &path) {
+        Ok(handler) => handler,
+        Err(RouteOp::MethodNotAllowed) => return Ok(status_response(405, "Method Not Allowed")),
+        Err(_) => return Ok(status_response(404, "Not Found")),
+    };
 
     // Execute handler via serve_writer
     let mut stream = WasmStream::new();

@@ -27,7 +27,7 @@ Cloudflare tools that run a Worker on a local machine. The
 
 A **host** is the program that runs the agent-rpc core on one platform. The core is the same
 on every platform. The host gives the core its side effects: time, randomness, network,
-storage and models ([env.md](../../../84-context-injection/env.md)).
+storage and models ([env.md](../../../completed/84-context-injection/env.md)).
 
 | Host | Platform | Module | Build gate |
 |---|---|---|---|
@@ -39,7 +39,7 @@ storage and models ([env.md](../../../84-context-injection/env.md)).
 | DST harness | tests only | the package `foundation_agent_rpc_dst` | feature `testing` |
 
 The DST harness has its own file:
-[deterministic-simulation-testing.md](../../../84-context-injection/deterministic-simulation-testing.md).
+[deterministic-simulation-testing.md](../../../completed/84-context-injection/deterministic-simulation-testing.md).
 
 ## 2. What each host gives the core
 
@@ -54,7 +54,7 @@ its own implementation. This table shows what each host plugs into each seam.
 | Protocols served | Connect, gRPC, gRPC-Web | Connect, gRPC-Web | Connect (from the Worker only) | none | Connect |
 | Client transport | `H1Transport`, `H2Transport` | `H1Transport::new(StubHttpClient)` (to the DO) | none | `H1Transport::default()` | `MemTransport` |
 | `ClientAuth` | `MtlsAuth`, optionally `AnyOf` with `SignedSecretAuth` | `AnyOf(CfMtlsAuth, SignedSecretAuth)`, optionally `JwtAuth` | `ForwardedPrincipalAuth` | sends a bearer secret | any provider, over memory stores |
-| Key material ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4) | operator key files (`KeySource::File`), or `EWE_AGENT_RPC_*_KEY` variables | public keys from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`; the signing key from the secret `AGENT_RPC_SIGNING_KEY` only with enrollment | none | none | `KeySource::Inline` with fixture or seeded keys |
+| Key material ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 4) | operator key files (`KeySource::File`), or `EWE_AGENT_RPC_*_KEY` variables | public keys from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`; the signing key from the secret `AGENT_RPC_SIGNING_KEY` only with enrollment | none | none | `KeySource::Inline` with fixture or seeded keys |
 | `TrustStore` | `SqlTrustStore<TursoStorage>` | `SqlTrustStore<D1WasmStorage>` | none | none | `MemoryTrustStore` |
 | `ModelCatalog` | `LocalCatalog` | `RemoteCatalog` (checks requests, fills the index) | `RemoteCatalog` (runs the turns) | none | `ScriptedCatalog` |
 | `InstanceRegistry` | `LocalInstanceRegistry<InMemoryStores>` | `DurableObjectRegistry` | `LocalInstanceRegistry<DoStores>`, `max_instances = 1` | none | `LocalInstanceRegistry<InMemoryStores>` |
@@ -277,7 +277,7 @@ impl NativeHost {
 
 What the code does: it builds the parts in the order of their needs. Each step awaits its
 storage. No step reads a global clock or global randomness: each part gets `env`. The
-legacy key files of today load unchanged ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md), section 4.6).
+legacy key files of today load unchanged ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md), section 4.6).
 
 `BackgroundLoader` is the real `ModelLoader`. It runs each model load with
 `valtron::run_background_job`, because a load blocks for seconds. So a load never holds a
@@ -329,7 +329,7 @@ provider comes from `security`.
 
 `HttpServer` runs each connection as a valtron task. The rustls handshake completes on the
 first read of `ProtocolDetectHandler`. After that read, task T4 copies the peer certificates
-into `ConnectionContext::tls` ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md), section 7.4). So `MtlsAuth` finds the
+into `ConnectionContext::tls` ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md), section 7.4). So `MtlsAuth` finds the
 client certificate in `CallCredentials::connection`.
 
 `InsecurePlaintext` binds one plain listener and uses `InsecureNoAuth`. It refuses a
@@ -337,7 +337,7 @@ non-loopback `bind` before it binds anything.
 
 ### 4.4 Valtron on a native host
 
-- `main` is `#[valtron(threads = N, env = Env::system())] async fn main` ([env.md](../../../84-context-injection/env.md), section 7.1). The macro starts the multi-threaded pool, puts the `Env` into its root `Ctx`, and runs `main`; `main` awaits `NativeHost::start(config, env)` and then the shutdown signal. `main` makes no blocking call; the macro is the program boundary, as the valtron rules require.
+- `main` is `#[valtron(threads = N, env = Env::system())] async fn main` ([env.md](../../../completed/84-context-injection/env.md), section 7.1). The macro starts the multi-threaded pool, puts the `Env` into its root `Ctx`, and runs `main`; `main` awaits `NativeHost::start(config, env)` and then the shutdown signal. `main` makes no blocking call; the macro is the program boundary, as the valtron rules require.
 - Each HTTP/1.1 and HTTP/2 connection is a valtron task. RPC dispatch runs inside it. So `valtron::current_ctx()` works inside a handler.
 - The agent loop of each turn is a valtron task that `foundation_ai` starts. Its events reach the handler through `TurnStream::events()`, an async stream.
 - Model loads run on `run_background_job`. A load never blocks a valtron worker.
@@ -346,7 +346,7 @@ non-loopback `bind` before it binds anything.
 
 This diagram shows one client on a native host: it connects with mTLS, creates an instance,
 streams one chat turn, and destroys the instance. Enrollment came before
-([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md), section 9.1).
+([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md), section 9.1).
 
 ```mermaid
 sequenceDiagram
@@ -417,7 +417,7 @@ The native client of today (`client.rs`) keeps its behavior. It moves to
   - **certificate** (default on native when the host has a CA): send a CSR, then dial `url` with mTLS (`client_config_mutual`);
   - **client key**: send a public key, then send the access secret on each call and refresh it, as the web client does.
 - `BootstrapAccess::Bearer`: dial `url` with the pin (`TlsTrust::PinnedSha256`) or the system roots (`TlsTrust::SystemRoots`), and send the token as a bearer secret on each call.
-- The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](../../../84-context-injection/env.md), section 8).
+- The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](../../../completed/84-context-injection/env.md), section 8).
 - The client checks the payload window before it dials, as today. The check uses `Env::wall_now()`.
 
 ## 8. Configuration of the hosts

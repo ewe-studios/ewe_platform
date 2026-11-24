@@ -40,5 +40,5 @@ workspace = true
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
 trybuild = { workspace = true }
-foundation_auth = { path = "../foundation_auth", version = "0.0.10", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.15", default-features = false }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }

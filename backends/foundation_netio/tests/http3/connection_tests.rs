@@ -19,7 +19,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Stream, TaskIterator};
+use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
 
 use foundation_context::Ctx;
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
@@ -35,11 +35,36 @@ const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
 const CA_PEM: &[u8] = include_bytes!("../fixtures/quic_ca.pem");
 
-const BUDGET: Duration = Duration::from_secs(5);
+/// A loaded host or an emulated CI image can be slow. The loop below yields
+/// when both drivers are idle, so a parallel test run is not starved.
+const BUDGET: Duration = Duration::from_secs(30);
 
-fn pump(server: &mut QuicDriver, client: &mut QuicDriver) {
-    let _ = server.next_status(Ctx::host());
-    let _ = client.next_status(Ctx::host());
+/// Pump both drivers once.
+///
+/// A "nothing yet" answer from both drivers means the next step is a socket
+/// edge or a timer. Sleep one millisecond instead of a busy loop, so the many
+/// tests that run in parallel keep their share of the CPU. The handshake is on
+/// loopback, so one millisecond adds no meaningful delay.
+///
+/// The arguments take `BorrowMut`, because the `until!` macro receives a plain
+/// driver in some tests and a `&mut QuicDriver` in others.
+fn pump<S, C>(server: &mut S, client: &mut C)
+where
+    S: std::borrow::BorrowMut<QuicDriver>,
+    C: std::borrow::BorrowMut<QuicDriver>,
+{
+    let server_status = server.borrow_mut().next_status(Ctx::host());
+    let client_status = client.borrow_mut().next_status(Ctx::host());
+    let worked = matches!(
+        server_status,
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
+    ) || matches!(
+        client_status,
+        Some(TaskStatus::Ready(_) | TaskStatus::Pending(()))
+    );
+    if !worked {
+        std::thread::sleep(Duration::from_millis(1));
+    }
 }
 
 /// Drive both QUIC drivers until `done` yields.
@@ -88,8 +113,7 @@ macro_rules! until {
                 _ => {}
             }
             assert!(Instant::now() < deadline, "timed out driving HTTP/3");
-            let _ = $server.next_status(Ctx::host());
-            let _ = $client.next_status(Ctx::host());
+            pump(&mut $server, &mut $client);
         }
     }};
 }

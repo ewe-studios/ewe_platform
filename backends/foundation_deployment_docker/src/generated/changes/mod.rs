@@ -6,7 +6,12 @@
 //! Feature flag: `docker_changes `
 
 #![cfg(feature = "docker_changes")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -24,6 +29,20 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ChangeType` type.
+pub type ChangeType = i64;
+
+/// `FilesystemChange` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct FilesystemChange {
+    /// `Kind` property.
+    #[serde(rename = "Kind")]
+    pub kind: i64,
+    /// `Path` property.
+    #[serde(rename = "Path")]
+    pub path: String,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -65,7 +84,7 @@ pub async fn container_changes_request<F>(
     args: &ContainerChangesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<FilesystemChange>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {

@@ -57,7 +57,7 @@ workspace = true
 [dependencies.foundation_connectrpc]
 optional = true
 path = "../foundation_connectrpc"
-version = "0.0.13"
+version = "0.0.16"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
@@ -81,7 +81,7 @@ optional = true
 # buildkitd). Optional; only the `buildkit` feature needs it.
 [dependencies.foundation_http]
 path = "../foundation_http"
-version = "0.0.13"
+version = "0.0.15"
 optional = true
 
 [dependencies.foundation_macros]
@@ -93,7 +93,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.15"
+version = "0.0.16"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"
@@ -326,7 +326,7 @@ docker_ws = []
 [package]
 description = "Docker Engine API v1.53 client over DynNetClient + valtron (bollard-free)"
 name = "foundation_deployment_docker"
-version = "0.1.7"
+version = "0.1.8"
 
 [package.authors]
 workspace = true

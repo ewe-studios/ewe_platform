@@ -153,3 +153,8 @@ The resource suite checks filesystem behavior by running on the target system.
 [Specification 91](../91-windows-resource-staging/requirements.md) records the Windows prerequisites and platform-specific test count.
 
 A package manifest can declare JavaScript modules with a .js extension. The current crate release workflow must explicitly start downstream publication.
+
+## 2026-11-24 master integration
+
+ZIP 9 returns a result when it decodes an archive member name. The verifier propagates that error before it checks the path.
+The wire bundle and manifest fixtures each affect two test selections. Each change also selects the package that owns the changed file.

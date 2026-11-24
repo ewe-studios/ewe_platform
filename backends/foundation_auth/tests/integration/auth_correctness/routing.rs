@@ -2,7 +2,7 @@
 
 use foundation_auth::server::handlers::routes::{route_for, Route, ROUTES};
 use foundation_core::valtron::valtron_test;
-use foundation_http::SimpleMethod;
+use foundation_http::{SimpleHeader, SimpleMethod};
 
 use crate::integration::tos_login_gate::{config, start};
 
@@ -139,7 +139,7 @@ fn a_path_matches_as_a_whole_not_by_suffix_or_substring() {
 }
 
 #[valtron_test(threads = 8, timeout = 60000)]
-fn unknown_path_is_404() {
+fn unknown_path_is_404_and_a_wrong_method_is_405() {
     let env = start(config());
 
     let unknown = env.get("/auth/v1/nothing/here", None);
@@ -147,6 +147,15 @@ fn unknown_path_is_404() {
     let known = env.get("/auth/v1/tos/latest", None);
 
     assert_eq!(unknown.status, 404, "{}", unknown.body);
-    assert_eq!(wrong_method.status, 404, "{}", wrong_method.body);
+    assert_eq!(wrong_method.status, 405, "{}", wrong_method.body);
+    let allow = wrong_method
+        .headers
+        .get(&SimpleHeader::ALLOW)
+        .cloned()
+        .unwrap_or_default();
+    assert!(
+        allow.iter().any(|value| value.contains("GET")),
+        "the 405 must name GET, got {allow:?}"
+    );
     assert_eq!(known.status, 200, "{}", known.body);
 }

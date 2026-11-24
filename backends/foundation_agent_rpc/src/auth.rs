@@ -57,9 +57,11 @@ fn pki_error(error: &PkiError) -> ErrorTrace<AgentRpcError> {
 fn trust_error(error: &TrustError) -> ErrorTrace<AgentRpcError> {
     let kind = match &error {
         TrustError::Spent => AgentRpcError::Auth("bootstrap secret already used".to_string()),
-        TrustError::Duplicate(_) | TrustError::SecretRevoked | TrustError::NotAtomic => {
-            AgentRpcError::Auth(error.to_string())
-        }
+        TrustError::Duplicate(_)
+        | TrustError::SecretRevoked
+        | TrustError::ClientRevoked
+        | TrustError::UnknownClient(_)
+        | TrustError::NotAtomic => AgentRpcError::Auth(error.to_string()),
         TrustError::Storage(_) => AgentRpcError::Storage(error.to_string()),
     };
     kind.into()
@@ -324,6 +326,7 @@ impl EnrollmentService {
             .record_enrollment(
                 TrustedClient {
                     fingerprint_sha256: issued.fingerprint_sha256.clone(),
+                    client_id: None,
                     client_name: req.client_name.clone(),
                     enrolled_at: now,
                     expires_at: issued.not_after,

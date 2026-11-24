@@ -19,6 +19,11 @@ pub type TrustedClientStream =
 pub struct TrustedClient {
     /// Lowercase hexadecimal SHA-256 of the client certificate.
     pub fingerprint_sha256: String,
+    /// The `client_id` that enrollment gave. It is the `sub` of an access
+    /// secret that the client uses, so the store can find the client by ID.
+    /// A client certificate of the proof of concept has no ID.
+    #[serde(default)]
+    pub client_id: Option<String>,
     /// The common name of the certificate.
     pub client_name: String,
     /// When the certificate was issued (Unix seconds).
@@ -85,6 +90,9 @@ pub trait TrustStore: Send + Sync + 'static {
     /// The client with this certificate fingerprint.
     fn client<'a>(&'a self, fingerprint: &'a str) -> TrustFuture<'a, Option<TrustedClient>>;
 
+    /// The client with this `client_id`, the `sub` of an access secret.
+    fn client_by_id<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<TrustedClient>>;
+
     /// Record a newly issued client certificate.
     fn record_enrollment<'a>(
         &'a self,
@@ -138,6 +146,12 @@ pub enum TrustError {
     /// The secret is revoked.
     #[display("the secret is revoked")]
     SecretRevoked,
+    /// The client that an access secret names (`sub`) is revoked.
+    #[display("the client is revoked")]
+    ClientRevoked,
+    /// The client that an access secret names (`sub`) is not enrolled.
+    #[display("the client is not enrolled: {_0}")]
+    UnknownClient(#[error(not(source))] String),
     /// The store cannot count uses safely across processes.
     #[display("this store cannot count uses safely across processes")]
     NotAtomic,

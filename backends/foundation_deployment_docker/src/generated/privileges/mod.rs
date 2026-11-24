@@ -6,7 +6,12 @@
 //! Feature flag: `docker_privileges `
 
 #![cfg(feature = "docker_privileges")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -24,6 +29,11 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `PluginPrivilege` type.
+///
+/// Same shape as `super::shared::DescriptionNameValueObject`.
+pub type PluginPrivilege = super::shared::DescriptionNameValueObject;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -67,11 +77,11 @@ pub async fn get_plugin_privileges_request<F>(
     args: &GetPluginPrivilegesArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<PluginPrivilege>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/plugins/privileges");
+    let path = "/plugins/privileges";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)

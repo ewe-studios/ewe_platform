@@ -1,0 +1,42 @@
+# Standalone crate (own [workspace]) for the foundation_connectrpc pure-Rust
+# wasm cases on the OWNED harness (spec 88 feature 03, T7). It leaves out the
+# `wasm-fetch` client, so the wasm module imports no wasm-bindgen glue (rule
+# R15). The transport cases stay on the wasm-bindgen harness.
+#
+#   wasm-testbed deno    backends/foundation_connectrpc/integration/wasm_owned
+#   wasm-testbed browser backends/foundation_connectrpc/integration/wasm_owned --headless
+#
+# The cases live in `src/lib.rs`, not `tests/`: the owned runner builds the
+# package lib and reads its `__fwt_` exports (spec 88 section 5, rule R9).
+[package]
+name = "foundation_connectrpc_wasm_owned_tests"
+version = "0.0.1"
+publish = false
+edition = "2021"
+
+[dependencies]
+# No `rpc` and no `wasm-fetch`. The router, sink, error and deadline paths are
+# pure Rust and need neither. `rpc` turns on `auth`, and foundation_auth's wasm
+# feature turns on foundation_netio's `wasm-fetch`, which would put wasm-bindgen
+# glue back into the module (measured 2026-11-23, spec 88 feature 03 T7).
+foundation_connectrpc = { path = "../..", default-features = false }
+foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+foundation_macros = { path = "../../../foundation_macros" }
+foundation_context = { path = "../../../foundation_context", features = ["host-abi"] }
+foundation_compact = { path = "../../../foundation_compact", default-features = false, features = ["std", "host-abi"] }
+# The host-ABI yield backend keeps the single-threaded executor off std's wasm
+# Condvar, which panics (#605).
+foundation_core = { path = "../../../foundation_core", default-features = false, features = ["std", "js-foundation-wasm"] }
+# The pure-Rust request and response types (no fetch client).
+foundation_netio = { path = "../../../foundation_netio", default-features = false }
+bytes = "1"
+futures = "0.3"
+serde_json = "1"
+
+[lib]
+crate-type = ["cdylib"]
+
+[workspace]
+
+[profile.uat]
+inherits = "release"

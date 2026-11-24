@@ -32,6 +32,10 @@ pub enum SecureNoteType {
 #[serde(rename_all = "camelCase")]
 pub struct Cipher {
     pub id: String,
+    /// The caller's permissions on this cipher. The client copies this object
+    /// into its cipher view; a missing value becomes a null field.
+    #[serde(default = "default_permissions")]
+    pub permissions: serde_json::Value,
     pub organization_id: Option<String>,
     #[serde(rename = "type")]
     pub cipher_type: CipherType,
@@ -50,6 +54,12 @@ pub struct Cipher {
     pub revision_date: DateTime<Utc>,
     pub creation_date: DateTime<Utc>,
     pub deleted_date: Option<DateTime<Utc>>,
+}
+
+/// The default permissions: the owner may delete, and there is nothing to
+/// restore.
+pub(crate) fn default_permissions() -> serde_json::Value {
+    serde_json::json!({ "Delete": false, "Restore": false })
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

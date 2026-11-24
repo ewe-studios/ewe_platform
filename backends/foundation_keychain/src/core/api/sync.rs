@@ -47,5 +47,9 @@ pub async fn sync(ctx: &KeychainContext, user_uuid: &str) -> AppResult<SyncData>
             equivalent_domains: None,
             global_equivalent_domains: None,
         }),
+        organizations: Vec::new(),
+        policies: Vec::new(),
+        policies_new: Vec::new(),
+        user_decryption: None,
     })
 }

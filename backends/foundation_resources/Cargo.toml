@@ -30,8 +30,8 @@ derive_more.workspace = true
 rustix = { version = "1.1.4", default-features = false, features = ["fs"], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.13", optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.15", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", optional = true }
 blocking = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

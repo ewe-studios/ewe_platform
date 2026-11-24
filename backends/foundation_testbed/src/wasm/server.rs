@@ -3,8 +3,8 @@
 //! WHY: Browser tests need an HTTP server to serve the integration directory,
 //! and every suite needs a local endpoint it can call (spec 88 invariant I5).
 //! WHAT: Wraps `foundation_http`'s `HttpServer` with `StaticFileHandler` on
-//! `/*` and [`EchoHandler`] on `/echo`.
-//! HOW: Creates an `HttpApp` with both routes, starts the server on a thread,
+//! `/*`, [`EchoHandler`] on `/echo` and [`RpcRoute`] on `/connect/*`.
+//! HOW: Creates an `HttpApp` with the routes, starts the server on a thread,
 //! and provides shutdown via `ShutdownSignal`.
 
 use std::path::Path;
@@ -12,12 +12,19 @@ use std::sync::Arc;
 use std::thread;
 
 use base64::Engine as _;
+use foundation_connectrpc::{
+    Codec, CodecError, CodecFor, ConnectError, ConnectRpcHandler, HandlerOptions, Request,
+    Response, Router,
+};
 use foundation_core::io::readers::DataBytesIterator;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
 use foundation_http::native::serve::Serve;
-use foundation_http::native::writer::{send_json, send_text};
+use foundation_http::native::writer::{
+    ResponseWriter, WriterConfig, render_message, send_json, send_text,
+};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::Ctx;
+use foundation_http::shared::serve::{ConnectionResult, ServeOutcome};
 use foundation_http::{
     RawStream, SendSafeBody, SharedByteBufferStream, ShutdownSignal, SimpleIncomingRequest,
 };
@@ -35,12 +42,17 @@ pub struct ServerLimits {
     /// 413. Default 1 MiB: the order of a default nginx `client_max_body_size`,
     /// and enough for a suite that echoes a request body once.
     pub max_echo_body: usize,
+    /// The largest unary request body a `/connect` procedure accepts, in bytes.
+    /// Default 4 MiB: gRPC's default maximum receive message size, the same
+    /// default the `ConnectRPC` router uses.
+    pub max_connect_body: usize,
 }
 
 impl Default for ServerLimits {
     fn default() -> Self {
         Self {
             max_echo_body: 1024 * 1024,
+            max_connect_body: 4 * 1024 * 1024,
         }
     }
 }
@@ -56,6 +68,13 @@ impl ServerLimits {
     #[must_use]
     pub fn with_max_echo_body(mut self, bytes: usize) -> Self {
         self.max_echo_body = bytes;
+        self
+    }
+
+    /// Set [`Self::max_connect_body`].
+    #[must_use]
+    pub fn with_max_connect_body(mut self, bytes: usize) -> Self {
+        self.max_connect_body = bytes;
         self
     }
 }
@@ -156,6 +175,233 @@ impl Serve for EchoHandler {
     }
 }
 
+/// A pass-through codec. Its wire name is `"proto"`, so a client reads the
+/// response bytes without a schema (spec 88 feature 03, T4).
+struct IdentityCodec;
+
+impl Codec for IdentityCodec {
+    fn name(&self) -> &'static str {
+        "proto"
+    }
+
+    fn is_binary(&self) -> bool {
+        true
+    }
+}
+
+impl CodecFor<Vec<u8>> for IdentityCodec {
+    fn marshal(&self, message: &Vec<u8>) -> std::result::Result<bytes::Bytes, CodecError> {
+        Ok(bytes::Bytes::copy_from_slice(message))
+    }
+
+    fn unmarshal(&self, data: bytes::Bytes) -> std::result::Result<Vec<u8>, CodecError> {
+        if data.is_empty() {
+            return Err(CodecError::ZeroLength { codec: "identity" });
+        }
+        Ok(data.to_vec())
+    }
+
+    fn marshal_stable(&self, message: &Vec<u8>) -> std::result::Result<bytes::Bytes, CodecError> {
+        Ok(bytes::Bytes::copy_from_slice(message))
+    }
+
+    fn marshal_append(
+        &self,
+        buf: &mut Vec<u8>,
+        message: &Vec<u8>,
+    ) -> std::result::Result<(), CodecError> {
+        buf.extend_from_slice(message);
+        Ok(())
+    }
+}
+
+/// Serves a small `ConnectRPC` service on `/connect/*` (spec 88 feature 03).
+///
+/// The service answers three procedures:
+///
+/// - `case.CaseService/Unary` echoes the request with an `echo:` prefix;
+/// - `case.CaseService/Stream` answers three frames;
+/// - `case.CaseService/Fail` answers `invalid_argument`.
+///
+/// A suite reaches it on the same origin as its page, so the browser needs no
+/// cross-origin grant.
+struct RpcRoute {
+    handler: Arc<ConnectRpcHandler>,
+    /// The largest request body the route reads, in bytes.
+    max_body: usize,
+}
+
+impl RpcRoute {
+    /// Build the route's router with the given unary body limit.
+    fn new(max_body: usize) -> Self {
+        let codecs =
+            || foundation_connectrpc::ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec);
+        let options = || HandlerOptions::new().with_read_max_bytes(max_body);
+
+        let mut router = Router::new();
+        router.unary(
+            "/connect/case.CaseService/Unary",
+            codecs(),
+            |_ctx, req: Request<Vec<u8>>| async move {
+                let mut out = b"echo:".to_vec();
+                out.extend_from_slice(&req.msg);
+                Ok(Response::new(out))
+            },
+            options(),
+        );
+        router.server_stream(
+            "/connect/case.CaseService/Stream",
+            codecs(),
+            |_ctx, _req: Request<Vec<u8>>| async move {
+                let frames: Vec<foundation_connectrpc::ConnectResult<Vec<u8>>> = (0..3)
+                    .map(|index| Ok(format!("frame-{index}").into_bytes()))
+                    .collect();
+                Ok(futures::stream::iter(frames))
+            },
+            options(),
+        );
+        router.unary(
+            "/connect/case.CaseService/Fail",
+            codecs(),
+            |_ctx, _req: Request<Vec<u8>>| async move {
+                Err(ConnectError::invalid_argument("the handler rejected the call").into())
+            },
+            options(),
+        );
+
+        Self {
+            handler: Arc::new(router.into_handler()),
+            max_body,
+        }
+    }
+}
+
+impl Serve for RpcRoute {
+    fn serve(
+        &self,
+        ctx: Ctx,
+        request: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        let handler = Arc::clone(&self.handler);
+        let max_body = self.max_body;
+        ConnectionResult::Async(Box::pin(async move {
+            // The native connection delivers a chunked body lazily, and the
+            // router's in-memory dispatch cannot wait on the connection. Read
+            // the body here, bounded by the configured limit, then hand it to
+            // dispatch as bytes. A fetch with a streamed body sends it chunked.
+            let mut request = request;
+            match read_body(&mut request, max_body) {
+                Ok(Ok(())) => {}
+                Ok(Err(())) => {
+                    let mut writer = ResponseWriter::new(conn, WriterConfig::default(), ctx);
+                    let _ = writer.write_all(b"HTTP/1.1 413 Payload Too Large\r\ncontent-length: 0\r\nconnection: close\r\n\r\n").await;
+                    let _ = writer.flush().await;
+                    return ServeOutcome::Close(None);
+                }
+                Err(error) => {
+                    tracing::debug!("connect route could not read the body: {error}");
+                    return ServeOutcome::Close(None);
+                }
+            }
+            let mut response = handler.dispatch(ctx.clone(), request).await;
+            // The HTTP/1.1 renderer writes the headers it is given. The router's
+            // in-memory response carries no body length, so a keep-alive client
+            // cannot tell where the body ends: a browser fetch waits forever.
+            // `dispatch` always collects a body in memory, so its length is known.
+            let body_len = match response.body.as_ref() {
+                None | Some(SendSafeBody::None) => 0,
+                Some(SendSafeBody::Bytes(bytes)) => bytes.len(),
+                Some(SendSafeBody::Text(text)) => text.len(),
+                Some(_) => {
+                    tracing::error!(
+                        "connect route produced a streaming body for in-memory dispatch"
+                    );
+                    return ServeOutcome::Close(None);
+                }
+            };
+            // The HTTP/1.1 renderer requires a header. A route miss from the
+            // router carries none, so add the framing headers the connection uses.
+            if response.headers.is_empty() {
+                response.headers.insert(
+                    foundation_http::SimpleHeader::CONNECTION,
+                    vec!["keep-alive".to_string()],
+                );
+            }
+            response
+                .headers
+                .entry(foundation_http::SimpleHeader::CONTENT_LENGTH)
+                .or_insert_with(|| vec![body_len.to_string()]);
+            let bytes = match render_message(response) {
+                Ok(bytes) => bytes,
+                Err(error) => {
+                    tracing::error!("connect route could not render the response: {error}");
+                    return ServeOutcome::Close(None);
+                }
+            };
+            let mut writer = ResponseWriter::new(conn, WriterConfig::default(), ctx);
+            if let Err(error) = writer.write_all(&bytes).await {
+                tracing::debug!("connect route write failed: {error}");
+                return ServeOutcome::Close(None);
+            }
+            if let Err(error) = writer.flush().await {
+                tracing::debug!("connect route flush failed: {error}");
+                return ServeOutcome::Close(None);
+            }
+            ServeOutcome::Keep
+        }))
+    }
+}
+
+/// Read a request body into memory, bounded by `max`.
+///
+/// Returns `Ok(Err(()))` when the body passes the limit, and `Err` when the
+/// body cannot be read. `/connect` is a test endpoint, so a bounded in-memory
+/// body is acceptable here (root rule 4: a small body whose contents feed the
+/// next step).
+fn read_body(
+    request: &mut SimpleIncomingRequest,
+    max: usize,
+) -> std::io::Result<std::result::Result<(), ()>> {
+    let mut bytes = Vec::new();
+    match request.body.take() {
+        None | Some(SendSafeBody::None | SendSafeBody::Stream(None)) => {}
+        Some(SendSafeBody::Text(text)) => bytes = text.into_bytes(),
+        Some(SendSafeBody::Bytes(value)) => bytes = value,
+        Some(SendSafeBody::Stream(Some(iter))) => {
+            for chunk in DataBytesIterator::new(iter) {
+                let chunk = chunk.map_err(|e| std::io::Error::other(e.to_string()))?;
+                bytes.extend_from_slice(&chunk);
+                if bytes.len() > max {
+                    return Ok(Err(()));
+                }
+            }
+        }
+        Some(SendSafeBody::ChunkedStream(Some(iter))) => {
+            for item in iter {
+                let item = item.map_err(|e| std::io::Error::other(e.to_string()))?;
+                if let foundation_netio::shared::http::ChunkedData::Data(chunk, _) = item {
+                    bytes.extend_from_slice(&chunk);
+                    if bytes.len() > max {
+                        return Ok(Err(()));
+                    }
+                }
+            }
+        }
+        Some(_) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "connect accepts a length body or a byte stream",
+            ));
+        }
+    }
+    if bytes.len() > max {
+        return Ok(Err(()));
+    }
+    request.body = Some(SendSafeBody::Bytes(bytes));
+    Ok(Ok(()))
+}
+
 /// Running test server.
 pub struct TestServer {
     port: u16,
@@ -229,12 +475,17 @@ pub fn start_serving_with_echo(
     let shutdown_clone = shutdown.clone();
     let root = integration_dir.to_path_buf();
     let max_echo_body = limits.max_echo_body;
+    let max_connect_body = limits.max_connect_body;
     let addr = format!("127.0.0.1:{port}");
 
     let handle = thread::spawn(move || {
         let mut app = HttpApp::new_serve();
         let echo: Arc<dyn Serve> = Arc::new(EchoHandler::new(max_echo_body));
         app.router.add_route_any("/echo", &echo);
+        // The RPC route answers before `/*`, so a file named `connect` never
+        // shadows it. A browser suite on the same origin reaches it directly.
+        let rpc: Arc<dyn Serve> = Arc::new(RpcRoute::new(max_connect_body));
+        app.router.add_route_any("/connect/*", &rpc);
         let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(&root));
         app.router.add_route_any("/*", &handler);
 

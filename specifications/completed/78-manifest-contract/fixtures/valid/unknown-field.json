@@ -1,0 +1,13 @@
+{
+  "manifest_version": 1,
+  "future_top_level": { "note": "a newer writer added this field; an older reader ignores it" },
+  "entries": [
+    {
+      "name": "ripgrep",
+      "version": "14.1.0",
+      "future_field": true,
+      "source": { "kind": "cargo", "crate": "ripgrep" },
+      "deploy": { "kind": "none" }
+    }
+  ]
+}

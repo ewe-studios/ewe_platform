@@ -231,3 +231,11 @@ The owner deferred this run until the project has a Windows virtual machine.
 ## 2026-11-24. JavaScript package release
 
 The owner approves Features 1 through 3. Feature 4 defines module imports, two classic scripts, and npm publication for each browser runtime release.
+
+## 2026-11-24 master integration
+
+The integration combines master at `16cc3e065` with the combined checkpoint at `32379fa98`.
+The native tasks use ZIP 9.4.1 for archive creation and signature verification.
+All 20 native integration tests and one documentation test pass on macOS. One documentation test remains ignored.
+All 151 continuous integration runner tests pass. Cargo resolves all 29 tracked lockfiles.
+The WebAssembly test packages for HTTP, ConnectRPC, and the Cloudflare network client pass the compiler checks.

@@ -75,7 +75,10 @@ fn request_descriptor(url: &str) -> RequestDescriptor {
 /// HOW: the listener has a backlog of zero and nothing calls `accept`. Some
 /// non-blocking connects fill the queue. On Linux the kernel then drops each
 /// new SYN, so the next connect hangs. The constructor proves this with a
-/// probe connect and panics if the connect completes.
+/// probe connect.
+///
+/// Some hosts (macOS) do not drop the SYN. The helper then returns `None`, and
+/// the test prints a skip line (#466).
 struct FullBacklogListener {
     addr: std::net::SocketAddr,
     _listener: socket2::Socket,
@@ -83,7 +86,17 @@ struct FullBacklogListener {
 }
 
 impl FullBacklogListener {
-    fn new() -> Self {
+    /// A full listener, or `None` when this host cannot make a hanging dial.
+    fn new() -> Option<Self> {
+        for fillers in [8_usize, 64, 256] {
+            if let Some(listener) = Self::try_with(fillers) {
+                return Some(listener);
+            }
+        }
+        None
+    }
+
+    fn try_with(filler_count: usize) -> Option<Self> {
         let listener = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
             .expect("create the listener socket");
         let any: std::net::SocketAddr = "127.0.0.1:0".parse().expect("loopback addr");
@@ -97,7 +110,7 @@ impl FullBacklogListener {
 
         // Fill the accept queue. The sockets stay open so the queue stays full.
         let mut fillers = Vec::new();
-        for _ in 0..8 {
+        for _ in 0..filler_count {
             let filler = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
                 .expect("create a filler socket");
             filler.set_nonblocking(true).expect("non-blocking filler");
@@ -111,19 +124,19 @@ impl FullBacklogListener {
         let probe = socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None)
             .expect("create the probe socket");
         let probe_result = probe.connect_timeout(&addr.into(), Duration::from_millis(300));
-        assert!(
-            matches!(
-                probe_result.as_ref().err().map(std::io::Error::kind),
-                Some(std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock)
-            ),
-            "the full listener must make a connect hang, got {probe_result:?}"
+        let hangs = matches!(
+            probe_result.as_ref().err().map(std::io::Error::kind),
+            Some(std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock)
         );
+        if !hangs {
+            return None;
+        }
 
-        Self {
+        Some(Self {
             addr,
             _listener: listener,
             _fillers: fillers,
-        }
+        })
     }
 
     fn url(&self) -> String {
@@ -169,7 +182,10 @@ async fn a_closed_port_fails_on_the_head_pipe() {
 /// A dial to an address that never answers must not hold the worker.
 #[valtron_test(timeout = 5_000)]
 async fn a_blackholed_dial_does_not_block_the_worker() {
-    let blackhole = FullBacklogListener::new();
+    let Some(blackhole) = FullBacklogListener::new() else {
+        eprintln!("skipped: this host cannot make a hanging dial (#466)");
+        return;
+    };
     let transport = H2Transport::new().with_connect_timeout(CONNECT_TIMEOUT);
 
     // The unrelated task records when it runs. It is scheduled before the dial,

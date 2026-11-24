@@ -15,7 +15,7 @@ created: 2026-11-14
    the instance registry).
 3. Read `../../agent-rpc-architecture.md` (shared design, owner decisions, open questions).
 4. Read `../../../80-platform-prerequisites/requirements.md` and
-   `../../../81-foundation-auth/requirements.md` (the base this feature builds on).
+   `../../../completed/81-foundation-auth/requirements.md` (the base this feature builds on).
 5. Read `../../LEARNINGS.md` (past discoveries and mistakes).
 6. Read `.agents/AGENTS.md`, `.agents/skills/rust-clean-code/skill.md` and
    `.agents/skills/rust-valtron-usage/skill.md`. Generate `compacted.md` with

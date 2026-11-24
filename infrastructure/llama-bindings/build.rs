@@ -352,6 +352,14 @@ fn main() {
     ensure_llama_sources(Path::new(&llama_dir), Path::new(&manifest_dir));
     let llama_src =
         std::fs::canonicalize(Path::new(&llama_dir)).expect("failed to collect LLAMA_DIR path");
+    // `std::fs::canonicalize` returns an extended-length path (`\\?\...`) on
+    // Windows. MSVC cannot open a source file through that prefix and reports
+    // `error C1083`, so CMake gets the plain path.
+    #[cfg(windows)]
+    let llama_src = match llama_src.to_string_lossy().strip_prefix("\\\\?\\") {
+        Some(plain) => std::path::PathBuf::from(plain),
+        None => llama_src,
+    };
 
     let llama_tools_directory = llama_src.join("tools");
     let llama_mtmh_directory = llama_tools_directory.join("mtmd");
@@ -1031,6 +1039,26 @@ fn main() {
     }
 
     let build_dir = config.build();
+
+    // `llama-common-base` holds the generated `build-info.cpp` object. It is an
+    // internal CMake target, and the install step may not copy it; without it
+    // the four `llama_build_*` symbols are unresolved on Windows. Copy it next
+    // to the other libraries before their names are collected.
+    #[cfg(windows)]
+    {
+        let pattern = out_dir.join("build/**/llama-common-base.lib");
+        if let Ok(mut paths) = glob::glob(pattern.to_string_lossy().as_ref()) {
+            if let Some(Ok(path)) = paths.next() {
+                let dest = out_dir.join("lib").join("llama-common-base.lib");
+                if let Some(parent) = dest.parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                if !dest.exists() {
+                    std::fs::copy(&path, &dest).expect("copy llama-common-base.lib");
+                }
+            }
+        }
+    }
 
     // Search paths
     println!(

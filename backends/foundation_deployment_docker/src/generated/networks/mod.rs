@@ -6,7 +6,12 @@
 //! Feature flag: `docker_networks `
 
 #![cfg(feature = "docker_networks")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -171,6 +176,11 @@ pub struct NetworkStatus {
     pub ipam: Option<IPAMStatus>,
 }
 
+/// `NetworkSummary` type.
+///
+/// Same shape as `NetworkInspect`.
+pub type NetworkSummary = NetworkInspect;
+
 /// `PeerInfo` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct PeerInfo {
@@ -238,11 +248,11 @@ pub async fn network_list_request<F>(
     args: &NetworkListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<NetworkSummary>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/networks");
+    let path = "/networks";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)

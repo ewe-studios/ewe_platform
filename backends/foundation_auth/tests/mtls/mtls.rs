@@ -5,7 +5,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::mtls::{
-    client_config_mutual, server_config_mutual, MtlsConfig, ServerTlsConfig,
+    client_config_enrollment, client_config_mutual, server_config_mutual,
+    server_config_server_auth, MtlsConfig, ServerTlsConfig,
 };
 use foundation_auth::pki::{
     generate_csr, CaConfig, CaKey, CaStore, CertificateAuthority, ServerIdentity,
@@ -62,6 +63,7 @@ async fn build_fixture(ctx: Ctx, client_lifetime: Duration, trust_expires_at: u6
         .record_enrollment(
             TrustedClient {
                 fingerprint_sha256: issued.fingerprint_sha256.clone(),
+                client_id: None,
                 client_name: "laptop".to_string(),
                 enrolled_at: NOW,
                 expires_at: trust_expires_at,
@@ -199,4 +201,30 @@ fn limits_are_configuration() {
     assert_eq!(defaults.max_enrollments, 1);
     let server = ServerTlsConfig::default().with_lifetime(Duration::from_hours(90));
     assert_eq!(server.renew_before, Duration::from_hours(30));
+}
+
+#[valtron_test]
+async fn the_enrollment_client_accepts_the_server_proof_path() {
+    let (ctx, _clock) = ctx_at(NOW);
+    let fixture = build_fixture(ctx, Duration::from_hours(1), NOW + 3_600).await;
+    let server = server_config_server_auth(&fixture.identity, &fixture.ctx)
+        .expect("server-auth configuration");
+    let client =
+        client_config_enrollment(None, &fixture.ctx).expect("enrollment client configuration");
+    handshake(server, client)
+        .expect("the enrollment client trusts the server proof, not the certificate");
+}
+
+#[valtron_test]
+async fn the_enrollment_client_refuses_a_wrong_fingerprint() {
+    let (ctx, _clock) = ctx_at(NOW);
+    let fixture = build_fixture(ctx, Duration::from_hours(1), NOW + 3_600).await;
+    let server = server_config_server_auth(&fixture.identity, &fixture.ctx)
+        .expect("server-auth configuration");
+    let client = client_config_enrollment(Some(&"0".repeat(64)), &fixture.ctx)
+        .expect("pinned enrollment client configuration");
+    assert!(
+        handshake(server, client).is_err(),
+        "a pin that names another certificate must fail"
+    );
 }

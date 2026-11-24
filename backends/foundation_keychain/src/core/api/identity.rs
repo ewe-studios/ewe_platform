@@ -197,7 +197,7 @@ fn build_login_response(
             parallelism: user.client_kdf_parallelism.map(|v| v as i32),
         },
         master_key_encrypted_user_key: akey.clone(),
-        master_key_wrapped_user_key: akey.clone(),
+        master_key_wrapped_user_key: None,
         salt: user.email.clone(),
     });
 
@@ -207,7 +207,7 @@ fn build_login_response(
         token_type: "Bearer".into(),
         refresh_token,
         key: akey,
-        private_key: None,
+        private_key: user.encrypted_private_key.clone(),
         kdf: user.client_kdf_type as i32,
         kdf_iterations: user.client_kdf_iter as i32,
         kdf_memory: user.client_kdf_memory.map(|v| v as i32),
@@ -223,8 +223,8 @@ fn build_login_response(
             "Object": "accountKeys",
             "publicKeyEncryptionKeyPair": {
                 "Object": "publicKeyEncryptionKeyPair",
-                "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvbW9ya3Mgd2l0aCBzZWxmLWhvc3RlZCBzZXJ2ZXIgdGVzdGluZyBvbmx5",
-                "wrappedPrivateKey": "2.encrypted-private-key-placeholder|AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                "publicKey": user.public_key,
+                "wrappedPrivateKey": user.encrypted_private_key,
                 "signedPublicKey": null,
             },
         }),

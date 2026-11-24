@@ -237,18 +237,15 @@ async fn cleanup_leftovers() {
         .container_list(true, None, false, None)
         .await
         .expect("list");
-    if let Some(arr) = list.as_array() {
-        for ctr in arr {
-            let name = ctr
-                .get("Names")
-                .and_then(|n| n.as_array())
-                .and_then(|a| a.first())
-                .and_then(|n| n.as_str())
-                .unwrap_or("");
-            if name.starts_with("/ewe-it-") {
-                if let Some(id) = ctr.get("Id").and_then(|i| i.as_str()) {
-                    let _ = c.remove_container(id, true).await;
-                }
+    for container in &list {
+        let name = container
+            .names
+            .as_ref()
+            .and_then(|names| names.first())
+            .map_or("", String::as_str);
+        if name.starts_with("/ewe-it-") {
+            if let Some(id) = container.id.as_deref() {
+                let _ = c.remove_container(id, true).await;
             }
         }
     }

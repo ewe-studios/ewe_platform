@@ -68,7 +68,7 @@ fn extract_files(path: &Path, into: &Path) -> Result<BTreeSet<String>, TaskError
     let mut names = BTreeSet::new();
     for index in 0..archive.len() {
         let mut member = archive.by_index(index).map_err(TaskError::operation)?;
-        let name = member.name().to_owned();
+        let name = member.name().map_err(TaskError::operation)?.into_owned();
         let safe = member
             .enclosed_name()
             .ok_or_else(|| TaskError::operation("Invalid Maven archive path"))?;

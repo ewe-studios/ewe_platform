@@ -6,7 +6,12 @@
 //! Feature flag: `docker_images `
 
 #![cfg(feature = "docker_images")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -24,6 +29,11 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ImageDeleteResponseItem` type.
+///
+/// Same shape as `super::shared::DeletedUntaggedObject`.
+pub type ImageDeleteResponseItem = super::shared::DeletedUntaggedObject;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -73,7 +83,7 @@ pub async fn image_delete_request<F>(
     args: &ImageDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<ImageDeleteResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {

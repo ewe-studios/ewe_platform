@@ -45,6 +45,10 @@ pub mod native;
 #[cfg(target_family = "wasm")]
 pub mod wasm;
 
+/// A `NetClient` over a Cloudflare Durable Object stub (wasm + `cloudflare`).
+#[cfg(all(target_family = "wasm", feature = "cloudflare"))]
+pub mod cloudflare;
+
 // ── Phase 0 compat: legacy module paths kept for downstream crates ──
 // All implementation moved to shared/native/wasm; these are re-exports.
 

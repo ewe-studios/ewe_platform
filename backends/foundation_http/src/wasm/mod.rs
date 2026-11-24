@@ -22,6 +22,10 @@ pub mod bridge;
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
 pub mod dispatch;
 
+// The panic boundary of the host entries — requires wasm-bindgen (issue #742)
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
+pub mod panic_guard;
+
 // Re-export singleton for easy access when wasm-bindgen-http is enabled
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
 pub use bridge::{CfHttpAppGuard, CfHttpAppSingleton, WasmHttpAppGuard, WasmHttpAppSingleton};

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.10"
+version = "0.0.15"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,11 +13,21 @@ keywords.workspace = true
 hex = { workspace = true, optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.13", optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.15", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+# The VFS trait that the operator key files read through. It builds on wasm:
+# only `NativeFs` is native. Feature `secret`.
+foundation_nativeapis = { workspace = true, optional = true }
+
+# Signed secrets (spec 81). Ed25519 is pure Rust and builds for wasm; `ssh-key`
+# reads OpenSSH private key files, and `p256` reads the P-256 PKCS#8 and SEC1
+# forms. All three are pure Rust, so the key module builds on every target.
+ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"], optional = true }
+ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"], optional = true }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -30,8 +40,10 @@ sha2 = { workspace = true }             # SHA256 for PKCE, PBKDF2 HMAC
 hmac = { workspace = true }             # TOTP, HMAC, PBKDF2
 getrandom = { version = "0.2", optional = true }
 
-# Token formats
-jwt-simple = "0.12"       # JWT support
+# Token formats. The pure-Rust backend: the default `boring` backend links
+# BoringSSL, which cannot share a binary with the OpenSSL that `ssh2` links
+# (the VM tests of foundation_deployment_platform).
+jwt-simple = { version = "0.12", default-features = false, features = ["pure-rust"] }
 
 # Encoding
 base64 = "0.22"
@@ -91,7 +103,14 @@ web-sys = { workspace = true, features = [
 ], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["multi"] }
+# RSA-PSS signed-secret keys (feature `secret-rsa`). The `ring` crate seals
+# its random source to the operating system, so it cannot take the entropy of
+# `Ctx`. `rsa` takes a caller-supplied random source instead, and
+# `rand_chacha` 0.3 expands the 32 bytes that the `Ctx` entropy source gives.
+# Both build only for a native target.
+rsa = { version = "0.9", optional = true }
+rand_chacha = { version = "0.3", optional = true }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
 pbkdf2 = { workspace = true }
@@ -107,7 +126,7 @@ time = { workspace = true }
 # re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
 # all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"
@@ -115,6 +134,11 @@ tempfile = "3"
 # code reads the injected clock instead of the real wall clock.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
 foundation_testing = { path = "../foundation_testing" }
+# The in-memory file system for the key-loading tests.
+foundation_nativeapis = { workspace = true, features = ["vfs"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+base64 = "0.22"
+serde_json = "1.0"
 serial_test = { workspace = true }
 ntest = { workspace = true }
 
@@ -123,12 +147,25 @@ workspace = true
 
 [features]
 # Turso/SQLite backend (native only)
-default = ["turso"]
+default = ["turso", "secret", "jwt"]
 turso = ["foundation_db/turso"]
+# Signed secrets (spec 81) and the operator key module. Ed25519, OpenSSH key
+# parsing and P-256 key parsing are pure Rust, so this builds for wasm.
+secret = ["dep:foundation_nativeapis", "dep:ed25519-compact", "dep:ssh-key", "dep:p256"]
+# Operator-supplied RSA-PSS keys for signed secrets (spec 81). The crate is
+# native only: a wasm build never enables it, and it refuses an RSA secret
+# with `SecretError::UnsupportedAlgorithm`.
+secret-rsa = ["secret", "dep:rsa", "dep:rand_chacha"]
+# The JSON Web Token (JWT) provider (`JwtAuth`). `jwt-simple` is always a
+# dependency for the application modules; this flag gates the server provider.
+jwt = []
 # IdP server module (pulls in foundation_http + foundation_db for storage)
 server = ["dep:hex", "dep:foundation_http", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
+# Social login end-to-end tests against a local provider simulator (spec 57,
+# F011). The tests live in the `server-test` target and need no Docker.
+social-integration-tests = ["server-test"]
 # Wasm compatibility — browser crypto and JS time APIs
 wasm = ["chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API
@@ -170,3 +207,20 @@ required-features = ["server-test"]
 [[test]]
 name = "mtls_tests"
 path = "tests/mtls/mod.rs"
+
+# Spec 81 feature 00: signed secrets and the operator key files.
+[[test]]
+name = "secret_tests"
+path = "tests/secret/mod.rs"
+required-features = ["secret"]
+
+[[test]]
+name = "keys_tests"
+path = "tests/keys/mod.rs"
+required-features = ["secret"]
+
+# Spec 81 feature 00: the signed-secret, JWT, plaintext and composite providers.
+[[test]]
+name = "client_auth_tests"
+path = "tests/client_auth/mod.rs"
+required-features = ["secret", "jwt"]

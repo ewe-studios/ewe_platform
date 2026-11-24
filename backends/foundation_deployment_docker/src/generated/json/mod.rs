@@ -6,7 +6,12 @@
 //! Feature flag: `docker_json `
 
 #![cfg(feature = "docker_json")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -241,6 +246,62 @@ pub struct ContainerState {
     /// `StartedAt` property.
     #[serde(rename = "StartedAt")]
     pub started_at: Option<String>,
+    /// `Status` property.
+    #[serde(rename = "Status")]
+    pub status: Option<String>,
+}
+
+/// `ContainerSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ContainerSummary {
+    /// `Command` property.
+    #[serde(rename = "Command")]
+    pub command: Option<String>,
+    /// `Created` property.
+    #[serde(rename = "Created")]
+    pub created: Option<i64>,
+    /// `Health` property.
+    #[serde(rename = "Health")]
+    pub health: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `HostConfig` property.
+    #[serde(rename = "HostConfig")]
+    pub host_config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Id` property.
+    #[serde(rename = "Id")]
+    pub id: Option<String>,
+    /// `Image` property.
+    #[serde(rename = "Image")]
+    pub image: Option<String>,
+    /// `ImageID` property.
+    #[serde(rename = "ImageID")]
+    pub image_id: Option<String>,
+    /// `ImageManifestDescriptor` property.
+    #[serde(rename = "ImageManifestDescriptor")]
+    pub image_manifest_descriptor: Option<OCIDescriptor>,
+    /// `Labels` property.
+    #[serde(rename = "Labels")]
+    pub labels: Option<serde_json::Value>,
+    /// `Mounts` property.
+    #[serde(rename = "Mounts")]
+    pub mounts: Option<Vec<MountPoint>>,
+    /// `Names` property.
+    #[serde(rename = "Names")]
+    pub names: Option<Vec<String>>,
+    /// `NetworkSettings` property.
+    #[serde(rename = "NetworkSettings")]
+    pub network_settings: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `Ports` property.
+    #[serde(rename = "Ports")]
+    pub ports: Option<Vec<PortSummary>>,
+    /// `SizeRootFs` property.
+    #[serde(rename = "SizeRootFs")]
+    pub size_root_fs: Option<i64>,
+    /// `SizeRw` property.
+    #[serde(rename = "SizeRw")]
+    pub size_rw: Option<i64>,
+    /// `State` property.
+    #[serde(rename = "State")]
+    pub state: Option<String>,
     /// `Status` property.
     #[serde(rename = "Status")]
     pub status: Option<String>,
@@ -707,6 +768,44 @@ pub struct ImageManifestSummary {
     pub size: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `ImageSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImageSummary {
+    /// `Containers` property.
+    #[serde(rename = "Containers")]
+    pub containers: i64,
+    /// `Created` property.
+    #[serde(rename = "Created")]
+    pub created: i64,
+    /// `Descriptor` property.
+    #[serde(rename = "Descriptor")]
+    pub descriptor: Option<OCIDescriptor>,
+    /// `Id` property.
+    #[serde(rename = "Id")]
+    pub id: String,
+    /// `Labels` property.
+    #[serde(rename = "Labels")]
+    pub labels: serde_json::Value,
+    /// `Manifests` property.
+    #[serde(rename = "Manifests")]
+    pub manifests: Option<Vec<ImageManifestSummary>>,
+    /// `ParentId` property.
+    #[serde(rename = "ParentId")]
+    pub parent_id: String,
+    /// `RepoDigests` property.
+    #[serde(rename = "RepoDigests")]
+    pub repo_digests: Vec<String>,
+    /// `RepoTags` property.
+    #[serde(rename = "RepoTags")]
+    pub repo_tags: Vec<String>,
+    /// `SharedSize` property.
+    #[serde(rename = "SharedSize")]
+    pub shared_size: i64,
+    /// `Size` property.
+    #[serde(rename = "Size")]
+    pub size: i64,
+}
+
 /// `KnownSignerIdentity` type.
 pub type KnownSignerIdentity = String;
 
@@ -803,6 +902,23 @@ pub struct OCIPlatform {
 
 /// `PortMap` type.
 pub type PortMap = serde_json::Value;
+
+/// `PortSummary` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct PortSummary {
+    /// `IP` property.
+    #[serde(rename = "IP")]
+    pub ip: Option<String>,
+    /// `PrivatePort` property.
+    #[serde(rename = "PrivatePort")]
+    pub private_port: i64,
+    /// `PublicPort` property.
+    #[serde(rename = "PublicPort")]
+    pub public_port: Option<i64>,
+    /// `Type` property.
+    #[serde(rename = "Type")]
+    pub r#type: String,
+}
 
 /// `ProcessConfig` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1159,11 +1275,11 @@ pub async fn container_list_request<F>(
     args: &ContainerListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<ContainerSummary>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/containers/json");
+    let path = "/containers/json";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
@@ -1342,11 +1458,11 @@ pub async fn image_list_request<F>(
     args: &ImageListArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<ImageSummary>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {
-    let path = format!("/images/json");
+    let path = "/images/json";
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)

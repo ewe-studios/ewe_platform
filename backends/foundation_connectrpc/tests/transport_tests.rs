@@ -104,7 +104,7 @@ const H2: TransportCapabilities = TransportCapabilities {
     multiplexed: true,
 };
 const FETCH: TransportCapabilities = TransportCapabilities {
-    request_streaming: false,
+    request_streaming: true,
     full_duplex: false,
     h2_trailers: false,
     http_versions: &[Proto::HTTP11, Proto::HTTP20],
@@ -142,17 +142,20 @@ fn capability_matrix_http2() {
 
 #[test]
 fn capability_matrix_wasm_fetch() {
-    // Unary + server-streaming allowed; client-stream / bidi rejected (no request streaming).
+    // Unary, client-stream and server-streaming are allowed; bidi is rejected
+    // because fetch has no full duplex.
     assert!(ok(ProtocolKind::Connect, StreamType::Unary, &FETCH));
+    assert!(ok(ProtocolKind::Connect, StreamType::ClientStream, &FETCH));
     assert!(ok(ProtocolKind::GrpcWeb, StreamType::ServerStream, &FETCH));
-    assert!(!ok(ProtocolKind::Connect, StreamType::ClientStream, &FETCH));
     assert!(!ok(ProtocolKind::Connect, StreamType::BidiStream, &FETCH));
 }
 
 #[test]
 fn wasm_fetch_capabilities_are_correct() {
     let caps = WASM_FETCH_CAPABILITIES;
-    assert!(!caps.request_streaming);
+    // Fetch streams a request body: `SendSafeBody::Stream` becomes a JS
+    // `ReadableStream` (spec 85 T2).
+    assert!(caps.request_streaming);
     assert!(!caps.full_duplex);
     assert!(!caps.h2_trailers);
     assert!(!caps.multiplexed);

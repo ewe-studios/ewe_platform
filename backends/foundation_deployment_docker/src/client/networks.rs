@@ -22,7 +22,7 @@ use crate::generated::disconnect::{
 };
 use crate::generated::networks::{
     network_delete_request, network_inspect_request, network_list_request, NetworkDeleteArgs,
-    NetworkInspect, NetworkInspectArgs, NetworkListArgs,
+    NetworkInspect, NetworkInspectArgs, NetworkListArgs, NetworkSummary,
 };
 use crate::generated::prune::{network_prune_request, NetworkPruneArgs};
 
@@ -44,7 +44,7 @@ impl DockerClient {
     pub async fn network_list(
         &self,
         filters: Option<&str>,
-    ) -> Result<serde_json::Value, DockerError> {
+    ) -> Result<Vec<NetworkSummary>, DockerError> {
         let args = NetworkListArgs {
             filters: filters.map(str::to_string),
         };

@@ -1,3 +1,4 @@
+#![cfg(unix)]
 //! T8 — the bootstrap secret (and the signing key) never reach the logs.
 //!
 //! Its own test binary: it installs a global subscriber that captures every
