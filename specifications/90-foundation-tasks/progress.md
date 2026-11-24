@@ -497,3 +497,8 @@ Both suites released the local port after completion.
 The native Network File System (NFS) task selects both Cargo features required by its test target.
 It writes the combined process output to the requested log and returns Cargo's failure code.
 All 13 real NFS tests passed. A command fixture verified empty runs and a failed test with diagnostic output.
+
+The native Apple release task built the complete 254 MiB XCFramework archive on macOS.
+Its libraries cover arm64 iOS, arm64 and x86_64 iOS simulators, and arm64 and x86_64 macOS.
+All archive members passed integrity checks. Swift Package Manager reported the same digest as an independent file check.
+The local archive has SHA-256 digest `3755f61952e2cc1e87cc8d7d001e50999997ffc459797552559c3e559d30ea49`.

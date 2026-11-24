@@ -329,3 +329,6 @@ Both Cloudflare file system targets require vfs-native together with their stora
 
 The former NFS pipeline returned the log writer's status. Its final filter also accepted lines marked FAILED.
 The new task keeps the child status and checks for test records after saving the log.
+
+An Apple archive groups architectures by platform and target type. The five target architectures occupy three library entries.
+Check the library and module map in each entry, then compare the archive digest with Swift Package Manager.
