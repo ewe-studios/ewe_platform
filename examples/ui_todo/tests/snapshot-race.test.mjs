@@ -1,18 +1,13 @@
+import { startTodoServer } from "./support/todo-server.mjs";
 // Concurrent adds make the open count equal the committed sequence at each snapshot.
 import test from "node:test";
 import assert from "node:assert/strict";
-import {spawn} from "node:child_process";
-import {once} from "node:events";
-import {createInterface} from "node:readline";
 import * as wire from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js";
 import {base64urlEncode,readViewResponse} from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-frames.js";
 import {FetchActionTransport,JsActionRegistry,WebActionManager} from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-actions.js";
 
 test("concurrent snapshots report the revision of their displayed count",{timeout:30000},async t => {
-  const server = spawn(process.env.EWE_TODO_BIN ?? "target/uat/ui_todo",["127.0.0.1:0"]);
-  t.after(() => server.kill());
-  const [line] = await once(createInterface({input:server.stdout}),"line");
-  const base = new URL(line.match(/http:\/\/\S+/)[0]);
+  const base = new URL(await startTodoServer(t));
   const registry = new JsActionRegistry();
   registry.declare("server","add_todo");
   const sender = new FetchActionTransport({url:new URL("/action",base),hello:() => actions.hello()});

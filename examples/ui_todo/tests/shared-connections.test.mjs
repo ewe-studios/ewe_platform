@@ -1,9 +1,7 @@
+import { startTodoServer } from "./support/todo-server.mjs";
 // Run against the compiled todo server. Each test run starts a fresh store.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { once } from "node:events";
-import { createInterface } from "node:readline";
 import * as ui from "../../../backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js";
 import * as w from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js";
 import { isFrame, base64urlEncode, readFrames } from "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-frames.js";
@@ -29,15 +27,17 @@ function resume(session, subscription, after) {
   return builder.asUint8Array();
 }
 test("shared socket actions and per-subscription replay on SSE and streamed HTTP", {timeout: 20000}, async t => {
-  const child = spawn(process.env.EWE_TODO_BIN ?? "target/uat/ui_todo", ["127.0.0.1:0"]);
-  t.after(() => child.kill());
-  const lines = createInterface({input: child.stdout});
-  const [address] = await once(lines, "line");
-  const base = address.match(/^Open (http:\/\/[^/]+)/)[1];
   ui.ProtocolHandler.frameHook = {isFrame};
   let opened = 0;
   const connections = ui.frameConnections({wsFactory(url) { opened++; return new WebSocket(url); }});
-  t.after(() => connections.close());
+  const cancel = new AbortController();
+  let events;
+  t.after(() => {
+    cancel.abort();
+    events?.disconnect();
+    connections.close();
+  });
+  const base = await startTodoServer(t);
   const socket = base + "/socket";
   const screens = [0, 1].map(() => {
     const server = WebSocketActionTransport.connect(connections, socket, {handshakeTimeoutMs: 4000});
@@ -106,8 +106,7 @@ test("shared socket actions and per-subscription replay on SSE and streamed HTTP
   assert.equal(wrongScreen, 0);
   assert.equal(opened, 1);
 
-  const events = new ui.SSETransport({protocol:"frame", headers: {"X-Ewe-Hello":olderGreeting(screens[0].actions.hello(), 11)}});
-  t.after(() => events.disconnect());
+  events = new ui.SSETransport({protocol:"frame", headers: {"X-Ewe-Hello":olderGreeting(screens[0].actions.hello(), 11)}});
   const delivery = Promise.withResolvers(), targeted = Promise.withResolvers();
   const streamUrl = base + "/live";
   events.connect(streamUrl, undefined, ({frames}) => {
@@ -123,8 +122,6 @@ test("shared socket actions and per-subscription replay on SSE and streamed HTTP
   assert.equal((await post(resume(session,91n,0n))).status,204);
   assert.equal(await targeted.promise,1n);
 
-  const cancel = new AbortController();
-  t.after(() => cancel.abort());
   const binary = await fetch(streamUrl, {signal: cancel.signal, headers: {
     Accept: "application/primal-frame",
     "X-Ewe-Hello": olderGreeting(screens[1].actions.hello(), 10),
