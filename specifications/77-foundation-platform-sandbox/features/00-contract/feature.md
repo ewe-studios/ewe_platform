@@ -68,7 +68,7 @@ the drivers (05, 07, 09, 10); `foundation_connectrpc` (the RPC engine, used as i
 | `Capabilities`, `HostReport` | What a driver can do here. | each driver (defined here) |
 | `SandboxDriver`, `SubstrateHandle`, `SlaveEndpoint` | The driver interface. | defined here; implemented in 05, 07, 09, 10, 11, 16 |
 | `SandboxProvider` | The control-plane interface. | defined here; implemented in 02 and 06 |
-| `SandboxHost`, `SlaveHost` | The side-effect bundles. | defined here; built only by boundaries |
+| `SandboxHost` | The control-plane side-effect bundle. | defined here; built only by boundaries. `SlaveHost` (the slave bundle) is feature 01 |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
@@ -236,8 +236,10 @@ licence.
 | `testing` | The simulation helpers as a public module (feature 02). | off |
 
 Dependencies of this feature: `foundation_context`, `foundation_core`, `foundation_compact`
-(`default-features = false`), `foundation_errstacks`, `foundation_connectrpc`,
+(`default-features = false`), `foundation_auth` (`default-features = false`, for `Secret` and
+`extract_bearer_token`), `foundation_errstacks`, `foundation_connectrpc`,
 `foundation_macros`, `serde`, `serde_json`, `base64`, `derive_more`, `futures`, `tracing`.
+Dev-dependency: `proptest`.
 
 ```
 src/
@@ -636,6 +638,9 @@ pub struct ProcessSpec {
     pub kill_with_parent: bool,
     /// File descriptors that the child inherits, as (number in the child, descriptor).
     /// Empty except for the libkrun lifeline on macOS (feature 09).
+    /// Unix only: `OwnedFd` does not exist on wasm32-unknown-unknown, and no driver
+    /// runs a process there. The whole process type set is `#[cfg(unix)]`.
+    #[cfg(unix)]
     pub extra_fds: Vec<(i32, std::os::fd::OwnedFd)>,
 }
 pub trait ChildProcess: Send + Sync + 'static {
@@ -758,7 +763,11 @@ pub trait SandboxOps: Send + Sync + 'static {
 }
 ```
 
-`ExecHandle` and `FileStream` get their bodies in feature 02. `SandboxHandle::run` is a provided
+Feature 00 defines the opaque handle layer that these signatures need, in
+`shared/handles.rs`: `ExecFileCalls` (the trait), `ExecHandle`, `FileStream`, `ExecEvents`,
+`ExecStdin` and `CreateStream`. Each is a newtype over a future, a stream or a trait object,
+with the constructors that feature 02 and the drivers call. Feature 02 adds their
+behaviour; it does not redeclare them. `SandboxHandle::run` is a provided
 function on top of `exec` (feature 02). `SandboxHandle::container()` returns
 `self.ops.container()`. It is the bridge from the command surface to the container surface.
 
@@ -880,9 +889,10 @@ Rules:
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/contract_*.rs`. Property tests use the
-property-test crate that `foundation_core` already has in `dev-dependencies`, with a fixed
-seed.
+`backends/foundation_platform_sandbox/tests/contract_*.rs`. Property tests use
+`proptest` (latest stable, a dev-dependency of this crate) with a fixed seed in one
+`ProptestConfig` per test file. `foundation_core` has no property-test crate; its
+dev-dependencies are not transitive, so this crate declares its own.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
@@ -899,7 +909,6 @@ seed.
 | "A socket path that is too long is refused" | `socket_path_limit` (103 passes, 104 fails) | bound |
 | `Sequence` at its limit | `sequence_at_u64_max` (`accept(u64::MAX)` on a counter at `u64::MAX` gives `Gap`, with no overflow) | bound |
 | `ExitStatus` | `exit_status_one_of` (the two constructors `ExitStatus::code(n)` and `ExitStatus::signal(n)` are the only way to make one; exactly one field is `Some`) | example |
-| `Secret` | `secret_is_redacted` | expected outcome |
 | `HostReport` over RPC | `host_report_roundtrip` | identity |
 | Container handle, law L11 | `container_handle_roundtrip` (a fake `ContainerOps`: start, fetch, exec, wait, stop, destroy) | identity |
 | `UnsupportedCapability`, "An error keeps its type across RPC" | `unsupported_capability` (a handle with `exec: false` gives the error; it keeps its type over RPC) | expected outcome |
@@ -923,3 +932,23 @@ cargo check -p foundation_platform_sandbox --no-default-features --target x86_64
 - Each scenario of section 5 and each row of section 7 passes.
 - Both service traits exist, and every call is unary or server-streaming.
 - No limit is a `const` in a code path.
+
+## 11. Design corrections (2026-11-24, before implementation)
+
+Five places in this file did not match the tree. The feature now says:
+
+1. **Property tests.** `foundation_core` has no property-test crate, and a dev-dependency is
+   not transitive. This crate declares `proptest` (latest stable) itself. Its tests use one
+   `ProptestConfig` with a fixed seed per file.
+2. **`ProcessSpec.extra_fds`.** `std::os::fd::OwnedFd` does not exist on
+   `wasm32-unknown-unknown`, and invariant I10 requires that target to build. The process
+   type set (`ProcessSpec`, `ChildProcess`, `ProcessExit`) is `#[cfg(unix)]`; the wasm build
+   omits it because no driver runs a process there.
+3. **`SlaveHost`.** Feature 01 owns it (`shared/host.rs`). Feature 00 defines `SandboxHost`
+   only.
+4. **Handle types.** Feature 00 defines `ExecFileCalls`, `ExecHandle`, `FileStream`,
+   `ExecEvents`, `ExecStdin` and `CreateStream` in `shared/handles.rs`; feature 02 adds
+   their behaviour.
+5. **`foundation_auth`.** It is a dependency (`default-features = false`) for `Secret` and
+   `extract_bearer_token`. The `secret_is_redacted` test left this feature: feature 00 holds
+   no secret, and spec 86 tests `Secret` redaction.

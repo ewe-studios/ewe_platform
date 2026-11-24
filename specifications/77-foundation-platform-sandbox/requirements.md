@@ -1,6 +1,6 @@
 ---
 description: "foundation_platform_sandbox: one core library that starts sandboxes (Firecracker, Cloudflare containers and the Cloudflare Sandbox product, libkrun, Docker containers, the Docker Sandboxes product) and runs commands in them. A control plane (agent-sandbox) drives an in-sandbox slave (agent-slave) over Connect RPC. Binaries, the Cloudflare Durable Object and the Provider implementations are thin boundaries on the library."
-status: "draft"
+status: "in-progress"
 priority: "high"
 created: 2026-11-11
 author: "Main Agent"
@@ -692,6 +692,12 @@ command, exit code, input, files, isolation, stop). Each driver's `e2e_*.rs` cal
 its own `SandboxProvider`, so every substrate proves the same behaviour, and so does the RPC
 path (law L11).
 
+Property tests use `proptest` 1.12, declared once in the root `[workspace.dependencies]` and
+taken with `proptest = { workspace = true }`. Each test file sets one `ProptestConfig` with a
+fixed seed, so a failure reproduces from the seed that the case prints. A feature names the
+property tests it needs in the `Oracle` column: `identity`, `bound`, `metamorphic` or
+`stateful model`.
+
 A real substrate test calls `probe()` first. When the host cannot run it, the test prints
 the report and returns.
 
@@ -745,6 +751,6 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 
 | # | Question | Recommendation |
 |---|---|---|
-| Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
+| Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | (2026-11-24) Decided: use `foundation_deployment_docker`. A rename is a separate change. |
 | Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. A Worker cannot run its own mTLS: Cloudflare ends TLS. | (2026-11-14) Decided: a signed secret as a bearer credential, or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of spec 86 and spec 87. The secret and the bearer check are spec 86's `Secret` and `extract_bearer_token`. A direct native listener adds mTLS when spec 87 lands; on a Worker the provider is `CfMtlsAuth` of spec 87. |
 | Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 83 does. |

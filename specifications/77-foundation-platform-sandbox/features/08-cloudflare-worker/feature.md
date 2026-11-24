@@ -599,6 +599,8 @@ deploy does not change the live Worker. `rollback` is idempotent.
 
 ## 7. Tests
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
 | I2, I3, the routing table | `route_table` (each method), `route_bad_id`, `route_unknown_method`; `route_property` (any valid id in a scoped body routes to that id) | `foundation_platform_sandbox/tests/cloudflare_routing.rs` (native) | example, identity |
