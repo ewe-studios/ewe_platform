@@ -520,7 +520,7 @@ that lands it.
 | 16 | The writer path routed on the full URL, so every route missed | route on `request_uri.path()` | #747 |
 | 18 | No writer-path body limit | `HttpApp::max_writer_body_bytes` (1 MiB) | none (a new field) |
 | 9 | A panic aborts the module | a guarded host poll answers 500 (`wasm/panic_guard.rs`) | #742 |
-| - | The native HTTP/1 server answers 404 for a wrong method | none yet | #743 |
+| - | The native HTTP/1 server answers 404 for a wrong method | `dispatch_result` plus `send_method_not_allowed` with `Allow`; the wasm entries carry `Allow` too | #743 |
 | 2 | `AsyncSendSafeBody` self-wakes without a host yield on workerd | the suite yields per `Data::Retry`; netio keeps the defect | #749 |
 
 ## 7. Tests

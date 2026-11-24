@@ -162,6 +162,19 @@ impl<S> Router<S> {
         let path_without_query = path.split('?').next().unwrap_or(path);
         self.root.match_route(method, path_without_query)
     }
+
+    /// The methods that `path` supports, for the `Allow` header of a 405.
+    ///
+    /// Query strings are stripped, as in [`Self::dispatch`]. An empty list
+    /// means no path matched.
+    #[must_use]
+    pub fn allowed_methods(&self, path: &str) -> Vec<String>
+    where
+        S: Clone,
+    {
+        let path_without_query = path.split('?').next().unwrap_or(path);
+        self.root.allowed_methods(path_without_query)
+    }
 }
 
 impl<S> Default for Router<S> {

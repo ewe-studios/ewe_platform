@@ -107,6 +107,36 @@ impl<S> RouteMethod<S> {
         opt.clone().ok_or(RouteOp::MethodNotAllowed)
     }
 
+    /// The methods that have a handler at this node.
+    ///
+    /// WHY: RFC 9110 section 15.5.6 requires a 405 response to name the methods
+    /// that the target resource supports.
+    /// HOW: the fixed methods come in the order GET, POST, PUT, DELETE, PATCH,
+    /// HEAD, OPTIONS, CONNECT, TRACE. A custom method comes last.
+    #[must_use]
+    pub fn allowed_methods(&self) -> Vec<String> {
+        let mut allowed = Vec::new();
+        for (name, present) in [
+            ("GET", self.get.is_some()),
+            ("POST", self.post.is_some()),
+            ("PUT", self.put.is_some()),
+            ("DELETE", self.delete.is_some()),
+            ("PATCH", self.patch.is_some()),
+            ("HEAD", self.head.is_some()),
+            ("OPTIONS", self.options.is_some()),
+            ("CONNECT", self.connect.is_some()),
+            ("TRACE", self.trace.is_some()),
+        ] {
+            if present {
+                allowed.push(name.to_string());
+            }
+        }
+        if let Some((name, _)) = &self.custom {
+            allowed.push(name.clone());
+        }
+        allowed
+    }
+
     /// Returns true if any HTTP method has a handler registered.
     #[must_use]
     pub fn has_any(&self) -> bool {

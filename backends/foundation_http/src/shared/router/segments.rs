@@ -551,14 +551,41 @@ impl<S> RouteSegment<S> {
     where
         S: Clone,
     {
+        let (matched, _params) = self.match_path(route)?;
+        matched.method.get_method(method)
+    }
+
+    /// Match `route` to a node without checking the method.
+    ///
+    /// WHY: a method miss needs the node's other methods for the `Allow` header
+    /// of a 405 response.
+    /// HOW: the same path walk that [`Self::match_route`] uses.
+    fn match_path(&self, route: &str) -> RouteResult<(Self, Params)>
+    where
+        S: Clone,
+    {
         let segments = parse_route_into_segments(route);
         let route_segments: Vec<SegmentType> = segments
             .iter()
             .map(|t| SegmentType::try_from(*t))
             .collect::<Result<_, _>>()?;
 
-        let (matched, _params) = self.match_routes_from(route_segments, HashMap::new())?;
-        matched.method.get_method(method)
+        self.match_routes_from(route_segments, HashMap::new())
+    }
+
+    /// The methods that `route` supports.
+    ///
+    /// An empty list means no path matched. The order is the `Allow` header
+    /// order of [`RouteMethod::allowed_methods`].
+    #[must_use]
+    pub fn allowed_methods(&self, route: &str) -> Vec<String>
+    where
+        S: Clone,
+    {
+        match self.match_path(route) {
+            Ok((matched, _params)) => matched.method.allowed_methods(),
+            Err(_) => Vec::new(),
+        }
     }
 
     fn match_routes_from(

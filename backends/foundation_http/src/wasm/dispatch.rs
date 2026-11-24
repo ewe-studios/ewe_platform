@@ -44,6 +44,47 @@ pub(crate) fn web_status_response(
     })
 }
 
+/// Build a 405 `web_sys::Response` that names the allowed methods.
+///
+/// WHY: RFC 9110 section 15.5.6 requires an `Allow` header on a 405.
+/// HOW: a short text body and the `Allow` header, through a fresh `WebConn`.
+fn web_method_not_allowed(
+    allowed: &[String],
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = WebConn::new();
+    conn.set_status(405);
+    conn.set_header("content-type", "text/plain");
+    conn.set_header("allow", &allowed.join(", "));
+    conn.set_body(b"Method Not Allowed".to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
+
+/// Build a 405 `web_sys::Response` for the Cloudflare entry.
+///
+/// See [`web_method_not_allowed`].
+fn cf_method_not_allowed(
+    allowed: &[String],
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = CfConn::new();
+    conn.set_status(405);
+    conn.set_header("content-type", "text/plain");
+    conn.set_header("allow", &allowed.join(", "));
+    conn.set_body(b"Method Not Allowed".to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
+
 /// Build a `web_sys::Response` that carries only a status and a short text
 /// body for the Cloudflare entry.
 ///
@@ -121,7 +162,7 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
         let handler = match self.router().dispatch_result(&method, &path) {
             Ok(handler) => handler,
             Err(RouteOp::MethodNotAllowed) => {
-                return cf_status_response(405, "Method Not Allowed");
+                return cf_method_not_allowed(&self.router().allowed_methods(&path));
             }
             Err(_) => return cf_status_response(404, "Not Found"),
         };
@@ -205,7 +246,7 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
         let handler = match self.router().dispatch_result(&method, &path) {
             Ok(handler) => handler,
             Err(RouteOp::MethodNotAllowed) => {
-                return web_status_response(405, "Method Not Allowed");
+                return web_method_not_allowed(&self.router().allowed_methods(&path));
             }
             Err(_) => return web_status_response(404, "Not Found"),
         };

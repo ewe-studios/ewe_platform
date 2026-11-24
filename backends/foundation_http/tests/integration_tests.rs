@@ -546,13 +546,13 @@ fn test_not_found() {
     shutdown.turn_on();
 }
 
-/// Route exists for GET but not POST → 404.
+/// Route exists for GET but not POST → 405, with the allowed methods.
 
 #[test]
 #[traced_test]
 #[foundation_macros::timeout(60000)]
 #[serial(http_test)]
-fn test_method_mismatch_returns_not_found() {
+fn test_method_mismatch_returns_method_not_allowed() {
     let _guard = initialize_pool(42, Some(5));
     let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
@@ -568,7 +568,20 @@ fn test_method_mismatch_returns_not_found() {
         )
         .unwrap();
 
-    assert_eq!(status_code(&response.get_status()), 404);
+    assert_eq!(status_code(&response.get_status()), 405);
+    let allow = response
+        .get_headers_ref()
+        .iter()
+        .find(|(k, _)| format!("{k}").to_lowercase() == "allow");
+    assert!(allow.is_some(), "a 405 must carry an Allow header");
+    assert!(
+        allow
+            .unwrap()
+            .1
+            .first()
+            .is_some_and(|value| value.contains("GET")),
+        "the Allow header must name GET"
+    );
 
     shutdown.turn_on();
 }

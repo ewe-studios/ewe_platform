@@ -357,7 +357,7 @@ and every workspace consumer moves to `0.0.14`.
 | Issue | Severity | Problem |
 |---|---|---|
 | #742 | high | a panicking wasm handler aborts the module; it cannot answer 500 — fixed 2026-11-24 |
-| #743 | medium | the native HTTP/1 server answers 404 for a known path with a wrong method |
+| #743 | medium | the native HTTP/1 server answers 404 for a known path with a wrong method — fixed 2026-11-24 |
 | #744 | high | the wasm bridge rejected the JS promise for a route miss |
 | #745 | medium | the router could not report a method miss |
 | #746 | medium | the wasm bridge did not percent-decode the path |
@@ -365,7 +365,7 @@ and every workspace consumer moves to `0.0.14`.
 | #749 | medium | `AsyncSendSafeBody` self-wakes without a host yield on workerd |
 | #750 | low | the `foundation_http` wasm feature tree fails `clippy -D warnings` |
 
-#744, #745, #746, #747 and #742 are fixed and closed. #750 stays open: the wasm feature tree
+#744, #745, #746, #747, #742 and #743 are fixed and closed. #750 stays open: the wasm feature tree
 still fails `clippy -D warnings`. #570 is closed by T5.
 
 ### Notes and corrections

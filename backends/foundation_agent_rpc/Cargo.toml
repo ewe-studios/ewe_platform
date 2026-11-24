@@ -24,7 +24,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16" }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
-foundation_http = { path = "../foundation_http", version = "0.0.14", features = ["multi", "ssl"] }
+foundation_http = { path = "../foundation_http", version = "0.0.15", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["ssl", "multi"] }
 # Entropy for bootstrap secrets (the cross-platform substrate).
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
