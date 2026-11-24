@@ -488,3 +488,8 @@ Issue #811 retains the simulator launch check. The owner uses the iPhone simulat
 The Rust host setup tasks select Debian, Ubuntu, and Arch packages from an explicit choice or the operating system release file.
 Seven mise commands use these tasks for testbed installation, Quickemu installation, and macOS image download.
 Tests use local package manager commands and check failure propagation. They leave the host package database unchanged.
+
+The Cloudflare service controller owns one local worker per project. Stop requests reach that worker through its instance directory.
+The package tests cover independent projects, restart, repeated stop, failed suites, and child cleanup.
+Wrangler 4.156.2 returned HTTP 200. The local suites passed six object store tests, five database tests, and eighteen file system tests.
+Both suites released the local port after completion.

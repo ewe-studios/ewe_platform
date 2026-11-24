@@ -323,3 +323,6 @@ Two archives with a top-level module.modulemap conflict. Supply the application 
 
 Linux derivatives list their parent distributions in ID_LIKE. Read the identifier fields as text and check each parent separately.
 Quickget takes the Apple release name as a separate argument. The existing command defaults to Sonoma.
+
+A saved process number can later identify an unrelated program. Local Wrangler workers now hold their own instance lock.
+Both Cloudflare file system targets require vfs-native together with their storage feature. Cargo rejects an incomplete selection before running tests.

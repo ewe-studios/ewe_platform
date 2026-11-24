@@ -1,6 +1,7 @@
 //! Run project-owned Cloudflare operations with the installed Wrangler command.
 #[cfg(feature = "cloudflare-objects")]
 pub mod objects;
+mod service;
 
 use crate::CiEnvironment;
 use clap::Args;
@@ -137,5 +138,6 @@ pub fn set() -> Result<TaskSet, TaskError> {
     )?;
     #[cfg(feature = "cloudflare-objects")]
     tasks.add("r2:ls", "List objects in an R2 bucket", objects::list)?;
+    service::register(&mut tasks)?;
     Ok(tasks)
 }

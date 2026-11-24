@@ -50,7 +50,7 @@ fn local_pages(
                         if e.kind() == io::ErrorKind::WouldBlock
                             && start.elapsed() < Duration::from_secs(15) =>
                     {
-                        thread::sleep(Duration::from_millis(10))
+                        thread::sleep(Duration::from_millis(10));
                     }
                     Err(e) => panic!("missing object request: {e}"),
                 }

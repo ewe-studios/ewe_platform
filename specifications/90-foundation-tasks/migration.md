@@ -100,7 +100,8 @@ Test renamed groups, empty member lists, invalid references, platform opt-outs, 
 
 | Owner | Registered command or package | Verified callers and results |
 |---|---|---|
-| Cloudflare | `cf:install`, `cf:env`, `cf:whoami`, `cf:list`, `cf:d1:create`, `cf:d1:migrate`, and `cf:r2:create` | Both command hosts register these tasks. Tests check argument boundaries, credentials, and error status. |
+| Cloudflare | Account commands, D1 and R2 operations, local service control, and six integration test commands | Tests verify credentials, pagination, worker ownership, and cleanup. The real local service passed 29 storage and file system tests. |
+| Linux host setup | `toolchain:install-testbed`, `toolchain:install-quickemu`, and `images:download-macos` | Seven mise commands call these tasks. Local command fixtures check package selection, arguments, and failure status. |
 | Build hooks | `build:install-hook` | An independent Cargo package installs each provider. A repeat check preserves its files. |
 | Application assets | `foundation_codegen`, `foundation_resources`, and `foundation_wasm_ui` | Todo and an external application build in both profiles. Chromium loads one script from the moved Todo release. |
 | Native applications | `native-task` and the native task set | The release workflow calls Rust. Local tests check archives, tag conflicts, staging, and signing. |
@@ -119,7 +120,7 @@ Make and mise dispatch those operations to the same task set.
 2. Verify release installation on a clean hosted runner. Local tests cover cached release tools, new tags, and partial dispatch failures.
 3. Supply a verified first-stage tool for fresh guests. A new guest starts without Cargo or a repository checkout.
 4. Migrate virtual machine operations and guest provisioning. The image builder and Linux image smoke checks now use the Rust task runner.
-5. Migrate Cloudflare commands, local host setup, remaining generators, and supported legacy WebAssembly builds. Issue #792 tracks the fixture decision. Issue #794 tracks the Google Cloud input format.
+5. Migrate the remaining generators and supported legacy WebAssembly builds. Issue #792 tracks the fixture decision. Issue #794 tracks the Google Cloud input format.
 6. Select the supported manual publication packages. Issue #793 tracks the retired package names. Verify guest tests on supported hosts.
 
 The owner approves Feature 4. Its public release requires a tagged crate and registry credentials. Specification 91 owns deferred native Windows resource tests.
