@@ -2,8 +2,8 @@
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{AsyncListStream, KeyValueStore};
 use foundation_compact::SendWrapper;
-use futures_util::{TryStreamExt, stream};
-use serde::{Serialize, de::DeserializeOwned};
+use futures_util::{stream, TryStreamExt};
+use serde::{de::DeserializeOwned, Serialize};
 use std::num::NonZeroU32;
 use wasm_bindgen::prelude::*;
 

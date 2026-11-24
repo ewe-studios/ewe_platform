@@ -134,6 +134,26 @@ Boot a minimal external app with the default transport. Repeat with a registered
 Verify typed local and remote actions, retry, reconnect, and view recovery without editing the transport instance.
 Verify the deployed Todo entry still requests one JavaScript file.
 
+### Existing browser records
+
+Earlier Todo versions store pending changes in the localStorage key `ewe.todo.pending.v1`.
+Each entry contains the operation identifier and the change. The entry has no account or server field.
+The browser origin identifies the scheme, host, and port of the page that writes the data.
+
+The proposed destination for these records is the anonymous account on the same origin.
+A named account never adopts an anonymous change automatically.
+The account assignment needs owner approval before the application imports these records.
+
+1. Read the old map during startup. Validate every entry before writing any records.
+2. Check an import receipt for each operation identifier inside one IndexedDB transaction.
+3. For an identifier without a receipt, keep its existing destination record or insert the old record.
+4. Save the receipts in the same transaction. Preserve the source map because another tab can still write to it.
+5. If the transaction fails, report the error. Retry the import on the next open.
+6. Test simultaneous imports, an interrupted import, invalid data, a late write from an old tab, and a reload after confirmation.
+
+A receipt records an imported identifier. It prevents a retry from restoring an operation that the server already confirms.
+The existing Feature 32 pending and retry screenshots apply to this storage change.
+
 ## Native transport selection
 
 Use one screen entry point and one Todo core factory on each platform.
