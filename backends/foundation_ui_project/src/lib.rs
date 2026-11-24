@@ -84,8 +84,9 @@ impl LanguageSupport {
                     .entry(String::from("PROJECT_DIRECTORY"))
                     .or_insert(serde_json::Value::from(
                         new_project_directory
-                            .try_into_string()
-                            .expect("can be string"),
+                            .into_os_string()
+                            .into_string()
+                            .map_err(|_| "The project path must use UTF-8")?,
                     ));
 
                 Ok(Box::new(PackageConfig::new(
@@ -123,8 +124,9 @@ impl LanguageSupport {
                     .entry(String::from("PROJECT_DIRECTORY"))
                     .or_insert(serde_json::Value::from(
                         new_project_directory
-                            .try_into_string()
-                            .expect("can be string"),
+                            .into_os_string()
+                            .into_string()
+                            .map_err(|_| "The project path must use UTF-8")?,
                     ));
 
                 let package_config =
@@ -267,8 +269,8 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         *retain_lib_section,
         github_namespace,
         output_directory.clone(),
-        project_output_directory.clone(),
-        root_project_cargo_file.clone(),
+        project_output_directory,
+        root_project_cargo_file,
     )?;
 
     match packager.create(package_configurator) {

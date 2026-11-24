@@ -36,6 +36,10 @@ fn compose_every_selection_and_share_native_inputs() {
         assert!(root.join("application/src/lib.rs").is_file());
         assert!(root.join("application/resources.toml").is_file());
         assert_eq!(root.join("native-core/Cargo.toml").is_file(), mask & 6 != 0);
+        if mask & 6 != 0 {
+            let core = std::fs::read_to_string(root.join("native-core/Cargo.toml")).unwrap();
+            assert!(!core.contains("foundation_resources"));
+        }
         if mask & 2 != 0 {
             assert!(
                 std::fs::read_to_string(root.join("android/app/build.gradle.kts"))
@@ -110,6 +114,8 @@ fn human_and_automation_help_use_the_real_command_tree() {
                 "--target",
                 "--app-id",
                 "wasm-bundle:npm-pack",
+                "ewe_ui build --target web --release",
+                "ewe_ui run --target ios --device DEVICE_ID",
                 "--archive",
                 "--integrity",
             ] {

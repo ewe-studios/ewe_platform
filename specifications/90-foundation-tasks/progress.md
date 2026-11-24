@@ -431,3 +431,6 @@ The public iOS version and native Rust tag remain unavailable. Local candidate b
 The guide includes build, device, and task examples for a generated project.
 A test follows the installed command tree. All 41 command paths and their options appear in the guide.
 Two independent applications list their custom task only after its declaration. Both return the expected child status.
+
+The composed mobile core uses the application crate for resources. Standalone mobile projects retain their own resource provider.
+All six generator checks and the legacy mobile template suite pass after the change for issue #797.

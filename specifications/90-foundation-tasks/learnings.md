@@ -281,3 +281,6 @@ An installed command test confirms Android startup failure and cancellation remo
 
 The installed command tree can validate the full guide without a separate list of commands.
 Each command's help supplies the child names, usage line, and available options.
+
+Cargo reports an unused build dependency when the shared application owns the resource hook.
+The standalone and composed native templates therefore use different build dependency declarations.

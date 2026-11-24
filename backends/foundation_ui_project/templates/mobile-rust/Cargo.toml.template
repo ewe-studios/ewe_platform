@@ -25,7 +25,7 @@ name = "uniffi-bindgen"
 path = "src/bin/uniffi-bindgen.rs"
 required-features = ["bindgen"]
 
-[build-dependencies]
+{% if COMPOSED == false %}[build-dependencies]
 foundation_resources = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}", default-features = false, features = ["build"] }
 
-[workspace]
+{% endif %}[workspace]
