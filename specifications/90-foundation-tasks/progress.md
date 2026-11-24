@@ -506,3 +506,8 @@ The local archive has SHA-256 digest `3755f61952e2cc1e87cc8d7d001e50999997ffc459
 Cargo now includes all 68 generator templates in a clean source package.
 The package includes both Android ignore files and the Cargo configuration files for the web and API templates.
 A CLI installation built from the listed package inputs generated an independent Android project with its ignore file.
+
+The virtual machine host changes are in progress. Cargo checked the Rust start and stop tasks.
+Nushell passed the storage path, image, ports, and key path to the independent runner.
+A failing runner returned exit code 42 through the existing Nushell command.
+The Rust integration tests and Docker fixture remain pending while the host verifies the mobile applications.

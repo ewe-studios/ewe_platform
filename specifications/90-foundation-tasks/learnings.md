@@ -335,3 +335,8 @@ Check the library and module map in each entry, then compare the archive digest 
 
 The default Cargo file list omitted four hidden template files from a source export.
 An explicit templates/** include rule preserves them. Compare the package list with every file under the template directory.
+
+The existing virtual machine stop command treated Docker exit code 42 as an absent container.
+A successful empty container query distinguishes absence from a daemon failure. Issue #817 tracks this change.
+The hosted release workflow can push a missing registry image during a manual branch run.
+A hosted verification without publication needs an image that is already present or a read-only workflow.
