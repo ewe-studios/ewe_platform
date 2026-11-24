@@ -445,3 +445,5 @@ The external fixture checks portable fallback, unsupported targets, companion lo
 The detached process tests pass with the full task runner suite. All 23 tests pass.
 
 Native task checks pass for 22 release and device fixtures and seven application checks. Strict lint checks pass across all five affected packages.
+
+The installed command builds a signed Android App Bundle and verifies its signature on Java 27. Both native architectures and the application title match.

@@ -84,6 +84,61 @@ async fn query_limit(
     Ok((result, std::mem::take(&mut *bytes)))
 }
 
+struct Verification {
+    forward: Arc<dyn TaskOutput>,
+    state: Mutex<(usize, bool)>,
+}
+
+impl TaskOutput for Verification {
+    fn write<'a>(&'a self, stream: OutputStream, bytes: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
+        Box::pin(async move {
+            self.forward.write(stream, bytes).await?;
+            if stream == OutputStream::Stdout {
+                let mut state = self
+                    .state
+                    .lock()
+                    .map_err(|_| io::Error::other("Signature result is unavailable"))?;
+                for byte in bytes {
+                    match byte {
+                        b'\n' => {
+                            state.1 |= state.0 == Self::MARKER.len();
+                            state.0 = 0;
+                        }
+                        b'\r' if state.0 == Self::MARKER.len() => {}
+                        byte if Self::MARKER.get(state.0) == Some(byte) => state.0 += 1,
+                        _ => state.0 = Self::MARKER.len() + 1,
+                    }
+                }
+            }
+            Ok(())
+        })
+    }
+
+    fn flush(&self) -> BoxFuture<'_, io::Result<()>> {
+        self.forward.flush()
+    }
+}
+
+impl Verification {
+    const MARKER: &'static [u8] = b"jar verified.";
+}
+
+pub(super) async fn verifies_signature(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+) -> Result<bool, TaskError> {
+    let output = Arc::new(Verification {
+        forward: ctx.require::<TaskEnv>()?.output.clone(),
+        state: Mutex::default(),
+    });
+    ctx.exec_with_output(command, output.clone()).await?;
+    let state = output
+        .state
+        .lock()
+        .map_err(|_| TaskError::operation("Signature result is unavailable"))?;
+    Ok(state.1 || state.0 == Verification::MARKER.len())
+}
+
 struct Artifact {
     lines: Mutex<ArtifactLines>,
     package: &'static str,

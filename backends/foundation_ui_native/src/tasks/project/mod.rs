@@ -237,17 +237,14 @@ async fn verify_android(
         return Err(TaskError::operation("The Android release bundle is unsigned. Configure the release signing settings in the application module."));
     }
     if release {
-        let verification = text(
+        let verified = super::output::verifies_signature(
             ctx,
             ProcessCommand::new("jarsigner")
                 .args(["-J-Duser.language=en", "-J-Duser.country=US", "-verify"])
                 .arg(archive),
         )
         .await?;
-        if !verification
-            .lines()
-            .any(|line| line.trim() == "jar verified.")
-        {
+        if !verified {
             return Err(TaskError::operation(format!(
                 "Cannot verify the Android release signature in {}",
                 archive.display()

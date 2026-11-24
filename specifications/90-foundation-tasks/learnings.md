@@ -292,3 +292,5 @@ The task package must declare the directory as a Cargo build input for increment
 Start the process monitor before transferring child ownership. A failed monitor must leave the original process guard available for cleanup.
 
 Validate target selection before checking for a native library. Server applications can also request a target absent from their manifest.
+
+Java 27 writes 17,006 bytes when verifying the generated Android bundle with a test key. Match the complete success line while streaming all output.
