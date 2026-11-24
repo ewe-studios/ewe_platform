@@ -130,22 +130,38 @@ ASD-STE100.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
+## Feature 00 design corrections (2026-11-24)
+
+The design file contradicted the tree in five places. `features/00-contract/feature.md`
+section 11 records the fix for each:
+
+- `proptest` is this crate's own dev-dependency (`foundation_core` has none, and dev-dependencies are not transitive).
+- The process types are `#[cfg(unix)]`, because `OwnedFd` does not exist on wasm.
+- `SlaveHost` stays in feature 01.
+- Feature 00 defines the opaque handle layer (`shared/handles.rs`); feature 02 adds behaviour.
+- `foundation_auth` is a dependency, and the `secret_is_redacted` test leaves this feature.
+
 ## In progress
 
-Nothing. The spec waits for the owner review.
+**Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
+The crate `backends/foundation_platform_sandbox` holds the domain types, the typed error,
+the limits as configuration, the two RPC service definitions and the traits. It is in
+`ci/packages.toml`.
+
+The checks pass: `cargo check` for native and wasm32, `cargo test` (25 tests),
+`cargo fmt --check`, and clippy with `-D warnings`. The no-default-features build passes
+for native and wasm32. The musl check was not run because the target is not installed on
+this host.
 
 ## Next
 
-1. The owner reviews the PR and answers the open questions (requirements section 10.2).
-2. Update the spec with the answers. Set `status: "in-progress"`.
-3. Feature 00 (one agent).
-4. Features 01, 02, 03 and 04 in parallel (one agent each).
-5. Feature 05, then feature 06: MVP-A (Firecracker).
-6. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
+1. Features 01, 02, 03 and 04 in parallel (one agent each).
+2. Feature 05, then feature 06: MVP-A (Firecracker).
+3. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
    MVP-B (Cloudflare).
-7. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
+4. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
    product). Feature 17 needs 08.
-8. Phase 3: features 12 to 15 (images).
+5. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 

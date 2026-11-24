@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7](https://github.com/ewe-studios/ewe_platform/compare/foundation_sshkit-v0.1.6...foundation_sshkit-v0.1.7) - 2026-11-24
+
+### Other
+
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+
 ## [0.1.6](https://github.com/ewe-studios/ewe_platform/compare/foundation_sshkit-v0.1.5...foundation_sshkit-v0.1.6) - 2026-11-12
 
 ### Other
