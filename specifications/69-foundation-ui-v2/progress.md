@@ -1438,3 +1438,5 @@ Rust now uses one command type for both encoding and classification.
 The standalone regression accepts the real action and rejects malformed messages.
 The signed iPhone 17e opens Mathalley, keeps the Todo subscription, and passes the independent sound test.
 Chromium opens the game from the production bundle and returns to Todo. Android verification remains in progress.
+
+The integrated package passed six Mathalley tests and four mobile Todo tests after the fix for issue 840.

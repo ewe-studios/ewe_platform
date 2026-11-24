@@ -83,5 +83,3 @@ impl Session {
 mod browser;
 #[cfg(all(not(target_family = "wasm"), feature = "mobile"))]
 mod native;
-
-pub mod route;

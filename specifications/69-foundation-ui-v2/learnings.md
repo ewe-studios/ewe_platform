@@ -1148,3 +1148,6 @@ This permits a separate device and sound check with the production browser bundl
 
 The MessagePack prefix for the 14-byte Mathalley route is 0xae. The old hosts compared it with 0xad.
 One typed Rust command removes manual length calculations from each host.
+
+Both parent branches declared the game route module at different positions. Git retained both declarations without a conflict.
+Building the merged crate exposed the duplicate.
