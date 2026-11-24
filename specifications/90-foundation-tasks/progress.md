@@ -484,3 +484,7 @@ The optimized installed generator also created a three-target project outside th
 Xcode builds the generated on-device Grove application with the local Apple release inputs.
 The application archive supplies the Rust library for each target. The application imports the module map from its own header directory.
 Issue #811 retains the simulator launch check. The owner uses the iPhone simulator for the Todo Server example.
+
+The Rust host setup tasks select Debian, Ubuntu, and Arch packages from an explicit choice or the operating system release file.
+Seven mise commands use these tasks for testbed installation, Quickemu installation, and macOS image download.
+Tests use local package manager commands and check failure propagation. They leave the host package database unchanged.

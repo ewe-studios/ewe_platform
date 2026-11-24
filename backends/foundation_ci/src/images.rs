@@ -9,7 +9,7 @@ mod smoke;
 use crate::CiEnvironment;
 use clap::{Args, ValueEnum};
 use config::Config;
-use foundation_tasks::{TaskContext, TaskError, TaskResult, TaskSet};
+use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult, TaskSet};
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
@@ -25,6 +25,13 @@ enum Layer {
     Image,
     VmBase,
     VmImage,
+}
+
+#[derive(Args)]
+struct MacOsImage {
+    /// Apple release name accepted by Quickget.
+    #[arg(default_value = "sonoma")]
+    version: String,
 }
 
 #[derive(Args)]
@@ -75,6 +82,20 @@ struct Plan {
 /// Returns an error for a duplicate task name.
 pub fn set() -> Result<TaskSet, TaskError> {
     let mut set = TaskSet::new("foundation_images").with_namespace("images");
+    set.add(
+        "download-macos",
+        "Download the selected macOS virtual machine image",
+        |ctx, args: MacOsImage| async move {
+            let host = ctx.require::<CiEnvironment>()?;
+            ctx.exec(
+                ProcessCommand::new("quickget")
+                    .current_dir(&host.root)
+                    .arg("macos")
+                    .arg(args.version),
+            )
+            .await
+        },
+    )?;
     set.add("prepare", "Prepare an image build context", prepare)?;
     set.expose("prepare", &["image-prepare"])?;
     set.add(

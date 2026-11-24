@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-fn find(host: &CiEnvironment, name: &str) -> Option<PathBuf> {
+pub(super) fn find(host: &CiEnvironment, name: &str) -> Option<PathBuf> {
     let path = host.get("PATH")?;
     std::env::split_paths(&path).find_map(|dir| {
         let file = dir.join(name);

@@ -2,6 +2,7 @@
 mod android;
 mod android_build;
 mod android_lock;
+mod host_setup;
 mod proof;
 mod release;
 mod versions;
@@ -99,6 +100,7 @@ pub fn set() -> Result<TaskSet, TaskError> {
     )?;
     tasks.expose("proof", &["toolchain-proof"])?;
     release::register(&mut tasks)?;
+    host_setup::register(&mut tasks)?;
     Ok(tasks)
 }
 

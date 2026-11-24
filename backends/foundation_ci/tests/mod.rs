@@ -9,3 +9,5 @@ mod development;
 
 #[cfg(feature = "cloudflare-objects")]
 mod cloudflare_objects;
+
+mod host_setup;

@@ -320,3 +320,6 @@ Verify a shared update by adding an item on one device and reading its title on 
 
 Xcode copies headers from each static library archive into one product include directory.
 Two archives with a top-level module.modulemap conflict. Supply the application headers through its configured Swift include path.
+
+Linux derivatives list their parent distributions in ID_LIKE. Read the identifier fields as text and check each parent separately.
+Quickget takes the Apple release name as a separate argument. The existing command defaults to Sonoma.
