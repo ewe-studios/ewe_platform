@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/ewe-studios/ewe_platform/compare/foundation_proxy-v0.1.9...foundation_proxy-v0.2.0) - 2026-11-24
+
+### Added
+
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(#767, #768)* let the operator set the socket group and require a state directory
+- *(ci)* pass the repository guards and the last full run
+
+### Other
+
+- spec 82: add the enrollment TLS client config
+- spec 82: finish the proxy registration authority
+- spec 82: add the registration registry and the enrollment proof API
+- spec 81: implement signed secrets, key loading and client auth providers
+- spec 88 feature 03: cover the connectrpc runtime on the wasm hosts
+- spec 88 feature 02: prove the foundation_http wasm runtimes
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+- spec 76 completion, spec 80 (transport and migration groups), and the bindgen/syn fix ([#631](https://github.com/ewe-studios/ewe_platform/pull/631))
+
 ## [0.1.9](https://github.com/ewe-studios/ewe_platform/compare/foundation_proxy-v0.1.2...foundation_proxy-v0.1.9) - 2026-11-12
 
 ### Added

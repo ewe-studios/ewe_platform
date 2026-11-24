@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.22"
+version = "0.0.23"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -33,7 +33,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
 # optional: native builds no longer compile foundation_wasm and its native-only
 # CLI tooling (clap, toml_edit, foundation_codegen, ...).
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.9", optional = true }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.10", optional = true }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 
 # -- Other dependencies

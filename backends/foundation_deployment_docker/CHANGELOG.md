@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8](https://github.com/ewe-studios/ewe_platform/compare/foundation_deployment_docker-v0.1.7...foundation_deployment_docker-v0.1.8) - 2026-11-24
+
+### Added
+
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(docker)* share one client signature across platforms
+- *(ci)* type the Docker integration tests and gate the deployable socket
+- *(#769)* generate the Docker list response types
+- *(ci)* gate the Docker Unix transport and record the platform opt-outs
+
+### Other
+
+- *(docker)* bump foundation_deployment_docker to 0.1.8
+- spec 81: implement signed secrets, key loading and client auth providers
+- spec 88 feature 03: cover the connectrpc runtime on the wasm hosts
+- spec 88 feature 02: prove the foundation_http wasm runtimes
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+- spec 76 completion, spec 80 (transport and migration groups), and the bindgen/syn fix ([#631](https://github.com/ewe-studios/ewe_platform/pull/631))
+- Spec 65 feature 01: foundation_agent_rpc, an agent RPC model server (Connect/gRPC/gRPC-Web, token → mTLS) ([#126](https://github.com/ewe-studios/ewe_platform/pull/126))
+
 ## [0.1.7](https://github.com/ewe-studios/ewe_platform/compare/foundation_deployment_docker-v0.1.6...foundation_deployment_docker-v0.1.7) - 2026-11-12
 
 ### Other

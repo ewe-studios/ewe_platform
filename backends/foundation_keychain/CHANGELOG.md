@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10](https://github.com/ewe-studios/ewe_platform/compare/foundation_keychain-v0.1.7...foundation_keychain-v0.1.10) - 2026-11-24
+
+### Added
+
+- *(keychain)* support the real Bitwarden CLI cipher create
+- *(keychain)* store the account key pair and cover CLI unlock
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(keychain)* restore the green CLI test after the swept commit
+- *(llama)* match the runtime through a post-project fragment and link build-info
+- *(keychain)* return the fields the Bitwarden CLI needs to log in
+
+### Other
+
+- *(keychain)* cover CLI folder creation with the real Bitwarden client
+- spec 82: add the enrollment TLS client config
+- spec 82: add the registration registry and the enrollment proof API
+- spec 57: finish social login end to end
+- spec 81: add RSA-PSS secrets and the client revocation check
+- spec 81: implement signed secrets, key loading and client auth providers
+- spec 88 feature 02: prove the foundation_http wasm runtimes
+- Merge spec 87: mutual TLS
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 86: auth primitives ([#676](https://github.com/ewe-studios/ewe_platform/pull/676))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+- spec 76 completion, spec 80 (transport and migration groups), and the bindgen/syn fix ([#631](https://github.com/ewe-studios/ewe_platform/pull/631))
+- *(deps)* bump age from 0.10.1 to 0.12.1 ([#537](https://github.com/ewe-studios/ewe_platform/pull/537))
+
 ## [0.1.7](https://github.com/ewe-studios/ewe_platform/compare/foundation_keychain-v0.1.2...foundation_keychain-v0.1.7) - 2026-11-12
 
 ### Added
