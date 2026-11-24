@@ -55,6 +55,9 @@ fn websocket_default_idle_timeout_is_the_nginx_keepalive_timeout() {
 /// A read that times out yields `Delayed` for the caller's `sleep_timeout` (the
 /// idle poll interval), not for a value computed by the timeout calculator
 /// (GitHub issue #375).
+///
+/// On Unix a quiet connection parks instead (issue #610), so the `Delayed`
+/// branch runs only on the other targets, where the read still blocks.
 #[test]
 #[foundation_macros::timeout(30000)]
 fn websocket_delayed_uses_the_sleep_timeout() {
@@ -78,7 +81,14 @@ fn websocket_delayed_uses_the_sleep_timeout() {
     let ctx = Ctx::host();
     establish(&mut task, &ctx);
 
-    match task.next_status(ctx) {
+    let status = task.next_status(ctx);
+    #[cfg(unix)]
+    assert!(
+        matches!(status, Some(TaskStatus::Depends(_))),
+        "a quiet connection must park on Unix, got {status:?}"
+    );
+    #[cfg(not(unix))]
+    match status {
         Some(TaskStatus::Delayed(delay)) => assert_eq!(
             delay, sleep_between,
             "the idle poll interval must be the caller's sleep timeout"
@@ -109,22 +119,38 @@ fn websocket_wait_uses_the_idle_timeout() {
     let ctx = Ctx::host();
     establish(&mut task, &ctx);
 
-    // The server stays silent, so this poll blocks on the read and then yields.
+    // The server stays silent. On Unix the task parks at once (issue #610); on
+    // the other targets the poll blocks in the read for the configured idle
+    // timeout.
     let started = Instant::now();
     let status = task.next_status(ctx);
     let elapsed = started.elapsed();
 
-    assert!(
-        matches!(status, Some(TaskStatus::Delayed(_))),
-        "a quiet connection must yield Delayed after its read wait"
-    );
-    assert!(
-        elapsed >= Duration::from_millis(250),
-        "the read wait lasted {elapsed:?}; it must use the configured 300 ms \
-         idle timeout, not the 100 ms minimum read timeout"
-    );
-    assert!(
-        elapsed < Duration::from_secs(5),
-        "the read wait lasted {elapsed:?}; it did not stop at the configured idle timeout"
-    );
+    #[cfg(unix)]
+    {
+        assert!(
+            matches!(status, Some(TaskStatus::Depends(_))),
+            "a quiet connection must park, got {status:?}"
+        );
+        assert!(
+            elapsed < Duration::from_secs(1),
+            "the park lasted {elapsed:?}; it must not wait for a read"
+        );
+    }
+    #[cfg(not(unix))]
+    {
+        assert!(
+            matches!(status, Some(TaskStatus::Delayed(_))),
+            "a quiet connection must yield Delayed after its read wait"
+        );
+        assert!(
+            elapsed >= Duration::from_millis(250),
+            "the read wait lasted {elapsed:?}; it must use the configured 300 ms \
+             idle timeout, not the 100 ms minimum read timeout"
+        );
+        assert!(
+            elapsed < Duration::from_secs(5),
+            "the read wait lasted {elapsed:?}; it did not stop at the configured idle timeout"
+        );
+    }
 }

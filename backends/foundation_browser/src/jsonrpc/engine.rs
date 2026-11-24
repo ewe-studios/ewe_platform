@@ -51,12 +51,12 @@ impl Default for RpcEngineConfig {
             // took 269 ms on Chrome 157, macOS. The 30 s budget covers a slow
             // first paint and still fails a dead call in bounded time.
             call_timeout: Duration::from_secs(30),
-            // The transport drains its outbound queue only between socket
-            // reads, so one blocking read must return often, or a queued
-            // command waits for the whole deadline. A 30 s read made every
-            // call wait 29.7 s (measured, spec 88 T4). 50 ms adds at most that
-            // much latency to a call that arrives during a quiet read.
-            read_timeout: Duration::from_millis(50),
+            // The read timeout of the socket. The transport wakes on a queued
+            // command and on socket readability (issue #610), so a quiet
+            // connection never waits for this value; it still bounds a partial
+            // frame. 75 s is the transport's own default (the nginx
+            // `keepalive_timeout` default).
+            read_timeout: Duration::from_secs(75),
             // Back-off after the transport reports no message. The same 1 ms
             // the engine used before the value became configuration.
             idle_sleep: Duration::from_millis(1),
