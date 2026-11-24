@@ -1467,3 +1467,8 @@ Both live connection and snapshot race tests passed against the durable server.
 
 The packaged page still requests the site root when a proxy mounts it below a subdirectory.
 [Issue 839](https://github.com/ewe-studios/ewe_platform/issues/839) records the three failed requests.
+
+The relocation check moved the server, its public directory, and its SQLite database together.
+Both launches served valid WebAssembly and returned the same saved record through the typed Todo service.
+The separate data fixture returned its seeded record, rejected an unknown identifier, and had no initial view route.
+The production executable rejected the removed `--data-only` flag. These checks cover issues 715 and 828.
