@@ -1,5 +1,5 @@
 //! Replay a seeded Mathalley game and inspect the frames presented by Android.
-use super::{cleanup, sleep, Screen};
+use super::{Screen, cleanup, sleep};
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
 use std::{
     fs::File,
@@ -23,6 +23,7 @@ pub(crate) struct Options {
 }
 
 struct Scene {
+    left: u32,
     width: u32,
     height: u32,
     top: u32,
@@ -31,7 +32,7 @@ struct Scene {
 impl Scene {
     fn point(&self, x: u32, y: u32) -> (u64, u64) {
         let width = u64::from(self.width);
-        let height = u64::from(self.height - self.top);
+        let height = u64::from(self.height);
         // The game uses a centered 390 by 844 canvas. Keep its aspect ratio.
         let (scale, unit) = if width * 844 <= height * 390 {
             (width, 390)
@@ -43,7 +44,7 @@ impl Scene {
             (margin + 2 * scale * u64::from(position) + unit) / (2 * unit)
         };
         (
-            axis(width, 390, x),
+            u64::from(self.left) + axis(width, 390, x),
             u64::from(self.top) + axis(height, 844, y),
         )
     }
@@ -64,17 +65,48 @@ fn sample(png: &Path, rgb: &Path, color: Option<[u8; 3]>) -> io::Result<Option<S
         pixels.read_exact(&mut value)?;
         Ok(value)
     };
-    for top in 0..height {
-        if pixel(0, u64::from(top))? == [0x1b, 0x14, 0x10] {
-            let scene = Scene { width, height, top };
-            let (x, y) = scene.point(70, 200);
-            let actual = pixel(x, y)?;
-            return Ok(color
-                .is_none_or(|expected| expected == actual)
-                .then_some(scene));
+    // The window can leave navigation bars on any side of the game.
+    let background = [0x1b, 0x14, 0x10];
+    let mut rows = 0..height;
+    let mut edge = |row| pixel(u64::from(width / 4), u64::from(row));
+    let top = loop {
+        let Some(row) = rows.next() else {
+            return Ok(None);
+        };
+        if edge(row)? == background {
+            break row;
         }
-    }
-    Ok(None)
+    };
+    let bottom = loop {
+        let Some(row) = rows.next_back() else {
+            return Ok(None);
+        };
+        if edge(row)? == background {
+            break row + 1;
+        }
+    };
+    let mut row = vec![0; width as usize * 3];
+    pixels.seek(SeekFrom::Start(3 * u64::from(width) * u64::from(top)))?;
+    pixels.read_exact(&mut row)?;
+    let Some(left) = row.chunks_exact(3).position(|rgb| rgb == background) else {
+        return Ok(None);
+    };
+    let Some(right) = row.chunks_exact(3).rposition(|rgb| rgb == background) else {
+        return Ok(None);
+    };
+    let scene = Scene {
+        left: left as u32,
+        width: (right - left + 1) as u32,
+        top,
+        height: bottom - top,
+    };
+    let (x, y) = scene.point(70, 200);
+    pixels.seek(SeekFrom::Start(3 * (u64::from(width) * y + x)))?;
+    let mut actual = [0; 3];
+    pixels.read_exact(&mut actual)?;
+    Ok(color
+        .is_none_or(|expected| expected == actual)
+        .then_some(scene))
 }
 
 async fn presented(

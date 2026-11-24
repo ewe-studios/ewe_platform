@@ -1149,6 +1149,12 @@ This permits a separate device and sound check with the production browser bundl
 The MessagePack prefix for the 14-byte Mathalley route is 0xae. The old hosts compared it with 0xad.
 One typed Rust command removes manual length calculations from each host.
 
+Android can present the Mathalley title while its accessibility tree exposes only the return button.
+Use a frame capture to check rendered pixels. Check the native surface label separately.
+
+The landscape Android game window can start past the left edge of the display.
+The side inset leaves Todo visible at x=0. Frame sampling and taps must use the game window bounds.
+
 Both parent branches declared the game route module at different positions. Git retained both declarations without a conflict.
 Building the merged crate exposed the duplicate.
 

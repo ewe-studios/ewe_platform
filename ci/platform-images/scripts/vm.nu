@@ -118,18 +118,9 @@ def "main provision" [
     --key: path
     --port: int = $SSH_PORT
 ] {
-    if $os != "macos" { fail "only macOS is provisioned over SSH; Windows provisions itself during the install" }
-    let tmp = mktemp -d
-    ^docker cp $"($name):/opt/platform-images/guest" $"($tmp)/guest"
-    let layers = ^docker exec $name sh -c 'test -d /opt/platform-images/layers && echo yes || echo no' | str trim
-    if $layers == "yes" { ^docker cp $"($name):/opt/platform-images/layers" $"($tmp)/guest/layers" }
-    let tarball = $"($tmp)/guest.tar.gz"
-    ^tar -czf $tarball -C $tmp guest
-    let dest = "/tmp/platform-images-guest"
-    let r = ssh-run $os $key $port $"rm -rf ($dest) && mkdir -p ($dest) && tar -xzf - -C ($dest)" --stdin (open --raw $tarball)
-    if $r.exit_code != 0 { fail $"copying the provisioning into the VM failed: ($r.stderr)" }
-    rm -r $tmp
-    ssh-stream $os $key $port $"bash ($dest)/guest/provision.sh 2>&1 | tee /tmp/platform-images-provision.log; exit \${PIPESTATUS[0]}"
+    host-task images:vm-provision [
+        --os $os --name $name --key ($key | into string) --port ($port | into string)
+    ]
 }
 
 # Copy a directory into the VM (as a tarball over SSH; Windows has tar.exe).

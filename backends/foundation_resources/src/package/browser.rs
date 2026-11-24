@@ -49,7 +49,7 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     let parent = entry
         .parent()
         .ok_or_else(|| io::Error::other("Missing application directory"))?;
-    copy_sources(parent, &tree, parent)?;
+    copy_sources(parent, &tree, parent, false)?;
     let config = tree.join("ewe-app-config.js");
     let mut config = fs::File::create_new(&config).map_err(|error| {
         io::Error::new(
@@ -227,8 +227,7 @@ fn add_companion(
     let name = tools.produce(package, feature, "web", &out)?;
     let private = tools.private_bindings.join(folder);
     fs::create_dir_all(&private)?;
-    let binding = format!("{name}.js");
-    fs::copy(out.join(&binding), private.join(&binding))?;
+    copy_sources(&out, &private, &out, true)?;
     let file = format!("{name}_bg.wasm");
     assets.push((format!("{folder}/{file}"), out.join(file)));
     Ok(())
@@ -240,7 +239,7 @@ fn required(name: &str) -> io::Result<PathBuf> {
         .ok_or_else(|| io::Error::other(format!("Cargo did not set {name}")))
 }
 
-fn copy_sources(dir: &Path, dest: &Path, root: &Path) -> io::Result<()> {
+fn copy_sources(dir: &Path, dest: &Path, root: &Path, generated: bool) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
@@ -254,7 +253,7 @@ fn copy_sources(dir: &Path, dest: &Path, root: &Path) -> io::Result<()> {
         }
         if entry.file_type()?.is_dir() {
             fs::create_dir_all(&target)?;
-            copy_sources(&path, &target, root)?;
+            copy_sources(&path, &target, root, generated)?;
         } else if path.extension() == Some(OsStr::new("js")) {
             if !path.canonicalize()?.starts_with(root) {
                 return Err(io::Error::other(format!(
@@ -262,13 +261,15 @@ fn copy_sources(dir: &Path, dest: &Path, root: &Path) -> io::Result<()> {
                     path.display()
                 )));
             }
-            if target.exists() {
+            if !generated && target.exists() {
                 return Err(io::Error::other(format!(
                     "Application source conflicts with {}",
                     target.display()
                 )));
             }
-            println!("cargo:rerun-if-changed={}", path.display());
+            if !generated {
+                println!("cargo:rerun-if-changed={}", path.display());
+            }
             fs::copy(path, target)?;
         }
     }

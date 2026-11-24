@@ -393,6 +393,12 @@ The helper scales the source icon and validates all inputs before replacing a na
 The browser can call Connect and stream the icon without loading the game binary.
 Chromium records the game request only after the Play action. This distinguishes lazy loading from a cached second request.
 
+The provisioning command must preserve the installer exit status when it also writes a log.
+The guest shell enables pipeline failure reporting. A loopback SSH test verified status 37 and guest cleanup.
+
+A generated companion entry can import more JavaScript files below its snippets directory.
+The build keeps the complete private JavaScript tree so the independent game test can load those imports.
+
 ## Browser application package verification
 
 The build hook supplies the same path to the resource manifest and the JavaScript loader.

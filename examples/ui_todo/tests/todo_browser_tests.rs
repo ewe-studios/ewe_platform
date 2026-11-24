@@ -457,27 +457,24 @@ fn lifecycle_script() -> String {
 }
 
 fn game_test_bindings() -> String {
-    use std::{fs, path::Path};
-    let temporary = tempfile::tempdir().unwrap();
-    let root = temporary.path();
-    fs::copy(
-        Path::new(env!("OUT_DIR")).join("browser-bindings/mathalley/ui_todo.js"),
-        root.join("game.js"),
-    )
-    .unwrap();
-    let entry = root.join("test.js");
-    fs::write(
-        &entry,
-        r#"
-        import initialize, * as game from "./game.js";
+    use std::{io::Write, path::Path};
+    let root = Path::new(env!("OUT_DIR")).join("browser-bindings");
+    let mut entry = tempfile::Builder::new()
+        .suffix(".js")
+        .tempfile_in(&root)
+        .unwrap();
+    entry
+        .write_all(
+            br#"
+        import initialize, * as game from "./mathalley/ui_todo.js";
         globalThis.todoTestGameBindings = async () => {
             await initialize({module_or_path: await window.gameTestBinary});
             return game;
         };
     "#,
-    )
-    .unwrap();
-    let script = foundation_codegen::javascript::application(&entry, root, false).unwrap();
+        )
+        .unwrap();
+    let script = foundation_codegen::javascript::application(entry.path(), &root, false).unwrap();
     String::from_utf8(script.bytes).unwrap() + "\ntrue"
 }
 
