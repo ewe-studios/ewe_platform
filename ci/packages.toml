@@ -498,6 +498,7 @@ wasm = "enforce"
 wasm-runs = [
   "--no-default-features --features wasm",
   "--no-default-features --features wasm-bindgen-storage",
+  "--no-default-features --features browser-storage",
 ]
 
 [packages.foundation_netio]

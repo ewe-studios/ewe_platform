@@ -771,6 +771,10 @@ def wasm_tests_commands() -> dict[str, list[list[str]]]:
         # break directly, before the harness starts.
         ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
          "--manifest-path", "backends/foundation_db/integration/wasm_cf/Cargo.toml"],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_db/integration/browser/Cargo.toml"],
+        ["cargo", "fmt", "--manifest-path",
+         "backends/foundation_db/integration/browser/Cargo.toml", "--check"],
         # This package sets fmt = "off" (the workspace fmt step cannot see a
         # crate outside the workspace), so the standalone crate's formatting
         # is checked here.

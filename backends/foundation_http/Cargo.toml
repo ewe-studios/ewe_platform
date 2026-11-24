@@ -64,7 +64,7 @@ web-sys = { workspace = true, features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.9", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.10", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a server

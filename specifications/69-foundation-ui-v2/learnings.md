@@ -1041,3 +1041,10 @@ The Rust builder can publish its action declarations before it transfers the reg
 The browser can then install a fresh registry for each startup attempt.
 A failed handshake can occur after the runtime attaches a view and a transport.
 The caller can retry the same application after the runtime releases both resources.
+
+## Feature 37 browser storage tests
+
+A reload discards listeners on the old document. The new document reports readiness after its Rust module starts.
+The IndexedDB provider waits for transaction completion. A successful request can still belong to a transaction that aborts.
+The standalone suite uses the pinned wasm-bindgen version from the wasm environment.
+Earlier Todo versions store all pending records under one origin-wide key. The records contain no account identifier.

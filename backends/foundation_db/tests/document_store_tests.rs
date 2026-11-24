@@ -4,6 +4,9 @@
 //! promoted-column INSERT/SELECT and scru128 `doc_id` ordering are validated
 //! end-to-end, not just against the in-memory backend.
 
+// Turso futures need more steps during trait resolution.
+#![recursion_limit = "256"]
+
 use foundation_compact::ids::new_scru128_string;
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::{DocumentStore, PromotableDocument};

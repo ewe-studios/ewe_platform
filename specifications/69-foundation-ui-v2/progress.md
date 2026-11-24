@@ -1269,3 +1269,13 @@ It recovered from a failed handshake and shared one startup operation between co
 Closing the application removed the view and closed its custom transport.
 The readable and minified runtime bundles both export createApp.
 Todo still has browser storage imports. Its deployed entry still loads separate JavaScript modules.
+
+## Feature 37 browser storage providers
+
+The optional `browser-storage` feature in `foundation_db` supplies IndexedDB and localStorage.
+Three Chromium tests pass for a standalone Rust consumer.
+Both stores retain concurrent writes after two tabs reload.
+Deleting one record preserves the other record.
+The tests cover access denial, quota exhaustion, transaction abort, and empty memory storage.
+The macOS database suite passes 255 tests.
+Todo still uses the legacy browser callbacks. Issue #728 remains open until application tests verify independent pending changes.

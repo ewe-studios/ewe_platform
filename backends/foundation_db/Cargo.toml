@@ -1,6 +1,6 @@
 [package]
 name = "foundation_db"
-version = "0.0.9"
+version = "0.0.10"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -113,6 +113,8 @@ wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys", "foundation_core/js-w
 
 # Wasm-bindgen storage trait implementations (calls CF JS APIs directly)
 wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futures"]
+
+browser-storage = ["dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures", "wasm"]
 
 # workers-rs interop: From<worker::D1Database> for foundation_db::D1Database
 workers-rs = ["dep:worker"]
