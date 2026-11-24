@@ -690,29 +690,7 @@ fn main() {
 
     // Build with Cmake
 
-    // A cached CMake build tree keeps the old runtime flags. Start from a
-    // fresh configuration so the runtime fragment below takes effect.
-    #[cfg(windows)]
-    {
-        let _ = std::fs::remove_dir_all(out_dir.join("build"));
-    }
-
     let mut config = Config::new(&llama_src);
-
-    // The Rust static library on Windows uses the static C runtime
-    // (`MT`/`MTd`), and objects built against the dynamic runtime (`MD`) fail
-    // the link with LNK2038. Match the Rust side.
-    #[cfg(windows)]
-    {
-        // The fragment runs after `project()` and sets policy CMP0091 and the
-        // static runtime, which llama.cpp's low `cmake_minimum_required` would
-        // otherwise ignore.
-        let fragment = Path::new(&manifest_dir).join("msvc_static_runtime.cmake");
-        config.define(
-            "CMAKE_PROJECT_TOP_LEVEL_INCLUDES",
-            fragment.to_string_lossy().to_string(),
-        );
-    }
 
     // Would require extra source files to pointlessly
     // be included in what's uploaded to and downloaded from

@@ -148,7 +148,13 @@ fuser = { version = "0.15", default-features = false }
 # gemm-f16 (0.19.0, pulled in by candle-core through gemm) has the same dispatch
 # fix in patches/gemm-f16. Its upstream note is in patches/gemm-common/UPSTREAM.md.
 # (boringtun is no longer patched: backends/foundation_boringtun is a published fork.)
+# Vendored patch of esaxx-rs 0.1.10. Its `build.rs` forces the static MSVC
+# runtime (`/MT`) on every platform, while Rust and every other C++ object in
+# the link use the dynamic runtime (`/MD`); a Windows binary that uses it fails
+# to link (issue #772). The patch lets `cc` follow the target. The upstream note
+# is in patches/esaxx-rs/UPSTREAM.md.
 [patch.crates-io]
+esaxx-rs = { path = "patches/esaxx-rs" }
 gemm-common = { path = "patches/gemm-common" }
 gemm-f16 = { path = "patches/gemm-f16" }
 
