@@ -1,4 +1,7 @@
 //! Run project-owned Cloudflare operations with the installed Wrangler command.
+#[cfg(feature = "cloudflare-objects")]
+pub mod objects;
+
 use crate::CiEnvironment;
 use clap::Args;
 use foundation_tasks::{
@@ -7,6 +10,13 @@ use foundation_tasks::{
 
 #[derive(Args)]
 struct Empty {}
+
+#[derive(Args)]
+struct Login {
+    /// Additional options for Wrangler's browser authentication command.
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    options: Vec<std::ffi::OsString>,
+}
 
 #[derive(Args)]
 struct Database {
@@ -71,6 +81,14 @@ pub fn set() -> Result<TaskSet, TaskError> {
         |ctx, _: Empty| async move { ctx.exec(pnpm(&ctx)?.arg("install")).await },
     )?;
     tasks.add(
+        "login",
+        "Authenticate with Cloudflare in a browser",
+        |ctx, args: Login| async move {
+            ctx.exec(wrangler(&ctx)?.arg("login").args(args.options))
+                .await
+        },
+    )?;
+    tasks.add(
         "whoami",
         "Show the active Cloudflare account",
         |ctx, _: Empty| async move { ctx.exec(wrangler(&ctx)?.arg("whoami")).await },
@@ -117,5 +135,7 @@ pub fn set() -> Result<TaskSet, TaskError> {
             .await
         },
     )?;
+    #[cfg(feature = "cloudflare-objects")]
+    tasks.add("r2:ls", "List objects in an R2 bucket", objects::list)?;
     Ok(tasks)
 }

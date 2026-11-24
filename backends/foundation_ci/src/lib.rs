@@ -75,6 +75,8 @@ impl CiEnvironment {
 /// # Errors
 /// Returns an error when the host paths are unavailable.
 pub fn install_host(runner: &mut TaskRunner) -> TaskResult {
+    #[cfg(feature = "cloudflare-objects")]
+    cloudflare::objects::install(runner);
     if runner.context().get::<CiEnvironment>().is_none() {
         runner.context().store(CiEnvironment::from_workspace()?);
     }

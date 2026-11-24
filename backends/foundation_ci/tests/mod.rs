@@ -6,3 +6,6 @@ mod dispatch;
 mod release_tools;
 mod cloudflare;
 mod development;
+
+#[cfg(feature = "cloudflare-objects")]
+mod cloudflare_objects;

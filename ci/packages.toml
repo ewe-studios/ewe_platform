@@ -235,6 +235,10 @@ clippy-runs = ["build,server", "browser-package,server"]
 wasm = "enforce"
 wasm-runs = ["browser-bindings"]
 
+[packages.foundation_ci]
+runs = ["", "cloudflare-objects"]
+clippy-runs = ["", "cloudflare-objects"]
+
 [packages.foundation_tasks]
 runs = ["", "install,scripts"]
 clippy-runs = ["", "install,scripts"]

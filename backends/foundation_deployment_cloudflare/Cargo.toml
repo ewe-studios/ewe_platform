@@ -98,7 +98,7 @@ foundation_cloudflare_secrets = { path = "../foundation_cloudflare_secrets", ver
 foundation_cloudflare_security = { path = "../foundation_cloudflare_security", version = "0.1.2", optional = true }
 foundation_cloudflare_security_center = { path = "../foundation_cloudflare_security_center", version = "0.1.2", optional = true }
 foundation_cloudflare_shares = { path = "../foundation_cloudflare_shares", version = "0.1.2", optional = true }
-foundation_cloudflare_storage = { path = "../foundation_cloudflare_storage", version = "0.1.2", optional = true }
+foundation_cloudflare_storage = { workspace = true, optional = true }
 foundation_cloudflare_stream = { path = "../foundation_cloudflare_stream", version = "0.1.2", optional = true }
 foundation_cloudflare_targets = { path = "../foundation_cloudflare_targets", version = "0.1.2", optional = true }
 foundation_cloudflare_tasks = { path = "../foundation_cloudflare_tasks", version = "0.1.2", optional = true }

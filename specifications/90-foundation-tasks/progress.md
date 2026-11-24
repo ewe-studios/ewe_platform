@@ -473,3 +473,6 @@ The application archive contains one application library and one framework libra
 The installed Android launch command waits for the requested activity to own the focused window.
 CedarBoard started on the emulator and displayed its server data. Grove displayed its counter and accepted a tap.
 An installed command test supplied two empty focus reports before the requested activity appeared.
+
+The Cloudflare task provider lists bucket objects with the generated storage client.
+It writes one object per line and follows each response cursor. Browser login passes Wrangler options through.

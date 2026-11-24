@@ -20,6 +20,7 @@ fn cloudflare_operations_preserve_arguments_and_stop_after_tool_failure() {
     };
     for args in [
         &["cf:install"][..],
+        &["cf:login", "--scopes-list"],
         &["cf:whoami"],
         &["cf:list"],
         &["cf:d1:create"],
@@ -34,6 +35,7 @@ fn cloudflare_operations_preserve_arguments_and_stop_after_tool_failure() {
         calls.lines().map(str::trim_end).collect::<Vec<_>>(),
         [
             "<install>",
+            "<exec> <wrangler> <login> <--scopes-list>",
             "<exec> <wrangler> <whoami>",
             "<exec> <wrangler> <d1> <list>",
             "<exec> <wrangler> <r2> <bucket> <list>",

@@ -627,7 +627,7 @@ run = "bacon -j test_foundation_core"
 
 [tasks."cf:login"]
 description = "Authenticate with Cloudflare"
-run = "wrangler login"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:login"
 
 [tasks."cf:whoami"]
 description = "Check Cloudflare authentication status"
@@ -837,12 +837,7 @@ run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:r2:creat
 
 [tasks."cf:r2:ls"]
 description = "List objects in an R2 bucket"
-run = """
-#!/usr/bin/env bash
-BUCKET_NAME="${1:-foundation-bucket}"
-echo "Listing objects in R2 bucket: $BUCKET_NAME"
-wrangler r2 object list "$BUCKET_NAME"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci --features cloudflare-objects -- task run cf:r2:ls"
 
 [tasks."cf:env"]
 description = "Show Cloudflare environment configuration"

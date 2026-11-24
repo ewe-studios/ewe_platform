@@ -17,7 +17,12 @@ path = "src/main.rs"
 name = "integration"
 path = "tests/mod.rs"
 
+[features]
+cloudflare-objects = ["dep:foundation_cloudflare_storage", "dep:foundation_netio"]
+
 [dependencies]
+foundation_cloudflare_storage = { workspace = true, optional = true }
+foundation_netio = { workspace = true, optional = true, features = ["ssl", "multi"] }
 blocking.workspace = true
 clap.workspace = true
 chrono.workspace = true
@@ -36,6 +41,9 @@ sha1.workspace = true
 toml_edit.workspace = true
 tar.workspace = true
 flate2.workspace = true
+
+[dev-dependencies]
+foundation_core.workspace = true
 
 [lints]
 workspace = true

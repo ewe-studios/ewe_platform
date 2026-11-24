@@ -311,3 +311,6 @@ Stage the declared application library from each completed target build. Keep th
 Android can report a successful activity start while another application owns the focused window.
 Under load, Android can report a timeout before the requested window appears.
 Check the exact activity name until the configured deadline. Treat an application error dialog as a launch failure.
+
+Wrangler lists buckets in the terminal. Its object commands do not list the contents of a bucket.
+The storage interface returns a cursor when more objects are available. Preserve each key exactly when writing it.
