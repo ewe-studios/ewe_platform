@@ -692,6 +692,12 @@ command, exit code, input, files, isolation, stop). Each driver's `e2e_*.rs` cal
 its own `SandboxProvider`, so every substrate proves the same behaviour, and so does the RPC
 path (law L11).
 
+Property tests use `proptest` 1.12, declared once in the root `[workspace.dependencies]` and
+taken with `proptest = { workspace = true }`. Each test file sets one `ProptestConfig` with a
+fixed seed, so a failure reproduces from the seed that the case prints. A feature names the
+property tests it needs in the `Oracle` column: `identity`, `bound`, `metamorphic` or
+`stateful model`.
+
 A real substrate test calls `probe()` first. When the host cannot run it, the test prints
 the report and returns.
 

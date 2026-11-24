@@ -417,6 +417,8 @@ the prefix `[3/7] `. The exit code is 0, or 125 with the error.
 
 ## 7. Tests
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
 | I1 | `parse_never_panics` (property: any byte string that is valid UTF-8) | `tests/sandboxfile_*.rs` | bound |

@@ -124,6 +124,8 @@ thiserror = { version = "2"}
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
+# Property tests (spec 77 requirement 8); one version for every crate that uses it.
+proptest = { version = "1.12" }
 # 0.73.2 accepts syn 3 (`syn = ">=2, <4"`), but `prettyplease` 0.2 uses syn 2.
 # The default `prettyplease` feature then fails to compile. Drop it; the
 # generated bindings are unformatted, which changes nothing in their meaning.

@@ -630,6 +630,8 @@ directory, and talks to it with the generated `SlaveService` client over
 programs fail to start unless the slave can `chroot`, so the tests use it only for file
 calls.
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Oracle |
 |---|---|---|
 | "The slave says who it is" | `info` | example |

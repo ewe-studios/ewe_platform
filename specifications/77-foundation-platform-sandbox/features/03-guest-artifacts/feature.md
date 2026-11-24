@@ -185,6 +185,8 @@ Feature: Guest artifacts
     And GNU cpio unpacks it into the same entries
 ```
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law | Test | Oracle |
 |---|---|---|
 | I1 | `fetch_checks_hash`, `alpine_dir_real`, `ci_rootfs_real` | expected outcome |
