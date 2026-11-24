@@ -520,3 +520,8 @@ The clean source export passed the registry input check and the independent gene
 The guest runner status and wait commands now use typed tasks.
 Both Nushell commands returned status 255 when the local Secure Shell (SSH) port refused the connection.
 The integration test checked both guest probes, a busy timeout, a completed runner, and four failure statuses. Strict Clippy passed.
+
+The guest readiness command now checks the same container on each poll.
+Three Rust integration tests and strict Clippy passed.
+An isolated Linux container ran an OpenSSH server with a temporary guest key.
+The public Nushell commands verified login, a missing readiness marker, a completed marker, and an absent runner over that connection.

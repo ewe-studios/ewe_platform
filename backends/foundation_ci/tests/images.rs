@@ -353,3 +353,108 @@ esac
     assert!(calls.contains("<-l><ci user><127.0.0.1>"));
     assert!(calls.contains("Get-Process") && calls.contains("pgrep -f"));
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_wait_checks_the_same_guest_until_it_is_ready() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    for (name, script) in [
+        (
+            "docker",
+            r#"#!/bin/sh
+case "$1" in
+  logs) echo "$@" >> log-calls ;;
+  container)
+    test "$MODE" != daemon || exit 41
+    test "$MODE" != missing || exit 0
+    id=$ORIGINAL
+    if test "$MODE" = replace && test -f polled; then id=$SECOND; fi
+    printf '%s %s\n' "$id" "$STATE" ;;
+esac
+"#,
+        ),
+        (
+            "ssh",
+            r#"#!/bin/sh
+printf '<%s>' "$@" >> probes
+case "$MODE" in
+  pending|replace) if test -f polled; then exit 0; fi; touch polled; exit 2 ;;
+  *) exit "$RESULT" ;;
+esac
+"#,
+        ),
+    ] {
+        let executable = root.join(name);
+        fs::write(&executable, script).unwrap();
+        fs::set_permissions(executable, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let original = "a".repeat(64);
+    let invoke = |os: &str, mode: &str, state: &str, result: &str, args: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("ORIGINAL", &original)
+            .env("SECOND", "b".repeat(64))
+            .env("MODE", mode)
+            .env("STATE", state)
+            .env("RESULT", result)
+            .args([
+                "task",
+                "run",
+                "images:vm-wait",
+                "--os",
+                os,
+                "--key",
+                "guest",
+                "--interval-ms",
+                "1",
+            ])
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert!(
+        invoke("macos", "pending", "running", "0", &[])
+            .status
+            .success()
+    );
+    assert!(
+        invoke("windows", "", "running", "0", &["--ssh-only"])
+            .status
+            .success()
+    );
+    let failure = invoke("windows", "", "running", "3", &[]);
+    assert!(String::from_utf8_lossy(&failure.stderr).contains("Provisioning failed"));
+    let calls = fs::read_to_string(root.join("probes")).unwrap();
+    assert!(calls.contains("/usr/local/platform-images/status/provisioned.ok"));
+    assert!(calls.contains("C:/OEM/status/provision.failed") && calls.contains("<exit 0>"));
+    for (mode, code) in [("daemon", 41), ("", 127)] {
+        assert_eq!(
+            invoke("windows", mode, "running", "127", &[]).status.code(),
+            Some(code)
+        );
+    }
+    assert!(
+        !invoke("macos", "missing", "running", "0", &[])
+            .status
+            .success()
+    );
+    assert!(!invoke("macos", "", "exited", "0", &[]).status.success());
+    assert!(
+        fs::read_to_string(root.join("log-calls"))
+            .unwrap()
+            .contains(&format!("logs --tail 50 {original}"))
+    );
+    let timeout = invoke("macos", "", "running", "255", &["--timeout-ms", "0"]);
+    assert!(String::from_utf8_lossy(&timeout.stderr).contains("SSH status 255"));
+    fs::remove_file(root.join("polled")).unwrap();
+    let replaced = invoke("macos", "replace", "running", "0", &[]);
+    assert!(String::from_utf8_lossy(&replaced.stderr).contains("was replaced or removed"));
+}

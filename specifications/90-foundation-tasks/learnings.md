@@ -350,3 +350,7 @@ The host fixture checked both an exited container and a running container. A sec
 
 The old guest runner wait reported completion after a refused connection. Issue #822 records the reproduction.
 Each guest probe now returns a distinct status after a successful search finds no process. Transport errors retain their status.
+
+A loopback login can succeed before provisioning finishes. The readiness task checks the guest marker separately.
+Keep the original Docker identifier across polls. A replacement container must start a new readiness check.
+The Linux connection fixture verifies the portable shell probe. Native guest installation needs a host with hardware acceleration.

@@ -62,11 +62,6 @@ def ssh-stream [os: string, key: path, port: int, command: string] {
     ^ssh ...(ssh-args $key $port) $target $command
 }
 
-def container-running [name: string]: nothing -> bool {
-    let r = ^docker inspect --format '{{.State.Running}}' $name | complete
-    $r.exit_code == 0 and ($r.stdout | str trim) == "true"
-}
-
 # Use the checkout's independent task runner for host container operations.
 def host-task [operation: string, arguments: list<string>, --value] {
     let manifest = $env.FILE_PWD | path join .. .. .. backends foundation_ci Cargo.toml | path expand
@@ -114,32 +109,12 @@ def "main wait" [
     --timeout: duration = 120min
     --ssh-only                      # only wait for SSH, not for provisioning
 ] {
-    check-os $os
-    let deadline = (date now) + $timeout
-    let probe = if $ssh_only {
-        if $os == "windows" { "exit 0" } else { "true" }
-    } else if $os == "windows" {
-        $"if \(Test-Path '($STATUS_WINDOWS)/provisioned.ok') { exit 0 } elseif \(Test-Path '($STATUS_WINDOWS)/provision.failed') { exit 3 } else { exit 2 }"
-    } else {
-        $"if [ -f ($STATUS_MACOS)/provisioned.ok ]; then exit 0; elif [ -f ($STATUS_MACOS)/provision.failed ]; then exit 3; else exit 2; fi"
-    }
-    mut last_log = (date now)
-    loop {
-        if not (container-running $name) {
-            ^docker logs --tail 50 $name
-            fail $"the VM container ($name) stopped"
-        }
-        let r = ssh-run $os $key $port $probe
-        if $r.exit_code == 0 { print $"($name) is ready"; return }
-        if $r.exit_code == 3 { fail $"provisioning failed in ($name); `vm.nu logs` fetches provision.log" }
-        if (date now) > $deadline { fail $"($name) was not ready after ($timeout)" }
-        if ((date now) - $last_log) > 5min {
-            print $"still waiting for ($name) \(ssh: ($r.exit_code)\); container log:"
-            ^docker logs --tail 5 $name
-            $last_log = (date now)
-        }
-        sleep 30sec
-    }
+    mut args = [
+        --os $os --name $name --key ($key | into string) --port ($port | into string)
+        --timeout-ms (($timeout / 1ms) | math ceil | into int | into string)
+    ]
+    if $ssh_only { $args = ($args | append "--ssh-only") }
+    host-task images:vm-wait $args
 }
 
 # macOS only: copy the guest provisioning (layer 1 + repository layers) out

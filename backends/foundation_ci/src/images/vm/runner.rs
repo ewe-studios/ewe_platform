@@ -1,24 +1,12 @@
 //! Check the runner process in a guest through its loopback port.
-use super::Guest;
-use crate::{CiEnvironment, execution::sleep};
-use clap::Args;
-use foundation_tasks::{
-    OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskResult, TaskSet,
+use super::{
+    Guest,
+    connection::{Connection, command},
 };
-use std::{path::PathBuf, time::Duration};
-
-#[derive(Args)]
-struct Connection {
-    #[arg(long, value_enum)]
-    os: Guest,
-    #[arg(long)]
-    key: PathBuf,
-    #[arg(long, default_value_t = 2222, value_parser = clap::value_parser!(u16).range(1..))]
-    port: u16,
-    /// Maximum time to establish a loopback connection.
-    #[arg(long, default_value_t = 10, value_parser = clap::value_parser!(u32).range(1..))]
-    connect_seconds: u32,
-}
+use crate::execution::sleep;
+use clap::Args;
+use foundation_tasks::{OutputStream, TaskContext, TaskEnv, TaskError, TaskResult, TaskSet};
+use std::time::Duration;
 
 #[derive(Args)]
 struct Wait {
@@ -33,42 +21,16 @@ struct Wait {
 }
 
 async fn running(ctx: &TaskContext, connection: &Connection) -> Result<bool, TaskError> {
-    let host = ctx.require::<CiEnvironment>()?;
     // Each probe uses exit code 44 only after a successful process search finds no runner.
-    let (default_user, probe) = match connection.os {
-        Guest::Macos => (
-            "ci",
-            "pgrep -f '[R]unner.Listener' >/dev/null; s=$?; if [ \"$s\" = 1 ]; then exit 44; fi; exit \"$s\"",
-        ),
-        Guest::Windows => (
-            "Docker",
-            "$ErrorActionPreference = 'Stop'; if (Get-Process | Where-Object ProcessName -eq 'Runner.Listener') { exit 0 }; exit 44",
-        ),
+    let probe = match connection.os {
+        Guest::Macos => {
+            "pgrep -f '[R]unner.Listener' >/dev/null; s=$?; if [ \"$s\" = 1 ]; then exit 44; fi; exit \"$s\""
+        }
+        Guest::Windows => {
+            "$ErrorActionPreference = 'Stop'; if (Get-Process | Where-Object ProcessName -eq 'Runner.Listener') { exit 0 }; exit 44"
+        }
     };
-    let user = host
-        .text("PI_VM_USER")
-        .unwrap_or_else(|| default_user.into());
-    let command = ProcessCommand::new("ssh")
-        .arg("-i")
-        .arg(host.root.join(&connection.key))
-        .arg("-p")
-        .arg(connection.port.to_string())
-        .args([
-            "-o",
-            "BatchMode=yes",
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-o",
-            "UserKnownHostsFile=/dev/null",
-            "-o",
-            "LogLevel=ERROR",
-            "-o",
-        ])
-        .arg(format!("ConnectTimeout={}", connection.connect_seconds))
-        .args(["-o", "ServerAliveInterval=30", "-l"])
-        .arg(user)
-        .args(["127.0.0.1", probe]);
-    match ctx.exec(command).await {
+    match ctx.exec(command(ctx, connection, probe)?).await {
         Ok(()) => Ok(true),
         Err(TaskError::Exit { code: 44, .. }) => Ok(false),
         Err(error) => Err(error),
