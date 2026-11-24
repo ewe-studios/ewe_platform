@@ -826,6 +826,54 @@ where
                     tracing::error!("Failed to flush stream due to: {:?}", err);
                 }
 
+                // GitHub issue #610: park on the outbound pipe and on socket
+                // readability instead of waiting inside a blocking read. A
+                // `send` then wakes the task at once, not after the read
+                // timeout.
+                #[cfg(unix)]
+                {
+                    use std::os::unix::io::AsRawFd;
+
+                    use foundation_core::valtron::{AnyReadiness, EventReadinessPtr};
+
+                    use crate::native::readiness::{IoInterest, SocketReadiness};
+
+                    // A frame may still sit in the shared read buffer. A 1 ms
+                    // read timeout keeps the check cheap: it only pulls from
+                    // the socket when the buffer is short.
+                    let idle_timeout = open_state.idle_timeout;
+                    let _ = open_state
+                        .stream
+                        .set_read_timeout_as(Duration::from_millis(1));
+                    let buffered = matches!(open_state.stream.has_buffered(1), Ok(true));
+                    let _ = open_state.stream.set_read_timeout_as(idle_timeout);
+
+                    if !buffered {
+                        let readable = open_state
+                            .stream
+                            .with_inner_ref(|stream| {
+                                SocketReadiness::new(stream.as_raw_fd(), IoInterest::Readable)
+                                    .poll_now()
+                            })
+                            .unwrap_or(true);
+                        if !readable {
+                            let socket: EventReadinessPtr =
+                                open_state.stream.with_inner_ref(|stream| {
+                                    Arc::new(SocketReadiness::new(
+                                        stream.as_raw_fd(),
+                                        IoInterest::Readable,
+                                    )) as EventReadinessPtr
+                                });
+                            let queue: EventReadinessPtr =
+                                Arc::new(open_state.outbound_rx.readiness());
+                            self.state = Some(WebSocketState::Open(Some(open_state)));
+                            return Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
+                                socket, queue,
+                            ))));
+                        }
+                    }
+                }
+
                 // Read ONE frame per next() call
                 debug!("Attempting to decode WebSocket frame from stream");
 
