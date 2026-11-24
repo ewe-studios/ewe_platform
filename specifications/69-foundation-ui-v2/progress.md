@@ -1326,3 +1326,5 @@ The standalone storage test starts Chromium with popup windows enabled. The nati
 The final default-server Todo run passes 14 tests on macOS and ignores one live mobile-peer test.
 The two browser storage tests pass in 29.03 seconds. The server and host action test also passes.
 The new test targets verify concurrent confirmation and migration separately. Issue #784 remains open for the independent HTTP stall.
+
+The owner reports search styling defects on both mobile platforms and a gap under the iPhone entry sheet. Feature 23 contains the proposed revision.
