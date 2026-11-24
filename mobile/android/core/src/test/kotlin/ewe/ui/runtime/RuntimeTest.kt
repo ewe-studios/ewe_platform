@@ -229,6 +229,62 @@ class RuntimeTest {
     }
 
     @Test
+    fun reconnectClearsOnlyTheFailedLiveMount() {
+        val store = NodeStore(Clock())
+        val manager = ConnectionManager()
+        val events = mutableMapOf<String, ConnectionEvents>()
+        manager.register(LiveTransport.Sse) { endpoint, connection ->
+            events[endpoint] = connection
+            Channel {}
+        }
+        val factory = object : ChannelFactory {
+            override fun open(
+                endpoint: String, transport: UByte, streamId: ULong, resumeFrom: ULong,
+                onFrame: (ByteArray) -> Unit, onClose: (Throwable?) -> Unit,
+            ): Channel = error("The shared mount uses the connection manager")
+        }
+        val failures = mutableMapOf<UInt, String>()
+        val errors = mutableListOf<String>()
+        store.onError = { code, _ -> errors.add(code) }
+        val host = LiveMountHost(store, factory, manager) { owner, id, message ->
+            assertSame(store, owner)
+            if (message == null) failures.remove(id) else failures[id] = message
+        }
+        fun attach(id: UInt, endpoint: String) {
+            assertTrue(store.receive(frame(
+                shared(UiOperation.LiveMount) { b -> LiveMount.createLiveMount(
+                    b, id, LiveKind.Stream, 9u, LiveTransport.Sse, b.createString(endpoint),
+                    0u, ConnectionSharing.Shared, false,
+                ) },
+                shared(UiOperation.AppendChild) { AppendChild.createAppendChild(it, 1u, id) },
+            )))
+        }
+        host.use {
+            attach(50u, "/left")
+            attach(51u, "/right")
+            val left = events.getValue("/left")
+            val right = events.getValue("/right")
+            left.disconnected(java.io.IOException("Left offline"))
+            right.disconnected(java.io.IOException("Right offline"))
+            assertEquals(mapOf(50u to "Left offline", 51u to "Right offline"), failures)
+
+            store.onError?.invoke("ActionFailed", "Invalid action")
+            left.opened()
+            assertEquals(mapOf(51u to "Right offline"), failures)
+            assertEquals(listOf("ActionFailed"), errors)
+
+            assertTrue(store.receive(frame(shared(UiOperation.Remove) { Remove.createRemove(it, 51u) })))
+            assertTrue(failures.isEmpty())
+            attach(51u, "/replacement")
+            events.getValue("/replacement").disconnected(java.io.IOException("Replacement offline"))
+            right.opened()
+            assertEquals(mapOf(51u to "Replacement offline"), failures)
+        }
+        assertTrue(failures.isEmpty())
+        manager.close()
+    }
+
+    @Test
     fun mobileCommandsAndViews() {
         val calls = mutableListOf<UShort>()
         val store =

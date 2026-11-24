@@ -1169,3 +1169,9 @@ The last position includes deleted records. The server uses that position when i
 The typed view data decoder checks the message topic before it reads the Todo payload.
 The server constructors can mount the packaged resources without accepting a browser module path.
 A prefix-only proxy exposes root-relative requests that a resource-only browser fixture misses.
+
+### Android live channel recovery
+
+The Android connection manager reports a new connection before the next frame arrives.
+The screen must clear the failure for that mount when it receives the connection event.
+Named views can reuse a numeric node identifier. Each channel failure must also identify the view that owns the node.

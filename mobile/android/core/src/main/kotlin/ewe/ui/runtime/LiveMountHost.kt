@@ -24,17 +24,22 @@ interface ManagedChannelFactory : ChannelFactory {
 
 class LiveMountHost(
     private val store: NodeStore, private val factory: ChannelFactory,
-    manager: ConnectionManager? = null,
+    manager: ConnectionManager?,
+    private val onChannelStatus: ((NodeStore, UInt, String?) -> Unit)?,
 ) :
     AutoCloseable {
+    constructor(store: NodeStore, factory: ChannelFactory, manager: ConnectionManager? = null) :
+        this(store, factory, manager, null)
+
     private class Mount(val spec: LiveSpec, var channel: Channel? = null, var resume: ((ULong) -> Unit)? = null)
 
     private val open = mutableMapOf<UInt, Mount>()
+    private val failed = mutableSetOf<UInt>()
     private var disposed = false
     private val ownsConnections = manager == null
     val connections = manager ?: (factory as? ManagedChannelFactory)?.connectionManager()
 
-    internal fun forView(child: NodeStore) = LiveMountHost(child, factory, connections)
+    internal fun forView(child: NodeStore) = LiveMountHost(child, factory, connections, onChannelStatus)
 
     init {
         store.liveHost = this
@@ -57,7 +62,19 @@ class LiveMountHost(
         return false
     }
 
+    private fun reportFailure(id: UInt, error: Throwable) {
+        failed.add(id)
+        val message = error.message.orEmpty()
+        if (onChannelStatus != null) onChannelStatus.invoke(store, id, message)
+        else store.onError?.invoke("ChannelFailed", message)
+    }
+
+    private fun clearFailure(id: UInt) {
+        if (failed.remove(id)) onChannelStatus?.invoke(store, id, null)
+    }
+
     private fun detach(id: UInt) {
+        clearFailure(id)
         open.remove(id)?.channel?.close()
     }
 
@@ -68,6 +85,7 @@ class LiveMountHost(
                 it.live != null && it.live?.transport != LiveTransport.Local && attached(it)
             }
         val current = mounts.associate { it.id to requireNotNull(it.live) }
+        failed.filterNot(current::containsKey).forEach(::clearFailure)
         open.filter { (id, entry) -> current[id] != entry.spec }.keys.toList().forEach(::detach)
         for ((id, spec) in current) {
             if (id in open) continue
@@ -108,9 +126,11 @@ class LiveMountHost(
                             onError = { error ->
                                 session = null
                                 if (socket || spec.shared != true) pending = store.cursor(spec.stream)
-                                if (open[id] === entry) store.onError?.invoke("ChannelFailed", error.message.orEmpty())
+                                if (current()) reportFailure(id, error)
                             },
                             onOpen = {
+                                if (!current()) return@acquire
+                                clearFailure(id)
                                 if (socket && store.subscriptionReplay) {
                                     entry.channel?.let { it.send(SubscriptionFrames.hello(subscription)) } ?: run { needsHello = true }
                                 }
@@ -128,16 +148,17 @@ class LiveMountHost(
                         spec.transport,
                         spec.stream,
                         cursor,
-                        { if (current()) store.receive(it, mount = id) },
+                        { if (current() && store.receive(it, mount = id)) clearFailure(id) },
                         { error ->
-                            if (open[id] === entry && error != null)
-                                store.onError?.invoke("ChannelFailed", error.message.orEmpty())
+                            if (current() && error != null) reportFailure(id, error)
                         },
                     )
                 if (open[id] === entry) entry.channel = ch else ch.close()
             } catch (error: Exception) {
-                open.remove(id)
-                store.onError?.invoke("ChannelFailed", error.message.orEmpty())
+                if (current()) {
+                    open.remove(id)
+                    reportFailure(id, error)
+                }
             }
         }
     }
@@ -149,6 +170,7 @@ class LiveMountHost(
         store.onChanged = null
         store.onGap = null
         open.keys.toList().forEach(::detach)
+        failed.toList().forEach(::clearFailure)
         if (ownsConnections) connections?.close()
     }
 }
