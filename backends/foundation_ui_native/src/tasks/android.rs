@@ -8,17 +8,34 @@ use std::{
 };
 
 #[derive(Args)]
-pub(super) struct BuildAndroid {
-    #[arg(long)]
-    with_todo: bool,
-}
+pub(super) struct BuildAndroid {}
 
-pub(super) async fn build(ctx: TaskContext, args: BuildAndroid) -> TaskResult {
+/// A Cargo library and the Gradle modules that consume its Android artifacts.
+pub struct Library<'a> {
+    pub package: &'a str,
+    pub arguments: &'a [&'a str],
+    pub destinations: Vec<PathBuf>,
+}
+impl Library<'_> {
+    #[must_use]
+    pub fn framework() -> Self {
+        Self {
+            package: "foundation_ui_native",
+            arguments: &[],
+            destinations: vec!["mobile/android/binding/src/main/jniLibs".into()],
+        }
+    }
+}
+pub(super) async fn build(ctx: TaskContext, _: BuildAndroid) -> TaskResult {
     let root = ctx.require::<NativeBuildEnv>()?.root().await?;
-    build_at(&ctx, &root, args.with_todo).await
+    build_at(&ctx, &root, &[Library::framework()]).await
 }
 
-pub(super) async fn build_at(ctx: &TaskContext, root: &Path, with_todo: bool) -> TaskResult {
+/// Build each supplied library and stage its two supported Android architectures.
+///
+/// # Errors
+/// Returns a tool or artifact staging error.
+pub async fn build_at(ctx: &TaskContext, root: &Path, packages: &[Library<'_>]) -> TaskResult {
     let environment = read_environment(ctx, root).await?;
     ctx.exec(ProcessCommand::new("mise").current_dir(root).args([
         "exec",
@@ -33,47 +50,34 @@ pub(super) async fn build_at(ctx: &TaskContext, root: &Path, with_todo: bool) ->
     let stage = blocking::unblock(tempfile::tempdir)
         .await
         .map_err(TaskError::operation)?;
-    let binding = stage.path().join("binding");
-    compile(
-        ctx,
-        root,
-        &binding,
-        "foundation_ui_native",
-        &[],
-        &environment,
-    )
-    .await?;
-    let todo = stage.path().join("todo");
-    if with_todo {
+    for (index, library) in packages.iter().enumerate() {
+        let source = stage.path().join(index.to_string());
         compile(
             ctx,
             root,
-            &todo,
-            "ui_todo",
-            &["--lib", "--no-default-features", "--features", "mobile"],
+            &source,
+            library.package,
+            library.arguments,
             &environment,
         )
         .await?;
-    }
-    let root = root.to_path_buf();
-    blocking::unblock(move || {
-        install(
-            &binding,
-            &root.join("mobile/android/binding/src/main/jniLibs"),
-            "foundation_ui_native",
-        )?;
-        if with_todo {
-            for app in ["todo_server", "todo_on_device"] {
-                let destination = root
-                    .join("examples/ui_todo/android")
-                    .join(app)
-                    .join("app/src/main/jniLibs");
-                install(&todo, &destination, "ui_todo")?;
+        let destinations = library
+            .destinations
+            .iter()
+            .map(|p| root.join(p))
+            .collect::<Vec<_>>();
+        let package = library.package.to_owned();
+        blocking::unblock(move || {
+            for target in destinations {
+                install(&source, &target, &package)?;
             }
-        }
-        stage.close().map_err(TaskError::operation)
-    })
-    .await
+            Ok::<(), TaskError>(())
+        })
+        .await?;
+    }
+    blocking::unblock(move || stage.close())
+        .await
+        .map_err(TaskError::operation)
 }
 
 async fn read_environment(

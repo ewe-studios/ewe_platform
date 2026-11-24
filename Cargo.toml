@@ -8,6 +8,7 @@ members = [
   "infrastructure/*",
   "examples/platform_demo",
   "examples/ui_todo",
+  "examples/ui_todo/tools/tasks",
   "apps/answerme-agent",
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
   # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/

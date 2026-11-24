@@ -174,3 +174,26 @@ required = true
     assert!(!conflict.status.success());
     assert!(String::from_utf8_lossy(&conflict.stderr).contains("conflicts"));
 }
+
+#[test]
+fn failed_ios_scheme_after_web_render_removes_the_entire_staging_tree() {
+    let directory = tempfile::tempdir().unwrap();
+    let name = "A".repeat(250);
+    let output = cli(
+        directory.path(),
+        &[
+            "new",
+            "--name",
+            &name,
+            "--target",
+            "web",
+            "--target",
+            "ios",
+            "--app-id",
+            "dev.example.cleanup",
+        ],
+    );
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("iOS scheme"));
+    assert_eq!(directory.path().read_dir().unwrap().count(), 0);
+}

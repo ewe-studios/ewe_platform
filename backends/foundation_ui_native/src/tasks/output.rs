@@ -34,10 +34,7 @@ impl TaskOutput for Query {
     }
 }
 
-pub(super) async fn query(
-    ctx: &TaskContext,
-    command: ProcessCommand,
-) -> Result<Vec<u8>, TaskError> {
+pub async fn query(ctx: &TaskContext, command: ProcessCommand) -> Result<Vec<u8>, TaskError> {
     let (result, bytes) = query_status(ctx, command).await?;
     result?;
     Ok(bytes)
@@ -51,7 +48,7 @@ pub(super) async fn query_status(
     query_limit(ctx, command, env.query_bytes).await
 }
 
-pub(super) async fn device_query(
+pub async fn device_query(
     ctx: &TaskContext,
     command: ProcessCommand,
 ) -> Result<Vec<u8>, TaskError> {
@@ -169,7 +166,7 @@ impl TaskOutput for Artifact {
     }
 }
 
-pub(super) async fn artifact(
+pub async fn artifact(
     ctx: &TaskContext,
     command: ProcessCommand,
     package: &'static str,

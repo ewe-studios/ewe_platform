@@ -271,3 +271,10 @@ A real browser test checks that the JavaScript bindings connect the generated mo
 
 A project can declare its task interface without running Cargo during help or task discovery.
 The shared task registry rejects namespace conflicts before it invokes the local runner.
+
+## Native release inputs and device checks
+
+The available Android 0.1.0 package lacks the resource interfaces used by the generated application.
+The older Apple archive also lacks current binding symbols.
+Testing the current application requires building the native libraries and bindings from the same source.
+An installed command test confirms Android startup failure and cancellation remove the supervised emulator process.

@@ -60,26 +60,6 @@ async fn bindings(
     Ok(target)
 }
 
-fn replace(stage: &Path, dest: &Path) -> io::Result<()> {
-    let parent = dest
-        .parent()
-        .ok_or_else(|| io::Error::other("Missing generated directory"))?;
-    fs::create_dir_all(parent)?;
-    let scratch = tempfile::tempdir_in(parent)?;
-    let old = scratch.path().join("old");
-    let previous = match fs::rename(dest, &old) {
-        Ok(()) => true,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => false,
-        Err(e) => return Err(e),
-    };
-    if let Err(e) = fs::rename(stage, dest) {
-        if previous {
-            fs::rename(old, dest)?;
-        }
-        return Err(e);
-    }
-    scratch.close()
-}
 pub(super) async fn android(
     ctx: &TaskContext,
     root: &Path,
@@ -118,7 +98,12 @@ pub(super) async fn android(
         )
         .map_err(TaskError::operation)?;
     }
-    replace(&output, &module.join("generated")).map_err(TaskError::operation)
+    super::super::staging::replace(
+        &output,
+        &module.join("generated"),
+        &ctx.require::<crate::tasks::NativeBuildEnv>()?.temporary_dir,
+    )
+    .map_err(TaskError::operation)
 }
 pub(super) async fn apple(
     ctx: &TaskContext,
@@ -195,5 +180,10 @@ pub(super) async fn apple(
             .arg(output.join(format!("{}.xcframework", lib.swift_ffi))),
     )
     .await?;
-    replace(&output, &dir.join("generated")).map_err(TaskError::operation)
+    super::super::staging::replace(
+        &output,
+        &dir.join("generated"),
+        &ctx.require::<crate::tasks::NativeBuildEnv>()?.temporary_dir,
+    )
+    .map_err(TaskError::operation)
 }

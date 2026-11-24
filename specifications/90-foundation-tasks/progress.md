@@ -416,3 +416,12 @@ Two independent projects register Rust task packages with the installed command.
 The guide lists each task's arguments. The runner preserves values with spaces and returns child exit status 19.
 All five generator checks and all 17 task runner checks pass.
 The generated web build also passes through the installed command. It produces identical files with its registry offline.
+
+## Native package task migration
+
+The Todo package owns bridge preparation, Android binding synchronization, device checks, and starter screen checks.
+The established repository commands delegate to this package.
+A Rust client sends two distinct Todo requests and receives confirmation frames from the real server.
+The Android provider tests verify both architectures and the example and framework library destinations.
+The shared launch operation serves the generated command and an application-specific simulator test.
+The public iOS version and native Rust tag remain unavailable. Local candidate builds are in progress.

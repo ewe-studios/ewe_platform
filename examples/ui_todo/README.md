@@ -234,3 +234,15 @@ The original backup stays available.
 The map pairs each old numeric identifier with its current UUID.
 Use that map to identify the target of an old pending delete before resubmitting it.
 If the map was lost, pair records from these same two files by position.
+
+## Application tasks
+
+Run these commands from this directory. The application manifest declares its Rust task package under `tools/tasks`.
+
+```sh
+ewe_ui task list
+ewe_ui task run todo:prepare-ios --help
+ewe_ui task run todo:sync-android --check
+ewe_ui task run todo:test-ios --help
+ewe_ui task run todo:test-android --help
+```

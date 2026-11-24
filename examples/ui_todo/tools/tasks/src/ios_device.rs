@@ -420,8 +420,6 @@ pub(super) async fn starter(ctx: TaskContext, args: Starter) -> TaskResult {
             )
             .await?;
             let app = products.join("Build/Products/Debug-iphonesimulator/Starter.app");
-            ctx.exec(sim(env, root).args(["install", &id]).arg(&app))
-                .await?;
             let bundle = text_query(
                 ctx,
                 env.apple_command(root, "/usr/libexec/PlistBuddy")
@@ -429,15 +427,17 @@ pub(super) async fn starter(ctx: TaskContext, args: Starter) -> TaskResult {
                     .arg(app.join("Info.plist")),
             )
             .await?;
-            ctx.exec(sim(env, root).args(["launch", &id, &bundle]))
-                .await?;
-            count(ctx, axe, &id, "0").await?;
-            ctx.exec(
-                ProcessCommand::new("node")
-                    .current_dir(root)
-                    .args(["scripts/ui_native/release/seed-starter.mjs", &url]),
+            foundation_ui_native::tasks::project::launch(
+                ctx,
+                foundation_ui_project::application::Target::Ios,
+                &id,
+                &bundle,
+                "",
+                &app,
             )
             .await?;
+            count(ctx, axe, &id, "0").await?;
+            super::seed::run(ctx, &url).await?;
             ctx.exec(
                 env.apple_command(root, axe)
                     .args(["tap", "--label", "Refresh", "--udid", &id]),

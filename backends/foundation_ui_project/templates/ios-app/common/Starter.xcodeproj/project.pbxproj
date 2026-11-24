@@ -157,7 +157,7 @@ AA7800000000000000000004,
             name = "Prepare application bindings";
             runOnlyForDeploymentPostprocessing = 0;
             shellPath = /bin/sh;
-            shellScript = "set -eu\ncd \"$SRCROOT/..\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\nset -- task run app:prepare --target ios\ncase \"$CONFIGURATION\" in Release*) set -- \"$@\" --release ;; esac\nexec \"${EWE_UI_BIN:-ewe_ui}\" \"$@\"\n";
+            shellScript = "set -eu\nif [ \"${EWE_UI_NATIVE_PREPARED:-NO}\" = YES ]; then exit 0; fi\ncd \"$SRCROOT/..\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\nset -- task run app:prepare --target ios\ncase \"$CONFIGURATION\" in Release*) set -- \"$@\" --release ;; esac\nexec \"${EWE_UI_BIN:-ewe_ui}\" \"$@\"\n";
         };
 {% endif %}
         EE9000030000000000000001 /* Stage resources */ = {

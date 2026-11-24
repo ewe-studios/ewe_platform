@@ -16,7 +16,7 @@ async function waitFor(check, description) {
   }
   throw Error(description + " " + JSON.stringify(status));
 }
-const add = () => execFileSync(process.execPath,["scripts/ui_native/release/seed-starter.mjs",base.href]);
+const add = () => execFileSync("cargo", ["run", "--quiet", "--locked", "-p", "ui_todo_tasks", "--", "task", "run", "todo:seed-starter", base.href]);
 const before = await waitFor(s => s.feeds === peers && s.resumes >= peers,"Waiting for initial subscribers");
 await command("pause");
 await command("hold");

@@ -35,7 +35,7 @@ struct Device {
     /// Device identifier from devices list.
     #[arg(long)]
     device: String,
-    /// Maximum Android emulator startup time in seconds.
+    /// Maximum device startup time in seconds.
     #[arg(long, default_value_t = 300)]
     timeout_seconds: u64,
     /// Android readiness polling interval in milliseconds.
@@ -162,7 +162,12 @@ pub fn register(set: &mut TaskSet) -> TaskResult {
     set.expose("run", &["run"])
 }
 pub fn native() -> Result<TaskSet, TaskError> {
-    let mut set = TaskSet::new("foundation_ui_native").with_namespace("native");
+    let mut set = foundation_ui_native::tasks::release_set()?;
+    set.add(
+        "bindings:sync-android",
+        "Update or check Android framework bindings in a source checkout",
+        foundation_ui_native::tasks::sync::android,
+    )?;
     for (name, target) in [
         ("build-ios", Target::Ios),
         ("build-android", Target::Android),

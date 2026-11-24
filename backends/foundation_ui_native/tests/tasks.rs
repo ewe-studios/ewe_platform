@@ -132,7 +132,18 @@ fn list_and_help_do_not_find_release_inputs_or_start_tools() {
 fn verify_checks_the_candidate_before_starting_tools() {
     let root = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(root.path().join("release")).unwrap();
-    std::fs::write(root.path().join("release/native-ui.toml"), "").unwrap();
+    std::fs::write(
+        root.path().join("release/native-ui.toml"),
+        r#"
+[consumers]
+apple_directory = "fixtures/consumer/ios"
+apple_project = "Starter.xcodeproj"
+apple_scheme = "Starter"
+android_directory = "fixtures/consumer/android"
+android_task = ":app:assembleDebug"
+"#,
+    )
+    .unwrap();
     std::fs::write(root.path().join("Cargo.toml"), "").unwrap();
     let candidate = root.path().join("candidate with spaces");
     std::fs::create_dir(&candidate).unwrap();
@@ -179,69 +190,6 @@ fn verify_checks_the_candidate_before_starting_tools() {
     let error = command(root.path(), &verify, process.clone(), output).unwrap_err();
     assert!(error.to_string().contains("Artifact digest mismatch"));
     assert!(process.0.lock().unwrap().is_empty());
-}
-
-#[test]
-fn android_build_installs_two_abis_for_the_binding_and_todo() {
-    let directory = tempfile::tempdir().unwrap();
-    let root = directory.path().join("workspace with spaces");
-    std::fs::create_dir_all(root.join("release")).unwrap();
-    std::fs::write(root.join("release/native-ui.toml"), "").unwrap();
-    std::fs::write(root.join("Cargo.toml"), "").unwrap();
-    let process = Arc::new(FakeProcess(Mutex::default(), true));
-    command(
-        &root,
-        &[
-            "native-task",
-            "task",
-            "run",
-            "native:build-android",
-            "--with-todo",
-        ],
-        process.clone(),
-        Arc::new(Capture::default()),
-    )
-    .unwrap();
-    let calls = process.0.lock().unwrap();
-    let builds = calls
-        .iter()
-        .filter(|call| call.program == "cargo")
-        .collect::<Vec<_>>();
-    assert_eq!(builds.len(), 2);
-    for call in &builds {
-        assert!(call.env.iter().any(|(key, value)| key == "ANDROID_NDK_HOME"
-            && value.as_ref().is_some_and(
-                |value| value == Path::new("/android home").join("ndk/123").as_os_str()
-            )));
-    }
-    assert!(builds[1]
-        .args
-        .iter()
-        .any(|arg| arg == "--no-default-features"));
-    for abi in ["arm64-v8a", "x86_64"] {
-        assert_eq!(
-            std::fs::read(
-                root.join("mobile/android/binding/src/main/jniLibs")
-                    .join(abi)
-                    .join("libfoundation_ui_native.so")
-            )
-            .unwrap(),
-            b"foundation_ui_native"
-        );
-        for app in ["todo_server", "todo_on_device"] {
-            assert_eq!(
-                std::fs::read(
-                    root.join("examples/ui_todo/android")
-                        .join(app)
-                        .join("app/src/main/jniLibs")
-                        .join(abi)
-                        .join("libui_todo.so")
-                )
-                .unwrap(),
-                b"ui_todo"
-            );
-        }
-    }
 }
 
 #[test]
@@ -436,4 +384,64 @@ fn swift_release_reproduces_the_checksum_commit_in_an_independent_clone() {
     });
     assert_eq!(exit, std::process::ExitCode::SUCCESS);
     assert!(git(&["status", "--porcelain"]).is_empty());
+}
+
+#[test]
+fn sync_checks_nested_files_and_replaces_the_owned_tree() {
+    #[derive(clap::Args)]
+    struct Check {
+        #[arg(long)]
+        check: bool,
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let run = |check| {
+        let root = tmp.path().to_owned();
+        let ctx = Ctx::host();
+        ctx.store(
+            NativeBuildEnv::new(root.clone())
+                .with_host_directories(root.as_os_str().into(), root.join("locks")),
+        );
+        let mut args = vec!["sync", "task", "run", "copy"];
+        if check {
+            args.push("--check");
+        }
+        let mut runner = TaskRunner::new(ctx, args.into_iter().map(Into::into).collect());
+        let mut set = foundation_tasks::TaskSet::new("sync");
+        set.add("copy", "Sync fixture files", move |ctx, args: Check| {
+            let dir = root.clone();
+            async move {
+                tasks::sync::sync(
+                    &ctx,
+                    &dir,
+                    Path::new("source"),
+                    Path::new("destination"),
+                    args.check,
+                )
+                .await
+            }
+        })
+        .unwrap();
+        runner.register(set).unwrap();
+        futures_lite::future::block_on(runner.run())
+    };
+    let source = tmp.path().join("source");
+    let destination = tmp.path().join("destination");
+    std::fs::create_dir_all(source.join("nested")).unwrap();
+    std::fs::write(source.join("nested/one"), "first").unwrap();
+    run(false).unwrap();
+    run(true).unwrap();
+    std::fs::write(destination.join("extra"), "old").unwrap();
+    std::fs::write(source.join("nested/one"), "second").unwrap();
+    assert!(run(true).is_err());
+    assert_eq!(
+        std::fs::read_to_string(destination.join("nested/one")).unwrap(),
+        "first"
+    );
+    run(false).unwrap();
+    run(true).unwrap();
+    assert!(!destination.join("extra").exists());
+    assert_eq!(
+        std::fs::read_to_string(destination.join("nested/one")).unwrap(),
+        "second"
+    );
 }

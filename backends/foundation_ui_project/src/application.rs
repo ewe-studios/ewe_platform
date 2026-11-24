@@ -285,7 +285,8 @@ impl Application {
                 fs::rename(
                     schemes.join("Starter.xcscheme"),
                     schemes.join(format!("{}.xcscheme", self.name)),
-                )?;
+                )
+                .map_err(|e| format!("Write iOS scheme for {}: {e}", self.name))?;
                 fs::rename(project, host.join(format!("{}.xcodeproj", self.name)))?;
             } else {
                 mobile::executable(&host.join("gradlew"))?;

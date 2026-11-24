@@ -39,15 +39,38 @@ impl Device<'_> {
             .current_dir(self.root)
             .args(["-s", &self.serial])
     }
+    fn screen<'a>(
+        &'a self,
+        package: &'a str,
+    ) -> Result<super::android_screen::Screen<'a>, TaskError> {
+        let setting = |key, default| {
+            self.options
+                .get(key)
+                .map(|v| {
+                    v.to_str()
+                        .ok_or_else(|| TaskError::operation("Invalid device setting"))?
+                        .parse::<u64>()
+                        .map_err(TaskError::operation)
+                })
+                .transpose()
+                .map(|v| v.unwrap_or(default))
+        };
+        Ok(super::android_screen::Screen {
+            ctx: self.ctx,
+            adb: self.adb(),
+            package,
+            timeout: Duration::from_secs(setting("EWE_ANDROID_VIEW_TIMEOUT", 60)?),
+            interval: Duration::from_millis(setting("EWE_ANDROID_VIEW_POLL_MS", 500)?),
+        })
+    }
     async fn ui(&self, mode: &str) -> TaskResult {
-        self.ctx
-            .exec(
-                ProcessCommand::new("python3")
-                    .current_dir(self.root)
-                    .arg("scripts/ui_native/check-android-todo.py")
-                    .arg(&self.adb)
-                    .args([&self.serial, mode]),
-            )
+        let package = if mode.starts_with("server") {
+            "ewe.todo"
+        } else {
+            "ewe.todo.local"
+        };
+        self.screen(package)?
+            .todo(mode, self.options.get("EWE_THEME_CAPTURES").map(Path::new))
             .await
     }
     async fn install(&self, apk: PathBuf) -> TaskResult {
@@ -165,16 +188,7 @@ impl Device<'_> {
                             &url,
                         ]))
                         .await?;
-                    return self
-                        .ctx
-                        .exec(
-                            ProcessCommand::new("python3")
-                                .current_dir(self.root)
-                                .arg("scripts/ui_native/release/check-android-starter.py")
-                                .arg(&self.adb)
-                                .args([&self.serial, &url]),
-                        )
-                        .await;
+                    return self.screen("ewe.starter")?.starter(&url).await;
                 }
                 self.ctx
                     .exec(self.adb().args(["shell", "am", "force-stop", "ewe.todo"]))

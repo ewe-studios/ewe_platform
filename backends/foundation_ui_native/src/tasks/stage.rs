@@ -13,7 +13,7 @@ use std::{
 use zip::ZipArchive;
 
 #[derive(Deserialize)]
-pub(super) struct Config {
+pub struct Config {
     pub version: String,
     pub repository: String,
     pub apple_archive: String,
@@ -23,7 +23,7 @@ pub(super) struct Config {
     swift_product: String,
 }
 
-pub(super) fn config(root: &Path) -> Result<Config, TaskError> {
+pub fn config(root: &Path) -> Result<Config, TaskError> {
     toml::from_str(
         &fs::read_to_string(root.join("release/native-ui.toml")).map_err(TaskError::operation)?,
     )
@@ -38,7 +38,7 @@ pub(super) async fn copy(source: &Path, destination: &Path) -> TaskResult {
     Ok(())
 }
 
-pub(super) async fn digest(path: &Path) -> Result<String, TaskError> {
+pub async fn digest(path: &Path) -> Result<String, TaskError> {
     let path = path.to_owned();
     blocking::unblock(move || digest_file(&path)).await
 }

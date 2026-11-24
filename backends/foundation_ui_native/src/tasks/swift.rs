@@ -29,7 +29,7 @@ pub(super) fn local(record: &Path, package: &Path, project: &Path) -> TaskResult
     fs::write(package.join("Package.swift"), record.swift_manifest).map_err(TaskError::operation)
 }
 
-pub(super) fn point_project(
+pub fn point_project(
     project: &Path,
     repository: &str,
     version: &str,

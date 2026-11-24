@@ -20,6 +20,7 @@ name = "ewe_platform"
 path = "src/compat.rs"
 
 [dependencies]
+ui_todo_tasks = { path = "../../examples/ui_todo/tools/tasks" }
 foundation_ui_project.workspace = true
 foundation_tasks = { workspace = true, features = ["install"] }
 foundation_ci.workspace = true

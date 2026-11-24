@@ -51,9 +51,9 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     runner.register(platform_tasks::wasm_bundle()?)?;
     foundation_wasm_ui::tasks::install_host(&runner);
     runner.register(foundation_wasm_ui::tasks::set()?)?;
-    runner
-        .context()
-        .store(foundation_ui_native::tasks::NativeBuildEnv::from_workspace());
-    runner.register(foundation_ui_native::tasks::set()?)?;
+    runner.context().store(ui_todo_tasks::environment());
+    let mut native = foundation_ui_native::tasks::release_set()?;
+    ui_todo_tasks::compatibility(&mut native)?;
+    runner.register(native)?;
     runner.run().await
 }

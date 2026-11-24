@@ -4309,6 +4309,7 @@ dependencies = [
  "toml 0.8.23",
  "tracing",
  "tracing-subscriber",
+ "ui_todo_tasks",
 ]
 
 [[package]]
@@ -16860,6 +16861,28 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.19",
  "uniffi",
+]
+
+[[package]]
+name = "ui_todo_tasks"
+version = "0.1.0"
+dependencies = [
+ "async-channel",
+ "base64 0.22.1",
+ "blocking",
+ "clap",
+ "foundation_context",
+ "foundation_tasks",
+ "foundation_ui_native",
+ "foundation_ui_project",
+ "foundation_ui_wire",
+ "futures-lite",
+ "futures-util",
+ "quick-xml 0.42.0",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]

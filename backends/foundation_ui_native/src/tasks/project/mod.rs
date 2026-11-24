@@ -114,11 +114,32 @@ pub async fn build(
             {
                 return Err(TaskError::operation("The Android release bundle is unsigned. Configure the release signing settings in the application module."));
             }
+            if release {
+                let verification = text(
+                    ctx,
+                    ProcessCommand::new("jarsigner")
+                        .args(["-J-Duser.language=en", "-J-Duser.country=US", "-verify"])
+                        .arg(&archive),
+                )
+                .await?;
+                if !verification
+                    .lines()
+                    .any(|line| line.trim() == "jar verified.")
+                {
+                    return Err(TaskError::operation(format!(
+                        "Cannot verify the Android release signature in {}",
+                        archive.display()
+                    )));
+                }
+            }
             Ok(archive)
         }
         Target::Ios => {
             let project = ios(app)?;
             let dir = root.join(&project.directory);
+            if app.native.is_some() {
+                prepare(ctx, root, app, Target::Ios, release).await?;
+            }
             let configuration = if release { "Release" } else { "Debug" };
             let destination = device.map_or_else(
                 || "generic/platform=iOS Simulator".to_owned(),
@@ -140,6 +161,7 @@ pub async fn build(
                         "-derivedDataPath",
                     ])
                     .arg(&derived)
+                    .arg("EWE_UI_NATIVE_PREPARED=YES")
                     .arg("build"),
             )
             .await?;
@@ -196,19 +218,10 @@ pub async fn launch(
                 }
             }
             Target::Ios => {
-                ctx.exec(
-                    ProcessCommand::new("xcrun")
-                        .args(["simctl", "install", id])
-                        .arg(artifact),
-                )
-                .await?;
-                ctx.exec(ProcessCommand::new("xcrun").args([
-                    "simctl",
-                    "launch",
-                    id,
-                    application_id,
-                ]))
-                .await?;
+                ctx.exec(devices::simctl(ctx)?.args(["install", id]).arg(artifact))
+                    .await?;
+                ctx.exec(devices::simctl(ctx)?.args(["launch", id, application_id]))
+                    .await?;
             }
             Target::Web => return Err(problem(target)),
         };

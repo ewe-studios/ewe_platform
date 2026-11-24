@@ -15,6 +15,18 @@ pub struct Device {
     pub name: String,
     pub state: String,
 }
+pub(super) fn simctl(ctx: &TaskContext) -> Result<ProcessCommand, TaskError> {
+    let env = ctx.require::<NativeBuildEnv>()?;
+    let mut command = if let Some(path) = env.devices.get("EWE_SIMCTL_BIN") {
+        ProcessCommand::new(path)
+    } else {
+        ProcessCommand::new("xcrun").arg("simctl")
+    };
+    if let Some(directory) = &env.developer_dir {
+        command = command.env("DEVELOPER_DIR", directory);
+    }
+    Ok(command)
+}
 pub(super) fn adb(ctx: &TaskContext) -> Result<ProcessCommand, TaskError> {
     let env = ctx.require::<NativeBuildEnv>()?;
     let bin = env.devices.get("ANDROID_HOME").map(PathBuf::from).map(|p| {
@@ -86,7 +98,7 @@ pub async fn list(ctx: &TaskContext, target: Target) -> Result<Vec<Device>, Task
             }
             let bytes = device_query(
                 ctx,
-                ProcessCommand::new("xcrun").args(["simctl", "list", "devices", "available", "-j"]),
+                simctl(ctx)?.args(["list", "devices", "available", "-j"]),
             )
             .await?;
             let all: List = serde_json::from_slice(&bytes).map_err(TaskError::operation)?;
@@ -128,19 +140,62 @@ pub async fn start(
     timeout: Duration,
     interval: Duration,
 ) -> Result<Device, TaskError> {
-    let device = select(&list(ctx, target).await?, name)?;
+    let since = ctx.context().clock().elapsed();
+    let deadline = async {
+        sleep(ctx, timeout).await?;
+        Err(TaskError::operation(format!("Timed out looking up {name}")))
+    };
+    let devices = futures_lite::future::race(list(ctx, target), deadline).await?;
+    let device = select(&devices, name)?;
+    let remaining = timeout.saturating_sub(ctx.context().clock().elapsed().saturating_sub(since));
+    let deadline = async {
+        sleep(ctx, remaining).await?;
+        Err(TaskError::operation(format!("Timed out starting {name}")))
+    };
     if target == Target::Ios {
-        if device.state != "Booted" {
-            ctx.exec(ProcessCommand::new("xcrun").args(["simctl", "boot", &device.id]))
+        let owned = device.state == "Shutdown";
+        let boot = async {
+            if owned {
+                ctx.exec(simctl(ctx)?.args(["boot", &device.id])).await?;
+            }
+            ctx.exec(simctl(ctx)?.args(["bootstatus", &device.id, "-b"]))
                 .await?;
+            Ok(Device {
+                state: "Booted".into(),
+                ..device.clone()
+            })
+        };
+        let result = futures_lite::future::race(boot, deadline).await;
+        if let Err(source) = result {
+            if owned {
+                let host = ctx.require::<TaskEnv>()?;
+                if let Err(cleanup) = host
+                    .process
+                    .run(
+                        simctl(ctx)?.args(["shutdown", &device.id]),
+                        host.output.clone(),
+                        foundation_tasks::Cancellation::new(),
+                    )
+                    .await
+                {
+                    return Err(TaskError::Cleanup {
+                        source: Box::new(source),
+                        cleanup: Box::new(cleanup),
+                    });
+                }
+            }
+            return Err(source);
         }
-        ctx.exec(ProcessCommand::new("xcrun").args(["simctl", "bootstatus", &device.id, "-b"]))
-            .await?;
-        return Ok(Device {
-            state: "Booted".into(),
-            ..device
-        });
+        return result;
     }
+    futures_lite::future::race(start_android(ctx, device, interval), deadline).await
+}
+
+async fn start_android(
+    ctx: &TaskContext,
+    device: Device,
+    interval: Duration,
+) -> Result<Device, TaskError> {
     let mut owned = if device.state == "Stopped" {
         let cmd = emulator(ctx)?.args(["-avd", &device.name]);
         Some(
@@ -152,17 +207,16 @@ pub async fn start(
     } else {
         None
     };
-    let clock = ctx.context().clock();
-    let since = clock.elapsed();
-    while clock.elapsed().saturating_sub(since) < timeout {
+    loop {
         if let Some(child) = owned.as_mut() {
             if let Some(code) = child.status().map_err(TaskError::operation)? {
                 return Err(TaskError::operation(format!(
-                    "Emulator {name} exited with {code}"
+                    "Emulator {} exited with {code}",
+                    device.name
                 )));
             }
         }
-        for candidate in list(ctx, target).await? {
+        for candidate in list(ctx, Target::Android).await? {
             if (candidate.id == device.id || candidate.name == device.name)
                 && candidate.state == "device"
                 && text(
@@ -186,5 +240,4 @@ pub async fn start(
         }
         sleep(ctx, interval).await?;
     }
-    Err(TaskError::operation(format!("Timed out starting {name}")))
 }

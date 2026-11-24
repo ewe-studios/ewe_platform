@@ -30,7 +30,7 @@ const run = promisify(execFile);
 const adb = process.env.EWE_TODO_PEER_ADB;
 const serial = process.env.EWE_TODO_PEER_ANDROID_SERIAL ?? "emulator-5554";
 function android(action, ...args) {
-  if (adb) return run("python3", ["scripts/ui_native/check-android-todo.py", adb, serial, "peer-" + action, ...args],
+  if (adb) return run("cargo", ["run", "--quiet", "--locked", "-p", "ui_todo_tasks", "--", "task", "run", "todo:peer-android", "--adb", adb, "--device", serial, action, ...args],
     { env: { ...process.env, EWE_ANDROID_VIEW_TIMEOUT: "45" } });
 }
 let chrome, socket, server, reverse;
