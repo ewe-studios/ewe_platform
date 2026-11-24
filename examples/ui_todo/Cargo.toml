@@ -65,7 +65,7 @@ workspace = true
 default = ["server"]
 server = ["dep:tempfile", "dep:foundation_resources", "dep:foundation_macros", "dep:foundation_nostd", "foundation_ui_runtime/action-server", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 web = ["foundation_wasm_ui/browser-storage", "foundation_ui_runtime/action-browser", "dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
-mobile = ["foundation_ui_runtime/action-mobile", "dep:foundation_core", "dep:blocking", "dep:tempfile", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
+mobile = ["foundation_ui_runtime/action-mobile", "foundation_ui_runtime/action-server", "dep:foundation_core", "dep:blocking", "dep:tempfile", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "dep:foundation_ui_native", "dep:uniffi"]
 browser-tests = ["server", "dep:foundation_browser"]
 
 [[bin]]

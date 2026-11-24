@@ -19,7 +19,7 @@ import SwiftUI
           let core = try createLocalTodoCore(platform: .ios)
           core.installResources(source: BundleResourceSource())
           let first = try await initialTodoFrame(core: core)
-          return (NativeActionCore(core, store: store), first)
+          return (NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery"), first)
         }
         .preferredColorScheme(ProcessInfo.processInfo.environment["EWE_TODO_APPEARANCE"].flatMap {
           $0 == "dark" ? .dark : $0 == "light" ? .light : nil

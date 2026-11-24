@@ -1365,3 +1365,14 @@ Both Android Todo activities now select system bar icon colors from the current 
 The Pixel shows dark status icons on the light surface and white icons on the dark surface.
 The server host passes in [light appearance](features/23-native-design-and-themes/design/android-status-server-light.png) and [dark appearance](features/23-native-design-and-themes/design/android-status-server-dark.png).
 The local host passes in [light appearance](features/23-native-design-and-themes/design/android-status-local-light.png) and [dark appearance](features/23-native-design-and-themes/design/android-status-local-dark.png).
+
+### On-device Todo actions
+
+Issue #821 connects the on-device Todo core to an in-process action service on both mobile platforms.
+The local and network senders use the same display core factory.
+Both local screens forward typed action results to the receiving view.
+The Pixel emulator passed Add, Complete, filter, Reopen, and Delete in airplane mode.
+The open count changed from zero to one after Add and returned to zero after Delete.
+The deleted title disappeared from the device tree. The Pixel then returned to Todo Server and displayed both original tasks.
+The iPhone 17e simulator passed the same workflow. Its test also verified that the Pending label cleared after Add.
+All four Rust mobile tests passed. The new regression test checks the actual operations each platform receives.

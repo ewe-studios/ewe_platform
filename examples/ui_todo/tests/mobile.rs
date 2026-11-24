@@ -368,3 +368,94 @@ async fn confirming_our_deletion_removes_only_its_frozen_search_row() {
     assert!(shows(&confirmed, "0 open todos"));
     assert_eq!(std::fs::read(path).unwrap(), b"{}");
 }
+
+#[derive(Default)]
+struct LocalFrames(std::sync::Mutex<Vec<Vec<u8>>>);
+
+impl foundation_ui_native::FrameListener for LocalFrames {
+    fn on_frame(&self, frame: Vec<u8>) {
+        self.0.lock().unwrap().push(frame);
+    }
+}
+
+impl LocalFrames {
+    async fn apply_data(&self, core: &NativeCore) -> Vec<UiOperationT> {
+        let mut updates = Vec::new();
+        let frames = std::mem::take(&mut *self.0.lock().unwrap());
+        for frame in frames {
+            let frame = read_frame(&frame, &WireLimits::default()).unwrap();
+            for message in frame.kind_as_frame_message().unwrap().messages().unwrap() {
+                if let Some(data) = message.data() {
+                    let bytes = data.msgpack().unwrap().bytes().unwrap().bytes();
+                    let update = core
+                        .trigger_structured(
+                            "host:apply_todo_delivery".into(),
+                            EventInput {
+                                node_id: data.target_node(),
+                                ..EventInput::receiving_view()
+                            },
+                            serde_json::to_vec(bytes).unwrap(),
+                        )
+                        .await
+                        .unwrap();
+                    if let Some(frame) = update {
+                        updates.extend(operations(&frame));
+                    }
+                }
+            }
+        }
+        updates
+    }
+}
+
+#[valtron_test]
+async fn on_device_mutations_update_the_receiving_view() {
+    use foundation_ui_wire::{PropId, PropValueT};
+
+    for platform in [NativePlatform::Ios, NativePlatform::Android] {
+        let core = create_local_todo_core(platform).unwrap();
+        let frames = Arc::new(LocalFrames::default());
+        core.set_frame_listener(frames.clone());
+        let first = operations(&initial_todo_frame(core.clone()).await.unwrap());
+        let dialog = trigger(&core, &first, "host:open_add_dialog", "").await;
+        let _ = trigger(&core, &dialog, "host:submit_todo", "Buy milk").await;
+        let added = frames.apply_data(&core).await;
+        assert!(shows(&added, "Buy milk") && shows(&added, "1 open todo"));
+        assert!(!shows(&added, "Pending"));
+        let (node, _) = binding(&added, "server:toggle_todo");
+        let id = added
+            .iter()
+            .find_map(|op| match op {
+                UiOperationT::SetProp(prop)
+                    if prop.node_id == node && prop.prop == PropId::VALUE =>
+                {
+                    match &prop.value {
+                        PropValueT::Text(text) => text.v.clone(),
+                        _ => None,
+                    }
+                }
+                _ => None,
+            })
+            .unwrap();
+        let reply = core
+            .trigger(
+                "server:toggle_todo".into(),
+                EventInput {
+                    node_id: node,
+                    event_name: "tap".into(),
+                    value: id.clone(),
+                    ..EventInput::receiving_view()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        foundation_ui_native::FrameListener::on_frame(&*frames, reply);
+        let completed = frames.apply_data(&core).await;
+        assert!(shows(&completed, "Reopen") && shows(&completed, "0 open todos"));
+        let dialog = trigger(&core, &completed, "host:open_delete_dialog", &id).await;
+        let _ = trigger(&core, &dialog, "host:submit_delete", &id).await;
+        let removed = frames.apply_data(&core).await;
+        assert!(shows(&removed, "0 open todos") && !shows(&removed, "Buy milk"));
+    }
+}

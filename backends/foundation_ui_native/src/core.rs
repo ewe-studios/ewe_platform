@@ -5,7 +5,8 @@ use crate::{
 };
 use foundation_context::Ctx;
 use foundation_ui_runtime::{
-    action::{ActionManager, ActionRegistry, Origin, Scope},
+    action::{ActionManager, ActionRegistry, Origin, Scope, Transport},
+    dispatch::{DispatcherBuilder, HelloOutcome, LocalDispatcher},
     network::{client_hello, client_manager_with_caller, reply_message, server_capabilities},
 };
 use foundation_ui_wire::{
@@ -67,6 +68,38 @@ impl NativeCoreBuilder {
         self
     }
 
+    /// Connect the screen to an action service in the same process.
+    ///
+    /// # Errors
+    /// Reports a negotiation error if the service cannot accept the screen.
+    pub fn build_with_local_service(
+        self,
+        server: Ctx,
+        registry: ActionRegistry,
+    ) -> Result<Arc<NativeCore>, CoreError> {
+        let dispatcher = DispatcherBuilder::new(Origin::Server, Arc::new(registry))
+            .writer_config(self.config.writer.clone())
+            .build();
+        let hello = client_hello(&ClientCaps::native_current(self.config.platform.into()));
+        let HelloOutcome::Accepted {
+            connection,
+            caps_frame,
+        } = dispatcher
+            .hello(&server, &hello)
+            .map_err(|cause| CoreError::Transport {
+                detail: cause.to_string(),
+            })?
+        else {
+            return Err(CoreError::Transport {
+                detail: "Local action service requires an update".into(),
+            });
+        };
+        let transport = Arc::new(LocalDispatcher::new(dispatcher, server, connection));
+        let core = NativeCore::from_transport(self.config, Some(transport));
+        core.apply_caps_frame(caps_frame)?;
+        Ok(core)
+    }
+
     #[must_use]
     pub fn build(self) -> Arc<NativeCore> {
         NativeCore::new(self.config, self.transport)
@@ -120,6 +153,10 @@ impl NativeCore {
 
     #[must_use]
     pub fn new(config: CoreConfig, server: Option<Arc<dyn HostTransport>>) -> Arc<Self> {
+        Self::from_transport(config, server.map(action_sender))
+    }
+
+    fn from_transport(config: CoreConfig, server: Option<Arc<Transport>>) -> Arc<Self> {
         let caps = ClientCaps::native_current(config.platform.into());
         let graphics_ctx = config.ctx.clone();
         Arc::new_cyclic(|core| {
@@ -131,7 +168,7 @@ impl NativeCore {
                 Some(Arc::new(CoreCaller(core.clone()))),
             );
             if let Some(server) = server {
-                manager = manager.with_server(action_sender(server));
+                manager = manager.with_server(server);
             }
             Self {
                 graphics_ctx,

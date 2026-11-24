@@ -83,10 +83,11 @@ fun LocalEweScreen(
     initialFrame: suspend (NativeCore) -> ByteArray,
     modifier: Modifier = Modifier,
     theme: EweTheme = EweTheme(),
+    viewDataAction: String? = null,
 ) {
     EweHost(emptyList(), "Loading…", modifier, theme) { host ->
         val core = createCore()
-        host.attach(core, null)
+        host.attach(core, null, viewDataAction = viewDataAction)
         host.applyInitial(initialFrame(core))
     }
 }

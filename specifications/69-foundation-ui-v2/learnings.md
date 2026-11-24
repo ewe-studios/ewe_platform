@@ -1102,3 +1102,8 @@ Open Todo Server after the last test. Check a new simulator screenshot for the e
 
 A Compose color scheme controls the app surface. Each Todo activity also calls the AndroidX edge-to-edge setup for system icon contrast.
 Android sets its light status bar flag when it draws dark icons. The flag clears when Android draws white icons.
+
+### On-device Todo actions
+
+The on-device build registered the display actions without a sender for business actions.
+An independent local dispatcher can own the task store and send typed confirmations to the display cache.

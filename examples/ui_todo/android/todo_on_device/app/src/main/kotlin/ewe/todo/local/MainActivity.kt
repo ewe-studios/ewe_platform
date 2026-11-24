@@ -26,7 +26,16 @@ class MainActivity : ComponentActivity() {
             EweTheme.fromManifest(todoThemeManifest()) else EweTheme()
         setContent {
             MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                LocalEweScreen({ createLocalTodoCore(NativePlatform.ANDROID).also { core -> core.installResources(AndroidResourceSource(assets)) } }, ::initialTodoFrame, theme = theme)
+                LocalEweScreen(
+                    createCore = {
+                        createLocalTodoCore(NativePlatform.ANDROID).also { core ->
+                            core.installResources(AndroidResourceSource(assets))
+                        }
+                    },
+                    initialFrame = ::initialTodoFrame,
+                    theme = theme,
+                    viewDataAction = "host:apply_todo_delivery",
+                )
             }
         }
     }

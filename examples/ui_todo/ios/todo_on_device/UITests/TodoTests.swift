@@ -18,6 +18,7 @@ final class TodoTests: XCTestCase {
     let task = app.staticTexts["Device-only task"]
     XCTAssertTrue(task.waitForExistence(timeout: 10))
     XCTAssertTrue(app.staticTexts["1 open todo"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.staticTexts["Pending"].exists)
 
     app.buttons["Complete"].tap()
     XCTAssertTrue(app.buttons["Reopen"].waitForExistence(timeout: 5))

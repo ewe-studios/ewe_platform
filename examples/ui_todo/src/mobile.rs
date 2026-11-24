@@ -2,7 +2,10 @@
 #[path = "mobile_pending.rs"]
 mod pending;
 use foundation_context::Ctx;
-use foundation_ui_native::{CoreError, EventInput, HostTransport, NativeCore, NativePlatform};
+use foundation_ui_native::{
+    CoreError, EventInput, HostTransport, NativeCore, NativeCoreBuilder, NativePlatform,
+};
+use foundation_ui_runtime::action::Origin;
 use std::sync::Arc;
 
 /// Returns the optional native theme from the shared Rust application.
@@ -20,7 +23,9 @@ pub fn create_todo_core(
     platform: NativePlatform,
     transport: Arc<dyn HostTransport>,
 ) -> Result<Arc<NativeCore>, CoreError> {
-    remote_core(platform, transport, None)
+    Ok(todo_core(platform, None)?
+        .with_host_transport(transport)
+        .build())
 }
 
 /// Open a remote Todo screen with pending submissions in the application's private file.
@@ -33,28 +38,25 @@ pub fn create_persistent_todo_core(
     transport: Arc<dyn HostTransport>,
     storage_file: String,
 ) -> Result<Arc<NativeCore>, CoreError> {
-    remote_core(
-        platform,
-        transport,
-        Some(std::path::PathBuf::from(storage_file)),
+    Ok(
+        todo_core(platform, Some(std::path::PathBuf::from(storage_file)))?
+            .with_host_transport(transport)
+            .build(),
     )
 }
 
-fn remote_core(
+fn todo_core(
     platform: NativePlatform,
-    transport: Arc<dyn HostTransport>,
     path: Option<std::path::PathBuf>,
-) -> Result<Arc<NativeCore>, CoreError> {
-    let ctx = todo_context()?;
+) -> Result<NativeCoreBuilder, CoreError> {
+    let ctx = todo_context(Origin::Host)?;
     if let Some(path) = path {
         crate::install_pending_storage(&ctx, Arc::new(pending::FileStorage(path)));
     }
     let registry = crate::host_registry().map_err(|e| CoreError::BadReference {
         detail: e.to_string(),
     })?;
-    Ok(NativeCore::builder(platform, ctx, registry)
-        .with_host_transport(transport)
-        .build())
+    Ok(NativeCore::builder(platform, ctx, registry))
 }
 
 /// Creates an on-device core and its task store.
@@ -63,11 +65,11 @@ fn remote_core(
 /// Returns an error if the signer or action declarations are invalid.
 #[uniffi::export]
 pub fn create_local_todo_core(platform: NativePlatform) -> Result<Arc<NativeCore>, CoreError> {
-    let ctx = todo_context()?;
-    let registry = crate::host_registry().map_err(|e| CoreError::BadReference {
-        detail: e.to_string(),
+    let server = todo_context(Origin::Server)?;
+    let registry = crate::server_registry().map_err(|cause| CoreError::BadReference {
+        detail: cause.to_string(),
     })?;
-    Ok(NativeCore::builder(platform, ctx, registry).build())
+    todo_core(platform, None)?.build_with_local_service(server, registry)
 }
 
 /// Returns the first frame for an on-device screen.
@@ -83,7 +85,7 @@ pub async fn initial_todo_frame(core: Arc<NativeCore>) -> Result<Vec<u8>, CoreEr
         })
 }
 
-fn todo_context() -> Result<Ctx, CoreError> {
+fn todo_context(owner: Origin) -> Result<Ctx, CoreError> {
     let ctx = Ctx::try_host().map_err(|e| CoreError::Write {
         detail: e.to_string(),
     })?;
@@ -92,12 +94,14 @@ fn todo_context() -> Result<Ctx, CoreError> {
             detail: e.to_string(),
         })?,
     );
-    crate::install_cache(&ctx);
-    crate::install_view_services(&ctx, foundation_ui_runtime::action::Origin::Host).map_err(
-        |e| CoreError::Write {
-            detail: e.to_string(),
-        },
-    )?;
+    if owner == Origin::Server {
+        ctx.store(crate::TodoStore::default());
+    } else {
+        crate::install_cache(&ctx);
+    }
+    crate::install_view_services(&ctx, owner).map_err(|e| CoreError::Write {
+        detail: e.to_string(),
+    })?;
     Ok(ctx)
 }
 
