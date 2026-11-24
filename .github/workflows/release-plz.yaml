@@ -149,6 +149,7 @@ jobs:
         shell: bash
         run: |
           foundation-ci record-release-tags --state "$RUNNER_TEMP/ewe-tags"
+          foundation-ci record-release-tags --product browser --state "$RUNNER_TEMP/browser-tags"
 
       - name: Publish what is not on crates.io yet
         shell: bash
@@ -176,6 +177,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           foundation-ci dispatch-binary-releases --state "$RUNNER_TEMP/ewe-tags"
+
+      - name: Start the browser release for each new runtime tag
+        if: success() && steps.tag_snapshot.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: foundation-ci dispatch-binary-releases --product browser --state "$RUNNER_TEMP/browser-tags"
 
   release-pr:
     name: Open or update the release PR

@@ -36,7 +36,11 @@ fn dispatch_preserves_successful_tags_and_retries_the_failed_tag() {
         &fake,
         r#"#!/bin/sh
 set -eu
-test "$1 $2 $3 $4 $5 $6" = "workflow run release.yaml --repo fixture/test --ref"
+case "$7" in
+foundation_wasm_ui-v*) workflow=browser-runtime-release.yaml ;;
+*) workflow=release.yaml ;;
+esac
+test "$1 $2 $3 $4 $5 $6" = "workflow run $workflow --repo fixture/test --ref"
 if test -f fail && test "$7" = ewe_platform-v3; then exit 27; fi
 echo "$7" >> dispatched
 "#,
@@ -80,5 +84,32 @@ echo "$7" >> dispatched
     assert_eq!(
         fs::read_to_string(root.join("dispatched")).unwrap(),
         "ewe_platform-v2\newe_platform-v3\n"
+    );
+    let browser = |task: &str| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("GITHUB_REPOSITORY", "fixture/test")
+            .args([
+                task,
+                "--remote",
+                ".",
+                "--state",
+                "browser-tags",
+                "--product",
+                "browser",
+            ])
+            .output()
+            .unwrap()
+    };
+    git(&["tag", "foundation_wasm_ui-v1"]);
+    assert!(browser("record-release-tags").status.success());
+    git(&["tag", "foundation_wasm_ui-v2"]);
+    git(&["tag", "ewe_platform-v4"]);
+    assert!(browser("dispatch-binary-releases").status.success());
+    assert!(browser("dispatch-binary-releases").status.success());
+    assert_eq!(
+        fs::read_to_string(root.join("dispatched")).unwrap(),
+        "ewe_platform-v2\newe_platform-v3\nfoundation_wasm_ui-v2\n"
     );
 }

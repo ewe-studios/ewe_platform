@@ -388,3 +388,13 @@ The owner approves Feature 5 for implementation. The Specification 90 agent resu
 ## Feature 4 publication credentials
 
 The owner approves Feature 4. The plan specifies token lookup and secret handling for package publication.
+
+## Feature 4 package and release checks
+
+The runtime package exports three JavaScript functions and two classic scripts.
+Independent pack runs produce the same 19-file archive. The compact script is smaller.
+A clean npm installation and Chromium verify the module consumer and both classic files.
+Each variant makes one script request, dispatches callback 7, and renders the updated text.
+A loopback registry verifies the exact uploaded archive, both credential sources, missing credentials, and matching and conflicting releases.
+The crate release workflow dispatches the browser workflow for new runtime tags. The workflow also accepts an explicit retry at the tag.
+Live npm publication and installation of the first public version require an authorized release.

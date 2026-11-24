@@ -49,6 +49,7 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     runner.register(platform_tasks::codegen()?)?;
     runner.register(platform_tasks::wasm_bins()?)?;
     runner.register(platform_tasks::wasm_bundle()?)?;
+    foundation_wasm_ui::tasks::install_host(&runner);
     runner.register(foundation_wasm_ui::tasks::set()?)?;
     runner
         .context()

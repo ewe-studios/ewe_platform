@@ -252,3 +252,11 @@ An external tool requirement can be independent of a script requirement. Rust ca
 ## Feature 4 publication credentials
 
 The publication process can read a literal token assignment without running shell commands from the user environment file.
+
+The npm client reads package metadata again during an authenticated publication.
+The public integrity check uses a separate command without publication credentials.
+A browser can finish loading an external classic script before the document is ready.
+The external consumer waits for browser initialization before sending its first action.
+
+Node.js 24 and 26 produce identical npm tar streams but different compressed bytes.
+The pack task recompresses the stream with fixed gzip metadata and the locked Rust compressor.

@@ -47,6 +47,11 @@ async-trait.workspace = true
 # build_tools — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 blocking = { workspace = true, optional = true }
@@ -58,7 +63,7 @@ tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 [features]
 build-hook = ["dep:tempfile", "dep:serde_json", "foundation_codegen/javascript", "foundation_wasm/embedded-js"]
 browser-storage = ["dep:serde", "dep:foundation_db", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
-tasks = ["dep:tempfile", "dep:serde_json", "dep:foundation_tasks", "dep:blocking", "foundation_codegen/javascript"]
+tasks = ["dep:tar", "dep:flate2", "dep:sha2", "dep:base64", "dep:futures-util", "embedded-js", "dep:tempfile", "dep:serde_json", "dep:foundation_tasks", "dep:blocking", "foundation_codegen/javascript"]
 default = []
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]

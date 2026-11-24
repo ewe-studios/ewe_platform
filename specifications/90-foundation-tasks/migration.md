@@ -121,4 +121,4 @@ Make and mise dispatch those operations to the same task set.
 5. Migrate Cloudflare commands, local host setup, remaining generators, and supported legacy WebAssembly builds. Issue #792 tracks the fixture decision. Issue #794 tracks the Google Cloud input format.
 6. Select the supported manual publication packages. Issue #793 tracks the retired package names. Verify guest tests on supported hosts.
 
-Feature 4 requires owner approval before implementation. Specification 91 owns deferred native Windows resource tests.
+The owner approves Feature 4. Its public release requires a tagged crate and registry credentials. Specification 91 owns deferred native Windows resource tests.

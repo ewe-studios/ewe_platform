@@ -1,6 +1,6 @@
 //! Record release tag names and start the binary workflow for new tags.
 use crate::{workspace::capture, CiEnvironment};
-use clap::Args;
+use clap::{Args, ValueEnum};
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult, TaskSet};
 use std::{
     collections::BTreeSet,
@@ -9,10 +9,31 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[derive(Clone, Copy, ValueEnum)]
+enum Product {
+    Platform,
+    Browser,
+}
+impl Product {
+    fn prefix(self) -> &'static str {
+        match self {
+            Self::Platform => "ewe_platform-v",
+            Self::Browser => "foundation_wasm_ui-v",
+        }
+    }
+    fn workflow(self) -> &'static str {
+        match self {
+            Self::Platform => "release.yaml",
+            Self::Browser => "browser-runtime-release.yaml",
+        }
+    }
+}
 #[derive(Args)]
 struct Tags {
     #[arg(long)]
     state: PathBuf,
+    #[arg(long, value_enum, default_value = "platform")]
+    product: Product,
     #[arg(long, default_value = "origin")]
     remote: String,
 }
@@ -41,6 +62,7 @@ async fn remote_tags(
     ctx: &TaskContext,
     root: &Path,
     remote: &str,
+    product: Product,
 ) -> Result<BTreeSet<String>, TaskError> {
     let file = capture(
         ctx,
@@ -50,7 +72,7 @@ async fn remote_tags(
             "--refs",
             "--",
             remote,
-            "refs/tags/ewe_platform-v*",
+            &format!("refs/tags/{}*", product.prefix()),
         ]),
     )
     .await?;
@@ -60,7 +82,7 @@ async fn remote_tags(
         let tag = line
             .split_once('\t')
             .and_then(|(_, name)| name.strip_prefix("refs/tags/"))
-            .filter(|n| n.starts_with("ewe_platform-v") && !n.ends_with("^{}"))
+            .filter(|n| n.starts_with(product.prefix()) && !n.ends_with("^{}"))
             .ok_or_else(|| TaskError::operation("Invalid binary release tag record"))?;
         tags.insert(tag.to_owned());
     }
@@ -95,7 +117,7 @@ async fn record(ctx: TaskContext, args: Tags) -> TaskResult {
     let host = ctx.require::<CiEnvironment>()?;
     let state = host.root.join(args.state);
     let _lock = lock_state(&state).await?;
-    let tags = remote_tags(&ctx, &host.root, &args.remote).await?;
+    let tags = remote_tags(&ctx, &host.root, &args.remote, args.product).await?;
     write(&state, &tags)
 }
 async fn dispatch(ctx: TaskContext, args: Dispatch) -> TaskResult {
@@ -110,7 +132,7 @@ async fn dispatch(ctx: TaskContext, args: Dispatch) -> TaskResult {
         .lines()
         .collect::<std::io::Result<BTreeSet<_>>>()
         .map_err(TaskError::operation)?;
-    let now = remote_tags(&ctx, &host.root, &args.tags.remote).await?;
+    let now = remote_tags(&ctx, &host.root, &args.tags.remote, args.tags.product).await?;
     for tag in now {
         if sent.contains(&tag) {
             continue;
@@ -118,7 +140,7 @@ async fn dispatch(ctx: TaskContext, args: Dispatch) -> TaskResult {
         ctx.exec(ProcessCommand::new("gh").args([
             "workflow",
             "run",
-            "release.yaml",
+            args.tags.product.workflow(),
             "--repo",
             &repo,
             "--ref",
