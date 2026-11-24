@@ -7,6 +7,8 @@ The example binds to a loopback address. Restart it with the same database to re
 ## Run the example
 
 Install the WebAssembly target for the repository toolchain. Start the server with Cargo.
+The build script sets the public browser binary path with `with_module_path("module.wasm")`.
+Change that path in `build.rs` to stage the binary and update its browser address.
 
 ```sh
 rustup target add wasm32-unknown-unknown

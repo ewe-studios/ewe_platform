@@ -127,7 +127,19 @@ fn server_and_host_actions_work() {
             "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js"
         ))
         .unwrap();
-        other.eval(&format!("(async () => {{const url=URL.createObjectURL(new Blob([{wire}],{{type:'text/javascript'}})); try {{window.testWire=await import(url);}} finally {{URL.revokeObjectURL(url);}} return true;}})()")).unwrap();
+        let install_wire = format!(
+            r"(async () => {{
+                const blob = new Blob([{wire}], {{type: 'text/javascript'}});
+                const url = URL.createObjectURL(blob);
+                try {{
+                    window.testWire = await import(url);
+                }} finally {{
+                    URL.revokeObjectURL(url);
+                }}
+                return true;
+            }})()"
+        );
+        other.eval(&install_wire).unwrap();
         other
             .eval(
                 r"{
@@ -135,10 +147,9 @@ fn server_and_host_actions_work() {
             window.fetch = (url, options) => {
                 if (String(url).includes('/live')) window.replayUrl = String(url);
                 if (String(url).includes('/live') && options?.method === 'POST') {
-                    window.replayCursor = Promise.resolve(window.testWire).then(w => {
-                        const frame = w.Frame.getRootAsFrame(new w.ByteBuffer(options.body));
-                        return String(frame.kind(new w.FrameRequest()).resume().after());
-                    });
+                    const {Frame, ByteBuffer, FrameRequest} = window.testWire;
+                    const frame = Frame.getRootAsFrame(new ByteBuffer(options.body));
+                    window.replayCursor = String(frame.kind(new FrameRequest()).resume().after());
                 }
                 const pending = fetch(url, options);
                 if (String(url).includes('/live')) pending.then(r => window.replayStatus = r.status, e => window.replayStatus=String(e));

@@ -20,6 +20,7 @@ use foundation_ui_runtime::view::{
     full_view, place, template_types::Html, PlacementKind, Target, ViewIds,
 };
 use foundation_ui_runtime::{action, html};
+use foundation_ui_runtime::action::ViewData;
 use foundation_ui_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -526,13 +527,8 @@ pub(crate) enum TodoDelivery {
     },
 }
 
-impl TodoDelivery {
-    pub(crate) fn send(&self, ctx: &Context) -> ActionResult {
-        let bytes =
-            rmp_serde::to_vec_named(&("ewe.todo.v1", self)).map_err(|e| error(&e.to_string()))?;
-        ctx.receiver().data_in_view(bytes);
-        Ok(())
-    }
+impl ViewData for TodoDelivery {
+    const TOPIC: &'static str = "ewe.todo.v1";
 }
 
 impl StoreState {
@@ -590,13 +586,10 @@ impl StoreState {
 }
 
 #[action(host)]
-async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Vec<u8>>) -> ActionResult {
-    // The view can also receive data for other applications.
-    if !event.input_value.starts_with(b"\x92\xabewe.todo.v1") {
+async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDelivery>>) -> ActionResult {
+    let Some(delivery) = event.input_value else {
         return Ok(());
-    }
-    let (_, delivery): (String, TodoDelivery) =
-        rmp_serde::from_slice(&event.input_value).map_err(|e| error(&e.to_string()))?;
+    };
     let store = todo_store(ctx)?;
     let snapshot = matches!(delivery, TodoDelivery::Snapshot { .. });
     let changed = {
@@ -697,7 +690,7 @@ fn action_registry(
     registry.register_for(owner, filter_todos)?;
     registry.register_for(owner, search_todos)?;
     registry.register_for(owner, edit_draft)?;
-    registry.register_for(owner, apply_todo_delivery)?;
+    registry.register_for_with_input(owner, apply_todo_delivery, TodoDelivery::decode_input)?;
     registry.register_for(owner, submit_todo)?;
     registry.register_for(owner, submit_delete)?;
     registry.register_for(owner, retry_todo)?;

@@ -1457,3 +1457,13 @@ All seven durable store tests pass. They cover restart, malformed content, cance
 All ten live channel tests and three maintenance command tests pass.
 Three independent server processes used the same temporary database. The second process served the original item through the initial page and GetTodo.
 The third process rejected a lookup after deletion. Retrying the original creation kept the tombstone at position two.
+
+### Todo server construction and resource checks
+
+The Todo action registry decodes view data through the framework. The game route uses its separate command decoder.
+Three server module checks passed, including duplicate identifier rejection.
+The relocated server served its page, bundle, browser binary, and initial view from an empty working directory.
+Both live connection and snapshot race tests passed against the durable server.
+
+The packaged page still requests the site root when a proxy mounts it below a subdirectory.
+[Issue 839](https://github.com/ewe-studios/ewe_platform/issues/839) records the three failed requests.

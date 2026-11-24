@@ -1165,3 +1165,7 @@ A disconnected client can drop its response while the database writes a record.
 An executor task must own the transaction through publication.
 Encoding the frame before the write prevents a formatting failure after the database accepts a change.
 The last position includes deleted records. The server uses that position when it resumes the stream.
+
+The typed view data decoder checks the message topic before it reads the Todo payload.
+The server constructors can mount the packaged resources without accepting a browser module path.
+A prefix-only proxy exposes root-relative requests that a resource-only browser fixture misses.

@@ -2,6 +2,28 @@
 use std::{fs, path::Path};
 
 #[test]
+fn server_construction_rejects_duplicate_task_identifiers() {
+    let first = ui_todo::Todo {
+        id: "00000000-0000-4000-8000-000000000042".parse().unwrap(),
+        text: "First task".into(),
+        done: false,
+    };
+    let second = ui_todo::Todo {
+        text: "Second task".into(),
+        ..first.clone()
+    };
+    let Err(error) = ui_todo::server::app_with_todos(vec![first, second]) else {
+        panic!("The server accepted two tasks with the same identifier");
+    };
+    assert_eq!(
+        error
+            .downcast_ref::<std::io::Error>()
+            .map(std::io::Error::kind),
+        Some(std::io::ErrorKind::InvalidData)
+    );
+}
+
+#[test]
 fn only_the_application_bundle_enters_the_public_javascript_tree() {
     fn scripts(directory: &Path, found: &mut Vec<std::path::PathBuf>) {
         for entry in fs::read_dir(directory).unwrap() {

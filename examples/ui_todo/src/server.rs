@@ -9,6 +9,7 @@ use foundation_http::{
 };
 use foundation_ui_http::live_stream::StreamHandler;
 use foundation_ui_http::{ActionRegistryRouteHandler, Response, ViewRequest};
+use foundation_ui_runtime::action::ViewData;
 use foundation_wasm_ui::server::LiveChannel;
 
 use foundation_http::native::handlers::static_file::StaticFileHandler;
@@ -19,8 +20,8 @@ mod screens;
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
 mod services;
-pub use services::Todos;
 pub(crate) use services::TodoFeed;
+pub use services::Todos;
 
 #[foundation_ui_http::get("/initial")]
 fn initial(req: ViewRequest) -> Result<Response, Error> {
@@ -45,18 +46,18 @@ fn count_screen(req: ViewRequest) -> Result<Response, Error> {
     Ok(Response::frame(screens::starter(count)))
 }
 
-/// Starts the todo server with a supplied list and its existing identifiers.
+/// Build a server from Todo records with a new live channel.
 ///
 /// # Errors
-/// Returns an error for duplicate identifiers, or if route setup fails.
+/// Return an error for duplicate identifiers or invalid server resources.
 pub fn app_with_todos(items: Vec<crate::Todo>) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     app_with_store(TodoStore::with_items(items)?, services::channel(1))
 }
 
-/// Build the application with a prepared store and live channel.
+/// Build the full server with the supplied store and live channel.
 ///
 /// # Errors
-/// Returns an error when service installation or route registration fails.
+/// Return an error when the services or routes cannot start.
 pub fn app_with_store(
     store: TodoStore,
     channel: LiveChannel,
