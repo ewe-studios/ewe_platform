@@ -14,7 +14,17 @@ plugins {
 android {
     namespace = "{{ APP_ID }}"
     compileSdk { version = release(37) { minorApiLevel = 2 } }
-    defaultConfig {
+{% if COMPOSED %}    val releaseStore = providers.environmentVariable("EWE_ANDROID_KEYSTORE")
+    if (releaseStore.isPresent) {
+        val releaseKey = signingConfigs.create("applicationRelease") {
+            storeFile = rootProject.file(releaseStore.get())
+            storePassword = providers.environmentVariable("EWE_ANDROID_STORE_PASSWORD").get()
+            keyAlias = providers.environmentVariable("EWE_ANDROID_KEY_ALIAS").get()
+            keyPassword = providers.environmentVariable("EWE_ANDROID_KEY_PASSWORD").get()
+        }
+        buildTypes.getByName("release").signingConfig = releaseKey
+    }
+{% endif %}    defaultConfig {
         applicationId = "{{ APP_ID }}"
         minSdk = 26
         targetSdk = 36
@@ -65,3 +75,15 @@ extensions.getByType<ApplicationAndroidComponentsExtension>().onVariants { varia
     }
     variant.sources.assets?.addGeneratedSourceDirectory(task, StageAppResources::assets)
 }
+
+{% if COMPOSED and HOST == "on-device" %}
+extensions.getByType<ApplicationAndroidComponentsExtension>().onVariants { variant ->
+    val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }
+    val native = tasks.register<Exec>("prepare${variantName}Rust") {
+        workingDir(rootProject.projectDir.parentFile)
+        commandLine(providers.environmentVariable("EWE_UI_BIN").getOrElse("ewe_ui"), "task", "run", "app:prepare", "--target", "android")
+        if (variant.buildType == "release") args("--release")
+    }
+    tasks.matching { it.name == "pre${variantName}Build" }.configureEach { dependsOn(native) }
+}
+{% endif %}

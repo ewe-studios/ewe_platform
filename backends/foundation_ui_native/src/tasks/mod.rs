@@ -14,6 +14,7 @@ mod bindings;
 mod device;
 mod ios_device;
 mod output;
+pub mod project;
 mod publish;
 mod release;
 mod sign;

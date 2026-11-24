@@ -8,6 +8,8 @@ publish = false
 crate-type = ["rlib", "cdylib", "staticlib"]
 
 [dependencies]
+{% if COMPOSED %}app_identity = { path = "../application" }
+{% endif %}
 foundation_errstacks = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
 foundation_ui_wire = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
 foundation_context = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }

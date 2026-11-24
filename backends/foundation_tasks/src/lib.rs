@@ -348,7 +348,21 @@ impl TaskRunner {
         Ok(())
     }
 
-    fn root_command(&self) -> Command {
+    /// Let this executable replace the default help command with a registered guide.
+    ///
+    /// # Errors
+    /// Returns an error when the named task does not exist.
+    pub fn use_help_task(&mut self, name: &str) -> TaskResult {
+        let (owner, _) = self
+            .tasks
+            .get(name)
+            .ok_or_else(|| TaskError::InvalidName(name.into()))?;
+        self.aliases.insert(vec!["help"], (*owner, name.to_owned()));
+        Ok(())
+    }
+
+    /// Return the command tree used by the dispatcher and help.
+    pub fn root_command(&self) -> Command {
         let mut run = Command::new("run")
             .about("Run a named task")
             .subcommand_required(true);
@@ -359,7 +373,11 @@ impl TaskRunner {
             .about("List tasks or run a named task")
             .subcommand_required(true)
             .disable_help_subcommand(true)
-            .subcommand(Command::new("ls").about("List available tasks"))
+            .subcommand(
+                Command::new("ls")
+                    .visible_alias("list")
+                    .about("List available tasks"),
+            )
             .subcommand(
                 Command::new("help")
                     .about("Show task help")
@@ -368,6 +386,7 @@ impl TaskRunner {
             .subcommand(run);
         let mut root = Command::new(self.label)
             .about(self.about)
+            .disable_help_subcommand(self.aliases.contains_key(&vec!["help"]))
             .subcommand_required(true)
             .subcommand(task);
         let mut paths = CommandPaths::default();

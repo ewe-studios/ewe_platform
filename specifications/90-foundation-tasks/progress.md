@@ -398,3 +398,14 @@ Each variant makes one script request, dispatches callback 7, and renders the up
 A loopback registry verifies the exact uploaded archive, both credential sources, missing credentials, and matching and conflicting releases.
 The crate release workflow dispatches the browser workflow for new runtime tags. The workflow also accepts an explicit retry at the tag.
 Live npm publication and installation of the first public version require an authorized release.
+
+## Feature 5 application generation
+
+The shared generator renders all seven selections of web, Android, and iOS targets.
+Generator tests check shared resources, invalid input, cancellation, and competing writes.
+A terminal test compares interactive output with a command that uses explicit arguments.
+Chromium loads the generated web application and increments its Rust counter.
+This test uses a local registry with the verified runtime archive and local Rust package sources.
+The installed executable passes the wizard test outside the checkout. It lists Android virtual devices and iOS simulators.
+An offline build produces the same web files from the local cache.
+Native artifact checks, local task registration, and example migration remain in progress.

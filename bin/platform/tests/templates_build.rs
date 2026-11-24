@@ -10,13 +10,8 @@ use std::fmt::Write as _;
 use std::path::Path;
 use std::process::Command;
 
-use foundation_macros::EmbedDirectoryAs;
 use foundation_packager::{Directorate, PackageConfig, PackageGenerator};
-
-/// The staged templates from `build.rs` (with `Cargo.toml` restored).
-#[derive(EmbedDirectoryAs, Default)]
-#[source = "$OUT_DIR/templates/"]
-struct ProjectTemplates;
+use foundation_ui_project::ProjectTemplates;
 
 /// `(template name, generated directory name)`.
 const TEMPLATES: &[(&str, &str)] = &[

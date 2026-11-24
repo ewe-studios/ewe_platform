@@ -52,7 +52,7 @@ fn mobile_projects_select_their_host_and_preserve_existing_files() {
                 assert_eq!(
                     fs::read(project.join("gradle/wrapper/gradle-wrapper.jar")).unwrap(),
                     include_bytes!(
-                        "../templates/android-app/common/gradle/wrapper/gradle-wrapper.jar"
+                        "../../../backends/foundation_ui_project/templates/android-app/common/gradle/wrapper/gradle-wrapper.jar"
                     )
                     .as_slice()
                 );

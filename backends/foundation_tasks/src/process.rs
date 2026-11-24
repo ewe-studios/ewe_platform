@@ -26,7 +26,27 @@ pub trait TaskOutput: Send + Sync {
     fn flush(&self) -> BoxFuture<'_, io::Result<()>>;
 }
 
+/// A service stays owned by the task until startup succeeds.
+pub trait StartedService: Send {
+    /// Return a status if the process has stopped.
+    fn status(&mut self) -> io::Result<Option<ExitStatus>>;
+    /// Leave the verified service running after the task exits.
+    fn detach(self: Box<Self>) -> io::Result<()>;
+}
+
 pub trait TaskProcess: Send + Sync {
+    /// Start a long-lived local service with a cancellation guard.
+    fn service(
+        &self,
+        _command: ProcessCommand,
+        _cancellation: Cancellation,
+    ) -> BoxFuture<'_, Result<Box<dyn StartedService>, TaskError>> {
+        Box::pin(async {
+            Err(TaskError::operation(
+                "This host cannot start background services",
+            ))
+        })
+    }
     fn run(
         &self,
         command: ProcessCommand,
@@ -307,6 +327,46 @@ impl NativeProcess {
 }
 
 impl TaskProcess for NativeProcess {
+    fn service(
+        &self,
+        command: ProcessCommand,
+        cancellation: Cancellation,
+    ) -> BoxFuture<'_, Result<Box<dyn StartedService>, TaskError>> {
+        Box::pin(async move {
+            self.register_signal(&cancellation)?;
+            background(move || {
+                if cancellation.is_cancelled() {
+                    return Err(TaskError::Cancelled);
+                }
+                let (mut command, input) = command.into_native();
+                if input.is_some() {
+                    return Err(TaskError::operation(
+                        "Background services cannot consume private input",
+                    ));
+                }
+                command
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null());
+                tree::configure(&mut command);
+                let mut child = command.spawn().map_err(TaskError::operation)?;
+                let tree = match tree::Tree::attach(&child) {
+                    Ok(tree) => tree,
+                    Err(error) => {
+                        let cleanup = after_cleanup(child.kill(), child.wait().map(drop))
+                            .map_err(TaskError::operation);
+                        return Err(cleanup_error(TaskError::operation(error), cleanup));
+                    }
+                };
+                Ok(Box::new(NativeService {
+                    child: Some(child),
+                    tree: Some(tree),
+                }) as Box<dyn StartedService>)
+            })
+            .await
+            .map_err(TaskError::operation)?
+        })
+    }
     fn run(
         &self,
         command: ProcessCommand,
@@ -317,6 +377,48 @@ impl TaskProcess for NativeProcess {
             self.register_signal(&cancellation)?;
             run_child(command, output, cancellation, self.config).await
         })
+    }
+}
+
+struct NativeService {
+    child: Option<Child>,
+    tree: Option<tree::Tree>,
+}
+impl StartedService for NativeService {
+    fn status(&mut self) -> io::Result<Option<ExitStatus>> {
+        let status = self
+            .child
+            .as_mut()
+            .ok_or_else(|| io::Error::other("Service handle was released"))?
+            .try_wait()?;
+        if status.is_some() {
+            self.tree.take();
+        }
+        Ok(status)
+    }
+    fn detach(mut self: Box<Self>) -> io::Result<()> {
+        if let Some(tree) = &self.tree {
+            tree.release()?;
+        }
+        self.tree.take();
+        if let Some(mut child) = self.child.take() {
+            std::thread::Builder::new()
+                .name("task-service-reaper".into())
+                .spawn(move || {
+                    let _ = child.wait();
+                })?;
+        }
+        Ok(())
+    }
+}
+impl Drop for NativeService {
+    fn drop(&mut self) {
+        if let Some(tree) = self.tree.take() {
+            let _ = tree.terminate();
+        }
+        if let Some(mut child) = self.child.take() {
+            let _ = child.wait();
+        }
     }
 }
 
@@ -671,6 +773,11 @@ mod tree {
     pub(super) struct Tree(libc::pid_t);
 
     impl Tree {
+        #[allow(clippy::unnecessary_wraps)]
+        pub(super) fn release(&self) -> io::Result<()> {
+            Ok(())
+        }
+
         pub(super) fn attach(child: &Child) -> io::Result<Self> {
             libc::pid_t::try_from(child.id())
                 .map(Self)
@@ -756,6 +863,26 @@ mod tree {
     pub(super) struct Tree(OwnedHandle);
 
     impl Tree {
+        pub(super) fn release(&self) -> io::Result<()> {
+            let limits = JOBOBJECT_EXTENDED_LIMIT_INFORMATION::default();
+            let bytes = u32::try_from(size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>())
+                .map_err(io::Error::other)?;
+            // Clear the close-time termination flag before releasing the application's job.
+            let ok = unsafe {
+                SetInformationJobObject(
+                    self.0.as_raw_handle(),
+                    JobObjectExtendedLimitInformation,
+                    std::ptr::from_ref(&limits).cast(),
+                    bytes,
+                )
+            };
+            if ok == 0 {
+                Err(io::Error::last_os_error())
+            } else {
+                Ok(())
+            }
+        }
+
         pub(super) fn attach(child: &Child) -> io::Result<Self> {
             let id = child.id();
             // The returned handles belong to this function.

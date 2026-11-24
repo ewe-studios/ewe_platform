@@ -17,6 +17,7 @@ pub struct BrowserPackage<'a> {
     feature: &'a str,
     connect: bool,
     resources: bool,
+    npm_lock: Option<&'a Path>,
 }
 
 impl<'a> BrowserPackage<'a> {
@@ -28,6 +29,7 @@ impl<'a> BrowserPackage<'a> {
             feature: "web",
             connect: false,
             resources: false,
+            npm_lock: None,
         }
     }
 
@@ -49,6 +51,13 @@ impl<'a> BrowserPackage<'a> {
     #[must_use]
     pub fn with_resources(mut self) -> Self {
         self.resources = true;
+        self
+    }
+
+    /// Load runtime modules from the exact npm archive in the project lockfile.
+    #[must_use]
+    pub fn with_npm_runtime(mut self, lock: &'a Path) -> Self {
+        self.npm_lock = Some(lock);
         self
     }
 
@@ -89,7 +98,11 @@ impl<'a> BrowserPackage<'a> {
         println!("cargo:rerun-if-env-changed=WASM_BINDGEN");
         let private = tempfile::tempdir_in(&output)?;
         let tree = private.path().join("modules");
-        foundation_wasm_ui::build_hook::application_sources(&tree)?;
+        if let Some(lock) = self.npm_lock {
+            npm_runtime(&package, lock, private.path(), &tree)?;
+        } else {
+            foundation_wasm_ui::build_hook::application_sources(&tree)?;
+        }
         let entry = package.join(self.entry).canonicalize()?;
         if !entry.starts_with(&package) {
             return Err(io::Error::other("Application entry escapes its package"));
@@ -144,6 +157,73 @@ impl<'a> BrowserPackage<'a> {
         artifacts.insert("bundle.js".to_owned(), script_file);
         stage_artifacts(artifacts, &output)
     }
+}
+
+fn npm_runtime(package: &Path, lock: &Path, private: &Path, tree: &Path) -> io::Result<()> {
+    let name = "@ewe-studios/foundation-wasm-ui";
+    let version = foundation_wasm_ui::build_hook::RUNTIME_VERSION;
+    let lock = package.join(lock).canonicalize()?;
+    if !lock.starts_with(package) {
+        return Err(io::Error::other("Browser runtime lock escapes its package"));
+    }
+    let manifest = lock.with_file_name("package.json");
+    println!("cargo:rerun-if-changed={}", lock.display());
+    println!("cargo:rerun-if-changed={}", manifest.display());
+    println!("cargo:rerun-if-env-changed=EWE_UI_OFFLINE");
+    let file: serde_json::Value = serde_json::from_reader(BufReader::new(fs::File::open(&lock)?))?;
+    let entry = &file["packages"][format!("node_modules/{name}")];
+    if entry["version"].as_str() != Some(version)
+        || !entry["integrity"]
+            .as_str()
+            .is_some_and(|s| s.starts_with("sha512-") && s.len() == 95)
+    {
+        return Err(io::Error::other(format!(
+            "Expected a locked SHA-512 for {name}@{version}"
+        )));
+    }
+    let npm = private.join("npm");
+    fs::create_dir(&npm)?;
+    fs::copy(lock, npm.join("package-lock.json"))?;
+    fs::copy(manifest, npm.join("package.json"))?;
+    let mut cmd = Command::new(if cfg!(windows) { "npm.cmd" } else { "npm" });
+    cmd.current_dir(&npm)
+        .args([
+            "ci",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund",
+            "--prefer-offline",
+        ])
+        .env_remove("NPM_TOKEN")
+        .env_remove("NODE_AUTH_TOKEN");
+    if env::var_os("EWE_UI_OFFLINE").as_deref() == Some(OsStr::new("1"))
+        || env::var_os("CARGO_NET_OFFLINE").as_deref() == Some(OsStr::new("true"))
+    {
+        cmd.arg("--offline");
+    }
+    let status = cmd
+        .status()
+        .map_err(|e| io::Error::other(format!("Install {name}@{version}: {e}")))?;
+    if !status.success() {
+        return Err(io::Error::other(format!(
+            "Cannot resolve {name}@{version} from {} ({status})",
+            npm.display()
+        )));
+    }
+    let installed = npm.join("node_modules").join(name);
+    fs::create_dir_all(tree)?;
+    let modules = installed.join("ui/runtimes");
+    for entry in fs::read_dir(&modules)? {
+        let entry = entry?;
+        if entry.path().extension() == Some(OsStr::new("js")) {
+            fs::copy(entry.path(), tree.join(entry.file_name()))?;
+        }
+    }
+    fs::copy(
+        installed.join("foundation_wasm/runtime/foundation-wasm.js"),
+        tree.join("foundation-wasm.js"),
+    )?;
+    Ok(())
 }
 
 fn stage_artifacts(artifacts: BTreeMap<String, PathBuf>, output: &Path) -> io::Result<()> {

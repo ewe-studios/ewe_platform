@@ -76,7 +76,7 @@ fn main() -> io::Result<()> {
         println!("cargo:rerun-if-changed={}", release.display());
         if fs::read(&release)? != fs::read(&packaged_release)? {
             return Err(io::Error::other(
-                "Update bin/platform/mobile-release.toml from release/native-ui.toml",
+                "Update backends/foundation_ui_project/mobile-release.toml from release/native-ui.toml",
             ));
         }
         release

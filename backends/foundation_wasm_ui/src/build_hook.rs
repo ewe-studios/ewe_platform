@@ -3,6 +3,9 @@ pub use crate::binding_build::bindings;
 use crate::runtime_build::{generate, MINIFIED, READABLE};
 use std::{fs, io, path::Path, prelude::rust_2021::*};
 
+/// Version shared by Cargo and the public JavaScript package.
+pub const RUNTIME_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Build the classic browser runtime in the calling package's Cargo output directory.
 ///
 /// # Errors

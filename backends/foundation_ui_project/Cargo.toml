@@ -1,0 +1,24 @@
+[package]
+name = "foundation_ui_project"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Generate Ewe application projects from embedded templates"
+
+[dependencies]
+clap.workspace = true
+foundation_macros.workspace = true
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
+foundation_packager = { path = "../foundation_packager", version = "0.1.6" }
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+toml.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+rustix = { workspace = true, features = ["fs"] }
+
+[lints]
+workspace = true

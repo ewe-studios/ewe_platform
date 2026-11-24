@@ -2,12 +2,12 @@ use super::{BoxedError, ProjectTemplates};
 use foundation_packager::{Directorate, PackageConfig, PackageGenerator};
 use std::{fs, io, path::Path};
 
-fn identifier(word: &str) -> bool {
+pub(crate) fn identifier(word: &str) -> bool {
     word.starts_with(|c: char| c.is_ascii_alphabetic())
         && word.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
 }
 
-fn package_identifier(id: &str) -> bool {
+pub(crate) fn package_identifier(id: &str) -> bool {
     const RESERVED: &[&str] = &[
         "as",
         "break",
@@ -44,20 +44,11 @@ fn package_identifier(id: &str) -> bool {
             .all(|part| identifier(part) && !RESERVED.contains(&part))
 }
 
-pub(super) fn generate(
-    template: &str,
+pub(crate) fn values(
     project: &str,
-    parent: &Path,
     id: &str,
     host: &str,
-) -> Result<(), BoxedError> {
-    if !identifier(project) {
-        return Err("Project name must start with a letter and contain only letters, numbers, or underscores.".into());
-    }
-    if !package_identifier(id) || (template == "ios-app" && id.contains('_')) {
-        return Err(format!("Invalid application identifier: {id}").into());
-    }
-
+) -> Result<serde_json::Map<String, serde_json::Value>, BoxedError> {
     let release: toml::Table =
         include_str!(concat!(env!("OUT_DIR"), "/mobile-release.toml")).parse()?;
     let mut values = serde_json::Map::new();
@@ -79,6 +70,25 @@ pub(super) fn generate(
     for (key, value) in [("PROJECT_NAME", project), ("APP_ID", id), ("HOST", host)] {
         values.insert(key.into(), value.into());
     }
+    values.insert("COMPOSED".into(), false.into());
+    Ok(values)
+}
+
+pub(super) fn generate(
+    template: &str,
+    project: &str,
+    parent: &Path,
+    id: &str,
+    host: &str,
+) -> Result<(), BoxedError> {
+    if !identifier(project) {
+        return Err("Project name must start with a letter and contain only letters, numbers, or underscores.".into());
+    }
+    if !package_identifier(id) || (template == "ios-app" && id.contains('_')) {
+        return Err(format!("Invalid application identifier: {id}").into());
+    }
+
+    let mut values = values(project, id, host)?;
     let dest = parent.join(project);
     fs::create_dir_all(parent)?;
     fs::create_dir(&dest)
@@ -142,7 +152,7 @@ pub(super) fn generate(
     Ok(())
 }
 
-fn executable(path: &Path) -> io::Result<()> {
+pub(crate) fn executable(path: &Path) -> io::Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;

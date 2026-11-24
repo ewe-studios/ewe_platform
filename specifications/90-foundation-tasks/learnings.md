@@ -260,3 +260,9 @@ The external consumer waits for browser initialization before sending its first 
 
 Node.js 24 and 26 produce identical npm tar streams but different compressed bytes.
 The pack task recompresses the stream with fixed gzip metadata and the locked Rust compressor.
+
+## Feature 5 external application checks
+
+The generated web build needs two package sources. Cargo resolves Rust dependencies. npm verifies the runtime archive against its lock file.
+An isolated registry can serve the release archive with its original integrity value.
+A real browser test checks that the JavaScript bindings connect the generated module to its Rust counter.

@@ -97,7 +97,8 @@ AA7800000000000000000004,
 			isa = PBXNativeTarget;
 			buildConfigurationList = DC02D74940B583D72C2971E2 /* Build configuration list for PBXNativeTarget "{{ PROJECT_NAME }}" */;
 			buildPhases = (
-                EE9000030000000000000001 /* Stage resources */,
+{% if COMPOSED and HOST == "on-device" %}                EE9000050000000000000001 /* Prepare application bindings */,
+{% endif %}                EE9000030000000000000001 /* Stage resources */,
 				86E7C1BB4056AFF1ADF4F72A /* Sources */,
 				6F81EF2DD63874765065B761 /* Frameworks */,
 				5F4567FD01EE04D40E9CF055 /* Resources */,
@@ -147,6 +148,18 @@ AA7800000000000000000004,
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+{% if COMPOSED and HOST == "on-device" %}
+        EE9000050000000000000001 /* Prepare application bindings */ = {
+            isa = PBXShellScriptBuildPhase;
+            alwaysOutOfDate = 1;
+            buildActionMask = 2147483647;
+            files = ();
+            name = "Prepare application bindings";
+            runOnlyForDeploymentPostprocessing = 0;
+            shellPath = /bin/sh;
+            shellScript = "set -eu\ncd \"$SRCROOT/..\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\nset -- task run app:prepare --target ios\ncase \"$CONFIGURATION\" in Release*) set -- \"$@\" --release ;; esac\nexec \"${EWE_UI_BIN:-ewe_ui}\" \"$@\"\n";
+        };
+{% endif %}
         EE9000030000000000000001 /* Stage resources */ = {
             isa = PBXShellScriptBuildPhase;
             alwaysOutOfDate = 1;

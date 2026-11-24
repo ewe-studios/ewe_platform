@@ -1,4 +1,5 @@
 //! Repository tasks owned by the browser user interface.
+pub mod application;
 mod npm;
 mod npm_release;
 use clap::Args;

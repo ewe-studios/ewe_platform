@@ -16,7 +16,7 @@ fn counter(ctx: &Context) -> Result<Arc<AtomicU64>, foundation_errstacks::ErrorT
 }
 
 fn screen(ctx: &Context, count: u64) -> ActionResult {
-    let view = html! { <Stack><Text>{count.to_string()}</Text>
+    let view = html! { <Stack>{% if COMPOSED %}<Text>{app_identity::TITLE.trim()}</Text>{% endif %}<Text>{count.to_string()}</Text>
         <Button on:tap={increment}>Increment</Button></Stack> };
     full_view(ctx, ctx.receiver(), &view, None::<&()>)
 }

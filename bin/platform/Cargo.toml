@@ -20,6 +20,7 @@ name = "ewe_platform"
 path = "src/compat.rs"
 
 [dependencies]
+foundation_ui_project.workspace = true
 foundation_tasks = { workspace = true, features = ["install"] }
 foundation_ci.workspace = true
 foundation_ui_native = { path = "../../backends/foundation_ui_native", features = ["tasks"] }

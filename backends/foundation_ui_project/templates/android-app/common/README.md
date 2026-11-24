@@ -8,10 +8,11 @@ Install Rust and build the application library.
 ```sh
 rustup target add aarch64-linux-android x86_64-linux-android
 cargo install cargo-ndk --locked
-./build-rust.sh
+{% if COMPOSED %}cd ..
+ewe_ui build --target android{% else %}./build-rust.sh{% endif %}
 ```
 
-The application stores its count on the device. Change the `increment` action in `rust/src/lib.rs`.
+The application stores its count on the device. Change the `increment` action in {% if COMPOSED %}`../native-core/src/lib.rs`{% else %}`rust/src/lib.rs`{% endif %}.
 Run the script again after each Rust change.
 {% else %}
 To run the reference server, check out the matching Ewe repository and run these commands there.
@@ -43,3 +44,10 @@ The project build runs Cargo before packaging the bundle or application assets.
 Install Rust and Cargo before the first project build.
 The sample includes a shared title, a generated version, and a browser-only script.
 Use the same logical name when reading a file on each platform.
+
+{% if COMPOSED %}## Sign a release
+
+Set `EWE_ANDROID_KEYSTORE` to the private keystore file.
+Set `EWE_ANDROID_KEY_ALIAS`, `EWE_ANDROID_STORE_PASSWORD`, and `EWE_ANDROID_KEY_PASSWORD` in the environment.
+Run `ewe_ui build --target android --release` from the application root.
+{% endif %}

@@ -7,11 +7,12 @@ On an Intel Mac, use `x86_64-apple-ios` for the simulator.
 
 ```sh
 rustup target add aarch64-apple-ios aarch64-apple-ios-sim
-./build-rust.sh
+{% if COMPOSED %}cd ..
+ewe_ui build --target ios{% else %}./build-rust.sh{% endif %}
 ```
 
 Run the scheme. Tap **Increment**. The count increases on the device.
-Change the `increment` action in `rust/src/lib.rs`. Run the script again after each Rust change.
+Change the `increment` action in {% if COMPOSED %}`../native-core/src/lib.rs`{% else %}`rust/src/lib.rs`{% endif %}. Run the script again after each Rust change.
 {% else %}
 Set `EWE_SERVER` in the scheme environment. The default address is `http://127.0.0.1:8080`.
 Run the scheme. The screen loads from `GET /open-count`. Tap **Refresh** to send `server:refresh_count` to the server.
