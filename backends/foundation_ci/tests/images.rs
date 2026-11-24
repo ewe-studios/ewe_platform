@@ -645,3 +645,87 @@ fn check_guest_archive(path: &std::path::Path) {
     }
     assert!(found);
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_provision_selects_layers_and_preserves_failures() {
+    use std::os::unix::fs::PermissionsExt;
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    for (name, script) in [
+        (
+            "docker",
+            r#"#!/bin/sh
+case "$1" in
+    container) printf '%s %s\n' "$ID" "$STATE" ;;
+    exec) test "$2" = "$ID" || exit 99; exit "$LAYERS" ;;
+    cp) case "$2" in
+            "$ID":/opt/platform-images/guest) cp -R guest "$3" ;;
+            "$ID":/opt/platform-images/layers) cp -R layers "$3" ;;
+            *) exit 98 ;;
+        esac ;;
+    *) exit 97 ;;
+esac
+"#,
+        ),
+        (
+            "ssh",
+            r#"#!/bin/sh
+printf '%s\n' "$@" > connection
+tar -tzf - > manifest || exit 96
+exit "$INSTALL_STATUS"
+"#,
+        ),
+    ] {
+        let path = root.join(name);
+        fs::write(&path, script).unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    fs::create_dir(root.join("guest")).unwrap();
+    fs::create_dir(root.join("layers")).unwrap();
+    fs::write(root.join("guest/provision.sh"), "#!/bin/sh\nexit 0\n").unwrap();
+    fs::write(root.join("layers/base"), "selected layer").unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let run = |os, state, layers, result| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("ID", "a".repeat(64))
+            .env("STATE", state)
+            .env("LAYERS", layers)
+            .env("INSTALL_STATUS", result)
+            .args([
+                "task",
+                "run",
+                "images:vm-provision",
+                "--os",
+                os,
+                "--key",
+                "guest-key",
+            ])
+            .output()
+            .unwrap()
+    };
+    assert!(run("macos", "running", "0", "0").status.success());
+    let manifest = fs::read_to_string(root.join("manifest")).unwrap();
+    assert!(manifest.contains("guest/provision.sh") && manifest.contains("guest/layers/base"));
+    assert!(
+        fs::read_to_string(root.join("connection"))
+            .unwrap()
+            .contains("127.0.0.1\n")
+    );
+    assert!(run("macos", "running", "44", "0").status.success());
+    assert!(
+        !fs::read_to_string(root.join("manifest"))
+            .unwrap()
+            .contains("layers")
+    );
+    assert_eq!(run("macos", "running", "36", "0").status.code(), Some(36));
+    assert_eq!(run("macos", "running", "0", "42").status.code(), Some(42));
+    assert!(!run("macos", "exited", "0", "0").status.success());
+    assert!(!run("windows", "running", "0", "0").status.success());
+}

@@ -1,6 +1,7 @@
 //! Start and stop a local virtual machine host container by its exact identity.
 mod connection;
 mod logs;
+mod provision;
 mod ready;
 mod runner;
 mod transfer;
@@ -213,6 +214,7 @@ async fn down(ctx: TaskContext, args: Container) -> TaskResult {
 
 pub(super) fn register(set: &mut TaskSet) -> TaskResult {
     logs::register(set)?;
+    provision::register(set)?;
     ready::register(set)?;
     runner::register(set)?;
     transfer::register(set)?;

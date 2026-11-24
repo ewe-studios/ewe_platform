@@ -574,3 +574,9 @@ The resource provider streams the packaged icon. The browser requests one JavaSc
 Opening Mathalley requests its binary once, draws the title, and returns to Todo.
 The relocated application serves the style sheet, script, four WebAssembly binaries, and version file.
 Editing the relocated version file changes the development server response.
+
+The typed virtual machine provisioning task now drives the existing Nushell command.
+The local Secure Shell (SSH) test transferred the selected layer and ran its installer.
+A second installer returned status 37. The task kept its log and removed the temporary directory.
+The Rust test checks missing containers, optional layers, and command failures.
+Native macOS and Windows guest verification still needs the guest images and a compatible host.
