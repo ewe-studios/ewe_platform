@@ -1332,3 +1332,6 @@ The owner reports search styling defects on both mobile platforms and a gap unde
 Todo now declares search with the shared SearchInput control. Vocabulary version 13 adds this control.
 The wire suite passes all 96 tests. The JavaScript runtime suite passes 160 tests and skips one.
 Both mobile renderers are under test.
+
+Issue #820 tracks pending additions that ignore search. Both Android Todo hosts now filter pending titles and restore them after clearing.
+All three Rust mobile tests pass. The runtime suite passes all 80 tests.

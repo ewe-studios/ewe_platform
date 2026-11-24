@@ -1073,3 +1073,6 @@ The Todo search uses a generic text input. The iPhone sheet gives only its dim b
 
 The markup parser and the runtime lowering table both require an entry for each built-in control.
 Existing clients can use the search query through the ordinary text field in older vocabulary versions.
+
+The list appends pending additions after it selects confirmed search results.
+Both paths need the same case and whitespace rules. Filtering the view preserves the pending operation for retry.

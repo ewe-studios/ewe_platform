@@ -196,7 +196,7 @@ pub fn app(ctx: &Context, state: &TodoApp) -> ActionResult {
     full_view(ctx, ctx.receiver(), &page_tree(state), None::<&()>)
 }
 
-fn list(state: &TodoApp) -> Html {
+fn list(state: &TodoApp, query: &str) -> Html {
     let rows = state
         .items
         .iter()
@@ -215,7 +215,10 @@ fn list(state: &TodoApp) -> Html {
         .pending
         .values()
         .filter_map(|pending| match &pending.change {
-            PendingChange::Add { title, .. } if state.filter != Filter::Done => {
+            PendingChange::Add { title, .. }
+                if state.filter != Filter::Done
+                    && (query.is_empty() || title.to_lowercase().contains(query)) =>
+            {
                 Some(pending_row(title, "Pending", pending))
             }
             _ => None,
@@ -264,7 +267,7 @@ fn search_input(query: &str) -> Html {
 pub(crate) fn page_tree(state: &TodoApp) -> Html {
     let search = search_input("");
     let controls = filters(&state.filter);
-    let rows = list(state);
+    let rows = list(state, "");
     let footer = open_count(state.items.iter().filter(|item| !item.done).count());
     html! { <Stack>
         <NavigationTitle>Todos</NavigationTitle>
@@ -459,7 +462,8 @@ impl StoreState {
         if let Some(rows) = &self.search_rows {
             state.items.clone_from(rows);
         }
-        replace(ctx, "#todo-list", list(&state))
+        let query = self.query.trim().to_lowercase();
+        replace(ctx, "#todo-list", list(&state, &query))
     }
 }
 
