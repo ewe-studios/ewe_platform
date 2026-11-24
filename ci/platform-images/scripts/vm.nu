@@ -16,8 +16,6 @@
 # happen. SSH goes to 127.0.0.1:<port>, which `up` maps to the VM's port 22.
 
 const SSH_PORT = 2222
-const STATUS_WINDOWS = "C:/OEM/status"
-const STATUS_MACOS = "/usr/local/platform-images/status"
 
 def fail [msg: string] {
     error make --unspanned {msg: $msg}
@@ -283,18 +281,9 @@ def "main logs" [
     --port: int = $SSH_PORT
     --out: path
 ] {
-    check-os $os
-    mkdir $out
-    ^docker logs $name o+e> ($out | path join container.log)
-    let files = if $os == "windows" {
-        [[$"($STATUS_WINDOWS)/provision.log" provision.log] [$"($STATUS_WINDOWS)/versions.txt" versions.txt] ["C:/actions-runner/runner.log" runner.log]]
-    } else {
-        [["/tmp/platform-images-provision.log" provision.log] [$"($STATUS_MACOS)/versions.txt" versions.txt] ["/usr/local/actions-runner/runner.log" runner.log]]
-    }
-    for f in $files {
-        let r = ssh-run $os $key $port (if $os == "windows" { $"Get-Content -Raw '($f.0)'" } else { $"cat '($f.0)'" })
-        if $r.exit_code == 0 { $r.stdout | save --force ($out | path join $f.1) } else { print $"\(no ($f.0) in the VM\)" }
-    }
+    host-task images:vm-logs [
+        --os $os --name $name --key ($key | into string) --port ($port | into string) --out ($out | into string)
+    ]
 }
 
 # Stop the VM (an orderly shutdown via dockurr, up to 2 minutes) and remove

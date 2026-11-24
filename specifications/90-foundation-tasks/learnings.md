@@ -354,3 +354,6 @@ Each guest probe now returns a distinct status after a successful search finds n
 A loopback login can succeed before provisioning finishes. The readiness task checks the guest marker separately.
 Keep the original Docker identifier across polls. A replacement container must start a new readiness check.
 The Linux connection fixture verifies the portable shell probe. Native guest installation needs a host with hardware acceleration.
+
+The former log collector reported three absent files after a connection failure. Issue #823 records the reproduction.
+A guest file probe must distinguish absence from transport failure. Keep the Docker log available when the guest cannot answer.

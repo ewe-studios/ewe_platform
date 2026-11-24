@@ -458,3 +458,79 @@ esac
     let replaced = invoke("macos", "replace", "running", "0", &[]);
     assert!(String::from_utf8_lossy(&replaced.stderr).contains("was replaced or removed"));
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_logs_preserve_completed_files_and_distinguish_absence() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    for (name, script) in [
+        (
+            "docker",
+            r#"#!/bin/sh
+if test "$1" = container; then printf '%064d running\n' 0; else printf host; printf diagnostic >&2; fi
+"#,
+        ),
+        (
+            "ssh",
+            r#"#!/bin/sh
+printf '%s\n' "$@" >> probes
+if test "$RESPONSE" != good; then printf partial; exit "$RESPONSE"; fi
+case "$*" in *versions.txt*) exit 44 ;; *) printf 'guest\000log\377'; printf diag >&2 ;; esac
+"#,
+        ),
+    ] {
+        let path = root.join(name);
+        fs::write(&path, script).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let invoke = |os: &str, response: &str| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("RESPONSE", response)
+            .args([
+                "task",
+                "run",
+                "images:vm-logs",
+                "--os",
+                os,
+                "--key",
+                "fixture",
+                "--out",
+                "output",
+            ])
+            .output()
+            .unwrap()
+    };
+    let out = root.join("output");
+    fs::create_dir(&out).unwrap();
+    fs::write(out.join("versions.txt"), "old").unwrap();
+    for os in ["windows", "macos"] {
+        let result = invoke(os, "good");
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        for name in ["provision.log", "runner.log"] {
+            assert_eq!(fs::read(out.join(name)).unwrap(), b"guest\0log\xff");
+        }
+        assert!(!out.join("versions.txt").exists());
+        let host = fs::read_to_string(out.join("container.log")).unwrap();
+        assert!(host.contains("host") && host.contains("diagnostic"));
+        assert_eq!(invoke(os, "255").status.code(), Some(255));
+        assert_eq!(
+            fs::read(out.join("provision.log")).unwrap(),
+            b"guest\0log\xff"
+        );
+    }
+    let probes = fs::read_to_string(root.join("probes")).unwrap();
+    assert!(probes.contains("CopyTo") && probes.contains("exec cat"));
+}

@@ -66,11 +66,12 @@ struct Edge {
 struct Capture {
     file: Mutex<File>,
     forward: Arc<dyn TaskOutput>,
+    combine: bool,
 }
 impl TaskOutput for Capture {
     fn write<'a>(&'a self, stream: OutputStream, bytes: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
         Box::pin(async move {
-            if stream == OutputStream::Stderr {
+            if stream == OutputStream::Stderr && !self.combine {
                 return self.forward.write(stream, bytes).await;
             }
             self.file
@@ -85,13 +86,18 @@ impl TaskOutput for Capture {
 }
 pub(crate) async fn capture(ctx: &TaskContext, cmd: ProcessCommand) -> Result<File, TaskError> {
     let mut file = tempfile::tempfile().map_err(TaskError::operation)?;
-    let output = Capture {
-        file: Mutex::new(file.try_clone().map_err(TaskError::operation)?),
-        forward: ctx.require::<TaskEnv>()?.output.clone(),
-    };
-    ctx.exec_with_output(cmd, Arc::new(output)).await?;
+    capture_to(ctx, cmd, file.try_clone().map_err(TaskError::operation)?, false).await?;
     file.rewind().map_err(TaskError::operation)?;
     Ok(file)
+}
+/// Write child output to an open file. Send separate diagnostics to the task output.
+pub(crate) async fn capture_to(ctx: &TaskContext, cmd: ProcessCommand, file: File, combine: bool) -> Result<(), TaskError> {
+    let output = Capture {
+        file: Mutex::new(file),
+        forward: ctx.require::<TaskEnv>()?.output.clone(),
+        combine,
+    };
+    ctx.exec_with_output(cmd, Arc::new(output)).await
 }
 impl Metadata {
     fn workspace_packages(self) -> Result<BTreeMap<String, Package>, TaskError> {

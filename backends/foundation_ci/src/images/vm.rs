@@ -1,5 +1,6 @@
 //! Start and stop a local virtual machine host container by its exact identity.
 mod connection;
+mod logs;
 mod ready;
 mod runner;
 
@@ -210,6 +211,7 @@ async fn down(ctx: TaskContext, args: Container) -> TaskResult {
 }
 
 pub(super) fn register(set: &mut TaskSet) -> TaskResult {
+    logs::register(set)?;
     ready::register(set)?;
     runner::register(set)?;
     set.add("vm-up", "Start the virtual machine container", up)?;

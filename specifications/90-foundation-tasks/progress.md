@@ -525,3 +525,8 @@ The guest readiness command now checks the same container on each poll.
 Three Rust integration tests and strict Clippy passed.
 An isolated Linux container ran an OpenSSH server with a temporary guest key.
 The public Nushell commands verified login, a missing readiness marker, a completed marker, and an absent runner over that connection.
+
+The guest log command now streams each file to temporary storage before it replaces an earlier copy.
+The OpenSSH fixture returned the exact guest log and skipped two absent files.
+After the fixture stopped, the command returned status 255 and preserved the previous complete log.
+Four virtual machine integration tests and strict Clippy passed.

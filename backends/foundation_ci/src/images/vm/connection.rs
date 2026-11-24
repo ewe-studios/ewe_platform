@@ -21,7 +21,7 @@ pub(super) struct Connection {
 pub(super) fn command(
     ctx: &TaskContext,
     connection: &Connection,
-    probe: &'static str,
+    probe: &str,
 ) -> Result<ProcessCommand, TaskError> {
     let host = ctx.require::<CiEnvironment>()?;
     let default_user = match connection.os {
