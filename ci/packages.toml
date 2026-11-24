@@ -136,8 +136,11 @@ linux-only-features = [
 macos-shards = 4
 windows-shards = 4
 # The most minutes one shard job may run: the sum of its packages' timeouts,
-# capped at this value.
-shard-timeout-minutes = 300
+# capped at this value. A hung shard holds the master concurrency group, so it
+# delays every later master run and the release publish (issue #803). Two hours
+# is far above the slowest healthy shard; a shard that needs more is a test
+# defect, not a budget to raise.
+shard-timeout-minutes = 120
 # Most jobs of one matrix that run at once. See the header for the reason.
 max-parallel-linux = 8
 max-parallel-macos = 2
