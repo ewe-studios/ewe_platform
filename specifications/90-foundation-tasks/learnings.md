@@ -298,3 +298,6 @@ Java 27 writes 17,006 bytes when verifying the generated Android bundle with a t
 Inspect resources inside the installed Apple bundle and built Android archive. A successful compiler exit alone does not check the application title.
 
 Cargo unifies features across dependencies on the same target. Select the JavaScript event loop in the WebAssembly dependency table.
+
+A combined application needs four public inputs for these checks. Verify the Git tag, Maven package, npm package, and Rust resource crate separately.
+The npm archive in the generated lock file must match the candidate checksum. An earlier local archive has different bytes.

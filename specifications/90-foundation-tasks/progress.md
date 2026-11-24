@@ -453,3 +453,13 @@ Both installed applications contain the same shared title. The Android screen sh
 
 The installed native command parks while a child runs. Its processor time fell from 4.744 seconds to 0.073 seconds for the same wait.
 The browser still enables its JavaScript event loop.
+
+CedarBoard passes the three-target check from one generated project outside the checkout.
+
+| Target | Installed command result |
+|---|---|
+| Web | The online and offline builds produce identical JavaScript, WebAssembly, and title files. |
+| Android | The emulator displays the server count and refresh action. The installed application owns the focused window. |
+| iOS | The simulator launches the application. Its installed bundle contains the shared title. |
+
+The checks use local release candidates. The public native release tag, Maven package, browser package, and shared resource crate are unavailable.
