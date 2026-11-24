@@ -132,7 +132,9 @@ No product code exists. The spec is a draft in a pull request for the owner's re
 
 ## In progress
 
-Nothing. The spec waits for the owner review.
+**Feature 00 (contract)** starts (2026-11-24). The owner reviewed the spec and answered the
+last open question: the Docker provider crate is `foundation_deployment_docker` (section
+10.2 Q2). The spec status is `in-progress`. The branch is `spec77/f00-contract`.
 
 ## Next
 
