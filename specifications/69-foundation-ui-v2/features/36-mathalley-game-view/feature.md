@@ -93,6 +93,24 @@ The owner approves the audio extension for implementation. The existing game and
 
 ## Verification record
 
+
+### Signed iPhone checks on 25 November 2026
+
+The iPhone 17e simulator ran the two offline tests from commit `e114627ee` in the Debug profile.
+The host used the release Rust archive for the simulator.
+
+| Test | Result |
+| --- | --- |
+| `testMathalleyReturnsToTheSameTodo` | Added “Keep this todo” and selected Open. The same row returned after both game visits. Passed in 88.17 seconds. |
+| `testTrainAndGumballSurviveRotation` | Answered six train questions with seed 13. Gumball remained visible in landscape and accepted a tap. Passed in 34.07 seconds. |
+| `testMathalleyKeepsTheServerSubscription` | A browser added a second Todo during play. The iPhone restored both rows, the Open filter, and the count. Passed in 35.92 seconds. |
+| `testIndependentGameSoundOnAppleOutput` | A second view rendered audio samples through the Apple audio engine after the game closed. Passed in 12.37 seconds. |
+
+The server and audio tests used the corrected command decoder on the graphics integration checkout before the offline merge.
+Physical speaker playback and operating system interruption notifications still require a phone.
+
+### Platform coverage
+
 | Host | Graphics and input | Todo subscription | Sound |
 | --- | --- | --- | --- |
 | Chrome on macOS | Train and Gumball receive input. A host texture returns the expected pixel after Rust compute. | A peer adds a task while the game is open. | Web Audio renders separate views. The first view keeps its mute setting after interruption. |

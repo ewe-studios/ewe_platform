@@ -1424,4 +1424,6 @@ The browser uses Web Audio. Physical phone speakers and operating system interru
 
 The merged mobile hosts share the game command decoder and the local Todo service.
 The signed iPhone server test opens the game, receives a peer update, and restores the filter and count.
-The offline launch and return test is in progress.
+The signed iPhone 17e passed both offline tests on commit `e114627ee`. Two game visits preserved the selected filter and Todo.
+Train and Gumball passed the seeded input and rotation test. The captures show both scenes and the restored list.
+The independent Apple audio test also passed. Physical playback and interruption tests remain open.

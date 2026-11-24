@@ -1135,3 +1135,9 @@ The Android test device renders game surfaces with Vulkan. The Google APIs emula
 
 The game command contains fourteen bytes. The previous host listeners expected thirteen.
 All hosts call one Rust decoder that requires the complete string value.
+
+
+The server test uses a second browser to add a Todo while the iPhone shows the game.
+A matching row and count after return confirm that the subscription still delivers updates.
+The offline test uses two consecutive game visits to check surface cleanup and Todo state together.
+Simulated audio rendering verifies generated samples. A phone is necessary to check its speaker and operating system interruptions.
