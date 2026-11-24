@@ -1,9 +1,9 @@
 //! I7 and the exit-status invariant.
 
 use foundation_context::Ctx;
-use foundation_platform_sandbox::shared::command::ExitStatus;
-use foundation_platform_sandbox::shared::error::SandboxError;
-use foundation_platform_sandbox::shared::host::SandboxHost;
+use foundation_sandbox::shared::command::ExitStatus;
+use foundation_sandbox::shared::error::SandboxError;
+use foundation_sandbox::shared::host::SandboxHost;
 
 use super::common;
 

@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["00-contract"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 03: Guest artifacts (kernel, root file systems, initramfs)
@@ -202,7 +202,7 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 
 ## 2. Module layout
 
-`backends/foundation_platform_sandbox/src/native/artifacts/`:
+`backends/foundation_sandbox/src/native/artifacts/`:
 
 | File | Content |
 |---|---|
@@ -351,7 +351,7 @@ Firecracker with the squashfs image, which already has correct owners.
 
 ## 5. Tests
 
-`backends/foundation_platform_sandbox/tests/artifacts_*.rs`:
+`backends/foundation_sandbox/tests/artifacts_*.rs`:
 
 | Test | Needs | Proves |
 |---|---|---|
@@ -373,8 +373,8 @@ Firecracker with the squashfs image, which already has correct owners.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --profile uat artifacts
+cargo clippy -p foundation_sandbox --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --profile uat artifacts
 ```
 
 ## 7. Done when

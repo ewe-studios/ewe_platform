@@ -6293,26 +6293,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_platform_sandbox"
-version = "0.0.1"
-dependencies = [
- "base64 0.22.1",
- "derive_more",
- "foundation_auth",
- "foundation_compact",
- "foundation_connectrpc",
- "foundation_context",
- "foundation_core",
- "foundation_errstacks",
- "foundation_macros",
- "futures",
- "proptest",
- "serde",
- "serde_json",
- "tracing",
-]
-
-[[package]]
 name = "foundation_proxy"
 version = "0.2.0"
 dependencies = [
@@ -6437,6 +6417,26 @@ dependencies = [
  "flate2",
  "foundation_macros",
  "foundation_nostd",
+]
+
+[[package]]
+name = "foundation_sandbox"
+version = "0.0.2"
+dependencies = [
+ "base64 0.22.1",
+ "derive_more",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_core",
+ "foundation_errstacks",
+ "foundation_macros",
+ "futures",
+ "proptest",
+ "serde",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]

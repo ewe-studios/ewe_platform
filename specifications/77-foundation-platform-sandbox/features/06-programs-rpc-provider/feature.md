@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP-A"
 depends_on: ["05-firecracker-driver"]
-crates: ["foundation_platform_sandbox", "foundation_deployment_platform", "agent_slave"]
+crates: ["foundation_sandbox", "foundation_deployment_platform", "agent_slave"]
 ---
 
 # Feature 06: The programs, `SandboxService`, the remote client and the `Provider` facade (MVP-A)
@@ -24,7 +24,7 @@ the owner of the STE standard ASD-STE100.
 Give the core its boundaries on a host:
 
 1. The command structures of `agent-sandbox` and `agent-slave`, in the library
-   (`foundation_platform_sandbox::cli`).
+   (`foundation_sandbox::cli`).
 2. The `SandboxService` server (the control plane over RPC) and `SandboxRpcClient`, which
    implements `SandboxProvider` for a remote control plane.
 3. The two program entry points.
@@ -261,27 +261,21 @@ Feature: Programs, RPC and Provider
 
 | Path | Content |
 |---|---|
-| `foundation_platform_sandbox/src/cli/mod.rs` | Shared argument helpers: `parse_listen`, `parse_connect`. Feature `cli`, native only. |
+| `foundation_sandbox/src/cli/mod.rs` | Shared argument helpers: `parse_listen`, `parse_connect`. Feature `cli`, native only. |
 | `.../src/cli/sandbox.rs` | `SandboxCli` (a `clap` derive), `pub fn run(ctx: Ctx, cli: SandboxCli) -> i32`. |
 | `.../src/cli/slave.rs` | `SlaveCli`, `pub fn run(ctx: Ctx, cli: SlaveCli) -> i32`. Reads `/proc/cmdline` for `ewe.listen` when `--listen` is not given. Calls `native::slave::run`. Needs the `slave` feature. |
 | `.../src/native/connect.rs` | `SandboxRpcClient::connect`, `ConnectAddr`. |
 | `.../src/native/serve.rs` | `serve_control(ctx, control, listen, auth, shutdown)`: the HTTP server for `SandboxService`. |
-| `foundation_deployment_platform/src/bin/agent_sandbox.rs` | `fn main()`: `Ctx::host()`, store `SandboxHost::native(..)`, parse `SandboxCli`, `std::process::exit(cli::sandbox::run(ctx, cli))`. |
-| `bin/agent_slave/src/main.rs` | `fn main()`: `Ctx::host()`, parse `SlaveCli`, exit with `cli::slave::run(ctx, cli)`. |
-| `foundation_deployment_platform/src/providers/sandbox/mod.rs` | The `Provider` facade. Feature `sandbox`. |
+| `backends/foundation_sandbox/src/bin/agent_sandbox.rs` | `fn main()`: `Ctx::host()`, store `SandboxHost::native(..)`, parse `SandboxCli`, `std::process::exit(cli::sandbox::run(ctx, cli))`. |
+| `backends/foundation_sandbox/src/bin/agent_slave.rs` | `fn main()`: `Ctx::host()`, parse `SlaveCli`, exit with `cli::slave::run(ctx, cli)`. |
+| `backends/foundation_sandbox/src/providers/mod.rs` | The `Provider` facades, behind this crate's `provider` feature. The `Provider` trait stays in `foundation_deployment_platform`. |
 
-**Where `agent-slave` lives (measured).** Decision D4 puts the entry points in
-`foundation_deployment_platform/src/bin/`. `agent-sandbox` is there. `agent-slave` must be
-a static musl program, and a program in that directory compiles the library crate
-`foundation_deployment_platform` for musl. On 2026-11-11,
-`cargo check -p foundation_deployment_platform --target x86_64-unknown-linux-musl` failed:
-the crate depends on `foundation_netio` with `ssl`, which builds `ring`, which needs a musl
-C compiler; and its Docker client is not optional. So `agent-slave` has its own package,
-`bin/agent_slave`, that depends only on `foundation_platform_sandbox` with
-`default-features = false, features = ["slave", "cli"]`. Its `main` is the same three
-lines. The owner confirmed this (requirements decision D11). A later move into
-`foundation_deployment_platform` first needs its Docker client and TLS behind
-features; that is a separate change.
+**Where the binaries live.** Both entry points are `src/bin/` of this crate (decision D4,
+revised 2026-11-25). `agent_sandbox.rs` builds the control plane. `agent_slave.rs` builds
+with default features off and only `slave` and `cli`, so it pulls no TLS library and no
+Docker client; the measured failure of `foundation_deployment_platform` for musl (2026-11-11:
+`ring` needs a musl C compiler, and its Docker client is not optional) no longer applies.
+The static musl check of the slave binary is in section 6.10.
 
 ### 6.2 `agent-sandbox`
 
@@ -393,7 +387,7 @@ agent-slave [--listen vsock:<port> | unix:<path> | tcp:<host>:<port>]
 `/proc/cmdline`; if neither exists, the failure of feature 01, section 6.3. Build
 `SlaveArgs` and call `native::slave::run`.
 
-Package `bin/agent_slave`: one dependency (section 6.1). The workspace root gets the
+The slave binary uses only the `slave` feature of this crate (section 6.1). The workspace root gets the
 profile `agent` (`inherits = "release"`, `opt-level = "s"`, `lto = true`,
 `panic = "abort"`, `strip = true`, `codegen-units = 1`).
 
@@ -414,7 +408,7 @@ looks for beside `agent-sandbox` when both are installed in one directory.
 ### 6.7 The `Provider` facade
 
 `foundation_deployment_platform`, Cargo feature `sandbox`
-(`sandbox = ["dep:foundation_platform_sandbox"]`, in `all-providers`, off by default).
+(`sandbox = ["dep:foundation_sandbox"]`, in `all-providers`, off by default).
 
 ```rust
 /// A running sandbox, as a `Provider` handle.
@@ -463,10 +457,10 @@ Because the provider takes any `SandboxProvider`, the same type works on a local
   `KERNEL=="kvm", GROUP="kvm", MODE="0666"`, then `udevadm trigger`); install the Rust
   toolchain and the musl target; download the pinned `firecracker` release (the version
   and SHA-256 are in `ci/sandbox.toml`, read by the workflow); `mise run sandbox:slave`;
-  run `cargo test -p foundation_platform_sandbox --features testing --profile uat
+  run `cargo test -p foundation_sandbox --features testing --profile uat
   e2e_firecracker` and the `agent-sandbox` program tests.
-- Triggers: a pull request that changes `backends/foundation_platform_sandbox/**`,
-  `bin/agent_slave/**`, `backends/foundation_netio/**` or the workflow; pushes to
+- Triggers: a pull request that changes `backends/foundation_sandbox/**`,
+  `src/bin/agent_slave.rs`, `backends/foundation_netio/**` or the workflow; pushes to
   `master`; nightly. A concurrency group cancels a superseded pull request run
   (`.agents` rule 17).
 - The job fails when `probe()` says the runner is not usable. (On a developer machine the
@@ -478,13 +472,13 @@ Because the provider takes any `SandboxProvider`, the same type works on a local
 
 | Package | Linux | macOS | Windows |
 |---|---|---|---|
-| `foundation_platform_sandbox` | all features of this phase | default features with `firecracker` off; reason: "Firecracker needs KVM" | `windows-tests = "none"`; reason: "no driver for a Windows host; the crate's native code is unix-only" |
+| `foundation_sandbox` | all features of this phase | default features with `firecracker` off; reason: "Firecracker needs KVM" | `windows-tests = "none"`; reason: "no driver for a Windows host; the crate's native code is unix-only" |
 | `agent_slave` | build for both musl targets; its tests are the slave tests of feature 01 | `macos-tests = "none"`; reason: "a Linux guest program" | `windows-tests = "none"`; the same reason |
 | `foundation_deployment_platform` | add the run `sandbox` to `runs` and `clippy-runs` | the same | as today |
 
 ### 6.9 Documentation
 
-- `backends/foundation_platform_sandbox/README.md`: the model (control plane, slave,
+- `backends/foundation_sandbox/README.md`: the model (control plane, slave,
   drivers), host requirements for Firecracker, how to build the slave, `agent-sandbox run`,
   the library example, and the security notes below.
 - `docs/sandbox.md`: the architecture diagram of the requirements and a "first sandbox"
@@ -516,7 +510,7 @@ When the owner approves issue filing (decision D9):
 
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
-| I1, "The remote client behaves as the local manager" | `rpc_parity_uds`: the shared acceptance scenarios with `SandboxRpcClient` on a real UDS to `serve_control`, with the slave process driver (the simulation half is in feature 02) | `foundation_platform_sandbox/tests/control_rpc_*.rs` | differential (local and remote give the same outcomes) |
+| I1, "The remote client behaves as the local manager" | `rpc_parity_uds`: the shared acceptance scenarios with `SandboxRpcClient` on a real UDS to `serve_control`, with the slave process driver (the simulation half is in feature 02) | `foundation_sandbox/tests/control_rpc_*.rs` | differential (local and remote give the same outcomes) |
 | I2, "An error keeps its type across RPC" | `rpc_error_variants` (each variant that a control call can return) | the same | identity |
 | I3, the two token scenarios | `tcp_needs_token`, `tcp_wrong_token`, `tcp_no_token_no_start` | `tests/serve_*.rs` | expected outcome |
 | I4 | `unix_socket_mode`, `unix_stale_socket_removed`, `unix_live_socket_refused`, `unix_path_too_long` | the same | example |
@@ -525,22 +519,22 @@ When the owner approves issue filing (decision D9):
 | `create` stream dropped by the client | `rpc_create_dropped_cleans_up` (simulation: the driver handle got `kill` and `cleanup`) | `tests/control_rpc_*.rs` | fault |
 | `exec_input` through the service | `rpc_input_duplicate_and_gap` | the same | expected outcome |
 | I5, I6, the two `run` scenarios | `cli_run_exit_code`, `cli_run_signal_exit`, `cli_run_sigint_cleans_up` | `foundation_deployment_platform/tests/agent_sandbox_cli.rs` (real Firecracker; returns with a message when not usable) | expected outcome |
-| argument parsing | `cli_parse` (each sub-command; each usage error gives 64) | `foundation_platform_sandbox/tests/cli_parse.rs` | example |
+| argument parsing | `cli_parse` (each sub-command; each usage error gives 64) | `foundation_sandbox/tests/cli_parse.rs` | example |
 | "The shell commands work ..." | `cli_remote_flow` | `agent_sandbox_cli.rs` | example |
 | "Doctor says what is missing" | `cli_doctor` (a fake environment with no `firecracker`) | the same | expected outcome |
 | I7, I8, the three provider scenarios | `provider_launch_stop_sim`, `provider_error_is_typed`, `provider_host_health` | `foundation_deployment_platform/tests/sandbox_provider_tests.rs` | expected outcome |
 | provider on a real host | `provider_e2e_firecracker`: `launch`, `handle.run(["echo", "ok"])` through `block_on_future`, `stop` | the same | example |
 | I9 | the default-feature test run in section 8 | | build |
 | I10 | `boundaries_have_no_logic` (a source scan for `validate(`, `boot_timeout`, `Duration::from_`, `loop` with a retry in the boundary files) | `tests/boundary_scan.rs` | example |
-| I11, the two slave scenarios | `slave_cli_listen_unix`, `slave_cli_bad_arg`; `file` reports "statically linked" in the verify step | `bin/agent_slave/tests/` | example |
+| I11, the two slave scenarios | `slave_cli_listen_unix`, `slave_cli_bad_arg`; `file` reports "statically linked" in the verify step | `tests/cli/` | example |
 
 ## 8. Verify
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "cli testing slave" --all-targets --profile uat --no-deps -- -D warnings
+cargo clippy -p foundation_sandbox --features "cli testing slave" --all-targets --profile uat --no-deps -- -D warnings
 cargo clippy -p foundation_deployment_platform --features sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "cli testing slave" --profile uat control_rpc serve_ cli_parse boundary_scan
+cargo test -p foundation_sandbox --features "cli testing slave" --profile uat control_rpc serve_ cli_parse boundary_scan
 cargo test -p foundation_deployment_platform --features sandbox --profile uat sandbox_provider agent_sandbox_cli
 cargo test -p foundation_deployment_platform --profile uat          # default features still pass
 mise run sandbox:slave

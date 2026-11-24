@@ -9,7 +9,7 @@
 
 use std::path::{Path, PathBuf};
 
-/// The crates with core logic. `foundation_platform_sandbox` is planned in spec
+/// The crates with core logic. `foundation_sandbox` is planned in spec
 /// 77 and has no crate yet, so it is not in this list.
 const CORES: &[&str] = &[
     "foundation_core",

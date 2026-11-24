@@ -753,3 +753,16 @@ The two defects of the client itself are recorded, not hidden:
   and the `SandboxHost.processes` field are `#[cfg(unix)]`.
 - `proptest` is one workspace dependency. Each property test file uses one
   `ProptestConfig` with `RngSeed::Fixed(seed)`, so a failure reproduces from its seed.
+
+## Owner corrections (2026-11-25)
+
+- **One crate for the sandbox work.** The owner moved the programs and the provider facades
+  into `foundation_sandbox`. The earlier decision (D11) kept `agent-slave` in its own
+  `bin/agent_slave` package because `foundation_deployment_platform` does not build for
+  musl. That reason is gone: the `slave` feature of `foundation_sandbox` pulls neither a
+  TLS library nor the Docker client.
+- **A model runtime is a sandbox substrate.** On Cloudflare the slave can be another DO that
+  answers `SlaveService` with turns against `OpenRouter` or the Cloudflare Model API
+  (decision D16). State its limit in every document: it gives no isolation.
+- **A crate rename touches every spec.** 70 files named the old crate. Search the whole
+  tree, including the completed specifications, before the first commit.

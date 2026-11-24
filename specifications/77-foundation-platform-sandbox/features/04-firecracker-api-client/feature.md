@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["00-contract"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 04: The Firecracker API client
@@ -184,7 +184,7 @@ Feature: Firecracker API client
 
 ### 3.1 Vendor the API file
 
-1. Copy `firecracker.yaml` to `backends/foundation_platform_sandbox/specs/firecracker-v1.19.yaml`.
+1. Copy `firecracker.yaml` to `backends/foundation_sandbox/specs/firecracker-v1.19.yaml`.
    Add a `specs/README.md` with the source URL, the commit and the date.
 2. Convert it to OpenAPI 3 JSON with the Docker script. If the script has Docker-specific
    steps, move the shared part to `scripts/openapi/swagger2openapi.py` and make both crates
@@ -197,7 +197,7 @@ Feature: Firecracker API client
 cargo run --bin ewe_platform gen_api analyze --provider firecracker \
   --spec artefacts/cloud_providers/firecracker/firecracker-v1.19.json
 cargo run --bin ewe_platform gen_api generate --provider firecracker \
-  --output-dir backends/foundation_platform_sandbox/src/native/firecracker
+  --output-dir backends/foundation_sandbox/src/native/firecracker
 ```
 
 The output goes to `src/native/firecracker/generated/`. Check these points and fix the
@@ -250,7 +250,7 @@ it (`FirecrackerApi`). This feature keeps the concrete type.
 
 ## 4. Tests
 
-`backends/foundation_platform_sandbox/tests/firecracker_api_*.rs`. They use a mock HTTP
+`backends/foundation_sandbox/tests/firecracker_api_*.rs`. They use a mock HTTP
 server on a UDS. Read `backends/foundation_deployment_platform/tests/mock_socket/` and the
 Docker client tests in `backends/foundation_deployment_docker/tests/`; use the same mock.
 
@@ -274,10 +274,10 @@ Docker client tests in `backends/foundation_deployment_docker/tests/`; use the s
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --profile uat firecracker_api
-cargo check -p foundation_platform_sandbox --no-default-features --profile uat
-cargo check -p foundation_platform_sandbox --no-default-features --features libkrun --profile uat
+cargo clippy -p foundation_sandbox --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --profile uat firecracker_api
+cargo check -p foundation_sandbox --no-default-features --profile uat
+cargo check -p foundation_sandbox --no-default-features --features libkrun --profile uat
 ```
 
 The last two commands prove that the generated code and the `foundation_deployment`

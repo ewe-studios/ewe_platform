@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP-B"
 depends_on: ["06-programs-rpc-provider", "07-cloudflare-control-plane"]
-crates: ["sandbox_worker", "foundation_platform_sandbox", "foundation_deployment_platform", "foundation_deployment_cloudflare"]
+crates: ["sandbox_worker", "foundation_sandbox", "foundation_deployment_cloudflare"]
 ---
 
 # Feature 08: The Cloudflare Worker, deployment and the end-to-end path (MVP-B)
@@ -87,7 +87,7 @@ adapters, the end-to-end tests, the Cloudflare `Provider` constructor.
 | Container image | The image with `agent-slave`. | `infrastructure/sandbox_worker/Dockerfile` |
 | Deployment plan | The one description of the Worker, its bindings, DO migrations, container classes, routes and secret names. | `foundation_deployment_cloudflare::DeploymentPlan` |
 | Deploy path | `FoundationCloudflareDeployer` (primary) or `WranglerCloudflareDeployer` (fallback). | the operator picks one; both read the plan |
-| Routing rule | Which DO gets a call. | `foundation_platform_sandbox::shared::cloudflare::routing` (library) |
+| Routing rule | Which DO gets a call. | `foundation_sandbox::shared::cloudflare::routing` (library) |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
@@ -268,7 +268,7 @@ Feature: Cloudflare Worker
 
 ### 6.1 The routing rule (library)
 
-`src/shared/cloudflare/routing.rs` in `foundation_platform_sandbox`:
+`src/shared/cloudflare/routing.rs` in `foundation_sandbox`:
 
 ```rust
 pub enum RouteTarget {
@@ -300,7 +300,7 @@ explicit line; add the line if the pattern does not cover it).
 
 | File | Content |
 |---|---|
-| `Cargo.toml` | `crate-type = ["cdylib", "rlib"]`; `worker = "0.8"`; `foundation_platform_sandbox` with `default-features = false, features = ["control", "cloudflare"]`; `foundation_http` and `foundation_core` with the wasm features that `examples/cf-agent-loop/Cargo.toml` uses. |
+| `Cargo.toml` | `crate-type = ["cdylib", "rlib"]`; `worker = "0.8"`; `foundation_sandbox` with `default-features = false, features = ["control", "cloudflare"]`; `foundation_http` and `foundation_core` with the wasm features that `examples/cf-agent-loop/Cargo.toml` uses. |
 | `src/lib.rs` | The `fetch` entry. |
 | `src/sandbox_do.rs` | `#[durable_object] pub struct SandboxDo`. |
 | `src/index_do.rs` | `#[durable_object] pub struct SandboxIndexDo`. |
@@ -603,10 +603,10 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
-| I2, I3, the routing table | `route_table` (each method), `route_bad_id`, `route_unknown_method`; `route_property` (any valid id in a scoped body routes to that id) | `foundation_platform_sandbox/tests/cloudflare_routing.rs` (native) | example, identity |
+| I2, I3, the routing table | `route_table` (each method), `route_bad_id`, `route_unknown_method`; `route_property` (any valid id in a scoped body routes to that id) | `foundation_sandbox/tests/cloudflare_routing.rs` (native) | example, identity |
 | I1 | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | the same | expected outcome |
-| I7 | `worker_has_no_logic` (a source scan of `infrastructure/sandbox_worker/src` for `SandboxState`, `boot_timeout`, `retry`) | `foundation_platform_sandbox/tests/boundary_scan.rs` | example |
-| I8, "A command runs ...", "The shared acceptance scenarios pass" | `e2e_cloudflare_acceptance` | `foundation_platform_sandbox/tests/e2e_cloudflare.rs` | the shared scenarios |
+| I7 | `worker_has_no_logic` (a source scan of `infrastructure/sandbox_worker/src` for `SandboxState`, `boot_timeout`, `retry`) | `foundation_sandbox/tests/boundary_scan.rs` | example |
+| I8, "A command runs ...", "The shared acceptance scenarios pass" | `e2e_cloudflare_acceptance` | `foundation_sandbox/tests/e2e_cloudflare.rs` | the shared scenarios |
 | I1, "Every call needs the token" | `e2e_cloudflare_token` | the same | expected outcome |
 | I5, "An unknown sandbox is NotFound", "A bad sandbox id ..." | `e2e_cloudflare_not_found`, `e2e_cloudflare_bad_id` | the same | expected outcome |
 | I6, "List shows live sandboxes only" | `e2e_cloudflare_list` | the same | expected outcome |
@@ -618,7 +618,7 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 | "Stop destroys the container" | `e2e_cloudflare_stop` (checks `docker ps` for the container that `wrangler dev` made) | the same | conservation |
 | I9, "The slave and the Worker have the same version" | `e2e_cloudflare_versions` | the same | identity |
 | restart of a DO | `e2e_cloudflare_restart`: create; stop and start `wrangler dev` with the same state directory (`--persist-to`); then `Get`. The test reads `docker ps` first to know which case it is in: the container survived (then `Get` must give `Ready`, and a new command must work, with no second `Prepare` in the slave) or it did not (then `Get` must give `NotFound`, and `List` must be empty). Each case has one exact expected result. | the same | expected outcome |
-| "A provider starts a Cloudflare sandbox" | `provider_e2e_cloudflare` | `foundation_deployment_platform/tests/sandbox_provider_tests.rs` | example |
+| "A provider starts a Cloudflare sandbox" | `provider_e2e_cloudflare` | `backends/foundation_sandbox/tests/provider/` | example |
 | I10, "Both deployers apply one plan" | `deploy_plan_parity` (both adapters receive the same `DeploymentPlan`; their recorded calls name the same Worker, bindings, migrations, container class and routes) | `foundation_deployment_cloudflare/tests/deploy_plan.rs` | identity |
 | I11, "The primary deployer is the Rust path" | `default_deployer_is_foundation` | the same | example |
 | I12, "A secret never enters the plan" | `deploy_plan_has_no_secret_value`, `deploy_sets_secret_from_source` (a fake secret store; the value reaches the API and never the plan or the log) | the same | expected outcome, conservation |
@@ -647,12 +647,12 @@ result in `progress.md`.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features testing --profile uat cloudflare_routing boundary_scan
+cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features testing --profile uat cloudflare_routing boundary_scan
 ( cd infrastructure/sandbox_worker && cargo fmt --check && cargo clippy --target wasm32-unknown-unknown -- -D warnings )
 mise run sandbox:worker-image
 infrastructure/sandbox_worker/test/run.sh
-cargo test -p foundation_deployment_platform --features sandbox --profile uat provider_e2e_cloudflare
+cargo test -p foundation_sandbox --features provider --profile uat provider_e2e_cloudflare
 cargo test -p foundation_deployment_cloudflare --profile uat deploy_
 ```
 

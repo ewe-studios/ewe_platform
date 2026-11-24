@@ -232,7 +232,7 @@ _The diagram shows the two Cloudflare shapes and the two spec 77 surfaces that s
 | 3 | `foundation_connectrpc` | Implement `shared/transport/wasm.rs` (the F24 fetch transport) | A capabilities stub (`shared/transport/wasm.rs:1-5`) | 05 T19 |
 | 4 | `foundation_netio` | None (use the existing code) | `FetchHttpClient` and `HttpClientBuilder` already exist (wired by `00-foundation`) | 05 T19 |
 | 5 | `foundation_deployment_cloudflare` | **None.** Call the spec 77 deployer. | The deployer and the plan are in spec 77 feature 08 | T6 |
-| 6 | `foundation_platform_sandbox` | **None.** Call the spec 77 handle. | `ContainerControl` and `ContainerHandle` are in spec 77 feature 00 | T6 |
+| 6 | `foundation_sandbox` | **None.** Call the spec 77 handle. | `ContainerControl` and `ContainerHandle` are in spec 77 feature 00 | T6 |
 
 ### Component Details
 
