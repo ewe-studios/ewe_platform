@@ -196,3 +196,15 @@ Compare the [Android capture](design/android-search-before.png) and [iPhone capt
 7. Move controls above the keyboard. Allow vertical scrolling at large text sizes. Preserve draft, submit, and cancel behavior.
 8. Verify both mobile hosts with empty and populated queries. Check light and dark appearances, large text, and keyboard transitions.
 9. Capture the open sheet with and without the keyboard. Verify that no strip of the list shows below the sheet.
+
+### Search and entry checks
+
+Todo Server and Todo On Device use the same search control on each platform.
+Typing filters the visible list. Clearing the query restores matching rows for the selected status filter.
+Pending titles follow the same search rules as confirmed titles.
+
+| Device | Search | Entry and keyboard |
+|---|---|---|
+| Pixel | [Light](design/android-search-light.png) and [large dark text](design/android-search-dark-large.png) | [Search with the keyboard open](design/android-search-keyboard.png) |
+| iPhone | [Light](design/ios-native-search.png) and [large dark text](design/ios-dark-native-search.png) | [Attached sheet](design/ios-entry-attached.png) and [keyboard](design/ios-entry-keyboard.png) |
+| iPhone with large dark text | [Search](design/ios-dark-native-search.png) | [Attached sheet](design/ios-dark-entry-attached.png) and [keyboard](design/ios-dark-entry-keyboard.png) |

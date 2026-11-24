@@ -1088,3 +1088,6 @@ The same emulator connected in 47 seconds when its macOS service selected intera
 
 The Android on-device build leaves new tasks pending without a server. [Issue 821](https://github.com/ewe-studios/ewe_platform/issues/821)
 Light mode uses white system status icons above a light background. [Issue 819](https://github.com/ewe-studios/ewe_platform/issues/819)
+
+The iPhone test closes its application during cleanup. A successful test does not establish what the owner sees afterward.
+Open Todo Server after the last test. Check a new simulator screenshot for the expected task titles after startup.

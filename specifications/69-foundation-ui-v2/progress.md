@@ -1343,3 +1343,10 @@ Todo Server displays two tasks with an empty query. Search for “Review” disp
 The server test uses a local relay that rejects writes. Both original tasks remain on the shared server.
 
 Compare the [light screen](features/23-native-design-and-themes/design/android-search-light.png), [open keyboard](features/23-native-design-and-themes/design/android-search-keyboard.png), and [large dark text](features/23-native-design-and-themes/design/android-search-dark-large.png).
+
+### iPhone search and sheet verification
+
+Both iPhone Todo hosts pass their search checks. The on-device test runs in light and dark appearances.
+The large-text test checks that the keyboard leaves both sheet buttons visible.
+The sheet reaches the physical bottom edge when the keyboard closes.
+After the tests, the iPhone and Pixel show both original tasks from the server on port 8181.
