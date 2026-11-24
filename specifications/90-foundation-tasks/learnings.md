@@ -332,3 +332,6 @@ The new task keeps the child status and checks for test records after saving the
 
 An Apple archive groups architectures by platform and target type. The five target architectures occupy three library entries.
 Check the library and module map in each entry, then compare the archive digest with Swift Package Manager.
+
+The default Cargo file list omitted four hidden template files from a source export.
+An explicit templates/** include rule preserves them. Compare the package list with every file under the template directory.

@@ -502,3 +502,7 @@ The native Apple release task built the complete 254 MiB XCFramework archive on 
 Its libraries cover arm64 iOS, arm64 and x86_64 iOS simulators, and arm64 and x86_64 macOS.
 All archive members passed integrity checks. Swift Package Manager reported the same digest as an independent file check.
 The local archive has SHA-256 digest `3755f61952e2cc1e87cc8d7d001e50999997ffc459797552559c3e559d30ea49`.
+
+Cargo now includes all 68 generator templates in a clean source package.
+The package includes both Android ignore files and the Cargo configuration files for the web and API templates.
+A CLI installation built from the listed package inputs generated an independent Android project with its ignore file.

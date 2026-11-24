@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Generate Ewe application projects from embedded templates"
+include = ["src/**", "templates/**", "build.rs", "mobile-release.toml"]
 
 [dependencies]
 clap.workspace = true

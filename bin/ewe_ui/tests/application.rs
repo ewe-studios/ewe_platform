@@ -41,6 +41,7 @@ fn compose_every_selection_and_share_native_inputs() {
             assert!(!core.contains("foundation_resources"));
         }
         if mask & 2 != 0 {
+            assert!(root.join("android/.gitignore").is_file());
             assert!(
                 std::fs::read_to_string(root.join("android/app/build.gradle.kts"))
                     .unwrap()
