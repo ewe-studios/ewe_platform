@@ -1340,7 +1340,6 @@ All three Rust mobile tests pass. The runtime suite passes all 80 tests.
 
 The Pixel emulator passes the search control test. The test checks editing, keyboard submission, clearing, restored values, and disabled controls.
 Todo Server displays two tasks with an empty query. Search for “Review” displays the matching task. Clear restores both tasks.
-The on-device and server examples also pass the pending task checks. Search for “milk” hides “Buy bread” and keeps “Pick milk”.
 The server test uses a local relay that rejects writes. Both original tasks remain on the shared server.
 
 Compare the [light screen](features/23-native-design-and-themes/design/android-search-light.png), [open keyboard](features/23-native-design-and-themes/design/android-search-keyboard.png), and [large dark text](features/23-native-design-and-themes/design/android-search-dark-large.png).

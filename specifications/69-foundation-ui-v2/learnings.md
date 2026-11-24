@@ -1086,6 +1086,5 @@ An older application library requests the ordinary text field for compatibility.
 The Pixel emulator received 17 seconds of processor time in 12 minutes under default service scheduling.
 The same emulator connected in 47 seconds when its macOS service selected interactive scheduling.
 
-Pending additions use separate rows. Each host needs a test that filters pending titles and restores them when search clears.
 The Android on-device build leaves new tasks pending without a server. [Issue 821](https://github.com/ewe-studios/ewe_platform/issues/821)
 Light mode uses white system status icons above a light background. [Issue 819](https://github.com/ewe-studios/ewe_platform/issues/819)
