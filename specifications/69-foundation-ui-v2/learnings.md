@@ -1180,3 +1180,9 @@ A prefix-only proxy exposes root-relative requests that a resource-only browser 
 
 A Compose accessibility label on an Android view wrapper can disappear from the device accessibility tree.
 Set the description on the native drawing surface when its label changes.
+
+### Android live channel recovery
+
+The Android connection manager reports a new connection before the next frame arrives.
+The screen must clear the failure for that mount when it receives the connection event.
+Named views can reuse a numeric node identifier. Each channel failure must also identify the view that owns the node.

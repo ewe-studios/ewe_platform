@@ -1486,3 +1486,14 @@ The production executable rejected the removed `--data-only` flag. These checks 
 
 The Android drawing surface exposes its label to accessibility services.
 On Android 36, the installed Todo app reported “Mathalley game” on its native surface after the first frame.
+
+### Android live channel recovery
+
+The Android host clears a channel failure when that mount reconnects. Other mounts and action errors keep their own state.
+All 19 Android core tests passed. The new test covers two failed mounts and a reused node identifier.
+Two Android 36 emulators showed the Todo connection failure and cleared it automatically.
+The full Pixel captures show the top of the screen and the two test rows.
+The banner and its Retry button disappeared when the stream reconnected. The server received one initial view request.
+[Issue 849](https://github.com/ewe-studios/ewe_platform/issues/849) tracks the banner text that overlaps the Android status bar.
+
+[Interrupted stream](features/32-portable-view-targets/screenshots/android-channel-offline.png) · [Recovered stream](features/32-portable-view-targets/screenshots/android-channel-recovered.png)

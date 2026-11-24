@@ -136,15 +136,19 @@ private fun EweHost(
 private class ScreenHost(val store: NodeStore, private val loading: String) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val cleanup = mutableListOf<() -> Unit>(store::close)
-    var status by mutableStateOf(loading)
-        private set
+    private var screenStatus by mutableStateOf(loading)
+    private val channelFailures = androidx.compose.runtime.mutableStateMapOf<Pair<NodeStore, UInt>, String>()
+    val status: String
+        get() = if (screenStatus == loading || screenStatus.isEmpty()) {
+            channelFailures.values.firstOrNull() ?: screenStatus
+        } else screenStatus
     var graphics: (() -> io.github.ewe_studios.ewe.core.NativeGraphics)? = null
         private set
     var bridge by mutableStateOf<EventBridge?>(null)
         private set
 
     init {
-        store.onError = { code, message -> status = "$code $message" }
+        store.onError = { code, message -> screenStatus = "$code $message" }
     }
 
     fun start(setup: suspend (ScreenHost) -> Unit) {
@@ -154,7 +158,7 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Exception) {
-                status = error.message ?: "Screen setup failed"
+                screenStatus = error.message ?: "Screen setup failed"
             }
         }
     }
@@ -204,7 +208,11 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
                 onClose: (Throwable?) -> Unit,
             ): Channel = error("A local screen cannot open a remote channel")
         }
-        val mounts = LiveMountHost(store, factory, manager)
+        val mounts = LiveMountHost(store, factory, manager) { owner, id, message ->
+            val key = owner to id
+            if (message == null) channelFailures.remove(key)
+            else channelFailures[key] = "ChannelFailed $message"
+        }
         onClose(mounts::close)
         return binding
     }
@@ -215,17 +223,17 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
 
     suspend fun loadView(load: suspend () -> ByteArray) {
         val loader = store.registerLoader(scope, load = load)
-        loader.onInstalled = { status = "" }
+        loader.onInstalled = { screenStatus = "" }
         loader.open()
     }
 
     suspend fun retryView() {
         store.recovery?.retry()
-        status = ""
+        screenStatus = ""
     }
 
     fun applyInitial(frame: ByteArray) {
-        if (status == loading) status = ""
+        if (screenStatus == loading) screenStatus = ""
         apply(frame, "initial")
     }
 
