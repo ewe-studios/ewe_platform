@@ -170,12 +170,12 @@ jobs:
             echo "::error::CARGO_REGISTRY_TOKEN is not set; cannot publish to crates.io"
             exit 1
           fi
-          # Defaults: 5 failures in a row with no new tag, backoff 30 s to
-          # 15 min. The deadline (300 min) stays below the job timeout.
-          python3 scripts/ci/publish_with_retry.py \
-            --deadline 18000 \
-            --progress-cmd "git ls-remote --tags origin" \
-            -- release-plz release --git-token "$GITHUB_TOKEN"
+          # Publish in dependency order, dev-dependency cycles included
+          # (issue #468). The script retries a rate limit itself. The final
+          # `release-plz release` pass is idempotent: it creates a tag or a
+          # GitHub release that the publisher did not.
+          python3 scripts/ci/publish_crates.py --deadline-seconds 15000
+          release-plz release --git-token "$GITHUB_TOKEN"
 
       - name: Start the binary release for a new ewe_platform tag
         # Also after a failed publish: the ewe_platform crate may be out.
