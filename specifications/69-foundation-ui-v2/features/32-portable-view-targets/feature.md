@@ -272,7 +272,7 @@ Chrome and the other phone then show the same row.
 
 Keep confirmed records in the in-memory display cache. The server supplies a snapshot and its stream position on startup.
 Use the host context to supply a writable key-value store. Give each pending operation its own key.
-Scope keys by account and server. Store the stable creation identifier, intent, input, and delivery status.
+Scope Todo keys by server. Store the stable creation identifier, intent, input, and delivery status.
 Load pending keys by prefix. Reconcile them with the snapshot and subsequent typed deliveries.
 Keep the existing identifier on retry. A snapshot alone cannot distinguish a delayed request from a lost one.
 Remove an entry after the server confirms its outcome. Keep deletion receipts so delayed additions cannot recreate removed records.

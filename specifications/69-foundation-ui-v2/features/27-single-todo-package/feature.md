@@ -146,7 +146,7 @@ Document both builders in their crate READMEs. Keep the existing native construc
 The application can pass a ready sender or give Rust a provider during setup.
 A provider is a native object that returns a transport handle for a named service.
 Swift or Kotlin implements the provider. Rust requests the handle once when it builds the screen.
-The native provider selects the account and endpoint for that service.
+The native provider selects the endpoint for that service.
 
 For a ready action sender, adapt the native handle to the Rust action transport.
 For a Connect remote procedure call (RPC), request the native network client and build the Connect sender in Rust.
