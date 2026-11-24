@@ -1,0 +1,89 @@
+[package]
+name = "foundation_registrar"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Registrar sidecar: read the manifest, discover and probe the apps, read their metrics and report them to the proxy registration authority"
+keywords = ["registrar", "sidecar", "proxy", "registration", "discovery"]
+
+[dependencies]
+derive_more = { workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+# Enrollment, the certificate signing request, the mutual-TLS (mTLS) client
+# configurations and the server proof (spec 81 / 87).
+foundation_auth = { path = "../foundation_auth", version = "0.0.15" }
+# The `ErrorTrace` type of a failed Connect call.
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+# The HTTP client, the Unix-socket transport and the HTTP/2 gRPC health probe.
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["ssl", "multi"] }
+# The generated registration client and the gRPC health probe.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16" }
+# Docker discovery and stats through the generated client.
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
+# SIGTERM and SIGHUP reception for the binary's lifecycle.
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.15" }
+# Runtime for the buffa-generated registration messages (same version as the
+# generated code the build script emits).
+buffa = { version = "0.9.2", features = ["json"] }
+# The generated service code names `futures::Stream`.
+futures = "0.3"
+futures-lite = "2"
+futures-util = { workspace = true }
+bytes = "1"
+async-trait = "0.1.91"
+clap = { version = "4.5", features = ["derive", "env"] }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = "0.10"
+base64 = "0.22"
+# The client certificate's validity window, for renewal at two thirds.
+x509-parser = { workspace = true }
+# The `rustls` client configuration type that `foundation_auth` returns.
+rustls = { workspace = true }
+zeroize = "1"
+tracing = { workspace = true }
+
+[build-dependencies]
+# Message types from the proxy's `registration.proto` (buffa-build needs
+# `protoc`) and ConnectRPC service stubs.
+buffa-build = "0.9.2"
+foundation_connectrpc_codegen = { path = "../foundation_connectrpc_codegen", version = "0.0.5" }
+prost = "0.12"
+prost-types = "0.12"
+
+[dev-dependencies]
+# The clock injection tests move a `SimulatedClock`; `test-clock` exposes it.
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
+# The real registration authority, for the enrollment and end-to-end tests.
+foundation_proxy = { path = "../foundation_proxy", version = "0.2.0" }
+# The installer's Docker deploy target for the end-to-end test.
+foundation_installer = { path = "../foundation_installer", version = "0.0.1" }
+# The proxy's shutdown signal in the client tests.
+foundation_http = { path = "../foundation_http", version = "0.0.16", features = ["multi", "ssl"] }
+futures-lite = "2"
+tempfile = "3"
+tracing-subscriber = { workspace = true }
+
+[features]
+default = []
+# Run the end-to-end test that installs a container and serves it through the
+# proxy. It skips itself when no Docker daemon answers.
+docker-tests = []
+
+[[bin]]
+name = "ewe-registrar"
+path = "src/bin/ewe-registrar.rs"
+
+[[test]]
+name = "register_e2e_tests"
+path = "tests/register_e2e_tests.rs"
+required-features = ["docker-tests"]
+
+[lints]
+workspace = true

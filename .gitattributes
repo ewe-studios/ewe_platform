@@ -1,0 +1,6 @@
+# Shell scripts and their templates must keep LF on every operating system.
+# They run on Unix hosts, and a CRLF checkout breaks their here-document
+# markers and the generated systemd units.
+*.sh text eol=lf
+*.j2 text eol=lf
+*.service text eol=lf

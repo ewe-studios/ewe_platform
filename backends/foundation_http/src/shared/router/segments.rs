@@ -28,6 +28,9 @@ pub type RouteResult<T> = Result<T, RouteOp>;
 #[derive(Clone, Debug)]
 pub enum RouteOp {
     NoMatchingRoute(String),
+    /// The path matched a route node, but that node has no handler for the
+    /// request method. A caller answers 405, not 404.
+    MethodNotAllowed,
     InvalidSegment,
     InvalidRouteRegex(regex::Error),
     InvalidParamRestraintMatcher(String),
@@ -53,6 +56,7 @@ impl std::fmt::Display for RouteOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RouteOp::NoMatchingRoute(p) => write!(f, "no matching route for path: {p}"),
+            RouteOp::MethodNotAllowed => write!(f, "method not allowed for the matched path"),
             RouteOp::InvalidSegment => write!(f, "invalid route segment"),
             RouteOp::InvalidRouteRegex(e) => write!(f, "invalid route regex: {e}"),
             RouteOp::InvalidParamRestraintMatcher(s) => write!(f, "invalid param restraint: {s}"),
@@ -548,9 +552,23 @@ impl<S> RouteSegment<S> {
     /// # Errors
     ///
     /// Returns [`RouteOp::NoMatchingRoute`] if the route does not match any
-    /// registered pattern, or [`RouteOp::DidNotMatchExpected`] if a regex
+    /// registered pattern, [`RouteOp::MethodNotAllowed`] if the path matches but
+    /// the method does not, or [`RouteOp::DidNotMatchExpected`] if a regex
     /// parameter fails to match.
     pub fn match_route(&self, method: &SimpleMethod, route: &str) -> RouteResult<S>
+    where
+        S: Clone,
+    {
+        let (matched, _params) = self.match_path(route)?;
+        matched.method.get_method(method)
+    }
+
+    /// Match `route` to a node without checking the method.
+    ///
+    /// WHY: a method miss needs the node's other methods for the `Allow` header
+    /// of a 405 response.
+    /// HOW: the same path walk that [`Self::match_route`] uses.
+    fn match_path(&self, route: &str) -> RouteResult<(Self, Params)>
     where
         S: Clone,
     {
@@ -560,8 +578,22 @@ impl<S> RouteSegment<S> {
             .map(|t| SegmentType::try_from(*t))
             .collect::<Result<_, _>>()?;
 
-        let (matched, _params) = self.match_routes_from(route_segments, HashMap::new())?;
-        matched.method.get_method(method)
+        self.match_routes_from(route_segments, HashMap::new())
+    }
+
+    /// The methods that `route` supports.
+    ///
+    /// An empty list means no path matched. The order is the `Allow` header
+    /// order of [`RouteMethod::allowed_methods`].
+    #[must_use]
+    pub fn allowed_methods(&self, route: &str) -> Vec<String>
+    where
+        S: Clone,
+    {
+        match self.match_path(route) {
+            Ok((matched, _params)) => matched.method.allowed_methods(),
+            Err(_) => Vec::new(),
+        }
     }
 
     fn match_routes_from(
@@ -603,8 +635,19 @@ impl<S> RouteSegment<S> {
             }
         } else {
             self.validate_against_self(&next_segment_type, &mut params)?;
+            let fallback = self.dynamic_routes.iter().find(|child| child.segment == SegmentType::AnyPath);
+            let saved = fallback.map(|child| (child, params.clone()));
             let next = self.get_matching_segment_route(&remaining[0], &mut params)?;
-            Self::match_routes_from(next, remaining, params)
+            let result = Self::match_routes_from(next, remaining, params);
+            match (result, saved) {
+                (Ok((route, _)), Some((fallback, params))) if !route.method.has_any() => {
+                    Ok((fallback.clone(),params))
+                }
+                (Err(RouteOp::NoMatchingRoute(_) | RouteOp::DidNotMatchExpected(..)), Some((fallback, params))) => {
+                    Ok((fallback.clone(),params))
+                }
+                (result, _) => result,
+            }
         }
     }
 

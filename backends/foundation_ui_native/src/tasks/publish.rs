@@ -312,25 +312,7 @@ pub(super) async fn run(
             TaskError::operation("Configure the trusted fingerprint and Central credentials")
         })?;
     let android = dir.join(sign::ANDROID);
-    let keyring = if let Some(key) = public_key {
-        let dir = tempfile::tempdir().map_err(TaskError::operation)?;
-        ctx.exec(
-            sign::gpg(Some(dir.path()))
-                .args(["--batch", "--import"])
-                .arg(key),
-        )
-        .await?;
-        Some(dir)
-    } else {
-        None
-    };
-    sign::verified(
-        ctx,
-        &android,
-        &credentials.fingerprint,
-        keyring.as_ref().map(tempfile::TempDir::path),
-    )
-    .await?;
+    verify_signatures(ctx, &android, &credentials.fingerprint, public_key).await?;
     let tag = format!("native-ui-v{}", cfg.version);
     let reg = Registry {
         ctx,
@@ -398,6 +380,51 @@ pub(super) async fn run(
     for file in files {
         reg.upload(&file, &known).await?;
     }
+    let id = central_deployment(&reg, &recovery, temp.path(), &known, existing, &android).await?;
+    if !already {
+        wait_for_publication(&reg, &id, &recovery.name, timeout, interval).await?;
+    }
+    if info.as_ref().and_then(|v| v["draft"].as_bool()) == Some(true) {
+        ctx.exec(reg.release("edit").arg("--draft=false")).await?;
+    }
+    publish_swift_tag(&reg, &cfg.version, swift_id, source, &rec).await
+}
+
+async fn verify_signatures(
+    ctx: &TaskContext,
+    android: &Path,
+    fingerprint: &str,
+    public_key: Option<&Path>,
+) -> TaskResult {
+    let keyring = if let Some(key) = public_key {
+        let dir = tempfile::tempdir().map_err(TaskError::operation)?;
+        ctx.exec(
+            sign::gpg(Some(dir.path()))
+                .args(["--batch", "--import"])
+                .arg(key),
+        )
+        .await?;
+        Some(dir)
+    } else {
+        None
+    };
+    sign::verified(
+        ctx,
+        android,
+        fingerprint,
+        keyring.as_ref().map(tempfile::TempDir::path),
+    )
+    .await
+}
+
+async fn central_deployment(
+    reg: &Registry<'_>,
+    recovery: &Recovery,
+    temp: &Path,
+    known: &BTreeMap<String, String>,
+    existing: Option<String>,
+    android: &Path,
+) -> Result<String, TaskError> {
     let pending_asset = "central-deployment-pending.json";
     let mut pending_remote = known.contains_key(pending_asset);
     let id = if let Some(id) = existing {
@@ -405,14 +432,14 @@ pub(super) async fn run(
     } else {
         let record = json!({"name":recovery.name});
         store(&recovery.pending, &record)?;
-        let remote = temp.path().join(pending_asset);
+        let remote = temp.join(pending_asset);
         store(&remote, &record)?;
-        reg.upload(&remote, &known).await?;
+        reg.upload(&remote, known).await?;
         pending_remote = true;
         let id = reg
             .central(
                 &format!("upload?name={}&publishingType=USER_MANAGED", recovery.name),
-                Some(&android),
+                Some(android),
             )
             .await
             .map_err(|_| {
@@ -429,70 +456,88 @@ pub(super) async fn run(
         let saved = json!({"name":recovery.name,"id":id});
         store(&recovery.local, &saved)?;
         store(&recovery.remote, &saved)?;
-        reg.upload(&recovery.remote, &known).await?;
+        reg.upload(&recovery.remote, known).await?;
     }
     if pending_remote {
-        ctx.exec(reg.release("delete-asset").args([pending_asset, "--yes"]))
+        reg.ctx
+            .exec(reg.release("delete-asset").args([pending_asset, "--yes"]))
             .await?;
     }
     if recovery.pending.exists() {
         fs::remove_file(&recovery.pending).map_err(TaskError::operation)?;
     }
-    if !already {
-        let clock = ctx.context().clock();
-        let start = clock.elapsed();
-        loop {
-            if clock.elapsed().saturating_sub(start) >= Duration::from_secs(timeout) {
-                return Err(TaskError::operation(
-                    "Central deployment is still pending. Resume this candidate.",
-                ));
-            }
-            match reg.status(&id, &recovery.name).await?.as_str() {
-                "PUBLISHED" => break,
-                "VALIDATED" => {
-                    reg.central(&format!("deployment/{id}"), None).await?;
-                }
-                "PENDING" | "VALIDATING" | "PUBLISHING" => {}
-                state => {
-                    return Err(TaskError::operation(format!(
-                        "Unexpected Central deployment state: {state}"
-                    )))
-                }
-            }
-            super::device::sleep(ctx, Duration::from_secs(interval)).await?;
+    Ok(id)
+}
+
+async fn wait_for_publication(
+    reg: &Registry<'_>,
+    id: &str,
+    name: &str,
+    timeout: u64,
+    interval: u64,
+) -> TaskResult {
+    let clock = reg.ctx.context().clock();
+    let start = clock.elapsed();
+    loop {
+        if clock.elapsed().saturating_sub(start) >= Duration::from_secs(timeout) {
+            return Err(TaskError::operation(
+                "Central deployment is still pending. Resume this candidate.",
+            ));
         }
+        match reg.status(id, name).await?.as_str() {
+            "PUBLISHED" => break,
+            "VALIDATED" => {
+                reg.central(&format!("deployment/{id}"), None).await?;
+            }
+            "PENDING" | "VALIDATING" | "PUBLISHING" => {}
+            state => {
+                return Err(TaskError::operation(format!(
+                    "Unexpected Central deployment state: {state}"
+                )))
+            }
+        }
+        super::device::sleep(reg.ctx, Duration::from_secs(interval)).await?;
     }
-    if info.as_ref().and_then(|v| v["draft"].as_bool()) == Some(true) {
-        ctx.exec(reg.release("edit").arg("--draft=false")).await?;
-    }
-    if swift_id != source && !reg.tag_matches(&cfg.version, swift_id).await? {
+    Ok(())
+}
+
+async fn publish_swift_tag(
+    reg: &Registry<'_>,
+    version: &str,
+    swift_id: &str,
+    source: &str,
+    rec: &Value,
+) -> TaskResult {
+    if swift_id != source && !reg.tag_matches(version, swift_id).await? {
         let clone = tempfile::tempdir().map_err(TaskError::operation)?;
-        ctx.exec(
-            ProcessCommand::new("git")
-                .args(["clone", "--quiet", "--no-checkout"])
-                .arg(format!("https://github.com/{}.git", cfg.repository))
-                .arg(clone.path()),
-        )
-        .await?;
-        if swift::commit(ctx, clone.path(), source, field(&rec, "swift_manifest")?).await?
+        reg.ctx
+            .exec(
+                ProcessCommand::new("git")
+                    .args(["clone", "--quiet", "--no-checkout"])
+                    .arg(format!("https://github.com/{}.git", reg.repo))
+                    .arg(clone.path()),
+            )
+            .await?;
+        if swift::commit(reg.ctx, clone.path(), source, field(rec, "swift_manifest")?).await?
             != swift_id
         {
             return Err(TaskError::operation(
                 "Swift release metadata differs from the staged commit",
             ));
         }
-        ctx.exec(ProcessCommand::new("git").current_dir(clone.path()).args([
-            "-c",
-            "credential.helper=",
-            "-c",
-            "credential.helper=!gh auth git-credential",
-            "push",
-            "origin",
-            &format!("{swift_id}:refs/tags/{}", cfg.version),
-        ]))
-        .await?;
+        reg.ctx
+            .exec(ProcessCommand::new("git").current_dir(clone.path()).args([
+                "-c",
+                "credential.helper=",
+                "-c",
+                "credential.helper=!gh auth git-credential",
+                "push",
+                "origin",
+                &format!("{swift_id}:refs/tags/{version}"),
+            ]))
+            .await?;
     } else {
-        reg.add_tag(&cfg.version, swift_id).await?;
+        reg.add_tag(version, swift_id).await?;
     }
     Ok(())
 }

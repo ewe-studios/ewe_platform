@@ -1,0 +1,65 @@
+# Standalone wasm test crate for foundation_connectrpc (spec 88 feature 03).
+# Spec 85 created it for the streaming sink; feature 03 extends it with the
+# router, the sink contract, the error model, the deadline and the transport.
+# It is outside the root workspace because the crate's own test targets cannot
+# build for wasm32: its dev-dependency `foundation_testing` pulls `socket2`
+# (issue #576), and `foundation_core/multi` is native-only.
+#
+#   cargo run -p foundation_testbed --features wasm --profile uat \
+#     --bin wasm-testbed -- test bindgen-deno \
+#     backends/foundation_connectrpc/integration/wasm
+#
+# Keep this file the only test target (rule R10).
+[package]
+name = "foundation_connectrpc_wasm_tests"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[dependencies]
+# `rpc` is the wasm-safe feature set: the default `rpc_multi` turns on
+# `foundation_core/multi`, which is a hard error on wasm (spec 88 LEARNINGS 7).
+foundation_connectrpc = { path = "../..", default-features = false, features = ["rpc", "wasm-fetch"] }
+# The wasm fetch client. The cases build H1Transport over it (feature 03 T5).
+foundation_netio = { path = "../../../foundation_netio", default-features = false, features = ["wasm-fetch"] }
+# The spec 85 streaming-sink cases use the foundation_http Cloudflare bridge.
+foundation_http = { path = "../../../foundation_http", default-features = false, features = ["wasm", "wasm-bindgen-http"] }
+# The valtron engine drives the transport task (feature 03 T5), and the clock
+# type names the deadline (root rule 11).
+foundation_core = { path = "../../../foundation_core", default-features = false, features = ["std", "js-wasmbindgen"] }
+# The wasm-bindgen harness supplies the clock and entropy through wasm-bindgen
+# glue. Do NOT turn on `host-abi` here: it imports the owned `abi` module, which
+# this host does not supply (measured on Deno: "Import \"abi\" not a dependency").
+foundation_context = { path = "../../../foundation_context" }
+foundation_compact = { path = "../../../foundation_compact", default-features = false }
+futures = "0.3"
+bytes = "1"
+serde_json = "1"
+# Pinned to the versions foundation_testbed pins and the testbed's CI installs:
+# the wasm-bindgen CLI must be >= the crate it processes (0.2.130 exactly here).
+wasm-bindgen = "=0.2.130"
+wasm-bindgen-futures = "=0.4.80"
+js-sys = "=0.3.107"
+web-sys = { version = "=0.3.107", features = [
+    "console",
+    "Headers",
+    "Location",
+    "Request",
+    "RequestInit",
+    "Response",
+    "ResponseInit",
+    "ReadableStream",
+    "ReadableStreamDefaultReader",
+    "ReadableStreamDefaultController",
+    "UnderlyingSource",
+    "Window",
+] }
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.80"
+futures-lite = "2"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]

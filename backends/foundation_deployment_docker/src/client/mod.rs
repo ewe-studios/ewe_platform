@@ -371,6 +371,7 @@ impl DockerClient {
     ///
     /// Never panics.
     #[must_use]
+    #[cfg(unix)]
     pub fn connect_unix(socket_path: impl Into<PathBuf>) -> Self {
         let socket_path = socket_path.into();
         // Docker's blocking endpoints (stop, wait, restart) may not send
@@ -544,10 +545,23 @@ impl DockerClient {
     pub fn connect_with_defaults() -> Result<Self, DockerError> {
         let host = std::env::var("DOCKER_HOST").unwrap_or_default();
         if host.is_empty() {
+            #[cfg(unix)]
             return Ok(Self::connect_unix(DEFAULT_DOCKER_SOCKET));
+            #[cfg(not(unix))]
+            return Err(DockerError::Unavailable(
+                "this build has no default Docker transport on this operating system; \
+                 set DOCKER_HOST"
+                    .to_string(),
+            ));
         }
         if let Some(path) = host.strip_prefix("unix://") {
+            #[cfg(unix)]
             return Ok(Self::connect_unix(path));
+            #[cfg(not(unix))]
+            return Err(DockerError::Unavailable(
+                "the unix:// Docker transport is not available on this operating system"
+                    .to_string(),
+            ));
         }
         if let Some(addr) = host.strip_prefix("tcp://") {
             // TLS when DOCKER_TLS_VERIFY is set, or a DOCKER_CERT_PATH is given.

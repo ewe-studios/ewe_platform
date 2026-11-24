@@ -8,6 +8,10 @@ use std::{collections::BTreeMap, ffi::OsString, sync::Arc};
 mod process;
 pub use process::*;
 pub mod build;
+#[cfg(feature = "install")]
+pub mod install;
+#[cfg(feature = "scripts")]
+pub mod scripts;
 pub use foundation_macros::{task_entry as task, tasks};
 
 pub type TaskResult = Result<(), TaskError>;
@@ -134,8 +138,8 @@ struct Definition {
 
 pub struct TaskSet {
     owner: &'static str,
-    namespace: Option<&'static str>,
-    tasks: BTreeMap<&'static str, Definition>,
+    namespace: Option<String>,
+    tasks: BTreeMap<String, Definition>,
     aliases: Vec<(&'static str, Vec<&'static str>)>,
     groups: BTreeMap<&'static str, String>,
 }
@@ -153,8 +157,8 @@ impl TaskSet {
     }
 
     #[must_use]
-    pub fn with_namespace(mut self, namespace: &'static str) -> Self {
-        self.namespace = Some(namespace);
+    pub fn with_namespace(mut self, namespace: impl Into<String>) -> Self {
+        self.namespace = Some(namespace.into());
         self
     }
 
@@ -185,7 +189,7 @@ impl TaskSet {
     /// Rejects invalid or duplicate names.
     pub fn add_command<F, Fut>(
         &mut self,
-        name: &'static str,
+        name: &str,
         summary: impl Into<String>,
         command: Command,
         handler: F,
@@ -199,7 +203,7 @@ impl TaskSet {
             return Err(conflict(name, self.owner, self.owner));
         }
         self.tasks.insert(
-            name,
+            name.to_owned(),
             Definition {
                 command,
                 summary: summary.into(),
@@ -268,7 +272,7 @@ pub struct TaskRunner {
     about: &'static str,
     tasks: BTreeMap<String, (&'static str, Definition)>,
     aliases: BTreeMap<Vec<&'static str>, (&'static str, String)>,
-    namespaces: BTreeMap<&'static str, &'static str>,
+    namespaces: BTreeMap<String, &'static str>,
     groups: BTreeMap<&'static str, String>,
 }
 
@@ -302,7 +306,7 @@ impl TaskRunner {
     /// # Errors
     /// Rejects invalid names and any conflict with earlier registrations.
     pub fn register(&mut self, set: TaskSet) -> TaskResult {
-        if let Some(namespace) = set.namespace {
+        if let Some(namespace) = set.namespace.as_deref() {
             validate_name(namespace)?;
             if let Some(&owner) = self.namespaces.get(namespace) {
                 if owner != set.owner {
@@ -311,14 +315,15 @@ impl TaskRunner {
             }
         }
         let mut qualified = BTreeMap::new();
-        for &name in set.tasks.keys() {
+        for name in set.tasks.keys() {
             let full = set
                 .namespace
-                .map_or_else(|| name.into(), |ns| format!("{ns}:{name}"));
+                .as_deref()
+                .map_or_else(|| name.clone(), |ns| format!("{ns}:{name}"));
             if let Some((owner, _)) = self.tasks.get(full.as_str()) {
                 return Err(conflict(&full, owner, set.owner));
             }
-            qualified.insert(name, full);
+            qualified.insert(name.clone(), full);
         }
         let mut pending_paths = BTreeMap::new();
         for (name, path) in set.aliases {
@@ -334,7 +339,7 @@ impl TaskRunner {
         }
         for (name, definition) in set.tasks {
             self.tasks
-                .insert(qualified[name].clone(), (set.owner, definition));
+                .insert(qualified[&name].clone(), (set.owner, definition));
         }
         for (path, (owner, name)) in pending_paths {
             self.aliases.insert(path, (owner, name));
@@ -346,7 +351,22 @@ impl TaskRunner {
         Ok(())
     }
 
-    fn root_command(&self) -> Command {
+    /// Let this executable replace the default help command with a registered guide.
+    ///
+    /// # Errors
+    /// Returns an error when the named task does not exist.
+    pub fn use_help_task(&mut self, name: &str) -> TaskResult {
+        let (owner, _) = self
+            .tasks
+            .get(name)
+            .ok_or_else(|| TaskError::InvalidName(name.into()))?;
+        self.aliases.insert(vec!["help"], (*owner, name.to_owned()));
+        Ok(())
+    }
+
+    /// Return the command tree used by the dispatcher and help.
+    #[must_use]
+    pub fn root_command(&self) -> Command {
         let mut run = Command::new("run")
             .about("Run a named task")
             .subcommand_required(true);
@@ -357,7 +377,11 @@ impl TaskRunner {
             .about("List tasks or run a named task")
             .subcommand_required(true)
             .disable_help_subcommand(true)
-            .subcommand(Command::new("ls").about("List available tasks"))
+            .subcommand(
+                Command::new("ls")
+                    .visible_alias("list")
+                    .about("List available tasks"),
+            )
             .subcommand(
                 Command::new("help")
                     .about("Show task help")
@@ -366,6 +390,7 @@ impl TaskRunner {
             .subcommand(run);
         let mut root = Command::new(self.label)
             .about(self.about)
+            .disable_help_subcommand(self.aliases.contains_key(&vec!["help"]))
             .subcommand_required(true)
             .subcommand(task);
         let mut paths = CommandPaths::default();

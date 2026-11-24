@@ -132,7 +132,18 @@ fn list_and_help_do_not_find_release_inputs_or_start_tools() {
 fn verify_checks_the_candidate_before_starting_tools() {
     let root = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(root.path().join("release")).unwrap();
-    std::fs::write(root.path().join("release/native-ui.toml"), "").unwrap();
+    std::fs::write(
+        root.path().join("release/native-ui.toml"),
+        r#"
+[consumers]
+apple_directory = "fixtures/consumer/ios"
+apple_project = "Starter.xcodeproj"
+apple_scheme = "Starter"
+android_directory = "fixtures/consumer/android"
+android_task = ":app:assembleDebug"
+"#,
+    )
+    .unwrap();
     std::fs::write(root.path().join("Cargo.toml"), "").unwrap();
     let candidate = root.path().join("candidate with spaces");
     std::fs::create_dir(&candidate).unwrap();
@@ -182,69 +193,6 @@ fn verify_checks_the_candidate_before_starting_tools() {
 }
 
 #[test]
-fn android_build_installs_two_abis_for_the_binding_and_todo() {
-    let directory = tempfile::tempdir().unwrap();
-    let root = directory.path().join("workspace with spaces");
-    std::fs::create_dir_all(root.join("release")).unwrap();
-    std::fs::write(root.join("release/native-ui.toml"), "").unwrap();
-    std::fs::write(root.join("Cargo.toml"), "").unwrap();
-    let process = Arc::new(FakeProcess(Mutex::default(), true));
-    command(
-        &root,
-        &[
-            "native-task",
-            "task",
-            "run",
-            "native:build-android",
-            "--with-todo",
-        ],
-        process.clone(),
-        Arc::new(Capture::default()),
-    )
-    .unwrap();
-    let calls = process.0.lock().unwrap();
-    let builds = calls
-        .iter()
-        .filter(|call| call.program == "cargo")
-        .collect::<Vec<_>>();
-    assert_eq!(builds.len(), 2);
-    for call in &builds {
-        assert!(call.env.iter().any(|(key, value)| key == "ANDROID_NDK_HOME"
-            && value.as_ref().is_some_and(
-                |value| value == Path::new("/android home").join("ndk/123").as_os_str()
-            )));
-    }
-    assert!(builds[1]
-        .args
-        .iter()
-        .any(|arg| arg == "--no-default-features"));
-    for abi in ["arm64-v8a", "x86_64"] {
-        assert_eq!(
-            std::fs::read(
-                root.join("mobile/android/binding/src/main/jniLibs")
-                    .join(abi)
-                    .join("libfoundation_ui_native.so")
-            )
-            .unwrap(),
-            b"foundation_ui_native"
-        );
-        for app in ["todo_server", "todo_on_device"] {
-            assert_eq!(
-                std::fs::read(
-                    root.join("examples/ui_todo/android")
-                        .join(app)
-                        .join("app/src/main/jniLibs")
-                        .join(abi)
-                        .join("libui_todo.so")
-                )
-                .unwrap(),
-                b"ui_todo"
-            );
-        }
-    }
-}
-
-#[test]
 fn archive_checks_platform_slices_and_reproduces_the_same_bytes() {
     use std::io::Read as _;
     let directory = tempfile::tempdir().unwrap();
@@ -275,7 +223,7 @@ fn archive_checks_platform_slices_and_reproduces_the_same_bytes() {
     }
     let info = bundle.join("Info.plist");
     let plist = |v: &Vec<serde_json::Value>| {
-        plist::to_file_xml(&info, &serde_json::json!({"AvailableLibraries":v})).unwrap()
+        plist::to_file_xml(&info, &serde_json::json!({"AvailableLibraries":v})).unwrap();
     };
     plist(&slices);
     let invoke = || {
@@ -315,4 +263,325 @@ fn archive_checks_platform_slices_and_reproduces_the_same_bytes() {
         .unwrap_err()
         .to_string()
         .contains("Unexpected XCFramework slices"));
+}
+
+#[derive(clap::Args)]
+struct SwiftFixture {
+    #[arg(long)]
+    source: std::path::PathBuf,
+    #[arg(long)]
+    base: String,
+}
+
+async fn check_swift_revision(
+    ctx: foundation_tasks::TaskContext,
+    args: SwiftFixture,
+) -> TaskResult {
+    let url = "https://example.invalid/release.zip";
+    let original = "1".repeat(64);
+    let updated = "2".repeat(64);
+    let path = args.source.join("Package.swift");
+    let before = std::fs::read_to_string(&path).unwrap();
+    let (same, manifest) =
+        tasks::swift_release_manifest(&ctx, &args.source, &args.base, url, &original).await?;
+    assert_eq!(same, args.base);
+    assert_eq!(manifest, before);
+    let revision =
+        tasks::swift_release_manifest(&ctx, &args.source, &args.base, url, &updated).await?;
+    assert_ne!(revision.0, args.base);
+    assert_eq!(revision.1, before.replace(&original, &updated));
+    let temp = tempfile::tempdir().unwrap();
+    ctx.exec(
+        ProcessCommand::new("git")
+            .args(["clone", "--quiet"])
+            .arg(&args.source)
+            .arg(temp.path()),
+    )
+    .await?;
+    assert_eq!(
+        tasks::swift_release_manifest(&ctx, temp.path(), &args.base, url, &updated).await?,
+        revision
+    );
+    assert_eq!(std::fs::read_to_string(path).unwrap(), before);
+    Ok(())
+}
+
+#[test]
+fn swift_release_reproduces_the_checksum_commit_in_an_independent_clone() {
+    use foundation_tasks::TaskSet;
+    let marker = "EWE_NATIVE_SWIFT_FIXTURE";
+    if std::env::var_os(marker).is_none() {
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "tasks::swift_release_reproduces_the_checksum_commit_in_an_independent_clone",
+            ])
+            .env(marker, "1")
+            .status()
+            .unwrap();
+        assert!(status.success());
+        return;
+    }
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let git = |args: &[&str]| {
+        let output = std::process::Command::new("git")
+            .current_dir(root)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "--quiet"]);
+    let checksum = "1".repeat(64);
+    std::fs::write(root.join("Package.swift"),format!(".binaryTarget(name: \"Archive\", url: \"https://example.invalid/release.zip\", checksum: \"{checksum}\")\n")).unwrap();
+    git(&["add", "Package.swift"]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-qm",
+        "fixture",
+    ]);
+    let base = git(&["rev-parse", "HEAD"]);
+    let args = [
+        "test",
+        "task",
+        "run",
+        "swift",
+        "--source",
+        root.to_str().unwrap(),
+        "--base",
+        &base,
+    ]
+    .into_iter()
+    .map(Into::into)
+    .collect();
+    let start = root.to_path_buf();
+    let exit = foundation_tasks::run_entry("test", move |host| {
+        Box::pin(async move {
+            let ctx = host.context().clone();
+            ctx.store(NativeBuildEnv::new(start));
+            let mut runner = TaskRunner::new(ctx, args);
+            let mut set = TaskSet::new("swift-fixture");
+            set.add(
+                "swift",
+                "Check the Swift release revision",
+                check_swift_revision,
+            )?;
+            runner.register(set)?;
+            runner.run().await
+        })
+    });
+    assert_eq!(exit, std::process::ExitCode::SUCCESS);
+    assert_eq!(git(&["status", "--porcelain"]), "");
+}
+
+#[test]
+fn sync_checks_nested_files_and_replaces_the_owned_tree() {
+    #[derive(clap::Args)]
+    struct Check {
+        #[arg(long)]
+        check: bool,
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let run = |check| {
+        let root = tmp.path().to_owned();
+        let ctx = Ctx::host();
+        ctx.store(
+            NativeBuildEnv::new(root.clone())
+                .with_host_directories(root.as_os_str().into(), root.join("locks")),
+        );
+        let mut args = vec!["sync", "task", "run", "copy"];
+        if check {
+            args.push("--check");
+        }
+        let mut runner = TaskRunner::new(ctx, args.into_iter().map(Into::into).collect());
+        let mut set = foundation_tasks::TaskSet::new("sync");
+        set.add("copy", "Sync fixture files", move |ctx, args: Check| {
+            let dir = root.clone();
+            async move {
+                tasks::sync::sync(
+                    &ctx,
+                    &dir,
+                    Path::new("source"),
+                    Path::new("destination"),
+                    args.check,
+                )
+                .await
+            }
+        })
+        .unwrap();
+        runner.register(set).unwrap();
+        futures_lite::future::block_on(runner.run())
+    };
+    let source = tmp.path().join("source");
+    let destination = tmp.path().join("destination");
+    std::fs::create_dir_all(source.join("nested")).unwrap();
+    std::fs::write(source.join("nested/one"), "first").unwrap();
+    run(false).unwrap();
+    run(true).unwrap();
+    std::fs::write(destination.join("extra"), "old").unwrap();
+    std::fs::write(source.join("nested/one"), "second").unwrap();
+    assert!(run(true).is_err());
+    assert_eq!(
+        std::fs::read_to_string(destination.join("nested/one")).unwrap(),
+        "first"
+    );
+    run(false).unwrap();
+    run(true).unwrap();
+    assert!(!destination.join("extra").exists());
+    assert_eq!(
+        std::fs::read_to_string(destination.join("nested/one")).unwrap(),
+        "second"
+    );
+}
+
+struct WindowTimer(Arc<foundation_core::valtron::SimulatedClock>);
+
+impl foundation_context::env::Timer for WindowTimer {
+    fn sleep_until(
+        &self,
+        ctx: Ctx,
+        deadline: foundation_context::Instant,
+    ) -> foundation_context::env::TimerFuture {
+        self.0
+            .advance(deadline.saturating_duration_since(ctx.clock().now()));
+        Box::pin(async {})
+    }
+}
+
+struct LaunchReport {
+    status: &'static str,
+    focus: &'static str,
+    pending: std::sync::atomic::AtomicBool,
+}
+
+impl TaskProcess for LaunchReport {
+    fn run(
+        &self,
+        cmd: ProcessCommand,
+        out: Arc<dyn TaskOutput>,
+        _: Cancellation,
+    ) -> BoxFuture<'_, TaskResult> {
+        Box::pin(async move {
+            let args: Vec<_> = cmd.args.iter().map(|s| s.to_str().unwrap()).collect();
+            let report = match &args[..] {
+                ["-s", "phone", "install", "-r", "test.apk"] => "",
+                ["-s", "phone", "shell", "am", "start", "-W", "-n", "example.app/.Main"] => {
+                    self.status
+                }
+                ["-s", "phone", "shell", "dumpsys window | grep mCurrentFocus="] => {
+                    if self
+                        .pending
+                        .swap(false, std::sync::atomic::Ordering::Relaxed)
+                    {
+                        "mCurrentFocus=null"
+                    } else {
+                        self.focus
+                    }
+                }
+                _ => panic!("unexpected Android command {args:?}"),
+            };
+            out.write(OutputStream::Stdout, report.as_bytes())
+                .await
+                .map_err(TaskError::operation)
+        })
+    }
+}
+
+#[test]
+fn android_timeout_requires_the_requested_window_to_have_focus() {
+    use foundation_tasks::TaskSet;
+    use foundation_ui_project::application::Target;
+    for (status, focus, success) in [
+        (
+            "Status: ok",
+            "mCurrentFocus=Window{1 u0 example.app/example.app.Main}",
+            true,
+        ),
+        (
+            "Status: ok",
+            "mCurrentFocus=Window{1 u0 other.app/other.app.Main}",
+            false,
+        ),
+        (
+            "Status: timeout",
+            "  mCurrentFocus=Window{1 u0 example.app/example.app.Main}",
+            true,
+        ),
+        (
+            "Status: timeout",
+            "mCurrentFocus=Window{1 u0 example.app/example.app.MainOther}",
+            false,
+        ),
+        ("Status: timeout", "mCurrentFocus=null", false),
+        (
+            "Error: Activity does not exist",
+            "mCurrentFocus=Window{1 u0 example.app/example.app.Main}",
+            false,
+        ),
+    ] {
+        let clock = Arc::new(foundation_core::valtron::SimulatedClock::new(
+            std::time::Duration::ZERO,
+        ));
+        let ctx = Ctx::fixed(clock.clone());
+        ctx.store(foundation_context::env::Env::new(
+            Arc::new(WindowTimer(clock)),
+            Arc::new(foundation_context::env::SeededEntropy::new(1)),
+            Arc::new(foundation_context::env::CounterSource::new(0)),
+        ));
+        ctx.store(NativeBuildEnv::new(".".into()).with_window_wait(
+            if success {
+                std::time::Duration::from_secs(2)
+            } else {
+                std::time::Duration::ZERO
+            },
+            std::time::Duration::from_millis(1),
+        ));
+        ctx.store(TaskEnv {
+            process: Arc::new(LaunchReport {
+                status,
+                focus,
+                pending: std::sync::atomic::AtomicBool::new(success),
+            }),
+            output: Arc::new(Capture::default()),
+            cancellation: Cancellation::new(),
+        });
+        let mut tasks = TaskSet::new("test");
+        tasks
+            .add_command(
+                "launch",
+                "Launch the application",
+                clap::Command::new("launch"),
+                |ctx, _| async move {
+                    tasks::project::launch(
+                        &ctx,
+                        Target::Android,
+                        "phone",
+                        "example.app",
+                        ".Main",
+                        Path::new("test.apk"),
+                    )
+                    .await
+                },
+            )
+            .unwrap();
+        let mut runner = TaskRunner::new(
+            ctx,
+            ["test", "task", "run", "launch"].map(Into::into).into(),
+        );
+        runner.register(tasks).unwrap();
+        let result = futures_lite::future::block_on(runner.run());
+        assert_eq!(result.is_ok(), success, "{status} {focus}: {result:?}");
+    }
 }

@@ -8,8 +8,8 @@ has_fundamentals: false
 related_specs: ["69-foundation-ui-v2", "84-context-injection", "91-windows-resource-staging"]
 tasks:
   completed: 0
-  uncompleted: 4
-  total: 4
+  uncompleted: 5
+  total: 5
   completion_percentage: "0%"
 ---
 
@@ -413,6 +413,8 @@ A task invocation dispatches one selected task and waits for its owned resources
 [Feature 1](features/01-shared-javascript-build/feature.md) defines the reusable JavaScript build helper and its two callers.
 
 [Feature 4](features/04-browser-runtime-package/feature.md) defines the public npm package and its release checks.
+
+[Feature 5](features/05-ewe-ui-application-command/feature.md) defines the approved application generator and command interface for the UI system.
 
 The [task ownership plan](migration.md) specifies the remaining work and acceptance checks.
 

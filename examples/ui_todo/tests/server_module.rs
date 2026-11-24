@@ -1,27 +1,47 @@
-//! Startup errors for the browser module override.
-use std::path::Path;
-use std::process::Command;
+//! The Todo server packages its browser assets before startup.
+use std::{fs, path::Path};
 
 #[test]
-fn invalid_configured_module_stops_before_announcing_an_address() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    for path in [
-        root.join("missing.wasm"),
-        root.join("Cargo.toml"),
-        root.join("src"),
-    ] {
-        let output = Command::new(env!("CARGO_BIN_EXE_ui_todo"))
-            .args(["127.0.0.1:0", "--restore"])
-            .env("EWE_TODO_MODULE", &path)
-            .output()
-            .expect("start the todo server");
-        assert!(!output.status.success());
-        assert!(!String::from_utf8_lossy(&output.stdout).contains("Open http"));
-        let message = String::from_utf8_lossy(&output.stderr);
-        assert!(message.contains("EWE_TODO_MODULE"), "{message}");
-        assert!(
-            message.contains(&*path.file_name().unwrap().to_string_lossy()),
-            "{message}"
-        );
+fn only_the_application_bundle_enters_the_public_javascript_tree() {
+    fn scripts(directory: &Path, found: &mut Vec<std::path::PathBuf>) {
+        for entry in fs::read_dir(directory).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                scripts(&path, found);
+            } else if path.extension().is_some_and(|ext| ext == "js") {
+                found.push(path);
+            }
+        }
     }
+    let root = Path::new(env!("EWE_STAGED_RESOURCES"));
+    let mut found = Vec::new();
+    scripts(root, &mut found);
+    assert_eq!(found, [root.join("bundle.js")]);
+    for file in [
+        "module.wasm",
+        "mathalley/ui_todo_bg.wasm",
+        "rpc/foundation_ui_connectrpc_bg.wasm",
+        "resources-wasm/foundation_resources_bg.wasm",
+    ] {
+        use std::io::Read;
+        let mut magic = [0u8; 8];
+        fs::File::open(root.join(file))
+            .unwrap()
+            .read_exact(&mut magic)
+            .unwrap();
+        assert_eq!(&magic, b"\0asm\x01\0\0\0");
+    }
+}
+
+#[test]
+fn staged_styles_and_version_match_the_application() {
+    let root = Path::new(env!("EWE_STAGED_RESOURCES"));
+    assert_eq!(
+        fs::read_to_string(root.join("theme.css")).unwrap(),
+        ui_todo::todo_theme().to_css()
+    );
+    assert_eq!(
+        fs::read_to_string(root.join("app/version.txt")).unwrap(),
+        env!("CARGO_PKG_VERSION")
+    );
 }

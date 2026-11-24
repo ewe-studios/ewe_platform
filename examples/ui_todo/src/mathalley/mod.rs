@@ -1,6 +1,7 @@
 //! Mathalley simulation, scene geometry, and procedural sound.
 pub mod audio;
 pub mod game;
+pub mod route;
 #[cfg(any(feature = "mathalley-web", feature = "mobile"))]
 pub mod gpu;
 pub mod scene;

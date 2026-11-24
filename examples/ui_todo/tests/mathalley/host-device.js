@@ -1,7 +1,7 @@
 // The host processes one pixel from the game through its own device lease.
 (async () => {
     const canvas = document.querySelector("#mathalley canvas");
-    const {BrowserDeviceExchange} = await import("/mathalley/ui_todo.js");
+    const {BrowserDeviceExchange} = await window.todoTestGameBindings();
     const adapter = await navigator.gpu.requestAdapter();
     const device = await adapter.requestDevice();
     const texture = device.createTexture({size:[1,1], format:"rgba8unorm",

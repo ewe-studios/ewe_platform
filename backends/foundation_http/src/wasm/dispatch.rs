@@ -16,11 +16,95 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 use crate::shared::app::HttpApp;
 use crate::shared::context::Ctx;
 use crate::shared::middleware::MiddlewareResult;
+use crate::shared::router::RouteOp;
 use crate::shared::serve::ServeError;
 use crate::shared::serve_web::WebServe;
 use crate::shared::web_conn::{WebConn, WebConnectionResult};
 use crate::wasm::cf_conn::{CfConn, CfConnectionResult};
 use crate::wasm::serve_cf::CfServe;
+
+/// Build a `web_sys::Response` that carries only a status and a short text
+/// body.
+///
+/// Used for a route miss and for the 500 of a caught handler panic.
+pub(crate) fn web_status_response(
+    status: u16,
+    text: &str,
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = WebConn::new();
+    conn.set_status(status);
+    conn.set_header("content-type", "text/plain");
+    conn.set_body(text.as_bytes().to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
+
+/// Build a 405 `web_sys::Response` that names the allowed methods.
+///
+/// WHY: RFC 9110 section 15.5.6 requires an `Allow` header on a 405.
+/// HOW: a short text body and the `Allow` header, through a fresh `WebConn`.
+fn web_method_not_allowed(
+    allowed: &[String],
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = WebConn::new();
+    conn.set_status(405);
+    conn.set_header("content-type", "text/plain");
+    conn.set_header("allow", &allowed.join(", "));
+    conn.set_body(b"Method Not Allowed".to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
+
+/// Build a 405 `web_sys::Response` for the Cloudflare entry.
+///
+/// See [`web_method_not_allowed`].
+fn cf_method_not_allowed(
+    allowed: &[String],
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = CfConn::new();
+    conn.set_status(405);
+    conn.set_header("content-type", "text/plain");
+    conn.set_header("allow", &allowed.join(", "));
+    conn.set_body(b"Method Not Allowed".to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
+
+/// Build a `web_sys::Response` that carries only a status and a short text
+/// body for the Cloudflare entry.
+///
+/// Used for a route miss and for the 500 of a caught handler panic.
+pub(crate) fn cf_status_response(
+    status: u16,
+    text: &str,
+) -> Result<web_sys::Response, foundation_errstacks::ErrorTrace<ServeError>> {
+    let mut conn = CfConn::new();
+    conn.set_status(status);
+    conn.set_header("content-type", "text/plain");
+    conn.set_body(text.as_bytes().to_vec());
+    conn.into_response().map_err(|e| {
+        ServeError::InternalError {
+            status: 500,
+            reason: format!("{e:?}"),
+        }
+        .into()
+    })
+}
 
 /// Extension trait for dispatching `HttpApp<Arc<dyn CfServe>>`.
 pub trait HttpAppCfDispatch {
@@ -73,14 +157,15 @@ impl HttpAppCfDispatch for HttpApp<Arc<dyn CfServe>> {
             }
         }
 
-        // Dispatch to router
-        let handler =
-            self.router()
-                .dispatch(&method, &path)
-                .ok_or_else(|| ServeError::BadRequest {
-                    status: 404,
-                    reason: format!("no route for {method:?} {path}"),
-                })?;
+        // Dispatch to router. A matched path with no handler for the method is
+        // a 405; a path that matches nothing is a 404 (spec 88 feature 02).
+        let handler = match self.router().dispatch_result(&method, &path) {
+            Ok(handler) => handler,
+            Err(RouteOp::MethodNotAllowed) => {
+                return cf_method_not_allowed(&self.router().allowed_methods(&path));
+            }
+            Err(_) => return cf_status_response(404, "Not Found"),
+        };
 
         // Execute handler (async)
         let mut conn = CfConn::new();
@@ -156,14 +241,15 @@ impl HttpAppWebDispatch for HttpApp<Arc<dyn WebServe>> {
             }
         }
 
-        // Dispatch to router
-        let handler =
-            self.router()
-                .dispatch(&method, &path)
-                .ok_or_else(|| ServeError::BadRequest {
-                    status: 404,
-                    reason: format!("no route for {method:?} {path}"),
-                })?;
+        // Dispatch to router. A matched path with no handler for the method is
+        // a 405; a path that matches nothing is a 404 (spec 88 feature 02).
+        let handler = match self.router().dispatch_result(&method, &path) {
+            Ok(handler) => handler,
+            Err(RouteOp::MethodNotAllowed) => {
+                return web_method_not_allowed(&self.router().allowed_methods(&path));
+            }
+            Err(_) => return web_status_response(404, "Not Found"),
+        };
 
         // Execute handler (async)
         let mut conn = WebConn::new();

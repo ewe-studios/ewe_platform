@@ -337,7 +337,18 @@ pub struct ContainerAttachArgsShape {
     pub stderr: Option<bool>,
 }
 
-/// A shape 6 generated types share.
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DeletedUntaggedObject {
+    /// `Deleted` property.
+    #[serde(rename = "Deleted")]
+    pub deleted: Option<String>,
+    /// `Untagged` property.
+    #[serde(rename = "Untagged")]
+    pub untagged: Option<String>,
+}
+
+/// A shape 7 generated types share.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DescriptionNameValueObject {
     /// `Description` property.

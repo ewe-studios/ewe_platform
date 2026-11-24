@@ -35,7 +35,7 @@ synstructure = "0.13.2"
 brotli = "8.0.2"
 
 # gzip, zlib compression
-flate2 = "1.1.5"
+flate2.workspace = true
 
 # UUID parsing for TypeUuid derive
 uuid = { version = "1", default-features = false }

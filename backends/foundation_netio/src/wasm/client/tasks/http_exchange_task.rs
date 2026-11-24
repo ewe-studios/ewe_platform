@@ -14,6 +14,7 @@
 
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::Arc;
 
 use foundation_compact::SendWrapper;
 use foundation_context::Ctx;
@@ -25,7 +26,6 @@ use crate::shared::client::http_client::HttpClient;
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::shared::http::{HttpClientError, SendSafeBody};
-use crate::wasm::client::client::FetchHttpClient;
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -38,9 +38,11 @@ struct FetchOutput {
     body: SendSafeBody,
 }
 
-/// Async block that calls the HTTP client and returns structured output.
-async fn fetch_via_client(req: PreparedRequest) -> Result<FetchOutput, HttpClientError> {
-    let client = FetchHttpClient::new();
+/// Async block that calls the client that opened this exchange.
+async fn fetch_via_client(
+    client: Arc<dyn HttpClient>,
+    req: PreparedRequest,
+) -> Result<FetchOutput, HttpClientError> {
     let (status, headers, body) = client.send_async(req).await?.into_parts();
     Ok(FetchOutput {
         status,
@@ -74,9 +76,14 @@ pub struct WasmHttpExchangeTask {
 }
 
 impl WasmHttpExchangeTask {
+    /// An exchange that calls `client` for its request and response.
+    ///
+    /// The client is the one that opened the exchange: a caller that holds a
+    /// custom `NetClient`, such as a Durable Object stub client, gets that
+    /// client, not a fresh default one.
     #[must_use]
-    pub fn new(request: PreparedRequest) -> Self {
-        let future: FetchFuture = Box::pin(SendWrapper::new(fetch_via_client(request)));
+    pub fn new(client: Arc<dyn HttpClient>, request: PreparedRequest) -> Self {
+        let future: FetchFuture = Box::pin(SendWrapper::new(fetch_via_client(client, request)));
         Self {
             state: WasmExchangeState::Polling {
                 task: from_future(future),
@@ -163,6 +170,9 @@ impl TaskIterator for WasmHttpExchangeTask {
 // ---------------------------------------------------------------------------
 
 #[must_use]
-pub fn new_http_exchange_task(request: PreparedRequest) -> WasmHttpExchangeTask {
-    WasmHttpExchangeTask::new(request)
+pub fn new_http_exchange_task(
+    client: Arc<dyn HttpClient>,
+    request: PreparedRequest,
+) -> WasmHttpExchangeTask {
+    WasmHttpExchangeTask::new(client, request)
 }

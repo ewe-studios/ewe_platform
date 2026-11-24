@@ -20,7 +20,11 @@ The owner requests complete migration. The owner approves implementation, includ
 A registered Rust task owns each build and deployment operation from validation through cleanup.
 A task can invoke native tools or use a native shell where the platform requires one.
 Starting a repository script from a task still leaves the operation outside the task.
-Move that logic into the owning task and remove the obsolete script.
+Move shared operations into the owning Rust task library.
+Implement each operation directly in Rust when possible. Invoke platform tools directly through the task process interface.
+Retain a helper script only when the execution environment requires it and no supported Rust path exists. Document that requirement.
+Keep required helper scripts under the owning task’s `tasks/scripts/` directory and embed them in its binary.
+Select the embedded implementation for the platform that executes it. Remove the old checkout-relative invocation.
 Keep workflow triggers, permissions, scheduling, and secret bindings in workflow configuration.
 
 ```mermaid
@@ -91,3 +95,37 @@ The existing `[packages.<name>]` tables continue to control platform runs, time 
 Reject duplicate package or directory ownership, unknown recipes, missing Cargo members, absolute directories, and directories outside the checkout.
 Compare both group plans and affected-file reasons with the current planner.
 Test renamed groups, empty member lists, invalid references, platform opt-outs, and nested Cargo package ownership.
+
+### Verified caller changes on 2026-11-24
+
+| Owner | Registered command or package | Verified callers and results |
+|---|---|---|
+| Cloudflare | Account commands, D1 and R2 operations, local service control, and six integration test commands | Tests verify credentials, pagination, worker ownership, and cleanup. The real local service passed 29 storage and file system tests. |
+| Linux host setup | `toolchain:install-testbed`, `toolchain:install-quickemu`, and `images:download-macos` | Seven mise commands call these tasks. Local command fixtures check package selection, arguments, and failure status. |
+| Build hooks | `build:install-hook` | An independent Cargo package installs each provider. A repeat check preserves its files. |
+| Application assets | `foundation_codegen`, `foundation_resources`, and `foundation_wasm_ui` | Todo and an external application build in both profiles. Chromium loads one script from the moved Todo release. |
+| Native applications | `native-task` and the native task set | The release workflow calls Rust. Local tests check archives, tag conflicts, staging, and signing. |
+| Wire generation | `wire-generate`, `wire-check`, and `wire-bundle` | The workflow and mise use the same generator. Four language outputs and the browser file match. |
+| Host tools | `toolchain-check`, `toolchain-wire`, and Android and Apple proof tasks | A real Android package and a Swift library build. The test fixtures check repeat runs and failures. |
+| Workspace verification | `foundation-ci` | GitHub Actions, Make, and mise use the planner. It checks package archives, lockfiles, package selection, and release retries. |
+| Virtual machine host | `images:vm-up` and `images:vm-down` | Nushell forwards host options. A Docker fixture verifies both commands, storage, and loopback ports. |
+| Guest readiness | `images:vm-wait` | An isolated SSH service verified login, a missing marker, and a completed marker. Fixtures check replacement and failed provisioning. |
+| Guest transfer | `images:vm-push` and `images:vm-pull` | OpenSSH transferred binary data in both directions. Tests check exclusions, retry errors, and existing local files. |
+| Guest diagnostics | `images:vm-logs` | A real loopback service returned a log. Disconnection preserved the previous file and returned status 255. |
+| Guest runner status | `images:vm-runner-alive` and `images:vm-wait-runner` | Both Nushell commands preserve connection failures. Tests check running, finished, and timeout cases. |
+| Container execution | `linux`, `link-submodules`, and virtual machine host checks | Local Linux containers exercise command failure, cleanup, and console access. Git fixtures verify baked source selection. |
+| Image planning | `image-prepare`, `image-settings`, `image-exists`, and `image-promote` | Seven plans match the previous hashes. A local Docker substitute checks missing images, retry, failure, and tags. |
+
+The standalone command registers the workspace build, check, format, audit, documentation, and publication tasks.
+Make and mise dispatch those operations to the same task set.
+
+### Remaining caller changes
+
+1. Verify the CUDA archive and the complete release package selection. The default Linux image built a real plugin archive and verified it with protoc.
+2. Verify release installation on a clean hosted runner. Local tests cover cached release tools, new tags, and partial dispatch failures.
+3. Supply a verified first-stage tool for fresh guests. A new guest starts without Cargo or a repository checkout.
+4. Migrate virtual machine operations and guest provisioning. The image builder and Linux image smoke checks now use the Rust task runner.
+5. Migrate the remaining generators and supported legacy WebAssembly builds. Issue #792 tracks the fixture decision. Issue #794 tracks the Google Cloud input format.
+6. Select the supported manual publication packages. Issue #793 tracks the retired package names. Verify guest tests on supported hosts.
+
+The owner approves Feature 4. Its public release requires a tagged crate and registry credentials. Specification 91 owns deferred native Windows resource tests.

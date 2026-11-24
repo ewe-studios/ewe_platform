@@ -256,7 +256,7 @@ What the code does:
 `cert_not_after`, `cert_serial`). It lives in the Worker host, because `foundation_auth`
 does not depend on the `worker` crate.
 
-The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../../84-context-injection/env.md),
+The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../../../completed/84-context-injection/env.md),
 section 7.2). It builds `Env::system()` and the engine once per isolate. It then runs
 `with_ctx(root_ctx(), host.fetch(req))` for each request.
 
@@ -444,7 +444,7 @@ is in D1 and the session is in its DO.
 
 ### 5.10 KV and R2
 
-- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) section 4.5). Keys in KV come with the key store of [feature 08](../08-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
+- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) section 4.5). Keys in KV come with the key store of [feature 08](../08-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
 - **R2** holds the archive of each destroyed instance (owner decision 5). Section 5.12 describes it.
 
 ### 5.11 Model provider API keys

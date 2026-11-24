@@ -1,6 +1,6 @@
 [package]
 name = "foundation_resources"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -12,6 +12,8 @@ description = "Stage application resources and read them through the host contex
 crate-type = ["rlib", "cdylib"]
 
 [features]
+mobile-launch = ["build", "dep:image", "dep:serde_json"]
+browser-package = ["build", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:serde_json"]
 server = ["dep:foundation_http", "dep:foundation_netio"]
 browser-bindings = ["runtime", "foundation_context/wasm-bindgen"]
 default = ["runtime"]
@@ -19,6 +21,8 @@ build = ["dep:serde", "dep:toml", "dep:tempfile", "dep:rustix"]
 runtime = ["dep:foundation_context", "dep:futures-util", "dep:blocking", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 
 [dependencies]
+image = { workspace = true, optional = true, features = ["png"] }
+serde_json = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 toml = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }
@@ -30,8 +34,10 @@ derive_more.workspace = true
 rustix = { version = "1.1.4", default-features = false, features = ["fs"], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.13", optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", optional = true }
+foundation_codegen = {path = "../foundation_codegen", version = "0.2.3", features = ["javascript"], optional = true}
+foundation_wasm_ui = {path = "../foundation_wasm_ui", version = "0.1.13", features = ["build-hook"], optional = true}
+foundation_http = { path = "../foundation_http", version = "0.0.16", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", optional = true }
 blocking = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

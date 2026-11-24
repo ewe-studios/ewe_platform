@@ -11,9 +11,7 @@ use tempfile::tempdir;
 const EXISTING: &str = "34aaf305-1548-4201-bd23-f3ce099cfeb4";
 
 fn command() -> Command {
-    let mut cmd = Command::new(env!("CARGO_BIN_EXE_ui_todo"));
-    cmd.env_remove("EWE_TODO_MODULE");
-    cmd
+    Command::new(env!("CARGO_BIN_EXE_ui_todo"))
 }
 
 fn convert(input: &Path, output: &Path) -> Output {

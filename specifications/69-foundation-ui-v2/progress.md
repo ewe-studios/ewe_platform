@@ -1427,3 +1427,14 @@ The signed iPhone server test opens the game, receives a peer update, and restor
 The signed iPhone 17e passed both offline tests on commit `e114627ee`. Two game visits preserved the selected filter and Todo.
 Train and Gumball passed the seeded input and rotation test. The captures show both scenes and the restored list.
 The independent Apple audio test also passed. Physical playback and interruption tests remain open.
+
+The Todo build now packages the Mathalley browser library with the other application resources.
+Its JavaScript bindings remain private. The game requests its binary when the player opens its view.
+The browser regression check uses the production bundle and records resource requests across two game visits.
+The package task `todo:test-android-game` now runs the Android capture check.
+
+Issue #834 blocks delivery of the Mathalley action. The old hosts reject the 14-byte string because they expect 13 bytes.
+Rust now uses one command type for both encoding and classification.
+The standalone regression accepts the real action and rejects malformed messages.
+The signed iPhone 17e opens Mathalley, keeps the Todo subscription, and passes the independent sound test.
+Chromium opens the game from the production bundle and returns to Todo. Android verification remains in progress.

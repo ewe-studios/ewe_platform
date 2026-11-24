@@ -1,26 +1,26 @@
 //! Developer tasks for native application packages.
 use clap::ValueEnum;
-use foundation_tasks::{ProcessCommand, TaskError, TaskSet};
+use foundation_tasks::{ProcessCommand, TaskError, TaskResult, TaskSet};
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
 };
 
-mod android;
-mod android_device;
+pub mod android;
 mod apple;
 mod archive;
 mod bindings;
-mod device;
-mod ios_device;
-mod output;
+pub mod device;
+pub mod output;
+pub mod project;
 mod publish;
 mod release;
 mod sign;
-mod stage;
-mod swift;
-mod sync;
-mod todo;
+pub mod stage;
+mod staging;
+pub mod swift;
+pub use swift::release as swift_release_manifest;
+pub mod sync;
 
 #[derive(Clone)]
 pub struct NativeBuildEnv {
@@ -30,8 +30,10 @@ pub struct NativeBuildEnv {
     cargo_message_bytes: usize,
     release_credentials: Option<publish::Credentials>,
     signing_job: Option<sign::JobEnv>,
-    devices: device::Options,
+    pub devices: device::Options,
     server_wait: std::time::Duration,
+    window_wait: std::time::Duration,
+    window_poll: std::time::Duration,
     signing_key: Option<String>,
     developer_dir: Option<OsString>,
     home: Option<OsString>,
@@ -50,6 +52,8 @@ impl NativeBuildEnv {
             signing_job: None,
             devices: device::Options::default(),
             server_wait: std::time::Duration::from_secs(30),
+            window_wait: std::time::Duration::from_secs(30),
+            window_poll: std::time::Duration::from_secs(1),
             signing_key: None,
             developer_dir: None,
             home: None,
@@ -101,7 +105,30 @@ impl NativeBuildEnv {
         self
     }
 
-    /// Set the default 30-second deadline for a local Todo server to report its port.
+    #[must_use]
+    pub fn query_bytes(&self) -> usize {
+        self.query_bytes
+    }
+
+    #[must_use]
+    pub fn server_wait(&self) -> std::time::Duration {
+        self.server_wait
+    }
+
+    /// Set the Android window deadline and polling interval.
+    /// The defaults allow 30 seconds for a cold activity and check once per second.
+    #[must_use]
+    pub fn with_window_wait(
+        mut self,
+        timeout: std::time::Duration,
+        interval: std::time::Duration,
+    ) -> Self {
+        self.window_wait = timeout;
+        self.window_poll = interval;
+        self
+    }
+
+    /// Set the deadline for a local server to report its port.
     #[must_use]
     pub fn with_server_wait(mut self, duration: std::time::Duration) -> Self {
         self.server_wait = duration;
@@ -123,11 +150,7 @@ impl NativeBuildEnv {
         self
     }
 
-    pub(super) fn apple_command(
-        &self,
-        root: &Path,
-        program: impl Into<OsString>,
-    ) -> ProcessCommand {
+    pub fn apple_command(&self, root: &Path, program: impl Into<OsString>) -> ProcessCommand {
         let mut cmd = ProcessCommand::new(program).current_dir(root);
         if let Some(path) = &self.developer_dir {
             cmd = cmd.env("DEVELOPER_DIR", path);
@@ -135,7 +158,11 @@ impl NativeBuildEnv {
         cmd
     }
 
-    async fn root(&self) -> Result<PathBuf, TaskError> {
+    /// Find the enclosing source workspace.
+    ///
+    /// # Errors
+    /// Returns an error when the start directory or workspace is unavailable.
+    pub async fn root(&self) -> Result<PathBuf, TaskError> {
         let start = self.start.clone();
         blocking::unblock(move || {
             let start = start.canonicalize().map_err(TaskError::operation)?;
@@ -155,12 +182,35 @@ impl NativeBuildEnv {
 /// # Errors
 /// Reports an invalid task definition.
 pub fn set() -> Result<TaskSet, TaskError> {
-    let mut set = TaskSet::new("foundation_ui_native").with_namespace("native");
+    let mut set = release_set()?;
+    add_apple_build(&mut set)?;
     set.add(
         "build-android",
         "Build the Android native libraries",
         android::build,
     )?;
+    set.add(
+        "bindings:sync-android",
+        "Update or check the Android bindings",
+        sync::android,
+    )?;
+    Ok(set)
+}
+
+/// Register the original repository command for an Apple framework build.
+///
+/// # Errors
+/// Returns a conflict if the caller already registers that command.
+pub fn add_apple_build(set: &mut TaskSet) -> TaskResult {
+    set.add("build-ios", "Build the Apple native archive", apple::build)
+}
+
+/// Return shared release operations for a runner with its own application build tasks.
+///
+/// # Errors
+/// Returns task registration errors.
+pub fn release_set() -> Result<TaskSet, TaskError> {
+    let mut set = TaskSet::new("foundation_ui_native").with_namespace("native");
     set.add(
         "release:check-version",
         "Check the release tag against its configuration",
@@ -186,36 +236,20 @@ pub fn set() -> Result<TaskSet, TaskError> {
         "Test Android packages and install them in a local repository",
         release::maven,
     )?;
-    set.add("build-ios", "Build the Apple native archive", apple::build)?;
+    set.add(
+        "release:build-ios",
+        "Build the Apple framework archive",
+        apple::build,
+    )?;
     set.add(
         "bindings:generate",
         "Generate Swift and Kotlin bindings",
         bindings::run,
     )?;
     set.add(
-        "bindings:sync-android",
-        "Update or check the Android bindings",
-        sync::android,
-    )?;
-    set.add(
         "bindings:sync-ios",
         "Update or check the Apple bindings",
         sync::ios,
-    )?;
-    set.add(
-        "todo:prepare-ios",
-        "Prepare the Apple Todo applications",
-        todo::prepare,
-    )?;
-    set.add(
-        "todo:test-ios",
-        "Test the Apple Todo applications",
-        ios_device::todo,
-    )?;
-    set.add(
-        "todo:test-android",
-        "Test the Android Todo applications",
-        android_device::todo,
     )?;
     set.add(
         "release:prepare",
@@ -236,16 +270,6 @@ pub fn set() -> Result<TaskSet, TaskError> {
         "release:publish",
         "Publish a verified release candidate",
         release::publish,
-    )?;
-    set.add(
-        "release:test-ios-starter",
-        "Test the Apple starter application",
-        ios_device::starter,
-    )?;
-    set.add(
-        "release:test-android-starter",
-        "Test the Android starter application",
-        android_device::starter,
     )?;
     Ok(set)
 }

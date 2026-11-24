@@ -1,6 +1,6 @@
 # Feature 4. Publish the browser runtime as a JavaScript package
 
-The owner requests this feature on 2026-11-24. The design uses one source tree for module imports and classic scripts.
+The owner approves this feature on 2026-11-24. The design uses one source tree for module imports and classic scripts.
 
 ## Glossary
 
@@ -42,6 +42,45 @@ Each classic file installs the existing runtime globals, including `FoundationUi
 A consumer supplies its application WebAssembly files and generated application bindings.
 Feature 1 also supports building the final application bundle with those inputs.
 
+## Proposed amendment for browser services and project bundles
+
+A companion is a WebAssembly module that supplies a browser service.
+Connect supplies the network sender. The resource service opens named assets as streams.
+
+```mermaid
+flowchart LR
+    Services[Connect and resource bindings] --> Package[Runtime package]
+    Package --> Website[Website module or classic script]
+    Package --> Hook[Project build.rs]
+    Entry[Application entry and bindings] --> Hook
+    Hook --> Scripts[bundle.js and bundle.min.js]
+    Hook --> Assets[Selected WebAssembly files]
+```
+
+Both website entry formats use the same service implementations as a generated application.
+
+1. Export public factories for the Connect sender and the resource service from the package entry.
+2. Expose the same factories through the documented classic script namespace.
+3. Include the matching generated bindings and companion binaries in the package archive.
+4. Accept an explicit asset base address and a separate Connect endpoint.
+5. Resolve default asset addresses relative to the deployed package script or module.
+6. Initialize each selected service on demand. Permit another attempt after initialization fails.
+7. Preserve streamed resource reads and the sender's exchange and close operations.
+8. Use the project's public Rust build helper from its `build.rs`.
+9. Stage project sources, selected package modules, and generated bindings in the private build directory.
+10. Build both public files from the same application entry and inputs.
+11. Write readable JavaScript to `bundle.js` and minified JavaScript to `bundle.min.js` in every profile.
+12. Stage each required WebAssembly binary under its documented public asset path.
+13. Load one script per page. Use `bundle.js` for development and `bundle.min.js` for deployment.
+14. Keep Todo routes and application setup in Todo. Replace its service adapters with the public factories.
+
+Install the packed archive in an external website fixture.
+Test the module entry and each classic script from a directory below the website root.
+Send a Connect request and read a named resource through each entry.
+Build a project with both services. Test each project script in a fresh browser page.
+Record the script requests, binary requests, and results for each page.
+Verify one JavaScript request per classic page, including after both services start.
+
 ## Build and release
 
 ```mermaid
@@ -66,11 +105,25 @@ The release job publishes the archive that passes the consumer checks.
 7. Publish one public npm version for each new `foundation_wasm_ui-v<version>` release, including releases with unchanged JavaScript.
 8. Invoke publication from the successful crate release workflow. Repository-token tag pushes do not start a second workflow automatically.
 9. Allow an explicit retry for a tagged revision. Build from that revision and serialize publication for that package version.
-10. Use npm trusted publishing from the release job. Configure the registry publisher before enabling automatic publication. [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/)
+10. Supply the registry token only to the publication step. Follow the credential rules below.
 11. Compare the local archive integrity with the registry on retry. Accept a matching version and fail on different bytes.
 12. Record the tag, commit, npm version, and archive integrity. Keep release credentials out of builds and test jobs.
 
+## Publication credentials
+
+1. Use the nonempty `NPM_TOKEN` value from the process environment first.
+2. If that value is absent or empty, read the literal `NPM_TOKEN` assignment from `~/.userenv`.
+3. Accept an optional `export` prefix and matching outer quotes. Ignore unrelated assignments.
+4. Treat the file as text. Never execute commands or expand shell expressions from the file.
+5. If both sources lack a usable token, stop publication. Report the missing variable by name.
+6. Pass the token only to the registry client during publication. Keep it out of command arguments.
+7. Exclude credentials and file contents from logs, errors, archives, generated files, and version control.
+
 ## Acceptance checks
+
+- Use dummy tokens to test environment precedence, file fallback, and missing credentials.
+- Include a shell command in a test file. Verify that the command never runs.
+- Check output, errors, command arguments, and package contents for the dummy tokens.
 
 - From two clean checkouts of one tag, build and pack the package. Compare archive digests and inspect the npm file list.
 - Install the archive outside the repository. Bundle a consumer that imports the three public functions and boots a browser view.

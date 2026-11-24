@@ -3,15 +3,10 @@ use foundation_browser::{BrowserDriver, LaunchConfig};
 use foundation_context::Ctx;
 use foundation_http::ShutdownSignal;
 use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
-use std::{net::TcpListener, path::Path, sync::Arc};
+use std::{net::TcpListener, sync::Arc};
 
 #[test]
 fn browser_opens_the_same_packaged_icon() {
-    let web = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web");
-    assert!(
-        web.join("resources-wasm/foundation_resources.js").is_file(),
-        "Run build-module.sh before this test"
-    );
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let url = format!("http://{}/", listener.local_addr().unwrap());
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -22,12 +17,7 @@ fn browser_opens_the_same_packaged_icon() {
             BacklogConfig::default(),
             foundation_ui_wire::writer::WriterConfig::default(),
         );
-        let app = ui_todo::server::app_with_public_directory(
-            &web.join("ui_todo.wasm"),
-            channel,
-            Path::new(env!("EWE_STAGED_RESOURCES")),
-        )
-        .unwrap();
+        let app = ui_todo::server::app_with_store(ui_todo::TodoStore::default(), channel).unwrap();
         app.server(&listener.local_addr().unwrap().to_string())
             .serve_with_listener(&listener, &stop);
     });
@@ -36,7 +26,7 @@ fn browser_opens_the_same_packaged_icon() {
         let page = driver.new_page().unwrap();
         page.goto(&url).unwrap();
         let result = page.eval(r#"(async () => {
-            const { openResource } = await import("/app.js");
+            const openResource = window.todoResources.open;
             const file = await openResource("art/todo.svg");
             const decoder = new TextDecoder();
             let icon = "", chunk;
@@ -74,6 +64,14 @@ fn browser_opens_the_same_packaged_icon() {
             } finally { window.fetch = originalFetch; }
             return icon + decoder.decode();
         })()"#).unwrap();
+        assert_eq!(
+            page.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js")).join(",")"#).unwrap().as_str(),
+            Some("/bundle.js")
+        );
+        assert_eq!(
+            page.eval(r#"performance.getEntriesByType("resource").filter(e => new URL(e.name).pathname === "/resources-wasm/foundation_resources_bg.wasm").length"#).unwrap().as_u64(),
+            Some(1)
+        );
         assert_eq!(
             result.as_str(),
             Some(include_str!("../resources/art/todo.svg"))

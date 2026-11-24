@@ -225,10 +225,16 @@ async fn docker_container_list() {
         .await
         .expect("container_list should succeed");
 
-    let arr = containers.as_array().expect("should be an array");
-    assert_eq!(arr.len(), 1);
-    assert_eq!(arr[0]["Id"].as_str(), Some("abc123"));
-    assert_eq!(arr[0]["Names"][0].as_str(), Some("/test_container"));
+    assert_eq!(containers.len(), 1);
+    assert_eq!(containers[0].id.as_deref(), Some("abc123"));
+    assert_eq!(
+        containers[0]
+            .names
+            .as_ref()
+            .and_then(|names| names.first())
+            .map(String::as_str),
+        Some("/test_container")
+    );
 
     mock_socket::stop(&socket, &stop);
 }
@@ -245,7 +251,7 @@ async fn docker_container_list_with_filters() {
         .container_list(false, Some(5), true, Some(r#"{"status":["running"]}"#))
         .await
         .expect("container_list with filters should succeed");
-    assert!(containers.is_array());
+    assert!(!containers.is_empty());
 
     mock_socket::stop(&socket, &stop);
 }

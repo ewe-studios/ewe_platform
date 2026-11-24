@@ -1,6 +1,6 @@
 [package]
 name = "foundation_connectrpc"
-version = "0.0.13"
+version = "0.0.16"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -20,7 +20,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", fe
 foundation_macros = { workspace = true }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
-foundation_auth = { path = "../foundation_auth", version = "0.0.10", optional = true, default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.15", optional = true, default-features = false }
 buffa = { version = "0.9.2", features = ["json"] }
 bytes = "1.5"
 futures = "0.3"
@@ -28,7 +28,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
 concurrent-queue = "2.5"
-flate2 = "1.0"
+flate2.workspace = true
 zstd = { version = "0.14", optional = true }
 brotli = { version = "8", optional = true }
 
@@ -40,16 +40,20 @@ brotli = { version = "8", optional = true }
 # wasm code (its `ExchangeContinuation` drops the `+ Send` bound there), which
 # no longer type-checks.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.13" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15" }
+foundation_http = { path = "../foundation_http", version = "0.0.16" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16" }
 # The H2 client dials without blocking a valtron worker (feature 127):
 # `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
 socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.13", default-features = false, features = ["wasm"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", default-features = false, features = ["wasm-fetch"] }
-foundation_auth = { path = "../foundation_auth", version = "0.0.10", optional = true, default-features = false, features = ["wasm"] }
+foundation_http = { path = "../foundation_http", version = "0.0.16", default-features = false, features = ["wasm"] }
+# The fetch client is optional on wasm: the owned-harness test package turns it
+# off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
+# The streaming response sink holds a JS `Response` behind a `SendWrapper`.
+web-sys = { workspace = true, features = ["Response"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.15", optional = true, default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -89,6 +93,12 @@ auth = ["dep:foundation_auth"]
 
 # HTTP/3 over QUIC (F35). Pulls quinn-proto through netio's `quic` feature.
 h3 = ["foundation_netio/quic", "foundation_http/quic"]
+
+# Netio's outbound fetch client on wasm32, and the wasm response sink that
+# writes to it. It brings wasm-bindgen glue, so the owned-harness package
+# (`integration/wasm_owned`) leaves it off and runs the pure-Rust paths only.
+# Every wasm build that uses `H1Transport` must enable it (spec 88 feature 03).
+wasm-fetch = ["foundation_netio/wasm-fetch", "foundation_http/wasm-fetch"]
 
 # Tests that use the valtron pool need the multi-threaded executor (`rpc_multi`).
 # HTTP/3 transport capabilities (F35).
@@ -162,3 +172,9 @@ required-features = ["rpc_multi"]
 
 [lints]
 workspace = true
+
+# Spec 81 feature 00, task T11: the ClientAuth interceptor.
+[[test]]
+name = "client_auth_interceptor_tests"
+path = "tests/client_auth_interceptor_tests.rs"
+required-features = ["rpc_multi"]

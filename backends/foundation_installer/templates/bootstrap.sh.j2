@@ -1,0 +1,35 @@
+#!/bin/sh
+# EWE installer bootstrap script. It only writes the manifest, gets the
+# installer, checks it and runs it.
+set -eu
+
+MANIFEST_PATH={{ manifest_path_shell }}
+mkdir -p "$(dirname "$MANIFEST_PATH")"
+base64 -d > "$MANIFEST_PATH" <<'EWE_MANIFEST_BASE64'
+{{ manifest_base64 }}
+EWE_MANIFEST_BASE64
+chmod 0600 "$MANIFEST_PATH"
+
+uname_s=$(uname -s)
+uname_m=$(uname -m)
+case "$uname_s/$uname_m" in
+{% for build in builds %}  {{ build.os_arch }})
+    target={{ build.target_shell }}
+    url={{ build.url_shell }}
+    sha256={{ build.sha256 }}
+    ;;
+{% endfor %}  *)
+    echo "ewe-installer: no build for $uname_s/$uname_m" >&2
+    exit 1
+    ;;
+esac
+
+tmp=$(mktemp)
+sums=$(mktemp)
+trap 'rm -f "$tmp" "$sums"' EXIT
+
+curl --fail --location --silent --show-error -o "$tmp" "$url"
+printf '%s  %s\n' "$sha256" "$tmp" > "$sums"
+sha256sum -c "$sums"
+
+"$tmp" apply --manifest "$MANIFEST_PATH"

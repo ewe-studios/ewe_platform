@@ -25,7 +25,7 @@ has_features: false
 has_fundamentals: false
 builds_on: ""
 related_specs:
-  - "specifications/88-wasm-runtime-coverage"
+  - "specifications/completed/88-wasm-runtime-coverage"
   - "specifications/83-agent-rpc-serving-system"
   - "specifications/completed/31-wasm-testbed"
   - "specifications/completed/30-valtron-js-eventloop-yield"

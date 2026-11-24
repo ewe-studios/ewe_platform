@@ -1,12 +1,12 @@
-use super::{bindings, output::artifact, NativeBuildEnv};
+use super::{bindings, NativeBuildEnv};
 use clap::Args;
-use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
+use foundation_tasks::{TaskContext, TaskError, TaskResult};
 use std::path::{Path, PathBuf};
 
 #[derive(Args)]
-pub(super) struct Check {
+pub struct Check {
     #[arg(long)]
-    check: bool,
+    pub check: bool,
 }
 
 pub(super) async fn ios(ctx: TaskContext, args: Check) -> TaskResult {
@@ -78,7 +78,11 @@ pub(super) async fn ios(ctx: TaskContext, args: Check) -> TaskResult {
         .map_err(TaskError::operation)
 }
 
-pub(super) async fn android(ctx: TaskContext, args: Check) -> TaskResult {
+/// Prepare and synchronize Android framework bindings and fixtures.
+///
+/// # Errors
+/// Returns binding, file, or synchronization errors.
+pub async fn android(ctx: TaskContext, args: Check) -> TaskResult {
     let root = ctx.require::<NativeBuildEnv>()?.root().await?;
     let wire = root.join("backends/foundation_ui_wire");
     let package = root.join("mobile/android");
@@ -107,52 +111,6 @@ pub(super) async fn android(ctx: TaskContext, args: Check) -> TaskResult {
     })
     .await
     .map_err(TaskError::operation)?;
-    let cargo = ProcessCommand::new("cargo").current_dir(&root).args([
-        "build",
-        "--locked",
-        "--profile",
-        "uat",
-        "--message-format=json-render-diagnostics",
-    ]);
-    let native = artifact(
-        &ctx,
-        cargo.clone().args([
-            "-p",
-            "ui_todo",
-            "--lib",
-            "--no-default-features",
-            "--features",
-            "mobile",
-        ]),
-        "ui_todo",
-        &[".so", ".dylib", ".dll"],
-    )
-    .await?;
-    let bindgen = artifact(
-        &ctx,
-        cargo.args([
-            "-p",
-            "foundation_ui_native",
-            "--features",
-            "bindgen",
-            "--bin",
-            "uniffi-bindgen",
-        ]),
-        "uniffi-bindgen",
-        &[],
-    )
-    .await?;
-    let todo = stage.path().join("todo");
-    ctx.exec(
-        ProcessCommand::new(bindgen)
-            .current_dir(&root)
-            .args(["generate", "--library"])
-            .arg(native)
-            .args(["--crate", "ui_todo", "--language", "kotlin", "--out-dir"])
-            .arg(&todo)
-            .arg("--no-format"),
-    )
-    .await?;
     for (from, into) in [
         (
             wire.join("generated/kotlin"),
@@ -174,7 +132,6 @@ pub(super) async fn android(ctx: TaskContext, args: Check) -> TaskResult {
             stage.path().join("signed"),
             package.join("core/src/test/resources/signed"),
         ),
-        (todo, root.join("examples/ui_todo/android/generated")),
     ] {
         sync(&ctx, &root, &from, &into, args.check).await?;
     }
@@ -183,38 +140,23 @@ pub(super) async fn android(ctx: TaskContext, args: Check) -> TaskResult {
         .map_err(TaskError::operation)
 }
 
-pub(super) async fn sync(
+/// Check or replace the generated directory.
+///
+/// # Errors
+/// Returns a difference in check mode, a file error, or cancellation.
+pub async fn sync(
     ctx: &TaskContext,
     root: &Path,
     from: &Path,
     into: &Path,
     check: bool,
 ) -> TaskResult {
-    if check {
-        return ctx
-            .exec(
-                ProcessCommand::new("diff")
-                    .current_dir(root)
-                    .arg("-ru")
-                    .arg(from)
-                    .arg(into),
-            )
-            .await;
-    }
-    let directory = into.to_path_buf();
-    blocking::unblock(move || std::fs::create_dir_all(directory))
+    let source = root.join(from);
+    let destination = root.join(into);
+    let locks = ctx.require::<NativeBuildEnv>()?.temporary_dir.clone();
+    let cancel = ctx.cancellation().clone();
+    blocking::unblock(move || super::staging::sync(&source, &destination, check, &locks, &cancel))
         .await
-        .map_err(TaskError::operation)?;
-    let mut tree = from.as_os_str().to_os_string();
-    tree.push("/");
-    ctx.exec(
-        ProcessCommand::new("rsync")
-            .current_dir(root)
-            .args(["-a", "--delete"])
-            .arg(tree)
-            .arg(into),
-    )
-    .await
 }
 
 fn named(directory: &Path, names: &[&str]) -> Vec<PathBuf> {

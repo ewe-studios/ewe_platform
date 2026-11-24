@@ -279,3 +279,46 @@ fn test_add_route_any() {
         .is_some());
     assert!(router.dispatch(&SimpleMethod::PUT, "/catch-all").is_some());
 }
+
+#[test]
+fn allowed_methods_names_the_methods_of_a_matched_path() {
+    let mut router = Router::new();
+    let count = Arc::new(AtomicUsize::new(0));
+
+    router.add_route(
+        SimpleMethod::GET,
+        "/resource",
+        make_handler(40, count.clone()),
+    );
+    router.add_route(
+        SimpleMethod::PUT,
+        "/resource",
+        make_handler(41, count.clone()),
+    );
+
+    assert_eq!(
+        router.allowed_methods("/resource?q=1"),
+        vec!["GET".to_string(), "PUT".to_string()]
+    );
+    assert_eq!(router.allowed_methods("/missing"), Vec::<String>::new());
+}
+
+#[test]
+fn dispatch_result_reports_a_method_miss_as_not_allowed() {
+    let mut router = Router::new();
+    let count = Arc::new(AtomicUsize::new(0));
+
+    router.add_route(
+        SimpleMethod::GET,
+        "/resource",
+        make_handler(42, count.clone()),
+    );
+
+    assert!(matches!(
+        router.dispatch_result(&SimpleMethod::POST, "/resource"),
+        Err(foundation_http::shared::router::RouteOp::MethodNotAllowed)
+    ));
+    assert!(router
+        .dispatch_result(&SimpleMethod::POST, "/missing")
+        .is_err());
+}

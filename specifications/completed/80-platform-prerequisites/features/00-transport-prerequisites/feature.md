@@ -47,7 +47,7 @@ Part of the agent-rpc proof of concept.
 | Design file | Sections |
 |---|---|
 | [mtls.md](../../../87-mutual-tls/mtls.md) | section 3.4 (the host must report the peer certificate) |
-| [auth.md](../../../81-foundation-auth/features/00-foundation-auth/auth.md) | section 8.2 (the interceptor needs the `build_ctx` fix) |
+| [auth.md](../../../completed/81-foundation-auth/features/00-foundation-auth/auth.md) | section 8.2 (the interceptor needs the `build_ctx` fix) |
 | [84/requirements.md](../../../84-context-injection/requirements.md) | section 3 (the `Env` bundle; the clock is `ctx.clock()`) |
 | [hosts.md](../../../83-agent-rpc-serving-system/features/04-native-host-and-dst/hosts.md) | section 4.3 (listeners and TLS) and the `foundation_connectrpc` row of section 5.4 |
 | [agent-rpc-architecture.md](../../../83-agent-rpc-serving-system/agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |

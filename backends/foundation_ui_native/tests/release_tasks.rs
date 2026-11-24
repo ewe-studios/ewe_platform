@@ -39,6 +39,7 @@ struct Remote {
     receipt: Value,
     signer: String,
     ambiguous: bool,
+    changed_tag: bool,
 }
 #[derive(Default)]
 struct Registry(Mutex<Remote>);
@@ -67,7 +68,7 @@ impl TaskProcess for Registry {
                     }
                     ("gh", ["api", "--include", route, "--jq", _]) => {
                         let obj = if route.contains("git/ref/tags/") {
-                            json!({"type":"commit","sha":REVISION})
+                            json!({"type":"commit","sha":if remote.changed_tag { "changed" } else { REVISION }})
                         } else if route.contains("git/commits/") {
                             json!({"sha":REVISION})
                         } else if route.contains("releases/tags/") {
@@ -257,7 +258,7 @@ swift_product="EweUI"
         remote
             .assets
             .insert("central-deployment.json".into(), "fixture".into());
-        remote.states.extend(states.iter().map(|s| s.to_string()));
+        remote.states.extend(states.iter().map(ToString::to_string));
     }
 }
 
@@ -292,6 +293,14 @@ fn validated_receipt_publishes_once() {
     assert!(!remote.operations.iter().any(|s| s.starts_with("upload")));
 }
 #[test]
+fn changed_release_tag_prevents_remote_writes() {
+    let f = Fixture::new();
+    f.remote.0.lock().unwrap().changed_tag = true;
+    assert!(f.run().unwrap_err().to_string().contains("Tag conflict"));
+    assert_eq!(f.remote.0.lock().unwrap().operations, Vec::<String>::new());
+}
+
+#[test]
 fn untrusted_signer_and_remote_conflict_prevent_writes() {
     let f = Fixture::new();
     f.remote.0.lock().unwrap().signer = "untrusted".into();
@@ -300,7 +309,7 @@ fn untrusted_signer_and_remote_conflict_prevent_writes() {
         .unwrap_err()
         .to_string()
         .contains("Unexpected signer"));
-    assert!(f.remote.0.lock().unwrap().operations.is_empty());
+    assert_eq!(f.remote.0.lock().unwrap().operations, Vec::<String>::new());
     let mut remote = f.remote.0.lock().unwrap();
     remote.signer = SIGNER.into();
     remote
@@ -308,7 +317,7 @@ fn untrusted_signer_and_remote_conflict_prevent_writes() {
         .insert("native-ui.json".into(), "sha256:wrong".into());
     drop(remote);
     assert!(f.run().unwrap_err().to_string().contains("Asset conflict"));
-    assert!(f.remote.0.lock().unwrap().operations.is_empty());
+    assert_eq!(f.remote.0.lock().unwrap().operations, Vec::<String>::new());
 }
 #[test]
 fn ambiguous_upload_requires_a_receipt_before_retry() {

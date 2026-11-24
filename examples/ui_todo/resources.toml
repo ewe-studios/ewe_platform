@@ -3,10 +3,15 @@ name = "art"
 path = "resources/art"
 
 [[resource]]
-name = "app.js"
-path = "web/app.js"
+name = "index.html"
+path = "web/index.html"
 targets = ["web"]
 
 [[resource]]
 name = "app/version.txt"
 generated = "app-version.txt"
+
+[[resource]]
+name = "theme.css"
+generated = "theme.css"
+targets = ["web"]

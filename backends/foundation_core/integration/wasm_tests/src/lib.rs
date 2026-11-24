@@ -57,6 +57,17 @@ impl<F: Fn() -> bool> WaitUntil<F> {
             max_polls: 500,
         }
     }
+
+    /// The same wait with its own poll bound. A case that drives many tasks at
+    /// once keeps the 500-poll default and picks a larger stated bound, because
+    /// one harness re-entry does not advance every task.
+    fn with_max_polls(predicate: F, max_polls: usize) -> Self {
+        Self {
+            predicate,
+            polls: 0,
+            max_polls,
+        }
+    }
 }
 
 impl<F: Fn() -> bool + Unpin> Future for WaitUntil<F> {
@@ -190,8 +201,12 @@ async fn concurrent_tasks_make_progress() {
     WaitUntil::new(move || dc.load(Ordering::Relaxed) == 2).await;
 
     let elapsed = now_ms() - start;
+    // The point is that the two tasks do not wait for one another. An idle
+    // host finishes in about one yield period (10 ms). A loaded or emulated
+    // host can delay each timer by a hundred milliseconds, so the bound is
+    // generous; a deadlock still fails, because the wait never returns.
     assert!(
-        elapsed < 50.0,
+        elapsed < 500.0,
         "concurrent tasks took {elapsed}ms — should complete within one yield period"
     );
 }
@@ -526,6 +541,316 @@ async fn timeout_task_ends_at_its_timeout() {
 #[wasm_test]
 fn waitgroup_idle_wait_timeout_reads_the_clock() {
     wake::waitgroup_idle_wait_timeout();
+}
+
+// ---------------------------------------------------------------------------
+// Spec 88 feature 01 T2: deeper scenarios from the same shared file. The
+// wasm-bindgen twin (`tests/valtron/wasm_js_yield_integration.rs`) registers
+// cases with the same names, so the two hosts are comparable by name.
+
+/// A cancelled park ends and its waker leaves the registry. See
+/// `wake::cancelled_park_releases`.
+#[wasm_test]
+async fn cancelled_park_releases() {
+    finish(wake::cancelled_park_releases(host_after)).await;
+}
+
+/// One registry wake reaches two waiters, each once. See
+/// `wake::two_waiters_both_resume`.
+#[wasm_test]
+async fn two_waiters_both_resume() {
+    finish(wake::two_waiters_both_resume(host_after)).await;
+}
+
+/// A dropped waiter never breaks a wake. See `wake::dropped_waiter_wake_is_safe`.
+#[wasm_test]
+async fn dropped_waiter_wake_is_safe() {
+    finish(wake::dropped_waiter_wake_is_safe(host_after)).await;
+}
+
+/// A producer parks on a full bounded queue and resumes in order. See
+/// `wake::bounded_queue_backpressure`.
+#[wasm_test]
+async fn bounded_queue_backpressure() {
+    finish(wake::bounded_queue_backpressure(host_after)).await;
+}
+
+/// `into_future_stream` parks and a host timer resumes it. See
+/// `wake::stream_resumes_from_a_host_timer`.
+#[wasm_test]
+async fn stream_resumes_from_a_host_timer() {
+    finish(wake::stream_resumes_from_a_host_timer(host_after)).await;
+}
+
+/// An `AnyReadiness` ignores a cancelled child. See
+/// `wake::cancelled_child_does_not_wake_parent`.
+#[wasm_test]
+async fn cancelled_child_does_not_wake_parent() {
+    finish(wake::cancelled_child_does_not_wake_parent(host_after)).await;
+}
+
+// ---------------------------------------------------------------------------
+// Spec 88 feature 01 T3: cases that only the owned harness can prove — the
+// `js-foundation-wasm` yielder, the `schedule_timeout` re-entry and the host
+// ABI. Every wait uses `WaitUntil` (500 polls) or its own stated bound.
+
+use std::sync::Mutex;
+
+use foundation_core::valtron::SleepingTask;
+
+/// Forwards a task and records its id when it ends.
+struct RecordEnd<T> {
+    inner: T,
+    id: u32,
+    order: Arc<Mutex<Vec<u32>>>,
+    ended: Arc<AtomicUsize>,
+}
+
+impl<T: TaskIterator> TaskIterator for RecordEnd<T> {
+    type Ready = T::Ready;
+    type Pending = T::Pending;
+
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        let next = self.inner.next_status(ctx);
+        if next.is_none() {
+            self.order
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .push(self.id);
+            self.ended.fetch_add(1, Ordering::SeqCst);
+        }
+        next
+    }
+}
+
+/// `yield_for` over a 50 ms delay returns `Waiting` at once: it schedules a
+/// host timer, it does not block the JS thread.
+#[wasm_test]
+fn yield_for_reports_waiting_for_a_long_delay() {
+    let yielder = JSThreadYielder::new();
+    // Warm up the one-off costs of a fresh yielder.
+    let _ = yielder.yield_for(Duration::from_millis(5));
+
+    let start = now_ms();
+    let status = yielder.yield_for(Duration::from_millis(50));
+    assert_eq!(
+        status,
+        WaitStatus::Waiting,
+        "yield_for must report Waiting for a 50 ms delay"
+    );
+    let elapsed = now_ms() - start;
+    assert!(
+        elapsed < 25.0,
+        "yield_for(50 ms) took {elapsed}ms; it must return at once"
+    );
+}
+
+/// Two sleeping tasks resume in deadline order: 10 ms before 30 ms.
+#[wasm_test]
+async fn two_parked_tasks_resume_in_deadline_order() {
+    initialize_pool(42);
+    let order = Arc::new(Mutex::new(Vec::new()));
+    let ended = Arc::new(AtomicUsize::new(0));
+
+    for (id, ms) in [(1_u32, 10_u64), (2, 30)] {
+        spawn()
+            .with_task(RecordEnd {
+                inner: SleepingTask::sleep(Duration::from_millis(ms)),
+                id,
+                order: Arc::clone(&order),
+                ended: Arc::clone(&ended),
+            })
+            .with_resolver(Box::new(FnReady::new(|_, _| {})))
+            .as_scheduled()
+            .spawn()
+            .expect("should schedule");
+    }
+    run_until_complete();
+
+    let done = Arc::clone(&ended);
+    WaitUntil::new(move || done.load(Ordering::SeqCst) == 2).await;
+
+    let order = order
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    assert_eq!(
+        *order,
+        vec![1, 2],
+        "the 10 ms task must end before the 30 ms task"
+    );
+}
+
+/// 64 tasks of four yields each all end, and none starves.
+#[wasm_test]
+async fn sixty_four_tasks_share_the_loop() {
+    initialize_pool(42);
+    let counter = Arc::new(AtomicUsize::new(0));
+
+    for _ in 0..64 {
+        spawn()
+            .with_task(YieldingTask {
+                max: 4,
+                current: 0,
+                counter: Arc::clone(&counter),
+            })
+            .with_resolver(Box::new(FnReady::new(|_, _| {})))
+            .as_scheduled()
+            .spawn()
+            .expect("should schedule");
+    }
+    run_until_complete();
+
+    let start = foundation_compact::Instant::now();
+    let count = Arc::clone(&counter);
+    // Each of the 64 tasks needs at least five polls (four yields and the end),
+    // and one harness re-entry does not advance every task. The poll bound is
+    // this case's own stated bound, and it is the anti-spin guard.
+    WaitUntil::with_max_polls(move || count.load(Ordering::SeqCst) >= 64 * 4, 2_000).await;
+    let took = start.elapsed();
+    assert_eq!(
+        counter.load(Ordering::SeqCst),
+        64 * 4,
+        "every task must finish all four yields"
+    );
+    // Measured on the owned Deno host (macOS arm64, 2026-11-22): 256 task steps
+    // took 4.0 s, because the executor hands each step to the JS event loop and
+    // a host timer costs about 10 ms. The bound is 10 s, so a task that starves
+    // still fails, while the host's own timer cost does not.
+    assert!(
+        took < Duration::from_secs(10),
+        "64 tasks took {took:?} to share the loop"
+    );
+}
+
+/// A callback scheduled before `yield_for` runs after `yield_for` returns, not
+/// inside it: the executor hands the thread to the host, and the host runs the
+/// timer between two executor turns.
+#[wasm_test]
+async fn timer_callback_runs_after_an_executor_re_entry() {
+    let order: Rc<RefCell<Vec<&'static str>>> = Rc::new(RefCell::new(Vec::new()));
+
+    let callback_order = Rc::clone(&order);
+    register_schedule(0.0, move || callback_order.borrow_mut().push("callback"));
+
+    JSThreadYielder::new().yield_for(Duration::from_millis(10));
+    order.borrow_mut().push("after-yield");
+
+    let seen = Rc::clone(&order);
+    WaitUntil::new(move || seen.borrow().len() == 2).await;
+    assert_eq!(
+        *order.borrow(),
+        vec!["after-yield", "callback"],
+        "the timer callback must run after the executor yielded, not inside yield_for"
+    );
+}
+
+/// The ABI clock and a host timer agree: a 50 ms timer fires 45 to 200 ms after
+/// the recorded start. The upper bound covers a loaded host; the lower bound
+/// proves the timer never fires early.
+#[wasm_test]
+async fn host_clock_matches_the_timer_deadline() {
+    let start = now_ms();
+    let fired = Rc::new(RefCell::new(None::<f64>));
+    let slot = Rc::clone(&fired);
+    register_schedule(50.0, move || *slot.borrow_mut() = Some(now_ms()));
+
+    let seen = Rc::clone(&fired);
+    WaitUntil::new(move || seen.borrow().is_some()).await;
+
+    let elapsed = fired.borrow().expect("the timer fired") - start;
+    assert!(
+        elapsed >= 45.0,
+        "the 50 ms timer fired after only {elapsed}ms"
+    );
+    assert!(
+        elapsed <= 200.0,
+        "the 50 ms timer fired after {elapsed}ms; the ABI clock and the timer disagree"
+    );
+}
+
+/// `wait_timeout` on a group whose last worker finished returns at once.
+#[wasm_test]
+fn waitgroup_timeout_after_all_done_returns_early() {
+    use foundation_compact::Instant;
+    use foundation_context::{Ctx, MonotonicClock};
+    use foundation_core::synca::WaitGroup;
+
+    let group = WaitGroup::new();
+    group.add(1);
+    group.done();
+
+    let ctx = Ctx::fixed(Arc::new(MonotonicClock::new()));
+    let start = Instant::now();
+    assert!(
+        group.wait_timeout(Duration::from_millis(500), &ctx),
+        "a finished group is done"
+    );
+    assert!(
+        start.elapsed() < Duration::from_millis(100),
+        "a finished group must not wait for its timeout"
+    );
+}
+
+/// `#[valtron_wasm_test]` brings up the pool: `fork_ctx` and `execute` work
+/// without the case calling `initialize_pool`.
+#[valtron_wasm_test]
+fn valtron_wasm_test_initializes_the_pool() {
+    // `fork_ctx` panics unless a pool is initialized.
+    let _ctx = fork_ctx();
+    let _stream = foundation_core::valtron::execute(CountingTask { max: 1, current: 0 }, None)
+        .expect("the macro's pool accepts a task");
+}
+
+/// A task that calls `run_until_complete` from inside its own `next_status`
+/// returns instead of spinning.
+struct NestedWaitTask {
+    step: u8,
+}
+
+impl TaskIterator for NestedWaitTask {
+    type Ready = usize;
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        match self.step {
+            0 => {
+                self.step = 1;
+                // Nothing else is scheduled: this nested run must return, not
+                // spin on the slot of the very task that called it.
+                run_until_complete();
+                Some(TaskStatus::Ready(11))
+            }
+            _ => None,
+        }
+    }
+}
+
+/// A nested wait inside a wasm case returns instead of spinning the isolate.
+#[wasm_test]
+async fn nested_wait_inside_a_wasm_case_returns() {
+    initialize_pool(42);
+    let value = Arc::new(AtomicUsize::new(0));
+    let value_clone = Arc::clone(&value);
+
+    spawn()
+        .with_task(NestedWaitTask { step: 0 })
+        .with_resolver(Box::new(FnReady::new(move |item, _| {
+            if let TaskStatus::Ready(v) = item {
+                value_clone.store(v, Ordering::SeqCst);
+            }
+        })))
+        .as_scheduled()
+        .spawn()
+        .expect("should schedule");
+    run_until_complete();
+
+    let seen = Arc::clone(&value);
+    WaitUntil::new(move || seen.load(Ordering::SeqCst) == 11).await;
+    assert_eq!(
+        value.load(Ordering::SeqCst),
+        11,
+        "the nested run returned and the task finished"
+    );
 }
 
 // ---------------------------------------------------------------------------

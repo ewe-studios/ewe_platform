@@ -83,6 +83,7 @@ pub async fn create(
     let uuid = crypto::new_uuid_v4()?.to_string();
     let cipher = Cipher {
         id: uuid.clone(),
+        permissions: crate::core::models::cipher::default_permissions(),
         organization_id: req.organization_id.clone(),
         cipher_type: req.cipher_type,
         name: req.name,

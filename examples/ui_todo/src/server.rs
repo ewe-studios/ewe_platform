@@ -11,13 +11,15 @@ use foundation_ui_http::live_stream::StreamHandler;
 use foundation_ui_http::{ActionRegistryRouteHandler, Response, ViewRequest};
 use foundation_wasm_ui::server::LiveChannel;
 
-use std::{path::Path, sync::Arc};
+use foundation_http::native::handlers::static_file::StaticFileHandler;
+use std::sync::Arc;
 
-mod assets;
+foundation_resources::packaged_resources!(PackagedResources);
 mod screens;
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
 mod services;
+pub use services::Todos;
 pub(crate) use services::TodoFeed;
 
 #[foundation_ui_http::get("/initial")]
@@ -43,71 +45,28 @@ fn count_screen(req: ViewRequest) -> Result<Response, Error> {
     Ok(Response::frame(screens::starter(count)))
 }
 
-/// Builds the application with a fresh count stream.
-///
-/// # Errors
-/// Returns an error when route or asset setup fails.
-pub fn app(module: &Path) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_todos(module, Vec::new())
-}
-
 /// Starts the todo server with a supplied list and its existing identifiers.
 ///
 /// # Errors
 /// Returns an error for duplicate identifiers, or if route setup fails.
-pub fn app_with_todos(
-    module: &Path,
-    items: Vec<crate::Todo>,
-) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    let mut ids = std::collections::HashSet::with_capacity(items.len());
-    if items
-        .iter()
-        .any(|item| !ids.insert(item.id))
-    {
-        return Err("Invalid restored todo identifiers".into());
-    }
-    app_with_store(
-        module,
-        services::channel(1),
-        TodoStore::with_items(items),
-        None,
-    )
+pub fn app_with_todos(items: Vec<crate::Todo>) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    app_with_store(TodoStore::with_items(items)?, services::channel(1))
 }
 
-/// Builds the application with a host-supplied stream for replay tests.
+/// Build the application with a prepared store and live channel.
 ///
 /// # Errors
-/// Returns an error when the channel, routes, signer or assets are invalid.
-pub fn app_with_channel(
-    module: &Path,
-    channel: LiveChannel,
-) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_store(module, channel, TodoStore::default(), None)
-}
-
-/// Build an embedded server using the public directory supplied by its host.
-///
-/// # Errors
-/// Returns an error when the channel, routes, signer, or assets are invalid.
-pub fn app_with_public_directory(
-    module: &Path,
-    channel: LiveChannel,
-    public: &Path,
-) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_store(module, channel, TodoStore::default(), Some(public))
-}
-
-fn app_with_store(
-    module: &Path,
-    channel: LiveChannel,
+/// Returns an error when service installation or route registration fails.
+pub fn app_with_store(
     store: TodoStore,
-    public: Option<&Path>,
+    channel: LiveChannel,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut app = HttpApp::new_serve();
     let ctx = app.context().clone();
     let channels = services::install(&ctx, channel, store)?;
     register(&mut app.router, &ctx, channels)?;
-    assets::register(&mut app.router, module, public)?;
+    app.router
+        .mount(StaticFileHandler::from_resources(PackagedResources))?;
     Ok(app)
 }
 
@@ -149,26 +108,4 @@ fn register(
     router.at("/live", get(events.clone()))?;
     router.at("/live", foundation_http::post(events))?;
     Ok(())
-}
-
-/// Starts the plain data service with one known todo. Only the generated data procedure is mounted.
-///
-/// # Errors
-/// Returns the route registration error.
-pub fn data_app() -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    let mut app = HttpApp::new_serve();
-    app.context().store(TodoStore::with_items(vec![crate::Todo {
-        id: "00000000-0000-4000-8000-000000000042".parse()?,
-        text: "Buy milk".into(),
-        done: false,
-    }]));
-    let mut rpc = foundation_connectrpc::Router::new();
-    crate::todo_rpc::register_todos(&mut rpc, Arc::new(services::Todos));
-    app.router.at(
-        crate::todo_rpc::procedure::GET_TODO,
-        foundation_http::post(foundation_connectrpc::ConnectRpcServe::new(
-            rpc.into_handler(),
-        )),
-    )?;
-    Ok(app)
 }

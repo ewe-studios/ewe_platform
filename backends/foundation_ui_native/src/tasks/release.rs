@@ -27,7 +27,15 @@ pub(super) async fn prepare(ctx: TaskContext, args: Prepare) -> TaskResult {
         ctx.exec(ProcessCommand::new("mise").current_dir(&root).args([
             "exec",
             "--",
-            "scripts/toolchain/check.sh",
+            "cargo",
+            "run",
+            "--locked",
+            "--profile",
+            "uat",
+            "-p",
+            "foundation_ci",
+            "--",
+            "toolchain-check",
             "--scope",
             scope,
         ]))
@@ -39,7 +47,7 @@ pub(super) async fn prepare(ctx: TaskContext, args: Prepare) -> TaskResult {
     let apple = stage.path().join("apple");
     let maven = stage.path().join("maven");
     apple::build_at(&ctx, &root, &apple).await?;
-    android::build_at(&ctx, &root, false).await?;
+    android::build_at(&ctx, &root, &[android::Library::framework()]).await?;
     install_maven(&ctx, &root, &maven).await?;
     if clean_revision(&ctx, &root).await? != revision {
         return Err(TaskError::operation(
@@ -96,10 +104,28 @@ pub(super) struct Verify {
     public: bool,
 }
 
+#[derive(serde::Deserialize)]
+struct ConsumerConfig {
+    consumers: Consumers,
+}
+#[derive(serde::Deserialize)]
+struct Consumers {
+    apple_directory: String,
+    apple_project: String,
+    apple_scheme: String,
+    android_directory: String,
+    android_task: String,
+}
+
 pub(super) async fn verify(ctx: TaskContext, args: Verify) -> TaskResult {
     let env = ctx.require::<NativeBuildEnv>()?;
     let root = env.root().await?;
     let revision = check_candidate(&root, &args.candidate, false).await?;
+    let config: ConsumerConfig = toml::from_str(
+        &std::fs::read_to_string(root.join("release/native-ui.toml"))
+            .map_err(TaskError::operation)?,
+    )
+    .map_err(TaskError::operation)?;
     let candidate = root.join(args.candidate);
     let stage = blocking::unblock(tempfile::tempdir)
         .await
@@ -112,6 +138,7 @@ pub(super) async fn verify(ctx: TaskContext, args: Verify) -> TaskResult {
             stage.path(),
             &revision,
             args.public,
+            &config.consumers,
         )
         .await?;
     }
@@ -123,6 +150,7 @@ pub(super) async fn verify(ctx: TaskContext, args: Verify) -> TaskResult {
             stage.path(),
             &revision,
             args.public,
+            &config.consumers,
         )
         .await?;
     }
@@ -171,6 +199,7 @@ async fn verify_apple(
     stage: &Path,
     revision: &str,
     public: bool,
+    consumer: &Consumers,
 ) -> TaskResult {
     if !cfg!(target_os = "macos") {
         return Err(TaskError::operation(
@@ -185,10 +214,12 @@ async fn verify_apple(
         stage,
         stage,
         revision,
-        &["examples/mobile_starter/ios"],
+        &[&consumer.apple_directory],
     )
     .await?;
-    let project = stage.join("examples/mobile_starter/ios/Starter.xcodeproj");
+    let project = stage
+        .join(&consumer.apple_directory)
+        .join(&consumer.apple_project);
     let destinations: &[&str] = if public {
         &["generic/platform=iOS", "generic/platform=iOS Simulator"]
     } else {
@@ -223,7 +254,12 @@ async fn verify_apple(
             cmd("xcodebuild")
                 .arg("-project")
                 .arg(&project)
-                .args(["-scheme", "Starter", "-destination", destination])
+                .args([
+                    "-scheme",
+                    &consumer.apple_scheme,
+                    "-destination",
+                    destination,
+                ])
                 .arg("-derivedDataPath")
                 .arg(stage.join("products"))
                 .args(["CODE_SIGNING_ALLOWED=NO", "build"]),
@@ -240,6 +276,7 @@ async fn verify_android(
     stage: &Path,
     revision: &str,
     public: bool,
+    consumer: &Consumers,
 ) -> TaskResult {
     unpack_revision(
         ctx,
@@ -247,14 +284,14 @@ async fn verify_android(
         stage,
         stage,
         revision,
-        &["examples/mobile_starter/android"],
+        &[&consumer.android_directory],
     )
     .await?;
     let mut gradle = ProcessCommand::new("mise")
         .current_dir(root)
         .env("GRADLE_USER_HOME", stage.join("gradle"))
         .args(["exec", "--", "gradle", "--no-daemon", "-p"])
-        .arg(stage.join("examples/mobile_starter/android"));
+        .arg(stage.join(&consumer.android_directory));
     if !public {
         let packages = stage.join("maven");
         ctx.exec(
@@ -270,7 +307,7 @@ async fn verify_android(
         repository.push(packages);
         gradle = gradle.arg(repository);
     }
-    ctx.exec(gradle.arg(":app:assembleDebug")).await
+    ctx.exec(gradle.arg(&consumer.android_task)).await
 }
 
 #[derive(Args)]

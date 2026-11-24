@@ -53,7 +53,7 @@ pub struct JwtVerifierConfig {
 #[derive(Clone)]
 enum VerifiedPublicKey {
     Ed25519(jwt_simple::prelude::Ed25519PublicKey),
-    RS256(jwt_simple::prelude::RS256PublicKey),
+    RS256(Box<jwt_simple::prelude::RS256PublicKey>),
     ES256(jwt_simple::prelude::ES256PublicKey),
 }
 
@@ -64,7 +64,7 @@ impl VerifiedPublicKey {
             return Ok(Self::Ed25519(pk));
         }
         if let Ok(pk) = jwt_simple::prelude::RS256PublicKey::from_pem(pem) {
-            return Ok(Self::RS256(pk));
+            return Ok(Self::RS256(Box::new(pk)));
         }
         if let Ok(pk) = jwt_simple::prelude::ES256PublicKey::from_pem(pem) {
             return Ok(Self::ES256(pk));
@@ -191,6 +191,28 @@ impl JwtVerifier {
     /// Returns `JwtError` if the signature is invalid, an algorithm is not allowed,
     /// or claim validation fails.
     pub fn verify(&self, token: &str) -> Result<VerifiedClaims, JwtError> {
+        self.verify_at_unix(token, None)
+    }
+
+    /// Verify a JWT token at the given Unix time instead of the wall clock.
+    ///
+    /// The server credential providers read the time from the injected `Ctx`
+    /// (spec 84), so a deterministic simulation test (DST) run checks an expiry
+    /// at a known simulated instant.
+    ///
+    /// # Errors
+    ///
+    /// Returns `JwtError` if the signature is invalid, an algorithm is not allowed,
+    /// or claim validation fails.
+    pub fn verify_at(&self, token: &str, now_unix: u64) -> Result<VerifiedClaims, JwtError> {
+        self.verify_at_unix(token, Some(now_unix))
+    }
+
+    fn verify_at_unix(
+        &self,
+        token: &str,
+        now_unix: Option<u64>,
+    ) -> Result<VerifiedClaims, JwtError> {
         // Parse header to check algorithm before spending crypto cycles
         let header_alg = decode_header_algorithm(token)?;
         let expected_alg = self.public_key.alg_name();
@@ -211,7 +233,10 @@ impl JwtVerifier {
             )));
         }
 
-        let options = self.build_options();
+        let mut options = self.build_options();
+        if let Some(now) = now_unix {
+            options.artificial_time = Some(jwt_simple::prelude::UnixTimeStamp::from_secs(now));
+        }
         let claims = self.public_key.verify_token(token, Some(options))?;
 
         to_verified_claims(&claims)

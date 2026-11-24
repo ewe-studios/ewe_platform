@@ -22,3 +22,13 @@ preview_bucket_name = "wasm-test-bucket-preview"
 binding = "KV"
 id = "0000000000000000000000000000000a"
 preview_id = "0000000000000000000000000000000b"
+
+# The Durable Object stub client test (spec 85 T5). The worker exports
+# `TestDurableObject`; the netio test resolves the `TEST_DO` binding.
+[[durable_objects.bindings]]
+name = "TEST_DO"
+class_name = "TestDurableObject"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TestDurableObject"]

@@ -9,8 +9,9 @@
 //! - `JsReadableStreamIterator` — reads a JS `ReadableStream` and yields
 //!   `Vec<u8>` chunks through a sync `Iterator`. Analogous to native
 //!   `ThreadedIterFuture` which bridges async→sync via a channel.
-//! - `iterator_to_readable_stream` — wraps a sync `Iterator<Item = Vec<u8>>`
-//!   into a JS `ReadableStream` for use as a `fetch()` request body.
+//! - `iterator_to_readable_stream` — wraps a byte source (`JsStreamItem`) in a
+//!   JS `ReadableStream` for use as a `fetch()` request body. A `Pending` item
+//!   parks the pull on readiness (or a timer) instead of spinning.
 //!
 //! HOW: Both use `ConcurrentQueue` as the sync/async bridge.
 //! - Reading: `spawn_local` runs an async loop that awaits `reader.read()`
@@ -19,9 +20,10 @@
 //!   empty (valtron's JS yielder schedules a setTimeout and resumes).
 //!   Errors are pushed as `JsStreamValue::Error` so they flow through the
 //!   same channel — no separate error storage needed.
-//! - Writing: A `pull(controller)` JS closure pops from a queue that a
-//!   background `spawn_local` task feeds from the Rust iterator, calling
-//!   `controller.enqueue(chunk)` or `controller.close()`.
+//! - Writing: a `pull(controller)` JS closure asks the source for one item.
+//!   `Chunk` enqueues, `Error` fails the stream, the end closes it, and
+//!   `Pending` returns a promise that readiness (or `setTimeout(0)`) resolves.
+//!   The pull never calls the source again in a loop.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -222,40 +224,171 @@ impl Iterator for JsReadableStreamIterator {
 /// # Errors
 ///
 /// Returns `JsValue` if `ReadableStream` construction fails.
+/// One item that a byte source gives to a JS `ReadableStream` pull.
+pub enum JsStreamItem {
+    /// Bytes to enqueue now.
+    Chunk(Vec<u8>),
+    /// The source has nothing yet. The pull parks until readiness or a timer.
+    Pending,
+    /// The source failed. The pull fails the stream with this message.
+    Error(String),
+}
+
+/// A waker that resolves a JS promise once.
+struct PromiseWake {
+    resolve: std::sync::Mutex<Option<foundation_compact::SendWrapper<js_sys::Function>>>,
+}
+
+impl std::task::Wake for PromiseWake {
+    fn wake(self: Arc<Self>) {
+        self.wake_by_ref();
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        let resolve = self.resolve.lock().ok().and_then(|mut slot| slot.take());
+        if let Some(resolve) = resolve {
+            let _ = resolve.call0(&JsValue::UNDEFINED);
+        }
+    }
+}
+
+/// Wrap a byte source in a JS `ReadableStream` for use as a `fetch()` request
+/// body.
+///
+/// A `Pending` item parks the pull and returns a promise. When `readiness` can
+/// wake, the wake resolves the promise; otherwise a `setTimeout(0)` does. The
+/// pull never calls the source again in a loop (root rule 6).
+///
+/// # Errors
+///
+/// The `JsValue` error the runtime raised while building the stream.
 pub fn iterator_to_readable_stream(
-    iter: Box<dyn Iterator<Item = Vec<u8>>>,
+    source: Box<dyn Iterator<Item = JsStreamItem>>,
+    readiness: Option<Arc<dyn crate::valtron::EventReadiness + Send + Sync>>,
 ) -> Result<web_sys::ReadableStream, JsValue> {
-    use std::cell::RefCell;
+    use std::cell::{Cell, RefCell};
     use std::rc::Rc;
 
-    let iter = Rc::new(RefCell::new(iter));
+    let source = Rc::new(RefCell::new(Some(source)));
+    let cancelled = Rc::new(Cell::new(false));
 
-    let pull_iter = iter.clone();
+    let pull_source = Rc::clone(&source);
+    let pull_cancelled = Rc::clone(&cancelled);
+    let pull_readiness = readiness.clone();
     let pull = Closure::wrap(Box::new(move |controller: JsValue| -> js_sys::Promise {
         let controller: web_sys::ReadableStreamDefaultController = controller.unchecked_into();
-
-        let mut iter_ref = pull_iter.borrow_mut();
-        match iter_ref.next() {
-            Some(bytes) => {
-                let array = js_sys::Uint8Array::from(bytes.as_slice());
-                let _ = controller.enqueue_with_chunk(&array.into());
+        let source = Rc::clone(&pull_source);
+        let cancelled = Rc::clone(&pull_cancelled);
+        let readiness = pull_readiness.clone();
+        // The pull owns the wait loop. A `ReadableStream` does not pull again
+        // when a pull promise resolves without enqueuing, so this future
+        // awaits each `Pending` and asks the source again. Each wait is an
+        // awaited promise, never a synchronous loop (root rule 6).
+        wasm_bindgen_futures::future_to_promise(async move {
+            loop {
+                if cancelled.get() {
+                    let _ = controller.close();
+                    return Ok(JsValue::UNDEFINED);
+                }
+                // The borrow ends before the await; only the item survives.
+                let item = {
+                    let mut slot = source.borrow_mut();
+                    slot.as_mut().and_then(|source| source.next())
+                };
+                match item {
+                    Some(JsStreamItem::Chunk(bytes)) => {
+                        let array = js_sys::Uint8Array::from(bytes.as_slice());
+                        let _ = controller.enqueue_with_chunk(&array.into());
+                        return Ok(JsValue::UNDEFINED);
+                    }
+                    Some(JsStreamItem::Pending) => {
+                        let parked = park_pull(readiness.as_ref());
+                        let _ = JsFuture::from(parked).await;
+                    }
+                    Some(JsStreamItem::Error(message)) => {
+                        let _ = controller.error_with_e(&JsValue::from_str(&message));
+                        return Ok(JsValue::UNDEFINED);
+                    }
+                    None => {
+                        let _ = controller.close();
+                        return Ok(JsValue::UNDEFINED);
+                    }
+                }
             }
-            None => {
-                let _ = controller.close();
-            }
-        }
-
-        js_sys::Promise::resolve(&JsValue::UNDEFINED)
+        })
     }) as Box<dyn FnMut(JsValue) -> js_sys::Promise>);
 
-    let source = js_sys::Object::new();
-    js_sys::Reflect::set(&source, &JsValue::from_str("pull"), pull.as_ref())?;
+    let cancel = {
+        let source = Rc::clone(&source);
+        let cancelled = Rc::clone(&cancelled);
+        Closure::wrap(Box::new(move |_reason: JsValue| {
+            cancelled.set(true);
+            source.borrow_mut().take();
+        }) as Box<dyn FnMut(JsValue)>)
+    };
 
-    // Prevent the closure from being dropped while the stream is alive.
-    // On wasm32 single-threaded, the stream and closure share the same
-    // event loop lifetime — the closure is invoked synchronously during
-    // pull and the ReadableStream prevents GC of the underlying source.
+    // Build the underlying source as a plain object: this crate does not
+    // enable web-sys' `UnderlyingSource` feature, and `pull`/`cancel` are
+    // ordinary properties.
+    let underlying = js_sys::Object::new();
+    js_sys::Reflect::set(
+        &underlying,
+        &JsValue::from_str("pull"),
+        pull.as_ref().unchecked_ref(),
+    )?;
+    js_sys::Reflect::set(
+        &underlying,
+        &JsValue::from_str("cancel"),
+        cancel.as_ref().unchecked_ref(),
+    )?;
+
+    // The stream holds the closures for its lifetime; the JS heap owns them.
     pull.forget();
+    cancel.forget();
 
-    web_sys::ReadableStream::new_with_underlying_source(&source)
+    web_sys::ReadableStream::new_with_underlying_source(&underlying)
+}
+
+/// A promise that resolves when the source may have data.
+///
+/// It registers a waker with the readiness. When the readiness cannot wake, or
+/// there is no readiness, a `setTimeout(0)` resolves it so the event loop turns.
+fn park_pull(
+    readiness: Option<&Arc<dyn crate::valtron::EventReadiness + Send + Sync>>,
+) -> js_sys::Promise {
+    js_sys::Promise::new(&mut |resolve, _reject| {
+        if let Some(readiness) = readiness {
+            let wake = Arc::new(PromiseWake {
+                resolve: std::sync::Mutex::new(Some(foundation_compact::SendWrapper::new(
+                    resolve.clone(),
+                ))),
+            });
+            let waker = std::task::Waker::from(wake);
+            let readiness_waker = crate::valtron::ReadinessWaker::from_waker(waker);
+            if readiness.register(&readiness_waker) {
+                // The source may have become ready between the `Pending` item
+                // and the registration. Re-check once, so no wake is lost.
+                if readiness.is_ready(None) {
+                    readiness_waker.wake();
+                }
+                return;
+            }
+        }
+        // No readiness, or it cannot wake: resolve on the next macrotask.
+        resolve_soon(&resolve);
+    })
+}
+
+/// Resolve a JS function on the next macrotask.
+fn resolve_soon(resolve: &js_sys::Function) {
+    let global = js_sys::global();
+    let set_timeout = js_sys::Reflect::get(&global, &JsValue::from_str("setTimeout"))
+        .ok()
+        .and_then(|value| value.dyn_ref::<js_sys::Function>().cloned());
+    if let Some(set_timeout) = set_timeout {
+        let _ = set_timeout.call2(&global, resolve, &JsValue::from_f64(0.0));
+    } else {
+        // No timer: resolve now, so the caller is not stuck.
+        let _ = resolve.call0(&JsValue::UNDEFINED);
+    }
 }

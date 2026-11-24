@@ -1,6 +1,6 @@
 [package]
 name = "foundation_tasks"
-version = "0.1.0"
+version = "0.1.1"
 description = "A task registry and command runner for repository tools"
 autotests = false
 edition.workspace = true
@@ -20,6 +20,40 @@ derive_more.workspace = true
 tracing.workspace = true
 foundation_nativeapis = { workspace = true, features = ["signal"] }
 syn = { version = "2", features = ["full"] }
+
+[dependencies.foundation_nostd]
+path = "../foundation_nostd"
+version = "0.0.10"
+optional = true
+
+[features]
+scripts = ["dep:blocking", "dep:tempfile", "dep:foundation_nostd"]
+install = ["dep:blocking", "dep:pathdiff", "dep:proc-macro2", "dep:semver", "dep:tempfile", "dep:toml_edit"]
+
+[dependencies.blocking]
+workspace = true
+optional = true
+
+[dependencies.pathdiff]
+version = "0.2"
+optional = true
+
+[dependencies.proc-macro2]
+version = "1"
+features = ["span-locations"]
+optional = true
+
+[dependencies.semver]
+version = "1"
+optional = true
+
+[dependencies.tempfile]
+workspace = true
+optional = true
+
+[dependencies.toml_edit]
+workspace = true
+optional = true
 
 [target.'cfg(unix)'.dependencies]
 libc.workspace = true

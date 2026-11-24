@@ -5207,9 +5207,9 @@ pub struct GeoObject {
     pub geo: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// A shape 4 generated types share.
+/// A shape 6 generated types share.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetCategoryReadResponseShape {
+pub struct GetCategoryListCompleteResponseItemShape {
     /// `killChain` property.
     #[serde(rename = "killChain")]
     pub kill_chain: f64,
@@ -5227,61 +5227,9 @@ pub struct GetCategoryReadResponseShape {
     pub uuid: String,
 }
 
-/// A shape 4 generated types share.
+/// A shape 6 generated types share.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetEventQueryAlertReadResponseShape {
-    /// `account_id` property.
-    pub account_id: i64,
-    /// `created_at` property.
-    pub created_at: String,
-    /// `enabled` property.
-    pub enabled: bool,
-    /// `frequency` property.
-    pub frequency: String,
-    /// `id` property.
-    pub id: i64,
-    /// `last_sent_at` property.
-    pub last_sent_at: Option<String>,
-    /// `notification_type` property.
-    pub notification_type: String,
-    /// `query_id` property.
-    pub query_id: i64,
-    /// `updated_at` property.
-    pub updated_at: String,
-    /// `user_email` property.
-    pub user_email: String,
-}
-
-/// A shape 4 generated types share.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetEventQueryReadResponseShape {
-    /// `account_id` property.
-    pub account_id: i64,
-    /// `alert_enabled` property.
-    pub alert_enabled: bool,
-    /// `alert_rollup_enabled` property.
-    pub alert_rollup_enabled: bool,
-    /// `created_at` property.
-    pub created_at: String,
-    /// `id` property.
-    pub id: i64,
-    /// `name` property.
-    pub name: String,
-    /// `query_json` property.
-    pub query_json: String,
-    /// `rule_enabled` property.
-    pub rule_enabled: bool,
-    /// `rule_scope` property.
-    pub rule_scope: Option<String>,
-    /// `updated_at` property.
-    pub updated_at: String,
-    /// `user_email` property.
-    pub user_email: String,
-}
-
-/// A shape 4 generated types share.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetEventReadResponseShape {
+pub struct GetEventListGetResponseItemShape {
     /// `attacker` property.
     pub attacker: String,
     /// `attackerCountry` property.
@@ -5354,9 +5302,78 @@ pub struct GetEventReadResponseShape {
     pub uuid: String,
 }
 
-/// A shape 2 generated types share.
+/// A shape 5 generated types share.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct GetGroupReadResponseMembersItemShape {
+pub struct GetEventQueryAlertListResponseItemShape {
+    /// `account_id` property.
+    pub account_id: i64,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `frequency` property.
+    pub frequency: String,
+    /// `id` property.
+    pub id: i64,
+    /// `last_sent_at` property.
+    pub last_sent_at: Option<String>,
+    /// `notification_type` property.
+    pub notification_type: String,
+    /// `query_id` property.
+    pub query_id: i64,
+    /// `updated_at` property.
+    pub updated_at: String,
+    /// `user_email` property.
+    pub user_email: String,
+}
+
+/// A shape 5 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetEventQueryListResponseItemShape {
+    /// `account_id` property.
+    pub account_id: i64,
+    /// `alert_enabled` property.
+    pub alert_enabled: bool,
+    /// `alert_rollup_enabled` property.
+    pub alert_rollup_enabled: bool,
+    /// `created_at` property.
+    pub created_at: String,
+    /// `id` property.
+    pub id: i64,
+    /// `name` property.
+    pub name: String,
+    /// `query_json` property.
+    pub query_json: String,
+    /// `rule_enabled` property.
+    pub rule_enabled: bool,
+    /// `rule_scope` property.
+    pub rule_scope: Option<String>,
+    /// `updated_at` property.
+    pub updated_at: String,
+    /// `user_email` property.
+    pub user_email: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGroupListResponseItemShape {
+    /// `createdAt` property.
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    /// `description` property.
+    pub description: String,
+    /// `name` property.
+    pub name: String,
+    /// `updatedAt` property.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: String,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 3 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetGroupMemberListResponseItemShape {
     /// `accountId` property.
     #[serde(rename = "accountId")]
     pub account_id: String,
@@ -5369,6 +5386,33 @@ pub struct GetGroupReadResponseMembersItemShape {
     /// `updatedAt` property.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<String>,
+    /// `uuid` property.
+    pub uuid: String,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct GetPermissionListResponseItemShape {
+    /// `createdAt` property.
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    /// `resourceId` property.
+    #[serde(rename = "resourceId")]
+    pub resource_id: Option<String>,
+    /// `resourceType` property.
+    #[serde(rename = "resourceType")]
+    pub resource_type: String,
+    /// `role` property.
+    pub role: String,
+    /// `subjectId` property.
+    #[serde(rename = "subjectId")]
+    pub subject_id: String,
+    /// `subjectType` property.
+    #[serde(rename = "subjectType")]
+    pub subject_type: String,
+    /// `updatedAt` property.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: String,
     /// `uuid` property.
     pub uuid: String,
 }
@@ -6024,7 +6068,7 @@ pub struct IsPublicNameObject {
     pub name: String,
 }
 
-/// A shape 4 generated types share.
+/// A shape 5 generated types share.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IsPublicNameUuidObject {
     /// `isPublic` property.
@@ -7206,23 +7250,6 @@ pub struct PortProtocolTargetAttributesObject {
     pub protocol: String,
     /// `target_attributes` property.
     pub target_attributes: serde_json::Value,
-}
-
-/// A shape 2 generated types share.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct PostGroupCreateResponseShape {
-    /// `createdAt` property.
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    /// `description` property.
-    pub description: String,
-    /// `name` property.
-    pub name: String,
-    /// `updatedAt` property.
-    #[serde(rename = "updatedAt")]
-    pub updated_at: String,
-    /// `uuid` property.
-    pub uuid: String,
 }
 
 /// A shape 4 generated types share.
@@ -8732,6 +8759,13 @@ pub struct UserIdAccountIdArgs {
 pub struct UserRiskScoreObject {
     /// `user_risk_score` property.
     pub user_risk_score: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct UseragentObject {
+    /// `useragent` property.
+    pub useragent: Option<String>,
 }
 
 /// A shape 3 generated types share.

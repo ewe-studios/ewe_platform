@@ -119,6 +119,7 @@ pub(crate) struct Policy {
 pub enum GroupRecipe {
     ExampleApplications,
     WasmRuntimeTests,
+    ManifestContract,
 }
 
 #[derive(Deserialize)]

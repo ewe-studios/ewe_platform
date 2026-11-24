@@ -40,7 +40,7 @@ fn main() {
         Command::Browser(args) => {
             run_owned(fwt_runner::run_web(&args, &foundation_context::Ctx::host()))
         }
-        Command::Bindgen(args) => run_bindgen_command(args),
+        Command::Bindgen(args) => run_bindgen_command(&args),
         Command::Emscripten(args) => run_owned(emscripten_runner::run(&args)),
         Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
     };
@@ -95,15 +95,15 @@ fn run_bindgen_outcome(
 /// Run the bindgen command. The `args` binding lives behind the same feature
 /// gate as its use, so the other arm never warns about an unused argument.
 #[cfg(feature = "wasm-bindgen-test")]
-fn run_bindgen_command(args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+fn run_bindgen_command(args: &cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
     run_bindgen_outcome(bindgen_runner::run_bindgen(
-        &args,
+        args,
         &foundation_context::Ctx::host(),
     ))
 }
 
 #[cfg(not(feature = "wasm-bindgen-test"))]
-fn run_bindgen_command(_args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+fn run_bindgen_command(_args: &cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::ToTrace;
     Err(WasmTestbedError::BrowserDriver(
         "the `bindgen` command requires the `wasm-bindgen-test` feature.\n\

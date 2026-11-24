@@ -676,3 +676,56 @@ fn mjs_file_is_served_as_javascript() {
     );
     h.stop();
 }
+
+#[test]
+#[foundation_macros::timeout(30_000)]
+#[serial(http_test)]
+fn one_resource_route_serves_live_and_embedded_files() {
+    use foundation_http::native::handlers::static_file::{PackagedFile, PackagedResourceSet};
+    struct Resources(PathBuf);
+    impl PackagedResourceSet for Resources {
+        fn lookup(&self, name: &str) -> std::io::Result<Option<PackagedFile>> {
+            Ok(match name {
+                "index.html" | "nested/index.html" => Some(PackagedFile::Embedded(b"home")),
+                "module.wasm" => Some(PackagedFile::Embedded(b"\0asm\xff")),
+                "live.txt" => Some(PackagedFile::Live(self.0.clone())),
+                _ => None,
+            })
+        }
+    }
+    let _pool = initialize_pool(300, Some(2));
+    let root = TempDir::new("packaged");
+    let file = root.path().join("live.txt");
+    std::fs::write(&file, b"first").unwrap();
+    let harness = start_server_with(root.path(), StaticFileConfig::default(), |app| {
+        app.router.add_route_any("/nested/action", &(Arc::new(Ping) as Arc<dyn Serve>));
+        app.router
+            .mount(StaticFileHandler::from_resources(Resources(file.clone())))
+            .unwrap();
+    });
+    for (path, expected) in [
+        ("/", b"home".as_slice()),
+        ("/nested/index.html", b"home"),
+        ("/module.wasm?x=1", b"\0asm\xff"),
+        ("/live.txt", b"first"),
+        ("/ping", b"pong"),
+        ("/live.txt", b"second"),
+    ] {
+        if expected == b"second" {
+            std::fs::write(&file, expected).unwrap();
+        }
+        let mut stream = TcpStream::connect(harness.addr).unwrap();
+        let (head, mut bytes) = request_head(&mut stream, path);
+        assert!(head.starts_with("HTTP/1.1 200 "), "{head}");
+        if path.starts_with("/module") {
+            assert!(head.contains("application/wasm"), "{head}");
+        }
+        let start = bytes.len();
+        bytes.resize(content_length(&head), 0);
+        stream.read_exact(&mut bytes[start..]).unwrap();
+        assert_eq!(bytes, expected);
+    }
+    let (head, _) = request_head(&mut TcpStream::connect(harness.addr).unwrap(), "/missing");
+    assert!(head.contains("404"), "{head}");
+    harness.stop();
+}

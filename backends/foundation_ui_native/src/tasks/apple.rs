@@ -60,33 +60,7 @@ pub(super) async fn build_at(ctx: &TaskContext, root: &Path, out: &Path) -> Task
         Ok::<_, TaskError>(())
     })
     .await?;
-    let mut products = Vec::new();
-    for (target, sdk) in [
-        ("aarch64-apple-ios", "iphoneos"),
-        ("aarch64-apple-ios-sim", "iphonesimulator"),
-        ("x86_64-apple-ios", "iphonesimulator"),
-        ("aarch64-apple-darwin", "macosx"),
-        ("x86_64-apple-darwin", "macosx"),
-    ] {
-        let sdk_path = query(ctx, cmd("xcrun").args(["--sdk", sdk, "--show-sdk-path"])).await?;
-        let sdk_path = String::from_utf8(sdk_path).map_err(TaskError::operation)?;
-        let build = cmd("cargo")
-            .env("SDKROOT", sdk_path.trim())
-            .env("MACOSX_DEPLOYMENT_TARGET", "14.0")
-            .env("IPHONEOS_DEPLOYMENT_TARGET", "17.0")
-            .args([
-                "build",
-                "--locked",
-                "--release",
-                "--lib",
-                "--target",
-                target,
-                "-p",
-                "foundation_ui_native",
-                "--message-format=json-render-diagnostics",
-            ]);
-        products.push(artifact(ctx, build, "foundation_ui_native", &[".a"]).await?);
-    }
+    let products = build_slices(ctx, root, &env).await?;
     let device = layout.join("device/libEweCoreFFI.a");
     let simulator = layout.join("simulator/libEweCoreFFI.a");
     let mac = layout.join("mac/libEweCoreFFI.a");
@@ -135,4 +109,40 @@ pub(super) async fn build_at(ctx: &TaskContext, root: &Path, out: &Path) -> Task
         stage.close().map_err(TaskError::operation)
     })
     .await
+}
+
+async fn build_slices(
+    ctx: &TaskContext,
+    root: &Path,
+    env: &NativeBuildEnv,
+) -> Result<Vec<PathBuf>, TaskError> {
+    let cmd = |program| env.apple_command(root, program);
+    let mut products = Vec::new();
+    for (target, sdk) in [
+        ("aarch64-apple-ios", "iphoneos"),
+        ("aarch64-apple-ios-sim", "iphonesimulator"),
+        ("x86_64-apple-ios", "iphonesimulator"),
+        ("aarch64-apple-darwin", "macosx"),
+        ("x86_64-apple-darwin", "macosx"),
+    ] {
+        let sdk_path = query(ctx, cmd("xcrun").args(["--sdk", sdk, "--show-sdk-path"])).await?;
+        let sdk_path = String::from_utf8(sdk_path).map_err(TaskError::operation)?;
+        let build = cmd("cargo")
+            .env("SDKROOT", sdk_path.trim())
+            .env("MACOSX_DEPLOYMENT_TARGET", "14.0")
+            .env("IPHONEOS_DEPLOYMENT_TARGET", "17.0")
+            .args([
+                "build",
+                "--locked",
+                "--release",
+                "--lib",
+                "--target",
+                target,
+                "-p",
+                "foundation_ui_native",
+                "--message-format=json-render-diagnostics",
+            ]);
+        products.push(artifact(ctx, build, "foundation_ui_native", &[".a"]).await?);
+    }
+    Ok(products)
 }

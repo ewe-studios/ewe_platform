@@ -1141,3 +1141,10 @@ The server test uses a second browser to add a Todo while the iPhone shows the g
 A matching row and count after return confirm that the subscription still delivers updates.
 The offline test uses two consecutive game visits to check surface cleanup and Todo state together.
 Simulated audio rendering verifies generated samples. A phone is necessary to check its speaker and operating system interruptions.
+
+The graphics replay previously imported generated JavaScript through a public route.
+A test can load private bindings from the Cargo output directory and reuse the binary fetched by the application.
+This permits a separate device and sound check with the production browser bundle.
+
+The MessagePack prefix for the 14-byte Mathalley route is 0xae. The old hosts compared it with 0xad.
+One typed Rust command removes manual length calculations from each host.

@@ -16,6 +16,13 @@ pub mod shared;
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
+// Wasm-only modules (a streaming response sink for wasm hosts).
+#[cfg(target_family = "wasm")]
+pub mod wasm;
+
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use wasm::sink::{ConnectSink, ConnectSinkHandle};
+
 pub use shared::error_writer::ErrorWriter;
 
 // Proto code generation (Decision 10 Modes 1–2) lives in the build-time
@@ -87,7 +94,9 @@ pub use shared::transport::{
 pub use native::transport::h2::H2Transport;
 #[cfg(all(not(target_family = "wasm"), feature = "h3"))]
 pub use native::transport::h3::H3Transport;
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub use shared::transport::h1::H1Transport;
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub use shared::transport::ws::WsTransport;
 
 pub use shared::envelope::{

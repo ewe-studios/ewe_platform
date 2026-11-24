@@ -379,7 +379,7 @@ and the `Url` as given.
 - The token file is read one time at start: the first line, trimmed. An empty file is a
   usage error. The token is never logged.
 
-Requirements question Q4: mutual TLS comes from [spec 87](../../../87-mutual-tls/requirements.md).
+Requirements question Q4: mutual TLS comes from [spec 87](../../../completed/87-mutual-tls/requirements.md).
 The native listener adds it with `ServerTlsConfig` and `MtlsAuth` when spec 87 lands. A TCP
 listener is for `127.0.0.1` or a private network until then; the README says so.
 

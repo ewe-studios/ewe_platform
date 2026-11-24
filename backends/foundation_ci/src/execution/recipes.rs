@@ -271,6 +271,18 @@ pub(super) fn commands(
     if pkg.recipe == Some(GroupRecipe::WasmRuntimeTests) {
         return Ok(wasm_suite(profile, step, os, host, &pkg.dir));
     }
+    if pkg.recipe == Some(GroupRecipe::ManifestContract) {
+        if step == "build" {
+            let python = if os == "windows" { "python" } else { "python3" };
+            for flag in ["--check-schema", "--check-copies"] {
+                out.push(CommandStep::new(
+                    python,
+                    ["scripts/ci/manifest_contract.py", flag],
+                ));
+            }
+        }
+        return Ok(out);
+    }
     if matches!(os, "macos" | "windows") {
         if step == "test" {
             for run in s.platform_runs(os).unwrap_or(&[]) {

@@ -25,6 +25,13 @@ pub struct PreloginResponse {
 pub struct UserAccount {
     pub id: String,
     pub email: String,
+    /// The user's protected key (`EncString`). The CLI reads it from the sync
+    /// profile to get the user key for decryption.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    /// The account RSA private key, protected by the user key.
+    #[serde(rename = "privateKey", skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
     pub name: Option<String>,
     pub email_verified: bool,
     pub culture: String,
@@ -41,10 +48,22 @@ pub struct RegisterRequest {
     pub master_password_hash: String,
     pub master_password_hint: Option<String>,
     pub key: Option<String>,
+    /// The account key pair, made by the client at registration.
+    pub keys: Option<RegisterKeys>,
     pub kdf: Option<KdfType>,
     pub kdf_iterations: Option<i32>,
     pub kdf_memory: Option<i32>,
     pub kdf_parallelism: Option<i32>,
+}
+
+/// The account key pair that the client makes at registration.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegisterKeys {
+    /// Base64 DER of the account RSA public key.
+    pub public_key: String,
+    /// The account RSA private key, protected by the user key.
+    pub encrypted_private_key: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -52,6 +71,13 @@ pub struct RegisterRequest {
 pub struct ProfileResponse {
     pub id: String,
     pub email: String,
+    /// The user's protected key (`EncString`). The CLI reads it during sync
+    /// to get the user key for decryption. Omitted when the user has none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
+    /// The protected private key, when the account has one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
     pub name: Option<String>,
     pub email_verified: bool,
     pub culture: String,
@@ -123,8 +149,13 @@ pub struct MasterPasswordUnlock {
     pub kdf: MasterPasswordUnlockKdf,
     #[serde(rename = "MasterKeyEncryptedUserKey")]
     pub master_key_encrypted_user_key: String,
-    #[serde(rename = "MasterKeyWrappedUserKey")]
-    pub master_key_wrapped_user_key: String,
+    /// The newer wrapped-key form. Omit it: a client that finds it tries to
+    /// unwrap it, and this server returns the encrypted user key instead.
+    #[serde(
+        rename = "MasterKeyWrappedUserKey",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub master_key_wrapped_user_key: Option<String>,
     /// Bitwarden derives the master key with the email as the PBKDF2 salt.
     #[serde(rename = "Salt")]
     pub salt: String,

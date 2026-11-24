@@ -15,6 +15,10 @@ fn server_and_host_actions_work() {
         let peer_toggle =
             other.locator(r#"button[primal\:onclick="server:toggle_todo"]:not([hidden] *)"#);
         shared_count.expect().to_have_text("0 open todos").unwrap();
+        assert_eq!(
+            other.eval(r#"performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname).filter(path => path.endsWith(".js")).join(",")"#).unwrap().as_str(),
+            Some("/bundle.js")
+        );
         let page = driver.new_page().unwrap();
         open_document(&page, url);
         let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]:not([hidden] *)"#);
@@ -83,6 +87,7 @@ fn server_and_host_actions_work() {
         let peer_add = other.locator(&button("host:open_add_dialog"));
         peer_add.click().unwrap();
         let peer_sheet = other.locator("dialog:modal input");
+        peer_sheet.expect().to_be_visible().unwrap();
         peer_sheet.fill("Keep this draft").unwrap();
         submit_with_keyboard(&page, &add, "second todo");
         shared_count.expect().to_have_text("2 open todos").unwrap();
@@ -118,6 +123,11 @@ fn server_and_host_actions_work() {
         toggle.expect().to_have_count(0).unwrap();
         page.locator("button[value=all]").click().unwrap();
         toggle.expect().to_be_visible().unwrap();
+        let wire = serde_json::to_string(include_str!(
+            "../../../backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js"
+        ))
+        .unwrap();
+        other.eval(&format!("(async () => {{const url=URL.createObjectURL(new Blob([{wire}],{{type:'text/javascript'}})); try {{window.testWire=await import(url);}} finally {{URL.revokeObjectURL(url);}} return true;}})()")).unwrap();
         other
             .eval(
                 r"{
@@ -125,7 +135,7 @@ fn server_and_host_actions_work() {
             window.fetch = (url, options) => {
                 if (String(url).includes('/live')) window.replayUrl = String(url);
                 if (String(url).includes('/live') && options?.method === 'POST') {
-                    window.replayCursor = import('/foundation-ui-wire.js').then(w => {
+                    window.replayCursor = Promise.resolve(window.testWire).then(w => {
                         const frame = w.Frame.getRootAsFrame(new w.ByteBuffer(options.body));
                         return String(frame.kind(new w.FrameRequest()).resume().after());
                     });
@@ -196,6 +206,14 @@ fn server_and_host_actions_work() {
                 rpc.eval("document.querySelector('#notice').value")
             )
         });
+        assert_eq!(
+            rpc.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js")).join(",")"#).unwrap().as_str(),
+            Some("/bundle.js")
+        );
+        assert_eq!(
+            rpc.eval(r#"performance.getEntriesByType("resource").filter(e => new URL(e.name).pathname === "/rpc/foundation_ui_connectrpc_bg.wasm").length"#).unwrap().as_u64(),
+            Some(1)
+        );
         let calls = "performance.getEntriesByType('resource').filter(e => new URL(e.name).pathname === '/ewe.ui.v1.Actions/Exchange').length";
         assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(1));
         open.click().unwrap();
@@ -251,9 +269,7 @@ fn server_and_host_actions_work() {
         let external = driver.new_page().unwrap();
         open_document(&external, &format!("{url}theme.css"));
         assert_eq!(
-            external
-                .eval(include_str!("browser_app_lifecycle.js"))
-                .unwrap(),
+            external.eval(&lifecycle_script()).unwrap(),
             serde_json::json!([2, 2, 2])
         );
     });
@@ -406,102 +422,121 @@ fn one_count_publication_reaches_the_open_browser() {
         .unwrap();
 }
 
+fn lifecycle_script() -> String {
+    use std::{fs, path::Path};
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    foundation_wasm_ui::build_hook::application_sources(root).unwrap();
+    fs::create_dir(root.join("bindings")).unwrap();
+    fs::copy(
+        Path::new(env!("OUT_DIR")).join("browser-bindings/ui_todo_bg.js"),
+        root.join("bindings/ui_todo_bg.js"),
+    )
+    .unwrap();
+    let entry = root.join("lifecycle.js");
+    fs::write(&entry, include_str!("browser_app_lifecycle.js")).unwrap();
+    let mut script = String::from_utf8(
+        foundation_codegen::javascript::application(&entry, root, false)
+            .unwrap()
+            .bytes,
+    )
+    .unwrap();
+    script.push_str("\nglobalThis.todoLifecycleCheck;");
+    script
+}
+
+fn game_test_bindings() -> String {
+    use std::{fs, path::Path};
+    let temporary = tempfile::tempdir().unwrap();
+    let root = temporary.path();
+    fs::copy(
+        Path::new(env!("OUT_DIR")).join("browser-bindings/mathalley/ui_todo.js"),
+        root.join("game.js"),
+    )
+    .unwrap();
+    let entry = root.join("test.js");
+    fs::write(
+        &entry,
+        r#"
+        import initialize, * as game from "./game.js";
+        globalThis.todoTestGameBindings = async () => {
+            await initialize({module_or_path: await window.gameTestBinary});
+            return game;
+        };
+    "#,
+    )
+    .unwrap();
+    let script = foundation_codegen::javascript::application(&entry, root, false).unwrap();
+    String::from_utf8(script.bytes).unwrap() + "\ntrue"
+}
+
 #[test]
 fn game_view_keeps_the_todo_subscription_and_draws_on_the_host_device() {
-    let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let url = format!("http://{}/", listener.local_addr().unwrap());
-    let shutdown = Arc::new(ShutdownSignal::new());
-    let stop = shutdown.clone();
-    let worker = std::thread::spawn(move || {
-        let app = ui_todo::server::app(&module).unwrap();
-        app.server(&listener.local_addr().unwrap().to_string())
-            .serve_with_listener(&listener, &stop);
-    });
-    let result = std::panic::catch_unwind(|| {
-        let driver = BrowserDriver::launch(LaunchConfig {
-            extra_args: vec![
-                "--enable-gpu".into(),
-                "--enable-unsafe-webgpu".into(),
-                "--disable-background-timer-throttling".into(),
-                "--disable-renderer-backgrounding".into(),
-                "--disable-backgrounding-occluded-windows".into(),
-            ],
-            ..LaunchConfig::default().ctx(Ctx::host())
-        })
-        .unwrap();
-        let peer = driver.new_page().unwrap();
-        peer.goto(&url).unwrap();
-        let page = driver.new_page().unwrap();
-        page.goto(&url).unwrap();
-        let add = r#"button[primal\:onclick="host:open_add_dialog"]"#;
-        page.locator(add).expect().to_be_visible().unwrap();
-        peer.locator(add).expect().to_be_visible().unwrap();
-        submit_with_keyboard(&page, &page.locator(add), "First game task");
-        page.locator("button[value=open]").click().unwrap();
-        page.locator("#open-count")
-            .expect()
-            .to_have_text("1 open todo")
-            .unwrap();
-        page.eval(
-            r#"(async () => {
-          const module=await import('/mathalley/ui_todo.js');
-          await module.default();
-          const open=module.MathalleyHost.prototype.open;
-          module.MathalleyHost.prototype.open=function() {return open.call(this,13n);};
-          const tick=module.Mathalley.prototype.tick;
-          window.gameTestTime=0;
-          module.Mathalley.prototype.tick=function() {const result=tick.call(this,window.gameTestTime);window.lastGameTick=window.gameTestTime;return result;};
-          return true;
-        })()"#,
-        )
-        .unwrap();
-        for pass in 0..2 {
-            page.locator(r#"button[primal\:onclick="host:open_mathalley"]"#)
-                .click()
-                .unwrap();
-            let canvas = page.locator(r#"#mathalley[aria-busy="false"] canvas"#);
-            canvas
+    browser_server::with_browser_flags(
+        &["--enable-gpu", "--enable-unsafe-webgpu"],
+        |driver, url, _| {
+            let peer = driver.new_page().unwrap();
+            open_document(&peer, url);
+            let page = driver.new_page().unwrap();
+            open_document(&page, url);
+            let add = r#"button[primal\:onclick="host:open_add_dialog"]"#;
+            page.locator(add).expect().to_be_visible().unwrap();
+            peer.locator(add).expect().to_be_visible().unwrap();
+            submit_with_keyboard(&page, &page.locator(add), "First game task");
+            page.locator("button[value=open]").click().unwrap();
+            page.locator("#open-count")
                 .expect()
-                .to_be_visible()
-                .unwrap_or_else(|e| panic!("{e:?}: {:?}", page.eval("document.body.innerText")));
-            canvas.click().unwrap();
-            let capture = std::env::temp_dir()
-                .join(format!("mathalley-presented-{}.png", std::process::id()));
-            page.screenshot(&capture).unwrap();
-            let png = std::fs::read(&capture).unwrap();
-            std::fs::remove_file(capture).unwrap();
-            page.eval(&format!(
-                "window.gamePresentedPng=new Uint8Array({png:?});true"
-            ))
-            .unwrap();
-            page.eval(include_str!("mathalley/host-device.js")).unwrap();
-            if pass == 0 {
-                page.eval(include_str!("mathalley/sound-views.js")).unwrap();
-                play_both_games(&page);
-                submit_with_keyboard(&peer, &peer.locator(add), "Second game task");
+                .to_have_text("1 open todo")
+                .unwrap();
+            page.eval(include_str!("mathalley/host-setup.js")).unwrap();
+            for pass in 0..2 {
+                page.locator(r#"button[primal\:onclick="host:open_mathalley"]"#)
+                    .click()
+                    .unwrap();
+                let canvas = page.locator(r#"#mathalley[aria-busy="false"] canvas"#);
+                canvas.expect().to_be_visible().unwrap_or_else(|e| {
+                    panic!("{e:?}: {:?}", page.eval("document.body.innerText"))
+                });
+                assert_eq!(
+                page.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js") || p.includes("/mathalley/")).join(",")"#).unwrap().as_str(),
+                Some("/bundle.js,/mathalley/ui_todo_bg.wasm")
+            );
+                if pass == 0 {
+                    page.eval(&game_test_bindings()).unwrap();
+                }
+                canvas.click().unwrap();
+                let capture = std::env::temp_dir()
+                    .join(format!("mathalley-presented-{}.png", std::process::id()));
+                page.screenshot(&capture).unwrap();
+                let png = std::fs::read(&capture).unwrap();
+                std::fs::remove_file(capture).unwrap();
+                page.eval(&format!(
+                    "window.gamePresentedPng=new Uint8Array({png:?});true"
+                ))
+                .unwrap();
+                page.eval(include_str!("mathalley/host-device.js")).unwrap();
+                if pass == 0 {
+                    page.eval(include_str!("mathalley/sound-views.js")).unwrap();
+                    play_both_games(&page);
+                    submit_with_keyboard(&peer, &peer.locator(add), "Second game task");
+                    page.locator("#open-count")
+                        .expect()
+                        .to_have_text("2 open todos")
+                        .unwrap();
+                }
+                page.locator("#mathalley button").click().unwrap();
+                page.locator("button[value=open]")
+                    .expect()
+                    .to_be_visible()
+                    .unwrap();
                 page.locator("#open-count")
                     .expect()
                     .to_have_text("2 open todos")
                     .unwrap();
+                capture_page(&page, "mathalley-return");
             }
-            page.locator("#mathalley button").click().unwrap();
-            page.locator("button[value=open]")
-                .expect()
-                .to_be_visible()
-                .unwrap();
-            page.locator("#open-count")
-                .expect()
-                .to_have_text("2 open todos")
-                .unwrap();
-            capture_page(&page, "mathalley-return");
-        }
-    });
-    shutdown.turn_on();
-    worker.join().unwrap();
-    if let Err(panic) = result {
-        std::panic::resume_unwind(panic);
-    }
+        },
+    );
 }
 
 /// Use the same seed and clock on the reference simulation and the browser input surface.
@@ -521,7 +556,7 @@ fn play_both_games(page: &foundation_browser::Page<'_>) {
             LevelState::Gumball(level) => ("Gumball", level.correct),
             LevelState::Empty => panic!("A playing level has a game"),
         };
-        page.eval(&format!("window.gameTestTime={time}; new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)))")).unwrap();
+        page.eval(&format!("window.gameTestTime={time}; new Promise(done=>window.gameTestFrame(()=>window.gameTestFrame(done)))")).unwrap();
         page.locator(&format!(r#"canvas[aria-label="Mathalley {name}"]"#))
             .expect()
             .to_be_visible()
@@ -548,7 +583,7 @@ fn play_both_games(page: &foundation_browser::Page<'_>) {
         time += 1001;
         model.update(std::time::Duration::from_millis(time));
         if model.phase == Phase::Intro {
-            page.eval(&format!("window.gameTestTime={time};new Promise(done=>{{function wait(){{if(window.lastGameTick==={time})done(true);else requestAnimationFrame(wait);}}wait();}})")).unwrap();
+            page.eval(&format!("window.gameTestTime={time};new Promise(done=>{{function wait(){{if(window.lastGameTick==={time})done(true);else window.gameTestFrame(wait);}}wait();}})")).unwrap();
             time += 1001;
             model.update(std::time::Duration::from_millis(time));
         }

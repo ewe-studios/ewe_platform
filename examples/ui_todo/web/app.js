@@ -1,10 +1,11 @@
 import { installMathalley } from "./game-view.js";
+import { moduleUrl } from "./ewe-app-config.js";
 import * as bindings from "./bindings/ui_todo_bg.js";
 import { WasmLoader } from "./foundation-wasm.js";
 import { createApp } from "./foundation-ui-actions.js";
 
 async function connectSender() {
-    const { default: initialize, BrowserConnectSender } = await import("/rpc/foundation_ui_connectrpc.js");
+    const { default: initialize, BrowserConnectSender } = await import("./rpc/foundation_ui_connectrpc.js");
     await initialize();
     const sender = new BrowserConnectSender(location.origin, window.fetch.bind(window));
     return { close: () => sender.free(), async send(bytes) {
@@ -16,7 +17,7 @@ async function connectSender() {
 let resourceHost;
 
 async function installResources() {
-    const { default: initialize, BrowserResources } = await import("/resources-wasm/foundation_resources.js");
+    const { default: initialize, BrowserResources } = await import("./resources-wasm/foundation_resources.js");
     await initialize();
     return new BrowserResources(new URL("/", location.href).href);
 }
@@ -36,7 +37,7 @@ async function boot() {
     const notice = document.querySelector("#notice");
     let hostBindings;
     const app = createApp({
-        moduleLoader, moduleUrl: "/module.wasm", start: "init_todo_host",
+        moduleLoader, moduleUrl, start: "init_todo_host",
         view: "todos", mount: document.querySelector("#page"),
         initialRoute: params.has("count") ? "/open-count" : "/initial",
         viewDataAction: "host:apply_todo_delivery",
@@ -60,6 +61,7 @@ async function boot() {
     }, { capture: true });
     window.todoReady = true;
 }
+globalThis.todoResources = { open: openResource };
 boot().catch(error => {
     document.querySelector("#notice").value = error?.message ?? String(error);
     console.error(error);

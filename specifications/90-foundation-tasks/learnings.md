@@ -153,3 +153,242 @@ The resource suite checks filesystem behavior by running on the target system.
 [Specification 91](../91-windows-resource-staging/requirements.md) records the Windows prerequisites and platform-specific test count.
 
 A package manifest can declare JavaScript modules with a .js extension. The current crate release workflow must explicitly start downstream publication.
+
+## 2026-11-24 master integration
+
+ZIP 9 returns a result when it decodes an archive member name. The verifier propagates that error before it checks the path.
+The wire bundle and manifest fixtures each affect two test selections. Each change also selects the package that owns the changed file.
+
+The Todo checkpoint changes two package versions. Standalone example and test workspaces keep their own copies of these versions.
+Each lockfile needs a separate dependency check after the merge.
+
+## Feature 2. Cargo build hook installation
+
+Cargo can inherit a renamed build dependency from the workspace.
+The installed Rust call must use that local dependency name.
+A syntax span locates the opening brace after Unicode comments.
+Function attributes inside the brace must precede installed calls.
+Write the manifest before the script so a retry can finish a partial installation.
+
+The runtime entry imports a file from the core WebAssembly crate.
+Cargo registry directories include version numbers, so the provider prepares that import from the core crate's embedded source.
+
+The standalone script bundler leaves dynamic imports outside its input graph.
+Application bundling must preserve lazy evaluation and retain one namespace object for each module.
+The application loader caches a module before it evaluates that module's dependencies.
+
+A Cargo build script can compile browser targets when each application uses a separate child target directory.
+The browser target skips server packaging. Each browser library selects its own feature and binding format.
+Wasm bindings resolve their binary references against the original module location.
+The application bundle keeps each module location and resolves it against the public script address.
+
+The resource provider can select its lookup table in the consuming crate.
+A debug build dependency can then produce an embedded application without changing the server's registration.
+
+A resource wildcard can share a prefix with an application route.
+The router must keep the nearest wildcard candidate while it tries more specific segments.
+A browser test that needs a private helper can load its own test script.
+Waiting for the native dialog to open makes the following input action reliable.
+
+Manifest fixture changes can affect the contract group and the crate that owns the changed file.
+The planner selects the contract group by its declared recipe, so the policy can rename the group.
+
+Docker writes the container identifier before the guest starts.
+The task can remove the container after the guest fails or the caller cancels.
+The attached Docker start command reports the guest exit status.
+
+Java and Kotlin report versions on standard error. The tool checks both process streams.
+A test can substitute the host tools on the executable search path.
+Build the check executable before changing this path.
+
+The wire generator must preserve optional field presence, unknown union verification, and native builder compatibility.
+A byte comparison against the checked-in files tests these details across all four output languages.
+
+Cargo treated the Wasm crate's missing wildcard path as a changed input on every build.
+The service generator also watched a descriptor that it rewrote on each run.
+The browser compiler dependency file includes generated Rust and its original protocol inputs.
+Track the source inputs and omit files inside the private child target directory.
+
+An archive must build from the target directory Cargo selected, including when its path has spaces.
+A development dependency with a path and version can introduce an otherwise hidden publication cycle.
+Android license acceptance needs input until the tool closes its pipe. Preserve the child status after closure.
+
+Image plans preserve build argument order for callers and sort arguments for the hash.
+The previous and current planners produce identical hashes when the Cargo lockfile bytes match.
+File equality for staged output must compare link targets and Unix permissions.
+Changing only an executable bit changes the image hash and must update the staged file.
+A fresh guest has neither Cargo nor the workspace source. Guest migration requires an independent bootstrap.
+
+Cargo reports the actual executable path for each selected target. This works with a custom target directory and a renamed binary.
+A release archive needs fixed metadata and sorted entries to produce the same bytes on repeat builds.
+The vendor Android manifest can list the same archive for a version and its current alias.
+Accept identical records. Reject records that use one filename with different sizes or checksums.
+The Python package selection placed shared planner source under a global directory. The Rust package needs an explicit equivalent rule.
+Issue #790 tracks this change and its regression test.
+
+The default Docker driver on this host cannot export a Docker archive. A temporary container-based Buildx builder supports both requested export formats.
+For a single-platform image, Buildx can create an index when it promotes a tag.
+The promotion task disables index conversion to preserve the tested digest. Issue #791 records the previous behavior.
+The native Swift test needs the same task host as the installed command. Its child process provides an independent background job registry.
+
+The previous manual publication loop selected retired packages after a valid package.
+Validate the entire selection with offline Cargo metadata before publication. Let Cargo order packages and select the configured registry.
+The manual WebAssembly fixture paths and runtime bundle have moved or disappeared. Issue #792 records the unresolved caller contract.
+Git can sign fixture tags using the host configuration. Disposable test repositories must select unsigned fixture tags explicitly.
+
+The Google Cloud directory contains 303 files named openapi.json. None declares an OpenAPI version.
+302 files declare a Google Discovery version. The canonical generator requires servers and component schemas.
+A disposable source tree reproduces the failure with two tracked specifications. It also verifies that both batch callers preserve an existing file.
+
+## Application generation command
+
+AnswerMe uses foundation_repl for terminal interaction. Existing mobile generators each create their own destination. Combined generation needs a shared staging plan.
+
+The Android Todo identifiers come from its Gradle application modules. The current native device tasks repeat those identifiers and invoke repository test scripts.
+
+The existing template generator uses EmbedDirectoryAs with always_embed. Task providers can use the same pattern for script directories in both build profiles.
+
+An external tool requirement can be independent of a script requirement. Rust can invoke the platform tool directly and check its result.
+## Feature 4 publication credentials
+
+The publication process can read a literal token assignment without running shell commands from the user environment file.
+
+The npm client reads package metadata again during an authenticated publication.
+The public integrity check uses a separate command without publication credentials.
+A browser can finish loading an external classic script before the document is ready.
+The external consumer waits for browser initialization before sending its first action.
+
+Node.js 24 and 26 produce identical npm tar streams but different compressed bytes.
+The pack task recompresses the stream with fixed gzip metadata and the locked Rust compressor.
+
+## Feature 5 external application checks
+
+The generated web build needs two package sources. Cargo resolves Rust dependencies. npm verifies the runtime archive against its lock file.
+An isolated registry can serve the release archive with its original integrity value.
+A real browser test checks that the JavaScript bindings connect the generated module to its Rust counter.
+
+## Project-local task execution
+
+A project can declare its task interface without running Cargo during help or task discovery.
+The shared task registry rejects namespace conflicts before it invokes the local runner.
+
+## Native release inputs and device checks
+
+The available Android 0.1.0 package lacks the resource interfaces used by the generated application.
+The older Apple archive also lacks current binding symbols.
+Testing the current application requires building the native libraries and bindings from the same source.
+An installed command test confirms Android startup failure and cancellation remove the supervised emulator process.
+
+The installed command tree can validate the full guide without a separate list of commands.
+Each command's help supplies the child names, usage line, and available options.
+
+Cargo reports an unused build dependency when the shared application owns the resource hook.
+The standalone and composed native templates therefore use different build dependency declarations.
+
+A host tool can prepare an Android build on macOS. A script sent to the device needs a separate platform selection.
+Keep companion paths relative to the embedded directory. Keep the selected interpreter and its arguments separate.
+The task package must declare the directory as a Cargo build input for incremental builds.
+
+Start the process monitor before transferring child ownership. A failed monitor must leave the original process guard available for cleanup.
+
+Validate target selection before checking for a native library. Server applications can also request a target absent from their manifest.
+
+Java 27 writes 17,006 bytes when verifying the generated Android bundle with a test key. Match the complete success line while streaming all output.
+
+Inspect resources inside the installed Apple bundle and built Android archive. A successful compiler exit alone does not check the application title.
+
+Cargo unifies features across dependencies on the same target. Select the JavaScript event loop in the WebAssembly dependency table.
+
+A combined application needs four public inputs for these checks. Verify the Git tag, Maven package, npm package, and Rust resource crate separately.
+The npm archive in the generated lock file must match the candidate checksum. An earlier local archive has different bytes.
+
+Wrangler accepts `d1 migrations apply DATABASE --local`. It rejects the earlier execute command.
+Configuration output can report whether a token exists without printing its value.
+
+Cargo NDK checks dependency artifacts when its output directory option is set. A dependency can declare a shared library but produce only a Rust library.
+Stage the declared application library from each completed target build. Keep the framework library in its Android library package.
+
+Android can report a successful activity start while another application owns the focused window.
+Under load, Android can report a timeout before the requested window appears.
+Check the exact activity name until the configured deadline. Treat an application error dialog as a launch failure.
+
+Wrangler lists buckets in the terminal. Its object commands do not list the contents of a bucket.
+The storage interface returns a cursor when more objects are available. Preserve each key exactly when writing it.
+
+The Todo Server examples render the item rows and their controls. The generated server starter displays the open item count.
+Verify a shared update by adding an item on one device and reading its title on the other device.
+
+Xcode copies headers from each static library archive into one product include directory.
+Two archives with a top-level module.modulemap conflict. Supply the application headers through its configured Swift include path.
+
+Linux derivatives list their parent distributions in ID_LIKE. Read the identifier fields as text and check each parent separately.
+Quickget takes the Apple release name as a separate argument. The existing command defaults to Sonoma.
+
+A saved process number can later identify an unrelated program. Local Wrangler workers now hold their own instance lock.
+Both Cloudflare file system targets require vfs-native together with their storage feature. Cargo rejects an incomplete selection before running tests.
+
+The former NFS pipeline returned the log writer's status. Its final filter also accepted lines marked FAILED.
+The new task keeps the child status and checks for test records after saving the log.
+
+An Apple archive groups architectures by platform and target type. The five target architectures occupy three library entries.
+Check the library and module map in each entry, then compare the archive digest with Swift Package Manager.
+
+The default Cargo file list omitted four hidden template files from a source export.
+An explicit templates/** include rule preserves them. Compare the package list with every file under the template directory.
+
+The existing virtual machine stop command treated Docker exit code 42 as an absent container.
+A successful empty container query distinguishes absence from a daemon failure. Issue #817 tracks this change.
+The hosted release workflow can push a missing registry image during a manual branch run.
+A hosted verification without publication needs an image that is already present or a read-only workflow.
+
+Cargo listed all generator inputs in a clean source export.
+In the linked checkout, Cargo collected the input paths and failed while checking repository metadata.
+The same failure occurred for foundation_context. Issue #818 records both commands and the successful export check.
+
+Docker returns the full container identifier with the state. Stop and remove that identifier to protect a replacement container.
+The host fixture checked both an exited container and a running container. A second stop succeeded after removal.
+
+The old guest runner wait reported completion after a refused connection. Issue #822 records the reproduction.
+Each guest probe now returns a distinct status after a successful search finds no process. Transport errors retain their status.
+
+A loopback login can succeed before provisioning finishes. The readiness task checks the guest marker separately.
+Keep the original Docker identifier across polls. A replacement container must start a new readiness check.
+The Linux connection fixture verifies the portable shell probe. Native guest installation needs a host with hardware acceleration.
+
+The former log collector reported three absent files after a connection failure. Issue #823 records the reproduction.
+A guest file probe must distinguish absence from transport failure. Keep the Docker log available when the guest cannot answer.
+
+A child can consume a binary archive directly from an open file descriptor.
+Open the file for each run so that a retried command reads from the beginning.
+
+The default Linux image can verify an archive consumer independently of the build directory.
+Mount only the finished archive and checksum. Extract the plugin and generate a service in a fresh container.
+
+Guest destination paths use different quoting rules in the two shells. Issue #826 records the apostrophe case.
+A temporary guest archive in the Windows user directory permits uploads before the target directory exists.
+Download into staging before replacing local files. Preserve unrelated files when the destination directory already exists.
+
+Android reads the launch theme from the manifest before Compose draws. iOS reads its launch declaration before SwiftUI draws.
+
+The project packager copies binary template files unchanged. Android and iOS can share the same source images.
+
+Cargo can place integration executables below the profile's build directory.
+The resource provider first checks for files beside the executable.
+A Cargo profile marker identifies the shared public directory during integration tests.
+The browser bundle needs the script location to resolve binary assets below a website path.
+Generated JavaScript can supply this location without adding a public script request.
+
+Temporary files default to owner-only permissions on Unix.
+The public asset copy retains this mode. Issue #832 tracks the fix for generated files.
+The writer now requests normal file permissions and respects the process creation mask.
+
+The application script location supplies the base for binary assets when a website mounts the application below its root.
+A private generated module shares the configured path with Rust packaging and browser startup.
+A successful WebAssembly compilation reports the actual binary request to the test server.
+
+Android selects night colors from the qualified resource directory.
+Apple selects the dark variant from the asset catalog appearance. A universal launcher requires a square, opaque 1024-pixel image.
+The helper scales the source icon and validates all inputs before replacing a native resource set.
+
+The browser can call Connect and stream the icon without loading the game binary.
+Chromium records the game request only after the Play action. This distinguishes lazy loading from a cached second request.

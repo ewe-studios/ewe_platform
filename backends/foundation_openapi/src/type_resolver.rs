@@ -219,6 +219,26 @@ impl TypeResolver {
         };
         let schema = media_type.schema.as_ref()?;
 
+        // A JSON array of one generated type: the body is `Vec<T>`. The model
+        // pass reads the item name out of the generic type and emits `T` with
+        // its nested types.
+        if schema.schema_type.as_deref() == Some("array") {
+            if let Some(items) = schema.items.as_deref() {
+                if let Some(ref_path) = &items.ref_path {
+                    let type_name = ref_path
+                        .trim_start_matches("#/components/schemas/")
+                        .trim_start_matches("#/schemas/");
+                    let normalized = Self::to_pascal_case(type_name);
+                    if Self::check_schema_generatable(items, self.schemas.as_ref()) {
+                        return Some(ResponseType::Generated(format!(
+                            "Vec<{}>",
+                            Self::rename_if_keyword(normalized)
+                        )));
+                    }
+                }
+            }
+        }
+
         // Check if this is a generatable type
         // For allOf types, we need to check if any member has properties or if it's a simple ref wrapper
         let is_generatable = Self::check_schema_generatable(schema, self.schemas.as_ref());

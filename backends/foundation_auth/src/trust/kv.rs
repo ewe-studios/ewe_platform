@@ -12,6 +12,7 @@ use super::client::{
 };
 
 const CLIENT_PREFIX: &str = "trust/v1/client/";
+const CLIENT_ID_PREFIX: &str = "trust/v1/client_id/";
 const USE_PREFIX: &str = "trust/v1/use/";
 const REVOKED_PREFIX: &str = "trust/v1/revoked/";
 
@@ -66,6 +67,10 @@ impl<K: KeyValueStore + ?Sized + 'static> KvTrustStore<K> {
 
     fn client_key(fingerprint: &str) -> String {
         format!("{CLIENT_PREFIX}{fingerprint}")
+    }
+
+    fn client_id_key(client_id: &str) -> String {
+        format!("{CLIENT_ID_PREFIX}{client_id}")
     }
 
     fn use_key(secret_id: &str) -> String {
@@ -127,6 +132,25 @@ impl<K: KeyValueStore + ?Sized + 'static> TrustStore for KvTrustStore<K> {
         })
     }
 
+    fn client_by_id<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<TrustedClient>> {
+        Box::pin(async move {
+            let Some(fingerprint) = self
+                .storage
+                .get::<String>(&Self::client_id_key(client_id))
+                .await
+                .map_err(Self::storage_error)?
+            else {
+                return Ok(None);
+            };
+            Ok(self
+                .storage
+                .get::<KvClient>(&Self::client_key(&fingerprint))
+                .await
+                .map_err(Self::storage_error)?
+                .map(|record| record.client))
+        })
+    }
+
     fn record_enrollment<'a>(
         &'a self,
         client: &'a TrustedClient,
@@ -142,7 +166,26 @@ impl<K: KeyValueStore + ?Sized + 'static> TrustStore for KvTrustStore<K> {
             {
                 return Err(TrustError::Duplicate(client.fingerprint_sha256.clone()));
             }
-            self.storage
+            let id_key = if let Some(client_id) = &client.client_id {
+                let id_key = Self::client_id_key(client_id);
+                if self
+                    .storage
+                    .exists(&id_key)
+                    .await
+                    .map_err(Self::storage_error)?
+                {
+                    return Err(TrustError::Duplicate(client_id.clone()));
+                }
+                self.storage
+                    .set(&id_key, client.fingerprint_sha256.clone())
+                    .await
+                    .map_err(Self::storage_error)?;
+                Some(id_key)
+            } else {
+                None
+            };
+            let stored = self
+                .storage
                 .set(
                     &key,
                     KvClient {
@@ -150,8 +193,18 @@ impl<K: KeyValueStore + ?Sized + 'static> TrustStore for KvTrustStore<K> {
                         cert_pem: cert_pem.to_string(),
                     },
                 )
-                .await
-                .map_err(Self::storage_error)
+                .await;
+            if let Err(error) = stored {
+                // Do not leave an ID that names no client.
+                if let Some(id_key) = &id_key {
+                    self.storage
+                        .delete(id_key)
+                        .await
+                        .map_err(Self::storage_error)?;
+                }
+                return Err(Self::storage_error(error));
+            }
+            Ok(())
         })
     }
 

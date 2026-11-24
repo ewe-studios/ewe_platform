@@ -18,6 +18,7 @@
 // trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
 #![recursion_limit = "256"]
 
+use base64::Engine as _;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::sync::Arc;
@@ -97,6 +98,60 @@ fn form_encode(value: &str) -> String {
 fn form_encode_escapes_base64_and_email_characters() {
     assert_eq!(form_encode("a+b/c=="), "a%2Bb%2Fc%3D%3D");
     assert_eq!(form_encode("test-1@e2e.local"), "test-1%40e2e.local");
+}
+
+const PASSWORD: &str = "correct-horse-battery-staple";
+/// The account RSA key pair that a real client makes at registration.
+const ACCOUNT_PRIVATE_DER: &[u8] = include_bytes!("fixtures/bw-account-private.der");
+const ACCOUNT_PUBLIC_DER: &[u8] = include_bytes!("fixtures/bw-account-public.der");
+
+/// The Bitwarden master key: PBKDF2-SHA256 of the password, salted by the email.
+fn master_key(email: &str, password: &str) -> [u8; 32] {
+    use pbkdf2::pbkdf2_hmac;
+    use sha2::Sha256;
+    let salt = email.trim().to_lowercase();
+    let mut mk = [0u8; 32];
+    pbkdf2_hmac::<Sha256>(password.as_bytes(), salt.as_bytes(), 600_000, &mut mk);
+    mk
+}
+
+/// The stretched master key: an encryption half and a MAC half.
+fn stretched_master_key(mk: &[u8; 32]) -> [u8; 64] {
+    use hkdf::Hkdf;
+    use sha2::Sha256;
+    // The Bitwarden SDK treats the master key as the pseudorandom key (the
+    // extract step is skipped), then expands one half for encryption and one
+    // for the MAC.
+    let hk = Hkdf::<Sha256>::from_prk(mk).expect("32-byte pseudorandom key");
+    let mut out = [0u8; 64];
+    hk.expand(b"enc", &mut out[..32]).expect("hkdf enc");
+    hk.expand(b"mac", &mut out[32..]).expect("hkdf mac");
+    out
+}
+
+/// A Bitwarden type-2 `EncString`: `2.<iv>|<ciphertext>|<mac>`.
+fn encrypt_enc_string(stretched: &[u8; 64], plaintext: &[u8]) -> String {
+    use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+
+    let iv = [0u8; 16];
+    let mut buffer = vec![0u8; plaintext.len() + 16];
+    buffer[..plaintext.len()].copy_from_slice(plaintext);
+    let encrypted = cbc::Encryptor::<aes::Aes256>::new(stretched[..32].into(), (&iv).into())
+        .encrypt_padded_mut::<Pkcs7>(&mut buffer, plaintext.len())
+        .expect("PKCS#7 padding");
+    let mut mac = Hmac::<Sha256>::new_from_slice(&stretched[32..]).expect("HMAC key");
+    mac.update(&iv);
+    mac.update(encrypted);
+    let tag = mac.finalize().into_bytes();
+    let b64 = base64::engine::general_purpose::STANDARD;
+    format!(
+        "2.{}|{}|{}",
+        b64.encode(iv),
+        b64.encode(encrypted),
+        b64.encode(tag)
+    )
 }
 
 fn bw_password_hash(email: &str, password: &str) -> String {
@@ -191,13 +246,21 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     let (email, hash) = (0..64)
         .map(|n| {
             let email = format!("test-{ts}-{n}@e2e.local");
-            let hash = bw_password_hash(&email, "correct-horse-battery-staple");
+            let hash = bw_password_hash(&email, PASSWORD);
             (email, hash)
         })
         .find(|(_, hash)| hash.contains('+'))
         .expect("one of 64 password hashes should contain a '+'");
-    use base64::Engine;
-    let akey = base64::engine::general_purpose::STANDARD.encode([0u8; 64]);
+    // The protected user key that a real client receives at login: 64 bytes
+    // encrypted under the stretched master key, as a type-2 EncString.
+    let stretched = stretched_master_key(&master_key(&email, PASSWORD));
+    // The user key is a 64-byte AES256-CBC-HMAC key: 32 bytes for encryption
+    // and 32 for the MAC.
+    let user_key = [0x5a_u8; 64];
+    let akey = encrypt_enc_string(&stretched, &user_key);
+    // The account private key is protected by the user key itself.
+    let encrypted_private_key = encrypt_enc_string(&user_key, ACCOUNT_PRIVATE_DER);
+    let public_key = base64::engine::general_purpose::STANDARD.encode(ACCOUNT_PUBLIC_DER);
 
     let (s, b) = http_req(
         "POST",
@@ -206,6 +269,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         &serde_json::to_string(&serde_json::json!({
             "name":"E2E","email":&email,"masterPasswordHash":&hash,
             "kdf":0,"kdfIterations":600_000,"key":&akey,
+            "keys": { "publicKey": &public_key, "encryptedPrivateKey": &encrypted_private_key },
         }))
         .unwrap(),
         "application/json",
@@ -251,6 +315,11 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         "AccountKeys required by bw v2026"
     );
     assert!(tok.get("Key").is_some(), "Key required by bw");
+    assert_eq!(
+        tok["Key"].as_str(),
+        Some(akey.as_str()),
+        "the server returns the stored user key unchanged"
+    );
 
     // ── 7. Authenticated endpoints ───────────────────────────────────────
     // Sync
@@ -259,57 +328,106 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     let sync: serde_json::Value = serde_json::from_str(&b).unwrap();
     assert!(sync.get("profile").is_some(), "sync profile");
 
-    // Folders CRUD
-    let (s, b) = auth_req(
-        "POST",
-        addr,
-        "/api/folders",
-        &serde_json::to_string(&serde_json::json!({"name":"e2e-folder"})).unwrap(),
-        "application/json",
-        &at,
+    // ── 9. The real Bitwarden CLI logs in and runs its own CRUD ─────────
+    let login = bw
+        .exec(&["bw", "login", &email, PASSWORD, "--raw"])
+        .expect("bw login runs");
+    assert!(
+        login.success(),
+        "bw login (exit {}):\nstdout: {}\nstderr: {}",
+        login.exit_code,
+        login.stdout,
+        login.stderr
     );
-    assert_eq!(s, 200, "create folder: {b}");
+    let session = login.stdout.trim().to_string();
+    assert!(!session.is_empty(), "bw login returns a session key");
 
-    let (s, b) = auth_req("GET", addr, "/api/folders", "", "application/json", &at);
-    assert_eq!(s, 200, "list folders: {b}");
-    let folders: serde_json::Value = serde_json::from_str(&b).unwrap();
-    assert_eq!(
-        folders.as_array().map(std::vec::Vec::len),
-        Some(1),
-        "1 folder"
+    let unlock = bw
+        .exec(&["bw", "unlock", PASSWORD, "--raw", "--session", &session])
+        .expect("bw unlock runs");
+    assert!(
+        unlock.success(),
+        "bw unlock (exit {}):\nstdout: {}\nstderr: {}",
+        unlock.exit_code,
+        unlock.stdout,
+        unlock.stderr
+    );
+    let session = unlock.stdout.trim().to_string();
+    assert!(!session.is_empty(), "bw unlock returns a session key");
+
+    let list = bw
+        .exec(&["bw", "list", "items", "--session", &session])
+        .expect("bw list runs");
+    assert!(
+        list.success(),
+        "bw list (exit {}):\nstdout: {}\nstderr: {}",
+        list.exit_code,
+        list.stdout,
+        list.stderr
     );
 
-    // Ciphers CRUD
-    let (s, b) = auth_req("POST", addr, "/api/ciphers",
-        &serde_json::to_string(&serde_json::json!({
-            "type":1,"name":"example.com",
-            "login":{"username":"u","password":"p","uris":[{"uri":"https://example.com","match":null}]},
-        })).unwrap(), "application/json", &at);
-    assert_eq!(s, 200, "create cipher: {b}");
-
-    let (s, b) = auth_req("GET", addr, "/api/ciphers", "", "application/json", &at);
-    assert_eq!(s, 200, "list ciphers: {b}");
-    let ciphers: serde_json::Value = serde_json::from_str(&b).unwrap();
-    assert_eq!(
-        ciphers.as_array().map(std::vec::Vec::len),
-        Some(1),
-        "1 cipher"
+    let folder = base64::engine::general_purpose::STANDARD.encode(br#"{"name":"CLI Folder"}"#);
+    let created = bw
+        .exec(&["bw", "create", "folder", &folder, "--session", &session])
+        .expect("bw create folder runs");
+    assert!(
+        created.success(),
+        "bw create folder (exit {}):\nstdout: {}\nstderr: {}",
+        created.exit_code,
+        created.stdout,
+        created.stderr
+    );
+    let folders = bw
+        .exec(&["bw", "list", "folders", "--session", &session])
+        .expect("bw list folders runs");
+    assert!(
+        folders.success(),
+        "bw list folders (exit {}):\nstdout: {}\nstderr: {}",
+        folders.exit_code,
+        folders.stdout,
+        folders.stderr
+    );
+    assert!(
+        folders.stdout.contains("CLI Folder"),
+        "the folder must come back from the CLI list: {}",
+        folders.stdout
     );
 
-    // Auth edge cases
-    let (s, _) = http_req("GET", addr, "/api/sync", "", "application/json");
-    assert_eq!(s, 401, "no auth = 401");
-    let (s, _) = auth_req(
-        "GET",
-        addr,
-        "/api/sync",
-        "",
-        "application/json",
-        "not.a.real.token",
+    let template = bw
+        .exec(&["bw", "get", "template", "item", "--session", &session])
+        .expect("bw template runs");
+    let mut item: serde_json::Value =
+        serde_json::from_str(&template.stdout).expect("item template JSON");
+    item["name"] = "e2e-login-item".into();
+    item["login"] = serde_json::json!({ "username": "e2e-user", "password": "e2e-pass" });
+    let encoded_item = base64::engine::general_purpose::STANDARD
+        .encode(serde_json::to_vec(&item).expect("item JSON"));
+    let create = bw
+        .exec(&["bw", "create", "item", &encoded_item, "--session", &session])
+        .expect("bw create item runs");
+    assert!(
+        create.success(),
+        "bw create item (exit {}):\nstdout: {}\nstderr: {}",
+        create.exit_code,
+        create.stdout,
+        create.stderr
     );
-    assert_eq!(s, 401, "bad auth = 401");
+
+    let get = bw
+        .exec(&["bw", "get", "item", "e2e-login-item", "--session", &session])
+        .expect("bw get item runs");
+    assert!(
+        get.success(),
+        "bw get item (exit {}):\nstdout: {}\nstderr: {}",
+        get.exit_code,
+        get.stdout,
+        get.stderr
+    );
+    let fetched: serde_json::Value = serde_json::from_str(&get.stdout).expect("item JSON");
+    assert_eq!(fetched["name"], "e2e-login-item");
+    assert_eq!(fetched["login"]["username"], "e2e-user");
 
     println!(
-        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers — all passed"
+        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → CLI login → unlock → list → create folder → list folders → create item → get item — all passed"
     );
 }

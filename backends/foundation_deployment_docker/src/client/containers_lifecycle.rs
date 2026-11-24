@@ -36,7 +36,9 @@ use crate::generated::update::{
     container_update_request, ContainerUpdateArgs, ContainerUpdateResponse,
 };
 
+use crate::generated::changes::FilesystemChange;
 use crate::generated::changes::{container_changes_request, ContainerChangesArgs};
+use crate::generated::json::ContainerSummary;
 use crate::generated::json::{container_list_request, ContainerListArgs};
 use crate::generated::kill::{container_kill_request, ContainerKillArgs};
 use crate::generated::prune::{container_prune_request, ContainerPruneArgs};
@@ -242,7 +244,7 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_changes(&self, id: &str) -> Result<serde_json::Value, DockerError> {
+    pub async fn container_changes(&self, id: &str) -> Result<Vec<FilesystemChange>, DockerError> {
         let args = ContainerChangesArgs { id: id.to_string() };
         let response =
             container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
@@ -452,7 +454,7 @@ impl DockerClient {
         limit: Option<u32>,
         size: bool,
         filters: Option<&str>,
-    ) -> Result<serde_json::Value, DockerError> {
+    ) -> Result<Vec<ContainerSummary>, DockerError> {
         let args = ContainerListArgs {
             all: Some(all),
             limit: limit.map(|v| v.to_string()),

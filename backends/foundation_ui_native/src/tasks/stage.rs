@@ -13,7 +13,7 @@ use std::{
 use zip::ZipArchive;
 
 #[derive(Deserialize)]
-pub(super) struct Config {
+pub struct Config {
     pub version: String,
     pub repository: String,
     pub apple_archive: String,
@@ -23,7 +23,11 @@ pub(super) struct Config {
     swift_product: String,
 }
 
-pub(super) fn config(root: &Path) -> Result<Config, TaskError> {
+/// Read the native release settings from the workspace.
+///
+/// # Errors
+/// Returns a file or configuration error.
+pub fn config(root: &Path) -> Result<Config, TaskError> {
     toml::from_str(
         &fs::read_to_string(root.join("release/native-ui.toml")).map_err(TaskError::operation)?,
     )
@@ -38,7 +42,11 @@ pub(super) async fn copy(source: &Path, destination: &Path) -> TaskResult {
     Ok(())
 }
 
-pub(super) async fn digest(path: &Path) -> Result<String, TaskError> {
+/// Compute the SHA-256 digest of a file.
+///
+/// # Errors
+/// Returns file open and read errors.
+pub async fn digest(path: &Path) -> Result<String, TaskError> {
     let path = path.to_owned();
     blocking::unblock(move || digest_file(&path)).await
 }
@@ -66,8 +74,10 @@ struct Framework {
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct Library {
-    library_identifier: String,
-    library_path: String,
+    #[serde(rename = "LibraryIdentifier")]
+    identifier: String,
+    #[serde(rename = "LibraryPath")]
+    path: String,
     headers_path: String,
     supported_platform: String,
     supported_platform_variant: Option<String>,
@@ -86,9 +96,9 @@ fn verify_apple(path: &Path, config: &Config) -> TaskResult {
     let info: Framework = plist::from_reader_xml(plist).map_err(TaskError::operation)?;
     let mut variants = BTreeSet::new();
     for lib in info.available_libraries {
-        let prefix = format!("EweCoreFFI.xcframework/{}/", lib.library_identifier);
+        let prefix = format!("EweCoreFFI.xcframework/{}/", lib.identifier);
         if archive
-            .by_name(&(prefix.clone() + &lib.library_path))
+            .by_name(&(prefix.clone() + &lib.path))
             .map_err(TaskError::operation)?
             .size()
             == 0
@@ -476,6 +486,10 @@ pub(super) async fn release(
     });
     let description = stage.path().join("native-ui.json");
     write_json(&description, &record)?;
+    install_candidate(out, [staged_apple, android, description]).await
+}
+
+async fn install_candidate(out: &Path, files: [PathBuf; 3]) -> TaskResult {
     let lock = std::fs::OpenOptions::new()
         .create(true)
         .truncate(false)
@@ -483,7 +497,6 @@ pub(super) async fn release(
         .open(out.join(".stage.lock"))
         .map_err(TaskError::operation)?;
     lock.try_lock().map_err(TaskError::operation)?;
-    let files = [staged_apple, android, description];
     for item in &files {
         let existing = out.join(
             item.file_name()

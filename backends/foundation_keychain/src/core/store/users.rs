@@ -24,6 +24,10 @@ pub struct UserRow {
     pub password_iterations: i64,
     pub security_stamp: String,
     pub akey: Option<String>,
+    /// Base64 DER of the account RSA public key.
+    pub public_key: Option<String>,
+    /// The account RSA private key, protected by the user key (an `EncString`).
+    pub encrypted_private_key: Option<String>,
     pub client_kdf_type: i64,
     pub client_kdf_iter: i64,
     pub client_kdf_memory: Option<i64>,
@@ -35,8 +39,9 @@ pub struct UserRow {
 }
 
 const COLUMNS: &str = "uuid, email, name, password_hash, salt, password_iterations, \
-     security_stamp, akey, client_kdf_type, client_kdf_iter, client_kdf_memory, \
-     client_kdf_parallelism, master_password_hint, email_verified, created_at, updated_at";
+     security_stamp, akey, public_key, encrypted_private_key, client_kdf_type, client_kdf_iter, \
+     client_kdf_memory, client_kdf_parallelism, master_password_hint, email_verified, \
+     created_at, updated_at";
 
 // Callers hold the row fields by reference; `&Option` avoids a clone.
 #[allow(clippy::ref_option)]
@@ -67,6 +72,10 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
         password_iterations: row.get_by_name("password_iterations").map_err(store_err)?,
         security_stamp: row.get_by_name("security_stamp").map_err(store_err)?,
         akey: row.get_by_name("akey").map_err(store_err)?,
+        public_key: row.get_by_name("public_key").map_err(store_err)?,
+        encrypted_private_key: row
+            .get_by_name("encrypted_private_key")
+            .map_err(store_err)?,
         client_kdf_type: row.get_by_name("client_kdf_type").map_err(store_err)?,
         client_kdf_iter: row.get_by_name("client_kdf_iter").map_err(store_err)?,
         client_kdf_memory: row.get_by_name("client_kdf_memory").map_err(store_err)?,
@@ -89,9 +98,9 @@ pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
     db.execute(
         "INSERT INTO vault_accounts \
          (uuid, email, name, password_hash, salt, password_iterations, security_stamp, akey, \
-          client_kdf_type, client_kdf_iter, client_kdf_memory, client_kdf_parallelism, \
-          master_password_hint, email_verified, created_at, updated_at) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          public_key, encrypted_private_key, client_kdf_type, client_kdf_iter, client_kdf_memory, \
+          client_kdf_parallelism, master_password_hint, email_verified, created_at, updated_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         &[
             DataValue::Text(row.uuid.clone()),
             DataValue::Text(row.email.clone()),
@@ -101,6 +110,8 @@ pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
             DataValue::Integer(row.password_iterations),
             DataValue::Text(row.security_stamp.clone()),
             opt_text(&row.akey),
+            opt_text(&row.public_key),
+            opt_text(&row.encrypted_private_key),
             DataValue::Integer(row.client_kdf_type),
             DataValue::Integer(row.client_kdf_iter),
             opt_int(row.client_kdf_memory),

@@ -1,55 +1,40 @@
-#!/bin/bash
-# Batch generate all GCP API providers
-# Usage: ./scripts/gen_gcp_apis.sh [--batch-size N] [--start-after API_NAME]
-
-set -e
-
-BATCH_SIZE=${1:-50}
-START_AFTER=${2:-""}
-
-PROVIDER_DIR="artefacts/cloud_providers/gcp"
-OUTPUT_DIR="backends/foundation_deployment/src/providers/gcp"
-
-# Get list of all APIs
-APIS=$(ls "$PROVIDER_DIR" | sort)
-
-# Skip APIs before start point if specified
-if [ -n "$START_AFTER" ]; then
-    APIS=$(echo "$APIS" | sed "1,/^[[:space:]]*${START_AFTER}[[:space:]]*$/d")
+#!/usr/bin/env bash
+# Generate Google Cloud providers in batches. Arguments are the batch size and last completed provider.
+set -euo pipefail
+batch_size=${1:-50}
+start_after=${2:-}
+if [[ ! $batch_size =~ ^[1-9][0-9]*$ ]]; then
+    echo "The batch size must be a positive integer." >&2
+    exit 2
 fi
 
-TOTAL=$(echo "$APIS" | wc -l)
-COUNT=0
-SUCCESS=0
-FAILED=0
-
-echo "=== GCP Batch Generation ==="
-echo "Total APIs to generate: $TOTAL"
-echo "Batch size: $BATCH_SIZE"
-echo "Starting after: ${START_AFTER:-none (starting from beginning)}"
-echo ""
-
-for API in $APIS; do
-    COUNT=$((COUNT + 1))
-    echo "[$COUNT/$TOTAL] Generating $API..."
-
-    if cargo run --bin ewe_platform --quiet -- gen_api generate "gcp/$API" --features 2>&1; then
-        echo "  [OK] $API"
-        SUCCESS=$((SUCCESS + 1))
-    else
-        echo "  [FAIL] $API"
-        FAILED=$((FAILED + 1))
+generator=(cargo run --locked --profile uat --bin ewe_platform -- task run codegen:generate)
+# Validate all inputs before changing any generated source.
+"${generator[@]}" gcp --features --dry-run
+export LC_ALL=C
+specs=()
+for directory in artefacts/cloud_providers/gcp/*/; do
+    [[ -d $directory ]] || continue
+    name=${directory%/}
+    name=${name##*/}
+    if [[ -n $start_after ]]; then
+        if [[ $name == "$start_after" ]]; then start_after=; fi
+        continue
     fi
-
-    # Periodic cargo clean to free memory
-    if [ $((COUNT % BATCH_SIZE)) -eq 0 ]; then
-        echo "  [BATCH COMPLETE] Running cargo check..."
-        cargo check --features gcp --package foundation_deployment --quiet 2>/dev/null || true
+    specs+=("$name")
+done
+if [[ -n $start_after ]]; then
+    echo "Unknown starting provider: $start_after" >&2
+    exit 2
+fi
+count=0
+for spec in "${specs[@]}"; do
+    "${generator[@]}" "gcp/$spec" --features
+    count=$((count + 1))
+    if ((count % batch_size == 0)); then
+        cargo check --package foundation_deployment --features gcp
     fi
 done
-
-echo ""
-echo "=== Generation Complete ==="
-echo "Successful: $SUCCESS"
-echo "Failed: $FAILED"
-echo "Total: $COUNT"
+if ((count % batch_size != 0)); then
+    cargo check --package foundation_deployment --features gcp
+fi

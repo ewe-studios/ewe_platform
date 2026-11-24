@@ -1,6 +1,6 @@
 // Render two independent sound sessions through the browser audio backend.
 (async () => {
-    const {MathalleyHost}=await import("/mathalley/ui_todo.js");
+    const {MathalleyHost}=await window.todoTestGameBindings();
     const host=new MathalleyHost();
     const game=host.open(8n), other=host.open(8n);
     const rate=48000, length=4096;

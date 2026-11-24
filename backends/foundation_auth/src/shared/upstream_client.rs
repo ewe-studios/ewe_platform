@@ -214,13 +214,30 @@ impl UpstreamOidcClient {
         &self,
         state: &str,
     ) -> Result<(String, PkceChallenge), UpstreamClientError> {
-        // Ensure we have a valid config
-        self.oauth
-            .config()
-            .validate()
-            .map_err(UpstreamClientError::OAuth)?;
+        let nonce = self.oauth.config().nonce.clone();
+        self.authorize_url_with_nonce(state, nonce.as_deref())
+    }
 
-        let (url, pkce) = self.oauth.get_authorization_url(state)?;
+    /// Build the authorization URL with an explicit OIDC nonce.
+    ///
+    /// `nonce` replaces the nonce the configuration holds. The caller stores
+    /// the same value in its login session and checks it against the `nonce`
+    /// claim of the returned ID token. Pass `None` for a provider that does
+    /// not use OIDC.
+    ///
+    /// # Errors
+    ///
+    /// Returns `UpstreamClientError::OAuth` if the config is invalid.
+    pub fn authorize_url_with_nonce(
+        &self,
+        state: &str,
+        nonce: Option<&str>,
+    ) -> Result<(String, PkceChallenge), UpstreamClientError> {
+        let mut config = self.oauth.config().clone();
+        config.nonce = nonce.map(String::from);
+        config.validate().map_err(UpstreamClientError::OAuth)?;
+        let oauth = OAuthManager::new(config);
+        let (url, pkce) = oauth.get_authorization_url(state)?;
         let challenge = pkce.ok_or(UpstreamClientError::OAuth(OAuthError::PkceFailed))?;
         Ok((url, challenge))
     }
@@ -362,6 +379,44 @@ impl UpstreamOidcClient {
             )
         })
     }
+
+    /// Fetch the email list of a GitHub user from `{userinfo_url}/emails`.
+    ///
+    /// GitHub returns `null` for a private email in the user profile, so the
+    /// email list is the authoritative source. The request uses the same HTTP
+    /// client and Bearer token as [`fetch_userinfo`](Self::fetch_userinfo).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpstreamClientError::NoEndpoints`] if the provider exposes no
+    /// userinfo endpoint, or [`UpstreamClientError::Userinfo`] if the request
+    /// fails or the body is not a JSON list of emails.
+    pub async fn fetch_github_emails(
+        &self,
+        access_token: &str,
+    ) -> Result<Vec<GithubEmail>, UpstreamClientError> {
+        let base = self
+            .userinfo_endpoint()
+            .ok_or(UpstreamClientError::NoEndpoints)?;
+        let url = format!("{}/emails", base.trim_end_matches('/'));
+        let response =
+            http_get_with_bearer(&self.http, &url, access_token, self.max_error_body).await?;
+        serde_json::from_str(&response)
+            .map_err(|e| UpstreamClientError::Userinfo(format!("parse email response: {e}")))
+    }
+}
+
+/// One entry of GitHub's `GET /user/emails` response.
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct GithubEmail {
+    /// The address.
+    pub email: String,
+    /// Whether GitHub marks this as the primary address.
+    #[serde(default)]
+    pub primary: bool,
+    /// Whether the user proved ownership of the address.
+    #[serde(default)]
+    pub verified: bool,
 }
 
 /// A standardized upstream user profile returned from userinfo.
@@ -386,28 +441,30 @@ pub struct UpstreamProfile {
 
 impl UpstreamProfile {
     /// Extract a profile from a userinfo JSON response using the provider's mapping.
+    ///
+    /// A mapping field name may be a dotted path (`"data.name"`), which reaches
+    /// a claim inside a nested object. Twitter/X wraps its user object in
+    /// `data`, so its mapping uses dotted paths. A plain name reads a top-level
+    /// claim, as before.
     pub fn from_userinfo(
         json: &serde_json::Value,
         mapping: &super::provider::ProviderMapping,
     ) -> Option<Self> {
         Some(Self {
-            sub: json.get(&mapping.subject_field)?.as_str()?.to_string(),
-            email: json
-                .get(&mapping.email_field)
+            sub: claim(json, &mapping.subject_field)?.as_str()?.to_string(),
+            email: claim(json, &mapping.email_field)
                 .and_then(|v| v.as_str())
                 .map(String::from),
-            email_verified: json
-                .get(&mapping.email_verified_field)
+            email_verified: claim(json, &mapping.email_verified_field)
                 .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
-            name: json
-                .get(&mapping.name_field)
+            name: claim(json, &mapping.name_field)
                 .and_then(|v| v.as_str())
                 .map(String::from),
             preferred_username: mapping
                 .username_field
                 .as_ref()
-                .and_then(|f| json.get(f))
+                .and_then(|f| claim(json, f))
                 .and_then(|v| v.as_str())
                 .map(String::from),
             raw: json.clone(),
@@ -422,6 +479,19 @@ impl UpstreamProfile {
     ) -> Option<Self> {
         Self::from_userinfo(claims, mapping)
     }
+}
+
+/// Read a claim from `json`. A plain name reads a top-level key; a dotted name
+/// (`"data.name"`) walks the nested objects.
+fn claim<'a>(json: &'a serde_json::Value, field: &str) -> Option<&'a serde_json::Value> {
+    if let Some(value) = json.get(field) {
+        return Some(value);
+    }
+    let mut value = json;
+    for part in field.split('.') {
+        value = value.get(part)?;
+    }
+    Some(value)
 }
 
 // ===========================================================================

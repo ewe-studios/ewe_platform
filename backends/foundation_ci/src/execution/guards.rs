@@ -60,7 +60,7 @@ pub(super) fn register(set: &mut TaskSet) -> TaskResult {
     }
     Ok(())
 }
-fn collect(dir: &Path, files: &mut Vec<PathBuf>) -> io::Result<()> {
+pub(super) fn collect(dir: &Path, files: &mut Vec<PathBuf>) -> io::Result<()> {
     for entry in std::fs::read_dir(dir)? {
         let entry = entry?;
         let ty = entry.file_type()?;
@@ -128,6 +128,13 @@ fn scanned(rel: &str, kind: Guard) -> bool {
     .iter()
     .any(|p| rel.starts_with(p))
 }
+fn read_allowlist(path: &Path) -> Result<String, TaskError> {
+    match std::fs::read_to_string(path) {
+        Ok(text) => Ok(text),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(String::new()),
+        Err(error) => Err(TaskError::operation(error)),
+    }
+}
 fn scan(ctx: &TaskContext, args: ArgsForGuard, kind: Guard) -> TaskResult {
     let host = ctx.require::<CiEnvironment>()?;
     let repo = host
@@ -140,11 +147,7 @@ fn scan(ctx: &TaskContext, args: ArgsForGuard, kind: Guard) -> TaskResult {
     let path = args
         .allowlist
         .unwrap_or_else(|| repo.join("scripts/ci").join(filename));
-    let allowlist = match std::fs::read_to_string(&path) {
-        Ok(s) => s,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
-        Err(e) => return Err(TaskError::operation(e)),
-    };
+    let allowlist = read_allowlist(&path)?;
     let allowed: Vec<_> = allowlist
         .lines()
         .map(|line| line.split('#').next().unwrap_or("").trim())
@@ -199,7 +202,12 @@ fn scan(ctx: &TaskContext, args: ArgsForGuard, kind: Guard) -> TaskResult {
     if kind != Guard::Wake {
         for entry in allowed {
             if !used.contains(entry) {
-                violations.push(format!("unused allowlist entry: {entry}"));
+                let rule = if kind == Guard::Time {
+                    "matches no direct read"
+                } else {
+                    "matches no hit"
+                };
+                violations.push(format!("unused allowlist entry: {entry} {rule}"));
             }
         }
     }

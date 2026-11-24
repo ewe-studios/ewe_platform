@@ -4,6 +4,12 @@ mod config;
 mod execution;
 mod plan;
 mod workspace;
+mod staging;
+pub mod cloudflare;
+pub mod development;
+pub mod images;
+pub mod toolchain;
+pub mod wire;
 
 pub use config::{ExpectedError, GroupRecipe, Settings};
 use foundation_tasks::{TaskError, TaskSet};
@@ -69,6 +75,8 @@ impl CiEnvironment {
 /// # Errors
 /// Returns an error when the host paths are unavailable.
 pub fn install_host(runner: &mut TaskRunner) -> TaskResult {
+    #[cfg(feature = "cloudflare-objects")]
+    cloudflare::objects::install(runner);
     if runner.context().get::<CiEnvironment>().is_none() {
         runner.context().store(CiEnvironment::from_workspace()?);
     }

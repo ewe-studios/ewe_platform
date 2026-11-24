@@ -1,3 +1,4 @@
+#![cfg(unix)]
 //! Client auth end to end: signed bootstrap secret → client certificate →
 //! mTLS checked against the trusted-client store.
 //!

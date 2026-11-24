@@ -3,7 +3,7 @@ export function installMathalley(frames) {
     const page = document.querySelector("#page");
     let host, active;
     function load() {
-        host ??= import("/mathalley/ui_todo.js").then(async module => {
+        host ??= import("./mathalley/ui_todo.js").then(async module => {
             await module.default();
             return { sound: new module.MathalleyHost(), graphics: new module.BrowserGraphics() };
         }).catch(error => { host = undefined; throw error; });

@@ -34,10 +34,11 @@ impl TaskOutput for Query {
     }
 }
 
-pub(super) async fn query(
-    ctx: &TaskContext,
-    command: ProcessCommand,
-) -> Result<Vec<u8>, TaskError> {
+/// Read bounded standard output from a successful command.
+///
+/// # Errors
+/// Returns process failures and output limit errors.
+pub async fn query(ctx: &TaskContext, command: ProcessCommand) -> Result<Vec<u8>, TaskError> {
     let (result, bytes) = query_status(ctx, command).await?;
     result?;
     Ok(bytes)
@@ -51,7 +52,11 @@ pub(super) async fn query_status(
     query_limit(ctx, command, env.query_bytes).await
 }
 
-pub(super) async fn device_query(
+/// Read a bounded device report.
+///
+/// # Errors
+/// Returns process failures and device report limit errors.
+pub async fn device_query(
     ctx: &TaskContext,
     command: ProcessCommand,
 ) -> Result<Vec<u8>, TaskError> {
@@ -77,6 +82,61 @@ async fn query_limit(
         .lock()
         .map_err(|_| TaskError::operation("Query buffer is unavailable"))?;
     Ok((result, std::mem::take(&mut *bytes)))
+}
+
+struct Verification {
+    forward: Arc<dyn TaskOutput>,
+    state: Mutex<(usize, bool)>,
+}
+
+impl TaskOutput for Verification {
+    fn write<'a>(&'a self, stream: OutputStream, bytes: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
+        Box::pin(async move {
+            self.forward.write(stream, bytes).await?;
+            if stream == OutputStream::Stdout {
+                let mut state = self
+                    .state
+                    .lock()
+                    .map_err(|_| io::Error::other("Signature result is unavailable"))?;
+                for byte in bytes {
+                    match byte {
+                        b'\n' => {
+                            state.1 |= state.0 == Self::MARKER.len();
+                            state.0 = 0;
+                        }
+                        b'\r' if state.0 == Self::MARKER.len() => {}
+                        byte if Self::MARKER.get(state.0) == Some(byte) => state.0 += 1,
+                        _ => state.0 = Self::MARKER.len() + 1,
+                    }
+                }
+            }
+            Ok(())
+        })
+    }
+
+    fn flush(&self) -> BoxFuture<'_, io::Result<()>> {
+        self.forward.flush()
+    }
+}
+
+impl Verification {
+    const MARKER: &'static [u8] = b"jar verified.";
+}
+
+pub(super) async fn verifies_signature(
+    ctx: &TaskContext,
+    command: ProcessCommand,
+) -> Result<bool, TaskError> {
+    let output = Arc::new(Verification {
+        forward: ctx.require::<TaskEnv>()?.output.clone(),
+        state: Mutex::default(),
+    });
+    ctx.exec_with_output(command, output.clone()).await?;
+    let state = output
+        .state
+        .lock()
+        .map_err(|_| TaskError::operation("Signature result is unavailable"))?;
+    Ok(state.1 || state.0 == Verification::MARKER.len())
 }
 
 struct Artifact {
@@ -169,7 +229,11 @@ impl TaskOutput for Artifact {
     }
 }
 
-pub(super) async fn artifact(
+/// Find a package artifact in Cargo build messages.
+///
+/// # Errors
+/// Returns process failures, invalid messages, or a missing artifact error.
+pub async fn artifact(
     ctx: &TaskContext,
     command: ProcessCommand,
     package: &'static str,

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wasm_ui"
-version = "0.1.12"
+version = "0.1.13"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,7 +16,7 @@ path = "src/bin/ewe_wasm_bundle.rs"
 # the build tooling never belongs in the artifact.
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["js-foundation-wasm"] }
+foundation_core.workspace = true
 foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
@@ -36,6 +36,8 @@ foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 tracing = { version = "0.1", default-features = false }
 [target.'cfg(target_family = "wasm")'.dependencies]
+# Only the browser uses the JavaScript event loop. Native commands park host threads.
+foundation_core = { workspace = true, features = ["js-foundation-wasm"] }
 foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["browser-storage"], optional = true }
 serde = { workspace = true, optional = true }
 wasm-bindgen-futures = { workspace = true, optional = true }
@@ -47,17 +49,23 @@ async-trait.workspace = true
 # build_tools — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 blocking = { workspace = true, optional = true }
 foundation_tasks = { workspace = true, optional = true }
 clap = { version = "4", features = ["derive"] }
-foundation_codegen = { path = "../foundation_codegen", version = "0.2.2" }
+foundation_codegen = { path = "../foundation_codegen", version = "0.2.3" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
+build-hook = ["dep:tempfile", "dep:serde_json", "foundation_codegen/javascript", "foundation_wasm/embedded-js"]
 browser-storage = ["dep:serde", "dep:foundation_db", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
-tasks = ["dep:tempfile", "dep:serde_json", "dep:foundation_tasks", "dep:blocking", "foundation_codegen/javascript"]
+tasks = ["dep:tar", "dep:flate2", "dep:sha2", "dep:base64", "dep:futures-util", "embedded-js", "dep:tempfile", "dep:serde_json", "dep:foundation_tasks", "dep:blocking", "foundation_codegen/javascript"]
 default = []
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]

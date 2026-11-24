@@ -27,20 +27,20 @@ On macOS, install the Android SDK packages before the full check. It also checks
 
 ```sh
 mise run toolchain:android
-mise exec -- scripts/toolchain/check.sh
+mise run toolchain:check
 ```
 
 On Linux the full check skips Xcode and Android SDK package checks.
 Run the Android scope explicitly to check the installed packages on Linux.
 
 ```sh
-mise exec -- scripts/toolchain/check.sh --scope android
+mise run toolchain:check -- --scope android
 ```
 
 CI can check Android tool versions before it installs the platform packages.
 
 ```sh
-mise exec -- scripts/toolchain/check.sh --scope android --without-android-packages
+mise run toolchain:check -- --scope android --without-android-packages
 ```
 
 ## Build an Android example

@@ -1,0 +1,21 @@
+[package]
+name = "ewe_browser_app"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+web = ["dep:wasm-bindgen"]
+
+[dependencies]
+app_identity = { path = "../application" }
+wasm-bindgen = { version = "0.2", optional = true }
+
+[build-dependencies]
+foundation_resources = { version = "=0.1.1", default-features = false, features = ["browser-package"] }
+app_identity = { path = "../application" }
+
+[workspace]

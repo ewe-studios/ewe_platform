@@ -36,6 +36,7 @@ async fn enrolled_client(trusted: &TrustedClients, leaf: &[u8], expires_at: u64)
         .record_enrollment(
             TrustedClient {
                 fingerprint_sha256: sha256_hex(leaf),
+                client_id: None,
                 client_name: "laptop".to_string(),
                 enrolled_at: 1_700_000_000,
                 expires_at,

@@ -6,7 +6,12 @@
 //! Feature flag: `docker_history `
 
 #![cfg(feature = "docker_history")]
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    clippy::too_many_lines,
+    clippy::struct_excessive_bools
+)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::doc_markdown,
@@ -24,6 +29,29 @@ use super::shared::ApiResponse;
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `ImageHistoryResponseItem` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ImageHistoryResponseItem {
+    /// `Comment` property.
+    #[serde(rename = "Comment")]
+    pub comment: String,
+    /// `Created` property.
+    #[serde(rename = "Created")]
+    pub created: i64,
+    /// `CreatedBy` property.
+    #[serde(rename = "CreatedBy")]
+    pub created_by: String,
+    /// `Id` property.
+    #[serde(rename = "Id")]
+    pub id: String,
+    /// `Size` property.
+    #[serde(rename = "Size")]
+    pub size: i64,
+    /// `Tags` property.
+    #[serde(rename = "Tags")]
+    pub tags: Vec<String>,
+}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -69,7 +97,7 @@ pub async fn image_history_request<F>(
     args: &ImageHistoryArgs,
     base_url: &str,
     builder_mod: Option<F>,
-) -> Result<ApiResponse<serde_json::Value>, super::shared::ApiError>
+) -> Result<ApiResponse<Vec<ImageHistoryResponseItem>>, super::shared::ApiError>
 where
     F: FnOnce(&mut PreparedRequestBuilder),
 {

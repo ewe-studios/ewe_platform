@@ -587,7 +587,7 @@ Implements `foundation_connectrpc::shared::transport::Transport`
 
 This type does not write its own transport or its own body pump. The platform-neutral way is
 `foundation_netio`'s `DynNetClient` and `foundation_connectrpc`'s `H1Transport`, which already
-build on it ([spec 85](../../../85-wasm-fetch-transport/requirements.md) section 1). A
+build on it ([spec 85](../../../completed/85-wasm-fetch-transport/requirements.md) section 1). A
 container port is a `NetClient`: its `fetch(port, request)` becomes a `PreparedRequest` with a
 streaming body, and `H1Transport` gives the `TransportStream`. `ContainerPortTransport` is a
 thin wrapper that adds a `NotFound` message for a ready check and maps `PortError`.

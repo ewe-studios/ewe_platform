@@ -3,6 +3,9 @@ set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd "$script_dir/../.." && pwd)
+cd "$root"
+toolchain_check=$(cargo build --locked --profile uat -p foundation_ci --bin foundation-ci --message-format=json \
+  | python3 -Ic 'import json,sys; print(next(e["executable"] for line in sys.stdin if (e:=json.loads(line)).get("executable")))')
 unset JAVA_HOME
 scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
@@ -82,7 +85,7 @@ fake uname 'echo Darwin'
 run_check() {
   local expected=$1 status=0
   shift
-  output=$(PATH="$scratch/bin" bash "$script_dir/check.sh" "$@" 2>&1) || status=$?
+  output=$(PATH="$scratch/bin" "$toolchain_check" toolchain-check "$@" 2>&1) || status=$?
   if [[ $status != "$expected" ]]; then
     printf 'Expected exit %s, got %s\n%s\n' "$expected" "$status" "$output" >&2
     exit 1

@@ -172,8 +172,41 @@ impl<S> Router<S> {
     where
         S: Clone,
     {
+        self.dispatch_result(method, path).ok()
+    }
+
+    /// Dispatch a request and keep the reason of a miss.
+    ///
+    /// WHY: a path that matches a route node but has no handler for the request
+    /// method is a 405, while a path that matches no node is a 404. The caller
+    /// needs both answers.
+    /// WHAT: the matched handler, or [`RouteOp::MethodNotAllowed`] / another
+    /// [`RouteOp`] for the miss.
+    /// HOW: `match_route` checks the path first, then the method.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RouteOp::MethodNotAllowed`] when the path matched but the
+    /// method did not. Returns another [`RouteOp`] when no path matched.
+    pub fn dispatch_result(&self, method: &SimpleMethod, path: &str) -> RouteResult<S>
+    where
+        S: Clone,
+    {
         let path_without_query = path.split('?').next().unwrap_or(path);
-        self.root.match_route(method, path_without_query).ok()
+        self.root.match_route(method, path_without_query)
+    }
+
+    /// The methods that `path` supports, for the `Allow` header of a 405.
+    ///
+    /// Query strings are stripped, as in [`Self::dispatch`]. An empty list
+    /// means no path matched.
+    #[must_use]
+    pub fn allowed_methods(&self, path: &str) -> Vec<String>
+    where
+        S: Clone,
+    {
+        let path_without_query = path.split('?').next().unwrap_or(path);
+        self.root.allowed_methods(path_without_query)
     }
 }
 

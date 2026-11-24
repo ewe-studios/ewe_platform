@@ -30,7 +30,7 @@ impl Parse for Discovery {
 }
 
 pub fn expand(args: TokenStream, item: TokenStream, discovery: bool) -> TokenStream {
-    expand_result(args, item, discovery).unwrap_or_else(|e| e.into_compile_error())
+    expand_result(args, item, discovery).unwrap_or_else(Error::into_compile_error)
 }
 
 fn path_named(ty: &Type, name: &str) -> bool {
@@ -43,28 +43,14 @@ fn expand_result(
     discovery: bool,
 ) -> syn::Result<TokenStream> {
     let mut body: ItemFn = parse2(item)?;
-    let sig = &body.sig;
-    if sig.ident != "main"
-        || sig.asyncness.is_none()
-        || sig.constness.is_some()
-        || sig.unsafety.is_some()
-        || sig.abi.is_some()
-        || !sig.generics.params.is_empty()
-        || sig.inputs.len() != 1
-        || !matches!(sig.inputs.first(), Some(FnArg::Typed(arg)) if path_named(&arg.ty, "TaskRunner"))
-        || !matches!(&sig.output, ReturnType::Type(_, ty) if path_named(ty, "TaskResult"))
+    validate_signature(&body.sig)?;
+    let crate_name = if let Ok(proc_macro_crate::FoundCrate::Name(name)) =
+        proc_macro_crate::crate_name("foundation_tasks")
     {
-        return Err(Error::new_spanned(
-            sig,
-            "Expected async fn main(runner: TaskRunner) -> TaskResult",
-        ));
-    }
-    let crate_name = match proc_macro_crate::crate_name("foundation_tasks") {
-        Ok(proc_macro_crate::FoundCrate::Name(name)) => {
-            let name = format_ident!("{name}");
-            quote!(::#name)
-        }
-        _ => quote!(::foundation_tasks),
+        let name = format_ident!("{name}");
+        quote!(::#name)
+    } else {
+        quote!(::foundation_tasks)
     };
     let discovered = if discovery {
         let Discovery {
@@ -147,4 +133,23 @@ fn expand_result(
             #crate_name::run_entry(env!("CARGO_BIN_NAME"), |runner| Box::pin(__foundation_configure(runner)))
         }
     })
+}
+
+fn validate_signature(sig: &syn::Signature) -> syn::Result<()> {
+    if sig.ident != "main"
+        || sig.asyncness.is_none()
+        || sig.constness.is_some()
+        || sig.unsafety.is_some()
+        || sig.abi.is_some()
+        || !sig.generics.params.is_empty()
+        || sig.inputs.len() != 1
+        || !matches!(sig.inputs.first(), Some(FnArg::Typed(arg)) if path_named(&arg.ty, "TaskRunner"))
+        || !matches!(&sig.output, ReturnType::Type(_, ty) if path_named(ty, "TaskResult"))
+    {
+        return Err(Error::new_spanned(
+            sig,
+            "Expected async fn main(runner: TaskRunner) -> TaskResult",
+        ));
+    }
+    Ok(())
 }

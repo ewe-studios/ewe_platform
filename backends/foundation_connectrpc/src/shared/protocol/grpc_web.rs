@@ -1036,6 +1036,26 @@ impl ProtocolClient for GrpcWebClient {
         Bytes::from(envelope)
     }
 
+    fn encode_request_frame(
+        &self,
+        frame: Bytes,
+        send_compressor: Option<Arc<dyn Compressor>>,
+        compress_min_bytes: usize,
+        send_max_bytes: usize,
+    ) -> ConnectResult<Bytes> {
+        let envelope = EnvelopeWriter::new(send_compressor, compress_min_bytes, send_max_bytes)
+            .write(frame)?;
+        if !self.text {
+            return Ok(Bytes::from(envelope));
+        }
+        // Text mode base64-encodes the stream. One frame is one complete flush,
+        // so feed it and flush the padded tail, exactly as `TextTail` does.
+        let mut encoder = Base64StreamEncoder::default();
+        let mut out = encoder.feed(&envelope);
+        out.extend_from_slice(&encoder.finish());
+        Ok(Bytes::from(out))
+    }
+
     fn decode_unary_response(
         &self,
         head: &SimpleHeaders,

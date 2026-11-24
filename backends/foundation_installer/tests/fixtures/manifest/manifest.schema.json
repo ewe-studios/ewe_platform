@@ -1,0 +1,646 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ewe-studios.github.io/ewe_platform/specifications/78-manifest-contract/manifest.schema.json",
+  "title": "Ewe platform manifest",
+  "description": "The versioned manifest contract of spec 78. The installer (spec 79) and the registrar sidecar (spec 82) parse one file of this form with their own Rust types. Unknown fields are ignored. A reader validates the whole file before it acts. Two rules are not expressible in JSON Schema and the readers enforce them: entry names are unique (V5), and an artifact must match its deploy target (V9).",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "entries"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "The format version. Exactly 1 today. A reader stops with UnsupportedManifestVersion when it reads a higher value."
+    },
+    "entries": {
+      "type": "array",
+      "description": "The entries of the manifest. May be empty. List order is install order. Names are unique; the readers enforce that rule (V5).",
+      "$comment": "V5: entry names are unique. JSON Schema draft 2020-12 cannot express uniqueness by one property. The readers and scripts/ci/manifest_contract.py enforce the rule.",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$",
+      "description": "A DNS label: 1 to 63 characters from [a-z0-9-], with no leading or trailing '-'."
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "A lowercase hexadecimal SHA-256: 64 characters."
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "A TCP or UDP port number, 1 to 65535."
+    },
+    "asset": {
+      "type": "object",
+      "required": [
+        "name",
+        "sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The asset file name in the release."
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": true
+    },
+    "entry": {
+      "type": "object",
+      "required": [
+        "name",
+        "version",
+        "source",
+        "deploy"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "version": {
+          "type": "string",
+          "description": "The publisher's version text. Compare it as text; do not sort it."
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "deploy": {
+          "$ref": "#/$defs/deploy"
+        },
+        "proxy": {
+          "$ref": "#/$defs/proxy"
+        },
+        "probes": {
+          "$ref": "#/$defs/probes"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "description": "Where the software comes from. `kind` picks the variant.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/sourceGithubRelease"
+        },
+        {
+          "$ref": "#/$defs/sourceUrl"
+        },
+        {
+          "$ref": "#/$defs/sourceCargo"
+        },
+        {
+          "$ref": "#/$defs/sourceApt"
+        },
+        {
+          "$ref": "#/$defs/sourceMise"
+        },
+        {
+          "$ref": "#/$defs/sourceDockerImage"
+        }
+      ]
+    },
+    "sourceGithubRelease": {
+      "type": "object",
+      "required": [
+        "kind",
+        "repo",
+        "tag",
+        "assets"
+      ],
+      "properties": {
+        "kind": {
+          "const": "github-release"
+        },
+        "repo": {
+          "type": "string",
+          "description": "An owner and a repository name, in the form owner/repo."
+        },
+        "tag": {
+          "type": "string",
+          "description": "The release tag."
+        },
+        "assets": {
+          "type": "object",
+          "description": "A map from target triple to asset. The reader selects assets[<target-triple>]. A missing target triple is an error.",
+          "additionalProperties": {
+            "$ref": "#/$defs/asset"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "sourceUrl": {
+      "type": "object",
+      "required": [
+        "kind",
+        "url",
+        "sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "url"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://",
+          "description": "An HTTPS URL. Plain HTTP is rejected."
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": true
+    },
+    "sourceCargo": {
+      "type": "object",
+      "required": [
+        "kind",
+        "crate"
+      ],
+      "properties": {
+        "kind": {
+          "const": "cargo"
+        },
+        "crate": {
+          "type": "string",
+          "description": "The crates.io crate name."
+        },
+        "program": {
+          "type": "string",
+          "description": "The installed program name. Set it only when it differs from the crate name. Default: the crate name."
+        }
+      },
+      "additionalProperties": true
+    },
+    "sourceApt": {
+      "type": "object",
+      "required": [
+        "kind",
+        "package"
+      ],
+      "properties": {
+        "kind": {
+          "const": "apt"
+        },
+        "package": {
+          "type": "string",
+          "description": "The apt package name."
+        },
+        "program": {
+          "type": "string",
+          "description": "The installed program name. Set it only when it differs from the package name. Default: the package name."
+        }
+      },
+      "additionalProperties": true
+    },
+    "sourceMise": {
+      "type": "object",
+      "required": [
+        "kind",
+        "tool"
+      ],
+      "properties": {
+        "kind": {
+          "const": "mise"
+        },
+        "tool": {
+          "type": "string",
+          "description": "The mise tool name."
+        },
+        "program": {
+          "type": "string",
+          "description": "The installed program name. Set it only when it differs from the tool name. Default: the tool name."
+        }
+      },
+      "additionalProperties": true
+    },
+    "sourceDockerImage": {
+      "type": "object",
+      "required": [
+        "kind",
+        "repository",
+        "tag"
+      ],
+      "properties": {
+        "kind": {
+          "const": "docker-image"
+        },
+        "repository": {
+          "type": "string",
+          "description": "The image repository, for example ghcr.io/example/vector-db."
+        },
+        "tag": {
+          "type": "string",
+          "description": "The image tag."
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "The image digest. Optional. When it is absent, the installer records the digest that Docker reports after the pull."
+        }
+      },
+      "additionalProperties": true
+    },
+    "deploy": {
+      "description": "How one entry runs on the host. `kind` picks the variant.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/deploySystemd"
+        },
+        {
+          "$ref": "#/$defs/deployDocker"
+        },
+        {
+          "$ref": "#/$defs/deployNone"
+        }
+      ]
+    },
+    "deploySystemd": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "systemd"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "The program arguments."
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Environment variables. A value is never a secret."
+        },
+        "user": {
+          "type": "string",
+          "default": "ewe",
+          "description": "The user that runs the program."
+        },
+        "restart": {
+          "enum": [
+            "no",
+            "on-success",
+            "on-failure",
+            "always"
+          ],
+          "default": "on-failure",
+          "description": "The systemd restart policy."
+        }
+      },
+      "additionalProperties": true
+    },
+    "deployDocker": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "docker"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/portMapping"
+          },
+          "default": [],
+          "description": "The published ports."
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Container environment variables. A value is never a secret."
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/volume"
+          },
+          "default": [],
+          "description": "The bind mounts."
+        },
+        "restart": {
+          "enum": [
+            "no",
+            "always",
+            "on-failure",
+            "unless-stopped"
+          ],
+          "default": "unless-stopped",
+          "description": "The Docker restart policy."
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Overrides the image command. Default: the image command."
+        }
+      },
+      "additionalProperties": true
+    },
+    "deployNone": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "none"
+        }
+      },
+      "additionalProperties": true
+    },
+    "portMapping": {
+      "type": "object",
+      "required": [
+        "host",
+        "container",
+        "protocol"
+      ],
+      "properties": {
+        "host": {
+          "$ref": "#/$defs/port"
+        },
+        "container": {
+          "$ref": "#/$defs/port"
+        },
+        "protocol": {
+          "enum": [
+            "tcp",
+            "udp"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "volume": {
+      "type": "object",
+      "required": [
+        "host",
+        "container"
+      ],
+      "properties": {
+        "host": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "An absolute host path."
+        },
+        "container": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "An absolute container path."
+        }
+      },
+      "additionalProperties": true
+    },
+    "proxy": {
+      "type": "object",
+      "required": [
+        "service",
+        "route",
+        "port",
+        "protocol"
+      ],
+      "properties": {
+        "service": {
+          "$ref": "#/$defs/name"
+        },
+        "route": {
+          "$ref": "#/$defs/proxyRoute"
+        },
+        "port": {
+          "$ref": "#/$defs/port"
+        },
+        "protocol": {
+          "enum": [
+            "http",
+            "https",
+            "connect",
+            "grpc",
+            "grpc-web"
+          ]
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 1,
+          "description": "The proxy weight."
+        }
+      },
+      "additionalProperties": true
+    },
+    "proxyRoute": {
+      "type": "object",
+      "required": [
+        "host"
+      ],
+      "properties": {
+        "host": {
+          "type": "string",
+          "pattern": "^(\\*\\.)?[A-Za-z0-9.-]+$",
+          "description": "An exact DNS name, or a wildcard such as *.example.com."
+        },
+        "path_prefix": {
+          "type": "string",
+          "pattern": "^/",
+          "default": "/",
+          "description": "A path prefix that starts with '/'."
+        }
+      },
+      "additionalProperties": true
+    },
+    "probes": {
+      "type": "object",
+      "properties": {
+        "startup": {
+          "$ref": "#/$defs/probeSpec"
+        },
+        "liveness": {
+          "$ref": "#/$defs/probeSpec"
+        },
+        "readiness": {
+          "$ref": "#/$defs/probeSpec"
+        }
+      },
+      "additionalProperties": true
+    },
+    "probeSpec": {
+      "description": "One probe. `kind` picks the check. The timing fields use the Kubernetes probe defaults.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/probeHttp"
+        },
+        {
+          "$ref": "#/$defs/probeTcp"
+        },
+        {
+          "$ref": "#/$defs/probeGrpc"
+        },
+        {
+          "$ref": "#/$defs/probeExec"
+        }
+      ]
+    },
+    "probeTiming": {
+      "type": "object",
+      "properties": {
+        "period_secs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Seconds between checks."
+        },
+        "timeout_secs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Seconds before one check fails."
+        },
+        "failure_threshold": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3,
+          "description": "Failures in a row that make the probe fail."
+        },
+        "success_threshold": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Successes in a row that make the probe pass."
+        },
+        "initial_delay_secs": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Seconds to wait after the app starts."
+        }
+      },
+      "additionalProperties": true
+    },
+    "probeHttp": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/probeTiming"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "kind",
+        "port",
+        "path"
+      ],
+      "properties": {
+        "kind": {
+          "const": "http"
+        },
+        "port": {
+          "$ref": "#/$defs/port"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "A path that starts with '/'. The check passes on a 2xx or 3xx status."
+        }
+      },
+      "additionalProperties": true
+    },
+    "probeTcp": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/probeTiming"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "kind",
+        "port"
+      ],
+      "properties": {
+        "kind": {
+          "const": "tcp"
+        },
+        "port": {
+          "$ref": "#/$defs/port"
+        }
+      },
+      "additionalProperties": true
+    },
+    "probeGrpc": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/probeTiming"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "kind",
+        "port"
+      ],
+      "properties": {
+        "kind": {
+          "const": "grpc"
+        },
+        "port": {
+          "$ref": "#/$defs/port"
+        },
+        "service": {
+          "type": "string",
+          "description": "The gRPC service name. Empty or absent means the whole server. The check passes when grpc.health.v1.Health/Check returns SERVING."
+        }
+      },
+      "additionalProperties": true
+    },
+    "probeExec": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/probeTiming"
+        }
+      ],
+      "type": "object",
+      "required": [
+        "kind",
+        "command"
+      ],
+      "properties": {
+        "kind": {
+          "const": "exec"
+        },
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An argument list, never a shell string. The check passes on exit code 0. Host mode only."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

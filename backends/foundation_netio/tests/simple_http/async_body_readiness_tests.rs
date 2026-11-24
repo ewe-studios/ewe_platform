@@ -166,9 +166,15 @@ async fn collect_counted(
 
 /// Drive a client response through `into_async_parts`, count the `poll_next`
 /// calls, and return the bytes, poll count, elapsed time and polling-thread CPU.
+///
+/// `started` is taken before the request is sent. The server writes the head,
+/// then sleeps for its delay. Under a slow host the head read can take a large
+/// part of that delay, so the wait must be measured from the request, not from
+/// the head.
 #[cfg(unix)]
 async fn read_with_counting(
     response: foundation_netio::shared::http::SimpleResponse<SendSafeBody>,
+    started: Instant,
 ) -> (Vec<u8>, usize, Duration, u128) {
     let (status, _headers, body) = response.into_async_parts();
     assert_eq!(status, Status::OK);
@@ -181,7 +187,6 @@ async fn read_with_counting(
         cpu_first: cpu_first.clone(),
         cpu_last: cpu_last.clone(),
     };
-    let started = Instant::now();
     let (bytes, _, _, _) = collect_counted(counted).await;
     let elapsed = started.elapsed();
     let count = polls.load(Ordering::SeqCst);
@@ -220,8 +225,9 @@ async fn async_body_waits_without_spinning() {
     let url = format!("http://127.0.0.1:{}/test", addr.port());
     let client = NativeHttpClient::<SystemDnsResolver>::from_system();
 
+    let started = Instant::now();
     let response = client.send_async(get_request(&url)).await.expect("send");
-    let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
+    let (bytes, count, elapsed, cpu_ns) = read_with_counting(response, started).await;
     assert_parked(&bytes, b"hello body", count, elapsed, cpu_ns);
 }
 
@@ -247,8 +253,9 @@ async fn async_body_chunked_waits_without_spinning() {
     let url = format!("http://127.0.0.1:{}/chunked", addr.port());
     let client = NativeHttpClient::<SystemDnsResolver>::from_system();
 
+    let started = Instant::now();
     let response = client.send_async(get_request(&url)).await.expect("send");
-    let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
+    let (bytes, count, elapsed, cpu_ns) = read_with_counting(response, started).await;
     assert_parked(&bytes, b"hello chunked", count, elapsed, cpu_ns);
 }
 
@@ -266,8 +273,9 @@ async fn async_body_sse_waits_without_spinning() {
     let url = format!("http://127.0.0.1:{}/sse", addr.port());
     let client = NativeHttpClient::<SystemDnsResolver>::from_system();
 
+    let started = Instant::now();
     let response = client.send_async(get_request(&url)).await.expect("send");
-    let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
+    let (bytes, count, elapsed, cpu_ns) = read_with_counting(response, started).await;
     // `AsyncSendSafeBody` yields each SSE message's `data` plus a newline.
     assert_parked(&bytes, b"hello\n", count, elapsed, cpu_ns);
 }

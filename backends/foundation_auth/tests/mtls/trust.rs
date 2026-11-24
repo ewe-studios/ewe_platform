@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::trust::{
-    KvTrustStore, MemoryTrustStore, SecretUse, SqlTrustStore, TrustConfig, TrustStore,
+    KvTrustStore, MemoryTrustStore, SecretUse, SqlTrustStore, TrustConfig, TrustError, TrustStore,
     TrustedClient, TrustedClients, UseOutcome,
 };
 use foundation_context::Ctx;
@@ -21,6 +21,7 @@ fn ctx_at(secs: u64) -> Ctx {
 fn client(fingerprint: &str, name: &str, enrolled_at: u64) -> TrustedClient {
     TrustedClient {
         fingerprint_sha256: fingerprint.to_string(),
+        client_id: Some(format!("cid-{fingerprint}")),
         client_name: name.to_string(),
         enrolled_at,
         expires_at: 1_000,
@@ -48,6 +49,8 @@ fn kv_store() -> KvTrustStore<foundation_db::MemoryStorage> {
 struct Outcomes {
     duplicate: bool,
     present: bool,
+    by_id: Option<String>,
+    by_id_unknown: bool,
     revoked_first: bool,
     revoked_again: bool,
     seen: Option<u64>,
@@ -81,6 +84,16 @@ async fn run_sequence(store: Arc<dyn TrustStore>) -> Outcomes {
         .expect("enroll b");
     let duplicate = store.record_enrollment(&a, "cert-a").await.is_err();
     let present = store.client("aa").await.expect("get").is_some();
+    let by_id = store
+        .client_by_id("cid-aa")
+        .await
+        .expect("get by id")
+        .map(|record| record.client_name);
+    let by_id_unknown = store
+        .client_by_id("cid-missing")
+        .await
+        .expect("get by id")
+        .is_some();
     let revoked_first = store.revoke_client("aa", 100).await.expect("revoke");
     let revoked_again = store.revoke_client("aa", 110).await.expect("revoke");
     store.mark_seen("bb", 150).await.expect("seen");
@@ -165,6 +178,8 @@ async fn run_sequence(store: Arc<dyn TrustStore>) -> Outcomes {
     Outcomes {
         duplicate,
         present,
+        by_id,
+        by_id_unknown,
         revoked_first,
         revoked_again,
         seen,
@@ -207,6 +222,15 @@ async fn trust_store_same_behaviour() {
     );
     assert_eq!(memory_outcomes.use_two_third, UseOutcome::Spent);
     assert!(memory_outcomes.duplicate, "a second enrollment is refused");
+    assert_eq!(
+        memory_outcomes.by_id.as_deref(),
+        Some("laptop"),
+        "the client-id index finds the client"
+    );
+    assert!(
+        !memory_outcomes.by_id_unknown,
+        "an unknown client ID is absent"
+    );
     assert_eq!(memory_outcomes.seen, Some(150));
     assert!(memory_outcomes.revoked_before_prune);
     assert_eq!(memory_outcomes.pruned, 3, "two use rows and one secret row");
@@ -229,10 +253,24 @@ async fn revoked_not_listed() {
         .expect("enroll");
     let before = trusted.get("aa").await.expect("get").expect("present");
     assert!(before.is_active_at(1_700_000_000));
+    trusted
+        .check_client_not_revoked("cid-aa")
+        .await
+        .expect("a live client passes");
 
     assert!(trusted.revoke_client("aa").await.expect("revoke"));
     let after = trusted.get("aa").await.expect("get").expect("record");
     assert!(after.revoked_at.is_some());
+    assert_eq!(
+        trusted.check_client_not_revoked("cid-aa").await,
+        Err(TrustError::ClientRevoked),
+        "the client-id check refuses a revoked client"
+    );
+    assert_eq!(
+        trusted.check_client_not_revoked("cid-missing").await,
+        Err(TrustError::UnknownClient("cid-missing".to_string())),
+        "an unknown client ID is not enrolled"
+    );
     assert!(
         !after.is_active_at(1_700_000_000),
         "a revoked client is not listed as active"

@@ -6,7 +6,7 @@
 # layer/install.ps1): the pinned nightly, the repository's mise tools, and
 # the submodules at their gitlink SHAs.
 #
-# Context staged by `nu ci/platform-images/scripts/images.nu prepare --layer vm-image --os windows ...`:
+# Context staged by `foundation-ci image-prepare --layer vm-image --os windows ...`:
 # layer/ holds install.ps1 plus files/, mise/ and submodules.lock.json.
 
 ARG BASE_IMAGE

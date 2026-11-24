@@ -1,6 +1,6 @@
 [package]
 name = "foundation_testbed"
-version = "0.0.8"
+version = "0.0.9"
 edition = "2024"
 description = "Holistic test harness: QEMU/KVM VM testbed (vms) + wasm32 browser/Deno/Workers harness (wasm), feature-gated"
 license = "MIT"
@@ -29,6 +29,9 @@ wasm = [
   "dep:foundation_codegen",
   "dep:foundation_wasm_ui",
   "dep:foundation_http",
+  "dep:foundation_connectrpc",
+  "dep:foundation_netio",
+  "dep:futures",
   "dep:foundation_browser",
   "dep:foundation_macros",
   "dep:foundation_nostd",
@@ -38,11 +41,12 @@ wasm = [
   "dep:which",
 ]
 
-# F52: re-export #[wasm_bindgen_test] from foundation_testbed so consumer crates
-# can write browser tests without depending on wasm-bindgen directly.
+# F52: enable the browser-test re-exports. A consumer crate still needs
+# `wasm-bindgen-test` as its own direct dev-dependency (a proc-macro attribute
+# cannot be re-exported across crate boundaries), so this feature does not
+# depend on that crate.
 wasm-bindgen-test = [
   "dep:wasm-bindgen",
-  "dep:wasm-bindgen-test",
   "dep:wasm-bindgen-futures",
   "dep:js-sys",
   "dep:web-sys",
@@ -82,6 +86,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
+bytes = "1"
 tracing = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -89,9 +94,15 @@ derive_more = { version = "2", features = ["display", "error", "from"] }
 
 # wasm feature — the wasm32 test harness (optional, enabled by `wasm`).
 walrus = { workspace = true, optional = true }
-foundation_codegen = { path = "../foundation_codegen", version = "0.2.2", optional = true }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.12", optional = true, features = ["embedded-js"] }
-foundation_http = { path = "../foundation_http", version = "0.0.13", optional = true }
+foundation_codegen = { path = "../foundation_codegen", version = "0.2.3", optional = true }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.13", optional = true, features = ["embedded-js"] }
+foundation_http = { path = "../foundation_http", version = "0.0.16", optional = true }
+# Spec 88 feature 03: the `/connect` route. `rpc` is the single-threaded
+# library surface; the default `rpc_multi` is not needed for a server route.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16", optional = true, default-features = false, features = ["rpc"] }
+# The `/connect` route reads a chunked body's `ChunkedData` items.
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", optional = true }
+futures = { version = "0.3", optional = true }
 foundation_browser = { path = "../foundation_browser", version = "0.0.9", optional = true }
 foundation_macros = { workspace = true, optional = true }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10", optional = true }
@@ -104,7 +115,6 @@ tracing-subscriber = { workspace = true, features = ["env-filter"], optional = t
 #   cargo install wasm-bindgen-cli --version <same as wasm-bindgen in Cargo.toml>
 # The runtime version check (>=) allows newer CLI, not older.
 wasm-bindgen = { workspace = true, optional = true }
-wasm-bindgen-test = { workspace = true, optional = true }
 wasm-bindgen-test-macro = { workspace = true, optional = true }
 wasm-bindgen-futures = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }

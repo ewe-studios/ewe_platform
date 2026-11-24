@@ -6,27 +6,20 @@ The example binds to a loopback address. Restarting the server clears the list.
 
 ## Run the example
 
-Install the WebAssembly target for the repository toolchain. Build the module and start the server.
+Install the WebAssembly target for the repository toolchain. Start the server with Cargo.
 
 ```sh
 rustup target add wasm32-unknown-unknown
-examples/ui_todo/build-module.sh
 cargo run --profile uat -p ui_todo
 ```
 
 Open `http://127.0.0.1:8180`. Pass another loopback address after `--` to use a different port.
 
-To use a module from another checkout, set `EWE_TODO_MODULE` before starting the server.
-A relative path starts at the server’s working directory. An absolute path also works after moving the executable.
-When moving the assets, keep the generated `rpc` directory next to `ui_todo.wasm` for the browser Connect client.
+Cargo builds the browser module, its bindings, and the application script before it builds the server.
+Move the development executable and its sibling `public` directory together.
+The release executable embeds the same resources.
 
-```sh
-EWE_TODO_MODULE=/path/to/ui_todo.wasm cargo run --profile uat -p ui_todo
-```
-
-The server checks the configured file and its WebAssembly header before announcing the address.
-Without this setting, the server uses the module under the build checkout. Native routes also work when that file is missing.
-The `--data-only` mode skips the module check.
+The build validates each browser module before it stages the resource manifest. The server mounts the packaged resources after the application routes.
 
 ## Actions and state
 
@@ -68,7 +61,6 @@ Use its fixture generator for byte-level compatibility tests. The browser test s
 See the [wire format and examples](../../backends/foundation_ui_wire/README.md) and the [browser test](tests/todo_browser_tests.rs).
 
 ```sh
-examples/ui_todo/build-module.sh
 cargo test --profile uat -p ui_todo --features browser-tests --test todo_browser_tests
 ```
 
@@ -84,6 +76,9 @@ Both native examples render the Rust view with the platform library. Each exampl
 The [Swift library](../../mobile/ios/README.md) and [Kotlin library](../../mobile/android/README.md) own the native controls and event delivery.
 This example owns the task store, the Rust action handlers, the view and its application bindings.
 The package-only starters exercise a remote Refresh action. See the [iOS starter](../mobile_starter/ios/README.md) and [Android starter](../mobile_starter/android/README.md).
+
+The device tests start two local programs. Cargo builds the full `ui_todo` binary and the independent `todo_data_fixture` example.
+Set `EWE_TODO_BIN` to reuse a full server binary. Set `EWE_TODO_DATA_BIN` to reuse a compiled data fixture.
 
 To run Todo Server, start the example Rust host and open either server app.
 The app reads `/initial` and sends mutations to `/action`.
@@ -129,7 +124,7 @@ The package selects one entry point for each host.
 | Host | Source | Build command from the repository root | Artifact |
 |---|---|---|---|
 | Server | `src/bin/server.rs` | `cargo build --profile uat -p ui_todo --bin ui_todo` | `target/uat/ui_todo` |
-| Browser | `src/web.rs` | `examples/ui_todo/build-module.sh` | `examples/ui_todo/target/web/ui_todo.wasm` |
+| Browser | `src/web.rs` | `cargo build -p ui_todo` | `public/ui_todo/module.wasm` |
 | iOS | `src/mobile.rs` | `native-task task run native:todo:prepare-ios` | `target/native-ui/ios-todo/.build-inputs/EweCoreFFI.xcframework` |
 | Android | `src/mobile.rs` | `native-task task run native:build-android --with-todo` | Each example gets `app/src/main/jniLibs/<abi>/libui_todo.so`. |
 
@@ -138,7 +133,7 @@ Swift imports `EweTodoCore`. Kotlin imports the actions from `io.github.ewe_stud
 
 ## Ordinary data and UI actions over Connect
 
-Start the data-only example with `cargo run --profile uat -p ui_todo -- 127.0.0.1:8180 --data-only`.
+Start the independent data fixture with `cargo run --profile uat -p ui_todo --example todo_data_fixture -- 127.0.0.1:0`.
 The generated Todos client reads task 42 and returns its identifier and title. Task 999 returns NotFound.
 The native integration suites run this procedure in a separate process from the screen test.
 
@@ -176,7 +171,7 @@ The starter requests `/open-count`. Open `/?count` in the browser to see the sam
 
 ### Recover the count after replay expires
 
-Set `EWE_TODO_HISTORY` to limit how many updates the server retains.
+The replay fixture accepts the number of retained updates as an argument.
 The store captures the view and the feed cursor under the same lock that protects publication.
 The handler releases the lock before it renders the response.
 A client with an expired cursor loads `/initial` again and resumes each stream from the returned cursor.
@@ -184,8 +179,8 @@ A client with an expired cursor loads `/initial` again and resumes each stream f
 The integration fixture starts the todo server with one retained update.
 
 ```sh
-cargo build --profile uat -p ui_todo --bin ui_todo
-node examples/ui_todo/tests/recovery-proxy.mjs 57634
+cargo build --profile uat -p ui_todo --example todo_replay_fixture
+node examples/ui_todo/tests/recovery-proxy.mjs 57634 1
 ```
 
 Set `EWE_TEST_EXPIRE_HTTP=1` on the proxy to test an HTTP 410 resume response.
@@ -240,6 +235,18 @@ The map pairs each old numeric identifier with its current UUID.
 Use that map to identify the target of an old pending delete before resubmitting it.
 If the map was lost, pair records from these same two files by position.
 
+## Application tasks
+
+Run these commands from this directory. The application manifest declares its Rust task package under `tools/tasks`.
+
+```sh
+ewe_ui task list
+ewe_ui task run todo:prepare-ios --help
+ewe_ui task run todo:sync-android --check
+ewe_ui task run todo:test-ios --help
+ewe_ui task run todo:test-android --help
+```
+
 ### Play Mathalley
 
 Select **Play Mathalley** in a Todo screen. Tap the title to start. Select an answer in Train or Gumball.
@@ -249,15 +256,15 @@ The browser, iPhone and Android hosts register a separate game view. The Todo vi
 The host lends the game a drawing surface. Closing the game releases that surface and its sound session.
 The host keeps the graphics device for the next view. Backgrounding the app pauses the game clock and sound.
 
-For Chrome, run `examples/ui_todo/build-module.sh`, start `cargo run --profile uat -p ui_todo`, and open the address it prints.
-For an iPhone simulator, run `scripts/ui_native/prepare-ios-todo.sh`. Open either Todo Xcode project and run its app.
-For Android, run `scripts/ui_native/build-android.sh --with-todo`. Build either Todo Android project against the matching local native package.
+For Chrome, start `cargo run --profile uat -p ui_todo --bin ui_todo`, and open the address it prints.
+For an iPhone simulator, run `ewe_ui task run todo:prepare-ios`. Open either Todo Xcode project and run its app.
+For Android, run `ewe_ui task run todo:sync-android`. Build either Todo Android project against the matching local native package.
 
 For a repeatable Android game check, install the on-device app and run the following command.
 The test uses ImageMagick to check the presented scene. It saves the title, Train, and Gumball images.
 
 ```sh
-python3 scripts/ui_native/check-android-todo.py "$ANDROID_HOME/platform-tools/adb" "$DEVICE" mathalley "$CAPTURES"
+ewe_ui task run todo:test-android-game --adb "$ANDROID_HOME/platform-tools/adb" --device "$DEVICE" --captures "$CAPTURES"
 ```
 
 In Xcode, run `TodoTests.testTrainAndGumballSurviveRotation` in the on-device project.

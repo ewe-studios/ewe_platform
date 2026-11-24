@@ -1,0 +1,68 @@
+name: Release the browser runtime
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: browser-runtime-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'foundation_wasm_ui-v')
+    runs-on: ubuntu-latest
+    outputs:
+      integrity: ${{ steps.pack.outputs.integrity }}
+      commit: ${{ steps.pack.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4.4.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+      - name: Build the tagged runtime tools
+        run: cargo build --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle
+      - name: Pack the exact tagged version
+        id: pack
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          target/uat/ewe-wasm-bundle task run wasm-bundle:npm-pack --tag "$TAG" --output "$RUNNER_TEMP/archive"
+          archive=("$RUNNER_TEMP/archive"/*.tgz)
+          integrity="sha512-$(openssl dgst -sha512 -binary "${archive[0]}" | openssl base64 -A)"
+          echo "integrity=$integrity" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Verify the external browser consumer and local registry
+        run: |
+          python3 backends/foundation_wasm_ui/tests/npm/browser.py "$RUNNER_TEMP/archive/"*.tgz
+          python3 backends/foundation_wasm_ui/tests/npm/registry.py target/uat/ewe-wasm-bundle "$RUNNER_TEMP/archive/"*.tgz
+      - uses: actions/upload-artifact@v7
+        with:
+          name: browser-runtime
+          path: ${{ runner.temp }}/archive/*.tgz
+          if-no-files-found: error
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.4.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: browser-runtime
+          path: ${{ runner.temp }}/archive
+      - name: Build the tagged publisher
+        run: cargo build --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle
+      - name: Publish the tested archive
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          INTEGRITY: ${{ needs.verify.outputs.integrity }}
+          COMMIT: ${{ needs.verify.outputs.commit }}
+        run: |
+          target/uat/ewe-wasm-bundle task run wasm-bundle:npm-publish --archive "$RUNNER_TEMP/archive/"*.tgz \
+            --tag "$TAG" --commit "$COMMIT" --integrity "$INTEGRITY"

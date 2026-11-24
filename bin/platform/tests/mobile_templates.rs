@@ -36,6 +36,9 @@ fn mobile_projects_select_their_host_and_preserve_existing_files() {
             assert_eq!(project.join("rust/Cargo.toml").is_file(), local);
             assert_eq!(project.join("build-rust.sh").is_file(), local);
             let provider = project.join(if local { "rust" } else { "resources" });
+            assert!(fs::read_to_string(provider.join("Cargo.toml"))
+                .unwrap()
+                .contains("foundation_resources"));
             let declaration = fs::read_to_string(provider.join("resources.toml")).unwrap();
             assert!(declaration.contains("app/title.txt"));
             assert!(declaration.contains("generated = \"version.txt\""));
@@ -52,7 +55,7 @@ fn mobile_projects_select_their_host_and_preserve_existing_files() {
                 assert_eq!(
                     fs::read(project.join("gradle/wrapper/gradle-wrapper.jar")).unwrap(),
                     include_bytes!(
-                        "../templates/android-app/common/gradle/wrapper/gradle-wrapper.jar"
+                        "../../../backends/foundation_ui_project/templates/android-app/common/gradle/wrapper/gradle-wrapper.jar"
                     )
                     .as_slice()
                 );

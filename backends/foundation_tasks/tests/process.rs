@@ -66,11 +66,33 @@ fn child_entry() {
             io::stdout().lock().write_all(b"finished\n").unwrap();
             std::process::exit(0);
         }
+        "service-echo" => {
+            let address = std::env::var("FOUNDATION_TASKS_ADDRESS").unwrap();
+            let mut socket = std::net::TcpStream::connect(address).unwrap();
+            let mut byte = [0];
+            socket.read_exact(&mut byte).unwrap();
+            socket.write_all(&byte).unwrap();
+        }
         "socket" => {
             let address = std::env::var("FOUNDATION_TASKS_ADDRESS").unwrap();
             let mut socket = std::net::TcpStream::connect(address).unwrap();
             println!("owned tree ready");
             let _ = socket.read(&mut [0]).unwrap();
+        }
+        "repeat" => {
+            let mut bytes = [0; 6];
+            io::stdin().lock().read_exact(&mut bytes).unwrap();
+            assert_eq!(&bytes, b"y\ny\ny\n");
+            std::process::exit(42);
+        }
+        "archive" => {
+            let mut input = io::stdin().lock();
+            let mut block = [0; 1024];
+            for chunk in 0..=255 {
+                input.read_exact(&mut block).unwrap();
+                assert!(block.iter().all(|byte| *byte == chunk));
+            }
+            assert_eq!(input.read(&mut block).unwrap(), 0);
         }
         "private" => {
             let mut input = Vec::new();
@@ -229,6 +251,19 @@ async fn a_path_with_shell_characters_reaches_the_child_as_one_argument() {
 }
 
 #[valtron_test(timeout = 30000)]
+async fn repeated_input_preserves_the_child_exit_status() {
+    let process = NativeProcess::new(ProcessConfig::default());
+    let result = process
+        .run(
+            fixture("repeat").repeated_input(b"y\n".to_vec()),
+            Arc::new(Memory::default()),
+            Cancellation::new(),
+        )
+        .await;
+    assert!(matches!(result, Err(TaskError::Exit { code: 42, .. })));
+}
+
+#[valtron_test(timeout = 30000)]
 async fn private_input_reaches_only_the_child_pipe() {
     let process = NativeProcess::new(ProcessConfig::default());
     let output = Arc::new(Memory::default());
@@ -373,4 +408,41 @@ fn observe_test_exit(id: u32) -> io::Result<()> {
     } else {
         Err(io::Error::last_os_error())
     }
+}
+
+#[valtron_test(timeout = 30000)]
+async fn detached_service_receives_work_after_ownership_transfer() {
+    let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let address = listener.local_addr().unwrap();
+    let process = NativeProcess::new(ProcessConfig::default());
+    let command = fixture("service-echo").env("FOUNDATION_TASKS_ADDRESS", address.to_string());
+    let mut service = process.service(command, Cancellation::new()).await.unwrap();
+    let (mut socket, _) = listener.accept().unwrap();
+    socket
+        .set_read_timeout(Some(std::time::Duration::from_secs(3)))
+        .unwrap();
+    assert!(service.status().unwrap().is_none());
+    service.detach().unwrap();
+    socket.write_all(b"x").unwrap();
+    let mut reply = [0];
+    socket.read_exact(&mut reply).unwrap();
+    assert_eq!(reply, *b"x");
+}
+
+#[valtron_test(timeout = 30000)]
+async fn file_input_reopens_a_binary_file_for_each_child() {
+    let root = tempfile::tempdir().unwrap();
+    let name = "fixture with spaces";
+    let mut file = std::fs::File::create(root.path().join(name)).unwrap();
+    for byte in 0..=255 {
+        file.write_all(&[byte; 1024]).unwrap();
+    }
+    drop(file);
+    let command = fixture("archive").current_dir(root.path()).file_input(name);
+    let process = NativeProcess::new(ProcessConfig::default());
+    for _ in 0..2 {
+        process.run(command.clone(), Arc::new(Memory::default()), Cancellation::new()).await.unwrap();
+    }
+    std::fs::remove_file(root.path().join(name)).unwrap();
+    assert!(process.run(command, Arc::new(Memory::default()), Cancellation::new()).await.is_err());
 }

@@ -29,13 +29,17 @@ pub(super) fn local(record: &Path, package: &Path, project: &Path) -> TaskResult
     fs::write(package.join("Package.swift"), record.swift_manifest).map_err(TaskError::operation)
 }
 
-pub(super) fn point_project(
+/// Set the package reference in an Xcode project.
+///
+/// # Errors
+/// Returns file errors or a missing or ambiguous package reference.
+pub fn point_project(
     project: &Path,
     repository: &str,
     version: &str,
     package: Option<&Path>,
 ) -> TaskResult {
-    let url = format!("https://github.com/{}.git", repository);
+    let url = format!("https://github.com/{repository}.git");
     let matcher = Regex::new(&format!(
         r#"repositoryURL = "{}";\s*requirement = \{{[^}}]*version = {};[^}}]*\}};"#,
         regex::escape(&url),
@@ -124,7 +128,13 @@ pub(super) async fn commit(
         .into())
 }
 
-pub(super) async fn release(
+/// Return the reproducible release revision and the Swift package manifest.
+///
+/// The source checkout stays clean. A changed checksum creates a commit in a temporary clone.
+///
+/// # Errors
+/// Returns an error if the manifest has no unique archive URL or Git cannot reproduce the revision.
+pub async fn release(
     ctx: &TaskContext,
     root: &Path,
     source: &str,

@@ -95,10 +95,20 @@ impl StoreState {
 }
 
 impl TodoStore {
-    /// Builds a store with its existing task identifiers.
+    /// Build a store with its existing task identifiers.
+    ///
+    /// # Errors
+    /// Return an error when records have duplicate identifiers.
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    pub(crate) fn with_items(items: Vec<Todo>) -> Self {
-        Self(Mutex::new(StoreState {
+    pub fn with_items(items: Vec<Todo>) -> Result<Self, std::io::Error> {
+        let mut ids = std::collections::HashSet::with_capacity(items.len());
+        if items.iter().any(|item| !ids.insert(item.id)) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Invalid restored todo identifiers",
+            ));
+        }
+        Ok(Self(Mutex::new(StoreState {
             creations: items
                 .iter()
                 .cloned()
@@ -115,7 +125,7 @@ impl TodoStore {
                 .collect(),
             items,
             ..Default::default()
-        }))
+        })))
     }
 
     /// Capture the view and its published cursor while mutations hold the same lock.
@@ -167,16 +177,7 @@ pub fn install_view_services(
     Ok(())
 }
 
-/// Defines the optional application theme for the three renderers.
-#[must_use]
-pub fn todo_theme() -> foundation_theme::GeneratedTheme {
-    foundation_theme::Theme::new()
-        .color("primary", "#155f59", Some("#9ae4d8"))
-        .spacing("md", "8px")
-        .spacing("lg", "12px")
-        .spacing("sm", "4px")
-        .build()
-}
+pub use crate::theme::todo_theme;
 
 fn row(item: &Todo) -> Html {
     let id = item.id.to_string();

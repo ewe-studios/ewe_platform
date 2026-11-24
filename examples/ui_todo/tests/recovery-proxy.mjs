@@ -5,8 +5,8 @@ import {once} from "node:events";
 import {spawn} from "node:child_process";
 import {createInterface} from "node:readline";
 
-const backend = spawn(process.env.EWE_TODO_BIN ?? "target/uat/ui_todo", ["127.0.0.1:0"], {
-  env: {...process.env, EWE_TODO_HISTORY:process.env.EWE_TODO_HISTORY ?? "1"}, stdio:["ignore","pipe","inherit"],
+const backend = spawn(process.env.EWE_TODO_REPLAY_BIN ?? "target/uat/examples/todo_replay_fixture", [process.argv[3] ?? "1"], {
+  stdio:["ignore","pipe","inherit"],
 });
 const [line] = await once(createInterface({input:backend.stdout}),"line");
 const upstream = new URL(line.match(/http:\/\/\S+/)[0]);

@@ -5,7 +5,7 @@ name: "Audit: Checks & Tests"
 # them), then every selected package gets its own job: rustfmt, build, clippy,
 # tests.
 # Per-package settings live in ci/packages.toml; the driver is
-# scripts/ci/ci.py, which you can run locally (`make ci-package PACKAGE=...`).
+# the foundation-ci runner, which you can run locally (`make ci-package PACKAGE=...`).
 #
 # Every package job runs inside the ewe_platform CI image
 # (ci/ewe-platform-image): the pinned toolchain, system libraries (GTK/WebKit,
@@ -24,11 +24,11 @@ name: "Audit: Checks & Tests"
 # push to master tests what the merge affected (against the commit before the
 # push). The nightly schedule and a manual "all" run test every package on
 # Linux, macOS and Windows. The macOS and Windows jobs are shards of several
-# packages each (`ci.py run-many`).
+# packages each (`foundation-ci run-many`).
 #
-# On a pull request every package job also passes `--if-affected` to ci.py. The
+# On a pull request every package job also passes `--if-affected` to foundation-ci. The
 # runner then decides from the change and the dependency graph whether the
-# package must run, with the same rule as the plan job (`ci.py affected`).
+# package must run, with the same rule as the plan job (`foundation-ci affected`).
 #
 # Each matrix sets `max-parallel` from ci/packages.toml ([defaults]
 # `max-parallel-*`), so jobs queue within the free GitHub plan and
@@ -74,7 +74,7 @@ env:
   # `dev` on Cranelift, which CI does not install and which can't do
   # catch_unwind.)
   CI_PROFILE: uat
-  # The pull request base commit. `ci.py run --if-affected` diffs against it, so
+  # The pull request base commit. `foundation-ci run --if-affected` diffs against it, so
   # a package job skips itself when the change does not affect the package. It
   # is empty on master, nightly and manual runs, which test everything.
   CI_BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -115,15 +115,6 @@ jobs:
           fetch-depth: 0 # change detection diffs against the PR base
           submodules: false
 
-      - name: Check the user interface toolchain configuration
-        shell: bash
-        run: |
-          bash scripts/toolchain/lock_test.sh
-          bash scripts/toolchain/drift_test.sh mobile/android
-          bash scripts/toolchain/check_test.sh
-          bash scripts/toolchain/android_test.sh
-          bash scripts/toolchain/proof_test.sh
-
       - name: Install the pinned toolchain
         # Skip the install when rustup already has the channel. The runner keeps
         # a Rust toolchain. An install contacts static.rust-lang.org; a runner
@@ -135,16 +126,25 @@ jobs:
           fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
+      - name: Check the user interface toolchain configuration
+        shell: bash
+        run: |
+          bash scripts/toolchain/lock_test.sh
+          bash scripts/toolchain/drift_test.sh mobile/android
+          bash scripts/toolchain/check_test.sh
+          bash scripts/toolchain/android_test.sh
+          bash scripts/toolchain/proof_test.sh
+
       - name: Select packages
         id: plan
         env:
           # A pull request diffs against its base. A push to master diffs against
-          # the commit before the push; ci.py tests everything when that commit
+          # the commit before the push; the runner tests everything when that commit
           # is missing or all zeros. The schedule and a manual run leave it empty.
           CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || '' }}
           CI_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
           CI_PACKAGES: ${{ github.event.inputs.packages }}
-        run: python3 scripts/ci/ci.py plan
+        run: cargo run --locked --profile uat -p foundation_ci -- plan
 
       # Every nested lockfile is checked, not only the examples. A nested
       # workspace sits outside the root workspace, so no package job builds it.
@@ -154,17 +154,7 @@ jobs:
       # metadata, not `--no-deps`. The root `Cargo.lock` is covered by the
       # package jobs and is skipped here.
       - name: Check the nested lockfiles
-        run: |
-          locks=$(git ls-files '*Cargo.lock')
-          for lock in $locks; do
-            if [ "$lock" = "Cargo.lock" ]; then
-              continue
-            fi
-            dir=$(dirname "$lock")
-            echo "checking $dir"
-            # A failing `cargo metadata` stops the step (set -e).
-            cargo metadata --locked --format-version 1 --manifest-path "$dir/Cargo.toml" > /dev/null
-          done
+        run: cargo run --locked --profile uat -p foundation_ci -- check-lockfiles
 
   package:
     name: ${{ matrix.package }}
@@ -220,7 +210,7 @@ jobs:
           submodules: false
 
       - name: Fetch the pull request base
-        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # `foundation-ci run --if-affected` diffs against the base commit. The checkout is
         # a depth-1 merge commit, so fetch the base commit (one commit, no history).
         if: github.event_name == 'pull_request'
         shell: bash
@@ -236,15 +226,15 @@ jobs:
 
       - name: Check the tools installed from the root lock in the image
         run: |
-          scripts/toolchain/check.sh
-          scripts/toolchain/wire_test.sh
+          cargo run --locked --profile uat -p foundation_ci -- toolchain-check
+          cargo run --locked --profile uat -p foundation_ci -- toolchain-wire
 
       - name: Check Android core and generated native bindings
         if: matrix.package == 'foundation_ui_native'
         run: |
           rustup target add aarch64-linux-android
           cargo check --locked --profile uat -p foundation_ui_native --lib --target aarch64-linux-android
-          scripts/ui_native/generate-bindings.sh --check
+          cargo run --locked --profile uat -p foundation_ui_native --features tasks --bin native-task -- task run native:bindings:generate --check
 
       - name: Test the browser frame and action runtimes
         if: matrix.package == 'foundation_wasm_ui' || matrix.package == 'foundation_ui_components'
@@ -256,7 +246,7 @@ jobs:
         shell: bash
         run: |
           pnpm --filter foundation-ui-wire-bindings install --frozen-lockfile
-          scripts/ui_wire/check.sh
+          cargo run --locked --profile uat -p foundation_ci -- wire-check
           cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime --check
           node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs
 
@@ -286,13 +276,13 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: rustfmt
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: build
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: clippy
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: io_uring probe
         # Record whether the kernel and the container's seccomp profile allow
@@ -353,10 +343,10 @@ jobs:
         env:
           # The CDP wire trace only on a manual run (spec 88 T8).
           PRIMAL_CDP_TRACE: ${{ matrix.package == 'wasm-tests' && github.event_name == 'workflow_dispatch' && '1' || '' }}
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
-        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: io_uring probe result
         # Print the probe result again at the end of the job. The test step
@@ -390,7 +380,7 @@ jobs:
           submodules: false
 
       - name: Fetch the pull request base
-        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # `foundation-ci run --if-affected` diffs against the base commit. The checkout is
         # a depth-1 merge commit, so fetch the base commit (one commit, no history).
         if: github.event_name == 'pull_request'
         shell: bash
@@ -426,12 +416,12 @@ jobs:
             "$IMAGE" sleep infinity
 
       - name: Link the baked submodules
-        run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
+        run: docker exec ci cargo run --locked --profile uat -p foundation_ci -- link-submodules --workspace "$GITHUB_WORKSPACE"
 
       - name: Check the tools installed from the root lock in the image
         run: |
-          docker exec ci scripts/toolchain/check.sh
-          docker exec ci scripts/toolchain/wire_test.sh
+          docker exec ci cargo run --locked --profile uat -p foundation_ci -- toolchain-check
+          docker exec ci cargo run --locked --profile uat -p foundation_ci -- toolchain-wire
 
       - name: Test the browser frame and action runtimes
         if: matrix.package == 'foundation_wasm_ui' || matrix.package == 'foundation_ui_components'
@@ -443,18 +433,18 @@ jobs:
         shell: bash
         run: |
           docker exec ci pnpm --filter foundation-ui-wire-bindings install --frozen-lockfile
-          docker exec ci scripts/ui_wire/check.sh
+          docker exec ci cargo run --locked --profile uat -p foundation_ci -- wire-check
           docker exec ci cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime --check
           docker exec ci node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs
 
       - name: rustfmt
-        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step fmt ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: build
-        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step build ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: clippy
-        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step clippy ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: io_uring probe
         if: matrix.package == 'foundation_iogate'
@@ -467,10 +457,10 @@ jobs:
         run: docker exec --env EWE_REQUIRE_PTRACE=1 ci cargo test --profile "$CI_PROFILE" -p foundation_nativeapis --features vfs-native,vfs-ptrace --test ptrace_probe -- --nocapture
 
       - name: test
-        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
       - name: wasm
-        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+        run: docker exec --env CI_BASE_SHA --env GIT_CONFIG_COUNT=1 --env GIT_CONFIG_KEY_0=safe.directory --env GIT_CONFIG_VALUE_0='*' ci cargo run --locked --profile uat -p foundation_ci -- run ${{ matrix.package }} --step wasm ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
 
   windows:
     name: Windows check
@@ -533,7 +523,7 @@ jobs:
     needs: plan
     # Runs the tests of every selected package that is not opted out of macOS
     # (ci/packages.toml). One job is a shard: it tests several packages in a row
-    # with one target directory (`ci.py run-many`), so shared dependencies build
+    # with one target directory (`foundation-ci run-many`), so shared dependencies build
     # once. The plan job sets the shard count (`macos-shards`).
     # No container and no CI image: the job runs on the macOS runner itself.
     # Full runs only (see `on:`); a normal pull request skips it.
@@ -559,7 +549,7 @@ jobs:
           submodules: false
 
       - name: Fetch the pull request base
-        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # `foundation-ci run --if-affected` diffs against the base commit. The checkout is
         # a depth-1 merge commit, so fetch the base commit (one commit, no history).
         if: github.event_name == 'pull_request'
         shell: bash
@@ -644,7 +634,7 @@ jobs:
 
       - name: test
         # On a macOS host, ci.py runs only the test step, with the macOS runs.
-        run: python3 scripts/ci/ci.py run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
   windows-test:
     name: Windows ${{ matrix.shard }}
@@ -681,7 +671,7 @@ jobs:
           submodules: false
 
       - name: Fetch the pull request base
-        # `ci.py run --if-affected` diffs against the base commit. The checkout is
+        # `foundation-ci run --if-affected` diffs against the base commit. The checkout is
         # a depth-1 merge commit, so fetch the base commit (one commit, no history).
         if: github.event_name == 'pull_request'
         shell: bash
@@ -768,7 +758,7 @@ jobs:
 
       - name: test
         # On a Windows host, ci.py runs only the test step, with the Windows runs.
-        run: python scripts/ci/ci.py run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
+        run: cargo run --locked --profile uat -p foundation_ci -- run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
@@ -870,7 +860,7 @@ jobs:
         # publishes them, so that command fails between releases. This step
         # packages against a local patch table instead; the per-package build,
         # clippy and test jobs build the same sources.
-        run: python3 scripts/ci/package_workspace.py
+        run: cargo run --locked --profile uat -p foundation_ci -- package-workspace
 
   macos:
     name: macOS build
@@ -914,7 +904,7 @@ jobs:
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
           mise install --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
-          mise exec -- scripts/toolchain/check.sh --without-android-packages
+          mise exec -- cargo run --locked --profile uat -p foundation_ci -- toolchain-check --without-android-packages
 
       - name: Build the Android toolchain example
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'

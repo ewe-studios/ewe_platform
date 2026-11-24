@@ -17,7 +17,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.15", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_macros = { workspace = true }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
@@ -27,7 +27,7 @@ foundation_macros = { workspace = true }
 foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.9", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
-foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.7", features = ["docker"] }
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
 
 # Async utilities
 futures-lite = "2"
@@ -48,12 +48,12 @@ chrono.workspace = true
 # VM infrastructure deps (moved from foundation_testbed, spec-53 Feature 11)
 ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }
 indicatif = { version = "0.17", optional = true }
-tar = { version = "0.4", optional = true }
-flate2 = { version = "1", optional = true }
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
 xz2 = { version = "0.1", optional = true }
 dirs = { version = "6", optional = true }
 anyhow = { version = "1", optional = true }
-image = { version = "0.25", optional = true }
+image = { workspace = true, features = ["default-formats", "rayon"], optional = true }
 libc = { version = "0.2", optional = true }
 toml = { version = "0.8", optional = true }
 fs2 = { version = "0.4", optional = true }

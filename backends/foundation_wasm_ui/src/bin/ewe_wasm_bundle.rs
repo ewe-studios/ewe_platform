@@ -11,6 +11,7 @@ fn main() -> std::process::ExitCode {
     if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("task")) {
         return foundation_tasks::run_entry("ewe-wasm-bundle", |mut runner| {
             Box::pin(async move {
+                foundation_wasm_ui::tasks::install_host(&runner);
                 runner.register(foundation_wasm_ui::tasks::set()?)?;
                 runner.run().await
             })

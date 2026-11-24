@@ -1,5 +1,5 @@
 //! Select changed packages and their transitive dependents.
-use crate::{CiEnvironment, Workspace, workspace::capture};
+use crate::{workspace::capture, CiEnvironment, Workspace};
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -69,9 +69,26 @@ fn global(path: &str) -> bool {
             | "mise.lock"
             | ".gitmodules"
             | ".github/workflows/platform-images.yaml"
-    ) || [".cargo/", "ci/", "scripts/ci/", "tools/"]
-        .iter()
-        .any(|prefix| path.starts_with(prefix))
+            | "backends/foundation_ci/Cargo.toml"
+            | "backends/foundation_ci/src/lib.rs"
+            | "backends/foundation_ci/src/main.rs"
+            | "backends/foundation_ci/src/affected.rs"
+            | "backends/foundation_ci/src/config.rs"
+            | "backends/foundation_ci/src/execution.rs"
+            | "backends/foundation_ci/src/images.rs"
+            | "backends/foundation_ci/src/plan.rs"
+            | "backends/foundation_ci/src/staging.rs"
+            | "backends/foundation_ci/src/workspace.rs"
+    ) || [
+        ".cargo/",
+        "ci/",
+        "scripts/ci/",
+        "tools/",
+        "backends/foundation_ci/src/execution/",
+        "backends/foundation_ci/src/images/",
+    ]
+    .iter()
+    .any(|prefix| path.starts_with(prefix))
 }
 impl Workspace {
     async fn git(&self, ctx: &TaskContext, args: &[&str]) -> Result<String, TaskError> {
@@ -229,6 +246,26 @@ impl Workspace {
         }
     }
 
+    fn select_manifest_contracts(&self, path: &str, reasons: &mut Reasons) {
+        if [
+            "backends/foundation_installer/tests/fixtures/manifest/",
+            "backends/foundation_registrar/tests/fixtures/manifest/",
+        ]
+        .iter()
+        .any(|prefix| path.starts_with(prefix))
+        {
+            for pkg in self
+                .packages
+                .values()
+                .filter(|pkg| pkg.recipe == Some(crate::GroupRecipe::ManifestContract))
+            {
+                reasons
+                    .entry(pkg.name.clone())
+                    .or_insert_with(|| format!("{path} changed"));
+            }
+        }
+    }
+
     /// Select packages and record the first reason for each selection.
     ///
     /// # Errors
@@ -306,7 +343,8 @@ impl Workspace {
                 continue;
             }
             if self.packages.contains_key("foundation_ui_wire")
-                && (path.starts_with("scripts/ui_wire/")
+                && ((path == "backends/foundation_ci/src/wire.rs"
+                    || path.starts_with("backends/foundation_ci/src/wire/"))
                     || matches!(
                         path.as_str(),
                         "backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js"
@@ -319,6 +357,8 @@ impl Workspace {
                     .or_insert_with(|| format!("{path} affects the wire bindings"));
             } else if global(&path) {
                 return Ok((base, self.everything(&format!("{path} changed"))));
+            } else {
+                self.select_manifest_contracts(&path, &mut reasons);
             }
             if let Some(owner) = self.owner(&path) {
                 direct

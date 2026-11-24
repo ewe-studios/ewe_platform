@@ -1,8 +1,27 @@
 //! Repository tasks owned by the browser user interface.
+pub mod application;
+mod npm;
+mod npm_release;
 use clap::Args;
 use foundation_tasks::{TaskContext, TaskError, TaskResult, TaskSet};
 use std::path::PathBuf;
 use std::prelude::rust_2021::*;
+
+type Lookup = dyn Fn(&str) -> Option<std::ffi::OsString> + Send + Sync;
+
+/// Read a host variable only when a task requests it.
+pub struct BrowserTaskEnv(pub std::sync::Arc<Lookup>);
+
+/// Supply the process environment to the browser task host.
+pub fn install_host(runner: &foundation_tasks::TaskRunner) {
+    if runner.context().get::<BrowserTaskEnv>().is_none() {
+        runner
+            .context()
+            .store(BrowserTaskEnv(std::sync::Arc::new(|key| {
+                std::env::var_os(key)
+            })));
+    }
+}
 
 #[derive(Args)]
 pub(crate) struct RuntimeArgs {
@@ -45,5 +64,7 @@ pub fn set() -> Result<TaskSet, TaskError> {
         runtime,
     )?;
     set.expose("runtime", &["wasm-bundle", "runtime"])?;
+    npm::register(&mut set)?;
+    npm_release::register(&mut set)?;
     Ok(set)
 }

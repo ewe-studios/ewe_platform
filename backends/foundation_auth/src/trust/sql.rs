@@ -61,6 +61,7 @@ impl<Q: QueryStore + ?Sized + 'static> SqlTrustStore<Q> {
 
     fn schema(&self) -> String {
         let clients = self.table("trusted_clients");
+        let client_ids = self.table("trusted_client_ids");
         let uses = self.table("bootstrap_secret_uses");
         let revoked = self.table("revoked_secrets");
         format!(
@@ -72,6 +73,10 @@ impl<Q: QueryStore + ?Sized + 'static> SqlTrustStore<Q> {
                 expires_at INTEGER NOT NULL,
                 last_seen_at INTEGER,
                 revoked_at INTEGER
+            );
+            CREATE TABLE IF NOT EXISTS {client_ids} (
+                client_id TEXT PRIMARY KEY,
+                fingerprint TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS {uses} (
                 secret_id TEXT PRIMARY KEY,
@@ -98,7 +103,19 @@ impl<Q: QueryStore + ?Sized + 'static> SqlTrustStore<Q> {
             expires_at: uint(row, 3)?,
             last_seen_at: opt_uint(row, 4)?,
             revoked_at: opt_uint(row, 5)?,
+            client_id: row.get(6).map_err(Self::storage_error)?,
         })
+    }
+
+    /// The client columns with an optional `client_id` from the ID index.
+    fn client_select(&self) -> String {
+        format!(
+            "SELECT c.fingerprint, c.client_name, c.enrolled_at, c.expires_at, \
+             c.last_seen_at, c.revoked_at, i.client_id \
+             FROM {clients} c LEFT JOIN {ids} i ON i.fingerprint = c.fingerprint",
+            clients = self.table("trusted_clients"),
+            ids = self.table("trusted_client_ids"),
+        )
     }
 
     async fn uses(&self, secret_id: &str) -> Result<u32, TrustError> {
@@ -162,9 +179,8 @@ impl<Q: QueryStore + ?Sized + 'static> TrustStore for SqlTrustStore<Q> {
     fn clients(&self) -> TrustFuture<'_, TrustedClientStream> {
         Box::pin(async move {
             let sql = format!(
-                "SELECT fingerprint, client_name, enrolled_at, expires_at, last_seen_at, revoked_at \
-                 FROM {} ORDER BY enrolled_at, fingerprint",
-                self.table("trusted_clients")
+                "{} ORDER BY c.enrolled_at, c.fingerprint",
+                self.client_select()
             );
             let rows = self
                 .storage
@@ -181,14 +197,28 @@ impl<Q: QueryStore + ?Sized + 'static> TrustStore for SqlTrustStore<Q> {
 
     fn client<'a>(&'a self, fingerprint: &'a str) -> TrustFuture<'a, Option<TrustedClient>> {
         Box::pin(async move {
-            let sql = format!(
-                "SELECT fingerprint, client_name, enrolled_at, expires_at, last_seen_at, revoked_at \
-                 FROM {} WHERE fingerprint = ?",
-                self.table("trusted_clients")
-            );
+            let sql = format!("{} WHERE c.fingerprint = ?", self.client_select());
             let mut rows = self
                 .storage
                 .query(&sql, &[DataValue::Text(fingerprint.to_string())])
+                .await
+                .map_err(Self::storage_error)?;
+            match rows.next().await {
+                Some(row) => {
+                    let row = row.map_err(Self::storage_error)?;
+                    Ok(Some(Self::row_client(&row)?))
+                }
+                None => Ok(None),
+            }
+        })
+    }
+
+    fn client_by_id<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<TrustedClient>> {
+        Box::pin(async move {
+            let sql = format!("{} WHERE i.client_id = ?", self.client_select());
+            let mut rows = self
+                .storage
+                .query(&sql, &[DataValue::Text(client_id.to_string())])
                 .await
                 .map_err(Self::storage_error)?;
             match rows.next().await {
@@ -227,15 +257,49 @@ impl<Q: QueryStore + ?Sized + 'static> TrustStore for SqlTrustStore<Q> {
                 )
                 .await;
             match result {
-                Ok(_) => Ok(()),
+                Ok(_) => {}
                 Err(e) => {
                     if self.client(&client.fingerprint_sha256).await?.is_some() {
-                        Err(TrustError::Duplicate(client.fingerprint_sha256.clone()))
-                    } else {
-                        Err(Self::storage_error(e))
+                        return Err(TrustError::Duplicate(client.fingerprint_sha256.clone()));
                     }
+                    return Err(Self::storage_error(e));
                 }
             }
+            if let Some(client_id) = &client.client_id {
+                let sql = format!(
+                    "INSERT INTO {} (client_id, fingerprint) VALUES (?, ?)",
+                    self.table("trusted_client_ids")
+                );
+                if let Err(error) = self
+                    .storage
+                    .execute(
+                        &sql,
+                        &[
+                            DataValue::Text(client_id.clone()),
+                            DataValue::Text(client.fingerprint_sha256.clone()),
+                        ],
+                    )
+                    .await
+                {
+                    // Do not leave a client that the ID table does not name.
+                    let cleanup = format!(
+                        "DELETE FROM {} WHERE fingerprint = ?",
+                        self.table("trusted_clients")
+                    );
+                    self.storage
+                        .execute(
+                            &cleanup,
+                            &[DataValue::Text(client.fingerprint_sha256.clone())],
+                        )
+                        .await
+                        .map_err(Self::storage_error)?;
+                    if self.client_by_id(client_id).await?.is_some() {
+                        return Err(TrustError::Duplicate(client_id.clone()));
+                    }
+                    return Err(Self::storage_error(error));
+                }
+            }
+            Ok(())
         })
     }
 

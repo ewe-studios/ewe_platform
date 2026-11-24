@@ -4,16 +4,18 @@ use foundation_context::Ctx;
 use foundation_http::ShutdownSignal;
 use foundation_ui_wire::writer::WriterConfig;
 use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
-use std::{net::TcpListener, path::Path, sync::Arc};
+use std::{net::TcpListener, sync::Arc};
 
 pub fn with_browser_server(
     check: impl FnOnce(&BrowserDriver<'_>, &str, &LiveChannel) + std::panic::UnwindSafe,
 ) {
-    let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
-    assert!(
-        module.exists(),
-        "Build examples/ui_todo/build-module.sh first"
-    );
+    with_browser_flags(&[], check);
+}
+
+pub fn with_browser_flags(
+    flags: &[&'static str],
+    check: impl FnOnce(&BrowserDriver<'_>, &str, &LiveChannel) + std::panic::UnwindSafe,
+) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let url = format!("http://{}/", listener.local_addr().unwrap());
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -21,18 +23,14 @@ pub fn with_browser_server(
     let channel = LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default());
     let served = channel.clone();
     let worker = std::thread::spawn(move || {
-        let app = ui_todo::server::app_with_public_directory(
-            &module,
-            served,
-            Path::new(env!("EWE_STAGED_RESOURCES")),
-        )?;
+        let app = ui_todo::server::app_with_store(ui_todo::TodoStore::default(), served)?;
         app.server(&listener.local_addr()?.to_string())
             .serve_with_listener(&listener, &stop);
         Ok::<_, Box<dyn std::error::Error + Send + Sync>>(())
     });
     let outcome = std::panic::catch_unwind(|| {
         // Both test tabs must deliver stream events while Chrome displays the other tab.
-        let config = LaunchConfig {
+        let mut config = LaunchConfig {
             extra_args: vec![
                 "--disable-background-timer-throttling".into(),
                 "--disable-popup-blocking".into(),
@@ -41,6 +39,9 @@ pub fn with_browser_server(
             ],
             ..LaunchConfig::default().ctx(Ctx::host())
         };
+        config
+            .extra_args
+            .extend(flags.iter().copied().map(std::borrow::Cow::Borrowed));
         let driver = BrowserDriver::launch(config).unwrap();
         check(&driver, &url, &channel);
     });

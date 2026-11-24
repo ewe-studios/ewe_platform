@@ -26,7 +26,33 @@ pub trait TaskOutput: Send + Sync {
     fn flush(&self) -> BoxFuture<'_, io::Result<()>>;
 }
 
+/// A service stays owned by the task until startup succeeds.
+pub trait StartedService: Send {
+    /// Return a status if the process has stopped.
+    ///
+    /// # Errors
+    /// Returns an error if the process handle is invalid or the status query fails.
+    fn status(&mut self) -> io::Result<Option<ExitStatus>>;
+    /// Leave the verified service running after the task exits.
+    ///
+    /// # Errors
+    /// Returns an error if the host cannot release the process or start its reaper.
+    fn detach(self: Box<Self>) -> io::Result<()>;
+}
+
 pub trait TaskProcess: Send + Sync {
+    /// Start a long-lived local service with a cancellation guard.
+    fn service(
+        &self,
+        _command: ProcessCommand,
+        _cancellation: Cancellation,
+    ) -> BoxFuture<'_, Result<Box<dyn StartedService>, TaskError>> {
+        Box::pin(async {
+            Err(TaskError::operation(
+                "This host cannot start background services",
+            ))
+        })
+    }
     fn run(
         &self,
         command: ProcessCommand,
@@ -73,13 +99,45 @@ impl Cancellation {
 }
 
 #[derive(Clone)]
+enum ProcessInput {
+    Once(Vec<u8>),
+    Repeat(Vec<u8>),
+}
+
+impl ProcessInput {
+    fn write(self, mut pipe: impl Write) -> io::Result<()> {
+        let pattern = match self {
+            Self::Once(bytes) => return pipe.write_all(&bytes),
+            Self::Repeat(pattern) => pattern,
+        };
+        if pattern.is_empty() {
+            return Ok(());
+        }
+        let mut buffered = io::BufWriter::new(pipe);
+        loop {
+            match buffered.write_all(&pattern) {
+                Ok(()) => {}
+                Err(error) if error.kind() == io::ErrorKind::BrokenPipe => return Ok(()),
+                Err(error) => return Err(error),
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
+enum CommandInput {
+    Pipe(ProcessInput),
+    File(PathBuf),
+}
+
+#[derive(Clone)]
 pub struct ProcessCommand {
     pub program: OsString,
     pub args: Vec<OsString>,
     pub cwd: Option<PathBuf>,
     pub env: Vec<(OsString, Option<OsString>)>,
     clear_env: bool,
-    input: Option<Vec<u8>>,
+    input: Option<CommandInput>,
 }
 
 impl ProcessCommand {
@@ -138,11 +196,25 @@ impl ProcessCommand {
     /// Send a small private input without adding it to the argument list.
     #[must_use]
     pub fn private_input(mut self, bytes: Vec<u8>) -> Self {
-        self.input = Some(bytes);
+        self.input = Some(CommandInput::Pipe(ProcessInput::Once(bytes)));
         self
     }
 
-    fn into_native(self) -> (Command, Option<Vec<u8>>) {
+    /// Repeat the input until the child closes its pipe. An empty pattern closes the pipe immediately.
+    #[must_use]
+    pub fn repeated_input(mut self, pattern: Vec<u8>) -> Self {
+        self.input = Some(CommandInput::Pipe(ProcessInput::Repeat(pattern)));
+        self
+    }
+
+    /// Use a file as standard input. Relative paths use the child working directory.
+    #[must_use]
+    pub fn file_input(mut self, path: impl Into<PathBuf>) -> Self {
+        self.input = Some(CommandInput::File(path.into()));
+        self
+    }
+
+    fn into_native(self) -> Result<(Command, Option<ProcessInput>), TaskError> {
         let ProcessCommand {
             program,
             args,
@@ -151,14 +223,19 @@ impl ProcessCommand {
             clear_env,
             input,
         } = self;
+        let (stdin, input) = match input {
+            Some(CommandInput::File(path)) => {
+                let path = cwd.as_deref().unwrap_or_else(|| std::path::Path::new(".")).join(path);
+                let file = std::fs::File::open(path).map_err(TaskError::operation)?;
+                (Stdio::from(file), None)
+            }
+            Some(CommandInput::Pipe(input)) => (Stdio::piped(), Some(input)),
+            None => (Stdio::null(), None),
+        };
         let mut process = Command::new(program);
         process
             .args(args)
-            .stdin(if input.is_some() {
-                Stdio::piped()
-            } else {
-                Stdio::null()
-            })
+            .stdin(stdin)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         if let Some(cwd) = cwd {
@@ -174,7 +251,7 @@ impl ProcessCommand {
                 process.env_remove(key);
             }
         }
-        (process, input)
+        Ok((process, input))
     }
 }
 
@@ -274,6 +351,46 @@ impl NativeProcess {
 }
 
 impl TaskProcess for NativeProcess {
+    fn service(
+        &self,
+        command: ProcessCommand,
+        cancellation: Cancellation,
+    ) -> BoxFuture<'_, Result<Box<dyn StartedService>, TaskError>> {
+        Box::pin(async move {
+            self.register_signal(&cancellation)?;
+            background(move || {
+                if cancellation.is_cancelled() {
+                    return Err(TaskError::Cancelled);
+                }
+                if command.input.is_some() {
+                    return Err(TaskError::operation(
+                        "Background services cannot consume private input",
+                    ));
+                }
+                let (mut command, _) = command.into_native()?;
+                command
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null());
+                tree::configure(&mut command);
+                let mut child = command.spawn().map_err(TaskError::operation)?;
+                let tree = match tree::Tree::attach(&child) {
+                    Ok(tree) => tree,
+                    Err(error) => {
+                        let cleanup = after_cleanup(child.kill(), child.wait().map(drop))
+                            .map_err(TaskError::operation);
+                        return Err(cleanup_error(TaskError::operation(error), cleanup));
+                    }
+                };
+                Ok(Box::new(NativeService {
+                    child: Some(child),
+                    tree: Some(tree),
+                }) as Box<dyn StartedService>)
+            })
+            .await
+            .map_err(TaskError::operation)?
+        })
+    }
     fn run(
         &self,
         command: ProcessCommand,
@@ -284,6 +401,56 @@ impl TaskProcess for NativeProcess {
             self.register_signal(&cancellation)?;
             run_child(command, output, cancellation, self.config).await
         })
+    }
+}
+
+struct NativeService {
+    child: Option<Child>,
+    tree: Option<tree::Tree>,
+}
+impl StartedService for NativeService {
+    fn status(&mut self) -> io::Result<Option<ExitStatus>> {
+        let status = self
+            .child
+            .as_mut()
+            .ok_or_else(|| io::Error::other("Service handle was released"))?
+            .try_wait()?;
+        if status.is_some() {
+            self.tree.take();
+        }
+        Ok(status)
+    }
+    fn detach(mut self: Box<Self>) -> io::Result<()> {
+        let (sender, receiver) = std::sync::mpsc::sync_channel::<Child>(0);
+        std::thread::Builder::new()
+            .name("task-service-reaper".into())
+            .spawn(move || {
+                if let Ok(mut child) = receiver.recv() {
+                    let _ = child.wait();
+                }
+            })?;
+        #[cfg(windows)]
+        if let Some(tree) = &self.tree {
+            tree.release()?;
+        }
+        if let Some(child) = self.child.take() {
+            if let Err(error) = sender.send(child) {
+                self.child = Some(error.0);
+                return Err(io::Error::other("Service reaper stopped"));
+            }
+        }
+        self.tree.take();
+        Ok(())
+    }
+}
+impl Drop for NativeService {
+    fn drop(&mut self) {
+        if let Some(tree) = self.tree.take() {
+            let _ = tree.terminate();
+        }
+        if let Some(mut child) = self.child.take() {
+            let _ = child.wait();
+        }
     }
 }
 
@@ -454,7 +621,7 @@ fn start_child(
     if cancellation.is_cancelled() {
         return Err(TaskError::Cancelled);
     }
-    let (mut process, input) = command.into_native();
+    let (mut process, input) = command.into_native()?;
     let program = process.get_program().to_owned();
     let fail = |source| TaskError::Process {
         program: program.clone(),
@@ -535,7 +702,7 @@ fn supervise(
     stdout: async_channel::Sender<io::Result<Vec<u8>>>,
     stderr: async_channel::Sender<io::Result<Vec<u8>>>,
     input_status: async_channel::Sender<io::Result<()>>,
-    input: Option<Vec<u8>>,
+    input: Option<ProcessInput>,
     config: ProcessConfig,
 ) -> io::Result<()> {
     std::thread::scope(|scope| {
@@ -548,12 +715,12 @@ fn supervise(
             std::thread::Builder::new()
                 .name("task-stderr".into())
                 .spawn_scoped(scope, move || pump(err, &stderr, config))?;
-            if let Some(bytes) = input {
-                let mut pipe = child.stdin.take().expect("private input pipe");
+            if let Some(input) = input {
+                let pipe = child.stdin.take().expect("private input pipe");
                 std::thread::Builder::new()
                     .name("task-stdin".into())
                     .spawn_scoped(scope, move || {
-                        let _ = input_status.try_send(pipe.write_all(&bytes));
+                        let _ = input_status.try_send(input.write(pipe));
                     })?;
             } else {
                 let _ = input_status.try_send(Ok(()));
@@ -723,6 +890,26 @@ mod tree {
     pub(super) struct Tree(OwnedHandle);
 
     impl Tree {
+        pub(super) fn release(&self) -> io::Result<()> {
+            let limits = JOBOBJECT_EXTENDED_LIMIT_INFORMATION::default();
+            let bytes = u32::try_from(size_of::<JOBOBJECT_EXTENDED_LIMIT_INFORMATION>())
+                .map_err(io::Error::other)?;
+            // Clear the close-time termination flag before releasing the application's job.
+            let ok = unsafe {
+                SetInformationJobObject(
+                    self.0.as_raw_handle(),
+                    JobObjectExtendedLimitInformation,
+                    std::ptr::from_ref(&limits).cast(),
+                    bytes,
+                )
+            };
+            if ok == 0 {
+                Err(io::Error::last_os_error())
+            } else {
+                Ok(())
+            }
+        }
+
         pub(super) fn attach(child: &Child) -> io::Result<Self> {
             let id = child.id();
             // The returned handles belong to this function.
