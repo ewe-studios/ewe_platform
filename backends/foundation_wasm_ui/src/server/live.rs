@@ -145,10 +145,11 @@ impl Inner {
         if resume_from > last {
             return Err(LiveError::ResumeAhead { last });
         }
-        if let Some(oldest) = self.history.front().map(|frame| frame.sequence) {
-            if resume_from < oldest - 1 {
-                return Err(LiveError::ResumeTooOld { oldest });
-            }
+        let floor = self.history.front().map_or(last, |frame| frame.sequence - 1);
+        if resume_from < floor {
+            return Err(LiveError::ResumeTooOld {
+                oldest: floor.saturating_add(1),
+            });
         }
         Ok(())
     }
@@ -161,11 +162,18 @@ pub struct LiveChannel(Arc<Mutex<Inner>>);
 impl LiveChannel {
     #[must_use]
     pub fn new(stream_id: u64, backlog: BacklogConfig, writer: WriterConfig) -> Self {
+        Self::resume(stream_id, 0, backlog, writer)
+    }
+
+    /// Open an empty replay history at the last durable sequence number.
+    /// Older clients must request the current snapshot before they subscribe.
+    #[must_use]
+    pub fn resume(stream_id: u64, last: u64, backlog: BacklogConfig, writer: WriterConfig) -> Self {
         Self(Arc::new(Mutex::new(Inner {
             clients: Vec::new(),
             managed: Vec::new(),
             history: VecDeque::new(),
-            sequence: StreamSequencer::new(stream_id),
+            sequence: StreamSequencer::resume(stream_id, last),
             backlog,
             writer,
         })))

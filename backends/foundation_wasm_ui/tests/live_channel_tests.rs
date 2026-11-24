@@ -82,6 +82,23 @@ fn writer_selects_each_surface_and_preserves_sequence_after_failure() {
 }
 
 #[test]
+fn restored_channel_requires_a_snapshot_for_missing_history() {
+    let channel = LiveChannel::resume(7, 5, BacklogConfig::default(), WriterConfig::default());
+    let client = Recorder::default();
+    let caps = ClientCaps::web_current();
+    assert_eq!(
+        channel.register(client.clone(), &caps, 4),
+        Err(LiveError::ResumeTooOld { oldest: 6 })
+    );
+    channel.register(client.clone(), &caps, 5).unwrap();
+    channel.sender().push_messages(update()).unwrap();
+    assert_eq!(client.sequences(), [6]);
+    let replay = Recorder::default();
+    channel.register(replay.clone(), &caps, 5).unwrap();
+    assert_eq!(replay.sequences(), [6]);
+}
+
+#[test]
 fn resume_covers_exactly_the_retained_frames() {
     let channel = LiveChannel::new(
         7,
