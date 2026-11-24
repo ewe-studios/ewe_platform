@@ -480,3 +480,7 @@ It writes one object per line and follows each response cursor. Browser login pa
 The Android and iPhone Todo Server examples displayed the same list from the local server.
 Adding “Review the mobile layouts” on iPhone updated the running Android list. Both applications displayed two open items.
 The optimized installed generator also created a three-target project outside the checkout. Its guide covered all 41 commands.
+
+Xcode builds the generated on-device Grove application with the local Apple release inputs.
+The application archive supplies the Rust library for each target. The application imports the module map from its own header directory.
+Issue #811 retains the simulator launch check. The owner uses the iPhone simulator for the Todo Server example.

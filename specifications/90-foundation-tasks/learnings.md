@@ -317,3 +317,6 @@ The storage interface returns a cursor when more objects are available. Preserve
 
 The Todo Server examples render the item rows and their controls. The generated server starter displays the open item count.
 Verify a shared update by adding an item on one device and reading its title on the other device.
+
+Xcode copies headers from each static library archive into one product include directory.
+Two archives with a top-level module.modulemap conflict. Supply the application headers through its configured Swift include path.

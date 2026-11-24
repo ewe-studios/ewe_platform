@@ -181,16 +181,12 @@ pub(super) async fn apple(
         }
         ctx.exec(cmd).await?;
         let profile = if release { "release" } else { "debug" };
-        assemble = assemble
-            .arg("-library")
-            .arg(
-                target
-                    .join(slice)
-                    .join(profile)
-                    .join(format!("lib{}.a", lib.library)),
-            )
-            .arg("-headers")
-            .arg(&headers);
+        assemble = assemble.arg("-library").arg(
+            target
+                .join(slice)
+                .join(profile)
+                .join(format!("lib{}.a", lib.library)),
+        );
     }
     ctx.exec(
         assemble

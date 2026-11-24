@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import plistlib
 from pathlib import Path
 import subprocess
 import tomllib
@@ -33,6 +34,13 @@ subprocess.run(
     check=True,
 )
 if args.target == "ios":
+    if "native" in app:
+        generated = root / app["ios"]["directory"] / "generated"
+        module = app["native"]["swift_ffi"]
+        assert (generated / module / "module.modulemap").is_file()
+        with (generated / f"{module}.xcframework" / "Info.plist").open("rb") as file:
+            slices = plistlib.load(file)["AvailableLibraries"]
+        assert slices and all("HeadersPath" not in part for part in slices)
     bundle = subprocess.check_output(
         ["xcrun", "simctl", "get_app_container", args.device, app["app_id"], "app"],
         env=env,
