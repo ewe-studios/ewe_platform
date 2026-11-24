@@ -1076,3 +1076,16 @@ Existing clients can use the search query through the ordinary text field in old
 
 The list appends pending additions after it selects confirmed search results.
 Both paths need the same case and whitespace rules. Filtering the view preserves the pending operation for retry.
+
+### Android search and simulator checks
+
+Both Android Todo hosts load their native action core from the application library.
+The library must support vocabulary version 13 before the server sends the search control.
+An older application library requests the ordinary text field for compatibility.
+
+The Pixel emulator received 17 seconds of processor time in 12 minutes under default service scheduling.
+The same emulator connected in 47 seconds when its macOS service selected interactive scheduling.
+
+Pending additions use separate rows. Each host needs a test that filters pending titles and restores them when search clears.
+The Android on-device build leaves new tasks pending without a server. [Issue 821](https://github.com/ewe-studios/ewe_platform/issues/821)
+Light mode uses white system status icons above a light background. [Issue 819](https://github.com/ewe-studios/ewe_platform/issues/819)
