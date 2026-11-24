@@ -2,6 +2,7 @@ package ewe.ui.compose
 
 import android.content.Context
 import android.view.SurfaceHolder
+import android.view.View
 import android.view.SurfaceView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -18,9 +19,33 @@ import kotlinx.coroutines.launch
 /** Attach a native window when Android creates it. Keep the graphics service across window recreation. */
 @Composable
 fun EweDrawingSurface(name: String, graphics: () -> NativeGraphics, report: (Throwable) -> Unit, modifier: Modifier = Modifier, changed: (NativeDrawingSurface?) -> Unit = {}) {
+    EweDrawingSurface(name, graphics, report, contentDescription = null, modifier = modifier, changed = changed)
+}
+
+/** Set the native surface label for Android accessibility services. */
+@Composable
+fun EweDrawingSurface(
+    name: String,
+    graphics: () -> NativeGraphics,
+    report: (Throwable) -> Unit,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    changed: (NativeDrawingSurface?) -> Unit = {},
+) {
     key(name) {
-        AndroidView(factory = { DrawingView(it, name, graphics, report, changed) }, modifier = modifier,
-            onRelease = { it.release() })
+        AndroidView(
+            factory = { DrawingView(it, name, graphics, report, changed) },
+            modifier = modifier,
+            onRelease = { it.release() },
+            update = { view ->
+                view.contentDescription = contentDescription
+                view.importantForAccessibility = if (contentDescription == null) {
+                    View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+                } else {
+                    View.IMPORTANT_FOR_ACCESSIBILITY_YES
+                }
+            },
+        )
     }
 }
 

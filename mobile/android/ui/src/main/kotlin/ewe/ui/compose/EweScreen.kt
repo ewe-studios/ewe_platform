@@ -123,8 +123,8 @@ private fun RenderNode(
         modifier
             .sizeProp(record.props[PropId.WIDTH], true)
             .sizeProp(record.props[PropId.HEIGHT], false)
-    record.props[PropId.A11Y_LABEL]?.let {
-        val label = it.label
+    val label = record.props[PropId.A11Y_LABEL]?.label
+    if (label != null && record.kind != NodeKind.DRAWING_SURFACE) {
         m = m.semantics { contentDescription = label }
     }
     val dark = isSystemInDarkTheme()
@@ -158,7 +158,7 @@ private fun RenderNode(
             when (record.kind) {
                 NodeKind.DRAWING_SURFACE -> EweDrawingSurface(record.props[PropId.ID]?.label ?: record.id.toString(),
                     { requireNotNull(style.graphics) { "This screen has no graphics provider" }.invoke() },
-                    { store.onError?.invoke("Graphics", it.message ?: it.toString()) }, m)
+                    { store.onError?.invoke("Graphics", it.message ?: it.toString()) }, contentDescription = label, modifier = m)
                 NodeKind.STACK, NodeKind.SEGMENTED_CONTROL, NodeKind.CHECKLIST_ROW -> {
                     val align = record.props[PropId.ALIGN]?.label
                     val nodes = record.children.mapNotNull(store::record)

@@ -1169,3 +1169,8 @@ The last position includes deleted records. The server uses that position when i
 The typed view data decoder checks the message topic before it reads the Todo payload.
 The server constructors can mount the packaged resources without accepting a browser module path.
 A prefix-only proxy exposes root-relative requests that a resource-only browser fixture misses.
+
+### Android drawing surface accessibility
+
+A Compose accessibility label on an Android view wrapper can disappear from the device accessibility tree.
+Set the description on the native drawing surface when its label changes.

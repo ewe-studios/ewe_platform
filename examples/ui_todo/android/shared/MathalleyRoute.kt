@@ -11,8 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -126,12 +124,17 @@ class MathalleyRoute(private val seed: () -> ULong) {
                     TextButton(onClick = ::close) { Text("Back to Todos") }
                     audioError?.let { Text("Sound unavailable. " + it) }
                     if (error != null) Text(error.orEmpty())
-                    else EweDrawingSurface("mathalley", graphics, { error = it.message }, Modifier.fillMaxSize().semantics { contentDescription = if (presented) "Mathalley game" else "Loading Mathalley" }.pointerInput(game) {
-                        detectTapGestures { p ->
-                            game.tap(p.x,p.y,size.width.toFloat(),size.height.toFloat())
-                            sound = true
-                        }
-                    }, changed = { surface = it })
+                    else EweDrawingSurface(
+                        "mathalley", graphics, { error = it.message },
+                        contentDescription = if (presented) "Mathalley game" else "Loading Mathalley",
+                        modifier = Modifier.fillMaxSize().pointerInput(game) {
+                            detectTapGestures { p ->
+                                game.tap(p.x, p.y, size.width.toFloat(), size.height.toFloat())
+                                sound = true
+                            }
+                        },
+                        changed = { surface = it },
+                    )
                 }
             }
         }

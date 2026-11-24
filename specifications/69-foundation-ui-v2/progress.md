@@ -1472,3 +1472,8 @@ The relocation check moved the server, its public directory, and its SQLite data
 Both launches served valid WebAssembly and returned the same saved record through the typed Todo service.
 The separate data fixture returned its seeded record, rejected an unknown identifier, and had no initial view route.
 The production executable rejected the removed `--data-only` flag. These checks cover issues 715 and 828.
+
+### Android drawing surface accessibility
+
+The Android drawing surface exposes its label to accessibility services.
+On Android 36, the installed Todo app reported “Mathalley game” on its native surface after the first frame.
