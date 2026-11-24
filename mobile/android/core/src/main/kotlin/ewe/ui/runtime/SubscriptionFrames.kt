@@ -9,7 +9,7 @@ import java.nio.ByteOrder
 object SubscriptionFrames {
     fun hello(tag: ULong): ByteArray {
         val b = FlatBufferBuilder()
-        val hello = ClientHello.createClientHello(b, 12u, Platform.Android, MountSurface.Native, 0u, true, tag)
+        val hello = ClientHello.createClientHello(b, 13u, Platform.Android, MountSurface.Native, 0u, true, tag)
         return request(b, 0u, FrameRequest.createFrameRequest(b, 0, hello, 0))
     }
 
