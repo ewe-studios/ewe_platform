@@ -534,3 +534,7 @@ Four virtual machine integration tests and strict Clippy passed.
 Task processes can use a binary file as standard input.
 A public process test read 256 KiB twice from a path containing spaces. A missing file failed before the child started.
 Strict Clippy passed for the task package.
+
+The published default Linux image built the release archive for foundation_connectrpc_codegen from a clean source export.
+A second container checked the archive checksum and ran the packaged plugin with protoc. It generated the requested service source.
+The archive SHA-256 is `b97090d55772aee2519e243d6ec0b7a22e881e87be8587a7b255d4b6d4dacb9f`.

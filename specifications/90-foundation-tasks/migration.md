@@ -120,7 +120,7 @@ Make and mise dispatch those operations to the same task set.
 
 ### Remaining caller changes
 
-1. Verify the released Linux archive recipe in both image flavors. The Rust archive and attachment tasks pass local fixtures.
+1. Verify the CUDA archive and the complete release package selection. The default Linux image built a real plugin archive and verified it with protoc.
 2. Verify release installation on a clean hosted runner. Local tests cover cached release tools, new tags, and partial dispatch failures.
 3. Supply a verified first-stage tool for fresh guests. A new guest starts without Cargo or a repository checkout.
 4. Migrate virtual machine operations and guest provisioning. The image builder and Linux image smoke checks now use the Rust task runner.

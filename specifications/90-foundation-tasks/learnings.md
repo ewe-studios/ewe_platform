@@ -360,3 +360,6 @@ A guest file probe must distinguish absence from transport failure. Keep the Doc
 
 A child can consume a binary archive directly from an open file descriptor.
 Open the file for each run so that a retried command reads from the beginning.
+
+The default Linux image can verify an archive consumer independently of the build directory.
+Mount only the finished archive and checksum. Extract the plugin and generate a service in a fresh container.
