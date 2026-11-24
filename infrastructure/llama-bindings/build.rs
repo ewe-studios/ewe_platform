@@ -1063,7 +1063,7 @@ fn main() {
     {
         let pattern = out_dir.join("build/**/llama-common-base.lib");
         if let Ok(mut paths) = glob::glob(pattern.to_string_lossy().as_ref()) {
-            if let Some(path) = paths.next() {
+            if let Some(Ok(path)) = paths.next() {
                 let dest = out_dir.join("lib").join("llama-common-base.lib");
                 if let Some(parent) = dest.parent() {
                     let _ = std::fs::create_dir_all(parent);
