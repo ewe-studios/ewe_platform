@@ -151,3 +151,5 @@ The optional server dependency needs a Windows C compiler when Cargo cross-compi
 
 The resource suite checks filesystem behavior by running on the target system.
 [Specification 91](../91-windows-resource-staging/requirements.md) records the Windows prerequisites and platform-specific test count.
+
+A package manifest can declare JavaScript modules with a .js extension. The current crate release workflow must explicitly start downstream publication.

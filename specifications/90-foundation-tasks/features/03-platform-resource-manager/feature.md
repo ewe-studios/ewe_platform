@@ -1,6 +1,6 @@
 # Feature 3. Package application resources
 
-Status: Implemented for generated applications and Todo. Existing-package installation awaits Feature 2 approval.
+The owner approves this feature. Generated applications and Todo use the resource manager. Feature 2 owns installation in existing packages.
 
 ## Terms
 

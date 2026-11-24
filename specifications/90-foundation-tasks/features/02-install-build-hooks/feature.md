@@ -1,6 +1,6 @@
 # Feature 2. Install a capability in a Cargo build script
 
-Status: Proposed for approval.
+Status: Approved.
 
 ## Terms
 
