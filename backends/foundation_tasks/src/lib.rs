@@ -10,6 +10,8 @@ pub use process::*;
 pub mod build;
 #[cfg(feature = "install")]
 pub mod install;
+#[cfg(feature = "scripts")]
+pub mod scripts;
 pub use foundation_macros::{task_entry as task, tasks};
 
 pub type TaskResult = Result<(), TaskError>;

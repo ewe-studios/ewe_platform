@@ -434,3 +434,10 @@ Two independent applications list their custom task only after its declaration. 
 
 The composed mobile core uses the application crate for resources. Standalone mobile projects retain their own resource provider.
 All six generator checks and the legacy mobile template suite pass after the change for issue #797.
+
+## Package-owned interpreter scripts
+
+The task crate can select a host or device script from an embedded directory.
+Installed development and release binaries run with the source directory hidden.
+An incremental development rebuild picks up new files, changed files, and deleted files.
+The external fixture checks portable fallback, unsupported targets, companion lookup, failure status 23, and cancellation status 130.

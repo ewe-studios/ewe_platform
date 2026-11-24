@@ -284,3 +284,7 @@ Each command's help supplies the child names, usage line, and available options.
 
 Cargo reports an unused build dependency when the shared application owns the resource hook.
 The standalone and composed native templates therefore use different build dependency declarations.
+
+A host tool can prepare an Android build on macOS. A script sent to the device needs a separate platform selection.
+Keep companion paths relative to the embedded directory. Keep the selected interpreter and its arguments separate.
+The task package must declare the directory as a Cargo build input for incremental builds.

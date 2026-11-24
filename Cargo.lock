@@ -6724,6 +6724,7 @@ dependencies = [
  "foundation_core",
  "foundation_macros",
  "foundation_nativeapis",
+ "foundation_nostd",
  "futures-lite",
  "futures-util",
  "libc",

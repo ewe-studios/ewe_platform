@@ -236,8 +236,8 @@ wasm = "enforce"
 wasm-runs = ["browser-bindings"]
 
 [packages.foundation_tasks]
-runs = ["", "install"]
-clippy-runs = ["", "install"]
+runs = ["", "install,scripts"]
+clippy-runs = ["", "install,scripts"]
 
 [packages.foundation_ui_native]
 runs = ["", "app", "tasks"]

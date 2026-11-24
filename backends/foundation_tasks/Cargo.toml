@@ -21,7 +21,13 @@ tracing.workspace = true
 foundation_nativeapis = { workspace = true, features = ["signal"] }
 syn = { version = "2", features = ["full"] }
 
+[dependencies.foundation_nostd]
+path = "../foundation_nostd"
+version = "0.0.10"
+optional = true
+
 [features]
+scripts = ["dep:blocking", "dep:tempfile", "dep:foundation_nostd"]
 install = ["dep:blocking", "dep:pathdiff", "dep:proc-macro2", "dep:semver", "dep:tempfile", "dep:toml_edit"]
 
 [dependencies.blocking]

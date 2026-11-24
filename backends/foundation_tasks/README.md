@@ -41,3 +41,16 @@ Use `#[tasks("./tasks")]` to register task files from a directory.
 Add `foundation_tasks::build::task_dir` to the binary package's build script.
 The helper records build dependencies for new, updated, renamed, and removed files.
 Each source file supplies one visible asynchronous function named `task` with a documentation summary.
+
+### Embedded interpreter scripts
+
+Enable the `scripts` feature when a task requires an interpreter.
+Store the script and its companion files under the task package's `src/tasks/scripts` directory.
+Derive `EmbedDirectoryAs` with `#[always_embed]` and use uncompressed bytes.
+Tell Cargo to watch that directory in the package build script.
+Pass the embedded directory to `scripts::run` with the interpreter and its arguments.
+
+Use `ScriptPlatform::host()` for a host tool.
+Select the target platform explicitly for a device tool.
+Declare each entry in a `ScriptVariant`. Set its platform to `None` for a portable entry.
+The runner removes the temporary files after success, failure, or cancellation.
