@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.9](https://github.com/ewe-studios/ewe_platform/compare/foundation_testbed-v0.0.6...foundation_testbed-v0.0.9) - 2026-11-24
+
+### Added
+
+- *(wasm)* stream the response builder, inbound body, sink and DO client (spec 85 T3 to T6)
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(http)* answer 405 with Allow for a known path and a wrong method
+- close the spec 85 follow-up issues
+
+### Other
+
+- spec 81: implement signed secrets, key loading and client auth providers
+- spec 88 feature 03: finish the transport cases
+- spec 88 feature 03: cover the connectrpc runtime on the wasm hosts
+- spec 88 feature 02: prove the foundation_http wasm runtimes
+- spec 85: verify the wasm suites and fix the defects they found
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 88: wasm runtime coverage (draft) ([#655](https://github.com/ewe-studios/ewe_platform/pull/655))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+- spec 76 completion, spec 80 (transport and migration groups), and the bindgen/syn fix ([#631](https://github.com/ewe-studios/ewe_platform/pull/631))
+- *(deps)* bump deno_net from 0.243.0 to 0.252.0 ([#600](https://github.com/ewe-studios/ewe_platform/pull/600))
+- split spec 65 into focused specifications; Cloudflare control moves to spec 77 ([#553](https://github.com/ewe-studios/ewe_platform/pull/553))
+
 ## [0.0.6](https://github.com/ewe-studios/ewe_platform/compare/foundation_testbed-v0.0.5...foundation_testbed-v0.0.6) - 2026-11-12
 
 ### Other

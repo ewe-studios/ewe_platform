@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.10](https://github.com/ewe-studios/ewe_platform/compare/foundation_db-v0.0.9...foundation_db-v0.0.10) - 2026-11-24
+
+### Added
+
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Fixed
+
+- *(ci)* refresh every stale nested lockfile
+
 ## [0.0.8](https://github.com/ewe-studios/ewe_platform/compare/foundation_db-v0.0.7...foundation_db-v0.0.8) - 2026-11-12
 
 ### Other

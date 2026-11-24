@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5](https://github.com/ewe-studios/ewe_platform/compare/foundation_repl-v0.2.4...foundation_repl-v0.2.5) - 2026-11-24
+
+### Other
+
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+
 ## [0.2.4](https://github.com/ewe-studios/ewe_platform/compare/foundation_repl-v0.2.2...foundation_repl-v0.2.4) - 2026-11-12
 
 ### Added
