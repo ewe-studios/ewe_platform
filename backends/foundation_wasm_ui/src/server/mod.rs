@@ -141,6 +141,6 @@ impl BroadcastTx {
 }
 
 mod live;
-pub use live::{BacklogConfig, LiveChannel, LiveError, LiveTx};
+pub use live::{BacklogConfig, LiveChannel, LiveError, LivePublication, LiveTx};
 mod live_sink;
 pub use live_sink::FrameBroadcastSink;
