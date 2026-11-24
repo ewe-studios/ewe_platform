@@ -516,3 +516,7 @@ This host check used test device mappings. Guest boot verification still needs a
 
 The linked checkout package inventory limitation is tracked in issue #818.
 The clean source export passed the registry input check and the independent generator installation.
+
+The guest runner status and wait commands now use typed tasks.
+Both Nushell commands returned status 255 when the local Secure Shell (SSH) port refused the connection.
+The integration test checked both guest probes, a busy timeout, a completed runner, and four failure statuses. Strict Clippy passed.

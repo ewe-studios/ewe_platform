@@ -68,9 +68,15 @@ def container-running [name: string]: nothing -> bool {
 }
 
 # Use the checkout's independent task runner for host container operations.
-def host-task [operation: string, arguments: list<string>] {
+def host-task [operation: string, arguments: list<string>, --value] {
     let manifest = $env.FILE_PWD | path join .. .. .. backends foundation_ci Cargo.toml | path expand
-    ^cargo run --locked --quiet --profile uat --manifest-path $manifest -- task run $operation ...$arguments
+    let args = [run --locked --quiet --profile uat --manifest-path $manifest -- task run $operation ...$arguments]
+    if $value {
+        let result = (^cargo ...$args)
+        if $env.LAST_EXIT_CODE != 0 { exit $env.LAST_EXIT_CODE }
+        return ($result | str trim)
+    }
+    ^cargo ...$args
     if $env.LAST_EXIT_CODE != 0 { exit $env.LAST_EXIT_CODE }
 }
 
@@ -278,13 +284,7 @@ def "main runner" [
 }
 
 def "main runner-alive" [--os: string, --key: path, --port: int = $SSH_PORT]: nothing -> bool {
-    let probe = if $os == "windows" {
-        "if (Get-Process -Name Runner.Listener -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
-    } else {
-        # [R]: keep pgrep from matching the shell that runs this command.
-        "pgrep -f '[R]unner.Listener' >/dev/null"
-    }
-    (ssh-run $os $key $port $probe).exit_code == 0
+    host-task --value images:vm-runner-alive [--os $os --key ($key | into string) --port ($port | into string)] | into bool
 }
 
 # Wait for the ephemeral runner to finish its job (it exits afterwards).
@@ -294,13 +294,10 @@ def "main wait-runner" [
     --port: int = $SSH_PORT
     --timeout: duration = 6hr
 ] {
-    check-os $os
-    let deadline = (date now) + $timeout
-    while (main runner-alive --os $os --key $key --port $port) {
-        if (date now) > $deadline { fail $"the runner was still busy after ($timeout)" }
-        sleep 30sec
-    }
-    print "runner finished"
+    host-task images:vm-wait-runner [
+        --os $os --key ($key | into string) --port ($port | into string)
+        --timeout-ms (($timeout / 1ms) | math ceil | into int | into string)
+    ]
 }
 
 # Collect the provisioning log, the runner log and the container log.

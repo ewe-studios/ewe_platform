@@ -1,4 +1,6 @@
 //! Start and stop a local virtual machine host container by its exact identity.
+mod runner;
+
 use crate::{workspace::capture, CiEnvironment};
 use clap::{Args, ValueEnum};
 use foundation_tasks::{
@@ -206,6 +208,7 @@ async fn down(ctx: TaskContext, args: Container) -> TaskResult {
 }
 
 pub(super) fn register(set: &mut TaskSet) -> TaskResult {
+    runner::register(set)?;
     set.add("vm-up", "Start the virtual machine container", up)?;
     set.add(
         "vm-down",

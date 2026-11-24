@@ -347,3 +347,6 @@ The same failure occurred for foundation_context. Issue #818 records both comman
 
 Docker returns the full container identifier with the state. Stop and remove that identifier to protect a replacement container.
 The host fixture checked both an exited container and a running container. A second stop succeeded after removal.
+
+The old guest runner wait reported completion after a refused connection. Issue #822 records the reproduction.
+Each guest probe now returns a distinct status after a successful search finds no process. Transport errors retain their status.

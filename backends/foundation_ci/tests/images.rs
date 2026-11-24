@@ -280,3 +280,76 @@ fi
     assert!(calls.contains("<PI_SSH_AUTHORIZED_KEY=ssh-ed25519 public-fixture guest>"));
     assert!(!calls.contains("<RAM_SIZE=>"));
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_runner_distinguishes_guest_exit_from_ssh_failure() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let ssh = root.join("ssh");
+    fs::write(
+        &ssh,
+        r#"#!/bin/sh
+printf '<%s>' "$@" >> calls
+case "$RESULT" in
+  sequence) if test -f ready; then exit 44; else touch ready; exit 0; fi ;;
+  *) exit "$RESULT" ;;
+esac
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(ssh, fs::Permissions::from_mode(0o755)).unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let invoke = |task: &str, os: &str, code: &str, args: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("PI_VM_USER", "ci user")
+            .env("RESULT", code)
+            .args([
+                "task",
+                "run",
+                task,
+                "--key",
+                "key with spaces",
+                "--os",
+                os,
+                "--port",
+                "2345",
+            ])
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    let alive = "images:vm-runner-alive";
+    let wait = "images:vm-wait-runner";
+    for (os, code, expected) in [("windows", "0", "true"), ("macos", "44", "false")] {
+        let output = invoke(alive, os, code, &[]);
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8(output.stdout).unwrap().trim(), expected);
+    }
+    for failed in [1, 3, 127, 255] {
+        let output = invoke(wait, "macos", &failed.to_string(), &[]);
+        assert_eq!(output.status.code(), Some(failed));
+        assert!(!String::from_utf8_lossy(&output.stdout).contains("runner finished"));
+    }
+    assert!(
+        !invoke(wait, "windows", "0", &["--timeout-ms", "0"])
+            .status
+            .success()
+    );
+    assert!(
+        invoke(wait, "macos", "sequence", &["--interval-ms", "1"])
+            .status
+            .success()
+    );
+    let calls = fs::read_to_string(root.join("calls")).unwrap();
+    assert!(calls.contains("key with spaces><-p><2345>"));
+    assert!(calls.contains("<-l><ci user><127.0.0.1>"));
+    assert!(calls.contains("Get-Process") && calls.contains("pgrep -f"));
+}

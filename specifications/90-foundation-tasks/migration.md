@@ -109,6 +109,7 @@ Test renamed groups, empty member lists, invalid references, platform opt-outs, 
 | Host tools | `toolchain-check`, `toolchain-wire`, and Android and Apple proof tasks | A real Android package and a Swift library build. The test fixtures check repeat runs and failures. |
 | Workspace verification | `foundation-ci` | GitHub Actions, Make, and mise use the planner. It checks package archives, lockfiles, package selection, and release retries. |
 | Virtual machine host | `images:vm-up` and `images:vm-down` | Nushell forwards host options. A Docker fixture verifies both commands, storage, and loopback ports. |
+| Guest runner status | `images:vm-runner-alive` and `images:vm-wait-runner` | Both Nushell commands preserve connection failures. Tests check running, finished, and timeout cases. |
 | Container execution | `linux`, `link-submodules`, and virtual machine host checks | Local Linux containers exercise command failure, cleanup, and console access. Git fixtures verify baked source selection. |
 | Image planning | `image-prepare`, `image-settings`, `image-exists`, and `image-promote` | Seven plans match the previous hashes. A local Docker substitute checks missing images, retry, failure, and tags. |
 
