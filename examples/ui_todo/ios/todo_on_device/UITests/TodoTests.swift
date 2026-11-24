@@ -45,6 +45,51 @@ final class TodoTests: XCTestCase {
     XCTAssertTrue(app.staticTexts["0 open todos"].waitForExistence(timeout: 5))
   }
 
+  func testSearchAndEntrySheet() throws {
+    continueAfterFailure = false
+    try verifySearchAndEntrySheet(appearance: "light")
+    try verifySearchAndEntrySheet(appearance: "dark")
+  }
+
+  private func verifySearchAndEntrySheet(appearance: String) throws {
+    let app = XCUIApplication()
+    app.launchEnvironment["EWE_TODO_APPEARANCE"] = appearance
+    if appearance == "dark" {
+      app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityL"]
+    }
+    app.launch()
+    defer { app.terminate() }
+    let search = app.searchFields["Search todos"]
+    XCTAssertTrue(search.waitForExistence(timeout: 20))
+    let add = app.navigationBars["Todos"].buttons["Add"]
+    add.tap()
+    let input = app.textFields["Todo title"]
+    XCTAssertTrue(input.waitForExistence(timeout: 5))
+    capture(app, "ios-\(appearance)-entry-attached")
+    input.tap()
+    let keyboard = app.keyboards.firstMatch
+    XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+    let cancel = app.buttons["Cancel"]
+    let submit = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable })
+    XCTAssertLessThanOrEqual(max(submit.frame.maxY, cancel.frame.maxY), keyboard.frame.minY + 1)
+    capture(app, "ios-\(appearance)-entry-keyboard")
+    input.typeText("Review search")
+    submit.tap()
+    let row = app.staticTexts["Review search"]
+    XCTAssertTrue(row.waitForExistence(timeout: 10))
+    capture(app, "ios-\(appearance)-search-list")
+    search.tap()
+    search.typeText("missing")
+    XCTAssertTrue(row.waitForNonExistence(timeout: 5))
+    let clear = search.buttons.firstMatch
+    XCTAssertTrue(clear.waitForExistence(timeout: 5))
+    clear.tap()
+    XCTAssertTrue(row.waitForExistence(timeout: 5))
+    search.typeText("Review\n")
+    XCTAssertTrue(keyboard.waitForNonExistence(timeout: 5))
+    XCTAssertTrue(row.exists)
+  }
+
   func testThemeReviewScreens() throws {
     try XCTSkipUnless(ProcessInfo.processInfo.environment["EWE_REVIEW_THEMES"] == "1")
     continueAfterFailure = false

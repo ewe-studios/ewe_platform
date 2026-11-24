@@ -248,5 +248,13 @@ final class TodoTests: XCTestCase {
     XCTAssertTrue(app.staticTexts["0 open todos"].waitForExistence(timeout: 5))
     app.buttons["Reopen"].tap()
     XCTAssertTrue(app.staticTexts["1 open todo"].waitForExistence(timeout: 5))
+
+    let search = app.searchFields["Search todos"]
+    let row = app.staticTexts["Server integration task"]
+    search.tap()
+    search.typeText("missing")
+    XCTAssertTrue(row.waitForNonExistence(timeout: 5))
+    search.buttons.firstMatch.tap()
+    XCTAssertTrue(row.waitForExistence(timeout: 5))
   }
 }
