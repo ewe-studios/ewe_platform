@@ -586,6 +586,10 @@ The test checks the graphics device, independent sound, scene changes, and the l
 The browser action test and the separate packaged icon test also pass.
 The standalone replay fixture supplies the real initial screen to the proxy. The proxy accepts its replay and action controls.
 
+The installed command now builds the generic iOS simulator application for the host architecture.
+The external ARM64 project links, includes the launch storyboard and asset catalog, and declares its launch storyboard in the application manifest.
+Issue #847 tracks the former x86_64 link failure.
+
 ## Browser application package verification
 
 The browser build hook sets the public WebAssembly path. Chromium loaded both the default file and a nested path.

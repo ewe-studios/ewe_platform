@@ -125,6 +125,7 @@ pub async fn build(
                     ])
                     .arg(&derived)
                     .arg("EWE_UI_NATIVE_PREPARED=YES")
+                    .args(device.is_none().then_some("ARCHS=$(NATIVE_ARCH_ACTUAL)"))
                     .arg("build"),
             )
             .await?;
