@@ -534,3 +534,114 @@ case "$*" in *versions.txt*) exit 44 ;; *) printf 'guest\000log\377'; printf dia
     let probes = fs::read_to_string(root.join("probes")).unwrap();
     assert!(probes.contains("CopyTo") && probes.contains("exec cat"));
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_transfers_keep_binary_input_intact_and_preserve_files_after_failure() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    for (name, script) in [
+        (
+            "ssh",
+            r#"#!/bin/sh
+printf '<%s>' "$@" >> probes
+cat > archive
+"#,
+        ),
+        (
+            "scp",
+            r#"#!/bin/sh
+printf '<%s>' "$@" >> copies
+for last do :; done
+case "$last" in
+  127.0.0.1:*) ;;
+  *) mkdir -p "$last/folder"; echo complete > "$last/folder/readme" ;;
+esac
+exit "$RESULT"
+"#,
+        ),
+    ] {
+        let path = root.join(name);
+        fs::write(&path, script).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let run = |task: &str, os: &str, result: &str, args: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("RESULT", result)
+            .args(["task", "run", task, "--os", os, "--key", "guest"])
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    fs::create_dir_all(root.join("src/target")).unwrap();
+    fs::write(root.join("src/target/cache"), "excluded").unwrap();
+    fs::write(root.join("src/file"), b"\x00\xff\x11").unwrap();
+    let push = ["--src", "src", "--dest", "a user's files"];
+    assert!(run("images:vm-push", "macos", "0", &push).status.success());
+    check_guest_archive(&root.join("archive"));
+    assert!(
+        run("images:vm-push", "windows", "0", &push)
+            .status
+            .success()
+    );
+    assert_eq!(
+        run("images:vm-push", "windows", "37", &push).status.code(),
+        Some(37)
+    );
+    let probes = fs::read_to_string(root.join("probes")).unwrap();
+    assert!(probes.contains("a user'\\''s files") && probes.contains("a user''s files"));
+    assert!(
+        fs::read_to_string(root.join("copies"))
+            .unwrap()
+            .contains("127.0.0.1:ewe-guest-")
+    );
+    fs::create_dir_all(root.join("downloads/folder")).unwrap();
+    fs::write(root.join("downloads/folder/readme"), "previous").unwrap();
+    fs::write(root.join("downloads/folder/extra"), "keep").unwrap();
+    let pull = ["--src", "folder", "--dest", "downloads"];
+    assert_eq!(
+        run("images:vm-pull", "windows", "37", &pull).status.code(),
+        Some(37)
+    );
+    assert_eq!(
+        fs::read(root.join("downloads/folder/readme")).unwrap(),
+        b"previous"
+    );
+    assert!(run("images:vm-pull", "macos", "0", &pull).status.success());
+    assert_eq!(
+        fs::read(root.join("downloads/folder/readme")).unwrap(),
+        b"complete\n"
+    );
+    assert_eq!(
+        fs::read(root.join("downloads/folder/extra")).unwrap(),
+        b"keep"
+    );
+}
+
+#[cfg(unix)]
+fn check_guest_archive(path: &std::path::Path) {
+    let mut archive = tar::Archive::new(flate2::read::GzDecoder::new(
+        fs::File::open(path).unwrap(),
+    ));
+    let mut found = false;
+    for entry in archive.entries().unwrap() {
+        use std::io::Read;
+        let mut entry = entry.unwrap();
+        assert!(!entry.path().unwrap().starts_with("./target"));
+        if entry.path().unwrap().ends_with("file") {
+            let mut bytes = Vec::new();
+            entry.read_to_end(&mut bytes).unwrap();
+            assert_eq!(bytes, b"\x00\xff\x11");
+            found = true;
+        }
+    }
+    assert!(found);
+}

@@ -3,6 +3,7 @@ mod connection;
 mod logs;
 mod ready;
 mod runner;
+mod transfer;
 
 use crate::{workspace::capture, CiEnvironment};
 use clap::{Args, ValueEnum};
@@ -214,6 +215,7 @@ pub(super) fn register(set: &mut TaskSet) -> TaskResult {
     logs::register(set)?;
     ready::register(set)?;
     runner::register(set)?;
+    transfer::register(set)?;
     set.add("vm-up", "Start the virtual machine container", up)?;
     set.add(
         "vm-down",

@@ -538,3 +538,8 @@ Strict Clippy passed for the task package.
 The published default Linux image built the release archive for foundation_connectrpc_codegen from a clean source export.
 A second container checked the archive checksum and ran the packaged plugin with protoc. It generated the requested service source.
 The archive SHA-256 is `b97090d55772aee2519e243d6ec0b7a22e881e87be8587a7b255d4b6d4dacb9f`.
+
+The public guest upload and download commands transferred one MiB of binary data through an isolated OpenSSH service.
+The path contained spaces and an apostrophe. The upload excluded the build directory.
+A failed download kept previous files. All 34 integration tests and strict Clippy passed.
+The owner defers hosted workflow changes, dispatches, and CUDA publication or uploads. The CUDA release check remains open.

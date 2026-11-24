@@ -110,6 +110,7 @@ Test renamed groups, empty member lists, invalid references, platform opt-outs, 
 | Workspace verification | `foundation-ci` | GitHub Actions, Make, and mise use the planner. It checks package archives, lockfiles, package selection, and release retries. |
 | Virtual machine host | `images:vm-up` and `images:vm-down` | Nushell forwards host options. A Docker fixture verifies both commands, storage, and loopback ports. |
 | Guest readiness | `images:vm-wait` | An isolated SSH service verified login, a missing marker, and a completed marker. Fixtures check replacement and failed provisioning. |
+| Guest transfer | `images:vm-push` and `images:vm-pull` | OpenSSH transferred binary data in both directions. Tests check exclusions, retry errors, and existing local files. |
 | Guest diagnostics | `images:vm-logs` | A real loopback service returned a log. Disconnection preserved the previous file and returned status 255. |
 | Guest runner status | `images:vm-runner-alive` and `images:vm-wait-runner` | Both Nushell commands preserve connection failures. Tests check running, finished, and timeout cases. |
 | Container execution | `linux`, `link-submodules`, and virtual machine host checks | Local Linux containers exercise command failure, cleanup, and console access. Git fixtures verify baked source selection. |

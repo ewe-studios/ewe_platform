@@ -23,6 +23,24 @@ pub(super) fn command(
     connection: &Connection,
     probe: &str,
 ) -> Result<ProcessCommand, TaskError> {
+    let (ssh, user) = client(ctx, connection, "ssh", "-p")?;
+    Ok(ssh.arg("-l").arg(user).args(["127.0.0.1", probe]))
+}
+
+pub(super) fn copy(
+    ctx: &TaskContext,
+    connection: &Connection,
+) -> Result<ProcessCommand, TaskError> {
+    let (scp, user) = client(ctx, connection, "scp", "-P")?;
+    Ok(scp.arg("-o").arg(format!("User={user}")))
+}
+
+fn client(
+    ctx: &TaskContext,
+    connection: &Connection,
+    tool: &str,
+    port_flag: &str,
+) -> Result<(ProcessCommand, String), TaskError> {
     let host = ctx.require::<CiEnvironment>()?;
     let default_user = match connection.os {
         Guest::Macos => "ci",
@@ -31,10 +49,10 @@ pub(super) fn command(
     let user = host
         .text("PI_VM_USER")
         .unwrap_or_else(|| default_user.into());
-    Ok(ProcessCommand::new("ssh")
+    let client = ProcessCommand::new(tool)
         .arg("-i")
         .arg(host.root.join(&connection.key))
-        .arg("-p")
+        .arg(port_flag)
         .arg(connection.port.to_string())
         .args([
             "-o",
@@ -48,7 +66,6 @@ pub(super) fn command(
             "-o",
         ])
         .arg(format!("ConnectTimeout={}", connection.connect_seconds))
-        .args(["-o", "ServerAliveInterval=30", "-l"])
-        .arg(user)
-        .args(["127.0.0.1", probe]))
+        .args(["-o", "ServerAliveInterval=30"]);
+    Ok((client, user))
 }

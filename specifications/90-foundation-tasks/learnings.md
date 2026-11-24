@@ -363,3 +363,7 @@ Open the file for each run so that a retried command reads from the beginning.
 
 The default Linux image can verify an archive consumer independently of the build directory.
 Mount only the finished archive and checksum. Extract the plugin and generate a service in a fresh container.
+
+Guest destination paths use different quoting rules in the two shells. Issue #826 records the apostrophe case.
+A temporary guest archive in the Windows user directory permits uploads before the target directory exists.
+Download into staging before replacing local files. Preserve unrelated files when the destination directory already exists.

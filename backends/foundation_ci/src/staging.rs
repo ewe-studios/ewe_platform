@@ -116,10 +116,10 @@ fn restore(moves: &[Move]) -> io::Result<()> {
     Ok(())
 }
 
-pub(crate) fn publish<'a>(
+pub(crate) fn publish<P: AsRef<Path>>(
     stage: tempfile::TempDir,
     root: &Path,
-    pairs: impl IntoIterator<Item = (&'a str, PathBuf)>,
+    pairs: impl IntoIterator<Item = (P, PathBuf)>,
     check: bool,
 ) -> TaskResult {
     let _lock = lock(root).map_err(TaskError::operation)?;

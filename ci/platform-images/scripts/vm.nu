@@ -39,11 +39,6 @@ def ssh-args [key: path, port: int]: nothing -> list<string> {
     ]
 }
 
-# scp spells the port option -P.
-def scp-args [key: path, port: int]: nothing -> list<string> {
-    ssh-args $key $port | each {|a| if $a == "-p" { "-P" } else { $a } }
-}
-
 # Run a command in the VM. Returns {exit_code, stdout, stderr}; callers decide.
 def ssh-run [os: string, key: path, port: int, command: string, --stdin: string = ""]: nothing -> record {
     let target = $"(default-user $os)@127.0.0.1"
@@ -146,23 +141,12 @@ def "main push" [
     --dest: string                  # e.g. C:/work/repo or /Users/ci/work/repo
     --exclude: list<string> = [target]
 ] {
-    check-os $os
-    let tarball = mktemp --suffix .tar.gz
-    let excludes = $exclude | each {|e| $"--exclude=./($e)" }
-    ^tar -czf $tarball ...$excludes -C $src .
-    if $os == "windows" {
-        # PowerShell does not read binary stdin reliably; copy with scp, then
-        # unpack with Windows' own tar.exe.
-        let target = $"(default-user $os)@127.0.0.1"
-        ^scp ...(scp-args $key $port) $tarball $"($target):($dest).tar.gz"
-        let r = ssh-run $os $key $port $"New-Item -ItemType Directory -Force -Path '($dest)' | Out-Null; tar -xzf '($dest).tar.gz' -C '($dest)'; if \($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; Remove-Item '($dest).tar.gz'"
-        if $r.exit_code != 0 { fail $"unpacking in the VM failed: ($r.stderr)" }
-    } else {
-        let r = ssh-run $os $key $port $"mkdir -p '($dest)' && tar -xzf - -C '($dest)'" --stdin (open --raw $tarball)
-        if $r.exit_code != 0 { fail $"copying into the VM failed: ($r.stderr)" }
-    }
-    rm $tarball
-    print $"pushed ($src) to ($dest)"
+    mut args = [
+        --os $os --key ($key | into string) --port ($port | into string)
+        --src ($src | into string) --dest $dest --explicit-excludes
+    ]
+    for pattern in $exclude { $args = ($args | append ["--exclude" $pattern]) }
+    host-task images:vm-push $args
 }
 
 # Copy a file or directory out of the VM.
@@ -173,10 +157,10 @@ def "main pull" [
     --src: string                   # path in the VM
     --dest: path
 ] {
-    check-os $os
-    mkdir $dest
-    let target = $"(default-user $os)@127.0.0.1"
-    ^scp -r ...(scp-args $key $port) $"($target):($src)" $dest
+    host-task images:vm-pull [
+        --os $os --key ($key | into string) --port ($port | into string)
+        --src $src --dest ($dest | into string)
+    ]
 }
 
 # Run a script in the VM, in --cwd, streaming its output. Windows: a
