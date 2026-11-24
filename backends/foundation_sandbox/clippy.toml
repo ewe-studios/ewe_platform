@@ -1,0 +1,13 @@
+# Effect lint (spec 84, section 6; spec 77 rule 11). Core logic reads the clock,
+# the entropy source and the identifier source from `Ctx`, never from a global
+# function. `foundation_core`'s `no_global_clock` test checks this file.
+disallowed-methods = [
+  { path = "std::time::SystemTime::now", reason = "read ctx.clock().wall_now()" },
+  { path = "std::time::Instant::now", reason = "read ctx.clock().now()" },
+  # `rand` is not a dependency today, so the path does not resolve. Keep the
+  # entry: it starts to guard the day a dependency brings `rand` in.
+  { path = "rand::thread_rng", reason = "read ctx.rng() or ctx.require_env()?.entropy()", allow-invalid = true },
+  { path = "foundation_compact::entropy::fill", reason = "read ctx.require_env()?.entropy()" },
+  { path = "foundation_compact::ids::new_scru128", reason = "read ctx.require_env()?.ids()" },
+  { path = "foundation_compact::ids::new_scru128_string", reason = "read ctx.require_env()?.ids()" },
+]
