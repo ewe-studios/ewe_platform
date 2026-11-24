@@ -161,3 +161,7 @@ The wire bundle and manifest fixtures each affect two test selections. Each chan
 
 The Todo checkpoint changes two package versions. Standalone example and test workspaces keep their own copies of these versions.
 Each lockfile needs a separate dependency check after the merge.
+
+## Feature 4 publication credentials
+
+The publication process can read a literal token assignment without running shell commands from the user environment file.

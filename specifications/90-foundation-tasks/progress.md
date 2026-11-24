@@ -244,3 +244,7 @@ The next merge includes the Todo checkpoint at `78f67835e`.
 The database version is 0.0.11. The WebAssembly user interface version is 0.1.12.
 All 29 lockfiles resolve. The JavaScript runtime passes 159 tests. The loader passes 78 tests.
 The WebAssembly user interface compiles with browser storage enabled.
+
+## Feature 4 publication credentials
+
+The owner approves Feature 4. The plan specifies token lookup and secret handling for package publication.
