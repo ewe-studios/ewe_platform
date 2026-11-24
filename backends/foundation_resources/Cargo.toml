@@ -12,6 +12,7 @@ description = "Stage application resources and read them through the host contex
 crate-type = ["rlib", "cdylib"]
 
 [features]
+mobile-launch = ["build", "dep:image", "dep:serde_json"]
 browser-package = ["build", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:serde_json"]
 server = ["dep:foundation_http", "dep:foundation_netio"]
 browser-bindings = ["runtime", "foundation_context/wasm-bindgen"]
@@ -20,6 +21,7 @@ build = ["dep:serde", "dep:toml", "dep:tempfile", "dep:rustix"]
 runtime = ["dep:foundation_context", "dep:futures-util", "dep:blocking", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 
 [dependencies]
+image = { workspace = true, optional = true, features = ["png"] }
 serde_json = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 toml = { workspace = true, optional = true }

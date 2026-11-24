@@ -230,8 +230,8 @@ runs = ["", "native-manifest"]
 wasm = "enforce"
 
 [packages.foundation_resources]
-runs = ["build,server", "browser-package,server"]
-clippy-runs = ["build,server", "browser-package,server"]
+runs = ["mobile-launch,server", "browser-package,server"]
+clippy-runs = ["mobile-launch,server", "browser-package,server"]
 wasm = "enforce"
 wasm-runs = ["browser-bindings"]
 

@@ -1,4 +1,8 @@
 //! Resolve application resource declarations for one packaging target.
+#[cfg(feature = "mobile-launch")]
+#[path = "launch/mod.rs"]
+pub mod launch;
+
 use crate::ResourceName;
 use serde::Deserialize;
 use std::{

@@ -553,3 +553,8 @@ The public browser build hook now accepts a relative path for the application We
 An independent Cargo consumer runs under a website subdirectory in Chromium.
 It fetches one application script and compiles both the default binary and a configured nested binary in separate builds.
 The test rejects traversal, absolute names, script collisions, and manifest collisions. Failed builds preserve the previous public tree.
+
+The shared native build helper compiles an Android resource tree and an Apple asset catalog.
+Android's resource compiler linked both background colors and the launcher. Apple's asset compiler produced the launcher images and asset archive.
+The Cargo consumer replaced both images and the theme under their original names without cleaning.
+Two native resource tests and strict Clippy passed. Installed generated application checks remain open.

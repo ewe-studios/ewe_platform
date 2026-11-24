@@ -375,3 +375,7 @@ The project packager copies binary template files unchanged. Android and iOS can
 The application script location supplies the base for binary assets when a website mounts the application below its root.
 A private generated module shares the configured path with Rust packaging and browser startup.
 A successful WebAssembly compilation reports the actual binary request to the test server.
+
+Android selects night colors from the qualified resource directory.
+Apple selects the dark variant from the asset catalog appearance. A universal launcher requires a square, opaque 1024-pixel image.
+The helper scales the source icon and validates all inputs before replacing a native resource set.

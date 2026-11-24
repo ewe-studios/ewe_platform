@@ -81,3 +81,20 @@ A read can fail after a successful open. Dropping the stream closes its file or 
 The browser application can use `BrowserResources` from the `browser-bindings` build.
 It supplies the public base address and reads through `open(name)` and `nextChunk()`.
 The Apple host installs `BundleResourceSource`. The Android host installs `AndroidResourceSource`.
+
+### Native launch assets
+
+Enable the `mobile-launch` build feature to compile application artwork.
+The project supplies `icon.png`, `splash.png`, and `launch-theme.toml` in its public directory.
+Use a square, opaque launcher icon. The splash image can contain transparent pixels.
+
+```toml
+[background]
+light = "#F8FAFC"
+dark = "#101820"
+```
+
+The application build script calls `build::launch::stage_from_cargo(public)`.
+The host build sets `EWE_LAUNCH_DEST` and selects `android` or `apple` through `EWE_RESOURCE_TARGET`.
+Android compiles the generated `res` directory. Apple compiles `Launch.xcassets`.
+Cargo tracks each source file. A failed build preserves the previous native resource set.

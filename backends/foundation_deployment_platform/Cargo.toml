@@ -53,7 +53,7 @@ flate2 = { workspace = true, optional = true }
 xz2 = { version = "0.1", optional = true }
 dirs = { version = "6", optional = true }
 anyhow = { version = "1", optional = true }
-image = { version = "0.25", optional = true }
+image = { workspace = true, features = ["default-formats", "rayon"], optional = true }
 libc = { version = "0.2", optional = true }
 toml = { version = "0.8", optional = true }
 fs2 = { version = "0.4", optional = true }

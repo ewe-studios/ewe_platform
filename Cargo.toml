@@ -49,6 +49,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+image = { version = "0.25.10", default-features = false }
 foundation_cloudflare_storage = { path = "backends/foundation_cloudflare_storage", version = "0.1.2" }
 foundation_netio = { path = "backends/foundation_netio", version = "0.0.16", default-features = false }
 foundation_core = { path = "backends/foundation_core", version = "0.0.23" }
