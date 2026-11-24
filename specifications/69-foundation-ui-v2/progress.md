@@ -1456,7 +1456,12 @@ Issue #728 replaces the native pending file adapter with the framework key-value
 Each Todo server has its own SQLite file. Each pending request uses its original operation identifier as the key.
 A transaction writes each imported record and its receipt together. The old JSON file remains available for recovery.
 Four database tests passed. They cover rollback, concurrent connections, import receipts, and timestamps from the host clock.
-The SQLite provider passed release checks for Android arm64 and the iPhone arm64 simulator. Application tests are in progress.
+Two native file tests and six Todo host tests passed. The Android and iPhone arm64 simulator release checks passed.
+An Android 36 installation retained a failed addition after process restart. A retry confirmed the same item and count.
+The same installation imported an old JSON file, retried its addition, and deleted the confirmed item.
+Another process launch showed zero pending items. The old file kept its original bytes.
+Headless Chromium passed the transaction abort, import receipt, and late-write checks against the packaged application.
+Two browser tabs recovered independent failed requests after reload. Each confirmation removed only its own request.
 
 ### Confirmed Todo records
 

@@ -1164,6 +1164,7 @@ An old pending file can outlive a confirmed request. A durable import receipt pr
 Conditional database updates protect a confirmed removal when a second screen retries with an older display cache.
 The database filename includes the complete old filename. This keeps same-stem files and old SQLite-named files separate.
 The database connection needs the host clock. An empty context map preserves that clock without keeping the closed screen alive.
+Android can retain the previous accessibility dump across process restarts. Remove the old dump before checking a new screen.
 
 ### Confirmed Todo records
 
