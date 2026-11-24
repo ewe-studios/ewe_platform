@@ -153,3 +153,8 @@ The resource suite checks filesystem behavior by running on the target system.
 [Specification 91](../91-windows-resource-staging/requirements.md) records the Windows prerequisites and platform-specific test count.
 
 A package manifest can declare JavaScript modules with a .js extension. The current crate release workflow must explicitly start downstream publication.
+
+## Browser application package verification
+
+The build hook supplies the same path to the resource manifest and the JavaScript loader.
+This keeps the packaged file and the browser request in agreement when an application changes the path.

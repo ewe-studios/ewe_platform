@@ -231,3 +231,8 @@ The owner deferred this run until the project has a Windows virtual machine.
 ## 2026-11-24. JavaScript package release
 
 The owner approves Features 1 through 3. Feature 4 defines module imports, two classic scripts, and npm publication for each browser runtime release.
+
+## Browser application package verification
+
+The browser build hook sets the public WebAssembly path. Chromium loaded both the default file and a nested path.
+Four compiler tests passed, including lazy module reuse and asset requests below a site subdirectory.

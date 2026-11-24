@@ -1,6 +1,8 @@
 //! Package application files under stable names.
 #[cfg(feature = "build")]
 pub mod build;
+#[cfg(all(feature = "build", not(target_family = "wasm")))]
+pub mod package;
 
 /// A portable relative resource name.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

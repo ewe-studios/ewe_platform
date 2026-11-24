@@ -15,6 +15,7 @@
 //! reactor, or the overlay's wake callback) and never sleeps a thread. A reset,
 //! aborted or broken connection ends the future at once.
 
+pub use super::packaged::{PackagedFile, PackagedResourceSet, ResourceFileHandler};
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
@@ -125,6 +126,12 @@ pub struct StaticFileHandler {
 }
 
 impl StaticFileHandler {
+    /// Serve declared resources through one fallback route.
+    #[must_use]
+    pub fn from_resources<R: PackagedResourceSet>(resources: R) -> ResourceFileHandler<R> {
+        ResourceFileHandler { resources, directory: None }
+    }
+
     /// Create a new `StaticFileHandler` serving from the given root directory,
     /// with the default [`StaticFileConfig`].
     #[must_use]

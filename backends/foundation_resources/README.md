@@ -31,15 +31,26 @@ An entry without a target list applies to each target.
 ## Build the package
 
 Add this library as a build dependency. Disable its default features and enable `build`.
-Run each producer before staging its output.
+Enable `browser-package` for a server build that produces browser bindings and JavaScript.
+Declare generated input names in `resources.toml`. Supply their contents to the same hook.
 
 ```rust
 fn main() -> std::io::Result<()> {
-    // The application generates version.txt in OUT_DIR before this call.
-    foundation_resources::build::stage_from_cargo()?;
-    Ok(())
+    foundation_resources::package::BrowserPackage::new(std::path::Path::new("web/app.js"))
+        .browser_enabled(cfg!(feature = "server"))
+        .with_connect()
+        .with_resources()
+        .with_generated("version.txt", env!("CARGO_PKG_VERSION"))
+        .build()
 }
 ```
+
+The default application binary is `module.wasm`. Set `with_module_path("assets/site.wasm")` to change its public name.
+Import `moduleUrl` from `./ewe-app-config.js` in the application entry. It resolves relative to the loaded application script.
+
+Use `with_companion(feature, directory)` for another WebAssembly target from the application crate.
+Import its generated JavaScript from that directory. A dynamic import delays binary initialization until the application needs it.
+Resource-only consumers can call `foundation_resources::build::stage_from_cargo()` after running their own producers.
 
 The helper supplies `EWE_STAGED_RESOURCES` to the compiler for release embedding.
 Web development builds also stage `public/<package-name>` beside the server executable.

@@ -56,6 +56,7 @@ foundation_codegen = { path = "../foundation_codegen", version = "0.2.2" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
+build-hook = ["dep:tempfile", "dep:serde_json", "foundation_codegen/javascript", "foundation_wasm/embedded-js"]
 browser-storage = ["dep:serde", "dep:foundation_db", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
 tasks = ["dep:tempfile", "dep:serde_json", "dep:foundation_tasks", "dep:blocking", "foundation_codegen/javascript"]
 default = []
