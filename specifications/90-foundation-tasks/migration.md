@@ -100,6 +100,7 @@ Test renamed groups, empty member lists, invalid references, platform opt-outs, 
 
 | Owner | Registered command or package | Verified callers and results |
 |---|---|---|
+| Cloudflare | `cf:install`, `cf:env`, `cf:whoami`, `cf:list`, `cf:d1:create`, `cf:d1:migrate`, and `cf:r2:create` | Both command hosts register these tasks. Tests check argument boundaries, credentials, and error status. |
 | Build hooks | `build:install-hook` | An independent Cargo package installs each provider. A repeat check preserves its files. |
 | Application assets | `foundation_codegen`, `foundation_resources`, and `foundation_wasm_ui` | Todo and an external application build in both profiles. Chromium loads one script from the moved Todo release. |
 | Native applications | `native-task` and the native task set | The release workflow calls Rust. Local tests check archives, tag conflicts, staging, and signing. |

@@ -454,9 +454,7 @@ echo "  mise run test:cf    - Run R2/D1 integration tests"
 
 [tasks."install:cloudflare"]
 description = "Install wrangler (Cloudflare CLI) via pnpm"
-run = """
-pnpm install
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:install"
 
 [tasks."setup:check"]
 alias = "check-tools"
@@ -633,17 +631,11 @@ run = "wrangler login"
 
 [tasks."cf:whoami"]
 description = "Check Cloudflare authentication status"
-run = "wrangler whoami"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:whoami"
 
 [tasks."cf:list"]
 description = "List D1 databases and R2 buckets"
-run = """
-echo "=== D1 Databases ==="
-wrangler d1 list
-echo ""
-echo "=== R2 Buckets ==="
-wrangler r2 bucket list
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:list"
 
 [tasks."cf:start"]
 description = "Start wrangler dev for local testing (background)"
@@ -833,33 +825,15 @@ echo "✓ All VFS Cloudflare tests passed"
 
 [tasks."cf:d1:create"]
 description = "Create a new D1 database"
-run = """
-#!/usr/bin/env bash
-DB_NAME="${1:-foundation-db}"
-echo "Creating D1 database: $DB_NAME"
-wrangler d1 create "$DB_NAME"
-echo "✓ D1 database created"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:d1:create"
 
 [tasks."cf:d1:migrate"]
 description = "Run D1 migrations"
-run = """
-#!/usr/bin/env bash
-DB_NAME="${1:-foundation-db}"
-echo "Running D1 migrations for: $DB_NAME"
-wrangler d1 migrations execute "$DB_NAME" --local
-echo "✓ D1 migrations complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:d1:migrate"
 
 [tasks."cf:r2:create"]
 description = "Create a new R2 bucket"
-run = """
-#!/usr/bin/env bash
-BUCKET_NAME="${1:-foundation-bucket}"
-echo "Creating R2 bucket: $BUCKET_NAME"
-wrangler r2 bucket create "$BUCKET_NAME"
-echo "✓ R2 bucket created"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:r2:create"
 
 [tasks."cf:r2:ls"]
 description = "List objects in an R2 bucket"
@@ -872,15 +846,7 @@ wrangler r2 object list "$BUCKET_NAME"
 
 [tasks."cf:env"]
 description = "Show Cloudflare environment configuration"
-run = """
-echo "=== Cloudflare Environment ==="
-echo "DEPLOYMENT_D1_DATABASE_ID: ${DEPLOYMENT_D1_DATABASE_ID:-not set}"
-echo "DEPLOYMENT_R2_BUCKET: ${DEPLOYMENT_R2_BUCKET:-not set}"
-echo "CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:+set (hidden)}"
-echo "CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-not set}"
-echo "D1_INTEGRATION_TEST: ${D1_INTEGRATION_TEST:-not set}"
-echo "R2_INTEGRATION_TEST: ${R2_INTEGRATION_TEST:-not set}"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:env"
 
 # --- llama-server Testing Infrastructure ---
 

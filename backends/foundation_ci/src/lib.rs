@@ -5,6 +5,7 @@ mod execution;
 mod plan;
 mod workspace;
 mod staging;
+pub mod cloudflare;
 pub mod development;
 pub mod images;
 pub mod toolchain;

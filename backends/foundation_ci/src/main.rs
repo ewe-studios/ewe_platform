@@ -9,5 +9,6 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     runner.register(foundation_ci::wire::set()?)?;
     runner.register(foundation_ci::images::set()?)?;
     runner.register(foundation_ci::development::set()?)?;
+    runner.register(foundation_ci::cloudflare::set()?)?;
     runner.run().await
 }

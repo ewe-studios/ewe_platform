@@ -45,6 +45,7 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     runner.register(foundation_ci::wire::set()?)?;
     runner.register(foundation_ci::images::set()?)?;
     runner.register(foundation_ci::development::set()?)?;
+    runner.register(foundation_ci::cloudflare::set()?)?;
     runner.register(platform_tasks::set()?)?;
     runner.register(platform_tasks::codegen()?)?;
     runner.register(platform_tasks::wasm_bins()?)?;

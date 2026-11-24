@@ -301,3 +301,6 @@ Cargo unifies features across dependencies on the same target. Select the JavaSc
 
 A combined application needs four public inputs for these checks. Verify the Git tag, Maven package, npm package, and Rust resource crate separately.
 The npm archive in the generated lock file must match the candidate checksum. An earlier local archive has different bytes.
+
+Wrangler accepts `d1 migrations apply DATABASE --local`. It rejects the earlier execute command.
+Configuration output can report whether a token exists without printing its value.

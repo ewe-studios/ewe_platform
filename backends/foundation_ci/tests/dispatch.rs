@@ -5,18 +5,7 @@ fn dispatch_preserves_successful_tags_and_retries_the_failed_tag() {
     use std::{fs, os::unix::fs::PermissionsExt, process::Command};
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path();
-    let git = |args: &[&str]| {
-        let output = Command::new("git")
-            .current_dir(root)
-            .args(args)
-            .output()
-            .unwrap();
-        assert!(
-            output.status.success(),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    };
+    let git = git_at(root);
     git(&["init", "-q"]);
     git(&["config", "tag.gpgSign", "false"]);
     git(&["config", "commit.gpgSign", "false"]);
@@ -112,4 +101,20 @@ echo "$7" >> dispatched
         fs::read_to_string(root.join("dispatched")).unwrap(),
         "ewe_platform-v2\newe_platform-v3\nfoundation_wasm_ui-v2\n"
     );
+}
+
+#[cfg(unix)]
+fn git_at(root: &std::path::Path) -> impl Fn(&[&str]) + '_ {
+    move |args: &[&str]| {
+        let output = std::process::Command::new("git")
+            .current_dir(root)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
 }

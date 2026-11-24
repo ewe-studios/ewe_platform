@@ -463,3 +463,6 @@ CedarBoard passes the three-target check from one generated project outside the 
 | iOS | The simulator launches the application. Its installed bundle contains the shared title. |
 
 The checks use local release candidates. The public native release tag, Maven package, browser package, and shared resource crate are unavailable.
+
+Seven Cloudflare operations now run through typed Rust tasks. All 26 continuous integration tests pass. The platform command compiles with the same tasks.
+The local database migration uses Wrangler's supported apply command. Issue #805 tracks the remaining object listing.
