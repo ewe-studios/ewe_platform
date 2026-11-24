@@ -137,7 +137,7 @@ portpicker = "0.1"
 # Held at 0.16 (the first release that fixes the extraction advisory). 0.19 is
 # the latest stable, but it changes the whole `Filesystem` trait: `&self`
 # instead of `&mut self`, `INodeNo`/`FileHandle`/`OpenFlags` newtypes. The port
-# is issue #776.
+# is issue #779.
 fuser = { version = "0.16", default-features = false }
 
 # Vendored patch of gemm-common 0.19.0. Its `init_gemm_fn` chose the `fma`
