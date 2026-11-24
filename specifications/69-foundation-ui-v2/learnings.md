@@ -1047,4 +1047,4 @@ The caller can retry the same application after the runtime releases both resour
 A reload discards listeners on the old document. The new document reports readiness after its Rust module starts.
 The IndexedDB provider waits for transaction completion. A successful request can still belong to a transaction that aborts.
 The standalone suite uses the pinned wasm-bindgen version from the wasm environment.
-Earlier Todo versions store all pending records under one origin-wide key. The records contain no account identifier.
+Earlier Todo versions store all pending records under one origin-wide key. Todo serves the page and receives its actions at that origin.

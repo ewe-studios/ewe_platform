@@ -1280,4 +1280,4 @@ The tests cover access denial, quota exhaustion, transaction abort, and empty me
 The macOS database suite passes 255 tests.
 Todo still uses the legacy browser callbacks. Issue #728 remains open until application tests verify independent pending changes.
 The standalone consumer dependency check excludes the user interface runtime and the Cloudflare Worker crate.
-The feature plan now proposes an account assignment for older pending records. The migration awaits owner approval.
+Feature 37 scopes pending changes to the Todo server. Older browser records use the server at their original browser origin.

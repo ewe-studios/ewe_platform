@@ -31,7 +31,7 @@ Use the store's documented empty state for a new path. Propagate malformed conte
 Keep confirmed server records and idempotency receipts durable. A delayed retry after deletion must never recreate the record.
 Define a consistent recovery policy for the stream position and replay history across a restart.
 A server with a fresh history must direct stale clients to a matching snapshot.
-Retain account and endpoint isolation where hosts configure them.
+Keep pending changes for each Todo server separate.
 
 Remove these paths from production startup:
 
@@ -98,7 +98,7 @@ Implement optional IndexedDB and `localStorage` providers in `foundation_db` thr
 Keep browser bindings, serialization, and typed storage errors in those providers.
 Verify a standalone browser consumer can use either provider without importing `foundation_wasm_ui` or supplying Cloudflare bindings.
 During boot, `foundation_wasm_ui` installs the selected provider and namespace in the host context.
-Todo uses IndexedDB for durable pending changes. Each operation has its own key, scoped to the account and server.
+Todo uses IndexedDB for durable pending changes. Each operation has its own key in the namespace for its Todo server.
 Use the memory provider for temporary sessions and tests. Offer `localStorage` for simple settings.
 Todo actions read and write typed records through the installed service. Remove Todo-specific JavaScript storage callbacks.
 
@@ -137,12 +137,10 @@ Verify the deployed Todo entry still requests one JavaScript file.
 ### Existing browser records
 
 Earlier Todo versions store pending changes in the localStorage key `ewe.todo.pending.v1`.
-Each entry contains the operation identifier and the change. The entry has no account or server field.
+Each entry contains the operation identifier and the change.
 The browser origin identifies the scheme, host, and port of the page that writes the data.
 
-The proposed destination for these records is the anonymous account on the same origin.
-A named account never adopts an anonymous change automatically.
-The account assignment needs owner approval before the application imports these records.
+Import these records into the Todo server namespace for that origin. Keep their operation identifiers.
 
 1. Read the old map during startup. Validate every entry before writing any records.
 2. Check an import receipt for each operation identifier inside one IndexedDB transaction.
