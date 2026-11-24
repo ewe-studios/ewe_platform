@@ -50,6 +50,11 @@ The primary configuration file for all AI agents (including Codex) has been move
     If an operation lacks named targeting, add framework support or replace the named element.
     Only framework internals may allocate numeric node handles for rendering and event dispatch.
 
+19. **Commit and push each completed agent task immediately.** The coordinating agent reviews the changes and verification results when each agent finishes.
+    Commit the verified changes for that task. Push the commit to the assigned branch immediately.
+    Confirm the commit on the remote branch and notify the owner. Other agents can continue their work.
+    If the push fails, report the failure and retry after correcting the cause.
+
 ---
 
 ## Migration Notice
