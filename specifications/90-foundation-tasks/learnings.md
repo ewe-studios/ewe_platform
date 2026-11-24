@@ -294,3 +294,5 @@ Start the process monitor before transferring child ownership. A failed monitor 
 Validate target selection before checking for a native library. Server applications can also request a target absent from their manifest.
 
 Java 27 writes 17,006 bytes when verifying the generated Android bundle with a test key. Match the complete success line while streaming all output.
+
+Inspect resources inside the installed Apple bundle and built Android archive. A successful compiler exit alone does not check the application title.

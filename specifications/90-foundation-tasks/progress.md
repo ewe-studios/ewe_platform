@@ -447,3 +447,6 @@ The detached process tests pass with the full task runner suite. All 23 tests pa
 Native task checks pass for 22 release and device fixtures and seven application checks. Strict lint checks pass across all five affected packages.
 
 The installed command builds a signed Android App Bundle and verifies its signature on Java 27. Both native architectures and the application title match.
+
+The installed command builds and launches CedarBoard on Android and iOS with local release inputs.
+Both installed applications contain the same shared title. The Android screen shows the server count and refresh action.
