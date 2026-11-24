@@ -511,3 +511,6 @@ The virtual machine host changes are in progress. Cargo checked the Rust start a
 Nushell passed the storage path, image, ports, and key path to the independent runner.
 A failing runner returned exit code 42 through the existing Nushell command.
 The Rust integration tests and Docker fixture remain pending while the host verifies the mobile applications.
+
+The linked checkout package inventory limitation is tracked in issue #818.
+The clean source export passed the registry input check and the independent generator installation.
