@@ -183,3 +183,15 @@ No code changed.
   `DynNetClient`, and an RPC call is `H1Transport` over it (spec 77 section 6.0).
 
 Issue #556 records the set across the split specifications. It is closed.
+
+## Windows gguf link (2026-11-24)
+
+`3918d563e` fixes the link of the `gguf` test on `x86_64-pc-windows-msvc` (#772).
+
+- `patches/esaxx-rs` vendors `esaxx-rs` 0.1.10 without its forced static MSVC
+  runtime. The upstream note is in `patches/esaxx-rs/UPSTREAM.md`.
+- `infrastructure/llama-bindings` no longer forces llama.cpp to the static
+  runtime; the `msvc_static_runtime.cmake` fragment is deleted.
+- Verified locally: the patched `esaxx-rs` builds on macOS, and
+  `cargo check -p infrastructure_llama_bindings` passes. The Windows link is
+  verified by the `foundation_agent_rpc` shard of the CI run.

@@ -1273,3 +1273,27 @@ The other specs got the same audit: spec 81 (`KeySource`), spec 80 (`MigrationSo
 85's `FetchTransport` did not survive a second review: the owner replaced the whole design with
 `DynNetClient` and `H1Transport`, which already exist on both targets. The table is in spec 77
 `learnings.md` section 10.1.
+
+## Windows gguf link: the MSVC runtime must be one runtime (2026-11-24)
+
+The `gguf` test of `foundation_agent_rpc` did not link on `x86_64-pc-windows-msvc`
+(issue #772). Three fixes were tried. The first two moved the conflict.
+
+1. **`LNK2038`: `/MT` against `/MD`.** `esaxx-rs`, a dependency of `tokenizers`,
+   called `cc::Build::static_crt(true)` on every platform, so its C++ objects used
+   the static runtime. Rust's standard library, `cc`'s default and CMake's default
+   use the dynamic runtime.
+2. **A CMake fragment forced llama.cpp to `/MT`.** That matched esaxx but broke the
+   `cc`-built wrapper objects of `infrastructure_llama_bindings`, which stayed
+   `/MD`. The link then failed with `LNK2005` on `std::` symbols defined in both
+   `msvcprt.lib` and `libcpmt.lib`, and with `LNK1169`.
+3. **The fix: one runtime, chosen by the target.** `patches/esaxx-rs` drops the
+   `static_crt` calls, so `cc` follows the target's `crt-static` feature. The
+   fragment is deleted, so llama.cpp keeps the `/MD` that
+   `Config::static_crt(false)` gives it. Rust, the wrappers, esaxx and llama.cpp
+   then all use `/MD`.
+
+**Rule for the future.** Every C and C++ object in one link must use the same MSVC
+runtime. Never force a runtime in one dependency. Let the target decision
+(`crt-static`) reach every `cc` and CMake build. A crate that hard-codes
+`static_crt` needs a vendored patch, as `patches/gemm-common` already does.
