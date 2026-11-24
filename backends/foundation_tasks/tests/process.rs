@@ -66,6 +66,13 @@ fn child_entry() {
             io::stdout().lock().write_all(b"finished\n").unwrap();
             std::process::exit(0);
         }
+        "service-echo" => {
+            let address = std::env::var("FOUNDATION_TASKS_ADDRESS").unwrap();
+            let mut socket = std::net::TcpStream::connect(address).unwrap();
+            let mut byte = [0];
+            socket.read_exact(&mut byte).unwrap();
+            socket.write_all(&byte).unwrap();
+        }
         "socket" => {
             let address = std::env::var("FOUNDATION_TASKS_ADDRESS").unwrap();
             let mut socket = std::net::TcpStream::connect(address).unwrap();
@@ -392,4 +399,23 @@ fn observe_test_exit(id: u32) -> io::Result<()> {
     } else {
         Err(io::Error::last_os_error())
     }
+}
+
+#[valtron_test(timeout = 30000)]
+async fn detached_service_receives_work_after_ownership_transfer() {
+    let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let address = listener.local_addr().unwrap();
+    let process = NativeProcess::new(ProcessConfig::default());
+    let command = fixture("service-echo").env("FOUNDATION_TASKS_ADDRESS", address.to_string());
+    let mut service = process.service(command, Cancellation::new()).await.unwrap();
+    let (mut socket, _) = listener.accept().unwrap();
+    socket
+        .set_read_timeout(Some(std::time::Duration::from_secs(3)))
+        .unwrap();
+    assert!(service.status().unwrap().is_none());
+    service.detach().unwrap();
+    socket.write_all(b"x").unwrap();
+    let mut reply = [0];
+    socket.read_exact(&mut reply).unwrap();
+    assert_eq!(reply, *b"x");
 }

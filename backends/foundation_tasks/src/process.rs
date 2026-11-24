@@ -29,8 +29,14 @@ pub trait TaskOutput: Send + Sync {
 /// A service stays owned by the task until startup succeeds.
 pub trait StartedService: Send {
     /// Return a status if the process has stopped.
+    ///
+    /// # Errors
+    /// Returns an error if the process handle is invalid or the status query fails.
     fn status(&mut self) -> io::Result<Option<ExitStatus>>;
     /// Leave the verified service running after the task exits.
+    ///
+    /// # Errors
+    /// Returns an error if the host cannot release the process or start its reaper.
     fn detach(self: Box<Self>) -> io::Result<()>;
 }
 
@@ -397,17 +403,25 @@ impl StartedService for NativeService {
         Ok(status)
     }
     fn detach(mut self: Box<Self>) -> io::Result<()> {
+        let (sender, receiver) = std::sync::mpsc::sync_channel::<Child>(0);
+        std::thread::Builder::new()
+            .name("task-service-reaper".into())
+            .spawn(move || {
+                if let Ok(mut child) = receiver.recv() {
+                    let _ = child.wait();
+                }
+            })?;
+        #[cfg(windows)]
         if let Some(tree) = &self.tree {
             tree.release()?;
         }
-        self.tree.take();
-        if let Some(mut child) = self.child.take() {
-            std::thread::Builder::new()
-                .name("task-service-reaper".into())
-                .spawn(move || {
-                    let _ = child.wait();
-                })?;
+        if let Some(child) = self.child.take() {
+            if let Err(error) = sender.send(child) {
+                self.child = Some(error.0);
+                return Err(io::Error::other("Service reaper stopped"));
+            }
         }
+        self.tree.take();
         Ok(())
     }
 }
@@ -773,11 +787,6 @@ mod tree {
     pub(super) struct Tree(libc::pid_t);
 
     impl Tree {
-        #[allow(clippy::unnecessary_wraps)]
-        pub(super) fn release(&self) -> io::Result<()> {
-            Ok(())
-        }
-
         pub(super) fn attach(child: &Child) -> io::Result<Self> {
             libc::pid_t::try_from(child.id())
                 .map(Self)

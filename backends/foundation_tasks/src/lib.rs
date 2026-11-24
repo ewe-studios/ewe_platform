@@ -365,6 +365,7 @@ impl TaskRunner {
     }
 
     /// Return the command tree used by the dispatcher and help.
+    #[must_use]
     pub fn root_command(&self) -> Command {
         let mut run = Command::new("run")
             .about("Run a named task")

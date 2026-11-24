@@ -441,3 +441,5 @@ The task crate can select a host or device script from an embedded directory.
 Installed development and release binaries run with the source directory hidden.
 An incremental development rebuild picks up new files, changed files, and deleted files.
 The external fixture checks portable fallback, unsupported targets, companion lookup, failure status 23, and cancellation status 130.
+
+The detached process tests pass with the full task runner suite. All 23 tests pass.
