@@ -266,3 +266,8 @@ The pack task recompresses the stream with fixed gzip metadata and the locked Ru
 The generated web build needs two package sources. Cargo resolves Rust dependencies. npm verifies the runtime archive against its lock file.
 An isolated registry can serve the release archive with its original integrity value.
 A real browser test checks that the JavaScript bindings connect the generated module to its Rust counter.
+
+## Project-local task execution
+
+A project can declare its task interface without running Cargo during help or task discovery.
+The shared task registry rejects namespace conflicts before it invokes the local runner.

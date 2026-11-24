@@ -1,4 +1,5 @@
 //! Generate and operate an Ewe application.
+mod local;
 mod operations;
 mod wizard;
 use clap::{Args, ColorChoice, Command};
@@ -103,9 +104,10 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     )?;
 
     operations::register(&mut set)?;
-    runner.context().store(operations::Directory(
-        std::env::current_dir().map_err(TaskError::operation)?,
-    ));
+    let directory = std::env::current_dir().map_err(TaskError::operation)?;
+    runner
+        .context()
+        .store(operations::Directory(directory.clone()));
     runner
         .context()
         .store(foundation_ui_native::tasks::NativeBuildEnv::from_workspace());
@@ -114,6 +116,11 @@ async fn main(mut runner: TaskRunner) -> TaskResult {
     runner.use_help_task("app:help")?;
     foundation_wasm_ui::tasks::install_host(&runner);
     runner.register(foundation_wasm_ui::tasks::set()?)?;
+    if let Some(tasks) = foundation_ui_project::application::LocalTasks::discover(&directory)
+        .map_err(TaskError::operation)?
+    {
+        runner.register(local::set(&directory, tasks)?)?;
+    }
     runner.context().store(Guide(runner.root_command()));
     runner.run().await
 }

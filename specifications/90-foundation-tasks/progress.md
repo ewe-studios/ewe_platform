@@ -409,3 +409,10 @@ This test uses a local registry with the verified runtime archive and local Rust
 The installed executable passes the wizard test outside the checkout. It lists Android virtual devices and iOS simulators.
 An offline build produces the same web files from the local cache.
 Native artifact checks, local task registration, and example migration remain in progress.
+
+## Project-local task commands
+
+Two independent projects register Rust task packages with the installed command.
+The guide lists each task's arguments. The runner preserves values with spaces and returns child exit status 19.
+All five generator checks and all 17 task runner checks pass.
+The generated web build also passes through the installed command. It produces identical files with its registry offline.

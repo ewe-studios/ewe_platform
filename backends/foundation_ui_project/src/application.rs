@@ -83,6 +83,60 @@ pub struct Application {
 pub struct LocalTasks {
     pub manifest: PathBuf,
     pub namespace: String,
+    pub commands: Vec<LocalCommand>,
+}
+
+impl LocalTasks {
+    /// Read optional task declarations from a generated or existing application.
+    ///
+    /// # Errors
+    /// Returns an error for an unreadable or invalid application manifest.
+    pub fn discover(root: &Path) -> Result<Option<Self>, BoxedError> {
+        #[derive(Deserialize)]
+        struct Project {
+            tasks: Option<LocalTasks>,
+        }
+        let path = root.join("ewe-ui.toml");
+        let data = match fs::read_to_string(&path) {
+            Ok(data) => data,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
+            Err(e) => return Err(format!("Read {}: {e}", path.display()).into()),
+        };
+        Ok(toml::from_str::<Project>(&data)?.tasks)
+    }
+}
+
+/// A project task and its public argument contract.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LocalCommand {
+    pub name: String,
+    pub description: String,
+    #[serde(default)]
+    pub arguments: Vec<LocalArgument>,
+}
+
+/// A long option or a positional value accepted by the local runner.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LocalArgument {
+    pub name: String,
+    pub description: String,
+    #[serde(default)]
+    pub kind: LocalArgumentKind,
+    #[serde(default)]
+    pub required: bool,
+    #[serde(default)]
+    pub repeat: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum LocalArgumentKind {
+    #[default]
+    Option,
+    Positional,
+    Flag,
 }
 
 impl Application {

@@ -118,3 +118,59 @@ fn human_and_automation_help_use_the_real_command_tree() {
         }
     }
 }
+
+#[test]
+fn project_task_registration_exposes_arguments_and_rejects_shared_names() {
+    use std::fs;
+    let tmp = tempfile::tempdir().unwrap();
+    assert!(
+        cli(tmp.path(), &["new", "--name", "Local", "--target", "web"])
+            .status
+            .success()
+    );
+    let root = tmp.path().join("Local");
+    let task = root.join("tools/tasks");
+    fs::create_dir_all(&task).unwrap();
+    fs::write(task.join("Cargo.toml"), "").unwrap();
+    let manifest = root.join("ewe-ui.toml");
+    let mut document = fs::read_to_string(&manifest).unwrap();
+    document.push_str(
+        r#"
+[tasks]
+manifest = "tools/tasks/Cargo.toml"
+namespace = "sample"
+[[tasks.commands]]
+name = "inspect"
+description = "Inspect application data"
+[[tasks.commands.arguments]]
+name = "device"
+description = "Device to inspect"
+required = true
+"#,
+    );
+    fs::write(&manifest, &document).unwrap();
+    for args in [
+        &["help", "--llm"][..],
+        &["task", "run", "sample:inspect", "--help"],
+    ] {
+        let out = cli(&root, args);
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let text = String::from_utf8(out.stdout).unwrap();
+        assert!(text.contains("--device") && text.contains("Device to inspect"));
+    }
+    assert!(!cli(&root, &["task", "run", "sample:inspect"])
+        .status
+        .success());
+    fs::write(
+        manifest,
+        document.replace("namespace = \"sample\"", "namespace = \"native\""),
+    )
+    .unwrap();
+    let conflict = cli(&root, &["task", "list"]);
+    assert!(!conflict.status.success());
+    assert!(String::from_utf8_lossy(&conflict.stderr).contains("conflicts"));
+}
