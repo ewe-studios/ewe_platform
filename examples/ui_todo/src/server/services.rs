@@ -12,8 +12,12 @@ use std::sync::Arc;
 pub(crate) struct TodoFeed(pub(super) LiveChannel);
 
 impl TodoFeed {
-    pub(crate) fn publish(&self, ctx: &Ctx, change: &crate::RecordChange) -> Result<u64, Error> {
-        self.0.sender().push_with(|position| {
+    pub(crate) fn reserve(
+        &self,
+        ctx: &Ctx,
+        change: &crate::RecordChange,
+    ) -> Result<foundation_wasm_ui::server::LivePublication, Error> {
+        self.0.sender().reserve(|position| {
             let view = Context::for_render(ctx.clone());
             TodoDelivery::Committed {
                 position,
@@ -42,6 +46,9 @@ pub(super) fn install(ctx: &Ctx, web: LiveChannel, store: TodoStore) -> Result<T
     if web.stream_id() != 1 {
         return Err("The todo page listens to stream 1".into());
     }
+    if store.position() != web.last_sequence() {
+        return Err("The Todo store position differs from the live channel position".into());
+    }
     crate::install_view_services(ctx, foundation_ui_runtime::action::Origin::Server)?;
     ctx.store(store);
     ctx.store(Arc::new(BusinessActions) as Arc<dyn ActionRequestPolicy>);
@@ -58,13 +65,9 @@ pub(super) fn channel(id: u64) -> LiveChannel {
     LiveChannel::new(id, BacklogConfig::default(), WriterConfig::default())
 }
 
-/// Serve Todo records through the generated data procedure.
+/// Read Todo records from the request context through the generated service.
 pub struct Todos;
 impl crate::todo_rpc::Todos for Todos {
-    #[expect(
-        clippy::unused_async_trait_impl,
-        reason = "The generated service has an asynchronous contract."
-    )]
     async fn get_todo(
         &self,
         ctx: foundation_connectrpc::RpcCtx,
@@ -82,10 +85,9 @@ impl crate::todo_rpc::Todos for Todos {
             .get::<TodoStore>()
             .ok_or_else(|| ConnectError::internal("Missing todo store"))?;
         let todo = store
-            .snapshot()
-            .items
-            .into_iter()
-            .find(|todo| todo.id == id)
+            .get(id)
+            .await
+            .map_err(|cause| ConnectError::internal(cause.to_string()))?
             .ok_or_else(|| ConnectError::not_found("Todo not found"))?;
         Ok(Response::new(crate::todo_rpc::Todo {
             id: todo.id.to_string(),

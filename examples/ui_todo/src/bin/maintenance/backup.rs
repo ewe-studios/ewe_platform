@@ -52,7 +52,7 @@ fn read<T: DeserializeOwned>(path: &Path, limit: u64) -> Result<T, Error> {
 pub(super) fn restore(path: &Path, limit: u64) -> Result<Vec<Todo>, Error> {
     let records: Vec<Current> = read(path, limit).map_err(|error| {
         format!(
-            "Cannot restore {}: {error}. Use --convert-backup for numeric records.",
+            "Cannot restore {}: {error}. Use todo-maintenance convert for numeric records.",
             path.display()
         )
     })?;

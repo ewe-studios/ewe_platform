@@ -1,6 +1,10 @@
 //! Shared todo views and actions for server and on-device stores.
 pub use foundation_compact::uuid::UuidV4 as TodoId;
 pub(crate) mod pending;
+#[cfg(not(target_family = "wasm"))]
+mod mutations;
+#[cfg(all(feature = "server", not(target_family = "wasm")))]
+mod durable;
 use pending::{retry_todo, submit_delete, submit_todo};
 pub use pending::{Pending, PendingChange};
 
@@ -46,7 +50,20 @@ pub struct TodoApp {
 }
 
 #[derive(Default)]
-pub struct TodoStore(Mutex<StoreState>);
+pub struct TodoStore(
+    Mutex<StoreState>,
+    #[cfg(not(target_family = "wasm"))] CommitServices,
+);
+
+#[cfg(not(target_family = "wasm"))]
+#[derive(Default)]
+struct CommitServices {
+    gate: futures_util::lock::Mutex<()>,
+    #[cfg(all(feature = "server", not(target_family = "wasm")))]
+    database: Option<durable::Database>,
+    #[cfg(all(feature = "server", not(target_family = "wasm")))]
+    writer: Option<mutations::Writer>,
+}
 
 #[derive(Clone, Default)]
 struct StoreState {
@@ -63,10 +80,13 @@ struct StoreState {
     deferred: std::collections::BTreeMap<u64, RecordChange>,
     removed: std::collections::BTreeMap<TodoId, u64>,
     retired_ids: std::collections::BTreeSet<TodoId>,
+    #[cfg(not(target_family = "wasm"))]
     creations: std::collections::BTreeMap<TodoId, CreationReceipt>,
 }
 
-#[derive(Clone)]
+#[cfg(not(target_family = "wasm"))]
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct CreationReceipt {
     item: Todo,
     submitted_title: String,
@@ -106,7 +126,7 @@ impl TodoStore {
                 "Invalid restored todo identifiers",
             ));
         }
-        Ok(Self(Mutex::new(StoreState {
+        let state = StoreState {
             creations: items
                 .iter()
                 .cloned()
@@ -123,7 +143,8 @@ impl TodoStore {
                 .collect(),
             items,
             ..Default::default()
-        })))
+        };
+        Ok(Self(Mutex::new(state), CommitServices::default()))
     }
 
     /// Capture the view and its published cursor while mutations hold the same lock.
@@ -629,122 +650,20 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Vec<u8>>) -> 
     Ok(())
 }
 
-fn mutate(
-    ctx: &Context,
-    plan: impl FnOnce(&StoreState) -> Result<RecordChange, ErrorTrace<ActionError>>,
-) -> ActionResult {
-    let store = todo_store(ctx)?;
-    let mut state = store
-        .0
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    let change = plan(&state)?;
-    if let RecordChange::Remove(id) = &change {
-        if let Some(&position) = state.removed.get(id) {
-            return TodoDelivery::Committed { position, change }.send(ctx);
-        }
-    }
-    commit(ctx, &mut state, change)?.send(ctx)
-}
-
-fn commit(
-    ctx: &Context,
-    state: &mut StoreState,
-    change: RecordChange,
-) -> Result<TodoDelivery, ErrorTrace<ActionError>> {
-    let position = state
-        .position
-        .checked_add(1)
-        .ok_or_else(|| error("Todo stream position exhausted"))?;
-    #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    let position = match ctx.get::<crate::server::TodoFeed>() {
-        Some(feed) => feed
-            .publish(ctx.inner(), &change)
-            .map_err(|e| error(&e.to_string()))?,
-        None => position,
-    };
-    state.apply_change(&change);
-    if let RecordChange::Remove(id) = &change {
-        state.removed.insert(*id, position);
-    }
-    state.position = position;
-    Ok(TodoDelivery::Committed { position, change })
-}
-
 #[action(server)]
 async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResult {
-    let input = event.input_value;
-    let title = input.title.trim();
-    if title.is_empty() {
-        return Err(ErrorTrace::new(ActionError::new(
-            ErrorCode::InvalidInput,
-            "Enter a todo title",
-        )));
-    }
-    let store = todo_store(ctx)?;
-    let mut state = store
-        .0
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    if let Some(receipt) = state.creations.get(&input.id) {
-        if receipt.submitted_title != input.title {
-            return Err(ErrorTrace::new(ActionError::new(
-                ErrorCode::InvalidInput,
-                "The creation identifier already belongs to a different submission",
-            )));
-        }
-        let (position, change) = match state.removed.get(&receipt.item.id) {
-            Some(position) => {
-                TodoDelivery::Retired { id: input.id }.send(ctx)?;
-                (*position, RecordChange::Remove(receipt.item.id))
-            }
-            None => (receipt.position, RecordChange::Upsert(receipt.item.clone())),
-        };
-        return TodoDelivery::Committed { position, change }.send(ctx);
-    }
-    let item = Todo {
-        id: input.id,
-        text: title.to_owned(),
-        done: false,
-    };
-    let delivery = commit(ctx, &mut state, RecordChange::Upsert(item.clone()))?;
-    let position = state.position;
-    state.creations.insert(
-        input.id,
-        CreationReceipt {
-            item,
-            position,
-            submitted_title: input.title,
-        },
-    );
-    delivery.send(ctx)?;
-    Ok(())
+    mutations::apply(ctx, mutations::Command::Add(event.input_value)).await
 }
 
 #[action(server)]
 async fn toggle_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    let id = todo_id(&event.input_value)?;
-    mutate(ctx, |state| {
-        let mut item = state
-            .items
-            .iter()
-            .find(|row| row.id == id)
-            .cloned()
-            .ok_or_else(|| error("Todo does not exist"))?;
-        item.done = !item.done;
-        Ok(RecordChange::Upsert(item))
-    })
+    mutations::apply(ctx, mutations::Command::Toggle(todo_id(&event.input_value)?)).await
 }
 
 #[action(server)]
 async fn confirm_delete(ctx: &Context, event: Interaction<(), TodoId>) -> ActionResult {
     let id = event.input_value;
-    mutate(ctx, |state| {
-        if !state.removed.contains_key(&id) && !state.items.iter().any(|row| row.id == id) {
-            return Err(error("Todo does not exist"));
-        }
-        Ok(RecordChange::Remove(id))
-    })?;
+    mutations::apply(ctx, mutations::Command::Remove(id)).await?;
     TodoDelivery::Deleted { id }.send(ctx)
 }
 

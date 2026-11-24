@@ -1158,3 +1158,10 @@ An old pending file can outlive a confirmed request. A durable import receipt pr
 Conditional database updates protect a confirmed removal when a second screen retries with an older display cache.
 The database filename includes the complete old filename. This keeps same-stem files and old SQLite-named files separate.
 The database connection needs the host clock. An empty context map preserves that clock without keeping the closed screen alive.
+
+### Confirmed Todo records
+
+A disconnected client can drop its response while the database writes a record.
+An executor task must own the transaction through publication.
+Encoding the frame before the write prevents a formatting failure after the database accepts a change.
+The last position includes deleted records. The server uses that position when it resumes the stream.

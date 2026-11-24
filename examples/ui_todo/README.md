@@ -1,8 +1,8 @@
 # Todo actions on web and native screens
 
 The page uses shared Rust templates, a native Hypertext Transfer Protocol (HTTP) server and a browser WebAssembly module.
-The server owns one in-memory list. Each browser owns its dialog and filter settings.
-The example binds to a loopback address. Restarting the server clears the list.
+The server saves confirmed items in its database. Each browser owns its dialog and filter settings.
+The example binds to a loopback address. Restart it with the same database to recover its list.
 
 ## Run the example
 
@@ -209,14 +209,22 @@ Set `EWE_TODO_PEER_ANDROID_SERIAL` if the emulator uses a serial other than `emu
 Set `TEST_RUNNER_EWE_TODO_PEER_ANDROID=1` for the iPhone test.
 Each client adds, completes, reopens, and deletes one todo. The other two clients check the row after each change.
 
-### Restore a saved Todo list
+### Store and import Todo records
 
 The current backup contains an array of records with `id`, `text`, and `done` fields.
 Each identifier is a unique version 4 universally unique identifier (UUID).
-To restore a current backup, pass its path after the listen address.
+The server opens `todo.sqlite3` in its working directory by default.
+A new database contains no items and starts at stream position zero.
+Set `EWE_TODO_STORE` or pass `--store PATH` to use another database.
+One server owns the file while it publishes changes.
+Restarting the server restores confirmed records, deleted identifiers, and the last stream position.
+Older subscribers request a new snapshot when their cursor predates the restored history.
+
+Import a backup once into a new or empty database. Start the server with that database.
 
 ```sh
-ui_todo 127.0.0.1:8180 --restore current.json
+todo-maintenance import current.json todo.sqlite3
+ui_todo 127.0.0.1:8180 --store todo.sqlite3
 ```
 
 Convert a numeric backup once before restoring it.
@@ -224,7 +232,7 @@ Use new paths for both the converted backup and the private identifier map.
 
 ```sh
 umask 077
-ui_todo --convert-backup old.json current.json > id-map.tsv
+todo-maintenance convert old.json current.json > id-map.tsv
 ```
 
 Conversion preserves record order, titles, completion states, and valid creation identifiers.

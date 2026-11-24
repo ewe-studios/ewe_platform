@@ -1,8 +1,8 @@
-//! Verify conversion and restore through the installed server command.
+//! Verify maintenance commands and start the server on the imported database.
 use serde_json::{json, Value};
 use std::{
     fs,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read, Write},
     path::Path,
     process::{Command, Output, Stdio},
 };
@@ -11,12 +11,12 @@ use tempfile::tempdir;
 const EXISTING: &str = "34aaf305-1548-4201-bd23-f3ce099cfeb4";
 
 fn command() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_ui_todo"))
+    Command::new(env!("CARGO_BIN_EXE_todo-maintenance"))
 }
 
 fn convert(input: &Path, output: &Path) -> Output {
     command()
-        .arg("--convert-backup")
+        .arg("convert")
         .arg(input)
         .arg(output)
         .output()
@@ -25,8 +25,9 @@ fn convert(input: &Path, output: &Path) -> Output {
 
 fn rejects_restore(file: &Path) {
     let result = command()
-        .args(["127.0.0.1:0", "--restore"])
+        .arg("import")
         .arg(file)
+        .arg(file.with_extension("sqlite3"))
         .output()
         .unwrap();
     assert!(!result.status.success());
@@ -66,19 +67,57 @@ fn converts_in_order_and_restores_the_new_file() {
     assert!(!convert(&input, &input).status.success());
     assert_eq!(fs::read(&output).unwrap(), saved);
     assert_eq!(fs::read_to_string(&input).unwrap(), original);
-    let mut child = command()
-        .args(["127.0.0.1:0", "--restore"])
+    let database = dir.path().join("todos.sqlite3");
+    assert!(command()
+        .arg("import")
         .arg(&output)
+        .arg(&database)
+        .status()
+        .unwrap()
+        .success());
+    let repeated = command()
+        .arg("import")
+        .arg(&output)
+        .arg(&database)
+        .output()
+        .unwrap();
+    assert!(!repeated.status.success());
+    assert!(String::from_utf8_lossy(&repeated.stderr).contains("already contains Todo records"));
+    let mut child = Command::new(env!("CARGO_BIN_EXE_ui_todo"))
+        .args(["127.0.0.1:0", "--store"])
+        .arg(database)
         .stdout(Stdio::piped())
         .spawn()
         .unwrap();
     let mut address = String::new();
     let read = BufReader::new(child.stdout.take().unwrap()).read_line(&mut address);
+    let initial = (|| {
+        read?;
+        let host = address
+            .trim()
+            .strip_prefix("Open http://")
+            .and_then(|url| url.strip_suffix('/'))
+            .ok_or_else(|| std::io::Error::other("Missing server address"))?;
+        let mut socket = std::net::TcpStream::connect(host)?;
+        socket.set_read_timeout(Some(std::time::Duration::from_secs(10)))?;
+        write!(
+            socket,
+            "GET /initial HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
+        )?;
+        let mut response = Vec::new();
+        socket.read_to_end(&mut response)?;
+        Ok::<_, std::io::Error>(response)
+    })();
     let cleanup = child.kill();
     child.wait().unwrap();
     cleanup.unwrap();
-    read.unwrap();
-    assert!(address.starts_with("Open http://127.0.0.1:"));
+    let initial = initial.unwrap();
+    assert!(initial.starts_with(b"HTTP/1.1 200"));
+    for title in ["first", "second"] {
+        assert!(initial
+            .windows(title.len())
+            .any(|chunk| chunk == title.as_bytes()));
+    }
 }
 
 #[test]

@@ -1,5 +1,6 @@
 [package]
 name = "ui_todo"
+default-run = "ui_todo"
 version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
@@ -12,6 +13,7 @@ autobins = false
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
+async-channel = { workspace = true, optional = true }
 foundation_ui_gpu = { path = "../../backends/foundation_ui_gpu", optional = true }
 bytemuck = { version = "1.25.2", features = ["derive"] }
 font8x8 = "0.3.1"
@@ -73,10 +75,15 @@ workspace = true
 [features]
 mathalley-web = ["dep:foundation_ui_gpu", "dep:wasm-bindgen", "dep:js-sys", "dep:wasm-bindgen-futures","foundation_context/wasm-bindgen"]
 default = ["server"]
-server = ["dep:tempfile", "dep:foundation_resources", "dep:foundation_macros", "dep:foundation_nostd", "foundation_ui_runtime/action-server", "foundation_resources/browser-package", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+server = ["dep:async-channel", "foundation_db/libsql", "dep:tempfile", "dep:foundation_resources", "dep:foundation_macros", "dep:foundation_nostd", "foundation_ui_runtime/action-server", "foundation_resources/browser-package", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
 web = ["dep:wasm-bindgen", "foundation_wasm_ui/browser-storage", "foundation_ui_runtime/action-browser", "dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
 mobile = ["dep:foundation_ui_gpu", "foundation_ui_runtime/action-mobile", "foundation_ui_runtime/action-server", "dep:foundation_core", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "foundation_ui_native/storage", "dep:uniffi"]
 browser-tests = ["server", "dep:foundation_browser", "dep:foundation_codegen", "foundation_wasm_ui/build-hook"]
+
+[[bin]]
+name = "todo-maintenance"
+path = "src/bin/maintenance.rs"
+required-features = ["server"]
 
 [[bin]]
 name = "ui_todo"

@@ -1,60 +1,46 @@
-//! Start the example on a loopback address.
-#[path = "server/backup.rs"]
-mod backup;
-
-use std::io;
-use std::path::Path;
+//! Start the Todo service with a loopback listener and a persistent database.
+use foundation_ui_wire::writer::WriterConfig;
+use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
+use std::path::PathBuf;
 
 #[foundation_core::valtron::valtron(seed = 0)]
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut args = std::env::args_os().skip(1);
-    let command = args.next();
-    let limit = foundation_ui_wire::WireLimits::default().frame_bytes() as u64;
-    if command.as_deref() == Some(std::ffi::OsStr::new("--convert-backup")) {
-        let input = args
-            .next()
-            .ok_or("Pass the numeric backup and a new output path")?;
-        let output = args
-            .next()
-            .ok_or("Pass a new output path for the UUID backup")?;
-        if args.next().is_some() {
-            return Err("Unexpected argument after the output path".into());
+    let mut args = std::env::args_os().skip(1).peekable();
+    let address = args
+        .next_if(|value| value != "--store")
+        .unwrap_or_else(|| "127.0.0.1:8180".into());
+    let path = match args.next() {
+        Some(flag) if flag == "--store" => {
+            PathBuf::from(args.next().ok_or("Pass a database path after --store")?)
         }
-        let ctx = foundation_context::Ctx::try_host()?;
-        foundation_core::env::install(&ctx, foundation_core::env::system)?;
-        return backup::convert(
-            &ctx,
-            Path::new(&input),
-            Path::new(&output),
-            limit,
-            io::stdout().lock(),
-        );
+        Some(_) => return Err("Use ui_todo [ADDRESS] [--store PATH]".into()),
+        None => std::env::var_os("EWE_TODO_STORE")
+            .map_or_else(|| PathBuf::from("todo.sqlite3"), PathBuf::from),
+    };
+    if args.next().is_some() {
+        return Err("Unexpected server argument".into());
     }
-    let bind = command
-        .as_deref()
-        .unwrap_or(std::ffi::OsStr::new("127.0.0.1:8180"))
-        .to_str()
-        .ok_or("The listen address must be valid text")?;
-    let listener = std::net::TcpListener::bind(bind)?;
-    if !listener.local_addr()?.ip().is_loopback() {
+    let listener = std::net::TcpListener::bind(address.to_str().ok_or("Invalid listen address")?)?;
+    let address = listener.local_addr()?;
+    if !address.ip().is_loopback() {
         return Err("The single-user example requires a loopback address".into());
     }
-    let mode = args.next();
-    let mode = mode.as_deref().and_then(std::ffi::OsStr::to_str);
-    let app = if mode == Some("--restore") {
-        let path = args.next().ok_or("Pass the todo backup path")?;
-        if args.next().is_some() {
-            return Err("Unexpected argument after the restore path".into());
-        }
-        ui_todo::server::app_with_todos(backup::restore(Path::new(&path), limit)?)?
-    } else {
-        ui_todo::server::app_with_todos(Vec::new())?
-    };
-    println!("Open http://{}/", listener.local_addr()?);
-    app.server(&listener.local_addr()?.to_string())
-        .serve_with_listener(
-            &listener,
-            &std::sync::Arc::new(foundation_http::ShutdownSignal::new()),
-        );
+    let ctx = foundation_context::Ctx::try_host()?;
+    foundation_core::env::install(&ctx, foundation_core::env::system)?;
+    let store = foundation_core::valtron::block_on_future(async move {
+        ui_todo::TodoStore::open(&ctx, &path).await
+    })?;
+    let channel = LiveChannel::resume(
+        1,
+        store.position(),
+        BacklogConfig::default(),
+        WriterConfig::default(),
+    );
+    let app = ui_todo::server::app_with_store(store, channel)?;
+    println!("Open http://{address}/");
+    app.server(&address.to_string()).serve_with_listener(
+        &listener,
+        &std::sync::Arc::new(foundation_http::ShutdownSignal::new()),
+    );
     Ok(())
 }

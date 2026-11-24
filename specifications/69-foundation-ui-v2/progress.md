@@ -1448,3 +1448,12 @@ Each Todo server has its own SQLite file. Each pending request uses its original
 A transaction writes each imported record and its receipt together. The old JSON file remains available for recovery.
 Four database tests passed. They cover rollback, concurrent connections, import receipts, and timestamps from the host clock.
 The SQLite provider passed release checks for Android arm64 and the iPhone arm64 simulator. Application tests are in progress.
+
+### Confirmed Todo records
+
+The server saves each submission, receipt, current value or deletion, and stream position in one record.
+The maintenance command imports confirmed records and converts old backups.
+All seven durable store tests pass. They cover restart, malformed content, cancellation, concurrent writes, encoding failure, and database errors.
+All ten live channel tests and three maintenance command tests pass.
+Three independent server processes used the same temporary database. The second process served the original item through the initial page and GetTodo.
+The third process rejected a lookup after deletion. Retrying the original creation kept the tombstone at position two.
