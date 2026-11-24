@@ -183,7 +183,7 @@ Set `EWE_ANDROID_SERIAL` to reuse a running emulator. Use a full system image fo
 
 ## Todo search and iPhone entry revision
 
-Status: Awaiting owner approval.
+The owner approves this revision on 2026-11-25.
 
 Compare the [Android capture](design/android-search-before.png) and [iPhone capture](design/ios-search-before.png) with the [proposed layout](design/search-and-entry.html).
 
