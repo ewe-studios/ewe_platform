@@ -690,6 +690,13 @@ fn main() {
 
     // Build with Cmake
 
+    // A cached CMake build tree keeps the old runtime flags. Start from a
+    // fresh configuration so the runtime fragment below takes effect.
+    #[cfg(windows)]
+    {
+        let _ = std::fs::remove_dir_all(out_dir.join("build"));
+    }
+
     let mut config = Config::new(&llama_src);
 
     // The Rust static library on Windows uses the static C runtime
