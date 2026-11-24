@@ -6872,6 +6872,8 @@ dependencies = [
  "foundation_ui_traits",
  "foundation_ui_wire",
  "hmac 0.13.0",
+ "rmp",
+ "rmp-serde",
  "serde",
  "serde_json",
  "sha2 0.11.1",

@@ -30,6 +30,7 @@ mod signer_context_tests;
 mod state_keys_tests;
 mod state_signer_tests;
 mod support;
+mod view_data_tests;
 #[cfg(not(target_family = "wasm"))]
 mod view_fail_tests;
 mod view_lower_tests;

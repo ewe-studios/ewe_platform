@@ -26,6 +26,8 @@ sha2 = { workspace = true }
 subtle = { workspace = true }
 zeroize = { workspace = true }
 
+rmp = { workspace = true }
+rmp-serde = { workspace = true }
 serde = { workspace = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
