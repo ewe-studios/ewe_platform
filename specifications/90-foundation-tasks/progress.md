@@ -385,3 +385,6 @@ Feature 5 now specifies package-owned embedded scripts, platform selection, and 
 Feature 5 specifies Rust task implementations by default. Embedding applies only to scripts with a documented execution requirement.
 
 The owner approves Feature 5 for implementation. The Specification 90 agent resumes work on ewe_ui.
+## Feature 4 publication credentials
+
+The owner approves Feature 4. The plan specifies token lookup and secret handling for package publication.

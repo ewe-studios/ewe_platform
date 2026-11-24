@@ -249,3 +249,6 @@ The Android Todo identifiers come from its Gradle application modules. The curre
 The existing template generator uses EmbedDirectoryAs with always_embed. Task providers can use the same pattern for script directories in both build profiles.
 
 An external tool requirement can be independent of a script requirement. Rust can invoke the platform tool directly and check its result.
+## Feature 4 publication credentials
+
+The publication process can read a literal token assignment without running shell commands from the user environment file.
