@@ -5289,6 +5289,7 @@
         NodeKind2[NodeKind2["SUBMIT_BUTTON"] = 23] = "SUBMIT_BUTTON";
         NodeKind2[NodeKind2["CANCEL_BUTTON"] = 24] = "CANCEL_BUTTON";
         NodeKind2[NodeKind2["DRAWING_SURFACE"] = 25] = "DRAWING_SURFACE";
+        NodeKind2[NodeKind2["SEARCH_INPUT"] = 26] = "SEARCH_INPUT";
         return NodeKind2;
     })(NodeKind || {});
     var CreateNode = class _CreateNode {
@@ -9278,7 +9279,7 @@
         unionToUiOperation: unionToUiOperation,
         unionToWebOperation: unionToWebOperation
     };
-    const VOCABULARY_VERSION = 12;
+    const VOCABULARY_VERSION = 13;
     const STRUCTURED_INPUT_VERSION = 9;
     const PROP_KIND = Object.freeze([
         null,
@@ -9492,6 +9493,16 @@
             tag: "canvas",
             cls: "ewe-drawing-surface",
             attrs: Object.freeze([])
+        }),
+        Object.freeze({
+            tag: "input",
+            cls: "ewe-search-input",
+            attrs: Object.freeze([
+                Object.freeze([
+                    "type",
+                    "search"
+                ])
+            ])
         })
     ]);
     const WEB_EVENTS = Object.freeze([
@@ -13953,7 +13964,9 @@
                 case "BindAction":
                 case "UnbindAction":
                     {
-                        const el = this.node(m.nodeId), event = WEB_EVENTS[m.event];
+                        const el = this.node(m.nodeId);
+                        const liveSearch = m.event === mod.EventId.CHANGE && this.sharedKinds.get(el) === "SEARCH_INPUT";
+                        const event = liveSearch ? "input" : WEB_EVENTS[m.event];
                         if (!event) throw problem("UnknownOp");
                         const attr = "primal:on" + event;
                         const dispatcher = this.deps.dispatcher ?? this.deps.runtime?.dispatcher;
@@ -14814,7 +14827,7 @@
         }
         hello() {
             const b = new Builder();
-            const hello = new ClientHelloT(12, Platform.Web, MountSurface.Web, 0n, true, this.deps.server?.requestTag ?? 0n);
+            const hello = new ClientHelloT(13, Platform.Web, MountSurface.Web, 0n, true, this.deps.server?.requestTag ?? 0n);
             return finishRequest(b, new FrameRequestT(null, hello).pack(b), 0n, 0n);
         }
         applyCaps(caps) {

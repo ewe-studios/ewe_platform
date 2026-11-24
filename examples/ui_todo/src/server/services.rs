@@ -58,7 +58,8 @@ pub(super) fn channel(id: u64) -> LiveChannel {
     LiveChannel::new(id, BacklogConfig::default(), WriterConfig::default())
 }
 
-pub(super) struct Todos;
+/// Serve Todo records through the generated data procedure.
+pub struct Todos;
 impl crate::todo_rpc::Todos for Todos {
     #[expect(
         clippy::unused_async_trait_impl,

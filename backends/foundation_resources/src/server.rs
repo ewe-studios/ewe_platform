@@ -19,11 +19,30 @@ use std::{
 /// # Errors
 /// Returns an error if the executable path or parent is unavailable.
 pub fn sibling_public(package: &str) -> io::Result<PathBuf> {
-    Ok(std::env::current_exe()?
+    let exe = std::env::current_exe()?;
+    let dir = exe
         .parent()
-        .ok_or_else(|| io::Error::other("The executable has no parent directory"))?
-        .join("public")
-        .join(package))
+        .ok_or_else(|| io::Error::other("The executable has no parent directory"))?;
+    let adjacent = dir.join("public").join(package);
+    if adjacent.try_exists()? {
+        return Ok(adjacent);
+    }
+    // Cargo places test executables in the profile's deps directory or build artifact directory.
+    let profile = match dir.file_name().and_then(|name| name.to_str()) {
+        Some("deps" | "examples") => dir.parent(),
+        Some("out") => dir
+            .ancestors()
+            .nth(3)
+            .filter(|p| p.ends_with("build"))
+            .and_then(Path::parent),
+        _ => None,
+    };
+    if let Some(profile) = profile {
+        if profile.join(".cargo-lock").try_exists()? {
+            return Ok(profile.join("public").join(package));
+        }
+    }
+    Ok(adjacent)
 }
 
 /// Register each declared file. The optional index also serves the root route.

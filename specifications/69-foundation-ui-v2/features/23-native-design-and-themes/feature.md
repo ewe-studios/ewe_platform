@@ -180,3 +180,31 @@ The iPhone uses accessibility large text. The Pixel uses a font scale of 1.4.
 Use `TEST_RUNNER_EWE_REVIEW_THEMES=1` with `scripts/ui_native/test-ios-todo.sh DEVICE` to record the iPhone attachments.
 Use `EWE_THEME_CAPTURES=DIRECTORY` with `scripts/ui_native/test-android-todo.sh` to record the Pixel images.
 Set `EWE_ANDROID_SERIAL` to reuse a running emulator. Use a full system image for screenshots.
+
+## Todo search and iPhone entry revision
+
+The owner approves this revision on 2026-11-25.
+
+Compare the [Android capture](design/android-search-before.png) and [iPhone capture](design/ios-search-before.png) with the [proposed layout](design/search-and-entry.html).
+
+1. Give search an explicit typed control in the shared view. Preserve its query, label, and change action.
+2. Map the control to a Material 3 search field on Android. Use theme colors, a leading search icon, and a clear action.
+3. Use the native search field below the navigation title on iPhone. Support clearing, keyboard dismissal, and live filtering.
+4. Preserve the search action in the browser renderer. Keep ordinary form fields independent.
+5. Present iPhone entry as one sheet that slides from the bottom. Round only its upper corners.
+6. Extend its background to the physical bottom edge. Keep the text field and both buttons above the home indicator.
+7. Move controls above the keyboard. Allow vertical scrolling at large text sizes. Preserve draft, submit, and cancel behavior.
+8. Verify both mobile hosts with empty and populated queries. Check light and dark appearances, large text, and keyboard transitions.
+9. Capture the open sheet with and without the keyboard. Verify that no strip of the list shows below the sheet.
+
+### Search and entry checks
+
+Todo Server and Todo On Device use the same search control on each platform.
+Typing filters the visible list. Clearing the query restores matching rows for the selected status filter.
+Pending titles follow the same search rules as confirmed titles.
+
+| Device | Search | Entry and keyboard |
+|---|---|---|
+| Pixel | [Light](design/android-search-light.png) and [large dark text](design/android-search-dark-large.png) | [Search with the keyboard open](design/android-search-keyboard.png) |
+| iPhone | [Light](design/ios-native-search.png) and [large dark text](design/ios-dark-native-search.png) | [Attached sheet](design/ios-entry-attached.png) and [keyboard](design/ios-entry-keyboard.png) |
+| iPhone with large dark text | [Search](design/ios-dark-native-search.png) | [Attached sheet](design/ios-dark-entry-attached.png) and [keyboard](design/ios-dark-entry-keyboard.png) |

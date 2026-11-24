@@ -372,6 +372,16 @@ Android reads the launch theme from the manifest before Compose draws. iOS reads
 
 The project packager copies binary template files unchanged. Android and iOS can share the same source images.
 
+Cargo can place integration executables below the profile's build directory.
+The resource provider first checks for files beside the executable.
+A Cargo profile marker identifies the shared public directory during integration tests.
+The browser bundle needs the script location to resolve binary assets below a website path.
+Generated JavaScript can supply this location without adding a public script request.
+
+Temporary files default to owner-only permissions on Unix.
+The public asset copy retains this mode. Issue #832 tracks the fix for generated files.
+The writer now requests normal file permissions and respects the process creation mask.
+
 The application script location supplies the base for binary assets when a website mounts the application below its root.
 A private generated module shares the configured path with Rust packaging and browser startup.
 A successful WebAssembly compilation reports the actual binary request to the test server.
@@ -379,3 +389,6 @@ A successful WebAssembly compilation reports the actual binary request to the te
 Android selects night colors from the qualified resource directory.
 Apple selects the dark variant from the asset catalog appearance. A universal launcher requires a square, opaque 1024-pixel image.
 The helper scales the source icon and validates all inputs before replacing a native resource set.
+
+The browser can call Connect and stream the icon without loading the game binary.
+Chromium records the game request only after the Play action. This distinguishes lazy loading from a cached second request.

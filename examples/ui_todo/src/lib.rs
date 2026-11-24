@@ -1,4 +1,6 @@
 //! Todo views, actions, and host entry points.
+pub mod mathalley;
+mod theme;
 pub mod shared;
 pub use shared::*;
 

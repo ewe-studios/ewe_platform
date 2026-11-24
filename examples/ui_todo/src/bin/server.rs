@@ -41,30 +41,14 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
     let mode = args.next();
     let mode = mode.as_deref().and_then(std::ffi::OsStr::to_str);
-    let app = if mode == Some("--data-only") {
-        ui_todo::server::data_app()?
-    } else {
-        if mode == Some("--restore") {
-            let path = args.next().ok_or("Pass the todo backup path")?;
-            if args.next().is_some() {
-                return Err("Unexpected argument after the restore path".into());
-            }
-            ui_todo::server::app_with_todos(backup::restore(Path::new(&path), limit)?)?
-        } else if let Some(history) = std::env::var_os("EWE_TODO_HISTORY") {
-            use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
-            let limit = history
-                .to_str()
-                .ok_or("Expected a replay history length")?
-                .parse()?;
-            let channel = LiveChannel::new(
-                1,
-                BacklogConfig::default().max_frames(limit),
-                foundation_ui_wire::writer::WriterConfig::default(),
-            );
-            ui_todo::server::app_with_channel(channel)?
-        } else {
-            ui_todo::server::app()?
+    let app = if mode == Some("--restore") {
+        let path = args.next().ok_or("Pass the todo backup path")?;
+        if args.next().is_some() {
+            return Err("Unexpected argument after the restore path".into());
         }
+        ui_todo::server::app_with_todos(backup::restore(Path::new(&path), limit)?)?
+    } else {
+        ui_todo::server::app_with_todos(Vec::new())?
     };
     println!("Open http://{}/", listener.local_addr()?);
     app.server(&listener.local_addr()?.to_string())

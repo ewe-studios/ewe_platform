@@ -14,6 +14,7 @@ pub fn core_kind(tag: &str) -> Option<NodeKind> {
         "Image" => NodeKind::IMAGE,
         "Button" => NodeKind::BUTTON,
         "TextInput" => NodeKind::TEXT_INPUT,
+        "SearchInput" => NodeKind::SEARCH_INPUT,
         "Toggle" => NodeKind::TOGGLE,
         "List" => NodeKind::LIST,
         "Scroll" => NodeKind::SCROLL,

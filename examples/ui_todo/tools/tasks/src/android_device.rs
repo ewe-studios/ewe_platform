@@ -189,7 +189,7 @@ impl Device<'_> {
                 .await?;
             self.ui("offline").await?;
         }
-        device::server(self.ctx, self.root, exe, false, |url| {
+        device::server(self.ctx, self.root, exe, |url| {
             self.connected(url, |url| async move {
                 if !todo {
                     self.install(starter.join("app/build/outputs/apk/debug/app-debug.apk"))
@@ -213,7 +213,7 @@ impl Device<'_> {
                     .await?;
                 self.start(&url).await?;
                 self.ui("server").await?;
-                device::server(self.ctx, self.root, exe, true, |data| {
+                device::data_server(self.ctx, self.root, |data| {
                     self.connected(data, |data| async move {
                         self.instrument(
                             &["-e", "data", "true", "-e", "server", &data],

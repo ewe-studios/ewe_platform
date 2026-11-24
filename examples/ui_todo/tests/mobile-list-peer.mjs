@@ -23,8 +23,8 @@ async function waitFor(read, description, timeoutMs = 15000) {
 const profile = await mkdtemp(join(tmpdir(), "todo-list-peer-"));
 const externalBase = process.env.EWE_TODO_PEER_BASE;
 const title = process.env.EWE_TODO_PEER_TITLE ?? "Browser peer todo";
-const proxy = externalBase ? null : spawn(process.execPath, ["examples/ui_todo/tests/recovery-proxy.mjs"], {
-  env: { ...process.env, EWE_TODO_HISTORY: "16" }, stdio: ["ignore", "pipe", "inherit"],
+const proxy = externalBase ? null : spawn(process.execPath, ["examples/ui_todo/tests/recovery-proxy.mjs", "0", "16"], {
+  stdio: ["ignore", "pipe", "inherit"],
 });
 const run = promisify(execFile);
 const adb = process.env.EWE_TODO_PEER_ADB;

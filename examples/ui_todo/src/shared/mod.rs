@@ -95,10 +95,20 @@ impl StoreState {
 }
 
 impl TodoStore {
-    /// Builds a store with its existing task identifiers.
+    /// Build a store with its existing task identifiers.
+    ///
+    /// # Errors
+    /// Return an error when records have duplicate identifiers.
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    pub(crate) fn with_items(items: Vec<Todo>) -> Self {
-        Self(Mutex::new(StoreState {
+    pub fn with_items(items: Vec<Todo>) -> Result<Self, std::io::Error> {
+        let mut ids = std::collections::HashSet::with_capacity(items.len());
+        if items.iter().any(|item| !ids.insert(item.id)) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Invalid restored todo identifiers",
+            ));
+        }
+        Ok(Self(Mutex::new(StoreState {
             creations: items
                 .iter()
                 .cloned()
@@ -115,7 +125,7 @@ impl TodoStore {
                 .collect(),
             items,
             ..Default::default()
-        }))
+        })))
     }
 
     /// Capture the view and its published cursor while mutations hold the same lock.
@@ -167,16 +177,7 @@ pub fn install_view_services(
     Ok(())
 }
 
-/// Defines the optional application theme for the three renderers.
-#[must_use]
-pub fn todo_theme() -> foundation_theme::GeneratedTheme {
-    foundation_theme::Theme::new()
-        .color("primary", "#155f59", Some("#9ae4d8"))
-        .spacing("md", "8px")
-        .spacing("lg", "12px")
-        .spacing("sm", "4px")
-        .build()
-}
+pub use crate::theme::todo_theme;
 
 fn row(item: &Todo) -> Html {
     let id = item.id.to_string();
@@ -196,7 +197,7 @@ pub fn app(ctx: &Context, state: &TodoApp) -> ActionResult {
     full_view(ctx, ctx.receiver(), &page_tree(state), None::<&()>)
 }
 
-fn list(state: &TodoApp) -> Html {
+fn list(state: &TodoApp, query: &str) -> Html {
     let rows = state
         .items
         .iter()
@@ -215,7 +216,10 @@ fn list(state: &TodoApp) -> Html {
         .pending
         .values()
         .filter_map(|pending| match &pending.change {
-            PendingChange::Add { title, .. } if state.filter != Filter::Done => {
+            PendingChange::Add { title, .. }
+                if state.filter != Filter::Done
+                    && (query.is_empty() || title.to_lowercase().contains(query)) =>
+            {
                 Some(pending_row(title, "Pending", pending))
             }
             _ => None,
@@ -258,17 +262,18 @@ fn filters(filter: &Filter) -> Html {
 }
 
 fn search_input(query: &str) -> Html {
-    html! { <TextInput id="todo-search" a11y_label="Search todos" placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
+    html! { <SearchInput id="todo-search" a11y_label="Search todos" placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
 }
 
 pub(crate) fn page_tree(state: &TodoApp) -> Html {
     let search = search_input("");
     let controls = filters(&state.filter);
-    let rows = list(state);
+    let rows = list(state, "");
     let footer = open_count(state.items.iter().filter(|item| !item.done).count());
     html! { <Stack>
         <NavigationTitle>Todos</NavigationTitle>
         <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
+        <Button on:tap={open_mathalley}>Play Mathalley</Button>
         {search}
         {controls}{rows}{footer}
         <Text id="notification"/><Stack id="dialog"/>
@@ -348,6 +353,13 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
         </Either>
     </Stack> };
     replace(ctx, "#dialog", tree)
+}
+
+#[action(host)]
+async fn open_mathalley(ctx: &Context, _event: Interaction<()>) -> ActionResult {
+    let signal = crate::mathalley::route::open_command().map_err(|cause| error(&cause.to_string()))?;
+    ctx.receiver().data_in_view(signal);
+    Ok(())
 }
 
 #[action(host)]
@@ -459,7 +471,8 @@ impl StoreState {
         if let Some(rows) = &self.search_rows {
             state.items.clone_from(rows);
         }
-        replace(ctx, "#todo-list", list(&state))
+        let query = self.query.trim().to_lowercase();
+        replace(ctx, "#todo-list", list(&state, &query))
     }
 }
 
@@ -763,6 +776,7 @@ fn action_registry(
 ) -> Result<ActionRegistry, RegistrationError> {
     let mut registry = ActionRegistry::new();
     registry.register_for(owner, initialize_todos)?;
+    registry.register_for(owner, open_mathalley)?;
     registry.register_for(owner, open_add_dialog)?;
     registry.register_for(owner, open_delete_dialog)?;
     registry.register_for(owner, close_dialog)?;

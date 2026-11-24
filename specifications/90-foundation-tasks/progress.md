@@ -549,6 +549,16 @@ Feature 5 now proposes shared startup views and generated launch settings for An
 Feature 5 now includes editable launch assets. The generator supplies two images and a theme file for each mobile project.
 Native build integration and replacement checks remain open.
 
+The browser package hook now accepts generated manifest inputs and an application WebAssembly (Wasm) path.
+Todo uses the hook to generate its style sheet and version file.
+Its server mounts one resource provider. The browser entry reads the private module location.
+An independent Cargo application checks the default binary location and a nested location in Chromium.
+The clean build and Mathalley integration checks are in progress.
+
+The independent Cargo hook test passes for generated inputs and recovery after failure.
+The reviewed graphics inputs are integrated in the working tree.
+The mobile task starts the standalone `todo_data_fixture` executable. It accepts a separate prebuilt fixture path.
+
 The public browser build hook now accepts a relative path for the application WebAssembly binary.
 An independent Cargo consumer runs under a website subdirectory in Chromium.
 It fetches one application script and compiles both the default binary and a configured nested binary in separate builds.
@@ -558,3 +568,9 @@ The shared native build helper compiles an Android resource tree and an Apple as
 Android's resource compiler linked both background colors and the launcher. Apple's asset compiler produced the launcher images and asset archive.
 The Cargo consumer replaced both images and the theme under their original names without cleaning.
 Two native resource tests and strict Clippy passed. Installed generated application checks remain open.
+
+Chromium opens the packaged Todo with the Connect transport and sends a real exchange.
+The resource provider streams the packaged icon. The browser requests one JavaScript file.
+Opening Mathalley requests its binary once, draws the title, and returns to Todo.
+The relocated application serves the style sheet, script, four WebAssembly binaries, and version file.
+Editing the relocated version file changes the development server response.

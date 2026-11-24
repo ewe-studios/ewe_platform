@@ -1326,3 +1326,81 @@ The standalone storage test starts Chromium with popup windows enabled. The nati
 The final default-server Todo run passes 14 tests on macOS and ignores one live mobile-peer test.
 The two browser storage tests pass in 29.03 seconds. The server and host action test also passes.
 The new test targets verify concurrent confirmation and migration separately. Issue #784 remains open for the independent HTTP stall.
+
+The owner reports search styling defects on both mobile platforms and a gap under the iPhone entry sheet. Feature 23 contains the proposed revision.
+
+Todo now declares search with the shared SearchInput control. Vocabulary version 13 adds this control.
+The wire suite passes all 96 tests. The JavaScript runtime suite passes 160 tests and skips one.
+Both mobile renderers are under test.
+
+Issue #820 tracks pending additions that ignore search. Both Android Todo hosts now filter pending titles and restore them after clearing.
+All three Rust mobile tests pass. The runtime suite passes all 80 tests.
+
+### Android search verification
+
+The Pixel emulator passes the search control test. The test checks editing, keyboard submission, clearing, restored values, and disabled controls.
+Todo Server displays two tasks with an empty query. Search for “Review” displays the matching task. Clear restores both tasks.
+The server test uses a local relay that rejects writes. Both original tasks remain on the shared server.
+
+Compare the [light screen](features/23-native-design-and-themes/design/android-search-light.png), [open keyboard](features/23-native-design-and-themes/design/android-search-keyboard.png), and [large dark text](features/23-native-design-and-themes/design/android-search-dark-large.png).
+
+### iPhone search and sheet verification
+
+Both iPhone Todo hosts pass their search checks. The on-device test runs in light and dark appearances.
+The large-text test checks that the keyboard leaves both sheet buttons visible.
+The sheet reaches the physical bottom edge when the keyboard closes.
+After the tests, the iPhone and Pixel show both original tasks from the server on port 8181.
+
+## Feature 36. Mathalley
+
+The owner approves Feature 36. Work starts on branch `work/69-mathalley` at `279a5fa2b`.
+The reference commit is `11052a15411ed1534c2ba9e5f982fd7dc975ffaf`.
+
+## Shared audio proposal
+
+The owner approves the Feature 36 host sound session. The graphics agent owns implementation and playback checks.
+
+### Mathalley integration checkpoint
+
+The game runs on branch `work/69-mathalley` in `.worktrees/mathalley`.
+Five Rust tests pass on macOS. A seeded run completes both games, three rounds, the tally, and restart.
+The other tests check letterbox input, paused time, cues, volume, and independent sound sessions.
+
+Chrome opens both games through the shared entry. A second client changes the count while the game is open.
+Chrome retains the selected filter across two opens. Its independent sound output test passes.
+The browser host copies a presented game pixel to its own texture. The Rust device lease exchanges red and blue.
+The host reads the changed pixel from the same texture.
+
+The iPhone 17 simulator presents the game twice and returns to the selected filter.
+A second client adds a task while the iPhone displays the game. The server-backed test passes.
+The iPhone drawable measures 1206 by 2241 pixels. Issue #722 tracks the old device limit of 2048 pixels.
+The repair requests the adapter resolution limit and rejects unsupported surface sizes before configuration.
+
+The Android application displays Train on the Arm emulator with the Vulkan graphics backend.
+Two open and close cycles preserve the task and filter. The application also survives a background and foreground transition.
+Browser, iPhone, and Android game captures are in the Feature 36 screenshots directory.
+
+Chrome, iPhone, and Android each receive a task from a second client while Mathalley is open.
+Each host shows both tasks when the user returns. The iPhone and Android tests use simulators.
+Seed 13 selects two Train levels followed by Gumball. All three hosts display both scenes and receive answer input.
+The iPhone and Android tests rotate the game. The rendered Gumball scene survives the change.
+The screenshots directory contains the Train and Gumball scenes for each host.
+The iPhone screenshots also include Gumball in landscape.
+The iPhone Metal regression passes with a large drawable and rejects an unsupported resize.
+All ten native graphics tests pass on macOS. Strict Clippy passes for the mobile and WebAssembly example builds.
+
+Each native sound test compares seeded music with the same music plus the intro cue.
+Both hosts preserve mute across a pause and resume. Closing the game releases only its own output.
+Apple renders samples from the second view through its audio engine. Android advances playback through its audio track.
+The browser uses Web Audio. Physical phone speakers and operating system interruption notifications still need a device review.
+
+The Todo build now packages the Mathalley browser library with the other application resources.
+Its JavaScript bindings remain private. The game requests its binary when the player opens its view.
+The browser regression check uses the production bundle and records resource requests across two game visits.
+The package task `todo:test-android-game` now runs the Android capture check.
+
+Issue #834 blocks delivery of the Mathalley action. The old hosts reject the 14-byte string because they expect 13 bytes.
+Rust now uses one command type for both encoding and classification.
+The standalone regression accepts the real action and rejects malformed messages.
+The signed iPhone 17e opens Mathalley, keeps the Todo subscription, and passes the independent sound test.
+Chromium opens the game from the production bundle and returns to Todo. Android verification remains in progress.

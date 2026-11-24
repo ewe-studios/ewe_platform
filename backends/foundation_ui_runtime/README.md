@@ -199,6 +199,15 @@ fn todo_page(ctx: &Context, list: &TodoList) -> ActionResult {
 The page handler and action use the same render function. The root and the marked input each receive the same signed snapshot.
 The next submit carries the bytes on the input. Ordinary element attributes remain application data.
 
+Use `SearchInput` when a query filters content as the user types.
+The change action receives the current query. Clearing the field sends an empty string.
+Vocabulary version 13 adds this control. Older clients receive a `TextInput`.
+
+```rust
+html! { <SearchInput id="todo-search" a11y_label="Search todos"
+    placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
+```
+
 If the action queues state and then returns an error, the host receives the error and drops the queued output.
 For example, a title check can return `Err(ErrorTrace::new(ActionError::new(ErrorCode::ActionFailed, "Enter a todo title")))`.
 The client retains its previous view and attachment. The integration test exercises this case while another caller completes a submit.

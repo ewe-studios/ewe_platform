@@ -115,7 +115,14 @@ import SwiftUI
         content = AnyView(EweCheckmarkButton(node: n, checked: n.props[.checked] == .bool(true)) {
           screen.sendButton(n, draft: sheetDraft)
         })
-      case .textInput:
+      case .textInput, .searchInput:
+        #if os(iOS)
+          if n.kind == .searchInput {
+            content = AnyView(EweSearchField(node: n, bridge: screen.bridge)
+              .padding(.horizontal, 8))
+            break
+          }
+        #endif
         let text = Binding<String>(
           get: { sheetDraft?.value(for: n) ?? input },
           set: { value in

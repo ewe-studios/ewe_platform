@@ -147,10 +147,13 @@ impl GraphicsDevice {
         {
             return Err(GpuError::Unsupported);
         }
+        // Surface dimensions use the adapter's native resolution.
+        let mut limits = config.limits.clone();
+        limits.max_texture_dimension_2d = adapter.limits().max_texture_dimension_2d;
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
                 required_features: config.features,
-                required_limits: config.limits.clone(),
+                required_limits: limits,
                 ..Default::default()
             })
             .await

@@ -142,7 +142,15 @@ extension EnvironmentValues {
       ScrollView { panel }
     }
     .frame(maxWidth: .infinity)
-    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+    .background {
+      UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20)
+        #if os(iOS)
+        .fill(Color(uiColor: .secondarySystemGroupedBackground))
+        #else
+        .fill(.background)
+        #endif
+        .ignoresSafeArea(.container, edges: .bottom)
+    }
     .environment(\.eweSheetDraft, draft)
   }
 

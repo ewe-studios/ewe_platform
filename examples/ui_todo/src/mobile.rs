@@ -92,6 +92,7 @@ fn todo_context() -> Result<Ctx, CoreError> {
             detail: e.to_string(),
         })?,
     );
+    ctx.store(foundation_ui_runtime::sound::SoundHost(Arc::new(foundation_ui_runtime::sound::PullOutput)));
     crate::install_cache(&ctx);
     crate::install_view_services(&ctx, foundation_ui_runtime::action::Origin::Host).map_err(
         |e| CoreError::Write {

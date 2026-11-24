@@ -1068,3 +1068,58 @@ The storage regression uses the browser reload operation. It waits until the new
 
 Six clients also request scripts from the normal Todo server with Python's HTTP client. Three connections stall after 41, 63, and 85 successful requests.
 This reproduction uses no browser or storage service. The default server remains in the browser test fixture.
+
+The Todo search uses a generic text input. The iPhone sheet gives only its dim background permission to extend beyond the safe area.
+
+The markup parser and the runtime lowering table both require an entry for each built-in control.
+Existing clients can use the search query through the ordinary text field in older vocabulary versions.
+
+The list appends pending additions after it selects confirmed search results.
+Both paths need the same case and whitespace rules. Filtering the view preserves the pending operation for retry.
+
+### Android search and simulator checks
+
+Both Android Todo hosts load their native action core from the application library.
+The library must support vocabulary version 13 before the server sends the search control.
+An older application library requests the ordinary text field for compatibility.
+
+The Pixel emulator received 17 seconds of processor time in 12 minutes under default service scheduling.
+The same emulator connected in 47 seconds when its macOS service selected interactive scheduling.
+
+The Android on-device build leaves new tasks pending without a server. [Issue 821](https://github.com/ewe-studios/ewe_platform/issues/821)
+Light mode uses white system status icons above a light background. [Issue 819](https://github.com/ewe-studios/ewe_platform/issues/819)
+
+The iPhone test closes its application during cleanup. A successful test does not establish what the owner sees afterward.
+Open Todo Server after the last test. Check a new simulator screenshot for the expected task titles after startup.
+
+## Feature 36. Mathalley
+
+The reference separates the game, scene, renderer, and sound score. Its browser host owns the frame loop.
+The reference commit is `11052a15411ed1534c2ba9e5f982fd7dc975ffaf`.
+
+## Mathalley sound
+
+The reference separates the Rust score from browser playback. Its playback clock controls note timing independently of frame timing.
+
+The drawing surface owner must present each frame after the game submits its drawing commands.
+A game can keep its pipeline between frames and release it without closing the host device.
+Pause clears the previous frame timestamp. The first frame after resume advances the game by zero.
+A sound session needs its own playback position and lifetime. Two tracks can share a host without sharing their cues.
+
+A navigation test can pass while the graphics worker fails. Check a presented game frame before accepting a game screenshot.
+The downlevel graphics limits permit textures up to 2048 pixels wide or high. Modern phone display surfaces can exceed either dimension.
+The compositor can discard a browser canvas after presentation. A screenshot preserves the pixels that the user saw.
+
+The iPhone host must finish removing a named surface before a new view can use its name.
+The iPhone regression checks both an unsupported resize and a later successful presentation.
+Seed 13 uses the same six Train answers on every host. A pixel from the sky identifies Train.
+A pixel from the machine base identifies Gumball. A landscape capture can rotate its underlying image.
+The Android test checks the visible orientation. The Apple test checks the scene color across the capture.
+The Android test device renders game surfaces with Vulkan. The Google APIs emulator also captures ordinary Todo controls.
+
+The graphics replay previously imported generated JavaScript through a public route.
+A test can load private bindings from the Cargo output directory and reuse the binary fetched by the application.
+This permits a separate device and sound check with the production browser bundle.
+
+The MessagePack prefix for the 14-byte Mathalley route is 0xae. The old hosts compared it with 0xad.
+One typed Rust command removes manual length calculations from each host.

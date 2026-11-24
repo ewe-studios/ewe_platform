@@ -12,6 +12,7 @@ internal object Names {
             NodeKind.IMAGE to "IMAGE",
             NodeKind.BUTTON to "BUTTON",
             NodeKind.TEXT_INPUT to "TEXT_INPUT",
+            NodeKind.SEARCH_INPUT to "SEARCH_INPUT",
             NodeKind.TOGGLE to "TOGGLE",
             NodeKind.LIST to "LIST",
             NodeKind.SCROLL to "SCROLL",

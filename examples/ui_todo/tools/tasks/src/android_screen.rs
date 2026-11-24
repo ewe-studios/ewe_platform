@@ -1,4 +1,5 @@
 //! Read the Android accessibility tree and exercise the example screens.
+pub(crate) mod game;
 use super::device::{cleanup, sleep};
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
 use quick_xml::{events::Event, Reader};

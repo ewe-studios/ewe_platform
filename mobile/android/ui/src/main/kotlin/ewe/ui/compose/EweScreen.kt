@@ -247,6 +247,7 @@ private fun RenderNode(
                         else -> Button(onTap, m, enabled) { label() }
                     }
                 }
+                NodeKind.SEARCH_INPUT -> SearchInput(record, bridge, m, enabled)
                 NodeKind.TEXT_INPUT -> {
                     val serverValue = record.props[PropId.VALUE]?.label.orEmpty()
                     var value by remember(record, serverValue) { mutableStateOf(serverValue) }

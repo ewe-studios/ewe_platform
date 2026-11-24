@@ -244,6 +244,11 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
     assert!(shows(&ops, "Keep this title"));
     assert!(shows(&ops, "0 open todos"));
     assert!(shows(&ops, "Try again"));
+    for (query, visible) in [("Other", false), (" KeEp ", true), ("", true)] {
+        let rows = trigger(&next, &ops, "host:search_todos", query).await;
+        assert_eq!(shows(&rows, "Keep this title"), visible);
+        assert_eq!(shows(&rows, "Try again"), visible);
+    }
     let (node_id, _) = binding(&ops, "host:retry_todo");
     let retry = EventInput {
         node_id,

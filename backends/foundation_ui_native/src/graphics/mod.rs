@@ -223,3 +223,25 @@ impl NativeDrawingSurface {
             .await?)
     }
 }
+
+impl NativeDrawingSurface {
+    /// Draw one frame on the thread that owns the device.
+    ///
+    /// # Errors
+    /// Returns an error if the surface is unavailable or the draw fails.
+    pub async fn present(
+        &self,
+        draw: impl FnOnce(
+                &foundation_ui_gpu::GraphicsDevice,
+                &wgpu::Texture,
+                wgpu::TextureFormat,
+            ) -> Result<(), GpuError>
+            + Send
+            + 'static,
+    ) -> Result<(), GpuError> {
+        let id = self.id.clone();
+        self.service
+            .run(move |owner| Box::pin(async move { owner.present(id, draw).await }))
+            .await
+    }
+}

@@ -27,6 +27,7 @@ pub fn environment() -> NativeBuildEnv {
         "EWE_TODO_RPC",
         "EWE_TODO_SOCKET",
         "EWE_TODO_BIN",
+        "EWE_TODO_DATA_BIN",
         "EWE_IOS_DEVICE",
         "EWE_SIMCTL_BIN",
         "EWE_AXE_BIN",
@@ -88,6 +89,11 @@ pub fn set() -> Result<TaskSet, TaskError> {
         "seed-starter",
         "Add one Todo through the server action endpoint",
         |ctx, args: Seed| async move { seed::run(&ctx, &args.url).await },
+    )?;
+    set.add(
+        "test-android-game",
+        "Replay Mathalley on an installed Android application",
+        android_screen::game::run,
     )?;
     set.add(
         "peer-android",

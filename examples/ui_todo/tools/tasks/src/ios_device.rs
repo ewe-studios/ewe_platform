@@ -58,7 +58,7 @@ async fn test_app(
         .args([
             "-parallel-testing-enabled",
             "NO",
-            "CODE_SIGNING_ALLOWED=NO",
+            "CODE_SIGN_IDENTITY=-",
             "test",
         ]);
     if let Some((url, data)) = urls {
@@ -122,10 +122,10 @@ pub(super) async fn todo(ctx: TaskContext, args: Todo) -> TaskResult {
         id.as_str(),
         exe.as_path(),
     );
-    device::server(ctx, root, exe, false, |base| async move {
+    device::server(ctx, root, exe, |base| async move {
         let first = products.join("first.bin");
         fetch(ctx, &format!("{base}/initial"), &first).await?;
-        device::server(ctx, root, exe, true, |data| async move {
+        device::data_server(ctx, root, |data| async move {
             test_app(
                 ctx,
                 root,
@@ -339,7 +339,7 @@ pub(super) async fn starter(ctx: TaskContext, args: Starter) -> TaskResult {
         axe.as_path(),
         consumer.as_path(),
     );
-    device::server(ctx, root, &exe, false, |url| async move {
+    device::server(ctx, root, &exe, |url| async move {
         fetch(
             ctx,
             &format!("{url}/open-count"),

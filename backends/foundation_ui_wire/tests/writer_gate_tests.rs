@@ -208,6 +208,28 @@ fn kept_messages_keep_order() {
 }
 
 #[test]
+fn search_uses_a_text_field_for_older_clients() {
+    let node = |kind| {
+        message(table!(OperationT {
+            ui: Ui::CreateNode(Box::new(table!(CreateNodeT {
+                node_id: 8,
+                kind: kind
+            })))
+        }))
+    };
+    for caps in [native(), ClientCaps::web_current()] {
+        let (current, _) = write(vec![node(NodeKind::SEARCH_INPUT)], &caps);
+        assert_eq!(current, [node(NodeKind::SEARCH_INPUT)]);
+        let older = ClientCaps {
+            vocabulary_version: 12,
+            ..caps
+        };
+        let (fallback, _) = write(vec![node(NodeKind::SEARCH_INPUT)], &older);
+        assert_eq!(fallback, [node(NodeKind::TEXT_INPUT)]);
+    }
+}
+
+#[test]
 fn older_clients_receive_the_fallback_for_new_container_kinds() {
     let create = |kind| {
         Ui::CreateNode(Box::new(table!(CreateNodeT {

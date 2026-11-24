@@ -4828,6 +4828,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
+name = "font8x8"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "875488b8711a968268c7cf5d139578713097ca4635a76044e8fe8eedf831d07e"
+
+[[package]]
 name = "foreign-types"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7068,6 +7074,7 @@ name = "foundation_ui_runtime"
 version = "0.0.8"
 dependencies = [
  "async-trait",
+ "derive_more",
  "foundation_auth",
  "foundation_compact",
  "foundation_context",
@@ -16938,6 +16945,8 @@ dependencies = [
  "async-trait",
  "blocking",
  "buffa",
+ "bytemuck",
+ "font8x8",
  "foundation_browser",
  "foundation_codegen",
  "foundation_compact",
@@ -16952,6 +16961,7 @@ dependencies = [
  "foundation_resources",
  "foundation_theme",
  "foundation_ui_connectrpc",
+ "foundation_ui_gpu",
  "foundation_ui_http",
  "foundation_ui_native",
  "foundation_ui_runtime",
@@ -16959,12 +16969,15 @@ dependencies = [
  "foundation_wasm_ui",
  "futures-lite",
  "futures-util",
+ "js-sys",
  "rmp-serde",
  "serde",
  "serde_json",
  "tempfile",
  "thiserror 2.0.19",
  "uniffi",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]

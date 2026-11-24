@@ -35,7 +35,7 @@ Start the data-only example service with this command. It serves the identifier 
 Its router registers only the generated data procedure.
 
 ```sh
-cargo run --profile uat -p ui_todo -- 127.0.0.1:8180 --data-only
+cargo run --profile uat -p ui_todo --example todo_data_fixture -- 127.0.0.1:8180
 ```
 
 ## Stream and cancel

@@ -157,6 +157,7 @@ fn portable_vocabulary_lowers_each_node_and_property() {
         ("Image", NodeKind::IMAGE),
         ("Button", NodeKind::BUTTON),
         ("TextInput", NodeKind::TEXT_INPUT),
+        ("SearchInput", NodeKind::SEARCH_INPUT),
         ("Toggle", NodeKind::TOGGLE),
         ("List", NodeKind::LIST),
         ("Scroll", NodeKind::SCROLL),

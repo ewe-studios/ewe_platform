@@ -114,7 +114,6 @@ pub(super) async fn server<F, Fut>(
     ctx: &TaskContext,
     root: &Path,
     exe: &Path,
-    data: bool,
     work: F,
 ) -> TaskResult
 where
@@ -129,12 +128,11 @@ where
         line: Mutex::new(Vec::new()),
         limit: env.query_bytes(),
     });
-    let mut cmd = ProcessCommand::new(exe)
+    let store = tempfile::tempdir().map_err(TaskError::operation)?;
+    let cmd = ProcessCommand::new(exe)
         .current_dir(root)
-        .arg("127.0.0.1:0");
-    if data {
-        cmd = cmd.arg("--data-only");
-    }
+        .arg("127.0.0.1:0")
+        .env("EWE_TODO_STORE", store.path().join("todo.sqlite3"));
     background(ctx, cmd, sink, async {
         let wait = async { address.recv().await.map_err(TaskError::operation) };
         let deadline = async {
@@ -150,8 +148,34 @@ where
 }
 
 pub(super) async fn host(ctx: &TaskContext, root: &Path) -> Result<PathBuf, TaskError> {
-    if let Some(path) = ctx.require::<NativeBuildEnv>()?.devices.get("EWE_TODO_BIN") {
-        return Ok(PathBuf::from(path));
+    host_binary(ctx, root, "EWE_TODO_BIN", "--bin", "ui_todo").await
+}
+
+pub(super) async fn data_server<F, Fut>(ctx: &TaskContext, root: &Path, work: F) -> TaskResult
+where
+    F: FnOnce(String) -> Fut,
+    Fut: Future<Output = TaskResult>,
+{
+    let fixture = host_binary(
+        ctx,
+        root,
+        "EWE_TODO_DATA_BIN",
+        "--example",
+        "todo_data_fixture",
+    )
+    .await?;
+    server(ctx, root, &fixture, work).await
+}
+
+async fn host_binary(
+    ctx: &TaskContext,
+    root: &Path,
+    override_key: &str,
+    kind: &str,
+    name: &'static str,
+) -> Result<PathBuf, TaskError> {
+    if let Some(path) = ctx.require::<NativeBuildEnv>()?.devices.get(override_key) {
+        return Ok(root.join(path));
     }
     artifact(
         ctx,
@@ -162,11 +186,11 @@ pub(super) async fn host(ctx: &TaskContext, root: &Path) -> Result<PathBuf, Task
             "uat",
             "-p",
             "ui_todo",
-            "--bin",
-            "ui_todo",
+            kind,
+            name,
             "--message-format=json-render-diagnostics",
         ]),
-        "ui_todo",
+        name,
         &[],
     )
     .await
