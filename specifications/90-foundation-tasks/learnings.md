@@ -326,3 +326,6 @@ Quickget takes the Apple release name as a separate argument. The existing comma
 
 A saved process number can later identify an unrelated program. Local Wrangler workers now hold their own instance lock.
 Both Cloudflare file system targets require vfs-native together with their storage feature. Cargo rejects an incomplete selection before running tests.
+
+The former NFS pipeline returned the log writer's status. Its final filter also accepted lines marked FAILED.
+The new task keeps the child status and checks for test records after saving the log.

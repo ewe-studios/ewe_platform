@@ -43,3 +43,36 @@ esac
     assert!(run(&["workspace:doc"]).status.success());
     assert!(calls().contains("doc --no-deps --all-features default"));
 }
+
+#[cfg(unix)]
+#[test]
+fn nfs_reports_cargo_failures_and_empty_test_runs() {
+    use std::{fs, os::unix::fs::PermissionsExt, process::Command};
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    let cargo = root.join("cargo");
+    fs::write(&cargo, "#!/bin/sh\nprintf '%s' \"$*\" > args\nprintf '%s\\n' \"$LINE\"\nprintf 'cargo diagnostic\\n' >&2\nexit \"$CODE\"\n").unwrap();
+    fs::set_permissions(&cargo, fs::Permissions::from_mode(0o755)).unwrap();
+    for (line, code, expected) in [
+        ("test reads_file ... ok", 0, 0),
+        ("test reads_file ... FAILED", 25, 25),
+        ("running 0 tests", 0, 1),
+    ] {
+        let out = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", root)
+            .env("LINE", line)
+            .env("CODE", code.to_string())
+            .args(["task", "run", "workspace:test-nfs", "--log", "results.log"])
+            .output()
+            .unwrap();
+        assert_eq!(out.status.code(), Some(expected));
+        let log = fs::read_to_string(root.join("results.log")).unwrap();
+        assert!(log.contains(line) && log.contains("cargo diagnostic"));
+        assert!(String::from_utf8(out.stdout).unwrap().contains(line));
+        assert!(String::from_utf8(out.stderr)
+            .unwrap()
+            .contains("cargo diagnostic"));
+    }
+    assert_eq!(fs::read_to_string(root.join("args")).unwrap(),"test --locked --package foundation_nativeapis --features vfs-native,vfs-nfs --test nfs_vfs");
+}

@@ -659,13 +659,7 @@ run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test:d1"
 
 [tasks."test:vfs:nfs"]
 description = "Run VFS NFS adapter tests via valtron"
-run = """
-#!/usr/bin/env bash
-set -e
-
-CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-nfs" --test nfs_vfs 2>&1 | tee /tmp/vfs-nfs-test.log
-test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-nfs-test.log) -gt 0
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:test-nfs"
 
 [tasks."test:vfs:cf:r2"]
 description = "Run VFS R2Delta integration tests via valtron (auto-starts wrangler)"

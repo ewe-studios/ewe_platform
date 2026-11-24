@@ -493,3 +493,7 @@ The Cloudflare service controller owns one local worker per project. Stop reques
 The package tests cover independent projects, restart, repeated stop, failed suites, and child cleanup.
 Wrangler 4.156.2 returned HTTP 200. The local suites passed six object store tests, five database tests, and eighteen file system tests.
 Both suites released the local port after completion.
+
+The native Network File System (NFS) task selects both Cargo features required by its test target.
+It writes the combined process output to the requested log and returns Cargo's failure code.
+All 13 real NFS tests passed. A command fixture verified empty runs and a failed test with diagnostic output.

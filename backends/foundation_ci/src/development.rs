@@ -1,4 +1,5 @@
 //! Build and check the workspace with the same Cargo arguments from each host.
+mod nfs;
 use crate::{workspace::capture, CiEnvironment};
 use clap::Args;
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult, TaskSet};
@@ -139,6 +140,11 @@ const RECIPES: &[(&str, &str, &[&str])] = &[
 /// Returns an error if two commands share a name.
 pub fn set() -> Result<TaskSet, TaskError> {
     let mut tasks = TaskSet::new("foundation_workspace").with_namespace("workspace");
+    tasks.add(
+        "test-nfs",
+        "Run the native Network File System tests",
+        nfs::run,
+    )?;
     for &(name, description, arguments) in RECIPES {
         tasks.add(name, description, move |ctx, _: Empty| async move {
             let host = ctx.require::<CiEnvironment>()?;
