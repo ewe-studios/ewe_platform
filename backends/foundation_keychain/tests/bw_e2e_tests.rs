@@ -393,11 +393,41 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
         folders.stdout
     );
 
-    // `bw create item` fails inside the CLI's SDK with "invalid type: unit
-    // value, expected a boolean", even with the CLI's own item template. The
-    // read path works, so this is a writer-state field the SDK requires; issue
-    // #773 records it with the exact error.
+    let template = bw
+        .exec(&["bw", "get", "template", "item", "--session", &session])
+        .expect("bw template runs");
+    let mut item: serde_json::Value =
+        serde_json::from_str(&template.stdout).expect("item template JSON");
+    item["name"] = "e2e-login-item".into();
+    item["login"] = serde_json::json!({ "username": "e2e-user", "password": "e2e-pass" });
+    let encoded_item = base64::engine::general_purpose::STANDARD
+        .encode(serde_json::to_vec(&item).expect("item JSON"));
+    let create = bw
+        .exec(&["bw", "create", "item", &encoded_item, "--session", &session])
+        .expect("bw create item runs");
+    assert!(
+        create.success(),
+        "bw create item (exit {}):\nstdout: {}\nstderr: {}",
+        create.exit_code,
+        create.stdout,
+        create.stderr
+    );
+
+    let get = bw
+        .exec(&["bw", "get", "item", "e2e-login-item", "--session", &session])
+        .expect("bw get item runs");
+    assert!(
+        get.success(),
+        "bw get item (exit {}):\nstdout: {}\nstderr: {}",
+        get.exit_code,
+        get.stdout,
+        get.stderr
+    );
+    let fetched: serde_json::Value = serde_json::from_str(&get.stdout).expect("item JSON");
+    assert_eq!(fetched["name"], "e2e-login-item");
+    assert_eq!(fetched["login"]["username"], "e2e-user");
+
     println!(
-        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → CLI login → unlock → list → create folder → list folders — all passed"
+        "✓ bw e2e: config → register → prelogin → login → sync → folders → ciphers → CLI login → unlock → list → create folder → list folders → create item → get item — all passed"
     );
 }

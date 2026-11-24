@@ -137,7 +137,7 @@ pub async fn route(
                 // proof-of-concept server disables them, so the client uses
                 // its legacy path with complete view data.
                 "featureStates": {
-                    "pm-27632-cipher-crud-operations-to-sdk": false,
+                    "pm-27632-cipher-crud-operations-to-sdk": true,
                     "pm-28190-cipher-sharing-ops-to-sdk": false,
                     "pm-28191-cipher-admin-ops-to-sdk": false,
                     "pm-28192-cipher-attachment-ops-to-sdk": false,
