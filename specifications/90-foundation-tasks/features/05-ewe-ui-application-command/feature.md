@@ -182,8 +182,8 @@ Cargo can run a build script during a dependency check. Starting an emulator the
 
 | Proposed command | Result |
 |---|---|
-| `ewe_ui build --target web` | Resolve dependencies and produce the application WebAssembly files and one readable public `bundle.js`. |
-| `ewe_ui build --target web --release` | Produce one minified application `bundle.js` at the same public path. Feature 4 also distributes the standalone runtime as `bundle.min.js`. |
+| `ewe_ui build --target web` | Produce the application binaries, readable `bundle.js`, and minified `bundle.min.js`. The development page selects `bundle.js`. |
+| `ewe_ui build --target web --release` | Produce both scripts from the same project inputs. The deployment page selects `bundle.min.js`. |
 | `ewe_ui build --target android` | Build the Rust libraries and Kotlin bindings for the selected architectures. Stage them in their owning Gradle modules and assemble the application. |
 | `ewe_ui build --target ios` | Build the selected Rust slices and Swift bindings. Assemble the native framework, resolve Swift packages, and build the Xcode application. |
 | `ewe_ui devices list --target android` | List available Android devices and emulators with their identifiers and states. |
@@ -203,6 +203,20 @@ Todo paths and example-specific product names belong in Todo's declaration.
 Both the command and the native project build use the same preparation provider.
 Build output identifies the artifact path, target, profile, and architecture.
 Device commands report an ambiguous selection, missing system image, failed installation, or launch failure with the device identifier.
+
+#### Proposed browser output amendment
+
+The generated project calls the public Rust build hook from its build script.
+The hook uses the selected application sources, framework services, and generated bindings for both outputs.
+Reserve `bundle.js` and `bundle.min.js` as public files in every profile.
+Reject a resource or binary that claims either path, including a directory below either file.
+A failed build preserves the last successful resource tree.
+Keep the configured application binary and selected companion binaries at explicit relative paths.
+
+Build a generated project in development and release modes. Mount each output below a website subdirectory.
+Open each script in a fresh page. Verify one JavaScript request and a successful first view for each page.
+Test manifest collisions and configured module path collisions for both filenames.
+
 
 ### Shared mobile startup
 
