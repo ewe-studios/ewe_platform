@@ -157,6 +157,30 @@ Two corrections from the owner changed the design.
    driver id is `cloudflare-do`. It gives no operating-system isolation. Decision D16,
    feature 07 section 6.10, and feature 08's Worker hosts both DO classes.
 
+## Feature 01: the slave core (2026-11-25)
+
+Feature 01 is on the branch `spec77/f01-slave-core`, stacked on the crate rename
+(`spec77/rename-foundation-sandbox`, pull request #824).
+
+The crate gains `src/native/slave/` behind `#[cfg(all(target_os = "linux", feature =
+"slave"))]`: `mod.rs` (`Slave`, `SlaveArgs`, `run`), `serve.rs` (UDS, TCP and vsock
+acceptors, the HTTP/1.1 Connect server), `state.rs`, `pid1.rs`, `root.rs`, `exec.rs`,
+`reaper.rs`, `files.rs` and `sys.rs`. `shared/host.rs` gains `SlaveHost`, `GuestMounts`
+and `GuestPower`.
+
+The `slave` feature links no C TLS library. The dependency change is in
+`learnings.md` section 12.1: `foundation_http`, `foundation_connectrpc`, `foundation_iogate`,
+`foundation_auth` and `foundation_db` gain a TLS-free feature set, and their default sets
+keep today's behaviour. `foundation_netio` now compiles without a TLS provider, and
+`Connection::from_stream_fd` wraps an accepted vsock descriptor.
+
+The tests are `tests/slave/` in the crate's single test binary: the scenarios and the
+property tests of feature section 7. They need Linux; `ci/packages.toml` runs them there
+with `runs = ["", "slave"]` and keeps the contract tests on macOS and Windows.
+
+Checks on the macOS host: see the pull request. The Linux test run is the pull request's
+CI job.
+
 ## In progress
 
 **Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
@@ -171,7 +195,8 @@ this host.
 
 ## Next
 
-1. Features 01, 02, 03 and 04 in parallel (one agent each).
+1. Features 02, 03 and 04 in parallel (one agent each). Feature 01 is done; feature 02
+   and feature 07 build on it.
 2. Feature 05, then feature 06: MVP-A (Firecracker).
 3. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
    MVP-B (Cloudflare).

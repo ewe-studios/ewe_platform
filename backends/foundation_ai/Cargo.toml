@@ -14,7 +14,7 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 # -- Workspace dependencies
 
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
-foundation_auth = { path = "../foundation_auth", version = "0.0.15", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
@@ -30,7 +30,7 @@ foundation_arrow = { path = "../foundation_arrow", version = "0.0.5" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
 # VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
 foundation_vectors = { path = "../foundation_vectors", version = "0.0.7" }
 concurrent-queue = "2.5.0"
@@ -49,16 +49,16 @@ futures-lite = "2"
 
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.15", features = ["turso"], default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["multi"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", features = ["turso"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["multi"] }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", features = ["vfs", "vfs-search", "vfs-search-fff"] }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.6", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.15", features = ["wasm"], default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false, features = ["wasm-fetch"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", features = ["wasm"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["wasm-fetch"] }
 # VFS traits + in-code searcher only (`vfs` + `vfs-search`, no `vfs-search-fff`:
 # the fff engine and the CLI rg/grep cascade are native-only, already
 # cfg(not(target_family = "wasm"))-gated in foundation_nativeapis).

@@ -96,10 +96,12 @@ pub use server_credential::{
 };
 
 // Mutual TLS (spec 87): the certificate authority, the trust store, the rustls
-// verifier and the native mTLS provider.
-#[cfg(not(target_family = "wasm"))]
+// verifier and the native mTLS provider. The `mtls` feature names them: they
+// link `ring`, which has C code, so a consumer that must stay free of C code
+// leaves the feature off.
+#[cfg(all(not(target_family = "wasm"), feature = "mtls"))]
 pub mod mtls;
-#[cfg(not(target_family = "wasm"))]
+#[cfg(all(not(target_family = "wasm"), feature = "mtls"))]
 pub mod pki;
 pub mod trust;
 

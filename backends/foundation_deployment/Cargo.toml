@@ -36,8 +36,8 @@ sha2 = "0.10"
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
-foundation_db = { path = "../foundation_db", version = "0.0.10" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
+foundation_db = { path = "../foundation_db", version = "0.0.11" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 
 [dependencies.chrono]

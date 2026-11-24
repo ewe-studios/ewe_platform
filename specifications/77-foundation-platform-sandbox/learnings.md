@@ -766,3 +766,139 @@ The two defects of the client itself are recorded, not hidden:
   (decision D16). State its limit in every document: it gives no isolation.
 - **A crate rename touches every spec.** 70 files named the old crate. Search the whole
   tree, including the completed specifications, before the first commit.
+
+## 12. Feature 01 implementation findings (2026-11-25)
+
+### 12.1 The TLS-free build opened three dependency layers
+
+The slave builds as a static musl program, so the `slave` feature must not link a C
+TLS library. The measurement on 2026-11-11 was correct about `ring`, but four crates
+forced it into the graph, not one:
+
+| Crate | What forced TLS | Fix |
+|---|---|---|
+| `foundation_http` | its `foundation_netio` dependency used the netio default features, and `default` was empty | `netio-core` (no TLS) and `netio-defaults` (TLS); `default = ["netio-defaults"]` |
+| `foundation_connectrpc` | the native `foundation_http` and `foundation_netio` dependencies used their defaults | the same two features; `rpc` enables `netio-defaults` |
+| `foundation_iogate` | the `foundation_netio` dependency used the defaults | `default-features = false` with `wire-native`, and the same two features |
+| `foundation_auth` | the native `foundation_netio` dependency used the defaults, and the spec 87 modules (`rcgen`, `rustls`, `x509-parser`) were unconditional | a `netio-ssl` feature, and a new `mtls` feature that names the spec 87 modules; both are in the default set |
+| `foundation_db` | the `foundation_netio` dependency asked for `ssl` by name | a `netio-ssl` feature, enabled by `d1`, `r2` and the default set |
+
+A consumer that must stay free of C code takes each crate with `default-features = false`
+and the `netio-core` feature. Every existing consumer keeps today's set, because the new
+features are in each crate's default set.
+
+Two more gaps appeared only in the TLS-free build:
+
+- `foundation_netio`'s `http` module had never compiled without a TLS provider: it
+  imports `netcap::ssl::SSLConnector`, and `native/ssl/nossl.rs` was an empty file. The
+  file now defines a `SSLConnector` type that fails at use, and `http/mod.rs` gates the
+  `tls_task` module and its re-export.
+- `foundation_connectrpc`'s native modules need netio's `http` module, so the native
+  build always turns `netio-core` on. The wasm build must not: `netio-core` enables
+  `multi`, which turns the single-threaded wasm netio onto valtron's `Send` path. So the
+  `foundation_sandbox` dependency on `foundation_connectrpc` is split into one native
+  table and one wasm table.
+
+### 12.2 What `foundation_netio` and `foundation_http` did not have
+
+- `Connection` had no constructor from an accepted descriptor of another address
+  family. `Connection::from_stream_fd(OwnedFd)` is new; a vsock stream socket is a
+  stream descriptor like a Unix domain socket.
+- `Acceptor` is implemented for `TcpListener` only. The slave adds a `UnixAcceptor` in
+  `serve.rs`; `local_addr` returns an error for a Unix socket, and the server then uses
+  its bind label.
+- `HttpServer::serve_with_acceptor` is the path for UDS, TCP and vsock.
+
+### 12.3 The fork must not cross an `await`
+
+A `Vec<*const c_char>` is not `Send`. A future that builds the `execve` pointer lists and
+then awaits (the start-status wait) is not `Send`, and the generated service trait needs
+`Send`. The fix is a synchronous `fork_process` helper: the pointer lists live across the
+`fork` and nowhere else, so the async part holds no raw pointer.
+
+### 12.4 The wake pattern
+
+Every parked task uses one rule: register the waker, then check the condition. This is
+the only pattern that loses no wake with a `Mutex<Vec<Waker>>` notifier. The pumps park on
+`FdReadiness` (`clear`, check, `register_waker`, check) and on the same notifier for the
+"stop" flag. A close of the sink or of an input queue wakes every parked sender and
+receiver.
+
+### 12.4.1 The drain wait must not wake on its own condition
+
+The first exit watch put `exit.is_some()` in the condition of its wait, and then
+wrapped that wait in a `select` with the drain timer. After the exit the condition was
+true at every poll, so the `select` returned at once and the task spun until the
+deadline. The condition now names the state that must wake it: before the deadline is
+set, the exit; after it, the deadline plus room in the event sink. A receiver that
+takes an event notifies the session's change signal through the sink, so the room check
+has a wake and is not a poll.
+
+### 12.5 Limits and the server bind
+
+`SlaveLimits` (the `Prepare` message) has no `max_error_message` field, so the slave cuts
+an error message with `SandboxLimits::default().max_error_message`. The HTTP/1.1 server
+binds before `Prepare`, so its request body limit is the default `max_message_bytes`; the
+service checks the limits of `Prepare` for the input chunk size.
+
+`libc::open_how` is `#[non_exhaustive]`, so `sys.rs` defines the three-field kernel layout
+itself and passes `RESOLVE_IN_ROOT` to `openat2`.
+
+### 12.6 Test layout and CI
+
+- The crate has one test binary (`tests/mod.rs`). The slave tests are the module
+  `tests/slave/` (`support`, `info`, `exec`, `input`, `files`, `root`, `lifecycle`), not
+  the `tests/slave_*.rs` files of the feature text, which would be a second test binary
+  and would restart the whole harness for each group.
+- The child slave process is the same test binary started with
+  `--exact slave::support::slave_process_entry --test-threads=1`. One thread is necessary:
+  `SIGCHLD` must be blocked on the process's only thread before the pool starts, and the
+  libtest harness runs a test in a new thread unless it runs one test at a time.
+- `ci/packages.toml` runs `["", "slave"]` on Linux. macOS and Windows run `[""]` through
+  `macos-runs` and `windows-runs` rather than `macos-tests = "none"`: the contract tests
+  still run there, and the reason "the slave is a Linux guest program" is in the comment.
+
+### 12.7 Dead ends
+
+- A stub `SSLConnector` was not enough for the netio `http` module; the `tls_task` module
+  also had to be gated. Do not try to compile that module without a provider.
+- `std::fs::read_dir("/proc")` for the zombie check needs no `CONFIG_PROC_CHILDREN`; the
+  `stat` file of every process is enough. `/proc/<pid>/task/<tid>/children` is not
+  portable across the CI kernels.
+- `Slave::arc_self` (an `Arc` pointer cast from `&self`) was wrong: an `Arc<'T>` value's
+  address is not the address of its data. The shutdown handler captures the pieces it
+  needs (`Ctx`, session table, file state, shutdown signal) instead of the slave.
+
+### 12.8 The version bump of the changed libraries
+
+Rule 12 of the root `AGENTS.md` moves the version of a crate that gains public API, and of
+every workspace consumer of that crate, in the same change. This feature changes seven
+crates:
+
+| Crate | Old | New | Why |
+|---|---|---|---|
+| `foundation_netio` | 0.0.17 | 0.0.18 | new `Connection::from_stream_fd`, a new `nossl::SSLConnector` type, the `http` module without TLS |
+| `foundation_http` | 0.0.15 | 0.0.16 | the `netio-core` and `netio-defaults` features |
+| `foundation_connectrpc` | 0.0.16 | 0.0.17 | the same two features |
+| `foundation_iogate` | 0.0.6 | 0.0.7 | the same two features |
+| `foundation_auth` | 0.0.15 | 0.0.16 | the `mtls` and `netio-ssl` features |
+| `foundation_db` | 0.0.10 | 0.0.11 | the `netio-ssl` feature |
+| `foundation_sandbox` | 0.0.2 | 0.0.3 | the `native::slave` module and the `SlaveHost` bundle |
+
+`foundation_netio` is not the only crate that needs the new source: `foundation_sandbox`
+0.0.3 names the `netio-core` features of `foundation_connectrpc`, `foundation_http` and
+`foundation_iogate`, and builds `foundation_auth` and `foundation_db` without their TLS
+dependencies. A packaged consumer that resolved the old registry version of any of them
+would fail the musl build. So all seven move together, and 77 manifests move their version
+requirement. This is a wide but mechanical diff; the pull request's CI covers the affected
+packages.
+
+### 12.9 The musl check found two portability facts
+
+- `libc::ioctl` takes an unsigned long request number on the GNU C library and an int
+  on musl. `sys.rs` names the type in one place, `IoctlRequest`, with a `target_env`
+  branch. A cast at each call is not portable and a truncating cast fails clippy.
+- `cargo check` for a musl target prints `dropping unsupported crate type cdylib` for
+  `foundation_nativeapis`, which declares `["rlib", "cdylib"]`. The warning is old and
+  does not affect the slave, which links the rlib. The feature's musl check is the first
+  build that shows it.

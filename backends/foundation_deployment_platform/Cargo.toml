@@ -16,7 +16,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`

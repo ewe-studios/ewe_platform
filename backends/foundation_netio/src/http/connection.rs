@@ -283,12 +283,16 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
+    #[allow(
+        dead_code,
+        reason = "the no-TLS twin of the TLS function; a caller that needs TLS gets NotSupported at run time"
+    )]
     fn upgrade_to_tls(
         _connection: Connection,
         _host: &str,
         _port: u16,
         _timeout: Option<Duration>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -304,7 +308,7 @@ impl HttpClientConnection {
         _port: u16,
         _timeout: Option<Duration>,
         _tls_connector: Option<&SSLConnector>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -617,7 +621,7 @@ impl HttpClientConnection {
         _port: u16,
         _resolver: &R,
         _timeout: Option<Duration>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -1207,7 +1211,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         _target_host: &str,
         _target_port: u16,
         _timeout: Option<Duration>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }

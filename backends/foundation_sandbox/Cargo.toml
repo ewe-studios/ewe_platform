@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sandbox"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -19,23 +19,30 @@ foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
 # The platform error trace (`ErrorTrace`), so `SandboxResult` is one trace.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
-# The code-first service macro, `Request`/`Response`, `ConnectError` and the
-# context. The renderer's default features are not needed: this crate uses the
-# service surface only, and the native-only `multi` feature must stay off for
-# the wasm32 build.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16", default-features = false }
 # The `#[service]` macro, re-exported by `foundation_connectrpc`.
 foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # `Secret` and `extract_bearer_token` (spec 86). The crate never defines a
 # second secret type. `default-features = false` keeps the database, JWT and
 # signed-secret providers out of this crate.
-foundation_auth = { path = "../foundation_auth", version = "0.0.15", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
 derive_more = { workspace = true }
 futures = "0.3"
 tracing = { workspace = true }
+
+# The code-first service macro, `Request`/`Response`, `ConnectError` and the
+# context. The renderer's default features are not needed: this crate uses the
+# service surface only. The native build also needs `netio-core`: the HTTP/1.1
+# server and client without a C TLS library, so the static musl slave links.
+# The wasm build must not enable it: it would turn on `multi` for the wasm
+# netio, whose single-threaded code has no `Send` bound.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false, features = ["netio-core"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false }
 
 [dev-dependencies]
 # The workspace holds one `proptest` version for every crate (spec 77 rule).
@@ -44,10 +51,33 @@ proptest = { workspace = true }
 # test-only; it adds no code to the library build.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
 
+# The slave engine (feature 01) is a Linux guest program: process control,
+# signals and PID 1 duties have no meaning on another target. The dependencies
+# are Linux-only and enabled by the `slave` feature.
+[target.'cfg(target_os = "linux")'.dependencies]
+# The shared reactor and fd readiness: every pipe is non-blocking and parks an
+# async task until it is ready.
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.5", optional = true }
+# I/O readiness registration (`fd` only: no database, no io_uring).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", default-features = false, features = ["fd"], optional = true }
+# The HTTP/1.1 server and the UDS/TCP client. `default-features = false`: no
+# TLS, so the static musl slave links without a C compiler.
+foundation_http = { path = "../foundation_http", version = "0.0.16", default-features = false, features = ["netio-core"], optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, optional = true }
+# `fork`, `execve`, `mount`, `signalfd`, `openat2` and the other system calls.
+libc = { version = "0.2", optional = true }
+
 [features]
 default = ["control", "firecracker"]
 # The slave engine (feature 01). Native only.
-slave = []
+slave = [
+    "dep:foundation_reactor",
+    "dep:foundation_nativeapis",
+    "dep:foundation_http",
+    "dep:foundation_netio",
+    "dep:libc",
+    "foundation_core/multi",
+]
 # `SandboxManager` (feature 02).
 control = []
 # The Firecracker driver (features 04 and 05). Linux only in use.

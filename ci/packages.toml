@@ -744,6 +744,13 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 
 [packages.foundation_sandbox]
 # The contract compiles on every target. `control` and `firecracker` are the
-# default features; their code lands in features 02 and 05.
+# default features; their code lands in features 02 and 05. The slave tests
+# start the real slave process, so they run on Linux with the `slave` feature.
 wasm = "enforce"
 wasm-runs = ["", "--no-default-features"]
+runs = ["", "slave"]
+# The slave tests are Linux only: "the slave is a Linux guest program". It calls
+# fork, signalfd, mount and the process identifier 1 duties, which no other
+# operating system has. macOS and Windows run the contract tests only.
+macos-runs = [""]
+windows-runs = [""]
