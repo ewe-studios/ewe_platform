@@ -574,3 +574,12 @@ The resource provider streams the packaged icon. The browser requests one JavaSc
 Opening Mathalley requests its binary once, draws the title, and returns to Todo.
 The relocated application serves the style sheet, script, four WebAssembly binaries, and version file.
 Editing the relocated version file changes the development server response.
+
+## Browser application package verification
+
+The browser build hook sets the public WebAssembly path. Chromium loaded both the default file and a nested path.
+Four compiler tests passed, including lazy module reuse and asset requests below a site subdirectory.
+
+The 0.1.13 runtime archive passed an independent browser check on 25 November 2026.
+The module import and both classic scripts each loaded one script, dispatched callback 7, and displayed “Updated”.
+A local registry checked credential selection, matching retries, and conflicting archive integrity with test credentials.

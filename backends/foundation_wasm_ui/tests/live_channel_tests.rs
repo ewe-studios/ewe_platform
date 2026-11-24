@@ -334,3 +334,30 @@ fn builder_receives_the_published_position_and_failure_keeps_it_available() {
         2
     );
 }
+
+#[test]
+fn reserved_frames_publish_after_commit_and_disappear_after_cancellation() {
+    let channel = channel();
+    let sender = channel.sender();
+    let make = |_| Ok::<_, LiveError>(update());
+    let abandoned = sender.reserve(make).unwrap();
+    let reader = Recorder::default();
+    channel
+        .register(reader.clone(), &ClientCaps::web_current(), 0)
+        .unwrap();
+    assert_eq!(
+        sender.push_messages(update()),
+        Err(LiveError::PublicationInProgress)
+    );
+    assert_eq!(channel.last_sequence(), 0);
+    drop(abandoned);
+    assert!(reader.sequences().is_empty());
+    let committed = sender.reserve(make).unwrap();
+    assert_eq!(committed.position(), 1);
+    let next_reader = Recorder::default();
+    channel.subscribe_native(next_reader.clone(), 0).unwrap();
+    committed.publish();
+    assert_eq!(reader.sequences(), [1]);
+    assert_eq!(next_reader.sequences(), [1]);
+    assert_eq!(sender.push_messages(update()).unwrap(), 2);
+}

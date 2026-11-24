@@ -69,9 +69,11 @@ impl<R: PackagedResourceSet> Serve for ResourceFileHandler<R> {
             None => return send_not_found(conn, &ctx),
         };
         match self.resources.lookup(name) {
-            Ok(Some(PackagedFile::Live(path))) => {
-                StaticFileHandler::file(self.directory.as_ref().map_or(path,|dir| dir.join(name)), StaticFileConfig::default()).serve(ctx, req, conn)
-            }
+            Ok(Some(PackagedFile::Live(path))) => StaticFileHandler::file(
+                self.directory.as_ref().map_or(path, |dir| dir.join(name)),
+                StaticFileConfig::default(),
+            )
+            .serve(ctx, req, conn),
             Ok(Some(PackagedFile::Embedded(body))) => {
                 let mime = foundation_netio::shared::mime::from_path(Path::new(name))
                     .unwrap_or(foundation_netio::shared::mime::OCTET_STREAM);

@@ -48,6 +48,7 @@ pub enum LiveError {
     ResumeAhead { last: u64 },
     ConnectionClosed,
     SequenceExhausted,
+    PublicationInProgress,
     Write(WriteError),
 }
 
@@ -58,6 +59,9 @@ impl fmt::Display for LiveError {
             Self::ResumeTooOld { oldest } => write!(f, "replay begins at frame {oldest}"),
             Self::ResumeAhead { last } => write!(f, "resume cursor exceeds last frame {last}"),
             Self::ConnectionClosed => f.write_str("connection closed during replay"),
+            Self::PublicationInProgress => {
+                f.write_str("another publication has reserved the next frame")
+            }
             Self::SequenceExhausted => f.write_str("stream sequence exhausted"),
             Self::Write(err) => err.fmt(f),
         }
@@ -120,12 +124,20 @@ struct Inner {
         foundation_ui_runtime::dispatch::LiveSink,
     )>,
     history: VecDeque<StoredFrame>,
+    reserved: Option<StoredFrame>,
     sequence: StreamSequencer,
     backlog: BacklogConfig,
     writer: WriterConfig,
 }
 
 impl Inner {
+    fn prepare_subscriber(&mut self, caps: &ClientCaps) -> Result<(), LiveError> {
+        if let Some(frame) = &mut self.reserved {
+            frame.encode_for(caps, &self.writer)?;
+        }
+        Ok(())
+    }
+
     fn replay(&mut self, caps: &ClientCaps, after: u64) -> Result<Vec<Arc<[u8]>>, LiveError> {
         self.validate(caps, after)?;
         self.history
@@ -145,7 +157,10 @@ impl Inner {
         if resume_from > last {
             return Err(LiveError::ResumeAhead { last });
         }
-        let floor = self.history.front().map_or(last, |frame| frame.sequence - 1);
+        let floor = self
+            .history
+            .front()
+            .map_or(last, |frame| frame.sequence - 1);
         if resume_from < floor {
             return Err(LiveError::ResumeTooOld {
                 oldest: floor.saturating_add(1),
@@ -173,6 +188,7 @@ impl LiveChannel {
             clients: Vec::new(),
             managed: Vec::new(),
             history: VecDeque::new(),
+            reserved: None,
             sequence: StreamSequencer::resume(stream_id, last),
             backlog,
             writer,
@@ -251,6 +267,7 @@ impl LiveChannel {
     ) -> Result<Vec<Arc<[u8]>>, LiveError> {
         let mut inner = self.lock();
         let replay = inner.replay(caps, resume_from)?;
+        inner.prepare_subscriber(caps)?;
         inner.clients.push((caps.clone(), Box::new(client)));
         Ok(replay)
     }
@@ -266,7 +283,9 @@ impl LiveChannel {
         resume_from: u64,
     ) -> Result<(), LiveError> {
         let mut inner = self.lock();
-        for frame in inner.replay(caps, resume_from)? {
+        let replay = inner.replay(caps, resume_from)?;
+        inner.prepare_subscriber(caps)?;
+        for frame in replay {
             if !client.send_binary(&frame) {
                 return Err(LiveError::ConnectionClosed);
             }
@@ -326,8 +345,39 @@ impl LiveTx {
         &self,
         build: impl FnOnce(u64) -> Result<Vec<MessageT>, E>,
     ) -> Result<(u64, usize), E> {
-        let mut locked = self.0.lock();
-        let inner = &mut *locked;
+        let mut inner = self.0.lock();
+        let (frame, size) = Self::prepare(&mut inner, build)?;
+        let position = frame.sequence;
+        Self::deliver(&mut inner, frame);
+        Ok((position, size))
+    }
+
+    /// Reserve and encode the next frame before an external transaction.
+    /// Subscribers can join while the producer waits for storage.
+    ///
+    /// # Errors
+    /// Return an error when another producer owns the reservation or encoding fails.
+    pub fn reserve<E: From<LiveError>>(
+        &self,
+        build: impl FnOnce(u64) -> Result<Vec<MessageT>, E>,
+    ) -> Result<LivePublication, E> {
+        let mut inner = self.0.lock();
+        let (frame, _) = Self::prepare(&mut inner, build)?;
+        let position = frame.sequence;
+        inner.reserved = Some(frame);
+        Ok(LivePublication {
+            channel: Some(self.0.clone()),
+            position,
+        })
+    }
+
+    fn prepare<E: From<LiveError>>(
+        inner: &mut Inner,
+        build: impl FnOnce(u64) -> Result<Vec<MessageT>, E>,
+    ) -> Result<(StoredFrame, usize), E> {
+        if inner.reserved.is_some() {
+            return Err(LiveError::PublicationInProgress.into());
+        }
         let sequence = inner
             .sequence
             .last()
@@ -382,6 +432,10 @@ impl LiveTx {
         {
             frame.encode_for(caps, &inner.writer)?;
         }
+        Ok((frame, size))
+    }
+
+    fn deliver(inner: &mut Inner, frame: StoredFrame) {
         inner.sequence.next();
         inner.history.push_back(frame);
         if inner
@@ -400,7 +454,36 @@ impl LiveTx {
                 frame.prepared(surface),
             ))
         });
-        Ok((sequence, size))
+    }
+}
+
+/// A prepared frame. Dropping it cancels the publication.
+pub struct LivePublication {
+    channel: Option<LiveChannel>,
+    position: u64,
+}
+
+impl LivePublication {
+    /// Return the position that the external transaction must save.
+    #[must_use]
+    pub fn position(&self) -> u64 {
+        self.position
+    }
+
+    /// Deliver the prepared frame after the external transaction commits.
+    pub fn publish(mut self) {
+        let channel = self.channel.take().expect("reservation owns its channel");
+        let mut inner = channel.lock();
+        let frame = inner.reserved.take().expect("reservation owns its frame");
+        LiveTx::deliver(&mut inner, frame);
+    }
+}
+
+impl Drop for LivePublication {
+    fn drop(&mut self) {
+        if let Some(channel) = self.channel.take() {
+            drop(channel.lock().reserved.take());
+        }
     }
 }
 
@@ -422,6 +505,7 @@ impl foundation_ui_runtime::dispatch::ReplayFeed for LiveChannel {
         inner
             .validate(caps, inner.sequence.last())
             .map_err(replay_error)?;
+        inner.prepare_subscriber(caps).map_err(replay_error)?;
         inner.managed.push((token.clone(), caps.clone(), send));
         let channel = Arc::downgrade(&self.0);
         Ok(foundation_ui_runtime::dispatch::FeedLease::new(move || {

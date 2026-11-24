@@ -392,3 +392,11 @@ The helper scales the source icon and validates all inputs before replacing a na
 
 The browser can call Connect and stream the icon without loading the game binary.
 Chromium records the game request only after the Play action. This distinguishes lazy loading from a cached second request.
+
+## Browser application package verification
+
+The build hook supplies the same path to the resource manifest and the JavaScript loader.
+This keeps the packaged file and the browser request in agreement when an application changes the path.
+
+During parallel native builds, one Chromium process exceeded the developer check's 60-second DOM dump timeout.
+A second run used the browser debugging protocol to read the page. All three script formats passed the same assertions.
