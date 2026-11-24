@@ -221,6 +221,12 @@ async fn wrong_method_returns_405() {
         .await
         .expect("a method miss answers, it does not throw");
     assert_eq!(response.status(), 405, "{}: case 4: status", host_name());
+    let allow = header_values(&response, "allow");
+    assert!(
+        allow.iter().any(|value| value.eq_ignore_ascii_case("GET")),
+        "{}: case 4: the 405 must name the allowed methods, got {allow:?}",
+        host_name()
+    );
 }
 
 /// Case 5. Oracle: example. `%2F` arrives as `/`, so the route sees two

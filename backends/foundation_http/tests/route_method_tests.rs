@@ -157,3 +157,23 @@ fn test_route_method_has_any_custom() {
     rm.set_method(SimpleMethod::Custom("TEST".to_string()), "test".to_string());
     assert!(rm.has_any());
 }
+
+#[test]
+fn allowed_methods_lists_the_registered_methods_in_header_order() {
+    let mut rm: RouteMethod<String> = RouteMethod::empty();
+    rm.set_method(SimpleMethod::POST, "post".to_string());
+    rm.set_method(SimpleMethod::GET, "get".to_string());
+    rm.set_method(
+        SimpleMethod::Custom("PROPFIND".to_string()),
+        "custom".to_string(),
+    );
+
+    assert_eq!(rm.allowed_methods(), vec!["GET", "POST", "PROPFIND"]);
+}
+
+#[test]
+fn allowed_methods_is_empty_without_a_handler() {
+    let rm: RouteMethod<String> = RouteMethod::empty();
+
+    assert_eq!(rm.allowed_methods(), Vec::<String>::new());
+}

@@ -34,7 +34,9 @@ use foundation_netio::shared::http::{
 
 use crate::native::reader::read_next_request;
 use crate::native::serve::Serve;
-use crate::native::writer::{send_continue_100, send_not_found, send_text};
+use crate::native::writer::{
+    send_continue_100, send_method_not_allowed, send_not_found, send_text,
+};
 use crate::shared::serve::{ConnectionResult, ServeFuture, ServeOutcome};
 
 // ---------------------------------------------------------------------------
@@ -953,7 +955,28 @@ impl ConnectionHandler {
             "Processing: dispatching to route handler"
         );
 
-        if let Some(handler) = self.app.router().dispatch(method, path) {
+        let handler = match self.app.router().dispatch_result(method, path) {
+            Ok(handler) => Some(handler),
+            Err(crate::shared::router::RouteOp::MethodNotAllowed) => {
+                tracing::trace!(
+                    client_ip = %self.client_ip,
+                    method = %method,
+                    path = %path,
+                    "Processing: the path matched but the method did not, returning 405"
+                );
+                // The request body was never read, so the connection closes
+                // (RFC 9110 section 15.5.6: a 405 names the allowed methods).
+                let allowed = self.app.router().allowed_methods(path);
+                let close = should_close || body_left_unread(&req);
+                return self.await_response(
+                    send_method_not_allowed(self.conn.clone(), &allowed, &self.ctx),
+                    close,
+                );
+            }
+            Err(_) => None,
+        };
+
+        if let Some(handler) = handler {
             let result = handler.serve(ctx, req, self.conn.clone());
             match result {
                 ConnectionResult::Take => {

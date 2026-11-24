@@ -465,6 +465,35 @@ pub fn send_not_found(conn: SharedByteBufferStream<RawStream>, ctx: &Ctx) -> Con
     send_text(conn, 404, "Not Found", ctx)
 }
 
+/// Send a 405 Method Not Allowed response that names the allowed methods.
+///
+/// WHY: RFC 9110 section 15.5.6 requires an `Allow` header on a 405, and a
+/// client uses it to retry with a supported method.
+/// HOW: the same head and body shape as [`send_text`], with the `Allow` header.
+#[must_use]
+pub fn send_method_not_allowed(
+    conn: SharedByteBufferStream<RawStream>,
+    allowed: &[String],
+    ctx: &Ctx,
+) -> ConnectionResult {
+    let body = b"Method Not Allowed".to_vec();
+    let headers = [
+        (SimpleHeader::CONTENT_TYPE, "text/plain".to_string()),
+        (SimpleHeader::CONNECTION, "close".to_string()),
+        (SimpleHeader::ALLOW, allowed.join(", ")),
+    ];
+    match render_head(405, &headers, body.len()) {
+        Ok(head) => {
+            let writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
+            ConnectionResult::Async(Box::pin(write_response(writer, head, body)))
+        }
+        Err(e) => {
+            tracing::error!("response build failed: {e}");
+            ConnectionResult::Close(None)
+        }
+    }
+}
+
 /// Send a 500 Internal Server Error response. See [`send_bytes`].
 #[must_use]
 pub fn send_server_error(

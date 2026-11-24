@@ -65,7 +65,7 @@ foundation_proxy = { path = "../foundation_proxy", version = "0.2.0" }
 # The installer's Docker deploy target for the end-to-end test.
 foundation_installer = { path = "../foundation_installer", version = "0.0.1" }
 # The proxy's shutdown signal in the client tests.
-foundation_http = { path = "../foundation_http", version = "0.0.14", features = ["multi", "ssl"] }
+foundation_http = { path = "../foundation_http", version = "0.0.15", features = ["multi", "ssl"] }
 futures-lite = "2"
 tempfile = "3"
 tracing-subscriber = { workspace = true }

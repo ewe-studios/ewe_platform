@@ -40,14 +40,14 @@ brotli = { version = "8", optional = true }
 # wasm code (its `ExchangeContinuation` drops the `+ Send` bound there), which
 # no longer type-checks.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.14" }
+foundation_http = { path = "../foundation_http", version = "0.0.15" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
 # The H2 client dials without blocking a valtron worker (feature 127):
 # `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
 socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.14", default-features = false, features = ["wasm"] }
+foundation_http = { path = "../foundation_http", version = "0.0.15", default-features = false, features = ["wasm"] }
 # The fetch client is optional on wasm: the owned-harness test package turns it
 # off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
 foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
