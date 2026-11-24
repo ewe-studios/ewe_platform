@@ -548,3 +548,8 @@ Feature 5 now proposes shared startup views and generated launch settings for An
 
 Feature 5 now includes editable launch assets. The generator supplies two images and a theme file for each mobile project.
 Native build integration and replacement checks remain open.
+
+The public browser build hook now accepts a relative path for the application WebAssembly binary.
+An independent Cargo consumer runs under a website subdirectory in Chromium.
+It fetches one application script and compiles both the default binary and a configured nested binary in separate builds.
+The test rejects traversal, absolute names, script collisions, and manifest collisions. Failed builds preserve the previous public tree.

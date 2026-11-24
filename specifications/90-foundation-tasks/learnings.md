@@ -371,3 +371,7 @@ Download into staging before replacing local files. Preserve unrelated files whe
 Android reads the launch theme from the manifest before Compose draws. iOS reads its launch declaration before SwiftUI draws.
 
 The project packager copies binary template files unchanged. Android and iOS can share the same source images.
+
+The application script location supplies the base for binary assets when a website mounts the application below its root.
+A private generated module shares the configured path with Rust packaging and browser startup.
+A successful WebAssembly compilation reports the actual binary request to the test server.

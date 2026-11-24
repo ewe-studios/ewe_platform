@@ -59,10 +59,10 @@ foundation_resources = {{ path = '{provider}', default-features = false, feature
         app.join("build.rs"),
         r#"
 fn main() -> std::io::Result<()> {
-    let output = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("revision");
-    if !output.exists() { std::fs::write(output, b"generated")?; }
-    foundation_resources::build::stage_from_cargo()?;
-    Ok(())
+    foundation_resources::package::BrowserPackage::new(std::path::Path::new("web/app.js"))
+        .browser_enabled(false)
+        .with_generated("revision", "generated")
+        .build()
 }
 "#,
     )
@@ -74,6 +74,11 @@ fn main() -> std::io::Result<()> {
     let public = target.join("package-check/public/resource_fixture");
     cargo(&app, &target, true);
     assert_eq!(fs::read(public.join("version")).unwrap(), b"generated");
+    #[cfg(unix)]
+    assert_eq!(
+        fs::metadata(public.join("version")).unwrap().permissions(),
+        fs::metadata(public.join("browser.js")).unwrap().permissions()
+    );
     assert_eq!(fs::read(public.join("art/icon")).unwrap(), b"first");
     assert!(public.join("browser.js").is_file());
     fs::write(public.join("user"), "keep").unwrap();

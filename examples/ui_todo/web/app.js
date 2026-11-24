@@ -1,3 +1,4 @@
+import { moduleUrl } from "./ewe-app-config.js";
 import * as bindings from "./bindings/ui_todo_bg.js";
 import { WasmLoader } from "./foundation-wasm.js";
 import { createApp } from "./foundation-ui-actions.js";
@@ -34,7 +35,7 @@ async function boot() {
     const params = new URL(location.href).searchParams;
     const notice = document.querySelector("#notice");
     const app = createApp({
-        moduleLoader, moduleUrl: "/module.wasm", start: "init_todo_host",
+        moduleLoader, moduleUrl, start: "init_todo_host",
         view: "todos", mount: document.querySelector("#page"),
         initialRoute: params.has("count") ? "/open-count" : "/initial",
         viewDataAction: "host:apply_todo_delivery",

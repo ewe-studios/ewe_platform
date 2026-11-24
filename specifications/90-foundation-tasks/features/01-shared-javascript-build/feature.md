@@ -97,3 +97,13 @@ For an application build, accept the application entry and select one output pro
 Emit one public `bundle.js` containing application code and all required JavaScript bindings.
 Inline dynamic JavaScript imports into that artifact. Preserve initialization order and generated WebAssembly asset resolution.
 Verify the actual Todo entry in development and release. Reject extra public JavaScript files and additional browser script requests.
+
+### Application module location
+
+The owner requires a configurable WebAssembly location in the application build hook.
+`BrowserPackage::with_module_path(relative_name)` selects the public binary. The default name is `module.wasm`.
+Validate it as a portable resource name. Reject a collision with any declared resource or generated output before publication.
+Generate a private JavaScript module named `ewe-app-config.js`. Its `moduleUrl` export names the selected served resource.
+The Todo entry imports this value. The hook includes the configuration module in the public application bundle.
+Build an external fixture with a nested binary path. Verify the staged binary and Chromium's actual request address.
+Verify the default path separately. Test invalid names and collisions with the bundle and resource manifest.

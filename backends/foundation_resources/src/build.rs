@@ -329,7 +329,8 @@ pub(crate) fn same_file(first: &Path, second: &Path) -> io::Result<bool> {
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(false),
         Err(error) => return Err(error),
     };
-    if !meta.is_file() || fs::metadata(first)?.len() != meta.len() {
+    let source = fs::metadata(first)?;
+    if !meta.is_file() || source.len() != meta.len() || source.permissions() != meta.permissions() {
         return Ok(false);
     }
     let mut a = io::BufReader::new(fs::File::open(first)?);

@@ -1,7 +1,7 @@
 //! Package application files under stable names.
 #[cfg(feature = "build")]
 pub mod build;
-#[cfg(all(feature = "browser-package", not(target_family = "wasm")))]
+#[cfg(all(feature = "build", not(target_family = "wasm")))]
 pub mod package;
 
 /// A portable relative resource name.
