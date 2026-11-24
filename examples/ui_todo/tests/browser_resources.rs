@@ -7,11 +7,6 @@ use std::{net::TcpListener, path::Path, sync::Arc};
 
 #[test]
 fn browser_opens_the_same_packaged_icon() {
-    let web = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web");
-    assert!(
-        web.join("resources-wasm/foundation_resources.js").is_file(),
-        "Run build-module.sh before this test"
-    );
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let url = format!("http://{}/", listener.local_addr().unwrap());
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -23,7 +18,6 @@ fn browser_opens_the_same_packaged_icon() {
             foundation_ui_wire::writer::WriterConfig::default(),
         );
         let app = ui_todo::server::app_with_public_directory(
-            &web.join("ui_todo.wasm"),
             channel,
             Path::new(env!("EWE_STAGED_RESOURCES")),
         )
@@ -36,7 +30,7 @@ fn browser_opens_the_same_packaged_icon() {
         let page = driver.new_page().unwrap();
         page.goto(&url).unwrap();
         let result = page.eval(r#"(async () => {
-            const { openResource } = await import("/app.js");
+            const openResource = window.todoResources.open;
             const file = await openResource("art/todo.svg");
             const decoder = new TextDecoder();
             let icon = "", chunk;

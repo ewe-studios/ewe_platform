@@ -1,19 +1,19 @@
-"""Tests for scripts/ci/check_clock_params.py (spec 76 feature 06)."""
+"""Tests for the clock-params Rust task (spec 76 feature 06)."""
 
 import subprocess
-import sys
+from task_command import binary
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "check_clock_params.py"
+TASK = "check-clock-params"
 REPO = Path(__file__).resolve().parents[3]
 
 
 def run(root: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(SCRIPT), "--root", str(root), *args],
-        capture_output=True,
+        [binary(), TASK, "--root", str(root), *args],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True,
     )
 
@@ -33,7 +33,7 @@ def allowlist(root: Path, text: str) -> Path:
 class CheckClockParams(unittest.TestCase):
     def test_the_repository_is_clean(self):
         result = run(REPO, "--check")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("0 violations", result.stdout)
 
     def test_a_ctx_parameter_passes(self):

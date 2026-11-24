@@ -15,6 +15,10 @@ fn server_and_host_actions_work() {
         let peer_toggle =
             other.locator(r#"button[primal\:onclick="server:toggle_todo"]:not([hidden] *)"#);
         shared_count.expect().to_have_text("0 open todos").unwrap();
+        assert_eq!(
+            other.eval(r#"performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname).filter(path => path.endsWith(".js")).join(",")"#).unwrap().as_str(),
+            Some("/bundle.js")
+        );
         let page = driver.new_page().unwrap();
         open_document(&page, url);
         let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]:not([hidden] *)"#);
@@ -83,6 +87,7 @@ fn server_and_host_actions_work() {
         let peer_add = other.locator(&button("host:open_add_dialog"));
         peer_add.click().unwrap();
         let peer_sheet = other.locator("dialog:modal input");
+        peer_sheet.expect().to_be_visible().unwrap();
         peer_sheet.fill("Keep this draft").unwrap();
         submit_with_keyboard(&page, &add, "second todo");
         shared_count.expect().to_have_text("2 open todos").unwrap();
@@ -118,6 +123,8 @@ fn server_and_host_actions_work() {
         toggle.expect().to_have_count(0).unwrap();
         page.locator("button[value=all]").click().unwrap();
         toggle.expect().to_be_visible().unwrap();
+        let wire = serde_json::to_string(include_str!("../../../backends/foundation_wasm_ui/runtimes/foundation-ui-wire.js")).unwrap();
+        other.eval(&format!("(async () => {{const url=URL.createObjectURL(new Blob([{wire}],{{type:'text/javascript'}})); try {{window.testWire=await import(url);}} finally {{URL.revokeObjectURL(url);}} return true;}})()")).unwrap();
         other
             .eval(
                 r"{
@@ -125,7 +132,7 @@ fn server_and_host_actions_work() {
             window.fetch = (url, options) => {
                 if (String(url).includes('/live')) window.replayUrl = String(url);
                 if (String(url).includes('/live') && options?.method === 'POST') {
-                    window.replayCursor = import('/foundation-ui-wire.js').then(w => {
+                    window.replayCursor = Promise.resolve(window.testWire).then(w => {
                         const frame = w.Frame.getRootAsFrame(new w.ByteBuffer(options.body));
                         return String(frame.kind(new w.FrameRequest()).resume().after());
                     });
@@ -252,7 +259,7 @@ fn server_and_host_actions_work() {
         open_document(&external, &format!("{url}theme.css"));
         assert_eq!(
             external
-                .eval(include_str!("browser_app_lifecycle.js"))
+                .eval(&lifecycle_script())
                 .unwrap(),
             serde_json::json!([2, 2, 2])
         );
@@ -404,4 +411,19 @@ fn one_count_publication_reaches_the_open_browser() {
         .timeout(std::time::Duration::from_secs(90))
         .to_have_text(&after)
         .unwrap();
+}
+
+
+fn lifecycle_script() -> String {
+    use std::{fs,path::Path};
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    foundation_wasm_ui::build_hook::application_sources(root).unwrap();
+    fs::create_dir(root.join("bindings")).unwrap();
+    fs::copy(Path::new(env!("OUT_DIR")).join("browser-bindings/ui_todo_bg.js"),root.join("bindings/ui_todo_bg.js")).unwrap();
+    let entry = root.join("lifecycle.js");
+    fs::write(&entry,include_str!("browser_app_lifecycle.js")).unwrap();
+    let mut script = String::from_utf8(foundation_codegen::javascript::application(&entry,root,false).unwrap().bytes).unwrap();
+    script.push_str("\nglobalThis.todoLifecycleCheck;");
+    script
 }

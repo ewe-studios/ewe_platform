@@ -635,8 +635,19 @@ impl<S> RouteSegment<S> {
             }
         } else {
             self.validate_against_self(&next_segment_type, &mut params)?;
+            let fallback = self.dynamic_routes.iter().find(|child| child.segment == SegmentType::AnyPath);
+            let saved = fallback.map(|child| (child, params.clone()));
             let next = self.get_matching_segment_route(&remaining[0], &mut params)?;
-            Self::match_routes_from(next, remaining, params)
+            let result = Self::match_routes_from(next, remaining, params);
+            match (result, saved) {
+                (Ok((route, _)), Some((fallback, params))) if !route.method.has_any() => {
+                    Ok((fallback.clone(),params))
+                }
+                (Err(RouteOp::NoMatchingRoute(_) | RouteOp::DidNotMatchExpected(..)), Some((fallback, params))) => {
+                    Ok((fallback.clone(),params))
+                }
+                (result, _) => result,
+            }
         }
     }
 

@@ -25,7 +25,7 @@ foundation_tasks = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
 blocking.workspace = true
 tracing.workspace = true
-foundation_resources = { path = "../foundation_resources", version = "0.1.0" }
+foundation_resources = { path = "../foundation_resources", version = "0.1.1" }
 tempfile = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
@@ -34,7 +34,7 @@ zip = { version = "9.4.1", default-features = false, features = ["deflate-flate2
 base64 = { workspace = true, optional = true }
 uuid = { version = "1", optional = true }
 sha1 = { workspace = true, optional = true }
-quick-xml = { version = "0.38", features = ["serialize"], optional = true }
+quick-xml = { workspace = true, features = ["serialize"], optional = true }
 plist = { version = "1.7", optional = true }
 regex = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"], optional = true }
@@ -49,7 +49,7 @@ derive_more.workspace = true
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.12" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.13" }
 foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.11" }
 
 [target.'cfg(target_os = "android")'.dependencies]

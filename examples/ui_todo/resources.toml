@@ -3,8 +3,8 @@ name = "art"
 path = "resources/art"
 
 [[resource]]
-name = "app.js"
-path = "web/app.js"
+name = "index.html"
+path = "web/index.html"
 targets = ["web"]
 
 [[resource]]

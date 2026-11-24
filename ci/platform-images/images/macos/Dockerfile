@@ -17,7 +17,7 @@
 # pinned tools, rustup, the Vulkan SDK (MoltenVK) and the GitHub Actions
 # runner. Repository layers add /opt/platform-images/layers/<name>/install.sh.
 #
-# Context staged by `nu scripts/images.nu prepare --layer vm-base --os macos`.
+# Context staged by `foundation-ci image-prepare --layer vm-base --os macos`.
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}

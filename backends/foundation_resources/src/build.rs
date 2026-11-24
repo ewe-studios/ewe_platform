@@ -196,7 +196,7 @@ pub fn stage(
     target: Target,
     destination: &Path,
 ) -> io::Result<Staged> {
-    stage_in(manifest, generated, target, destination, None)
+    stage_in(manifest, generated, target, destination, None, &[])
 }
 
 fn resolve_destination(destination: &Path) -> io::Result<PathBuf> {
@@ -223,6 +223,7 @@ fn stage_in(
     target: Target,
     destination: &Path,
     payload: Option<&ResourceName>,
+    outputs: &[(String, PathBuf)],
 ) -> io::Result<Staged> {
     let parent = manifest
         .parent()
@@ -239,6 +240,12 @@ fn stage_in(
     let mut inputs = Inputs::default();
     inputs.paths.insert(manifest.to_owned());
     let mut names = BTreeSet::new();
+    for (name, path) in outputs {
+        let src = checked_source(generated, path)?;
+        inputs.add(name, &src)?;
+        names.insert(name.clone());
+    }
+
     for entry in declarations.resource {
         if !entry.targets.is_empty() && !entry.targets.contains(&target) {
             continue;
@@ -315,7 +322,7 @@ fn stage_in(
     })
 }
 
-fn same_file(first: &Path, second: &Path) -> io::Result<bool> {
+pub(crate) fn same_file(first: &Path, second: &Path) -> io::Result<bool> {
     use std::io::BufRead;
     let meta = match fs::metadata(second) {
         Ok(meta) => meta,
@@ -461,6 +468,10 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
 /// # Errors
 /// Returns an error when Cargo variables or resource inputs are missing.
 pub fn stage_from_cargo() -> io::Result<Staged> {
+    stage_outputs(&[])
+}
+
+pub(crate) fn stage_outputs(outputs: &[(String, PathBuf)]) -> io::Result<Staged> {
     for key in [
         "EWE_RESOURCE_TARGET",
         "EWE_RESOURCE_DEST",
@@ -509,6 +520,7 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
         target,
         &dest,
         payload.as_ref(),
+        outputs,
     )?;
     if target == Target::Web && env::var_os("EWE_RESOURCE_DEST").is_none() {
         let profile = generated
@@ -522,7 +534,14 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
                 ))
             })?;
         let public = profile.join("public").join(var("CARGO_PKG_NAME")?);
-        stage(&package.join("resources.toml"), &generated, target, &public)?;
+        stage_in(
+            &package.join("resources.toml"),
+            &generated,
+            target,
+            &public,
+            None,
+            outputs,
+        )?;
     }
     println!("cargo:rerun-if-changed={}", dest.join(INDEX).display());
     for name in &staged.names {
@@ -531,6 +550,7 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
             staged.directory.join(name).display()
         );
     }
+    write_provider(&generated, &staged)?;
     let names = generated.join("ewe-resource-names");
     let content = staged.names.join("\n");
     let unchanged = match fs::metadata(&names) {
@@ -550,4 +570,28 @@ pub fn stage_from_cargo() -> io::Result<Staged> {
         staged.directory.display()
     );
     Ok(staged)
+}
+
+/// Emit a sorted lookup table. Cargo selects the consuming crate's build mode.
+fn write_provider(generated: &Path, staged: &Staged) -> io::Result<()> {
+    use std::fmt::Write;
+    let mut names: Vec<_> = staged.names.iter().collect();
+    names.sort_unstable();
+    let mut table = String::from("&[\n");
+    for name in names {
+        let input = staged.directory.join(name);
+        let input = input
+            .to_str()
+            .ok_or_else(|| invalid("Non-Unicode embedded resource path"))?;
+        writeln!(table,"({name:?}, {{ #[cfg(debug_assertions)] {{ None }} #[cfg(not(debug_assertions))] {{ Some(include_bytes!({input:?}) as &'static [u8]) }} }}),")
+            .map_err(io::Error::other)?;
+    }
+    table.push_str("]\n");
+    let path = generated.join("ewe-packaged-resources.rs");
+    match fs::read(&path) {
+        Ok(bytes) if bytes == table.as_bytes() => Ok(()),
+        Ok(_) => fs::write(path, table),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => fs::write(path, table),
+        Err(error) => Err(error),
+    }
 }

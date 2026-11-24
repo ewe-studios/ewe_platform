@@ -115,7 +115,6 @@ pub(super) async fn todo(ctx: TaskContext, args: Todo) -> TaskResult {
     )
     .await?;
     let exe = device::host(&ctx, &root).await?;
-    device::web(&ctx, &root).await?;
     let (ctx, root, products, id, exe) = (
         &ctx,
         root.as_path(),
@@ -331,12 +330,7 @@ pub(super) async fn starter(ctx: TaskContext, args: Starter) -> TaskResult {
     .await?;
     let axe = driver(&ctx, &root, stage).await?;
     let exe = device::host(&ctx, &root).await?;
-    if !root
-        .join("examples/ui_todo/target/web/ui_todo.wasm")
-        .is_file()
-    {
-        device::web(&ctx, &root).await?;
-    }
+
     let config = stage::config(&root)?;
     let (ctx, root, env, axe, consumer) = (
         &ctx,

@@ -5,7 +5,7 @@ use foundation_tasks::{
     Cancellation, OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskOutput,
     TaskResult, TaskSet,
 };
-use futures_util::{FutureExt, future::BoxFuture};
+use futures_util::{future::BoxFuture, FutureExt};
 use std::{
     io,
     path::Path,
@@ -13,9 +13,19 @@ use std::{
     time::Duration,
 };
 
+mod attachments;
+mod binaries;
 mod chromium;
+mod dispatch;
+mod errors;
 mod guards;
+mod linux;
+mod locks;
+mod package;
 mod recipes;
+mod retry;
+mod submodules;
+mod vm_host;
 
 #[derive(Args)]
 struct Options {
@@ -43,6 +53,58 @@ struct Many {
     #[command(flatten)]
     options: Options,
 }
+#[derive(Args)]
+struct ExpectedFailure {
+    message: String,
+    #[arg(last = true, required = true)]
+    command: Vec<std::ffi::OsString>,
+}
+
+async fn expect_failure(ctx: TaskContext, args: ExpectedFailure) -> TaskResult {
+    let host = ctx.require::<CiEnvironment>()?;
+    if args.message.is_empty() {
+        return Err(TaskError::operation("Missing compiler diagnostic"));
+    }
+    let (program, arguments) = args
+        .command
+        .split_first()
+        .ok_or_else(|| TaskError::operation("Missing command after --"))?;
+    let sink = Arc::new(Output::new(
+        ctx.require::<TaskEnv>()?.output.clone(),
+        Some(&args.message),
+        &Settings::default(),
+    ));
+    let cmd = ProcessCommand::new(program)
+        .args(arguments.iter().cloned())
+        .current_dir(&host.root);
+    match ctx.exec_with_output(cmd, sink.clone()).await {
+        Ok(()) => Err(TaskError::operation(format!(
+            "The build succeeded. Expected {}",
+            args.message
+        ))),
+        Err(TaskError::Exit { .. }) => {
+            if sink
+                .inner
+                .lock()
+                .map_err(|_| TaskError::operation("Output lock poisoned"))?
+                .matched
+            {
+                println!(
+                    "The build failed with the expected diagnostic: {}",
+                    args.message
+                );
+                Ok(())
+            } else {
+                Err(TaskError::operation(format!(
+                    "The build failed without {}",
+                    args.message
+                )))
+            }
+        }
+        Err(error) => Err(error),
+    }
+}
+
 pub fn register(set: &mut TaskSet) -> TaskResult {
     set.add(
         "run",
@@ -67,7 +129,23 @@ pub fn register(set: &mut TaskSet) -> TaskResult {
     for name in ["run", "run-many"] {
         set.expose(name, &[name])?;
     }
+    set.add(
+        "expect-compile-error",
+        "Check that a build fails with the expected diagnostic",
+        expect_failure,
+    )?;
+    set.expose("expect-compile-error", &["expect-compile-error"])?;
+    dispatch::register(set)?;
+    attachments::register(set)?;
+    binaries::register(set)?;
+    linux::register(set)?;
+    locks::register(set)?;
+    package::register(set)?;
+    retry::register(set)?;
+    vm_host::register(set)?;
+    submodules::register(set)?;
     chromium::register(set)?;
+    errors::register(set)?;
     guards::register(set)
 }
 struct CommandStep {
@@ -190,16 +268,33 @@ impl TaskOutput for Output {
         })
     }
 }
-async fn execute(ctx: TaskContext, names: Vec<String>, options: Options, many: bool) -> TaskResult {
-    let ws = Workspace::load(&ctx).await?;
-    let env = ctx.require::<CiEnvironment>()?;
-    let steps = if options.step.is_empty() {
+fn selected_packages(ws: &Workspace, names: Vec<String>, many: bool) -> Vec<String> {
+    if many && names.len() == 1 && names[0] == "all" {
+        ws.settings
+            .iter()
+            .filter(|(_, settings)| settings.skip.is_none())
+            .map(|(name, _)| name.clone())
+            .collect()
+    } else {
+        names
+    }
+}
+
+fn selected_steps(steps: Vec<String>) -> Vec<String> {
+    if steps.is_empty() {
         ["fmt", "build", "clippy", "test", "wasm"]
             .map(str::to_owned)
             .to_vec()
     } else {
-        options.step
-    };
+        steps
+    }
+}
+
+async fn execute(ctx: TaskContext, names: Vec<String>, options: Options, many: bool) -> TaskResult {
+    let ws = Workspace::load(&ctx).await?;
+    let names = selected_packages(&ws, names, many);
+    let env = ctx.require::<CiEnvironment>()?;
+    let steps = selected_steps(options.step);
     let profile = options
         .profile
         .or_else(|| env.text("CI_PROFILE"))
@@ -489,4 +584,21 @@ impl PackageRun<'_> {
             Ok((None, false))
         }
     }
+}
+
+pub(crate) async fn sleep(ctx: &TaskContext, time: Duration) -> TaskResult {
+    let clock = ctx.context().clock();
+    let until = clock
+        .now()
+        .checked_add(time)
+        .ok_or_else(|| TaskError::operation("Invalid retry time"))?;
+    let timer = ctx
+        .context()
+        .env()
+        .ok_or(TaskError::MissingService("timer"))?
+        .timer();
+    let wait = timer.sleep_until(ctx.context().clone(), until).fuse();
+    let cancel = ctx.cancellation().cancelled().fuse();
+    futures_util::pin_mut!(wait, cancel);
+    futures_util::select_biased! {()=cancel=>Err(TaskError::Cancelled),()=wait=>Ok(())}
 }

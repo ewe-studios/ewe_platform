@@ -7,7 +7,6 @@ From the repository root, run these commands.
 
 ```sh
 native-task task run native:todo:prepare-ios
-examples/ui_todo/build-module.sh
 cargo run --locked --profile uat -p ui_todo --bin ui_todo -- 127.0.0.1:8080
 ```
 

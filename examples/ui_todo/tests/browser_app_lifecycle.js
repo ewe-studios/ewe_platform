@@ -1,5 +1,5 @@
 // Exercise a standalone host with one initializer that returns success.
-(async () => {
+globalThis.todoLifecycleCheck = (async () => {
     const {WasmLoader} = await import("/foundation-wasm.js");
     const {createApp, FetchActionTransport} = await import("/foundation-ui-actions.js");
     const moduleBytes = Uint8Array.of(

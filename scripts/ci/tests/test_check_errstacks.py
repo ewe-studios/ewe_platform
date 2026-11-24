@@ -1,22 +1,22 @@
-"""Tests for scripts/ci/check_errstacks.py.
+"""Tests for the errstacks Rust task.
 
 Run: python3 -m unittest discover -s scripts/ci/tests
 """
 
 import subprocess
-import sys
+from task_command import binary
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "check_errstacks.py"
+TASK = "check-errstacks"
 REPO = Path(__file__).resolve().parents[3]
 
 
 def run(root: Path) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(SCRIPT), "--root", str(root)],
-        capture_output=True,
+        [binary(), TASK, "--root", str(root)],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True,
     )
 
@@ -30,7 +30,7 @@ def write(root: Path, rel: str, text: str) -> None:
 class CheckErrStacks(unittest.TestCase):
     def test_the_repository_is_clean(self):
         result = run(REPO)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_a_planted_thiserror_dependency_fails(self):
         with tempfile.TemporaryDirectory() as tmp:

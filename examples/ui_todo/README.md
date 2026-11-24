@@ -6,23 +6,19 @@ The example binds to a loopback address. Restarting the server clears the list.
 
 ## Run the example
 
-Install the WebAssembly target for the repository toolchain. Build the module and start the server.
+Install the WebAssembly target for the repository toolchain. Start the server with Cargo.
 
 ```sh
 rustup target add wasm32-unknown-unknown
-examples/ui_todo/build-module.sh
 cargo run --profile uat -p ui_todo
 ```
 
 Open `http://127.0.0.1:8180`. Pass another loopback address after `--` to use a different port.
 
-To use a module from another checkout, set `EWE_TODO_MODULE` before starting the server.
-A relative path starts at the server’s working directory. An absolute path also works after moving the executable.
-When moving the assets, keep the generated `rpc` directory next to `ui_todo.wasm` for the browser Connect client.
+Cargo builds the browser module, its bindings, and the application script before it builds the server.
+Move the development executable and its sibling `public` directory together.
+The release executable embeds the same resources.
 
-```sh
-EWE_TODO_MODULE=/path/to/ui_todo.wasm cargo run --profile uat -p ui_todo
-```
 
 The server checks the configured file and its WebAssembly header before announcing the address.
 Without this setting, the server uses the module under the build checkout. Native routes also work when that file is missing.
@@ -68,7 +64,6 @@ Use its fixture generator for byte-level compatibility tests. The browser test s
 See the [wire format and examples](../../backends/foundation_ui_wire/README.md) and the [browser test](tests/todo_browser_tests.rs).
 
 ```sh
-examples/ui_todo/build-module.sh
 cargo test --profile uat -p ui_todo --features browser-tests --test todo_browser_tests
 ```
 
@@ -129,7 +124,7 @@ The package selects one entry point for each host.
 | Host | Source | Build command from the repository root | Artifact |
 |---|---|---|---|
 | Server | `src/bin/server.rs` | `cargo build --profile uat -p ui_todo --bin ui_todo` | `target/uat/ui_todo` |
-| Browser | `src/web.rs` | `examples/ui_todo/build-module.sh` | `examples/ui_todo/target/web/ui_todo.wasm` |
+| Browser | `src/web.rs` | `cargo build -p ui_todo` | `public/ui_todo/module.wasm` |
 | iOS | `src/mobile.rs` | `native-task task run native:todo:prepare-ios` | `target/native-ui/ios-todo/.build-inputs/EweCoreFFI.xcframework` |
 | Android | `src/mobile.rs` | `native-task task run native:build-android --with-todo` | Each example gets `app/src/main/jniLibs/<abi>/libui_todo.so`. |
 

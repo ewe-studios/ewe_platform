@@ -28,8 +28,7 @@
         const doc = tab.document;
         doc.body.innerHTML = '<main id="page"></main><output id="notice"></output>';
         const script = doc.createElement("script");
-        script.type = "module";
-        script.src = "/app.js";
+        script.src = "/bundle.js";
         doc.body.append(script);
     }
     async function entries() {

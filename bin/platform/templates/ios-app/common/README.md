@@ -20,7 +20,6 @@ Change the initial route and action in `App/App.swift`.
 To run the reference server, check out the matching Ewe repository and run the following commands there.
 
 ```sh
-examples/ui_todo/build-module.sh
 cargo run -p ui_todo --bin ui_todo -- 127.0.0.1:8080
 ```
 {% endif %}

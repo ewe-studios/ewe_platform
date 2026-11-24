@@ -47,8 +47,8 @@ fn count_screen(req: ViewRequest) -> Result<Response, Error> {
 ///
 /// # Errors
 /// Returns an error when route or asset setup fails.
-pub fn app(module: &Path) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_todos(module, Vec::new())
+pub fn app() -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    app_with_todos(Vec::new())
 }
 
 /// Starts the todo server with a supplied list and its existing identifiers.
@@ -56,7 +56,6 @@ pub fn app(module: &Path) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
 /// # Errors
 /// Returns an error for duplicate identifiers, or if route setup fails.
 pub fn app_with_todos(
-    module: &Path,
     items: Vec<crate::Todo>,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
     let mut ids = std::collections::HashSet::with_capacity(items.len());
@@ -67,7 +66,6 @@ pub fn app_with_todos(
         return Err("Invalid restored todo identifiers".into());
     }
     app_with_store(
-        module,
         services::channel(1),
         TodoStore::with_items(items),
         None,
@@ -79,10 +77,9 @@ pub fn app_with_todos(
 /// # Errors
 /// Returns an error when the channel, routes, signer or assets are invalid.
 pub fn app_with_channel(
-    module: &Path,
     channel: LiveChannel,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_store(module, channel, TodoStore::default(), None)
+    app_with_store(channel, TodoStore::default(), None)
 }
 
 /// Build an embedded server using the public directory supplied by its host.
@@ -90,15 +87,13 @@ pub fn app_with_channel(
 /// # Errors
 /// Returns an error when the channel, routes, signer, or assets are invalid.
 pub fn app_with_public_directory(
-    module: &Path,
     channel: LiveChannel,
     public: &Path,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    app_with_store(module, channel, TodoStore::default(), Some(public))
+    app_with_store(channel, TodoStore::default(), Some(public))
 }
 
 fn app_with_store(
-    module: &Path,
     channel: LiveChannel,
     store: TodoStore,
     public: Option<&Path>,
@@ -107,7 +102,7 @@ fn app_with_store(
     let ctx = app.context().clone();
     let channels = services::install(&ctx, channel, store)?;
     register(&mut app.router, &ctx, channels)?;
-    assets::register(&mut app.router, module, public)?;
+    assets::register(&mut app.router, public)?;
     Ok(app)
 }
 

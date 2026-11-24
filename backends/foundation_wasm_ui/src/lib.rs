@@ -13,8 +13,12 @@ extern crate std;
 pub mod build_tools;
 #[cfg(not(target_family = "wasm"))]
 pub mod cli;
-#[cfg(all(feature = "tasks", not(target_family = "wasm")))]
+#[cfg(all(any(feature = "tasks", feature = "build-hook"), not(target_family = "wasm")))]
 mod runtime_build;
+#[cfg(all(any(feature = "tasks", feature = "build-hook"), not(target_family = "wasm")))]
+mod binding_build;
+#[cfg(all(feature = "build-hook", not(target_family = "wasm")))]
+pub mod build_hook;
 #[cfg(all(feature = "tasks", not(target_family = "wasm")))]
 pub mod tasks;
 

@@ -48,8 +48,8 @@ chrono.workspace = true
 # VM infrastructure deps (moved from foundation_testbed, spec-53 Feature 11)
 ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }
 indicatif = { version = "0.17", optional = true }
-tar = { version = "0.4", optional = true }
-flate2 = { version = "1", optional = true }
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
 xz2 = { version = "0.1", optional = true }
 dirs = { version = "6", optional = true }
 anyhow = { version = "1", optional = true }

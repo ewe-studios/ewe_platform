@@ -6,7 +6,7 @@
 //! in-macro), 9-14 (wrapper/bundle structure) + attribute mapping.
 
 use foundation_wasm_ui::build_tools::{
-    BundleMode, Encoding, JsPackaging, bundler, entrypoint_from_attrs, js_wrapper,
+    bundler, entrypoint_from_attrs, js_wrapper, BundleMode, Encoding, JsPackaging,
 };
 
 /// Test 9 — bin wrapper structure.
@@ -212,4 +212,48 @@ fn runtime_task_checks_both_outputs_without_rewriting_them() {
         std::fs::write(&path, original).unwrap();
     }
     assert!(run(true).status.success());
+}
+
+#[cfg(feature = "build-hook")]
+#[test]
+fn cargo_hook_generates_both_distributions() {
+    const CHILD: &str = "EWE_TEST_BROWSER_BUILD_HOOK";
+    if std::env::var_os(CHILD).is_some() {
+        foundation_wasm_ui::build_hook::generate_from_cargo().unwrap();
+        return;
+    }
+    let output = tempfile::tempdir().unwrap();
+    let result = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "cargo_hook_generates_both_distributions",
+            "--nocapture",
+        ])
+        .env(CHILD, "1")
+        .env("OUT_DIR", output.path())
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let tracked = String::from_utf8(result.stdout).unwrap();
+    for name in [
+        "runtime-entry.js",
+        "foundation-ui-actions.js",
+        "foundation-ui-vocab.js",
+    ] {
+        assert!(
+            tracked
+                .lines()
+                .any(|line| line.starts_with("cargo:rerun-if-changed=") && line.ends_with(name)),
+            "{tracked}"
+        );
+    }
+    let names = ["foundation-ui-runtime.js", "foundation-ui-runtime.min.js"];
+    let readable = std::fs::read(output.path().join(names[0])).unwrap();
+    let minified = std::fs::read(output.path().join(names[1])).unwrap();
+    assert!(!minified.is_empty() && minified.len() < readable.len());
 }

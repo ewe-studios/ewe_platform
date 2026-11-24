@@ -80,11 +80,9 @@ fn plan_writes_counts_and_respects_platform_settings() {
 fn affected_selects_the_consumer_and_excludes_prose() {
     let f = fixture();
     let root = f.path();
-    assert!(
-        command(root, "cargo", &["generate-lockfile"])
-            .status
-            .success()
-    );
+    assert!(command(root, "cargo", &["generate-lockfile"])
+        .status
+        .success());
     for args in [
         &["init", "-q"][..],
         &["add", "."],
@@ -118,6 +116,41 @@ fn affected_selects_the_consumer_and_excludes_prose() {
         "depends on tiny-core (core/src/lib.rs changed)"
     );
 }
+#[test]
+fn shared_runner_change_selects_all_packages() {
+    let f = fixture();
+    let root = f.path();
+    assert!(command(root, "cargo", &["generate-lockfile"])
+        .status
+        .success());
+    assert!(command(root, "git", &["init", "-q"]).status.success());
+    assert!(command(root, "git", &["add", "."]).status.success());
+    fixture_commit(root);
+    write(
+        root,
+        "backends/foundation_ci/src/execution/recipes.rs",
+        "// changed",
+    );
+    assert!(command(root, "git", &["add", "."]).status.success());
+    let result = command(
+        root,
+        env!("CARGO_BIN_EXE_foundation-ci"),
+        &["affected", "--base", "HEAD", "--json"],
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+    let affected = report["affected"].as_object().unwrap();
+    assert_eq!(affected.len(), 2);
+    assert_eq!(
+        affected["tiny-core"],
+        "backends/foundation_ci/src/execution/recipes.rs changed"
+    );
+}
+
 #[test]
 fn plan_rejects_an_unexplained_opt_out() {
     let f = fixture();
@@ -209,6 +242,54 @@ fn build_groups_follow_configured_paths_and_member_references() {
             String::from_utf8_lossy(&result.stderr)
         );
     }
+}
+
+#[test]
+fn manifest_consumer_change_selects_the_configured_contract_group() {
+    let dir = fixture();
+    let root = dir.path();
+    assert!(command(root, "cargo", &["generate-lockfile"])
+        .status
+        .success());
+    write(root, "contract/schema.json", "{}");
+    let copy = "backends/foundation_installer/tests/fixtures/manifest/sample.json";
+    write(root, copy, "{}");
+    write(
+        root,
+        "ci/packages.toml",
+        "[groups.schema-checks]\ndirectory='contract'\nrecipe='manifest-contract'\nbuild-members=[]\n",
+    );
+    for args in [
+        &["init", "-q"][..],
+        &["add", "."],
+        &[
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            "schema fixture",
+        ],
+    ] {
+        assert!(command(root, "git", args).status.success());
+    }
+    write(root, copy, r#"{"version": 2}"#);
+    let result = command(
+        root,
+        env!("CARGO_BIN_EXE_foundation-ci"),
+        &["affected", "--base", "HEAD", "--json"],
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let changes: serde_json::Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(
+        changes["affected"]["schema-checks"],
+        format!("{copy} changed")
+    );
 }
 
 #[test]
@@ -307,10 +388,8 @@ fn chromium_uses_the_configured_browser_or_a_complete_cache() {
             "{}",
             String::from_utf8_lossy(&result.stderr)
         );
-        assert!(
-            String::from_utf8_lossy(&result.stdout)
-                .contains(selected.unwrap_or(&binary).to_str().unwrap())
-        );
+        assert!(String::from_utf8_lossy(&result.stdout)
+            .contains(selected.unwrap_or(&binary).to_str().unwrap()));
     }
 }
 
@@ -333,4 +412,266 @@ fn expired_package_deadline_reports_the_failing_command() {
         message.contains("tiny-app") && message.contains("timed out after 0 minutes"),
         "{message}"
     );
+}
+
+#[test]
+fn lockfile_check_handles_spaces_and_reports_drift() {
+    let fixture = fixture();
+    let root = fixture.path();
+    let nested = root.join("outside workspace");
+    write(
+        &nested,
+        "Cargo.toml",
+        "[workspace]\n[package]\nname='nested'\nversion='0.1.0'\nedition='2021'\n",
+    );
+    write(&nested, "src/lib.rs", "");
+    assert!(command(&nested, "cargo", &["generate-lockfile"])
+        .status
+        .success());
+    assert!(command(root, "git", &["init", "-q"]).status.success());
+    assert!(command(root, "git", &["add", "."]).status.success());
+    let check = || {
+        command(
+            root,
+            env!("CARGO_BIN_EXE_foundation-ci"),
+            &["check-lockfiles"],
+        )
+    };
+    let pass = check();
+    assert!(
+        pass.status.success(),
+        "{}",
+        String::from_utf8_lossy(&pass.stderr)
+    );
+    assert!(String::from_utf8_lossy(&pass.stdout).contains("outside workspace"));
+    let path = nested.join("Cargo.toml");
+    fs::write(
+        &path,
+        fs::read_to_string(&path).unwrap().replace("0.1.0", "0.1.1"),
+    )
+    .unwrap();
+    assert!(!check().status.success());
+}
+
+#[test]
+fn release_package_cycles_follow_required_normal_and_build_dependencies() {
+    let dir = fixture();
+    let root = dir.path();
+    let base = "[package]\nname='tiny-core'\nversion='0.1.0'\nedition='2021'\n";
+    let normal = "[package]\nname='tiny-app'\nversion='0.1.0'\nedition='2021'\n";
+    let development = "[dev-dependencies]\ntiny-app={path='../app',version='0.1'}\n";
+    let back = "[dependencies]\ntiny-core={path='../core',version='0.1'}\n";
+    for (metadata, dev, path, cycle) in [
+        ("", development, back, true),
+        (
+            "",
+            development,
+            "[build-dependencies]\ntiny-core={path='../core',version='0.1'}",
+            true,
+        ),
+        (
+            "",
+            "[dev-dependencies]\ntiny-app={path='../app'}",
+            back,
+            false,
+        ),
+        ("", "[dev-dependencies]\ntiny-app='0.1'", back, false),
+        (
+            "",
+            development,
+            "[dev-dependencies]\ntiny-core={path='../core'}",
+            false,
+        ),
+        (
+            "",
+            development,
+            "[dependencies]\ntiny-core={path='../core',optional=true}",
+            false,
+        ),
+        ("publish=false\n", development, back, false),
+        ("", development, "", false),
+    ] {
+        write(root, "core/Cargo.toml", &format!("{base}{metadata}{dev}"));
+        write(root, "app/Cargo.toml", &format!("{normal}{path}"));
+        let result = command(
+            root,
+            env!("CARGO_BIN_EXE_foundation-ci"),
+            &["package-workspace", "--check-cycles"],
+        );
+        let stderr = String::from_utf8_lossy(&result.stderr);
+        assert_eq!(!result.status.success(), cycle, "{stderr}");
+        if cycle {
+            assert!(
+                stderr.contains("tiny-core -(dev)-> tiny-app -> tiny-core"),
+                "{stderr}"
+            );
+        }
+    }
+}
+
+#[test]
+fn release_cycle_reports_the_complete_indirect_path() {
+    let dir = fixture();
+    let root = dir.path();
+    write(
+        root,
+        "Cargo.toml",
+        "[workspace]\nresolver='2'\nmembers=['core','app','middle']\n",
+    );
+    write(root, "core/Cargo.toml", "[package]\nname='tiny-core'\nversion='0.1.0'\nedition='2021'\n[dev-dependencies]\ntiny-app={path='../app',version='0.1'}\n");
+    write(root, "app/Cargo.toml", "[package]\nname='tiny-app'\nversion='0.1.0'\nedition='2021'\n[build-dependencies]\nmiddle={path='../middle'}\n");
+    write(root, "middle/Cargo.toml", "[package]\nname='middle'\nversion='0.1.0'\nedition='2021'\n[dependencies]\ntiny-core={path='../core'}\n");
+    write(root, "middle/src/lib.rs", "");
+    let result = command(
+        root,
+        env!("CARGO_BIN_EXE_foundation-ci"),
+        &["package-workspace", "--check-cycles"],
+    );
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr)
+        .contains("tiny-core -(dev)-> tiny-app -> middle -> tiny-core"));
+}
+
+#[test]
+fn release_archive_builds_outside_the_checkout_and_skips_private_members() {
+    let dir = fixture();
+    let root = dir.path();
+    write(
+        root,
+        "core/Cargo.toml",
+        "[package]\nname='infrastructure_llama_bindings'\nversion='0.1.0'\nedition='2021'\n",
+    );
+    write(
+        root,
+        "core/build.rs",
+        "fn main() { assert!(std::env::var_os(\"LLAMA_DIR\").is_none()); }",
+    );
+    write(
+        root,
+        "app/Cargo.toml",
+        "[package]\nname='tiny-app'\nversion='0.1.0'\nedition='2021'\npublish=false\n",
+    );
+    let result = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+        .current_dir(root)
+        .env("LLAMA_DIR", "workspace-only")
+        .env("CARGO_NET_OFFLINE", "true")
+        .env("CARGO_TARGET_DIR", root.join("build output"))
+        .arg("package-workspace")
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(String::from_utf8_lossy(&result.stdout).contains("packaged 1 publishable crates"));
+    assert!(root
+        .join("build output/package/infrastructure_llama_bindings-0.1.0.crate")
+        .is_file());
+}
+
+fn fixture_commit(dir: &Path) {
+    let result = command(
+        dir,
+        "git",
+        &[
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            "fixture",
+        ],
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+}
+
+#[test]
+fn pinned_submodule_installs_a_baked_copy_and_preserves_existing_files() {
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path().join("checkout");
+    let baked = fixture.path().join("baked");
+    let name = "tools/source";
+    let repo = baked.join(name);
+    for dir in [&root, &repo] {
+        fs::create_dir_all(dir).unwrap();
+        assert!(command(dir, "git", &["init", "-q"]).status.success());
+    }
+    write(&repo, "hello.txt", "baked source");
+    assert!(command(&repo, "git", &["add", "."]).status.success());
+    fixture_commit(&repo);
+    let id = String::from_utf8(command(&repo, "git", &["rev-parse", "HEAD"]).stdout).unwrap();
+    let sha = id.trim();
+    write(
+        &root,
+        ".gitmodules",
+        &format!(
+            "[submodule \"source\"]\npath = {name}\nurl = https://example.invalid/source.git\n"
+        ),
+    );
+    assert!(command(&root, "git", &["add", ".gitmodules"])
+        .status
+        .success());
+    assert!(command(
+        &root,
+        "git",
+        &[
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            &format!("160000,{sha},{name}")
+        ]
+    )
+    .status
+    .success());
+    fixture_commit(&root);
+    let lock = baked.join("submodules.lock.json");
+    fs::write(
+        &lock,
+        serde_json::json!({"submodules":[{"path":name,"sha":sha}]}).to_string(),
+    )
+    .unwrap();
+    let visit = |mode: &str| {
+        command(
+            &root,
+            env!("CARGO_BIN_EXE_foundation-ci"),
+            &[
+                "link-submodules",
+                "--lock",
+                lock.to_str().unwrap(),
+                "--mode",
+                mode,
+            ],
+        )
+    };
+    write(&root, &format!("{name}/user.txt"), "keep");
+    assert!(!visit("symlink").status.success());
+    assert_eq!(
+        fs::read_to_string(root.join(name).join("user.txt")).unwrap(),
+        "keep"
+    );
+    fs::remove_file(root.join(name).join("user.txt")).unwrap();
+    let result = visit("symlink");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(root.join(name).join("hello.txt")).unwrap(),
+        "baked source"
+    );
+    let result = visit("submodule");
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(root.join(name).read_link().is_err());
+    assert!(visit("submodule").status.success());
 }

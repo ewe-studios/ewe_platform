@@ -68,7 +68,7 @@ LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
 # (and [settings]) feed the CI image, so editing tasks or env doesn't rebuild
 # it. After changing a version, refresh the lock (needs GitHub API access):
 #   mise lock --platform linux-x64,macos-arm64,macos-x64,windows-x64
-#   python3 scripts/toolchain/android_lock.py
+#   cargo run --locked --profile uat -p foundation_ci -- toolchain-android-lock
 #   bash scripts/toolchain/lock_test.sh
 # The shared versions match ci/platform-images/images/linux/mise/mise.toml.
 
@@ -125,22 +125,26 @@ windows-x64 = { url = "https://dl.google.com/android/repository/commandlinetools
 # Tasks - Setup
 # =============================================================================
 
+[tasks."toolchain:check"]
+description = "Check installed tools against the workspace versions"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-check"
+
 [tasks."toolchain:android"]
 description = "Install the Android Software Development Kit packages"
-run = "bash scripts/toolchain/android.sh"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-android"
 
 [tasks."toolchain:android-build"]
 description = "Build and verify a sample Android application"
 depends = ["toolchain:android"]
-run = "bash scripts/toolchain/android_build.sh"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-android-build"
 
 [tasks."toolchain:wire"]
 description = "Verify the FlatBuffers schema compiler"
-run = "bash scripts/toolchain/wire_test.sh"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-wire"
 
 [tasks."toolchain:apple"]
 description = "Check Xcode and compile the UniFFI Swift binding for the iOS simulator"
-run = ["bash scripts/toolchain/check.sh --scope apple", "bash scripts/toolchain/proof.sh --scope apple"]
+run = ["cargo run --locked --profile uat -p foundation_ci -- toolchain-check --scope apple", "cargo run --locked --profile uat -p foundation_ci -- toolchain-proof --scope apple"]
 
 [tasks."ui-web:bundle"]
 description = "Build the self-contained browser runtime"
@@ -152,11 +156,11 @@ run = "node --test backends/foundation_wasm_ui/integration/test/*.test.js backen
 
 [tasks."ui-wire:generate"]
 description = "Generate and bundle the user interface wire bindings"
-run = "bash scripts/ui_wire/generate.sh"
+run = "cargo run --locked --profile uat -p foundation_ci -- wire-generate"
 
 [tasks."ui-wire:check"]
 description = "Check the user interface wire bindings for drift"
-run = "bash scripts/ui_wire/check.sh"
+run = "cargo run --locked --profile uat -p foundation_ci -- wire-check"
 
 [tasks."ui-wire:test-ts"]
 description = "Read the Rust wire fixtures with the TypeScript bindings"
@@ -315,7 +319,6 @@ if [[ "$(uname -s)" == Darwin && -z "${PRIMAL_TEST_CHROMIUM_BIN:-}" ]]; then
 fi
 echo "Running the Chromium browser tests..."
 cargo test -p foundation_browser --profile uat --features browser-tests --test smoke
-examples/ui_todo/build-module.sh
 cargo test -p ui_todo --profile uat --features browser-tests --test todo_browser_tests
 echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
 """
@@ -494,35 +497,17 @@ git submodule update --remote {{env.LLAMA_SUBMODULE_PATH}}
 [tasks."build:all"]
 alias = "build-all"
 description = "Build all packages (debug)"
-run = """
-echo "Building all packages (debug)..."
-cargo build --all
-echo "✓ Build complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:build"
 
 [tasks."build:release"]
 alias = "build-release"
 description = "Build all packages (release)"
-run = """
-echo "Building all packages (release)..."
-cargo build --all --release
-echo "✓ Release build complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:build-release"
 
 [tasks."build:wasm"]
 alias = "build-wasm"
 description = "Build foundation_nostd across the full wasm target matrix"
-run = """
-#!/usr/bin/env bash
-set -euo pipefail
-echo "Building for WASM target matrix..."
-export CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm
-for target in wasm32-unknown-unknown wasm32-unknown-emscripten wasm32-wasip1 wasm32-wasip2; do
-  echo "  → $target"
-  cargo build --package foundation_nostd --target "$target"
-done
-echo "✓ WASM matrix build complete (4 targets)"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:build-wasm-matrix"
 
 [tasks."build:demos"]
 alias = "build-demos"
@@ -571,7 +556,7 @@ mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST
 [tasks."ci:linux"]
 description = "Run the full CI pipeline (fmt, build, clippy, test, wasm) inside the Linux CI image, mounting the repo so it uses the latest code. Usage: mise run ci:linux -- <package> (default: all packages)."
 run = """
-bash "${PROJECT_ROOT}/scripts/ci/linux.sh" "${1:-${PACKAGE:-all}}"
+cargo run --locked --profile uat -p foundation_ci -- linux "${1:-${PACKAGE:-all}}"
 """
 
 [tasks.clean]
@@ -1310,45 +1295,25 @@ echo "✓ Wasm target matrix verified (4 targets)"
 
 [tasks.check]
 description = "Check code compiles"
-run = """
-echo "Checking compilation..."
-cargo check --all
-echo "✓ Compilation check passed"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:check"
 
 [tasks.clippy]
 description = "Run clippy with strict lints (zero warnings)"
-run = """
-echo "Running clippy..."
-cargo clippy --all-targets --all-features -- -D warnings
-echo "✓ Clippy passed (zero warnings)"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:clippy"
 
 [tasks.fmt]
 alias = "lint"
 description = "Format all code with rustfmt"
-run = """
-echo "Formatting code..."
-cargo fmt --all
-echo "✓ Code formatted"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:fmt"
 
 [tasks."fmt:check"]
 alias = "fmt-check"
 description = "Check if code is properly formatted"
-run = """
-echo "Checking code formatting..."
-cargo fmt --all -- --check
-echo "✓ Code is properly formatted"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:fmt-check"
 
 [tasks.audit]
 description = "Run cargo security audit"
-run = """
-echo "Running security audit..."
-cargo audit
-echo "✓ Security audit complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:audit"
 
 [tasks.quality]
 description = "Run all quality checks (fmt + clippy + unit tests)"
@@ -1397,22 +1362,17 @@ cargo bench --package foundation_testing
 
 [tasks.doc]
 description = "Generate Rust documentation"
-run = """
-echo "Generating documentation..."
-cargo doc --no-deps --all-features
-echo "✓ Documentation generated"
-echo "Open: target/doc/index.html"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc"
 
 [tasks."doc:open"]
 alias = "doc-open"
 description = "Generate and open documentation in browser"
-run = "cargo doc --no-deps --all-features --open"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc-open"
 
 [tasks."doc:nostd"]
 alias = "doc-nostd"
 description = "Generate and open foundation_nostd documentation"
-run = "cargo doc --package foundation_nostd --no-deps --all-features --open"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc-nostd"
 
 # =============================================================================
 # Tasks - Development Helpers
@@ -1428,13 +1388,7 @@ run = "bacon -j bacon-ls"
 
 [tasks.publish]
 description = "Publish all packages to crates.io"
-run = """
-#!/usr/bin/env bash
-PACKAGES="ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web"
-for pkg in $PACKAGES; do
-    cargo publish --package "$pkg"
-done
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:publish ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web"
 
 # =============================================================================
 # Tasks - Assets (from assets/public/Makefile)

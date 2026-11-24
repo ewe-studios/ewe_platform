@@ -1,4 +1,4 @@
-# Per-package CI settings, read by scripts/ci/ci.py.
+# Per-package CI settings, read by foundation_ci.
 #
 # Every workspace package runs in CI by default. A section here only says how a
 # package differs from [defaults].
@@ -98,6 +98,11 @@
 directory = "examples"
 recipe = "example-applications"
 build-members = ["answerme-agent"]
+
+[groups.manifest-contract]
+directory = "specifications/completed/78-manifest-contract"
+recipe = "manifest-contract"
+build-members = []
 
 [groups.wasm-tests]
 directory = "backends/foundation_core/integration/wasm_tests"
@@ -225,12 +230,14 @@ runs = ["", "native-manifest"]
 wasm = "enforce"
 
 [packages.foundation_resources]
-runs = ["build,server"]
+runs = ["build,server", "browser-package,server"]
+clippy-runs = ["build,server", "browser-package,server"]
 wasm = "enforce"
 wasm-runs = ["browser-bindings"]
 
 [packages.foundation_tasks]
-runs = [""]
+runs = ["", "install"]
+clippy-runs = ["", "install"]
 
 [packages.foundation_ui_native]
 runs = ["", "app", "tasks"]
@@ -579,7 +586,7 @@ wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a
 # child, not pass as an empty or skipping binary.
-# `container-options` is read by `scripts/ci/ci.py` and added to this job's
+# `container-options` is read by the Rust CI planner and added to this job's
 # container, because Docker's default seccomp profile blocks `io_uring_setup`
 # and `ptrace`.
 env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
@@ -704,7 +711,7 @@ windows-tests = "none"
 reason = "The wasm32 example workspaces need the wasm32-unknown-unknown target and wrangler, which only the Linux CI image has."
 # The `examples/cf-*` directories are self-contained wasm32 workspaces excluded
 # from the main workspace, so cargo metadata never lists them. The synthetic
-# `examples` package (see `examples_commands` in scripts/ci/ci.py) compiles each
+# `examples` package (see the Rust example recipe) compiles each
 # of them for wasm32-unknown-unknown and builds the native `answerme-agent` app.
 fmt = "off"
 build = "enforce"
@@ -723,14 +730,14 @@ clippy-deny-warnings = true
 [packages.wasm-tests]
 # Spec 88 T8: the macOS job runs the owned browser suite (Chrome is in
 # /Applications). The value only selects the package for the macOS matrix;
-# `commands` in scripts/ci/ci.py maps it to the two browser runs.
+# The Rust test recipe maps it to the two browser runs.
 macos-runs = ["wasm"]
 windows-tests = "none"
 windows-reason = "The suites need Deno 2.9.7, wasm-bindgen and wrangler, which the Windows runner does not provide."
 # The wasm `wasm_bindgen_test` / `#[wasm_test]` suites are wasm32-only test
 # targets, and the standalone wasm test crates sit outside the root workspace,
 # so cargo metadata's library-only wasm gate never compiled them. This synthetic
-# package (see `wasm_tests_commands` in scripts/ci/ci.py) compile-checks those
+# package (see the Rust WebAssembly recipe) compile-checks those
 # tests with `--tests --target wasm32-unknown-unknown` and then runs the five
 # executors. The env selects mise.wasm.toml, which pins only deno +
 # wasm-bindgen and turns off auto_install (E6).
@@ -748,7 +755,7 @@ env = { MISE_ENV = "wasm" }
 
 [packages.manifest-contract]
 # The contract is JSON and Python, not a crate. The synthetic package
-# (`manifest_contract_commands` in scripts/ci/ci.py) validates the schema and
+# (the Rust manifest contract recipe) validates the schema and
 # every fixture, then compares each reader's copy with the canonical file by
 # SHA-256.
 fmt = "off"
@@ -766,8 +773,8 @@ runs = ["", "javascript"]
 clippy-runs = ["", "javascript"]
 
 [packages.foundation_wasm_ui]
-runs = ["", "tasks"]
-clippy-runs = ["", "tasks"]
+runs = ["", "tasks,build-hook"]
+clippy-runs = ["", "tasks,build-hook"]
 
 [packages.foundation_codegentools]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.

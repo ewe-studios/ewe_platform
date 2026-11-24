@@ -1,8 +1,8 @@
 #!/usr/bin/env nu
 # Bake submodules into an image: clone each one listed in a submodules lock
-# (written by `images.nu prepare`) at its pinned SHA under <dest>/<path>, with
+# (written by `foundation-ci image-prepare`) at its pinned SHA under <dest>/<path>, with
 # its nested submodules, then copy the lock to <dest>/submodules.lock.json so
-# link-submodules.nu can tell which SHAs the image holds.
+# the link-submodules task can tell which SHAs the image holds.
 #
 #   nu bake-submodules.nu submodules.lock.json /opt/ewe/submodules
 #

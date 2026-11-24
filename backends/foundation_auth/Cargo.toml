@@ -15,7 +15,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.15", optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.16", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # The VFS trait that the operator key files read through. It builds on wasm:

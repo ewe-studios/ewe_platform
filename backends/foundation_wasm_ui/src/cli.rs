@@ -129,7 +129,7 @@ pub fn run_subcommand(name: &str, arguments: &ArgMatches) -> Result<(), BoxedErr
             let output = arguments
                 .try_get_one::<PathBuf>("output")?
                 .ok_or("Missing output binding file")?;
-            bindings(input, output)?;
+            crate::binding_build::bindings(input, output)?;
             Ok(())
         }
         "build" => run_build(arguments),
@@ -212,36 +212,4 @@ fn runtime_assets() -> Vec<(&'static str, &'static Path)> {
         Path::new("backends/foundation_wasm_ui/runtimes/foundation-ui-runtime.min.js"),
     ));
     assets
-}
-
-/// Give each host its own binding functions, memory views, and finalizers.
-#[cfg(feature = "tasks")]
-fn bindings(input: &Path, output: &Path) -> std::io::Result<()> {
-    use std::{
-        fs,
-        io::{self, Write},
-    };
-    let leaf = input
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| io::Error::other("Expected a generated JavaScript filename"))?;
-    let dir = input
-        .parent()
-        .ok_or_else(|| io::Error::other("Missing binding directory"))?;
-    let temp = tempfile::Builder::new()
-        .prefix("bindings-")
-        .suffix(".js")
-        .tempfile_in(dir)?;
-    let module = serde_json::to_string(&format!("./{leaf}"))?;
-    fs::write(
-        temp.path(),
-        format!("import * as functions from {module}; receiveBindings(functions);"),
-    )?;
-    let bundle = foundation_codegen::javascript::bundle(temp.path())
-        .map_err(|e| io::Error::other(format!("{e:#}")))?;
-    let mut file = fs::File::create(output)?;
-    writeln!(file, "export const importName = {module};")?;
-    file.write_all(b"export function createBindings() {\nlet bindings;\nfunction receiveBindings(value) { bindings = value; }\n")?;
-    file.write_all(&bundle.readable)?;
-    file.write_all(b"\nreturn bindings;\n}\n")
 }

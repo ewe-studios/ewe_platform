@@ -50,7 +50,7 @@ test:
 	$(foreach var,$(PACKAGES), cargo test --package $(var);)
 
 publish:
-	$(foreach var,$(PACKAGES), cargo publish --package $(var);)
+	cargo run --locked --profile uat -p foundation_ci -- task run workspace:publish $(PACKAGES)
 
 # ============================================================================
 # Per-package CI (mirrors .github/workflows/check.yaml; settings in ci/packages.toml)
@@ -59,16 +59,16 @@ publish:
 .PHONY: ci-list ci-plan ci-package
 
 ci-list:
-	@python3 scripts/ci/ci.py list
+	@cargo run --locked --profile uat -p foundation_ci -- list
 
 # Packages a change affects, relative to BASE (default: origin/master).
 ci-plan:
-	@python3 scripts/ci/ci.py plan --base $(or $(BASE),origin/master) --head HEAD
+	@cargo run --locked --profile uat -p foundation_ci -- plan --base $(or $(BASE),origin/master) --head HEAD
 
 # fmt + clippy + tests for one package, exactly as CI runs them.
 ci-package:
 	@test -n "$(PACKAGE)" || (echo "usage: make ci-package PACKAGE=<name> [STEP=fmt|clippy|test]" && exit 2)
-	@python3 scripts/ci/ci.py run $(PACKAGE) $(if $(STEP),--step $(STEP),)
+	@cargo run --locked --profile uat -p foundation_ci -- run $(PACKAGE) $(if $(STEP),--step $(STEP),)
 
 # ============================================================================
 # Git development commands
@@ -221,33 +221,23 @@ verify-all: quality test-all
 
 # Check code compiles
 check:
-	@echo "Checking compilation..."
-	@cargo check --all
-	@echo "✓ Compilation check passed"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:check
 
 # Run clippy with strict lints
 clippy:
-	@echo "Running clippy..."
-	@cargo clippy --all-targets --all-features -- -D warnings
-	@echo "✓ Clippy passed (zero warnings)"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:clippy
 
 # Format code
 fmt:
-	@echo "Formatting code..."
-	@cargo fmt --all
-	@echo "✓ Code formatted"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:fmt
 
 # Check if code is formatted
 fmt-check:
-	@echo "Checking code formatting..."
-	@cargo fmt --all -- --check
-	@echo "✓ Code is properly formatted"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:fmt-check
 
 # Security audit
 audit:
-	@echo "Running security audit..."
-	@cargo audit
-	@echo "✓ Security audit complete"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:audit
 
 # ============================================================================
 # Build Targets
@@ -257,21 +247,15 @@ audit:
 
 # Build everything (debug)
 build-all:
-	@echo "Building all packages (debug)..."
-	@cargo build --all
-	@echo "✓ Build complete"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:build
 
 # Build release
 build-release:
-	@echo "Building all packages (release)..."
-	@cargo build --all --release
-	@echo "✓ Release build complete"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:build-release
 
 # Build for WASM
 build-wasm:
-	@echo "Building for WASM..."
-	@cargo build --package foundation_nostd --target wasm32-unknown-unknown
-	@echo "✓ WASM build complete"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:build-wasm
 
 # Clean build artifacts
 clean:
@@ -287,20 +271,15 @@ clean:
 
 # Generate documentation
 doc:
-	@echo "Generating documentation..."
-	@cargo doc --no-deps --all-features
-	@echo "✓ Documentation generated"
-	@echo "Open: target/doc/index.html"
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc
 
 # Generate and open documentation
 doc-open:
-	@echo "Generating and opening documentation..."
-	@cargo doc --no-deps --all-features --open
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc-open
 
 # Generate foundation_nostd documentation
 doc-nostd:
-	@echo "Generating foundation_nostd documentation..."
-	@cargo doc --package foundation_nostd --no-deps --all-features --open
+	@cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc-nostd
 
 # ============================================================================
 # Docker Development Environment (spec-52 F29 Stage 1)

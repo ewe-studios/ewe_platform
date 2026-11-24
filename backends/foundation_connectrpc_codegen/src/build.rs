@@ -124,14 +124,24 @@ pub fn compile_service(
     println!("cargo:rerun-if-env-changed=PROTOC");
     let out = PathBuf::from(std::env::var_os("OUT_DIR").ok_or("Missing build output directory")?);
     let path = out.join(format!("{name}.bin"));
+    let temporary = tempfile::NamedTempFile::new_in(&out)?;
     let status =
         std::process::Command::new(std::env::var_os("PROTOC").unwrap_or_else(|| "protoc".into()))
-            .arg(format!("--descriptor_set_out={}", path.display()))
+            .arg(format!("--descriptor_set_out={}", temporary.path().display()))
             .arg(format!("-I{root}"))
             .arg(source)
             .status()?;
     if !status.success() {
         return Err("Cannot generate the action descriptor".into());
+    }
+    let descriptor = std::fs::read(temporary.path())?;
+    let changed = match std::fs::read(&path) {
+        Ok(previous) => previous != descriptor,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => true,
+        Err(error) => return Err(error.into()),
+    };
+    if changed {
+        temporary.persist(&path)?;
     }
     buffa_build::Config::new()
         .descriptor_set(&path)
@@ -139,7 +149,7 @@ pub fn compile_service(
         .generate_json(true)
         .generate_views(false)
         .compile()?;
-    let descriptors = prost_types::FileDescriptorSet::decode(std::fs::read(path)?.as_slice())?;
+    let descriptors = prost_types::FileDescriptorSet::decode(descriptor.as_slice())?;
     std::fs::write(
         out.join(service),
         crate::generate_services(&descriptors.file),

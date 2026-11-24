@@ -47,6 +47,7 @@ async function boot() {
     await app.boot();
     window.todoReady = true;
 }
+globalThis.todoResources = { open: openResource };
 boot().catch(error => {
     document.querySelector("#notice").value = error?.message ?? String(error);
     console.error(error);

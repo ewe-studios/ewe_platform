@@ -114,3 +114,75 @@ fn main() -> std::io::Result<()> {
     assert!(!payload.join(".ewe-resource-index").exists());
     assert!(stage.join(".ewe-resource-index").is_file());
 }
+
+#[cfg(feature = "server")]
+#[test]
+fn external_consumer_mounts_the_same_resource_set_in_both_profiles() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path();
+    fs::create_dir(app.join("src")).unwrap();
+    let provider = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let http = provider.parent().unwrap().join("foundation_http");
+    fs::write(
+        app.join("Cargo.toml"),
+        format!(
+            r#"
+[package]
+name = "packaged-consumer"
+version = "1.0.0"
+edition = "2021"
+[workspace]
+[dependencies]
+foundation_resources = {{path={provider:?},default-features=false,features=["server"]}}
+foundation_http = {{path={http:?}}}
+[build-dependencies]
+foundation_resources = {{path={provider:?},default-features=false,features=["build"]}}
+[profile.live]
+inherits="dev"
+debug=0
+[profile.embedded]
+inherits="dev"
+debug=0
+debug-assertions=false
+[profile.embedded.build-override]
+debug-assertions=true
+"#
+        ),
+    )
+    .unwrap();
+    fs::copy(provider.join("../../Cargo.lock"), app.join("Cargo.lock")).unwrap();
+    fs::write(app.join("build.rs"),"fn main() -> std::io::Result<()> { foundation_resources::build::stage_from_cargo()?; Ok(()) }").unwrap();
+    fs::write(
+        app.join("resources.toml"),
+        "[[resource]]\nname='module.wasm'\npath='module.wasm'\n",
+    )
+    .unwrap();
+    fs::write(app.join("module.wasm"), [0, 97, 115, 109, 255]).unwrap();
+    fs::write(app.join("src/main.rs"),r#"
+use foundation_http::{Serve, shared::router::Router,native::handlers::static_file::StaticFileHandler};
+use foundation_resources::server::{PackagedResourceSet,PackagedFile};
+foundation_resources::packaged_resources!(PackagedResources);
+fn main(){
+    let mut router:Router<std::sync::Arc<dyn Serve>>=Router::new();
+    router.mount(StaticFileHandler::from_resources(PackagedResources)).unwrap();
+    assert!(PackagedResources.lookup("missing").unwrap().is_none());
+    match PackagedResources.lookup("module.wasm").unwrap().unwrap(){
+        PackagedFile::Live(path)=>{ assert!(cfg!(debug_assertions));std::fs::write(&path,[7]).unwrap();assert_eq!(std::fs::read(path).unwrap(),[7]);}
+        PackagedFile::Embedded(bytes)=>{assert!(!cfg!(debug_assertions));assert_eq!(bytes,[0,97,115,109,255]);}
+    }
+}
+"#).unwrap();
+    for profile in ["live", "embedded"] {
+        let result = Command::new(env!("CARGO"))
+            .args(["run", "--quiet", "--offline", "--profile", profile])
+            .current_dir(app)
+            .env("CARGO_TARGET_DIR", app.join("target"))
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{profile}: {}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    }
+}

@@ -84,7 +84,7 @@ fn templates_generate_projects_that_build() {
         let source = project_sources(&generated_dir);
         if matches!(*template_name, "web-app" | "static-html-app") {
             assert!(
-                source.contains("foundation_resources::server::register"),
+                source.contains("StaticFileHandler::from_resources(PackagedResources)"),
                 "template {template_name} must use the streamed resource handler"
             );
             assert!(

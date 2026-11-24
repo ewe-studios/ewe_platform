@@ -71,3 +71,31 @@ pub fn register(
     }
     Ok(())
 }
+
+/// Declare the resource set that the package build script stages.
+///
+/// Give the resulting unit struct to the HTTP static file handler.
+#[macro_export]
+macro_rules! packaged_resources {
+    ($vis:vis $name:ident) => {
+        $vis struct $name;
+        impl $crate::server::PackagedResourceSet for $name {
+            fn lookup(&self, name: &str) -> std::io::Result<Option<$crate::server::PackagedFile>> {
+                let index: &[(&str, Option<&'static [u8]>)] =
+                    include!(concat!(env!("OUT_DIR"), "/ewe-packaged-resources.rs"));
+                let Ok(position) = index.binary_search_by(|entry| entry.0.cmp(name)) else {
+                    return Ok(None);
+                };
+                match index[position].1 {
+                    Some(bytes) => Ok(Some($crate::server::PackagedFile::Embedded(bytes))),
+                    None => {
+                        let root = $crate::server::sibling_public(env!("CARGO_PKG_NAME"))?;
+                        Ok(Some($crate::server::PackagedFile::Live(root.join(name))))
+                    }
+                }
+            }
+        }
+    };
+}
+
+pub use foundation_http::native::handlers::static_file::{PackagedFile, PackagedResourceSet};

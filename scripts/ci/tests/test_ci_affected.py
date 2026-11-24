@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 REPO = Path(__file__).resolve().parents[3]
-CI = REPO / "scripts" / "ci" / "ci.py"
+CI = Path(__file__).with_name("planner_reference.py")
 
 
 def load_ci():
@@ -101,7 +101,7 @@ class Affected(unittest.TestCase):
         self.assertEqual(set(self.reasons(["Cargo.lock"], {"Cargo.lock": "x"}, {"Cargo.lock": "[["})), set(self.packages))
 
     def test_a_global_file_marks_everything(self):
-        for path in ("rust-toolchain.toml", ".cargo/config.toml", "scripts/ci/ci.py", "mise.toml"):
+        for path in ("rust-toolchain.toml", ".cargo/config.toml", "scripts/ci/time_sources_allowlist.txt", "mise.toml"):
             self.assertEqual(set(self.reasons([path])), set(self.packages), path)
 
     def test_wire_generator_and_embedded_bundle_select_their_packages(self):
@@ -109,7 +109,7 @@ class Affected(unittest.TestCase):
         host = "foundation_wasm_ui"
         for name in (wire, host):
             self.packages[name] = self.ci.Package(name, f"backends/{name}", False)
-        self.assertEqual(set(self.reasons(["scripts/ui_wire/generate.sh"])), {wire})
+        self.assertEqual(set(self.reasons(["backends/foundation_ci/src/wire/adapters.rs"])), {wire})
         asset = f"backends/{host}/runtimes/foundation-ui-wire.js"
         self.assertEqual(set(self.reasons([asset])), {wire, host})
 

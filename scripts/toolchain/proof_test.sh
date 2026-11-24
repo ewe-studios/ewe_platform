@@ -2,6 +2,8 @@
 set -euo pipefail
 
 source_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+proof=$(cd "$source_dir/../.." && cargo build --locked --profile uat -p foundation_ci --bin foundation-ci --message-format=json \
+  | python3 -Ic 'import json,sys; print(next(e["executable"] for line in sys.stdin if (e:=json.loads(line)).get("executable")))')
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 root="$work/repo"
@@ -10,7 +12,6 @@ export TMPDIR="$work/tmp"
 export PROOF_LOG="$work/tools.log"
 mkdir -p "$tools" "$TMPDIR" "$root/scripts/toolchain" "$root/specifications/69-foundation-ui-v2" \
     "$work/gradle/gradle-9.9.1/lib/plugins"
-cp "$source_dir"/proof.sh "$root/scripts/toolchain/"
 cp -R "$source_dir"/proof "$root/scripts/toolchain/"
 printf '# Learnings\n' >"$root/specifications/69-foundation-ui-v2/learnings.md"
 touch "$work/gradle/gradle-9.9.1/lib/"{kotlinx-coroutines-core-jvm-1.10.2.jar,plugins/jna-5.17.0.jar}
@@ -77,9 +78,9 @@ for tool in uname xcode-select rustup rustc xcodebuild xcrun mise kotlinc cargo;
 done
 
 export PATH="$tools:$PATH"
-proof="$root/scripts/toolchain/proof.sh"
+cd "$root"
 learnings="$root/specifications/69-foundation-ui-v2/learnings.md"
-output="$(bash "$proof")"
+output="$("$proof" toolchain-proof)"
 for line in 'Rust: rustc proof-test' 'UniFFI: 0.32.2' 'Swift: Apple Swift version fake' \
     'Xcode: Xcode 27.2' 'iOS simulator SDK: 27.2' 'Kotlin: info: kotlinc-jvm proof-test'; do
     grep -Fx "$line" <<<"$output" >/dev/null
@@ -90,16 +91,16 @@ grep -q -- '--language kotlin' "$PROOF_LOG"
 [[ -z "$(find "$TMPDIR" -mindepth 1 -print)" ]]
 
 cp "$learnings" "$work/expected"
-bash "$proof" >/dev/null
+"$proof" toolchain-proof >/dev/null
 cmp "$work/expected" "$learnings"
-if FAIL_KOTLIN=1 bash "$proof" >/dev/null 2>&1; then
+if FAIL_KOTLIN=1 "$proof" toolchain-proof >/dev/null 2>&1; then
     printf 'FAIL proof succeeds when Kotlin compilation fails\n' >&2
     exit 1
 fi
 cmp "$work/expected" "$learnings"
 [[ -z "$(find "$TMPDIR" -mindepth 1 -print)" ]]
 apple_log="$work/apple.log"
-apple_output="$(PROOF_LOG="$apple_log" GRADLE_FIXTURE="$work/missing-gradle" FAIL_KOTLIN=1 bash "$proof" --scope apple)"
+apple_output="$(PROOF_LOG="$apple_log" GRADLE_FIXTURE="$work/missing-gradle" FAIL_KOTLIN=1 "$proof" toolchain-proof --scope apple)"
 grep -Fx 'Swift: Apple Swift version fake' <<<"$apple_output" >/dev/null
 grep -Fx 'iOS simulator SDK: 27.2' <<<"$apple_output" >/dev/null
 grep -q -- '--language swift' "$apple_log"

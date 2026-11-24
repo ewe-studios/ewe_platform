@@ -1,6 +1,6 @@
 [package]
 name = "foundation_codegen"
-version = "0.2.2"
+version = "0.2.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -18,6 +18,9 @@ swc_ecma_loader = { workspace = true, optional = true }
 swc_ecma_parser = { workspace = true, optional = true }
 swc_ecma_codegen = { workspace = true, optional = true }
 swc_ecma_minifier = { workspace = true, optional = true }
+swc_ecma_transforms_module = { workspace = true, optional = true }
+swc_ecma_visit = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 swc_ecma_transforms_base = { workspace = true, optional = true }
 syn = { version = "2", features = ["full", "visit", "parsing", "extra-traits"] }
 quote = "1"
@@ -41,7 +44,7 @@ wasmprinter = { version = "0.207", optional = true }
 
 [features]
 default = []
-javascript = ["dep:anyhow", "dep:swc_bundler", "dep:swc_common", "dep:swc_ecma_ast", "dep:swc_ecma_loader", "dep:swc_ecma_parser", "dep:swc_ecma_codegen", "dep:swc_ecma_minifier", "dep:swc_ecma_transforms_base"]
+javascript = ["dep:anyhow", "dep:swc_bundler", "dep:swc_common", "dep:swc_ecma_ast", "dep:swc_ecma_loader", "dep:swc_ecma_parser", "dep:swc_ecma_codegen", "dep:swc_ecma_minifier", "dep:swc_ecma_transforms_base", "dep:swc_ecma_transforms_module", "dep:swc_ecma_visit", "dep:serde_json"]
 # wasm proposals (ported from wasmbin; same gating)
 proposals = ["extended-name-section", "threads", "custom-page-sizes"]
 extended-name-section = []

@@ -72,6 +72,12 @@ fn child_entry() {
             println!("owned tree ready");
             let _ = socket.read(&mut [0]).unwrap();
         }
+        "repeat" => {
+            let mut bytes = [0; 6];
+            io::stdin().lock().read_exact(&mut bytes).unwrap();
+            assert_eq!(&bytes, b"y\ny\ny\n");
+            std::process::exit(42);
+        }
         "private" => {
             let mut input = Vec::new();
             io::stdin().lock().read_to_end(&mut input).unwrap();
@@ -226,6 +232,19 @@ async fn a_path_with_shell_characters_reaches_the_child_as_one_argument() {
         .run(command, Arc::new(Memory::default()), Cancellation::new())
         .await
         .unwrap();
+}
+
+#[valtron_test(timeout = 30000)]
+async fn repeated_input_preserves_the_child_exit_status() {
+    let process = NativeProcess::new(ProcessConfig::default());
+    let result = process
+        .run(
+            fixture("repeat").repeated_input(b"y\n".to_vec()),
+            Arc::new(Memory::default()),
+            Cancellation::new(),
+        )
+        .await;
+    assert!(matches!(result, Err(TaskError::Exit { code: 42, .. })));
 }
 
 #[valtron_test(timeout = 30000)]

@@ -1,0 +1,204 @@
+//! Exercise the installed image commands with local files and a local Docker substitute.
+use std::{
+    fs,
+    path::Path,
+    process::{Command, Output},
+};
+
+fn run(root: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+        .current_dir(root)
+        .args(args)
+        .env("GITHUB_OUTPUT", root.join("actions-output"))
+        .env("PLATFORM_IMAGES_REGISTRY_USERNAME", "test-user")
+        .output()
+        .unwrap()
+}
+fn success(output: &Output) -> serde_json::Value {
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).unwrap()
+}
+#[test]
+fn image_inputs_preserve_argument_order_and_failed_staging_preserves_output() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fs::write(root.join("Dockerfile"), "FROM scratch").unwrap();
+    fs::write(root.join("asset"), "asset").unwrap();
+    fs::write(root.join("image.toml"),"[registry]\nnamespace='example'\nusername='configured'\n[base]\nname='base'\n[base.flavors.default]\nfrom='scratch'\n[image]\nname='app'\ndockerfile='Dockerfile'\nfiles=['asset']\n[image.build_args]\nZ='first'\nA='second'\n").unwrap();
+    let args = [
+        "image-prepare",
+        "--config",
+        "image.toml",
+        "--layer",
+        "image",
+        "--parent",
+        "base:latest",
+        "--out",
+        "out",
+        "--github-output",
+    ];
+    let first = success(&run(root, &args));
+    assert_eq!(
+        first["build_args"],
+        "Z=first\nA=second\nBASE_IMAGE=base:latest"
+    );
+    assert_eq!(first["registry_username"], "test-user");
+    assert!(fs::read_to_string(root.join("actions-output"))
+        .unwrap()
+        .contains("build_args<<"));
+    let path = root.join("out/context/files/asset");
+    let before = path.metadata().unwrap().modified().unwrap();
+    assert_eq!(first, success(&run(root, &args)));
+    assert_eq!(before, path.metadata().unwrap().modified().unwrap());
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(root.join("asset"), fs::Permissions::from_mode(0o755)).unwrap();
+        let changed = success(&run(root, &args));
+        assert_ne!(first["hash"], changed["hash"]);
+        assert_ne!(path.metadata().unwrap().permissions().mode() & 0o111, 0);
+        fs::remove_file(root.join("asset")).unwrap();
+        std::os::unix::fs::symlink("Dockerfile", root.join("asset")).unwrap();
+        success(&run(root, &args));
+        assert_eq!(path.read_link().unwrap(), Path::new("Dockerfile"));
+    }
+    let plan = fs::read(root.join("out/plan.json")).unwrap();
+    fs::remove_file(root.join("asset")).unwrap();
+    assert!(!run(root, &args).status.success());
+    assert_eq!(fs::read(root.join("out/plan.json")).unwrap(), plan);
+    assert!(fs::symlink_metadata(path).is_ok());
+    let settings = success(&run(
+        root,
+        &["image-settings", "--config", "image.toml", "--credentials"],
+    ));
+    assert_eq!(settings["pull-username"], "test-user");
+    assert_eq!(settings["push"], true);
+}
+
+#[cfg(unix)]
+#[test]
+fn registry_reports_missing_images_and_preserves_registry_ports() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let docker = root.join("docker");
+    fs::write(&docker,r#"#!/bin/sh
+case "$3" in
+  create) printf '%s\n' "$@" > tags ;;
+  inspect)
+    case "$7" in
+      found) echo '{"digest":"sha256:012345"}' ;;
+      retry) if test -f retried; then echo '{"digest":"sha256:abc"}'; else touch retried; echo 'Too many requests' >&2; exit 1; fi ;;
+      denied) echo 'unauthorized' >&2; exit 1 ;;
+      missing) echo 'manifest unknown' >&2; exit 1 ;;
+      *) echo 'network unavailable' >&2; exit 17 ;;
+    esac ;;
+  *) exit 2 ;;
+esac
+"#).unwrap();
+    fs::set_permissions(docker, fs::Permissions::from_mode(0o755)).unwrap();
+    let mut paths = vec![root.to_path_buf()];
+    paths.extend(std::env::split_paths(&std::env::var_os("PATH").unwrap()));
+    let path = std::env::join_paths(paths).unwrap();
+    let cmd = |args: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    for image in ["missing", "denied"] {
+        assert_eq!(success(&cmd(&["image-exists", image]))["exists"], false);
+    }
+    assert_eq!(
+        success(&cmd(&["image-exists", "found"]))["digest"],
+        "sha256:012345"
+    );
+    assert_eq!(
+        success(&cmd(&["image-exists", "retry", "--retry-seconds", "0"]))["digest"],
+        "sha256:abc"
+    );
+    let error = cmd(&["image-exists", "network"]);
+    assert_eq!(error.status.code(), Some(17));
+    assert!(String::from_utf8_lossy(&error.stderr).contains("network unavailable"));
+    assert!(cmd(&[
+        "image-promote",
+        "localhost:9876/ns/name:old@sha256:aaa",
+        "--tags",
+        "latest qa"
+    ])
+    .status
+    .success());
+    let tags = fs::read_to_string(root.join("tags")).unwrap();
+    assert!(tags.contains("-t\nlocalhost:9876/ns/name:latest\n-t\nlocalhost:9876/ns/name:qa\n"));
+}
+
+#[cfg(unix)]
+#[test]
+fn failed_image_export_preserves_the_previous_local_image() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fs::write(root.join("Dockerfile"), "FROM scratch").unwrap();
+    fs::write(root.join("image.toml"),"[registry]\nnamespace='fixture'\nusername='local'\n[base]\nname='base'\n[base.flavors.default]\nfrom='scratch'\n[image]\nname='app'\ndockerfile='Dockerfile'\n").unwrap();
+    let docker = root.join("docker");
+    fs::write(
+        &docker,
+        r#"#!/bin/sh
+set -eu
+test "$1 $2" = 'buildx build'
+shift 2
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --metadata-file) shift; meta=$1 ;;
+    esac
+    shift
+done
+dest=$(dirname "$meta")
+if test -f fail; then echo partial > "$dest/image.tar"; exit 34; fi
+echo 'verified image' > "$dest/image.tar"
+printf '{"containerimage.digest":"sha256:local"}' > "$meta"
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(docker, fs::Permissions::from_mode(0o755)).unwrap();
+    let paths = std::iter::once(root.to_owned())
+        .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap()))
+        .collect::<Vec<_>>();
+    let path = std::env::join_paths(paths).unwrap();
+    let run = || {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .args([
+                "image-ensure",
+                "--config",
+                "image.toml",
+                "--layer",
+                "image",
+                "--parent",
+                "scratch",
+                "--out",
+                "out",
+                "--force",
+            ])
+            .output()
+            .unwrap()
+    };
+    let result = success(&run());
+    assert_eq!(result["source"], "local");
+    let old = fs::read(root.join("out/plan.json")).unwrap();
+    fs::write(root.join("fail"), "").unwrap();
+    fs::write(root.join("Dockerfile"), "FROM other").unwrap();
+    assert_eq!(run().status.code(), Some(34));
+    assert_eq!(old, fs::read(root.join("out/plan.json")).unwrap());
+    assert_eq!(
+        fs::read_to_string(root.join("out/image.tar")).unwrap(),
+        "verified image\n"
+    );
+}

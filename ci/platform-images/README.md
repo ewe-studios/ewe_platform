@@ -1,8 +1,8 @@
 # platform-images
 
 CI images built in layers, content-addressed, and rebuilt only when their
-inputs change. This directory is a self-contained unit with nothing specific
-to one repository in it: a repository describes its own images in a
+inputs change. The installed `foundation-ci` command stages and checks image inputs.
+Each repository describes its images in a
 `config.toml` (ewe_platform's is
 [`ci/ewe-platform-image/config.toml`](../ewe-platform-image/config.toml)) and
 uses the unit through its scripts, actions and the reusable workflow, the same
@@ -21,11 +21,9 @@ ci/platform-images/
 │   ├── macos/              layer 1 VM: dockurr/macos + guest/ provisioning (bash)
 │   └── vm/bin/             pi-vm-entry: the VM images' container entrypoint
 ├── scripts/                nushell, also in every image
-│   ├── images.nu           stage a layer's context, hash it, look it up, tag it
 │   ├── vm.nu               boot a VM, wait, push/exec/pull over SSH, start a JIT runner
 │   ├── install-rust-toolchain.nu
 │   ├── bake-submodules.nu
-│   ├── link-submodules.nu  (symlinks on Linux/macOS, junctions on Windows)
 │   └── smoke-test.nu
 └── actions/                composite actions
     ├── setup-nu            nushell on a host runner, from the lock (no API, checksummed)
@@ -43,6 +41,10 @@ The reusable workflows are
 `.github/workflows`, so they live there. If the unit moves to its own
 repository, they move along and callers reference them as
 `<owner>/<repo>/.github/workflows/<file>@<ref>`.
+
+Install the command from the workspace with `cargo install --locked --profile uat --path backends/foundation_ci`.
+From another repository, pass its root with `--repo` and the platform-images directory with `--unit`.
+Use `foundation-ci image-exists` to read a manifest. Use `foundation-ci image-promote` to attach tags.
 
 ## Layers
 
@@ -128,7 +130,7 @@ container toolkit), unset `VK_ICD_FILENAMES`/`VK_DRIVER_FILES` and
 
 ## Content hashes and tags
 
-`images.nu prepare` copies exactly what a layer's build uses into a fresh
+`foundation-ci image-prepare` copies exactly what a layer's build uses into a fresh
 build context, and hashes it: every file's path, executable bit and sha256,
 the build arguments, and for layer 2 the parent reference (layer 1 pinned by
 digest). The tag is `hash-<first 20 hex digits>`.
@@ -156,7 +158,7 @@ a small input change only redoes the layers that changed.
 Run it locally to see what a change does to the hash:
 
 ```sh
-nu ci/platform-images/scripts/images.nu prepare --config ci/ewe-platform-image/config.toml \
+foundation-ci image-prepare --config ci/ewe-platform-image/config.toml \
    --layer base --out /tmp/pi/base
 cat /tmp/pi/base/inputs.txt     # every hashed file
 ```
@@ -302,18 +304,18 @@ Pull requests from forks, and Dependabot's, get no secrets:
 ## Building locally
 
 ```sh
-nu ci/platform-images/scripts/images.nu prepare --config ci/ewe-platform-image/config.toml --layer base --out /tmp/pi/base
+foundation-ci image-prepare --config ci/ewe-platform-image/config.toml --layer base --out /tmp/pi/base
 docker buildx build /tmp/pi/base/context \
   --build-arg BASE_IMAGE=docker.io/library/ubuntu:24.04 --build-arg "BROWSERS=chrome firefox" \
   -t local/ci-base
 
-nu ci/platform-images/scripts/images.nu prepare --config ci/ewe-platform-image/config.toml --layer image \
+foundation-ci image-prepare --config ci/ewe-platform-image/config.toml --layer image \
   --parent local/ci-base --out /tmp/pi/image
 docker buildx build /tmp/pi/image/context \
   $(jq -r '.build_args | split("\n") | map("--build-arg=" + .) | join(" ")' /tmp/pi/image/plan.json) \
   -t local/ewe-platform-ci
 
-docker run --rm local/ewe-platform-ci nu /opt/platform-images/scripts/smoke-test.nu --layer image --browsers "chrome firefox"
+foundation-ci image-smoke --image local/ewe-platform-ci --layer image --browsers "chrome firefox"
 ```
 
 (The `jq` line passes the build args `prepare` computed; for the base, the
@@ -350,7 +352,7 @@ and content hashing are the same as for Linux:
 
 The images hold **no Windows or macOS bits**, only provisioning scripts:
 dockurr downloads the OS from Microsoft or Apple when a VM is first
-installed. (`images.nu prepare --layer vm-base|vm-image --os windows|macos`
+installed. (`foundation-ci image-prepare --layer vm-base|vm-image --os windows|macos`
 stages the contexts; `platform-images.yaml` with `os: windows|macos`
 ensures the images like the Linux ones.)
 

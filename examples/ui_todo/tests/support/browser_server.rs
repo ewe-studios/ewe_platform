@@ -9,11 +9,6 @@ use std::{net::TcpListener, path::Path, sync::Arc};
 pub fn with_browser_server(
     check: impl FnOnce(&BrowserDriver<'_>, &str, &LiveChannel) + std::panic::UnwindSafe,
 ) {
-    let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
-    assert!(
-        module.exists(),
-        "Build examples/ui_todo/build-module.sh first"
-    );
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let url = format!("http://{}/", listener.local_addr().unwrap());
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -22,7 +17,6 @@ pub fn with_browser_server(
     let served = channel.clone();
     let worker = std::thread::spawn(move || {
         let app = ui_todo::server::app_with_public_directory(
-            &module,
             served,
             Path::new(env!("EWE_STAGED_RESOURCES")),
         )?;

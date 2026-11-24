@@ -31,12 +31,12 @@ bench = false
 
 # -- ewe platform dependencies
 foundation_toolings = { version = "0.0.10" }
-foundation_http = { version = "0.0.15", features = ["multi"] }
+foundation_http = { version = "0.0.16", features = ["multi"] }
 foundation_core = { version = "0.0.23", features = ["multi"] }
 foundation_config = { version = "0.1.3" }
 
 # directory embedding
-foundation_resources = { version = "0.1.0", default-features = false, features = ["server"] }
+foundation_resources = { version = "0.1.1", default-features = false, features = ["server"] }
 foundation_macros = "0.0.25"
 foundation_nostd = "0.0.10"
 
@@ -48,4 +48,4 @@ tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
 
 [build-dependencies]
-foundation_resources = { version = "0.1.0", default-features = false, features = ["build"] }
+foundation_resources = { version = "0.1.1", default-features = false, features = ["build"] }

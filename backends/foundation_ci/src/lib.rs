@@ -4,6 +4,11 @@ mod config;
 mod execution;
 mod plan;
 mod workspace;
+mod staging;
+pub mod development;
+pub mod images;
+pub mod toolchain;
+pub mod wire;
 
 pub use config::{ExpectedError, GroupRecipe, Settings};
 use foundation_tasks::{TaskError, TaskSet};

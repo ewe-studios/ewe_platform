@@ -124,7 +124,13 @@ pub(super) async fn commit(
         .into())
 }
 
-pub(super) async fn release(
+/// Return the reproducible release revision and the Swift package manifest.
+///
+/// The source checkout stays clean. A changed checksum creates a commit in a temporary clone.
+///
+/// # Errors
+/// Returns an error if the manifest has no unique archive URL or Git cannot reproduce the revision.
+pub async fn release(
     ctx: &TaskContext,
     root: &Path,
     source: &str,

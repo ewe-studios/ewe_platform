@@ -71,6 +71,5 @@ The browser test uses `?rpc` to select Fetch. The native server example selects 
 
 ```sh
 cargo test --profile uat -p foundation_ui_connectrpc
-examples/ui_todo/build-module.sh
 cargo test --profile uat -p ui_todo --features browser-tests --test todo_browser_tests
 ```

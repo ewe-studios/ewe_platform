@@ -2,44 +2,8 @@
 #[path = "server/backup.rs"]
 mod backup;
 
-use std::io::{self, Read};
-use std::path::{Path, PathBuf};
-
-fn web_module() -> io::Result<PathBuf> {
-    if let Some(configured) = std::env::var_os("EWE_TODO_MODULE") {
-        let path = PathBuf::from(configured);
-        validate_module(&path).map_err(|error| {
-            io::Error::new(
-                error.kind(),
-                format!(
-                    "EWE_TODO_MODULE '{}': {error}. Set it to the built ui_todo.wasm file.",
-                    path.display()
-                ),
-            )
-        })?;
-        return Ok(path);
-    }
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
-    if !path.is_file() {
-        eprintln!(
-            "Browser module missing at '{}'. Run examples/ui_todo/build-module.sh or set EWE_TODO_MODULE. Native routes are available.",
-            path.display()
-        );
-    }
-    Ok(path)
-}
-
-fn validate_module(path: &Path) -> io::Result<()> {
-    if !path.metadata()?.is_file() {
-        return Err(io::Error::other("expected a regular file"));
-    }
-    let mut header = [0; 8];
-    std::fs::File::open(path)?.read_exact(&mut header)?;
-    if &header != b"\0asm\x01\0\0\0" {
-        return Err(io::Error::other("invalid WebAssembly module header"));
-    }
-    Ok(())
-}
+use std::io;
+use std::path::Path;
 
 #[foundation_core::valtron::valtron(seed = 0)]
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -80,13 +44,12 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let app = if mode == Some("--data-only") {
         ui_todo::server::data_app()?
     } else {
-        let module = web_module()?;
         if mode == Some("--restore") {
             let path = args.next().ok_or("Pass the todo backup path")?;
             if args.next().is_some() {
                 return Err("Unexpected argument after the restore path".into());
             }
-            ui_todo::server::app_with_todos(&module, backup::restore(Path::new(&path), limit)?)?
+            ui_todo::server::app_with_todos(backup::restore(Path::new(&path), limit)?)?
         } else if let Some(history) = std::env::var_os("EWE_TODO_HISTORY") {
             use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
             let limit = history
@@ -98,9 +61,9 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 BacklogConfig::default().max_frames(limit),
                 foundation_ui_wire::writer::WriterConfig::default(),
             );
-            ui_todo::server::app_with_channel(&module, channel)?
+            ui_todo::server::app_with_channel(channel)?
         } else {
-            ui_todo::server::app(&module)?
+            ui_todo::server::app()?
         }
     };
     println!("Open http://{}/", listener.local_addr()?);

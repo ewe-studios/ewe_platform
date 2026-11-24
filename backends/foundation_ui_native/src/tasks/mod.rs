@@ -19,6 +19,7 @@ mod release;
 mod sign;
 mod stage;
 mod swift;
+pub use swift::release as swift_release_manifest;
 mod sync;
 mod todo;
 

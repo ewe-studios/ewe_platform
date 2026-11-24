@@ -8,6 +8,8 @@ use std::{collections::BTreeMap, ffi::OsString, sync::Arc};
 mod process;
 pub use process::*;
 pub mod build;
+#[cfg(feature = "install")]
+pub mod install;
 pub use foundation_macros::{task_entry as task, tasks};
 
 pub type TaskResult = Result<(), TaskError>;

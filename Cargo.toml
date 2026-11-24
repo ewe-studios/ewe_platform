@@ -48,6 +48,10 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
+# plist 1.7 requires quick-xml 0.38 for its property list parser.
+quick-xml = "0.42.0"
+tar = "0.4.46"
+flate2 = "1.1.11"
 swc_bundler = { version = "59", default-features = false }
 swc_common = { version = "28", default-features = false }
 swc_ecma_ast = { version = "31", default-features = false }
@@ -55,6 +59,8 @@ swc_ecma_loader = { version = "29", default-features = false }
 swc_ecma_parser = { version = "48", default-features = false }
 swc_ecma_codegen = { version = "34", default-features = false }
 swc_ecma_minifier = { version = "65", default-features = false }
+swc_ecma_transforms_module = { version = "59", default-features = false }
+swc_ecma_visit = { version = "31", default-features = false }
 swc_ecma_transforms_base = { version = "52", default-features = false }
 ash = { version = "0.38", default-features = false, features = ["std","loaded"] }
 objc2 = { version = "0.6.4", default-features = false, features = ["std"] }
@@ -74,8 +80,8 @@ clap = { version = "4.6", features = ["derive", "string"] }
 libc = "0.2"
 tempfile = "3.27"
 windows-sys = "0.61"
-foundation_tasks = { path = "backends/foundation_tasks", version = "0.1.0" }
-foundation_ci = { path = "backends/foundation_ci", version = "0.1.0" }
+foundation_tasks = { path = "backends/foundation_tasks", version = "0.1.1" }
+foundation_ci = { path = "backends/foundation_ci", version = "0.1.1" }
 buffa = "0.9.2"
 buffa-build = "0.9.2"
 # Service code generation uses the descriptor types from prost 0.12.
@@ -202,7 +208,7 @@ fuser = { version = "0.16", default-features = false }
 # Vendored patch of gemm-common 0.19.0. Its `init_gemm_fn` chose the `fma`
 # kernel from the `fma` CPU feature alone, but that kernel needs the whole V3
 # SIMD type (avx2 too). On CPUs that report `fma` without `avx2` (the Docker
-# Desktop linux/amd64 emulation used by scripts/ci/linux.sh), `V3::try_new()`
+# Desktop linux/amd64 emulation used by the ci:linux task), `V3::try_new()`
 # returns `None` and gemm-f32 panics on `.unwrap()`. The patch picks the kernel
 # with `V3::try_new()` / `V4::try_new()` instead. See
 # specifications/completed/70-foundational-io-hardening/learnings.md.

@@ -27,7 +27,15 @@ pub(super) async fn prepare(ctx: TaskContext, args: Prepare) -> TaskResult {
         ctx.exec(ProcessCommand::new("mise").current_dir(&root).args([
             "exec",
             "--",
-            "scripts/toolchain/check.sh",
+            "cargo",
+            "run",
+            "--locked",
+            "--profile",
+            "uat",
+            "-p",
+            "foundation_ci",
+            "--",
+            "toolchain-check",
             "--scope",
             scope,
         ]))

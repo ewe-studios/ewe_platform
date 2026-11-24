@@ -161,3 +161,91 @@ The wire bundle and manifest fixtures each affect two test selections. Each chan
 
 The Todo checkpoint changes two package versions. Standalone example and test workspaces keep their own copies of these versions.
 Each lockfile needs a separate dependency check after the merge.
+
+## Feature 2. Cargo build hook installation
+
+Cargo can inherit a renamed build dependency from the workspace.
+The installed Rust call must use that local dependency name.
+A syntax span locates the opening brace after Unicode comments.
+Function attributes inside the brace must precede installed calls.
+Write the manifest before the script so a retry can finish a partial installation.
+
+The runtime entry imports a file from the core WebAssembly crate.
+Cargo registry directories include version numbers, so the provider prepares that import from the core crate's embedded source.
+
+The standalone script bundler leaves dynamic imports outside its input graph.
+Application bundling must preserve lazy evaluation and retain one namespace object for each module.
+The application loader caches a module before it evaluates that module's dependencies.
+
+A Cargo build script can compile browser targets when each application uses a separate child target directory.
+The browser target skips server packaging. Each browser library selects its own feature and binding format.
+Wasm bindings resolve their binary references against the original module location.
+The application bundle keeps each module location and resolves it against the public script address.
+
+The resource provider can select its lookup table in the consuming crate.
+A debug build dependency can then produce an embedded application without changing the server's registration.
+
+A resource wildcard can share a prefix with an application route.
+The router must keep the nearest wildcard candidate while it tries more specific segments.
+A browser test that needs a private helper can load its own test script.
+Waiting for the native dialog to open makes the following input action reliable.
+
+Manifest fixture changes can affect the contract group and the crate that owns the changed file.
+The planner selects the contract group by its declared recipe, so the policy can rename the group.
+
+Docker writes the container identifier before the guest starts.
+The task can remove the container after the guest fails or the caller cancels.
+The attached Docker start command reports the guest exit status.
+
+Java and Kotlin report versions on standard error. The tool checks both process streams.
+A test can substitute the host tools on the executable search path.
+Build the check executable before changing this path.
+
+The wire generator must preserve optional field presence, unknown union verification, and native builder compatibility.
+A byte comparison against the checked-in files tests these details across all four output languages.
+
+Cargo treated the Wasm crate's missing wildcard path as a changed input on every build.
+The service generator also watched a descriptor that it rewrote on each run.
+The browser compiler dependency file includes generated Rust and its original protocol inputs.
+Track the source inputs and omit files inside the private child target directory.
+
+An archive must build from the target directory Cargo selected, including when its path has spaces.
+A development dependency with a path and version can introduce an otherwise hidden publication cycle.
+Android license acceptance needs input until the tool closes its pipe. Preserve the child status after closure.
+
+Image plans preserve build argument order for callers and sort arguments for the hash.
+The previous and current planners produce identical hashes when the Cargo lockfile bytes match.
+File equality for staged output must compare link targets and Unix permissions.
+Changing only an executable bit changes the image hash and must update the staged file.
+A fresh guest has neither Cargo nor the workspace source. Guest migration requires an independent bootstrap.
+
+Cargo reports the actual executable path for each selected target. This works with a custom target directory and a renamed binary.
+A release archive needs fixed metadata and sorted entries to produce the same bytes on repeat builds.
+The vendor Android manifest can list the same archive for a version and its current alias.
+Accept identical records. Reject records that use one filename with different sizes or checksums.
+The Python package selection placed shared planner source under a global directory. The Rust package needs an explicit equivalent rule.
+Issue #790 tracks this change and its regression test.
+
+The default Docker driver on this host cannot export a Docker archive. A temporary container-based Buildx builder supports both requested export formats.
+For a single-platform image, Buildx can create an index when it promotes a tag.
+The promotion task disables index conversion to preserve the tested digest. Issue #791 records the previous behavior.
+The native Swift test needs the same task host as the installed command. Its child process provides an independent background job registry.
+
+The previous manual publication loop selected retired packages after a valid package.
+Validate the entire selection with offline Cargo metadata before publication. Let Cargo order packages and select the configured registry.
+The manual WebAssembly fixture paths and runtime bundle have moved or disappeared. Issue #792 records the unresolved caller contract.
+Git can sign fixture tags using the host configuration. Disposable test repositories must select unsigned fixture tags explicitly.
+
+The Google Cloud directory contains 303 files named openapi.json. None declares an OpenAPI version.
+302 files declare a Google Discovery version. The canonical generator requires servers and component schemas.
+A disposable source tree reproduces the failure with two tracked specifications. It also verifies that both batch callers preserve an existing file.
+
+## Application generation command
+
+AnswerMe uses foundation_repl for terminal interaction. Existing mobile generators each create their own destination. Combined generation needs a shared staging plan.
+
+The Android Todo identifiers come from its Gradle application modules. The current native device tasks repeat those identifiers and invoke repository test scripts.
+
+The existing template generator uses EmbedDirectoryAs with always_embed. Task providers can use the same pattern for script directories in both build profiles.
+
+An external tool requirement can be independent of a script requirement. Rust can invoke the platform tool directly and check its result.

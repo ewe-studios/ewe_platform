@@ -2,6 +2,9 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "$script_dir/../.."
+toolchain_check=$(cargo build --locked --profile uat -p foundation_ci --bin foundation-ci --message-format=json \
+  | python3 -Ic 'import json,sys; print(next(e["executable"] for line in sys.stdin if (e:=json.loads(line)).get("executable")))')
 scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
 
@@ -45,7 +48,7 @@ chmod +x "$scratch/bin/sdkmanager"
 
 run_android() {
   local expected=$1 status=0
-  output=$(bash "$script_dir/android.sh" 2>&1) || status=$?
+  output=$("$toolchain_check" toolchain-android 2>&1) || status=$?
   if [[ $status != "$expected" ]]; then
     printf 'Expected exit %s, got %s\n%s\n' "$expected" "$status" "$output" >&2
     exit 1

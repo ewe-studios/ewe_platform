@@ -39,6 +39,10 @@ fn both_executables_share_sorted_task_listing() {
     assert!(tasks.contains(&"generate"));
     assert!(tasks.contains(&"codegen:normalize"));
     assert!(tasks.contains(&"native:release:publish"));
+    assert!(tasks.contains(&"ci:plan"));
+    assert!(tasks.contains(&"toolchain:check"));
+    assert!(tasks.contains(&"wire:generate"));
+    assert!(tasks.contains(&"build:install-hook"));
 }
 
 #[test]

@@ -4,7 +4,7 @@ description: >
   platform-images container (no network), falling back loudly to fetching a
   submodule whose gitlink SHA differs from the baked one. Run it after
   actions/checkout (with `submodules: false`) in a job whose `container:` is a
-  layer 2 image. See scripts/link-submodules.nu.
+  layer 2 image. The foundation-ci link-submodules command verifies each revision.
 
 inputs:
   paths:
@@ -28,8 +28,6 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
       run: |
         set -euo pipefail
-        # PATHS is split on purpose: one argument per submodule path.
-        # shellcheck disable=SC2086
-        # $GITHUB_ACTION_PATH, not the github.action_path expression: only
-        # the variable is translated to the container's path in container jobs.
-        nu "$GITHUB_ACTION_PATH/../../scripts/link-submodules.nu" --workspace "$WORKSPACE" --mode "$MODE" $PATHS
+        read -r -a paths <<< "$PATHS"
+        cargo run --locked --profile uat --manifest-path "$WORKSPACE/Cargo.toml" -p foundation_ci -- \
+          link-submodules --workspace "$WORKSPACE" --mode "$MODE" "${paths[@]}"

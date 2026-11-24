@@ -73,13 +73,39 @@ impl Cancellation {
 }
 
 #[derive(Clone)]
+enum ProcessInput {
+    Once(Vec<u8>),
+    Repeat(Vec<u8>),
+}
+
+impl ProcessInput {
+    fn write(self, mut pipe: impl Write) -> io::Result<()> {
+        let pattern = match self {
+            Self::Once(bytes) => return pipe.write_all(&bytes),
+            Self::Repeat(pattern) => pattern,
+        };
+        if pattern.is_empty() {
+            return Ok(());
+        }
+        let mut buffered = io::BufWriter::new(pipe);
+        loop {
+            match buffered.write_all(&pattern) {
+                Ok(()) => {}
+                Err(error) if error.kind() == io::ErrorKind::BrokenPipe => return Ok(()),
+                Err(error) => return Err(error),
+            }
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct ProcessCommand {
     pub program: OsString,
     pub args: Vec<OsString>,
     pub cwd: Option<PathBuf>,
     pub env: Vec<(OsString, Option<OsString>)>,
     clear_env: bool,
-    input: Option<Vec<u8>>,
+    input: Option<ProcessInput>,
 }
 
 impl ProcessCommand {
@@ -138,11 +164,18 @@ impl ProcessCommand {
     /// Send a small private input without adding it to the argument list.
     #[must_use]
     pub fn private_input(mut self, bytes: Vec<u8>) -> Self {
-        self.input = Some(bytes);
+        self.input = Some(ProcessInput::Once(bytes));
         self
     }
 
-    fn into_native(self) -> (Command, Option<Vec<u8>>) {
+    /// Repeat the input until the child closes its pipe. An empty pattern closes the pipe immediately.
+    #[must_use]
+    pub fn repeated_input(mut self, pattern: Vec<u8>) -> Self {
+        self.input = Some(ProcessInput::Repeat(pattern));
+        self
+    }
+
+    fn into_native(self) -> (Command, Option<ProcessInput>) {
         let ProcessCommand {
             program,
             args,
@@ -535,7 +568,7 @@ fn supervise(
     stdout: async_channel::Sender<io::Result<Vec<u8>>>,
     stderr: async_channel::Sender<io::Result<Vec<u8>>>,
     input_status: async_channel::Sender<io::Result<()>>,
-    input: Option<Vec<u8>>,
+    input: Option<ProcessInput>,
     config: ProcessConfig,
 ) -> io::Result<()> {
     std::thread::scope(|scope| {
@@ -548,12 +581,12 @@ fn supervise(
             std::thread::Builder::new()
                 .name("task-stderr".into())
                 .spawn_scoped(scope, move || pump(err, &stderr, config))?;
-            if let Some(bytes) = input {
-                let mut pipe = child.stdin.take().expect("private input pipe");
+            if let Some(input) = input {
+                let pipe = child.stdin.take().expect("private input pipe");
                 std::thread::Builder::new()
                     .name("task-stdin".into())
                     .spawn_scoped(scope, move || {
-                        let _ = input_status.try_send(pipe.write_all(&bytes));
+                        let _ = input_status.try_send(input.write(pipe));
                     })?;
             } else {
                 let _ = input_status.try_send(Ok(()));

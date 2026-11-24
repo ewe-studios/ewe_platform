@@ -316,3 +316,124 @@ fn archive_checks_platform_slices_and_reproduces_the_same_bytes() {
         .to_string()
         .contains("Unexpected XCFramework slices"));
 }
+
+#[derive(clap::Args)]
+struct SwiftFixture {
+    #[arg(long)]
+    source: std::path::PathBuf,
+    #[arg(long)]
+    base: String,
+}
+
+async fn check_swift_revision(
+    ctx: foundation_tasks::TaskContext,
+    args: SwiftFixture,
+) -> TaskResult {
+    let url = "https://example.invalid/release.zip";
+    let original = "1".repeat(64);
+    let updated = "2".repeat(64);
+    let path = args.source.join("Package.swift");
+    let before = std::fs::read_to_string(&path).unwrap();
+    let (same, manifest) =
+        tasks::swift_release_manifest(&ctx, &args.source, &args.base, url, &original).await?;
+    assert_eq!(same, args.base);
+    assert_eq!(manifest, before);
+    let revision =
+        tasks::swift_release_manifest(&ctx, &args.source, &args.base, url, &updated).await?;
+    assert_ne!(revision.0, args.base);
+    assert_eq!(revision.1, before.replace(&original, &updated));
+    let temp = tempfile::tempdir().unwrap();
+    ctx.exec(
+        ProcessCommand::new("git")
+            .args(["clone", "--quiet"])
+            .arg(&args.source)
+            .arg(temp.path()),
+    )
+    .await?;
+    assert_eq!(
+        tasks::swift_release_manifest(&ctx, temp.path(), &args.base, url, &updated).await?,
+        revision
+    );
+    assert_eq!(std::fs::read_to_string(path).unwrap(), before);
+    Ok(())
+}
+
+#[test]
+fn swift_release_reproduces_the_checksum_commit_in_an_independent_clone() {
+    use foundation_tasks::TaskSet;
+    let marker = "EWE_NATIVE_SWIFT_FIXTURE";
+    if std::env::var_os(marker).is_none() {
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "tasks::swift_release_reproduces_the_checksum_commit_in_an_independent_clone",
+            ])
+            .env(marker, "1")
+            .status()
+            .unwrap();
+        assert!(status.success());
+        return;
+    }
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let git = |args: &[&str]| {
+        let output = std::process::Command::new("git")
+            .current_dir(root)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "--quiet"]);
+    let checksum = "1".repeat(64);
+    std::fs::write(root.join("Package.swift"),format!(".binaryTarget(name: \"Archive\", url: \"https://example.invalid/release.zip\", checksum: \"{checksum}\")\n")).unwrap();
+    git(&["add", "Package.swift"]);
+    git(&[
+        "-c",
+        "user.name=Test",
+        "-c",
+        "user.email=test@example.invalid",
+        "-c",
+        "commit.gpgsign=false",
+        "commit",
+        "-qm",
+        "fixture",
+    ]);
+    let base = git(&["rev-parse", "HEAD"]);
+    let args = [
+        "test",
+        "task",
+        "run",
+        "swift",
+        "--source",
+        root.to_str().unwrap(),
+        "--base",
+        &base,
+    ]
+    .into_iter()
+    .map(Into::into)
+    .collect();
+    let start = root.to_path_buf();
+    let exit = foundation_tasks::run_entry("test", move |host| {
+        Box::pin(async move {
+            let ctx = host.context().clone();
+            ctx.store(NativeBuildEnv::new(start));
+            let mut runner = TaskRunner::new(ctx, args);
+            let mut set = TaskSet::new("swift-fixture");
+            set.add(
+                "swift",
+                "Check the Swift release revision",
+                check_swift_revision,
+            )?;
+            runner.register(set)?;
+            runner.run().await
+        })
+    });
+    assert_eq!(exit, std::process::ExitCode::SUCCESS);
+    assert!(git(&["status", "--porcelain"]).is_empty());
+}
