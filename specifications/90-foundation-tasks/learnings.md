@@ -357,3 +357,6 @@ The Linux connection fixture verifies the portable shell probe. Native guest ins
 
 The former log collector reported three absent files after a connection failure. Issue #823 records the reproduction.
 A guest file probe must distinguish absence from transport failure. Keep the Docker log available when the guest cannot answer.
+
+A child can consume a binary archive directly from an open file descriptor.
+Open the file for each run so that a retried command reads from the beginning.

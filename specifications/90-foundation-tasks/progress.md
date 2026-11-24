@@ -530,3 +530,7 @@ The guest log command now streams each file to temporary storage before it repla
 The OpenSSH fixture returned the exact guest log and skipped two absent files.
 After the fixture stopped, the command returned status 255 and preserved the previous complete log.
 Four virtual machine integration tests and strict Clippy passed.
+
+Task processes can use a binary file as standard input.
+A public process test read 256 KiB twice from a path containing spaces. A missing file failed before the child started.
+Strict Clippy passed for the task package.

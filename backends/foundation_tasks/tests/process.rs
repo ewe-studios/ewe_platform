@@ -85,6 +85,15 @@ fn child_entry() {
             assert_eq!(&bytes, b"y\ny\ny\n");
             std::process::exit(42);
         }
+        "archive" => {
+            let mut input = io::stdin().lock();
+            let mut block = [0; 1024];
+            for chunk in 0..=255 {
+                input.read_exact(&mut block).unwrap();
+                assert!(block.iter().all(|byte| *byte == chunk));
+            }
+            assert_eq!(input.read(&mut block).unwrap(), 0);
+        }
         "private" => {
             let mut input = Vec::new();
             io::stdin().lock().read_to_end(&mut input).unwrap();
@@ -418,4 +427,22 @@ async fn detached_service_receives_work_after_ownership_transfer() {
     let mut reply = [0];
     socket.read_exact(&mut reply).unwrap();
     assert_eq!(reply, *b"x");
+}
+
+#[valtron_test(timeout = 30000)]
+async fn file_input_reopens_a_binary_file_for_each_child() {
+    let root = tempfile::tempdir().unwrap();
+    let name = "fixture with spaces";
+    let mut file = std::fs::File::create(root.path().join(name)).unwrap();
+    for byte in 0..=255 {
+        file.write_all(&[byte; 1024]).unwrap();
+    }
+    drop(file);
+    let command = fixture("archive").current_dir(root.path()).file_input(name);
+    let process = NativeProcess::new(ProcessConfig::default());
+    for _ in 0..2 {
+        process.run(command.clone(), Arc::new(Memory::default()), Cancellation::new()).await.unwrap();
+    }
+    std::fs::remove_file(root.path().join(name)).unwrap();
+    assert!(process.run(command, Arc::new(Memory::default()), Cancellation::new()).await.is_err());
 }

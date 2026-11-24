@@ -125,13 +125,19 @@ impl ProcessInput {
 }
 
 #[derive(Clone)]
+enum CommandInput {
+    Pipe(ProcessInput),
+    File(PathBuf),
+}
+
+#[derive(Clone)]
 pub struct ProcessCommand {
     pub program: OsString,
     pub args: Vec<OsString>,
     pub cwd: Option<PathBuf>,
     pub env: Vec<(OsString, Option<OsString>)>,
     clear_env: bool,
-    input: Option<ProcessInput>,
+    input: Option<CommandInput>,
 }
 
 impl ProcessCommand {
@@ -190,18 +196,25 @@ impl ProcessCommand {
     /// Send a small private input without adding it to the argument list.
     #[must_use]
     pub fn private_input(mut self, bytes: Vec<u8>) -> Self {
-        self.input = Some(ProcessInput::Once(bytes));
+        self.input = Some(CommandInput::Pipe(ProcessInput::Once(bytes)));
         self
     }
 
     /// Repeat the input until the child closes its pipe. An empty pattern closes the pipe immediately.
     #[must_use]
     pub fn repeated_input(mut self, pattern: Vec<u8>) -> Self {
-        self.input = Some(ProcessInput::Repeat(pattern));
+        self.input = Some(CommandInput::Pipe(ProcessInput::Repeat(pattern)));
         self
     }
 
-    fn into_native(self) -> (Command, Option<ProcessInput>) {
+    /// Use a file as standard input. Relative paths use the child working directory.
+    #[must_use]
+    pub fn file_input(mut self, path: impl Into<PathBuf>) -> Self {
+        self.input = Some(CommandInput::File(path.into()));
+        self
+    }
+
+    fn into_native(self) -> Result<(Command, Option<ProcessInput>), TaskError> {
         let ProcessCommand {
             program,
             args,
@@ -210,14 +223,19 @@ impl ProcessCommand {
             clear_env,
             input,
         } = self;
+        let (stdin, input) = match input {
+            Some(CommandInput::File(path)) => {
+                let path = cwd.as_deref().unwrap_or_else(|| std::path::Path::new(".")).join(path);
+                let file = std::fs::File::open(path).map_err(TaskError::operation)?;
+                (Stdio::from(file), None)
+            }
+            Some(CommandInput::Pipe(input)) => (Stdio::piped(), Some(input)),
+            None => (Stdio::null(), None),
+        };
         let mut process = Command::new(program);
         process
             .args(args)
-            .stdin(if input.is_some() {
-                Stdio::piped()
-            } else {
-                Stdio::null()
-            })
+            .stdin(stdin)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         if let Some(cwd) = cwd {
@@ -233,7 +251,7 @@ impl ProcessCommand {
                 process.env_remove(key);
             }
         }
-        (process, input)
+        Ok((process, input))
     }
 }
 
@@ -344,12 +362,12 @@ impl TaskProcess for NativeProcess {
                 if cancellation.is_cancelled() {
                     return Err(TaskError::Cancelled);
                 }
-                let (mut command, input) = command.into_native();
-                if input.is_some() {
+                if command.input.is_some() {
                     return Err(TaskError::operation(
                         "Background services cannot consume private input",
                     ));
                 }
+                let (mut command, _) = command.into_native()?;
                 command
                     .stdin(Stdio::null())
                     .stdout(Stdio::null())
@@ -603,7 +621,7 @@ fn start_child(
     if cancellation.is_cancelled() {
         return Err(TaskError::Cancelled);
     }
-    let (mut process, input) = command.into_native();
+    let (mut process, input) = command.into_native()?;
     let program = process.get_program().to_owned();
     let fail = |source| TaskError::Process {
         program: program.clone(),
