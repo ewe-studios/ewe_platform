@@ -314,3 +314,6 @@ Check the exact activity name until the configured deadline. Treat an applicatio
 
 Wrangler lists buckets in the terminal. Its object commands do not list the contents of a bucket.
 The storage interface returns a cursor when more objects are available. Preserve each key exactly when writing it.
+
+The Todo Server examples render the item rows and their controls. The generated server starter displays the open item count.
+Verify a shared update by adding an item on one device and reading its title on the other device.

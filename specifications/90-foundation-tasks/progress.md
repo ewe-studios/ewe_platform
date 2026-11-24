@@ -476,3 +476,7 @@ An installed command test supplied two empty focus reports before the requested 
 
 The Cloudflare task provider lists bucket objects with the generated storage client.
 It writes one object per line and follows each response cursor. Browser login passes Wrangler options through.
+
+The Android and iPhone Todo Server examples displayed the same list from the local server.
+Adding “Review the mobile layouts” on iPhone updated the running Android list. Both applications displayed two open items.
+The optimized installed generator also created a three-target project outside the checkout. Its guide covered all 41 commands.
