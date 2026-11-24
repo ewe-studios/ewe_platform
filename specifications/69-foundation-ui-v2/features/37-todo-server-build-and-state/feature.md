@@ -49,8 +49,19 @@ The hook uses the resource manifest, builds missing browser modules, generates C
 Framework providers own tool invocation, change tracking, output directories, validation, and failure reporting.
 Use those same providers for command-line tasks. Retire `examples/ui_todo/build-module.sh` and migrate its callers.
 A clean Cargo build must prepare the browser application without a separate script or a prebuilt module.
-Produce one public JavaScript file, `/bundle.js`, including generated bindings. Preserve addresses for the required WebAssembly binaries.
-Use readable JavaScript in development and minified JavaScript in release. Keep intermediate scripts outside the public tree.
+### Proposed browser output amendment
+
+Produce readable `bundle.js` and minified `bundle.min.js` in development and release builds.
+Use the same project sources and generated bindings for both scripts. Keep intermediate scripts outside the public tree.
+The development page selects the readable file. The deployment page selects the minified file.
+Each page loads one script. Keep the application and companion WebAssembly binaries at explicit relative paths.
+Reserve both script names. Reject manifest entries, generated inputs, and configured binary paths that conflict with either file.
+Reject a path that requires either file to act as a directory. Preserve the last successful resource tree on failure.
+
+Test both script variants through the mounted resource provider from a website subdirectory.
+Open a fresh page for each variant. Record the script and binary requests.
+Complete a real Connect exchange, stream a named resource, open Mathalley, and return to Todo.
+Verify one script request per page and one game binary request after Play.
 Mount application routes first. Mount the resource provider once:
 
 ```rust
