@@ -130,6 +130,17 @@ ASD-STE100.
 
 No product code exists. The spec is a draft in a pull request for the owner's review.
 
+## Feature 00 design corrections (2026-11-24)
+
+The design file contradicted the tree in five places. `features/00-contract/feature.md`
+section 11 records the fix for each:
+
+- `proptest` is this crate's own dev-dependency (`foundation_core` has none, and dev-dependencies are not transitive).
+- The process types are `#[cfg(unix)]`, because `OwnedFd` does not exist on wasm.
+- `SlaveHost` stays in feature 01.
+- Feature 00 defines the opaque handle layer (`shared/handles.rs`); feature 02 adds behaviour.
+- `foundation_auth` is a dependency, and the `secret_is_redacted` test leaves this feature.
+
 ## In progress
 
 **Feature 00 (contract)** starts (2026-11-24). The owner reviewed the spec and answered the
