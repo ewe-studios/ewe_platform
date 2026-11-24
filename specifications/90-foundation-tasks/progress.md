@@ -198,7 +198,7 @@ Issue #734 records existing strict lint failures in the browser time backend dep
 A production release build runs alone outside the checkout. It serves the icon, generated version, and browser script.
 A generated Cargo fixture verifies a custom target directory and profile, renamed and deleted inputs, and recovery after failed staging.
 A Chrome test now covers failed HTTP status, a later body read failure, and early cancellation.
-The Windows test target cross-check passes. Native Windows execution remains unverified.
+The Windows resource test target cross-check passes. This run checked compilation only.
 
 The web and static HTML starters now stage their public index before serving or embedding it.
 Both mobile starters declare shared, generated, and browser-only resources.
@@ -211,7 +211,7 @@ Generated Android and Apple server starters both build against the local SDK can
 Their packages contain the shared title and generated version 0.1.0. They exclude browser.js.
 Both web starter variants pass their generated Cargo project checks.
 The Todo Android debug and release packages and unsigned Apple device package also pass inspection.
-Linux passes all nine resource tests. Native Windows execution still needs a Windows runner.
+Linux passes all nine resource tests. This run supplied Linux execution evidence.
 Issue #735 records a diagnostic from a legacy Cargo template during Git dependency discovery.
 Issue #736 removes the staging index from the Apple resource payload.
 Feature 2 remains proposed. Automatic installation into arbitrary existing Cargo packages awaits that separate approval.
@@ -222,3 +222,8 @@ All nine resource tests pass on macOS and Linux with both `build` and `server` e
 The additional Windows cross-check with `server` stopped because the host lacks `x86_64-w64-mingw32-gcc`.
 
 The packaging contract assigns Todo browser module production, validation, and staging to the build. Runtime migration remains pending.
+
+### 2026-11-24. Windows resource verification
+
+[Specification 91](../91-windows-resource-staging/requirements.md) now owns the native Windows resource test run.
+The owner deferred this run until the project has a Windows virtual machine.

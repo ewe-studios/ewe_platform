@@ -146,3 +146,8 @@ A local Swift package mirror can verify an unpublished candidate without publish
 The Apple resource build selects a payload subdirectory before it copies staged files.
 The staging index belongs to the parent directory. The application bundle then contains only declared resources.
 The optional server dependency needs a Windows C compiler when Cargo cross-compiles it from macOS.
+
+## 2026-11-24. Windows resource verification
+
+The resource suite checks filesystem behavior by running on the target system.
+[Specification 91](../91-windows-resource-staging/requirements.md) records the Windows prerequisites and platform-specific test count.

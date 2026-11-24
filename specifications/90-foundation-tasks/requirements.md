@@ -5,7 +5,7 @@ approved: 2026-11-22
 created: 2026-11-22
 has_features: true
 has_fundamentals: false
-related_specs: ["69-foundation-ui-v2", "84-context-injection"]
+related_specs: ["69-foundation-ui-v2", "84-context-injection", "91-windows-resource-staging"]
 tasks:
   completed: 0
   uncompleted: 3
@@ -476,6 +476,8 @@ cargo run -p ewe_platform -- task ls
 cargo run -p ewe_platform --bin platform -- task run native:build-android --help
 cargo run -p ewe_platform --bin ewe_platform -- generate --help
 ```
+
+[Specification 91](../91-windows-resource-staging/requirements.md) owns native Windows execution of the resource staging suite for Feature 3.
 
 ## Implementation checklist
 

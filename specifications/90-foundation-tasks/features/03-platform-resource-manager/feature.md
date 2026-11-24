@@ -84,6 +84,8 @@ Allow target restrictions for files such as the browser bootstrap module.
 8. Run concurrent mobile builds and verify package contents. Test custom target directories and profiles.
 9. Use the Todo application as the first consumer under Specification 69 Feature 27.
 
+[Specification 91](../../../91-windows-resource-staging/requirements.md) owns native Windows staging verification. It resumes when a Windows virtual machine becomes available.
+
 ## Generated browser module handoff
 
 The resource manifest is a build input. The producer declares the generated file and its stable logical name.
