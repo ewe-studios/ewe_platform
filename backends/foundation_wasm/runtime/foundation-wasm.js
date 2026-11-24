@@ -2286,19 +2286,29 @@ export class WasmLoadError extends Error {
  * options (`builtins: ["js-strings"]`, `importedStringConstants`).
  */
 export class WasmLoader {
+  #options;
+
   /**
    * @param {{initialMemory?:number, maximumMemory?:number, environment?:object,
    *          compileOptions?:object}} [opts] memory sizes are in WASM pages
    */
   constructor(opts = {}) {
-    this.runtime = new FoundationWasm(opts);
+    this.#options = {...opts};
     this.environment = opts.environment ?? {};
     this.compileOptions = WasmLoader.compileOptionsOf(opts.compileOptions);
-    this.memory = new WebAssembly.Memory({
-      initial: opts.initialMemory ?? 10,
-      maximum: opts.maximumMemory ?? 200,
-    });
-    this.module = null;
+    this.#prepareRuntime();
+  }
+
+  /** Allocate a new host after disposal. Old callbacks keep their disabled registry. */
+  #prepareRuntime() {
+    if (!this.runtime || this.runtime.timers.disposed) {
+      this.runtime = new FoundationWasm(this.#options);
+      this.memory = new WebAssembly.Memory({
+        initial: this.#options.initialMemory ?? 10,
+        maximum: this.#options.maximumMemory ?? 200,
+      });
+      this.module = null;
+    }
   }
 
   static compileOptionsOf(compileOptions) {
@@ -2315,6 +2325,7 @@ export class WasmLoader {
 
   /** Check the response before streaming the module into the compiler. */
   async loadURL(url, fetchModule = globalThis.fetch) {
+    this.#prepareRuntime();
     let response;
     try {
       response = await fetchModule(url);
@@ -2339,6 +2350,7 @@ export class WasmLoader {
 
   /** Instantiate from raw bytes (ArrayBuffer/TypedArray). */
   async loadBytes(bytes) {
+    this.#prepareRuntime();
     const module = await WebAssembly.instantiate(bytes, this.imports, this.compileOptions);
     this.#bind(module);
     return this;

@@ -12,7 +12,7 @@ description = "Headless UI components over foundation_wasm_ui — data-attribute
 [dependencies]
 foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7", default-features = false }
 # Components use the single-threaded signal runtime without the standard library.
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.11", default-features = false }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.12", default-features = false }
 foundation_signals = { path = "../foundation_signals", version = "0.0.7", default-features = false, features = ["single_threaded"] }
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 tracing = { version = "0.1", default-features = false }

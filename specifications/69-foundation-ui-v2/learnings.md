@@ -1048,3 +1048,23 @@ A reload discards listeners on the old document. The new document reports readin
 The IndexedDB provider waits for transaction completion. A successful request can still belong to a transaction that aborts.
 The standalone suite uses the pinned wasm-bindgen version from the wasm environment.
 Earlier Todo versions store all pending records under one origin-wide key. Todo serves the page and receives its actions at that origin.
+
+## Feature 37 browser pending storage
+
+The browser must keep a receipt after it deletes a confirmed imported record.
+An older tab can still write to the original map after a newer tab imports it.
+The next boot checks each identifier again. A receipt prevents the confirmed change from returning.
+
+Generated WebAssembly bindings keep memory views and callback finalizers for one instance.
+A binding factory gives each boot separate state. Loading one module per boot would retain modules in the browser cache.
+
+A disposed timer registry discards later wakeups. A reused loader needs a fresh registry and memory before it loads another instance.
+The browser can queue a view update after its first snapshot arrives. Boot waits for that update before it returns.
+The storage bridge carries each encoded Rust value as text. This preserves 64-bit integers when JavaScript moves records into IndexedDB.
+
+A Chromium network trace shows a framework module request on a reused connection. The request receives no response headers within 30 seconds.
+The document cannot start its application until all module imports complete. Issue #784 records the trace.
+The storage regression uses the browser reload operation. It waits until the new document contains the Todo view.
+
+Six clients also request scripts from the normal Todo server with Python's HTTP client. Three connections stall after 41, 63, and 85 successful requests.
+This reproduction uses no browser or storage service. The default server remains in the browser test fixture.

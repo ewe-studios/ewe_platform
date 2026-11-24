@@ -26,7 +26,7 @@ version = "0.0.4"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.10"
+version = "0.0.11"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"

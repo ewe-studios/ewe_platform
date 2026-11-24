@@ -42,6 +42,21 @@
         const count = Number(mount.querySelector("#open-count").textContent);
         await app.close();
         if (mount.childNodes.length) throw Error("Closing retained the view");
+        const bindings = await import("/bindings/ui_todo_bg.js");
+        const storage = {provider: "invalid"};
+        const faults = [];
+        const client = createApp({...options, onError: error => faults.push(error), moduleUrl: "/module.wasm", start: "init_todo_host",
+            bindings, storage, view: "todos", initialRoute: "/initial", viewDataAction: "host:apply_todo_delivery"});
+        const rejected = await client.boot().then(() => "", String);
+        if (!rejected.includes("Unknown storage provider")) throw Error("Missing storage boot error");
+        for (const provider of ["memory", "localStorage", "indexedDB"]) {
+            Object.assign(storage, {provider, namespace: "boot-test"});
+            await client.boot();
+            if (!mount.querySelector("#todo-list")) throw Error("Missing Todo list for " + provider);
+            await client.close();
+            if (mount.childNodes.length) throw Error("Closing retained the storage-backed view");
+        }
+        if (faults.length) throw Error(JSON.stringify(faults));
         return [opened, closed, count];
     } finally { URL.revokeObjectURL(moduleUrl); }
 })()

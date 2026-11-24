@@ -10,6 +10,20 @@ use foundation_ui_wire::{
     ErrorCode, MessageT,
 };
 
+#[link(wasm_import_module = "env")]
+extern "C" {
+    fn ewe_ui_child(
+        parent: u64,
+        id: u64,
+        name: *const u8,
+        name_len: usize,
+        json: *const u8,
+        json_len: usize,
+        preview: *const u8,
+        preview_len: usize,
+    );
+}
+
 pub(super) struct BrowserCaller(pub u64);
 type Reply = Result<(), ActionError>;
 
@@ -59,19 +73,6 @@ impl ChildActionCaller for BrowserCaller {
         let (send, receive) = async_channel::bounded(1);
         WAITING.with_borrow_mut(|calls| calls.insert(id, send));
         let _pending = Pending(id);
-        #[link(wasm_import_module = "env")]
-        extern "C" {
-            fn ewe_ui_child(
-                parent: u64,
-                id: u64,
-                name: *const u8,
-                name_len: usize,
-                json: *const u8,
-                json_len: usize,
-                preview: *const u8,
-                preview_len: usize,
-            );
-        }
         // The browser copies all three slices before the import returns.
         unsafe {
             ewe_ui_child(
@@ -83,8 +84,8 @@ impl ChildActionCaller for BrowserCaller {
                 json.len(),
                 bytes.as_ptr(),
                 bytes.len(),
-            )
-        };
+            );
+        }
         receive
             .recv()
             .await

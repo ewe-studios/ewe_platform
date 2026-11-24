@@ -4,7 +4,7 @@ use crate::core::storage_provider::{AsyncListStream, KeyValueStore};
 use foundation_compact::SendWrapper;
 use futures_util::{stream, TryStreamExt};
 use serde::{de::DeserializeOwned, Serialize};
-use std::num::NonZeroU32;
+use std::{collections::BTreeMap, num::NonZeroU32};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(module = "/src/wasm/browser_storage.js")]
@@ -19,6 +19,16 @@ extern "C" {
         after: Option<String>,
         limit: u32,
     ) -> Result<JsValue, JsValue>;
+}
+
+// The browser transports each value as a string to preserve large integers.
+fn encode_records<K: AsRef<str>, V: Serialize>(
+    records: &BTreeMap<K, V>,
+) -> StorageResult<Vec<(&str, String)>> {
+    records
+        .iter()
+        .map(|(key, value)| Ok((key.as_ref(), serde_json::to_string(value)?)))
+        .collect()
 }
 
 /// Select the browser database or the origin's local settings store.
@@ -51,6 +61,72 @@ impl BrowserStore {
     pub fn with_page_size(mut self, size: NonZeroU32) -> Self {
         self.page_size = size;
         self
+    }
+
+    /// Read an unscoped `localStorage` record written by an earlier application.
+    ///
+    /// # Errors
+    /// Return an access or decoding error.
+    pub async fn legacy_record<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        let value = self.request("legacy", key, None, None).await?;
+        value
+            .as_string()
+            .map(|json| serde_json::from_str(&json).map_err(Into::into))
+            .transpose()
+    }
+
+    /// Import records and their receipts in one `IndexedDB` transaction.
+    ///
+    /// # Errors
+    /// Return a configuration, encoding, or transaction error.
+    pub async fn import_once<V: Serialize>(
+        &self,
+        destination: &str,
+        receipts: &str,
+        records: &BTreeMap<String, V>,
+    ) -> StorageResult<()> {
+        if !matches!(self.backend, BrowserBackend::IndexedDb) {
+            return Err(StorageError::Migration("Import requires IndexedDB".into()));
+        }
+        if destination.starts_with(receipts) || receipts.starts_with(destination) {
+            return Err(StorageError::Migration(
+                "Overlapping record and receipt prefixes".into(),
+            ));
+        }
+        self.request(
+            "import",
+            destination,
+            Some(serde_json::to_string(&encode_records(records)?)?),
+            Some(receipts.into()),
+        )
+        .await?;
+        Ok(())
+    }
+
+    /// Apply independent inserts, updates, and removals. `IndexedDB` commits them in one transaction.
+    /// An update skips a record that a concurrent writer removes.
+    ///
+    /// # Errors
+    /// Return an encoding or storage error.
+    pub async fn change_records<V: Serialize>(
+        &self,
+        prefix: &str,
+        inserts: &BTreeMap<&str, &V>,
+        updates: &BTreeMap<&str, &V>,
+        removals: &[&str],
+    ) -> StorageResult<()> {
+        self.request(
+            "change",
+            prefix,
+            Some(serde_json::to_string(&(
+                encode_records(inserts)?,
+                encode_records(updates)?,
+                removals,
+            ))?),
+            None,
+        )
+        .await?;
+        Ok(())
     }
 
     async fn request(

@@ -1,53 +1,22 @@
 //! Test the server and browser-local actions in the same browser page.
+#[path = "support/browser_server.rs"]
+mod browser_server;
+use browser_server::{open_document, with_browser_server};
 use foundation_browser::{BrowserDriver, LaunchConfig};
 use foundation_context::Ctx;
-use foundation_http::ShutdownSignal;
 use foundation_ui_wire::writer::WriterConfig;
-use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
-use std::{net::TcpListener, path::Path, sync::Arc};
 
 #[test]
 fn server_and_host_actions_work() {
-    let module = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/web/ui_todo.wasm");
-    assert!(
-        module.exists(),
-        "Build examples/ui_todo/build-module.sh first"
-    );
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let url = format!("http://{}/", listener.local_addr().unwrap());
-    let shutdown = Arc::new(ShutdownSignal::new());
-    let stop = shutdown.clone();
-    let channel = LiveChannel::new(1, BacklogConfig::default(), WriterConfig::default());
-    let served = channel.clone();
-    let worker = std::thread::spawn(move || {
-        let app = ui_todo::server::app_with_public_directory(
-            &module,
-            served,
-            Path::new(env!("EWE_STAGED_RESOURCES")),
-        )?;
-        app.server(&listener.local_addr()?.to_string())
-            .serve_with_listener(&listener, &stop);
-        Ok::<_, Box<dyn std::error::Error + Send + Sync>>(())
-    });
-    let outcome = std::panic::catch_unwind(|| {
-        // Both test tabs must deliver stream events while Chrome displays the other tab.
-        let config = LaunchConfig {
-            extra_args: vec![
-                "--disable-background-timer-throttling".into(),
-                "--disable-renderer-backgrounding".into(),
-                "--disable-backgrounding-occluded-windows".into(),
-            ],
-            ..LaunchConfig::default().ctx(Ctx::host())
-        };
-        let driver = BrowserDriver::launch(config).unwrap();
+    with_browser_server(|driver, url, channel| {
         let other = driver.new_page().unwrap();
-        other.goto(&url).unwrap();
+        open_document(&other, url);
         let shared_count = other.locator("#open-count");
         let peer_toggle =
             other.locator(r#"button[primal\:onclick="server:toggle_todo"]:not([hidden] *)"#);
         shared_count.expect().to_have_text("0 open todos").unwrap();
         let page = driver.new_page().unwrap();
-        page.goto(&url).unwrap();
+        open_document(&page, url);
         let button = |name: &str| format!(r#"button[primal\:onclick="{name}"]:not([hidden] *)"#);
         let add = page.locator(&button("host:open_add_dialog"));
         add.expect()
@@ -59,9 +28,16 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_text("1 open todo")
             .unwrap_or_else(|e| panic!("{e:?}; {:?}", page.eval("document.body.innerText")));
-        page.locator("#notification").expect().to_have_text("Todo added").unwrap();
+        page.locator("#notification")
+            .expect()
+            .to_have_text("Todo added")
+            .unwrap();
         shared_count.expect().to_have_text("1 open todo").unwrap();
-        other.locator("#notification").expect().to_have_text("").unwrap();
+        other
+            .locator("#notification")
+            .expect()
+            .to_have_text("")
+            .unwrap();
         let toggle = page.locator(&button("server:toggle_todo"));
         toggle.expect().to_have_text("Complete").unwrap();
         capture_page(&page, "list");
@@ -212,7 +188,7 @@ fn server_and_host_actions_work() {
             .unwrap();
         // A separate page sends typed Connect requests through the browser's Fetch client.
         let rpc = driver.new_page().unwrap();
-        rpc.goto(&format!("{url}?rpc")).unwrap();
+        open_document(&rpc, &format!("{url}?rpc"));
         let open = rpc.locator(&button("host:open_add_dialog"));
         open.expect().to_be_visible().unwrap_or_else(|e| {
             panic!(
@@ -237,8 +213,9 @@ fn server_and_host_actions_work() {
             .to_be_visible()
             .unwrap();
         assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(2));
+        open_document(&rpc, "about:blank");
         let starter = driver.new_page().unwrap();
-        starter.goto(&format!("{url}?count")).unwrap();
+        open_document(&starter, &format!("{url}?count"));
         starter
             .locator("#open-count")
             .expect()
@@ -247,7 +224,7 @@ fn server_and_host_actions_work() {
         let refresh = starter.locator(&button("server:refresh_count"));
         refresh.expect().to_be_visible().unwrap();
         let socket = driver.new_page().unwrap();
-        socket.goto(&format!("{url}?socket")).unwrap();
+        open_document(&socket, &format!("{url}?socket"));
         let open = socket.locator(&button("host:open_add_dialog"));
         open.expect().to_be_visible().unwrap_or_else(|e| {
             panic!(
@@ -268,18 +245,18 @@ fn server_and_host_actions_work() {
             .expect()
             .to_have_text("2")
             .unwrap();
+        for finished in [&page, &other, &socket, &starter] {
+            open_document(finished, "about:blank");
+        }
         let external = driver.new_page().unwrap();
-        external.goto(&format!("{url}theme.css")).unwrap();
+        open_document(&external, &format!("{url}theme.css"));
         assert_eq!(
-            external.eval(include_str!("browser_app_lifecycle.js")).unwrap(),
+            external
+                .eval(include_str!("browser_app_lifecycle.js"))
+                .unwrap(),
             serde_json::json!([2, 2, 2])
         );
     });
-    shutdown.turn_on();
-    worker.join().unwrap().unwrap();
-    if let Err(panic) = outcome {
-        std::panic::resume_unwind(panic)
-    }
 }
 
 fn submit_with_keyboard(

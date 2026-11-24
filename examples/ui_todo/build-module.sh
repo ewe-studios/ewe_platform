@@ -7,7 +7,13 @@ cargo build --locked --manifest-path "$here/Cargo.toml" --lib --no-default-featu
 mkdir -p "$here/target/web"
 stage=$(mktemp "$here/target/web/.ui_todo-XXXXXX")
 trap 'rm -f "$stage"' EXIT
-cp "$target_dir/wasm32-unknown-unknown/release/ui_todo.wasm" "$stage"
+mise exec -- wasm-bindgen "$target_dir/wasm32-unknown-unknown/release/ui_todo.wasm" \
+    --target bundler --no-typescript --out-dir "$target_dir/todo-bindings"
+mkdir -p "$here/target/web/bindings"
+cargo run --locked --profile uat --manifest-path "$here/../../backends/foundation_wasm_ui/Cargo.toml" \
+    --features tasks --bin ewe-wasm-bundle --target-dir "$target_dir" -- bindings \
+    "$target_dir/todo-bindings/ui_todo_bg.js" "$here/target/web/bindings/ui_todo_bg.js"
+mv "$target_dir/todo-bindings/ui_todo_bg.wasm" "$stage"
 chmod 644 "$stage"
 mv "$stage" "$here/target/web/ui_todo.wasm"
 
