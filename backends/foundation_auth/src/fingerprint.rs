@@ -10,12 +10,18 @@
 
 use sha2::{Digest, Sha256};
 
+/// The SHA-256 digest of `bytes`.
+#[must_use]
+pub fn sha256(bytes: &[u8]) -> [u8; 32] {
+    Sha256::digest(bytes).into()
+}
+
 /// Lowercase hexadecimal SHA-256 of `bytes`.
 #[must_use]
 pub fn sha256_hex(bytes: &[u8]) -> String {
     use std::fmt::Write as _;
 
-    Sha256::digest(bytes)
+    sha256(bytes)
         .iter()
         .fold(String::with_capacity(64), |mut out, byte| {
             let _ = write!(out, "{byte:02x}");

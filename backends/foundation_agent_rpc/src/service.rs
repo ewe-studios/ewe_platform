@@ -30,13 +30,15 @@ use foundation_core::valtron::{
 use foundation_db::MemoryDocumentStore;
 use futures::Stream;
 
+use crate::core::config::TurnLimits;
 use crate::error::AgentRpcError;
 use crate::instance::{InstanceConfig, InstanceHandle, InstanceMeta, InstanceRegistry, TurnGuard};
 use crate::proto::v1::agent_service::{register_agent_service, AgentService};
 use crate::proto::v1::{
     self as pb, ChatRequest, ChatResponse, CreateInstanceRequest, DestroyInstanceRequest,
-    DestroyInstanceResponse, HealthRequest, HealthResponse, InstanceInfo, ListInstancesRequest,
-    ListInstancesResponse, ModelInfo,
+    DestroyInstanceResponse, GetCapabilitiesRequest, GetCapabilitiesResponse, HealthRequest,
+    HealthResponse, InstanceInfo, InstanceLimits, ListInstancesRequest, ListInstancesResponse,
+    ModelDescriptor, ModelInfo,
 };
 
 type KvMemory = foundation_ai::agentic::KvMemoryStore<foundation_db::MemoryStorage>;
@@ -100,6 +102,52 @@ impl AgentService for AgentRpcService {
                 status: "serving".into(),
                 models,
                 instances,
+                ..Default::default()
+            }))
+        }
+    }
+
+    fn get_capabilities(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<GetCapabilitiesRequest>,
+    ) -> impl std::future::Future<Output = ConnectResult<Response<GetCapabilitiesResponse>>> + Send
+    {
+        let registry = Arc::clone(&self.registry);
+        async move {
+            let turns = TurnLimits::default();
+            let config = crate::instance::RegistryConfig::default();
+            let models: Vec<ModelDescriptor> = registry
+                .models()
+                .map(|model| ModelDescriptor {
+                    name: model.name().to_string(),
+                    kind: model.kind().to_enum_value(),
+                    device: model.device().to_wire().into(),
+                    state: buffa::EnumValue::Known(pb::ModelLoadState::MODEL_LOAD_STATE_LOADED),
+                    ..Default::default()
+                })
+                .collect();
+            let model_kinds = models
+                .iter()
+                .map(|model| pb::ModelKindSupport {
+                    kind: model.kind,
+                    devices: model.device.clone().into_option().into_iter().collect(),
+                    ..Default::default()
+                })
+                .collect();
+            Ok(Response::new(GetCapabilitiesResponse {
+                model_kinds,
+                models,
+                protocols: vec!["connect".into(), "grpc".into(), "grpc-web".into()],
+                auth_modes: vec!["mtls".into()],
+                limits: Some(InstanceLimits {
+                    max_instances: u32::try_from(config.max_instances()).unwrap_or(u32::MAX),
+                    max_name_len: u32::try_from(config.max_name_len()).unwrap_or(u32::MAX),
+                    max_prompt_bytes: u32::try_from(turns.max_prompt_bytes).unwrap_or(u32::MAX),
+                    ..Default::default()
+                })
+                .into(),
+                host_kind: "native".into(),
                 ..Default::default()
             }))
         }

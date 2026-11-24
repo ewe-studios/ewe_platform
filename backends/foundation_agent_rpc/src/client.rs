@@ -94,7 +94,9 @@ pub async fn enroll(
             Request::new(EnrollRequest {
                 token: secret.to_string(),
                 client_name: client_name.to_string(),
-                csr_pem,
+                credential: Some(
+                    crate::proto::v1::__buffa::oneof::enroll_request::Credential::CsrPem(csr_pem),
+                ),
                 ..Default::default()
             }),
         )
@@ -135,14 +137,13 @@ pub async fn connect_with_payload(
         .into());
     }
     let identity = enroll(
-        &format!("https://{}", payload.bootstrap_addr),
+        &payload.enroll_url,
         &payload.tls_fingerprint_sha256,
         &payload.token,
         client_name,
     )
     .await?;
-    let client = connect_mtls(&format!("https://{}", payload.addr), &identity)
-        .map_err(|e| e.current_context().clone())?;
+    let client = connect_mtls(&payload.url, &identity).map_err(|e| e.current_context().clone())?;
     Ok((client, identity))
 }
 

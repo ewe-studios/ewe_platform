@@ -28,7 +28,7 @@ foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16",
 # Registration authority security parts (spec 81 / 87): signed enrollment
 # secrets, the certificate authority, the trust store and the mutual-TLS (mTLS)
 # verifier and configuration builders. Public API only; this crate adds no copy.
-foundation_auth = { path = "../foundation_auth", version = "0.0.15" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
 # Runtime for the buffa-generated registration messages (same version as the
 # generated code the build script emits).
 buffa = { version = "0.9.2", features = ["json"] }

@@ -8,8 +8,8 @@ use foundation_context::sync::{Mutex, RwLock};
 use futures_util::stream;
 
 use super::client::{
-    SecretUse, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient, TrustedClientStream,
-    UseOutcome,
+    ClientKeyRecord, SecretUse, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
+    TrustedClientStream, UseOutcome,
 };
 
 /// One stored client and its certificate. The store keeps the certificate for
@@ -43,6 +43,10 @@ pub struct MemoryTrustStore {
     client_ids: RwLock<HashMap<String, String>>,
     uses: Mutex<HashMap<String, UseRecord>>,
     revoked: Mutex<HashMap<String, RevocationRecord>>,
+    /// `client_id` to the public key of a client-key enrollment.
+    client_keys: RwLock<HashMap<String, ClientKeyRecord>>,
+    /// Each used refresh nonce and the second of its first use.
+    refresh_nonces: Mutex<HashMap<(String, Vec<u8>), u64>>,
 }
 
 impl std::fmt::Debug for MemoryTrustStore {
@@ -160,6 +164,51 @@ impl TrustStore for MemoryTrustStore {
         })
     }
 
+    fn record_client_key<'a>(
+        &'a self,
+        client_id: &'a str,
+        key: &'a ClientKeyRecord,
+    ) -> TrustFuture<'a, ()> {
+        Box::pin(async move {
+            self.client_keys
+                .write()
+                .unwrap_or_else(|e| e.into_inner())
+                .insert(client_id.to_string(), key.clone());
+            Ok(())
+        })
+    }
+
+    fn client_key<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<ClientKeyRecord>> {
+        Box::pin(async move {
+            Ok(self
+                .client_keys
+                .read()
+                .unwrap_or_else(|e| e.into_inner())
+                .get(client_id)
+                .cloned())
+        })
+    }
+
+    fn consume_refresh_nonce<'a>(
+        &'a self,
+        client_id: &'a str,
+        nonce: &'a [u8],
+        at: u64,
+    ) -> TrustFuture<'a, bool> {
+        Box::pin(async move {
+            let key = (client_id.to_string(), nonce.to_vec());
+            let mut nonces = self
+                .refresh_nonces
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
+            if nonces.contains_key(&key) {
+                return Ok(false);
+            }
+            nonces.insert(key, at);
+            Ok(true)
+        })
+    }
+
     fn mark_seen<'a>(&'a self, fingerprint: &'a str, at: u64) -> TrustFuture<'a, ()> {
         Box::pin(async move {
             if let Some(stored) = self
@@ -236,6 +285,15 @@ impl TrustStore for MemoryTrustStore {
                 let before = revoked.len();
                 revoked.retain(|_, record| record.valid_until >= cutoff);
                 removed += u64::try_from(before - revoked.len()).unwrap_or(0);
+            }
+            {
+                let mut nonces = self
+                    .refresh_nonces
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner());
+                let before = nonces.len();
+                nonces.retain(|_, seen_at| *seen_at >= cutoff);
+                removed += u64::try_from(before - nonces.len()).unwrap_or(0);
             }
             Ok(removed)
         })

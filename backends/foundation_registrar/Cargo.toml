@@ -16,7 +16,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
 # Enrollment, the certificate signing request, the mutual-TLS (mTLS) client
 # configurations and the server proof (spec 81 / 87).
-foundation_auth = { path = "../foundation_auth", version = "0.0.15" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
 # The `ErrorTrace` type of a failed Connect call.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # The HTTP client, the Unix-socket transport and the HTTP/2 gRPC health probe.

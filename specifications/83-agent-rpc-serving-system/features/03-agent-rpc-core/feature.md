@@ -1,19 +1,19 @@
 ---
 feature: "Transport-Agnostic Agent RPC Core"
 description: "The new agent.proto, model selection rules, the ModelCatalog trait, the InstanceRegistry trait with LocalInstanceRegistry, and the AgentService handlers and enrollment service over those traits."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["specifications/completed/84-context-injection", "completed/81-foundation-auth/features/00-foundation-auth"]
 part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
-last_updated: 2026-11-14
+last_updated: 2026-11-25
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Transport-Agnostic Agent RPC Core

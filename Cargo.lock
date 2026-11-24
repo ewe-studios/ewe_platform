@@ -4588,12 +4588,13 @@ dependencies = [
 
 [[package]]
 name = "foundation_agent_rpc"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "base64 0.22.1",
  "buffa",
  "buffa-build",
  "derive_more",
+ "ed25519-compact",
  "foundation_ai",
  "foundation_auth",
  "foundation_compact",
@@ -4616,6 +4617,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-test",
+ "url",
  "zeroize",
 ]
 
@@ -4676,7 +4678,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "argon2",
  "async-trait",
