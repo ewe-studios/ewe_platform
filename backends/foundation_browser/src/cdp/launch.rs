@@ -382,13 +382,15 @@ impl LaunchConfig {
         let mut args = vec![
             "--no-first-run".to_string(),
             "--no-default-browser-check".to_string(),
-            "--disable-gpu".to_string(),
             "--disable-dev-shm-usage".to_string(),
             "--disable-background-networking".to_string(),
             "--disable-extensions".to_string(),
             "--remote-allow-origins=*".to_string(),
             "--no-sandbox".to_string(),
         ];
+        if !self.extra_args.iter().any(|flag| flag == "--enable-gpu") {
+            args.push("--disable-gpu".to_string());
+        }
         if self.headless {
             args.push("--headless=new".to_string());
         }

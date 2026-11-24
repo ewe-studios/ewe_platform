@@ -19,15 +19,17 @@ extension NativeGraphics {
 @MainActor public struct EweDrawingSurface: UIViewRepresentable {
   let name: String
   let graphics: () throws -> NativeGraphics
+  let changed: (NativeDrawingSurface?) -> Void
   let report: (Error) -> Void
-  public init(name: String, graphics: @escaping () throws -> NativeGraphics, report: @escaping (Error) -> Void) {
+  public init(name: String, graphics: @escaping () throws -> NativeGraphics, changed: @escaping (NativeDrawingSurface?) -> Void = { _ in }, report: @escaping (Error) -> Void) {
     self.name = name
     self.graphics = graphics
+    self.changed = changed
     self.report = report
   }
   public func makeUIView(context: Context) -> DrawingView { DrawingView() }
   public func updateUIView(_ view: DrawingView, context: Context) {
-    view.configure(name, graphics, report)
+    view.configure(name, graphics, changed, report)
   }
   public static func dismantleUIView(_ view: DrawingView, coordinator: ()) { view.releaseSurface() }
 
@@ -36,13 +38,15 @@ extension NativeGraphics {
     private var name: String?
     private var provider: (() throws -> NativeGraphics)?
     private var report: ((Error) -> Void)?
+    private var changed: ((NativeDrawingSurface?) -> Void)?
     private var surface: NativeDrawingSurface?
     private var job: Task<Void, Never>?
     private var lastSize: CGSize?
-    fileprivate func configure(_ name: String, _ provider: @escaping () throws -> NativeGraphics, _ report: @escaping (Error) -> Void) {
+    fileprivate func configure(_ name: String, _ provider: @escaping () throws -> NativeGraphics, _ changed: @escaping (NativeDrawingSurface?) -> Void, _ report: @escaping (Error) -> Void) {
       if self.name != name { releaseSurface() }
       self.name = name
       self.provider = provider
+      self.changed = changed
       self.report = report
       setNeedsLayout()
     }
@@ -65,18 +69,21 @@ extension NativeGraphics {
         do {
           let width = UInt32(clamping: Int(size.width)), height = UInt32(clamping: Int(size.height))
           if let surface { try await surface.resize(width: width, height: height) }
-          else { surface = try await provider().attach(name: name, layer: layer, width: width, height: height) }
+          else { surface = try await provider().attach(name: name, layer: layer, width: width, height: height); changed?(surface) }
         } catch { report?(error) }
       }
     }
     fileprivate func releaseSurface() {
+      changed?(nil)
       name = nil
       lastSize = nil
       let previous = job
       job = Task { [self] in
         await previous?.value
         if let surface {
-          do { try await surface.remove() } catch { report?(error) }
+          do { try await surface.remove() }
+          catch GraphicsError.StaleSurface { /* The view owner already removed this surface. */ }
+          catch { report?(error) }
           self.surface = nil
         }
       }

@@ -16,6 +16,7 @@ action-server = []
 
 [dependencies]
 async-trait.workspace = true
+derive_more.workspace = true
 foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 tracing = { workspace = true }
 foundation_macros = { workspace = true }

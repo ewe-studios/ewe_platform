@@ -18,6 +18,7 @@ final class TodoTests: XCTestCase {
     let task = app.staticTexts["Device-only task"]
     XCTAssertTrue(task.waitForExistence(timeout: 10))
     XCTAssertTrue(app.staticTexts["1 open todo"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.staticTexts["Pending"].exists)
 
     app.buttons["Complete"].tap()
     XCTAssertTrue(app.buttons["Reopen"].waitForExistence(timeout: 5))
@@ -176,5 +177,97 @@ final class TodoTests: XCTestCase {
     add.tap()
     XCTAssertTrue(input.waitForExistence(timeout: 5))
     XCTAssertNotEqual(input.value as? String, "Discard this title")
+  }
+}
+
+extension TodoTests {
+  func testMathalleyReturnsToTheSameTodo() {
+    let app = XCUIApplication()
+    app.launch()
+    let bar = app.navigationBars["Todos"]
+    XCTAssertTrue(bar.waitForExistence(timeout: 20))
+    bar.buttons["Add"].tap()
+    app.textFields["Todo title"].tap()
+    app.textFields["Todo title"].typeText("Keep this todo\n")
+    app.buttons["Open"].tap()
+    for _ in 0..<2 {
+      app.buttons["Play Mathalley"].tap()
+      let back = app.buttons["Back to Todos"]
+      XCTAssertTrue(back.waitForExistence(timeout: 10))
+      XCTAssertTrue(app.descendants(matching: .any)["Mathalley game"].waitForExistence(timeout: 10))
+      let bounds = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+      bounds.tap()
+      let game = XCTAttachment(screenshot: app.screenshot())
+      game.name = "mathalley-game"; game.lifetime = .keepAlways; add(game)
+      back.tap()
+      XCTAssertTrue(app.staticTexts["Keep this todo"].waitForExistence(timeout: 5))
+    }
+    let returned = XCTAttachment(screenshot: app.screenshot())
+    returned.name = "mathalley-return"; returned.lifetime = .keepAlways; add(returned)
+  }
+}
+
+extension TodoTests {
+  @MainActor func testTrainAndGumballSurviveRotation() throws {
+    let app = XCUIApplication()
+    app.launchEnvironment["EWE_MATHALLEY_SEED"] = "13"
+    app.launch()
+    let entry = app.buttons["Play Mathalley"]
+    XCTAssertTrue(entry.waitForExistence(timeout: 20))
+    entry.tap()
+    let canvas = app.descendants(matching: .any)["Mathalley game"].firstMatch
+    XCTAssertTrue(canvas.waitForExistence(timeout: 15))
+    func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+      let bounds = canvas.frame.size
+      let scale = min(bounds.width / 390, bounds.height / 844)
+      return CGPoint(x: (bounds.width - 390 * scale) / 2 + x * scale,
+                     y: (bounds.height - 844 * scale) / 2 + y * scale)
+    }
+    func tap(_ x: CGFloat, _ y: CGFloat) {
+      let p = point(x, y)
+      canvas.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: p.x, dy: p.y)).tap()
+    }
+    func waitForScene(_ expected: [Int]) throws {
+      let ready = NSPredicate { _, _ in
+        let shot = canvas.screenshot().image
+        guard let image = shot.cgImage else { return false }
+        let side = 64
+        var pixels = [UInt8](repeating: 0, count: side * side * 4)
+        return pixels.withUnsafeMutableBytes { bytes in
+          guard let context = CGContext(data: bytes.baseAddress, width: side, height: side,
+              bitsPerComponent: 8, bytesPerRow: side * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+              bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+          context.interpolationQuality = .none
+          context.draw(image, in: CGRect(x: 0, y: 0, width: side, height: side))
+          let colors = bytes.bindMemory(to: UInt8.self)
+          var matches = 0
+          for offset in stride(from: 0, to: colors.count, by: 4) {
+            if (0..<3).allSatisfy({ abs(Int(colors[offset + $0]) - expected[$0]) < 8 }) { matches += 1 }
+          }
+          return matches >= 12
+        }
+      }
+      let rendered = expectation(for: ready, evaluatedWith: canvas)
+      wait(for: [rendered], timeout: 10)
+    }
+    tap(195, 422)
+    try waitForScene([39, 70, 83])
+    capture(app, "ios-train")
+    // These six answers follow the first two trains for seed 13.
+    for (index, x) in [75, 195, 315, 315, 75, 315].enumerated() {
+      if index == 3 { try waitForScene([39, 70, 83]) }
+      tap(CGFloat(x), 660)
+      if index == 2 { Thread.sleep(forTimeInterval: 2.2) }
+    }
+    try waitForScene([198, 63, 57])
+    capture(app, "ios-gumball")
+    XCUIDevice.shared.orientation = .landscapeLeft
+    defer { XCUIDevice.shared.orientation = .portrait }
+    try waitForScene([198, 63, 57])
+    XCTAssertGreaterThan(canvas.frame.width, canvas.frame.height)
+    capture(app, "ios-gumball-landscape")
+    tap(105, 690)
+    app.buttons["Back to Todos"].tap()
+    XCTAssertTrue(entry.waitForExistence(timeout: 5))
   }
 }

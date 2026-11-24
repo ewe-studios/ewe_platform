@@ -58,7 +58,7 @@ async fn test_app(
         .args([
             "-parallel-testing-enabled",
             "NO",
-            "CODE_SIGNING_ALLOWED=NO",
+            "CODE_SIGN_IDENTITY=-",
             "test",
         ]);
     if let Some((url, data)) = urls {

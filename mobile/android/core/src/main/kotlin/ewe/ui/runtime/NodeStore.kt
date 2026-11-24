@@ -62,6 +62,7 @@ class NodeStore(
             child.parentStore = this
             child.targets.roots[name] = root
             child.subscriptionReplay = subscriptionReplay
+            child.onData = { id, data -> onData?.invoke(id, data) }
             child.onSnapshot = { id, stream -> onSnapshot?.invoke(id, stream) }
             child.onError = { code, message -> onError?.invoke(code, message) }
             child.onCaps = { bytes -> onCaps?.invoke(bytes) }

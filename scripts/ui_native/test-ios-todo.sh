@@ -26,7 +26,7 @@ test_app() {
     xcodebuild -project "$root/examples/ui_todo/ios/$app/$scheme.xcodeproj" \
         -scheme "$scheme" -destination "platform=iOS Simulator,id=$device" \
         -derivedDataPath "$products/$scheme" -clonedSourcePackagesDirPath "$products/packages" \
-        -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
+        -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- test
 }
 
 test_app todo_on_device TodoOnDevice

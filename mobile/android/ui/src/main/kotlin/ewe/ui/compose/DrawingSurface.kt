@@ -17,15 +17,15 @@ import kotlinx.coroutines.launch
 
 /** Attach a native window when Android creates it. Keep the graphics service across window recreation. */
 @Composable
-fun EweDrawingSurface(name: String, graphics: () -> NativeGraphics, report: (Throwable) -> Unit, modifier: Modifier = Modifier) {
+fun EweDrawingSurface(name: String, graphics: () -> NativeGraphics, report: (Throwable) -> Unit, modifier: Modifier = Modifier, changed: (NativeDrawingSurface?) -> Unit = {}) {
     key(name) {
-        AndroidView(factory = { DrawingView(it, name, graphics, report) }, modifier = modifier,
+        AndroidView(factory = { DrawingView(it, name, graphics, report, changed) }, modifier = modifier,
             onRelease = { it.release() })
     }
 }
 
 private class DrawingView(context: Context, private val name: String, private val graphics: () -> NativeGraphics,
-    private val report: (Throwable) -> Unit) : SurfaceView(context), SurfaceHolder.Callback {
+    private val report: (Throwable) -> Unit, private val changed: (NativeDrawingSurface?) -> Unit) : SurfaceView(context), SurfaceHolder.Callback {
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
     private var job: Job? = null
     private var drawing: NativeDrawingSurface? = null
@@ -43,6 +43,7 @@ private class DrawingView(context: Context, private val name: String, private va
         enqueue {
             if (current == generation && holder.surface.isValid) {
                 drawing = graphics().attach(name, holder.surface, holder.surfaceFrame.width().toUInt(), holder.surfaceFrame.height().toUInt())
+                changed(drawing)
             }
         }
     }
@@ -52,6 +53,7 @@ private class DrawingView(context: Context, private val name: String, private va
     }
     override fun surfaceDestroyed(holder: SurfaceHolder) { detach() }
     private fun detach() {
+        changed(null)
         generation++
         enqueue {
             val previous = drawing

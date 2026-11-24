@@ -467,6 +467,78 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterUInt32: FfiConverterPrimitive {
+    typealias FfiType = UInt32
+    typealias SwiftType = UInt32
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt32 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
+    typealias FfiType = UInt64
+    typealias SwiftType = UInt64
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt64 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterFloat: FfiConverterPrimitive {
+    typealias FfiType = Float
+    typealias SwiftType = Float
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Float {
+        return try lift(readFloat(&buf))
+    }
+
+    public static func write(_ value: Float, into buf: inout [UInt8]) {
+        writeFloat(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterBool : FfiConverter {
+    typealias FfiType = Int8
+    typealias SwiftType = Bool
+
+    public static func lift(_ value: Int8) throws -> Bool {
+        return value != 0
+    }
+
+    public static func lower(_ value: Bool) -> Int8 {
+        return value ? 1 : 0
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Bool {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: Bool, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -527,6 +599,189 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
         writeBytes(&buf, value)
     }
 }
+
+
+
+
+public protocol MathalleyGameProtocol: AnyObject, Sendable {
+    
+    func active(value: Bool) throws 
+    
+    func draw(surface: NativeDrawingSurface, timestampNanos: UInt64) async throws 
+    
+    func samples(atFrame: UInt64, count: UInt32) throws  -> [Float]
+    
+    func stopSound() throws 
+    
+    func tap(x: Float, y: Float, width: Float, height: Float) throws 
+    
+}
+open class MathalleyGame: MathalleyGameProtocol, @unchecked Sendable {
+    fileprivate let handle: UInt64
+
+    /// Used to instantiate a [FFIObject] without an actual handle, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public struct NoHandle {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    required public init(unsafeFromHandle handle: UInt64) {
+        self.handle = handle
+    }
+
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noHandle: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing handle the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public init(noHandle: NoHandle) {
+        self.handle = 0
+    }
+
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
+    public func uniffiCloneHandle() -> UInt64 {
+        return try! rustCall { uniffi_ui_todo_fn_clone_mathalleygame(self.handle, $0) }
+    }
+public convenience init(core: NativeCore, seed: UInt64, sampleRate: UInt32)throws  {
+    let handle =
+        try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_constructor_mathalleygame_new(
+        FfiConverterTypeNativeCore_lower(core),
+        FfiConverterUInt64.lower(seed),
+        FfiConverterUInt32.lower(sampleRate),uniffiCallStatus
+    )
+}
+    self.init(unsafeFromHandle: handle)
+}
+
+    deinit {
+        if handle == 0 {
+            // Mock objects have handle=0 don't try to free them
+            return
+        }
+
+        try! rustCall { uniffi_ui_todo_fn_free_mathalleygame(handle, $0) }
+    }
+
+    
+
+    
+open func active(value: Bool)throws   {try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_method_mathalleygame_active(
+            self.uniffiCloneHandle(),
+        FfiConverterBool.lower(value),uniffiCallStatus
+    )
+}
+}
+    
+open func draw(surface: NativeDrawingSurface, timestampNanos: UInt64)async throws   {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_ui_todo_fn_method_mathalleygame_draw(
+                        self.uniffiCloneHandle(),FfiConverterTypeNativeDrawingSurface_lower(surface),FfiConverterUInt64.lower(timestampNanos)
+                )
+            },
+            pollFunc: ffi_ui_todo_rust_future_poll_void,
+            completeFunc: ffi_ui_todo_rust_future_complete_void,
+            freeFunc: ffi_ui_todo_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeCoreError_lift
+        )
+}
+    
+open func samples(atFrame: UInt64, count: UInt32)throws  -> [Float]  {
+    return try  FfiConverterSequenceFloat.lift(try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_method_mathalleygame_samples(
+            self.uniffiCloneHandle(),
+        FfiConverterUInt64.lower(atFrame),
+        FfiConverterUInt32.lower(count),uniffiCallStatus
+    )
+})
+}
+    
+open func stopSound()throws   {try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_method_mathalleygame_stop_sound(
+            self.uniffiCloneHandle(),uniffiCallStatus
+    )
+}
+}
+    
+open func tap(x: Float, y: Float, width: Float, height: Float)throws   {try rustCallWithError(FfiConverterTypeCoreError_lift) {
+        uniffiCallStatus in
+    uniffi_ui_todo_fn_method_mathalleygame_tap(
+            self.uniffiCloneHandle(),
+        FfiConverterFloat.lower(x),
+        FfiConverterFloat.lower(y),
+        FfiConverterFloat.lower(width),
+        FfiConverterFloat.lower(height),uniffiCallStatus
+    )
+}
+}
+    
+
+    
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeMathalleyGame: FfiConverter {
+    typealias FfiType = UInt64
+    typealias SwiftType = MathalleyGame
+
+    public static func lift(_ handle: UInt64) throws -> MathalleyGame {
+        return MathalleyGame(unsafeFromHandle: handle)
+    }
+
+    public static func lower(_ value: MathalleyGame) -> UInt64 {
+        return value.uniffiCloneHandle()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MathalleyGame {
+        let handle: UInt64 = try readInt(&buf)
+        return try lift(handle)
+    }
+
+    public static func write(_ value: MathalleyGame, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeMathalleyGame_lift(_ handle: UInt64) throws -> MathalleyGame {
+    return try FfiConverterTypeMathalleyGame.lift(handle)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeMathalleyGame_lower(_ value: MathalleyGame) -> UInt64 {
+    return FfiConverterTypeMathalleyGame.lower(value)
+}
+
+
 
 
 /**
@@ -664,6 +919,31 @@ public func FfiConverterTypeTodoServiceError_lift(_ buf: RustBuffer) throws -> T
 #endif
 public func FfiConverterTypeTodoServiceError_lower(_ value: TodoServiceError) -> RustBuffer {
     return FfiConverterTypeTodoServiceError.lower(value)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceFloat: FfiConverterRustBuffer {
+    typealias SwiftType = [Float]
+
+    public static func write(_ value: [Float], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterFloat.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Float] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Float]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterFloat.read(from: &buf))
+        }
+        return seq
+    }
 }
 private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
 private let UNIFFI_RUST_FUTURE_POLL_WAKE: Int8 = 1
@@ -840,6 +1120,24 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_ui_todo_checksum_func_todo_theme_manifest() != 5251) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_method_mathalleygame_active() != 63389) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_method_mathalleygame_draw() != 18631) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_method_mathalleygame_samples() != 56862) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_method_mathalleygame_stop_sound() != 2469) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_method_mathalleygame_tap() != 19374) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_ui_todo_checksum_constructor_mathalleygame_new() != 59733) {
         return InitializationResult.apiChecksumMismatch
     }
 

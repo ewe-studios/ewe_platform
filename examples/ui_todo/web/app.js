@@ -1,3 +1,4 @@
+import { installMathalley } from "./game-view.js";
 import * as bindings from "./bindings/ui_todo_bg.js";
 import { WasmLoader } from "./foundation-wasm.js";
 import { createApp } from "./foundation-ui-actions.js";
@@ -44,7 +45,17 @@ async function boot() {
         storage: {provider: "indexedDB", namespace: "todo:" + location.origin},
     });
 
-    await app.boot();
+    const manager = await app.boot();
+    const game = installMathalley(manager.deps.frames);
+    const signal = new TextEncoder().encode("open:mathalley");
+    document.querySelector("#page").addEventListener("ewe:data", event => {
+        const bytes = event.detail.bytes;
+        if (bytes?.length === signal.length + 1 && bytes[0] === 0xad &&
+            signal.every((value, index) => bytes[index + 1] === value)) {
+            event.stopImmediatePropagation();
+            game.open();
+        }
+    }, { capture: true });
     window.todoReady = true;
 }
 boot().catch(error => {
