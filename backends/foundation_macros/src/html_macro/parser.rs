@@ -91,6 +91,7 @@ pub(super) fn core_tag(tag: &str) -> bool {
             | "Image"
             | "Button"
             | "TextInput"
+            | "SearchInput"
             | "Toggle"
             | "List"
             | "Scroll"

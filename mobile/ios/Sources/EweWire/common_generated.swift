@@ -65,8 +65,9 @@ public enum ewe_ui_NodeKind: UInt16, Enum, Verifiable {
   case submitButton = 23
   case cancelButton = 24
   case drawingSurface = 25
+  case searchInput = 26
 
-  public static var max: ewe_ui_NodeKind { return .drawingSurface }
+  public static var max: ewe_ui_NodeKind { return .searchInput }
   public static var min: ewe_ui_NodeKind { return .unknown }
 }
 

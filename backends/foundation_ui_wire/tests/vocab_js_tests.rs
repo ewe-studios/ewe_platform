@@ -109,6 +109,12 @@ fn web_mapping_matches_the_core_names() {
             &[("type", "button")][..],
         ),
         (NodeKind::DRAWING_SURFACE, "canvas", "ewe-drawing-surface", &[][..]),
+        (
+            NodeKind::SEARCH_INPUT,
+            "input",
+            "ewe-search-input",
+            &[("type", "search")][..],
+        ),
     ];
     assert_eq!(WEB_KINDS.len(), rows.len());
     for (row, expected) in WEB_KINDS.iter().zip(rows) {

@@ -160,6 +160,12 @@ pub static WEB_KINDS: &[WebKind] = &[
         attrs: &[("type", "button")],
     },
     WebKind {kind:NodeKind::DRAWING_SURFACE,tag:"canvas",class:"ewe-drawing-surface",attrs:&[]},
+    WebKind {
+        kind: NodeKind::SEARCH_INPUT,
+        tag: "input",
+        class: "ewe-search-input",
+        attrs: &[("type", "search")],
+    },
 ];
 
 pub static WEB_EVENTS: &[(EventId, &str)] = &[

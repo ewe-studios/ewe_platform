@@ -1328,3 +1328,7 @@ The two browser storage tests pass in 29.03 seconds. The server and host action 
 The new test targets verify concurrent confirmation and migration separately. Issue #784 remains open for the independent HTTP stall.
 
 The owner reports search styling defects on both mobile platforms and a gap under the iPhone entry sheet. Feature 23 contains the proposed revision.
+
+Todo now declares search with the shared SearchInput control. Vocabulary version 13 adds this control.
+The wire suite passes all 96 tests. The JavaScript runtime suite passes 160 tests and skips one.
+Both mobile renderers are under test.

@@ -179,7 +179,11 @@ impl OperationGate<'_> {
     fn replace_kind(&self, operation: &mut UiOperationT) -> bool {
         if let UiOperationT::CreateNode(node) = operation {
             if node.kind.0 > self.version.max_node_kind {
-                node.kind = NodeKind::UNKNOWN;
+                node.kind = if node.kind == NodeKind::SEARCH_INPUT {
+                    NodeKind::TEXT_INPUT
+                } else {
+                    NodeKind::UNKNOWN
+                };
                 return true;
             }
         }

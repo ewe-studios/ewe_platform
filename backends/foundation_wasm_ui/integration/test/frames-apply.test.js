@@ -50,6 +50,18 @@ test("shared nodes, text, properties, action bindings and signed state", () => {
   assert.deepEqual([...base64urlDecode(el.getAttribute("primal::state"))],bytes);
   assert.deepEqual(reports.map(r=>r.code),["BadFrame","BadFrame","UnknownNode"]);
 });
+test("search binds each edit and ordinary text keeps its change event", () => {
+  const {apply, registry} = setup();
+  for (const [id, kind, event] of [
+    [42, wire.NodeKind.SEARCH_INPUT, "input"],
+    [43, wire.NodeKind.TEXT_INPUT, "change"],
+  ]) {
+    apply(operation("CreateNode", id, kind), operation("BindAction", id, wire.EventId.CHANGE, "host:edit"));
+    assert.equal(registry.get(id).getAttribute("primal:on" + event), "host:edit");
+    apply(operation("UnbindAction", id, wire.EventId.CHANGE));
+    assert.equal(registry.get(id).getAttribute("primal:on" + event), null);
+  }
+});
 test("a full view replaces only the receiving mount and disposes its old scope", () => {
   const {registry, reader, reports, doc} = setup();
   const mount = doc.createElement("section");

@@ -258,7 +258,7 @@ fn filters(filter: &Filter) -> Html {
 }
 
 fn search_input(query: &str) -> Html {
-    html! { <TextInput id="todo-search" a11y_label="Search todos" placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
+    html! { <SearchInput id="todo-search" a11y_label="Search todos" placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
 }
 
 pub(crate) fn page_tree(state: &TodoApp) -> Html {

@@ -787,7 +787,9 @@ export class FrameApplicator {
       }
       case "Remove": { const node = this.node(m.nodeId); this.discard(node); node.remove(); this.registry.unregister(m.nodeId); break; }
       case "BindAction": case "UnbindAction": {
-        const el = this.node(m.nodeId), event = vocab.WEB_EVENTS[m.event];
+        const el = this.node(m.nodeId);
+        const liveSearch = m.event === wire.EventId.CHANGE && this.sharedKinds.get(el) === "SEARCH_INPUT";
+        const event = liveSearch ? "input" : vocab.WEB_EVENTS[m.event];
         if (!event) throw problem("UnknownOp");
         const attr = "primal:on" + event;
         const dispatcher = this.deps.dispatcher ?? this.deps.runtime?.dispatcher;

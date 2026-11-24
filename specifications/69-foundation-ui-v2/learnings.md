@@ -1070,3 +1070,6 @@ Six clients also request scripts from the normal Todo server with Python's HTTP 
 This reproduction uses no browser or storage service. The default server remains in the browser test fixture.
 
 The Todo search uses a generic text input. The iPhone sheet gives only its dim background permission to extend beyond the safe area.
+
+The markup parser and the runtime lowering table both require an entry for each built-in control.
+Existing clients can use the search query through the ordinary text field in older vocabulary versions.

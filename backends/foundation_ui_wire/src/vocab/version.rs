@@ -8,7 +8,7 @@ pub const MANAGED_CONNECTION_VERSION: u32 = 10;
 pub const PORTABLE_TARGET_VERSION: u32 = 11;
 
 /// The latest supported vocabulary.
-pub const VOCABULARY_VERSION: u32 = 12;
+pub const VOCABULARY_VERSION: u32 = 13;
 
 /// The highest vocabulary numbers that one version supports.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -160,8 +160,20 @@ pub static VOCAB_VERSIONS: &[VocabVersion] = &[
         max_mobile_behaviour: 0,
     },
     VocabVersion {
-        version: VOCABULARY_VERSION,
+        version: 12,
         max_node_kind: 25,
+        max_prop_id: 19,
+        max_event_id: 5,
+        max_tag_id: 114,
+        max_attr_id: 81,
+        max_native_command: 3,
+        max_behaviour: 4,
+        max_web_behaviour: 0,
+        max_mobile_behaviour: 0,
+    },
+    VocabVersion {
+        version: VOCABULARY_VERSION,
+        max_node_kind: 26,
         max_prop_id: 19,
         max_event_id: 5,
         max_tag_id: 114,

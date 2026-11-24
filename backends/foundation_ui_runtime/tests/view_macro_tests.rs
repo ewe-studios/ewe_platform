@@ -111,7 +111,7 @@ fn pure_core_templates_lower_in_creation_order_and_resolve_property_tokens() {
     };
     let width = "25%";
     let template = html! { <Stack width={width} axis="vertical" padding="4">
-        <Text color="--accent" font="--body">Header</Text><Image/><Button/><TextInput/>
+        <Text color="--accent" font="--body">Header</Text><Image/><Button/><TextInput/><SearchInput/>
         <Toggle/><List>{["A","B"].into_iter().map(todo_row)}</List><Scroll/><Spacer/><Overlay><Modal><BottomSheet/></Modal></Overlay>
     </Stack> };
     let ops = lower(&template, &options).unwrap();
@@ -138,8 +138,8 @@ fn pure_core_templates_lower_in_creation_order_and_resolve_property_tokens() {
             unit => panic!("unexpected core unit {unit:?}"),
         }
     }
-    assert_eq!(created.len(), 14);
-    assert_eq!(kinds.len(), 12);
+    assert_eq!(created.len(), 15);
+    assert_eq!(kinds.len(), 13);
     assert!(props
         .iter()
         .any(|v| matches!(v, PropValueT::ColorToken(v) if v.id == color)));
