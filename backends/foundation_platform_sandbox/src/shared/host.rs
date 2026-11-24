@@ -1,0 +1,197 @@
+//! The side-effect bundle of the native control plane.
+//!
+//! Only a boundary builds this bundle and puts it in the
+//! [`Ctx`](foundation_context::Ctx). Library code reads it with
+//! [`SandboxHost::from_ctx`] and never falls back to the real system.
+
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+
+use foundation_connectrpc::shared::transport::Transport;
+use foundation_context::Ctx;
+#[cfg(unix)]
+use serde::{Deserialize, Serialize};
+
+use crate::shared::driver::SlaveEndpoint;
+use crate::shared::error::{SandboxError, SandboxResult};
+use crate::shared::ids::DriverId;
+use crate::shared::limits::SandboxLimits;
+#[cfg(unix)]
+use crate::shared::BoxFuture;
+
+/// The side effects of the native control plane.
+#[derive(Clone)]
+pub struct SandboxHost {
+    /// Starts host processes.
+    #[cfg(unix)]
+    pub processes: Arc<dyn ProcessSpawner>,
+    /// Reads and writes host files.
+    pub fs: Arc<dyn HostFs>,
+    /// Turns a slave endpoint into an RPC transport.
+    pub connector: Arc<dyn SlaveConnector>,
+    /// The host paths and driver order.
+    pub config: Arc<HostConfig>,
+}
+
+impl SandboxHost {
+    /// Reads the bundle from `ctx`.
+    ///
+    /// # Errors
+    /// [`SandboxError::HostNotConfigured`] when the context holds no bundle.
+    pub fn from_ctx(ctx: &Ctx) -> SandboxResult<Self> {
+        ctx.get::<Self>()
+            .map(|host| (*host).clone())
+            .ok_or_else(|| SandboxError::HostNotConfigured.into())
+    }
+}
+
+/// Turns a slave endpoint into an RPC transport.
+pub trait SlaveConnector: Send + Sync + 'static {
+    /// Connects to `endpoint` with the limits of the sandbox.
+    ///
+    /// # Errors
+    /// [`crate::shared::error::SandboxError::Io`] or
+    /// [`crate::shared::error::SandboxError::Rpc`] when the transport fails.
+    fn connect(
+        &self,
+        ctx: &Ctx,
+        endpoint: &SlaveEndpoint,
+        limits: &SandboxLimits,
+    ) -> SandboxResult<Arc<dyn Transport>>;
+}
+
+/// The host paths and the driver order of the native control plane.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HostConfig {
+    /// The directory for run files. Keep it short: a socket path has a limit.
+    pub state_dir: PathBuf,
+    /// The directory for downloaded and built files.
+    pub cache_dir: PathBuf,
+    /// The path of `agent-slave` for the guest architecture.
+    pub slave_path: Option<PathBuf>,
+    /// The path of the Firecracker program.
+    pub firecracker_path: Option<PathBuf>,
+    /// The path of the libkrun runner program.
+    pub krun_runner_path: Option<PathBuf>,
+    /// The path of the libkrun library.
+    pub libkrun_path: Option<PathBuf>,
+    /// The driver order. The default is Firecracker, libkrun and Docker.
+    pub driver_order: Vec<DriverId>,
+}
+
+impl Default for HostConfig {
+    fn default() -> Self {
+        Self {
+            state_dir: PathBuf::new(),
+            cache_dir: PathBuf::new(),
+            slave_path: None,
+            firecracker_path: None,
+            krun_runner_path: None,
+            libkrun_path: None,
+            driver_order: vec![DriverId::Firecracker, DriverId::Libkrun, DriverId::Docker],
+        }
+    }
+}
+
+/// Starts host processes.
+#[cfg(unix)]
+pub trait ProcessSpawner: Send + Sync + 'static {
+    /// Starts one process.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the program cannot start.
+    fn spawn(&self, spec: ProcessSpec) -> SandboxResult<Box<dyn ChildProcess>>;
+}
+
+/// One host process to start.
+#[cfg(unix)]
+pub struct ProcessSpec {
+    /// The program path.
+    pub program: PathBuf,
+    /// The arguments after the program.
+    pub args: Vec<String>,
+    /// The full environment. Nothing is inherited.
+    pub env: Vec<(String, String)>,
+    /// The working directory.
+    pub cwd: PathBuf,
+    /// The standard output file, opened for append.
+    pub stdout: PathBuf,
+    /// The standard error file, opened for append.
+    pub stderr: PathBuf,
+    /// Whether the child dies when this process dies.
+    pub kill_with_parent: bool,
+    /// File descriptors that the child inherits, as
+    /// `(number in the child, descriptor)`.
+    ///
+    /// It is empty except for the libkrun lifeline on macOS (feature 09).
+    pub extra_fds: Vec<(i32, std::os::fd::OwnedFd)>,
+}
+
+/// One started host process.
+#[cfg(unix)]
+pub trait ChildProcess: Send + Sync + 'static {
+    /// The process identifier.
+    fn pid(&self) -> u32;
+
+    /// Sends one signal to the process.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the signal cannot be sent.
+    fn signal(&self, signal: i32) -> SandboxResult<()>;
+
+    /// Waits for the process. It can be awaited more than once.
+    fn wait(&self) -> BoxFuture<'_, SandboxResult<ProcessExit>>;
+
+    /// Returns the exit state without waiting, or `None` while the process
+    /// runs.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the state cannot be read.
+    fn try_wait(&self) -> SandboxResult<Option<ProcessExit>>;
+}
+
+/// How one host process ended.
+#[cfg(unix)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProcessExit {
+    /// The exit code, when the process exited with one.
+    pub code: Option<i32>,
+    /// The signal, when a signal ended the process.
+    pub signal: Option<i32>,
+}
+
+/// Reads and writes host files.
+pub trait HostFs: Send + Sync + 'static {
+    /// Creates a directory and its parents.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the directory cannot be created.
+    fn create_dir_all(&self, path: &Path, mode: u32) -> SandboxResult<()>;
+
+    /// Removes a directory and its contents.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the directory cannot be removed.
+    fn remove_dir_all(&self, path: &Path) -> SandboxResult<()>;
+
+    /// Writes a file and replaces its contents.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be written.
+    fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()>;
+
+    /// Reads at most `max` bytes of a file.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be read.
+    fn read(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>>;
+
+    /// Reads at most `max` bytes from the end of a file.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be read.
+    fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>>;
+
+    /// Whether a file or directory exists.
+    fn exists(&self, path: &Path) -> bool;
+}

@@ -425,6 +425,8 @@ the user's home from `passwd`, or `/` when there is none.
 
 ## 7. Tests
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
 | manifest | `manifest_roundtrip` | `tests/images_*.rs` | identity |

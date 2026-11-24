@@ -711,6 +711,8 @@ not copy the code. The test name `check_bearer_cases` stays.
 Simulation (`control_sim_*.rs`), with `Ctx::with_seed`, `SimulatedClock`, `SimDriver`,
 `ScriptedSlave`:
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Oracle |
 |---|---|---|
 | I1, I7, "Create returns a ready sandbox" | `create_ok` | example |
