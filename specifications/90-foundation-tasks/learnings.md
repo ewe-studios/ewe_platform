@@ -158,3 +158,6 @@ A package manifest can declare JavaScript modules with a .js extension. The curr
 
 The build hook supplies the same path to the resource manifest and the JavaScript loader.
 This keeps the packaged file and the browser request in agreement when an application changes the path.
+
+During parallel native builds, one Chromium process exceeded the developer check's 60-second DOM dump timeout.
+A second run used the browser debugging protocol to read the page. All three script formats passed the same assertions.

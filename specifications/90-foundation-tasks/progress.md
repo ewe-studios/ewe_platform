@@ -236,3 +236,7 @@ The owner approves Features 1 through 3. Feature 4 defines module imports, two c
 
 The browser build hook sets the public WebAssembly path. Chromium loaded both the default file and a nested path.
 Four compiler tests passed, including lazy module reuse and asset requests below a site subdirectory.
+
+The 0.1.13 runtime archive passed an independent browser check on 25 November 2026.
+The module import and both classic scripts each loaded one script, dispatched callback 7, and displayed “Updated”.
+A local registry checked credential selection, matching retries, and conflicting archive integrity with test credentials.
