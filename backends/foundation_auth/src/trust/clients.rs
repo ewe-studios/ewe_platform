@@ -10,7 +10,9 @@ use foundation_context::sync::{Mutex, RwLock};
 use foundation_context::{Clock, Ctx};
 use futures_util::StreamExt;
 
-use super::client::{SecretUse, TrustError, TrustStore, TrustedClient, UseOutcome};
+use super::client::{
+    ClientKeyRecord, SecretUse, TrustError, TrustStore, TrustedClient, UseOutcome,
+};
 use super::config::{IndexMode, TrustConfig};
 
 /// A cheap handle to the in-memory client map, for the synchronous Transport
@@ -318,6 +320,48 @@ impl TrustedClients {
             Some(_) => Err(TrustError::ClientRevoked),
             None => Err(TrustError::UnknownClient(client_id.to_string())),
         }
+    }
+
+    /// The client with this `client_id`, from the store.
+    ///
+    /// # Errors
+    /// [`TrustError::Storage`] when the store read fails.
+    pub async fn client_by_id(&self, client_id: &str) -> Result<Option<TrustedClient>, TrustError> {
+        self.store.client_by_id(client_id).await
+    }
+
+    /// Record the public key of a client-key enrollment.
+    ///
+    /// # Errors
+    /// [`TrustError::Storage`] when the store fails.
+    pub async fn record_client_key(
+        &self,
+        client_id: &str,
+        key: &ClientKeyRecord,
+    ) -> Result<(), TrustError> {
+        self.store.record_client_key(client_id, key).await
+    }
+
+    /// The public key of a client-key enrollment.
+    ///
+    /// # Errors
+    /// [`TrustError::Storage`] when the store fails.
+    pub async fn client_key(&self, client_id: &str) -> Result<Option<ClientKeyRecord>, TrustError> {
+        self.store.client_key(client_id).await
+    }
+
+    /// Record one refresh nonce. `true` means the first use.
+    ///
+    /// # Errors
+    /// [`TrustError::Storage`] when the store fails.
+    pub async fn consume_refresh_nonce(
+        &self,
+        client_id: &str,
+        nonce: &[u8],
+    ) -> Result<bool, TrustError> {
+        self.store
+            .consume_refresh_nonce(client_id, nonce, self.now())
+            .await
     }
 
     /// Revoke a secret until its validity window ends.

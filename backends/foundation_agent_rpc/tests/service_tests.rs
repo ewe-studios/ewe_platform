@@ -10,6 +10,7 @@ use foundation_agent_rpc::proto::v1::{
 use foundation_agent_rpc::{
     agent_router, AgentRpcService, InstanceRegistry, ModelHandle, RegistryConfig,
 };
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{Code, Request, RpcCtx};
 use foundation_core::valtron::valtron_test;
@@ -17,7 +18,13 @@ use foundation_core::valtron::valtron_test;
 fn service(reply: &str) -> Arc<AgentRpcService> {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text(reply)]);
-    let model = ModelHandle::from_router("mock", "mock", mock.into_router());
+    let model = ModelHandle::from_router(
+        "mock",
+        ModelKind::Api,
+        Device::Remote,
+        "mock",
+        mock.into_router(),
+    );
     let registry = InstanceRegistry::new(
         vec![model],
         RegistryConfig::default(),
@@ -40,8 +47,8 @@ fn every_agent_service_procedure_is_registered() {
     let router = agent_router(service("hi"));
     assert_eq!(
         router.len(),
-        6,
-        "Health, Create/List/DestroyInstance, Chat, ChatStream"
+        7,
+        "Health, GetCapabilities, Create/List/DestroyInstance, Chat, ChatStream"
     );
 }
 

@@ -2,6 +2,9 @@
 //! T9 — the bootstrap payload: base64 + QR, and a client that connects from
 //! the payload alone.
 
+// The `#[valtron_test]` `Send` check descends a deep dependency chain.
+#![recursion_limit = "512"]
+
 use foundation_context::Ctx;
 use std::time::Duration;
 
@@ -11,6 +14,7 @@ use foundation_agent_rpc::client::connect_with_payload;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest, HealthRequest};
 use foundation_agent_rpc::secret::{SignedSecret, SigningKeyConfig};
 use foundation_agent_rpc::{AgentRpcError, AgentRpcServer, ModelHandle};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{Request, RpcCtx};
 use foundation_core::valtron::valtron_test;
@@ -21,15 +25,14 @@ fn ctx() -> RpcCtx {
 
 fn sample() -> BootstrapPayload {
     BootstrapPayload {
-        version: bootstrap::PAYLOAD_VERSION,
-        addr: "10.0.0.7:7443".into(),
-        bootstrap_addr: "10.0.0.7:7444".into(),
+        url: "https://10.0.0.7:7443".into(),
+        enroll_url: "https://10.0.0.7:7444".into(),
         tls_fingerprint_sha256: "ab".repeat(32),
         token: "t".repeat(43),
         capabilities: foundation_agent_rpc::proto::v1::Capabilities {
             protocols: vec!["connect".into(), "grpc".into(), "grpc-web".into()],
             models: vec!["tiny".into()],
-            auth_mode: "mtls".into(),
+            auth_modes: vec!["mtls".into()],
             ..Default::default()
         }
         .into(),
@@ -49,13 +52,14 @@ fn base64_round_trip_keeps_every_field() {
     );
     let decoded = bootstrap::decode(&encoded).expect("decodes");
     assert_eq!(decoded, payload);
-    assert_eq!(decoded.addr, "10.0.0.7:7443");
+    assert_eq!(decoded.url, "https://10.0.0.7:7443");
+    assert_eq!(decoded.enroll_url, "https://10.0.0.7:7444");
     assert_eq!(decoded.tls_fingerprint_sha256, "ab".repeat(32));
     assert_eq!(decoded.token, "t".repeat(43));
     let caps = decoded.capabilities.as_option().expect("capabilities");
     assert_eq!(caps.protocols, vec!["connect", "grpc", "grpc-web"]);
     assert_eq!(caps.models, vec!["tiny"]);
-    assert_eq!(caps.auth_mode, "mtls");
+    assert_eq!(caps.auth_modes, vec!["mtls"]);
 }
 
 #[test]
@@ -78,9 +82,13 @@ fn malformed_payloads_are_codec_errors() {
         );
     }
     let mut future = sample();
-    future.version = bootstrap::PAYLOAD_VERSION + 1;
-    let err = bootstrap::decode(&bootstrap::encode(&future)).expect_err("unknown version");
+    future.url.clear();
+    let err = bootstrap::decode(&bootstrap::encode(&future)).expect_err("no url");
     assert!(matches!(err.current_context(), AgentRpcError::Codec(_)));
+    assert!(err
+        .current_context()
+        .to_string()
+        .contains("issue a new one"));
 }
 
 #[test]
@@ -103,7 +111,13 @@ async fn a_client_connects_from_the_payload_alone() {
     .expect("state");
     let server = AgentRpcServer::builder()
         .with_ctx(foundation_context::Ctx::host())
-        .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
+        .with_model(ModelHandle::from_router(
+            "mock",
+            ModelKind::Api,
+            Device::Remote,
+            "mock",
+            mock.into_router(),
+        ))
         .with_mtls(config)
         .build()
         .expect("server")
@@ -115,7 +129,7 @@ async fn a_client_connects_from_the_payload_alone() {
         .expect("payload");
     let caps = payload.capabilities.as_option().expect("capabilities");
     assert_eq!(caps.models, vec!["mock"]);
-    assert_eq!(caps.auth_mode, "mtls");
+    assert_eq!(caps.auth_modes, vec!["mtls"]);
     let secret = SignedSecret::decode(&payload.token).expect("a signed secret");
     assert!(secret.verify_self_signed());
     assert_eq!(secret.valid_until() - secret.valid_from(), 600);
@@ -171,8 +185,8 @@ async fn the_client_checks_the_secret_before_dialling() {
     let past = SystemTime::now() - Duration::from_secs(600);
     let mut payload = sample();
     // Unroutable addresses: a network attempt would fail differently.
-    payload.addr = "127.0.0.1:1".into();
-    payload.bootstrap_addr = "127.0.0.1:1".into();
+    payload.url = "https://127.0.0.1:1".into();
+    payload.enroll_url = "https://127.0.0.1:1".into();
 
     payload.token = secrets
         .issue_window(past, past + Duration::from_secs(60))

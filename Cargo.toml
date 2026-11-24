@@ -81,6 +81,9 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_json = { version = "1.0.114" }
 toml = { version = "0.9" }
 toml_edit = { version = "0.22" }
+# Uniform resource locator (URL) parsing. The bootstrap payload of agent-rpc
+# checks that its address is an HTTP or HTTPS URL (spec 83 feature 03).
+url = "2"
 
 # One media type table for the platform (spec 89).
 # `phf` builds a perfect hash map at compile time. It needs no `std`, so the

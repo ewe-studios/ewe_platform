@@ -7,6 +7,9 @@
 //! secure-server lifecycle: key generation, refused enrollment, enrollment,
 //! mTLS call, replay.
 
+// The `#[valtron_test]` `Send` check descends a deep dependency chain.
+#![recursion_limit = "512"]
+
 use foundation_context::Ctx;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
@@ -19,6 +22,7 @@ use foundation_agent_rpc::secret::{
     BootstrapSecrets, SigningKey, SigningKeyConfig, SIGNING_KEY_FILE,
 };
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{Request, RpcCtx};
 
@@ -63,7 +67,13 @@ fn the_bootstrap_secret_is_never_logged() {
         .expect("state");
         let server = AgentRpcServer::builder()
             .with_ctx(foundation_context::Ctx::host())
-            .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
+            .with_model(ModelHandle::from_router(
+                "mock",
+                ModelKind::Api,
+                Device::Remote,
+                "mock",
+                mock.into_router(),
+            ))
             .with_mtls(config)
             .build()
             .expect("server")

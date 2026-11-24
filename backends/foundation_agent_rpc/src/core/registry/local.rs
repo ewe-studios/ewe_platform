@@ -1,0 +1,496 @@
+//! The local instance registry: in-process instances over one catalog.
+//!
+//! WHY: the native host and each Durable Object hold their instances in one
+//! process. The logic is the same in both places; only the two session stores
+//! differ.
+//!
+//! WHAT: [`SessionStores`] (the seam for the stores), [`InMemoryStores`] (the
+//! native default) and [`LocalInstanceRegistry`].
+//!
+//! HOW: the table is keyed by `(Scope, name)`. `create` builds the session
+//! outside the lock, because building is the only real work. One turn at a
+//! time is a compare-and-swap on an atomic flag that a [`TurnGuard`] clears on
+//! drop.
+
+use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::Arc;
+use std::sync::RwLock;
+
+use foundation_ai::agentic::{AgentConfig, AgentSession, KvMemoryStore, MemoryStore};
+use foundation_ai::types::SessionId;
+use foundation_compact::time::unix_millis;
+use foundation_context::env::Env;
+use foundation_context::Ctx;
+use foundation_db::{DocumentStore, MemoryDocumentStore, MemoryStorage};
+use foundation_errstacks::ErrorTrace;
+
+use crate::core::config::{RegistryConfig, TurnLimits};
+use crate::core::model::{AgentRpcFuture, ModelCatalog, ModelHandle};
+use crate::core::registry::{
+    decode_page_token, encode_page_token, Caller, InstanceInfo, InstanceRegistry, InstanceSpec,
+    Page, Scope, TurnEventStream,
+};
+use crate::core::turn::guarded_turn;
+use crate::error::{AgentRpcError, AgentRpcResult};
+
+/// Makes the two stores of a new session.
+pub trait SessionStores: Send + Sync + 'static {
+    /// The document store (the session history).
+    type Doc: DocumentStore + 'static;
+    /// The memory store.
+    type Mem: MemoryStore + 'static;
+
+    /// Open the two stores of one session.
+    ///
+    /// # Errors
+    /// `AgentRpcError::Storage` when the stores cannot open.
+    fn open(&self, session: &SessionId) -> AgentRpcResult<(Self::Doc, Self::Mem)>;
+}
+
+/// The native default: history and memory in process memory.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct InMemoryStores;
+
+impl SessionStores for InMemoryStores {
+    type Doc = MemoryDocumentStore;
+    type Mem = KvMemoryStore<MemoryStorage>;
+
+    fn open(&self, _session: &SessionId) -> AgentRpcResult<(Self::Doc, Self::Mem)> {
+        Ok((
+            MemoryDocumentStore::new(),
+            KvMemoryStore::new(MemoryStorage::new()),
+        ))
+    }
+}
+
+/// One named instance: an agent session on a shared model.
+pub struct InstanceHandle<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    inner: Arc<InstanceInner<D, M>>,
+}
+
+struct InstanceInner<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    name: String,
+    model: ModelHandle,
+    session: AgentSession<D, M>,
+    busy: AtomicBool,
+    turns: AtomicU64,
+    created_unix_ms: u64,
+}
+
+impl<D, M> Clone for InstanceHandle<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+        }
+    }
+}
+
+impl<D, M> std::fmt::Debug for InstanceHandle<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InstanceHandle")
+            .field("name", &self.inner.name)
+            .field("model", &self.inner.model.name())
+            .finish_non_exhaustive()
+    }
+}
+
+impl<D, M> InstanceHandle<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    /// The instance name.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        &self.inner.name
+    }
+
+    /// The shared model that this instance runs on.
+    #[must_use]
+    pub fn model(&self) -> &ModelHandle {
+        &self.inner.model
+    }
+
+    /// The session of this instance.
+    #[must_use]
+    pub fn session(&self) -> &AgentSession<D, M> {
+        &self.inner.session
+    }
+
+    /// A snapshot for the wire.
+    #[must_use]
+    pub fn info(&self) -> InstanceInfo {
+        InstanceInfo {
+            name: self.inner.name.clone(),
+            model: self.inner.model.name().to_string(),
+            kind: self.inner.model.kind(),
+            device: self.inner.model.device(),
+            created_unix_ms: self.inner.created_unix_ms,
+            turns: self.inner.turns.load(Ordering::Relaxed),
+        }
+    }
+
+    /// Claim the instance for one turn.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::InstanceBusy`] while another turn holds the claim.
+    pub fn begin_turn(&self) -> AgentRpcResult<TurnGuard<D, M>> {
+        if self
+            .inner
+            .busy
+            .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+            .is_err()
+        {
+            return Err(AgentRpcError::InstanceBusy(self.inner.name.clone()).into());
+        }
+        self.inner.turns.fetch_add(1, Ordering::Relaxed);
+        Ok(TurnGuard {
+            inner: Arc::clone(&self.inner),
+        })
+    }
+}
+
+/// Holds an instance's one-turn claim; releases it on drop.
+pub struct TurnGuard<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    inner: Arc<InstanceInner<D, M>>,
+}
+
+impl<D, M> std::fmt::Debug for TurnGuard<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TurnGuard")
+            .field("instance", &self.inner.name)
+            .finish()
+    }
+}
+
+impl<D, M> Drop for TurnGuard<D, M>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    fn drop(&mut self) {
+        self.inner.busy.store(false, Ordering::Release);
+    }
+}
+
+/// The table of live instances, keyed by scope and name.
+type InstanceTable<D, M> = BTreeMap<(Scope, String), InstanceHandle<D, M>>;
+
+/// The table of live instances over one catalog.
+pub struct LocalInstanceRegistry<S: SessionStores = InMemoryStores> {
+    ctx: Ctx,
+    env: Env,
+    catalog: Arc<dyn ModelCatalog>,
+    stores: S,
+    instances: RwLock<InstanceTable<S::Doc, S::Mem>>,
+    config: RegistryConfig,
+    turns: TurnLimits,
+}
+
+impl<S: SessionStores> std::fmt::Debug for LocalInstanceRegistry<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LocalInstanceRegistry")
+            .field("config", &self.config)
+            .field("turns", &self.turns)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<S: SessionStores> LocalInstanceRegistry<S> {
+    /// A registry over `catalog`, with the stores of `stores`.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Config`] when the context holds no [`Env`].
+    pub fn new(
+        catalog: Arc<dyn ModelCatalog>,
+        stores: S,
+        config: RegistryConfig,
+        turns: TurnLimits,
+        ctx: Ctx,
+    ) -> AgentRpcResult<Self> {
+        let env = ctx
+            .require_env()
+            .map_err(|error| AgentRpcError::Config(format!("the context holds no Env: {error}")))?;
+        Ok(Self {
+            ctx,
+            env: env.as_ref().clone(),
+            catalog,
+            stores,
+            instances: RwLock::new(BTreeMap::new()),
+            config,
+            turns,
+        })
+    }
+
+    /// The configuration.
+    #[must_use]
+    pub fn config(&self) -> &RegistryConfig {
+        &self.config
+    }
+
+    /// The turn limits.
+    #[must_use]
+    pub fn turn_limits(&self) -> &TurnLimits {
+        &self.turns
+    }
+
+    fn table(&self) -> std::sync::RwLockReadGuard<'_, InstanceTable<S::Doc, S::Mem>> {
+        self.instances
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    fn table_mut(&self) -> std::sync::RwLockWriteGuard<'_, InstanceTable<S::Doc, S::Mem>> {
+        self.instances
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    /// Names are 1..=`max_name_len` bytes of `[a-z0-9._-]` (ASCII, lowercase),
+    /// starting with a letter or digit.
+    fn validate_name(&self, name: &str) -> AgentRpcResult<()> {
+        let invalid = |why: &str| -> AgentRpcResult<()> {
+            Err(AgentRpcError::InvalidName(format!("{name:?}: {why}")).into())
+        };
+        if name.is_empty() {
+            return invalid("empty");
+        }
+        if name.len() > self.config.max_name_len {
+            return invalid(&format!("longer than {} bytes", self.config.max_name_len));
+        }
+        if !name.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"._-".contains(&byte)
+        }) {
+            return invalid("allowed characters are a-z 0-9 . _ -");
+        }
+        if !name
+            .bytes()
+            .next()
+            .is_some_and(|byte| byte.is_ascii_alphanumeric())
+        {
+            return invalid("must start with a letter or digit");
+        }
+        Ok(())
+    }
+}
+
+impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
+    fn create<'a>(
+        &'a self,
+        caller: &'a Caller,
+        spec: InstanceSpec,
+    ) -> AgentRpcFuture<'a, InstanceInfo> {
+        Box::pin(async move {
+            self.validate_name(&spec.name)?;
+            let model = self.catalog.resolve(&spec.model).await?;
+            let session_id = SessionId::from_id(self.env.ids().next_id());
+            let (doc, memory) = self.stores.open(&session_id)?;
+            let session =
+                build_session(&model, &spec, session_id, doc, memory, self.ctx.clone()).await?;
+            let mut table = self.table_mut();
+            let key = (caller.scope.clone(), spec.name.clone());
+            if table.contains_key(&key) {
+                return Err(AgentRpcError::InstanceExists(spec.name).into());
+            }
+            if table
+                .keys()
+                .filter(|(scope, _)| scope == &caller.scope)
+                .count()
+                >= self.config.max_instances
+            {
+                return Err(AgentRpcError::InstanceLimit(self.config.max_instances).into());
+            }
+            let handle = InstanceHandle {
+                inner: Arc::new(InstanceInner {
+                    name: spec.name.clone(),
+                    model,
+                    session,
+                    busy: AtomicBool::new(false),
+                    turns: AtomicU64::new(0),
+                    created_unix_ms: u64::try_from(unix_millis(self.ctx.clock().wall_now()))
+                        .unwrap_or(0),
+                }),
+            };
+            table.insert(key, handle.clone());
+            drop(table);
+            tracing::info!(instance = %spec.name, model = %handle.model().name(), "instance created");
+            Ok(handle.info())
+        })
+    }
+
+    fn get<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, InstanceInfo> {
+        Box::pin(async move {
+            let table = self.table();
+            table
+                .get(&(caller.scope.clone(), name.to_string()))
+                .map(InstanceHandle::info)
+                .ok_or_else(|| AgentRpcError::InstanceNotFound(name.to_string()).into())
+        })
+    }
+
+    fn list<'a>(
+        &'a self,
+        caller: &'a Caller,
+        page_size: u32,
+        page_token: Option<&'a str>,
+    ) -> AgentRpcFuture<'a, Page<InstanceInfo>> {
+        Box::pin(async move {
+            let after = decode_page_token(page_token.unwrap_or(""))?;
+            let size = if page_size == 0 {
+                self.config.default_page_size
+            } else {
+                page_size.min(self.config.max_page_size)
+            }
+            .max(1);
+            let size = usize::try_from(size).unwrap_or(usize::MAX);
+            let table = self.table();
+            let names: Vec<String> = table
+                .keys()
+                .filter(|(scope, _)| scope == &caller.scope)
+                .map(|(_, name)| name.clone())
+                .filter(|name| after.as_ref().is_none_or(|after| name > after))
+                .collect();
+            let page_len = names.len().min(size);
+            let items: Vec<InstanceInfo> = names[..page_len]
+                .iter()
+                .filter_map(|name| {
+                    table
+                        .get(&(caller.scope.clone(), name.clone()))
+                        .map(InstanceHandle::info)
+                })
+                .collect();
+            let next_token =
+                (names.len() > page_len).then(|| encode_page_token(&names[page_len - 1]));
+            Ok(Page { items, next_token })
+        })
+    }
+
+    fn destroy<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()> {
+        Box::pin(async move {
+            let removed = self
+                .table_mut()
+                .remove(&(caller.scope.clone(), name.to_string()));
+            let Some(handle) = removed else {
+                return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
+            };
+            handle.session().abort();
+            handle.session().end().await.map_err(|error| {
+                ErrorTrace::new(AgentRpcError::Inference(format!(
+                    "ending instance {name}: {error}"
+                )))
+            })?;
+            tracing::info!(instance = %name, "instance destroyed");
+            Ok(())
+        })
+    }
+
+    fn start_turn<'a>(
+        &'a self,
+        caller: &'a Caller,
+        name: &'a str,
+        prompt: String,
+    ) -> AgentRpcFuture<'a, TurnEventStream> {
+        Box::pin(async move {
+            if prompt.len() > self.turns.max_prompt_bytes {
+                return Err(AgentRpcError::InvalidArgument(format!(
+                    "the prompt is {} bytes; the limit is {}",
+                    prompt.len(),
+                    self.turns.max_prompt_bytes
+                ))
+                .into());
+            }
+            let instance = {
+                let table = self.table();
+                table
+                    .get(&(caller.scope.clone(), name.to_string()))
+                    .cloned()
+                    .ok_or_else(|| AgentRpcError::InstanceNotFound(name.to_string()))?
+            };
+            let guard = instance.begin_turn()?;
+            let turn = instance
+                .session()
+                .run_turn_stream(prompt)
+                .map_err(|error| AgentRpcError::Inference(error.to_string()))?;
+            let session = instance.session().clone();
+            let abort: Arc<dyn Fn() + Send + Sync> = Arc::new(move || session.abort());
+            Ok(guarded_turn(
+                turn.events(),
+                guard,
+                abort,
+                self.ctx.clone(),
+                self.env.clone(),
+                &self.turns,
+            ))
+        })
+    }
+
+    fn count<'a>(&'a self, caller: &'a Caller) -> AgentRpcFuture<'a, u64> {
+        Box::pin(async move {
+            let count = self
+                .table()
+                .keys()
+                .filter(|(scope, _)| scope == &caller.scope)
+                .count();
+            Ok(u64::try_from(count).unwrap_or(u64::MAX))
+        })
+    }
+}
+
+async fn build_session<D, M>(
+    model: &ModelHandle,
+    spec: &InstanceSpec,
+    session_id: SessionId,
+    doc: D,
+    memory: M,
+    ctx: Ctx,
+) -> AgentRpcResult<AgentSession<D, M>>
+where
+    D: DocumentStore + 'static,
+    M: MemoryStore + 'static,
+{
+    let mut config = AgentConfig::default();
+    if let Some(max_tokens) = spec.max_tokens {
+        config.model_params.max_tokens = max_tokens;
+    }
+    if let Some(temperature) = spec.temperature {
+        config.model_params.temperature = temperature;
+    }
+    let mut builder = AgentSession::builder(model.router(), ctx)
+        .with_session_id(session_id)
+        .with_doc_store(doc)
+        .with_memory_store(memory)
+        .with_model(model.model_id().clone())
+        .with_config(config);
+    if let Some(prompt) = &spec.system_prompt {
+        builder = builder.with_system_prompt(prompt.clone());
+    }
+    builder
+        .build()
+        .await
+        .map_err(|error| AgentRpcError::Inference(format!("building session: {error}")).into())
+}

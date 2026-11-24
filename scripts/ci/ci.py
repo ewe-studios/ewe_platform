@@ -36,6 +36,7 @@ import argparse
 import functools
 import json
 import os
+import signal
 import re
 import shlex
 import subprocess
@@ -1043,6 +1044,25 @@ def annotate(level: str, message: str) -> None:
 FAILURE_LINE = re.compile(r"^test .* \.\.\. FAILED$|^---- .* stdout ----$|panicked at")
 
 
+def kill_process_group(proc: subprocess.Popen) -> None:
+    """Kill `proc` and every process it started, then reap it.
+
+    `run_streamed` starts each command in its own session. A test that forks a
+    child leaves that child running when only the direct process is killed, and
+    the child keeps the output pipe open, so the reader never ends. Killing the
+    group ends both (issue #803).
+    """
+    if proc.poll() is not None:
+        return
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+    except AttributeError:
+        # Windows has no process groups on `os`; the direct kill is all there is.
+        proc.kill()
+
+
 def run_streamed(
     cmd: list[str], env: dict[str, str], timeout: float, limit: int
 ) -> tuple[int, list[str]]:
@@ -1063,9 +1083,14 @@ def run_streamed(
         encoding="utf-8",
         errors="replace",
         bufsize=1,
+        # A timeout must kill the whole tree. `proc.kill()` alone leaves a test
+        # binary (a grandchild) alive, and it keeps the pipe open, so the loop
+        # below never ends: the macOS 2/4 shard of the nightly hung for hours
+        # this way (issue #803).
+        start_new_session=True,
     )
     kept: list[str] = []
-    timer = threading.Timer(timeout, proc.kill)
+    timer = threading.Timer(timeout, kill_process_group, args=(proc,))
     timer.start()
     try:
         after_panic = False
@@ -1086,7 +1111,13 @@ def run_streamed(
         if proc.poll() is None:
             proc.kill()
             proc.wait()
+        if proc.stdout is not None and not proc.stdout.closed:
+            proc.stdout.close()
     if expired:
+        # Close the pipe so a grandchild that outlived the group cannot keep the
+        # reader loop in `run_streamed` from returning.
+        if proc.stdout is not None:
+            proc.stdout.close()
         raise subprocess.TimeoutExpired(cmd, timeout)
     return code, kept
 
