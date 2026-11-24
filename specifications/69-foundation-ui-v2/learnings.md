@@ -1,5 +1,13 @@
 # Spec 69 learnings
 
+## Todo Server launch on iPhone
+
+A simulator launch argument applies to one process. The installed app needs its server address in its bundle.
+SpringBoard builds the static launch image before the Todo process can draw.
+The simulator rejected the unsigned storyboard resource with security error -67056.
+It also reported that the bundle had no supported orientations.
+The second launch then used an empty system surface while the simulator prepared the scene.
+
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 

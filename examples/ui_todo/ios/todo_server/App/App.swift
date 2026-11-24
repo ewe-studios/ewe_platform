@@ -23,8 +23,11 @@ import SwiftUI
       switch theme {
       case .failure(let error): Text(error.localizedDescription)
       case .success(let theme):
-        let address = ProcessInfo.processInfo.environment["EWE_TODO_URL"] ?? "http://127.0.0.1:8080"
-        if let url = URL(string: address) {
+        let address = ProcessInfo.processInfo.environment["EWE_TODO_URL"]
+          ?? Bundle.main.object(forInfoDictionaryKey: "EweTodoServerURL") as? String
+        if let address, let url = URL(string: address),
+          let scheme = url.scheme?.lowercased(), ["http", "https"].contains(scheme), url.host?.isEmpty == false
+        {
           let key = SHA256.hash(data: Data(url.absoluteString.utf8)).map { String(format: "%02x", $0) }.joined()
           let file = URL.applicationSupportDirectory.appending(path: "TodoPending/\(key).json").path
           ServerScreen(base: url, initial: "initial", transport: actionTransport(url), theme: theme) { transport, store in
@@ -32,6 +35,9 @@ import SwiftUI
             core.installResources(source: BundleResourceSource())
             return NativeActionCore(core, store: store, viewDataAction: "host:apply_todo_delivery")
           }
+        } else {
+          ContentUnavailableView("Invalid Todo server address", systemImage: "exclamationmark.triangle",
+            description: Text("Set EWE_TODO_URL to the full server address."))
         }
       }
     }

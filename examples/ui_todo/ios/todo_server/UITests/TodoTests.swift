@@ -226,10 +226,17 @@ final class TodoTests: XCTestCase {
     }
   }
 
+  func testInvalidServerAddressDisplaysTheConfigurationError() {
+    let app = XCUIApplication()
+    app.launchEnvironment["EWE_TODO_URL"] = "missing/host"
+    app.launch()
+    XCTAssertTrue(app.staticTexts["Invalid Todo server address"].waitForExistence(timeout: 10))
+  }
+
   func testAddTaskToFreshServerStore() {
     let app = XCUIApplication()
     app.launchEnvironment["EWE_TODO_URL"] =
-      ProcessInfo.processInfo.environment["EWE_TODO_URL"] ?? "http://127.0.0.1:8080"
+      ProcessInfo.processInfo.environment["EWE_TODO_URL"] ?? "http://127.0.0.1:8180"
     app.launchEnvironment["EWE_TODO_SOCKET"] = ProcessInfo.processInfo.environment["EWE_TODO_SOCKET"]
     app.launchEnvironment["EWE_TODO_RPC"] = ProcessInfo.processInfo.environment["EWE_TODO_RPC"]
     app.launch()

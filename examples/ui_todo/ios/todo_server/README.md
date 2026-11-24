@@ -8,11 +8,13 @@ From the repository root, run these commands.
 ```sh
 native-task task run native:todo:prepare-ios
 examples/ui_todo/build-module.sh
-cargo run --locked --profile uat -p ui_todo --bin ui_todo -- 127.0.0.1:8080
+cargo run --locked --profile uat -p ui_todo --bin ui_todo -- 127.0.0.1:8180
 ```
 
 Open `TodoServer.xcodeproj` in Xcode. Select an iPhone simulator, then run the `TodoServer` scheme.
-Set `EWE_TODO_URL` in the scheme's Run environment to use a different address.
+The installed app uses the address from the `EWE_TODO_SERVER_URL` build setting.
+Set this value when building for a different server.
+Set `EWE_TODO_URL` in the scheme’s Run environment to override the address for one launch.
 
 For a physical iPhone, select your team under Signing & Capabilities.
 Set `EWE_TODO_URL` to a server address that the iPhone can reach.

@@ -1,5 +1,15 @@
 # Spec 69 progress
 
+## Todo Server launch on iPhone
+
+Issue [825](https://github.com/ewe-studios/ewe_platform/issues/825) covers the installed server address and the launch screen.
+Todo Server stores its server address at build time. A launch argument can override it.
+The simulator tests sign the app with a local signature. The app declares its supported orientations.
+A test with an invalid server address shows the configuration error.
+A fresh signed test bundle showed the [Todos launch screen](features/23-native-design-and-themes/design/ios-todo-launch.png), then all three tasks from port 8181.
+The installed iPhone 17 build also showed the title and all three tasks without launch arguments.
+Issue [831](https://github.com/ewe-studios/ewe_platform/issues/831) tracks the simulator launch service timeout during first installation.
+
 ## Resume work on the external drive
 
 Use the project root at `/Volumes/Outside/Dev/ewe_platform`.
