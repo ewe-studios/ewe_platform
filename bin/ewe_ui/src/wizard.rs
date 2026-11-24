@@ -104,10 +104,9 @@ impl TerminalForm for Wizard {
         if matches!(key, FormKey::Back) {
             self.page = match self.page {
                 Page::Name | Page::Targets => Page::Name,
-                Page::Identifier => Page::Targets,
                 Page::Host => Page::Identifier,
                 Page::Confirm if self.mobile() => Page::Host,
-                Page::Confirm => Page::Targets,
+                Page::Identifier | Page::Confirm => Page::Targets,
             };
             return FormStep::Continue;
         }
@@ -145,7 +144,7 @@ impl TerminalForm for Wizard {
                     Err(e) => self.error = e.to_string(),
                 },
                 Page::Targets if self.targets.is_empty() => {
-                    self.error = "Select at least one target.".into()
+                    self.error = "Select at least one target.".into();
                 }
                 Page::Targets => {
                     if self.mobile() {

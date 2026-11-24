@@ -443,3 +443,5 @@ An incremental development rebuild picks up new files, changed files, and delete
 The external fixture checks portable fallback, unsupported targets, companion lookup, failure status 23, and cancellation status 130.
 
 The detached process tests pass with the full task runner suite. All 23 tests pass.
+
+Native task checks pass for 22 release and device fixtures and seven application checks. Strict lint checks pass across all five affected packages.

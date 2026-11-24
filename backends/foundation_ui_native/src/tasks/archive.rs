@@ -18,9 +18,12 @@ struct Framework {
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct Library {
-    supported_platform: String,
-    supported_platform_variant: Option<String>,
-    supported_architectures: BTreeSet<String>,
+    #[serde(rename = "SupportedPlatform")]
+    platform: String,
+    #[serde(rename = "SupportedPlatformVariant")]
+    variant: Option<String>,
+    #[serde(rename = "SupportedArchitectures")]
+    architectures: BTreeSet<String>,
 }
 
 pub(super) fn apple(layout: &Path) -> TaskResult {
@@ -29,11 +32,7 @@ pub(super) fn apple(layout: &Path) -> TaskResult {
         plist::from_file(bundle.join("Info.plist")).map_err(TaskError::operation)?;
     let mut slices = BTreeSet::new();
     for lib in framework.available_libraries {
-        slices.insert((
-            lib.supported_platform,
-            lib.supported_platform_variant,
-            lib.supported_architectures,
-        ));
+        slices.insert((lib.platform, lib.variant, lib.architectures));
     }
     let arm = String::from("arm64");
     let both = BTreeSet::from([arm.clone(), String::from("x86_64")]);

@@ -2,7 +2,8 @@
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
 use foundation_ui_project::application::{AndroidProject, AppleProject, NativeLibrary};
 use std::{
-    fs, io,
+    fs,
+    io::{self, Write},
     path::{Path, PathBuf},
 };
 
@@ -133,7 +134,6 @@ pub(super) async fn apple(
     }
     let file = format!("{}.swift", lib.swift_module);
     let mut swift = fs::File::create(output.join(&file)).map_err(TaskError::operation)?;
-    use std::io::Write;
     swift
         .write_all(b"import EweCore\nimport EweCoreFFI\n")
         .map_err(TaskError::operation)?;

@@ -73,11 +73,6 @@ pub async fn run(ctx: &TaskContext, url: &str) -> TaskResult {
         .entropy()
         .uuid_v4()
         .map_err(TaskError::operation)?;
-    #[derive(serde::Serialize)]
-    struct Add {
-        id: String,
-        title: &'static str,
-    }
     input.json = Some(
         serde_json::to_vec(&Add {
             id: id.to_string(),
@@ -128,4 +123,10 @@ fn inspect(
         data = next;
     }
     Ok(())
+}
+
+#[derive(serde::Serialize)]
+struct Add {
+    id: String,
+    title: &'static str,
 }

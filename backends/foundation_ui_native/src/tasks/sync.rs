@@ -78,6 +78,10 @@ pub(super) async fn ios(ctx: TaskContext, args: Check) -> TaskResult {
         .map_err(TaskError::operation)
 }
 
+/// Prepare and synchronize Android framework bindings and fixtures.
+///
+/// # Errors
+/// Returns binding, file, or synchronization errors.
 pub async fn android(ctx: TaskContext, args: Check) -> TaskResult {
     let root = ctx.require::<NativeBuildEnv>()?.root().await?;
     let wire = root.join("backends/foundation_ui_wire");
@@ -136,6 +140,10 @@ pub async fn android(ctx: TaskContext, args: Check) -> TaskResult {
         .map_err(TaskError::operation)
 }
 
+/// Check or replace the generated directory.
+///
+/// # Errors
+/// Returns a difference in check mode, a file error, or cancellation.
 pub async fn sync(
     ctx: &TaskContext,
     root: &Path,

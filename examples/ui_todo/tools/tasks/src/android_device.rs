@@ -9,6 +9,7 @@ use std::{
     collections::BTreeMap,
     ffi::OsString,
     fs,
+    io::Write as _,
     net::TcpListener,
     path::{Path, PathBuf},
     time::Duration,
@@ -34,6 +35,23 @@ struct Device<'a> {
     options: &'a device::Options,
 }
 impl Device<'_> {
+    async fn wait_for_boot(&self, timeout: u64) -> TaskResult {
+        device::wait_for(
+            self.ctx,
+            Duration::from_secs(timeout),
+            Duration::from_secs(2),
+            "the Android emulator",
+            || async {
+                Ok(text(
+                    self.ctx,
+                    self.adb().args(["shell", "getprop", "sys.boot_completed"]),
+                )
+                .await?
+                    == "1")
+            },
+        )
+        .await
+    }
     fn adb(&self) -> ProcessCommand {
         ProcessCommand::new(&self.adb)
             .current_dir(self.root)
@@ -242,101 +260,19 @@ async fn run(ctx: &TaskContext, args: Options, todo: bool) -> TaskResult {
             .get("ANDROID_HOME")
             .ok_or_else(|| TaskError::operation("Set ANDROID_HOME to the Android SDK"))?,
     );
-    let abi = match std::env::consts::ARCH {
-        "aarch64" => "arm64-v8a",
-        "x86_64" => "x86_64",
-        arch => {
-            return Err(TaskError::operation(format!(
-                "Unsupported emulator architecture: {arch}"
-            )))
-        }
-    };
-    if cfg!(target_os = "linux") {
-        fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open("/dev/kvm")
-            .map_err(TaskError::operation)?;
-    }
-    let kind = if env.devices.get("EWE_THEME_CAPTURES").is_some() {
-        "google_apis"
-    } else {
-        "aosp_atd"
-    };
-    let image = format!("system-images;android-36;{kind};{abi}");
-    let image_dir = format!("system-images/android-36/{kind}/{abi}/");
-    let emulator = sdk.join("emulator/emulator");
-    if !emulator.is_file() || !sdk.join(&image_dir).join("source.properties").is_file() {
-        let mut setting = OsString::from("--sdk_root=");
-        setting.push(&sdk);
-        ctx.exec(
-            ProcessCommand::new("sdkmanager")
-                .current_dir(&root)
-                .arg(setting)
-                .args(["--install", "emulator", &image]),
-        )
-        .await?;
-    }
+    let (image, image_dir, emulator) = emulator_image(ctx, &root, &sdk, &env.devices).await?;
     let temp = tempfile::tempdir().map_err(TaskError::operation)?;
     let starter = temp.path().join("starter");
-    let config = stage::config(&root)?;
-    let mut gradle = ProcessCommand::new(root.join("mobile/android/gradlew"))
-        .current_dir(&root)
-        .env("ANDROID_SDK_ROOT", &sdk)
-        .arg(format!("-PeweVersion={}", config.version));
-    if let Some(repo) = args.maven {
-        let mut arg = OsString::from("-PeweRepository=");
-        arg.push(
-            root.join(repo)
-                .canonicalize()
-                .map_err(TaskError::operation)?,
-        );
-        gradle = gradle.arg(arg);
-    } else {
-        gradle = gradle.env("GRADLE_USER_HOME", temp.path().join("gradle"));
-    }
-    if todo {
-        let projects = root.join("examples/ui_todo/android");
-        for app in ["todo_on_device", "todo_server"] {
-            ctx.exec(
-                gradle
-                    .clone()
-                    .arg("-p")
-                    .arg(projects.join(app))
-                    .arg(":app:assembleDebug"),
-            )
-            .await?;
-        }
-        ctx.exec(
-            gradle
-                .arg("-p")
-                .arg(projects.join("todo_server"))
-                .arg(":app:assembleDebugAndroidTest"),
-        )
-        .await?;
-    } else {
-        fs::create_dir(&starter).map_err(TaskError::operation)?;
-        ctx.exec(
-            ProcessCommand::new("rsync")
-                .current_dir(&root)
-                .args([
-                    "-a",
-                    "--exclude",
-                    "build",
-                    "--exclude",
-                    ".gradle",
-                    "--exclude",
-                    ".kotlin",
-                    "--exclude",
-                    "local.properties",
-                    "examples/mobile_starter/android/",
-                ])
-                .arg(&starter),
-        )
-        .await?;
-        ctx.exec(gradle.arg("-p").arg(&starter).arg(":app:assembleDebug"))
-            .await?;
-    }
+    build_apps(
+        ctx,
+        &root,
+        &sdk,
+        args.maven.as_deref(),
+        temp.path(),
+        &starter,
+        todo,
+    )
+    .await?;
     let exe = device::host(ctx, &root).await?;
     let adb = sdk.join("platform-tools/adb");
     if let Some(serial) = env.devices.get("EWE_ANDROID_SERIAL") {
@@ -351,45 +287,7 @@ async fn run(ctx: &TaskContext, args: Options, todo: bool) -> TaskResult {
         .await;
     }
     let avd = temp.path().join("avd");
-    fs::create_dir(&avd).map_err(TaskError::operation)?;
-    let command = |exe| {
-        ProcessCommand::new(exe)
-            .current_dir(&root)
-            .env("ANDROID_AVD_HOME", &avd)
-            .env("ANDROID_SDK_ROOT", &sdk)
-    };
-    ctx.exec(
-        command("avdmanager")
-            .args([
-                "create",
-                "avd",
-                "--name",
-                "ewe-release",
-                "--package",
-                &image,
-                "--device",
-                "pixel",
-            ])
-            .private_input(b"no\n".to_vec()),
-    )
-    .await?;
-    let ini = avd.join("ewe-release.avd/config.ini");
-    let contents = fs::read_to_string(&ini).map_err(TaskError::operation)?;
-    let mut settings: BTreeMap<_, _> = contents
-        .lines()
-        .filter_map(|s| s.split_once('='))
-        .map(|(k, v)| (k.trim(), v.trim()))
-        .collect();
-    settings.insert("image.sysdir.1", &image_dir);
-    settings.insert("disk.dataPartition.size", "2G");
-    fs::write(
-        ini,
-        settings
-            .into_iter()
-            .map(|(k, v)| format!("{k}={v}\n"))
-            .collect::<String>(),
-    )
-    .map_err(TaskError::operation)?;
+    create_avd(ctx, &root, &sdk, &avd, &image, &image_dir).await?;
     let port = (5554..5682)
         .step_by(2)
         .find(|p| {
@@ -436,25 +334,169 @@ async fn run(ctx: &TaskContext, args: Options, todo: bool) -> TaskResult {
         start,
         ctx.require::<TaskEnv>()?.output.clone(),
         async {
-            device::wait_for(
-                ctx,
-                Duration::from_secs(timeout),
-                Duration::from_secs(2),
-                "the Android emulator",
-                || async {
-                    Ok(text(
-                        ctx,
-                        device
-                            .adb()
-                            .args(["shell", "getprop", "sys.boot_completed"]),
-                    )
-                    .await?
-                        == "1")
-                },
-            )
-            .await?;
+            device.wait_for_boot(timeout).await?;
             device.apps(&starter, todo, &exe).await
         },
     )
     .await
+}
+
+async fn build_apps(
+    ctx: &TaskContext,
+    root: &Path,
+    sdk: &Path,
+    maven: Option<&Path>,
+    stage_dir: &Path,
+    starter: &Path,
+    todo: bool,
+) -> TaskResult {
+    let config = stage::config(root)?;
+    let mut gradle = ProcessCommand::new(root.join("mobile/android/gradlew"))
+        .current_dir(root)
+        .env("ANDROID_SDK_ROOT", sdk)
+        .arg(format!("-PeweVersion={}", config.version));
+    if let Some(repo) = maven {
+        let mut arg = OsString::from("-PeweRepository=");
+        arg.push(
+            root.join(repo)
+                .canonicalize()
+                .map_err(TaskError::operation)?,
+        );
+        gradle = gradle.arg(arg);
+    } else {
+        gradle = gradle.env("GRADLE_USER_HOME", stage_dir.join("gradle"));
+    }
+    if todo {
+        let projects = root.join("examples/ui_todo/android");
+        for app in ["todo_on_device", "todo_server"] {
+            ctx.exec(
+                gradle
+                    .clone()
+                    .arg("-p")
+                    .arg(projects.join(app))
+                    .arg(":app:assembleDebug"),
+            )
+            .await?;
+        }
+        ctx.exec(
+            gradle
+                .arg("-p")
+                .arg(projects.join("todo_server"))
+                .arg(":app:assembleDebugAndroidTest"),
+        )
+        .await?;
+    } else {
+        fs::create_dir(starter).map_err(TaskError::operation)?;
+        ctx.exec(
+            ProcessCommand::new("rsync")
+                .current_dir(root)
+                .args([
+                    "-a",
+                    "--exclude",
+                    "build",
+                    "--exclude",
+                    ".gradle",
+                    "--exclude",
+                    ".kotlin",
+                    "--exclude",
+                    "local.properties",
+                    "examples/mobile_starter/android/",
+                ])
+                .arg(starter),
+        )
+        .await?;
+        ctx.exec(gradle.arg("-p").arg(starter).arg(":app:assembleDebug"))
+            .await?;
+    }
+    Ok(())
+}
+
+async fn emulator_image(
+    ctx: &TaskContext,
+    root: &Path,
+    sdk: &Path,
+    settings: &device::Options,
+) -> Result<(String, String, PathBuf), TaskError> {
+    let abi = match std::env::consts::ARCH {
+        "aarch64" => "arm64-v8a",
+        "x86_64" => "x86_64",
+        arch => {
+            return Err(TaskError::operation(format!(
+                "Unsupported emulator architecture: {arch}"
+            )))
+        }
+    };
+    if cfg!(target_os = "linux") {
+        fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open("/dev/kvm")
+            .map_err(TaskError::operation)?;
+    }
+    let kind = if settings.get("EWE_THEME_CAPTURES").is_some() {
+        "google_apis"
+    } else {
+        "aosp_atd"
+    };
+    let image = format!("system-images;android-36;{kind};{abi}");
+    let image_dir = format!("system-images/android-36/{kind}/{abi}/");
+    let emulator = sdk.join("emulator/emulator");
+    if !emulator.is_file() || !sdk.join(&image_dir).join("source.properties").is_file() {
+        let mut setting = OsString::from("--sdk_root=");
+        setting.push(sdk);
+        ctx.exec(
+            ProcessCommand::new("sdkmanager")
+                .current_dir(root)
+                .arg(setting)
+                .args(["--install", "emulator", &image]),
+        )
+        .await?;
+    }
+    Ok((image, image_dir, emulator))
+}
+
+async fn create_avd(
+    ctx: &TaskContext,
+    root: &Path,
+    sdk: &Path,
+    avd: &Path,
+    image: &str,
+    image_dir: &str,
+) -> TaskResult {
+    fs::create_dir(avd).map_err(TaskError::operation)?;
+    let command = |exe| {
+        ProcessCommand::new(exe)
+            .current_dir(root)
+            .env("ANDROID_AVD_HOME", avd)
+            .env("ANDROID_SDK_ROOT", sdk)
+    };
+    ctx.exec(
+        command("avdmanager")
+            .args([
+                "create",
+                "avd",
+                "--name",
+                "ewe-release",
+                "--package",
+                image,
+                "--device",
+                "pixel",
+            ])
+            .private_input(b"no\n".to_vec()),
+    )
+    .await?;
+    let ini = avd.join("ewe-release.avd/config.ini");
+    let contents = fs::read_to_string(&ini).map_err(TaskError::operation)?;
+    let mut settings: BTreeMap<_, _> = contents
+        .lines()
+        .filter_map(|s| s.split_once('='))
+        .map(|(k, v)| (k.trim(), v.trim()))
+        .collect();
+    settings.insert("image.sysdir.1", image_dir);
+    settings.insert("disk.dataPartition.size", "2G");
+    let mut file = std::io::BufWriter::new(fs::File::create(ini).map_err(TaskError::operation)?);
+    for (key, value) in settings {
+        writeln!(file, "{key}={value}").map_err(TaskError::operation)?;
+    }
+    file.flush().map_err(TaskError::operation)
 }

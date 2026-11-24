@@ -29,13 +29,17 @@ pub(super) fn local(record: &Path, package: &Path, project: &Path) -> TaskResult
     fs::write(package.join("Package.swift"), record.swift_manifest).map_err(TaskError::operation)
 }
 
+/// Set the package reference in an Xcode project.
+///
+/// # Errors
+/// Returns file errors or a missing or ambiguous package reference.
 pub fn point_project(
     project: &Path,
     repository: &str,
     version: &str,
     package: Option<&Path>,
 ) -> TaskResult {
-    let url = format!("https://github.com/{}.git", repository);
+    let url = format!("https://github.com/{repository}.git");
     let matcher = Regex::new(&format!(
         r#"repositoryURL = "{}";\s*requirement = \{{[^}}]*version = {};[^}}]*\}};"#,
         regex::escape(&url),

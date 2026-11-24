@@ -141,6 +141,10 @@ impl NativeBuildEnv {
         cmd
     }
 
+    /// Find the enclosing source workspace.
+    ///
+    /// # Errors
+    /// Returns an error when the start directory or workspace is unavailable.
     pub async fn root(&self) -> Result<PathBuf, TaskError> {
         let start = self.start.clone();
         blocking::unblock(move || {

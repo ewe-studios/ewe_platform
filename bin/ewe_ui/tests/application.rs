@@ -203,3 +203,26 @@ fn failed_ios_scheme_after_web_render_removes_the_entire_staging_tree() {
     assert!(String::from_utf8_lossy(&output.stderr).contains("iOS scheme"));
     assert_eq!(directory.path().read_dir().unwrap().count(), 0);
 }
+
+#[test]
+fn native_preparation_checks_server_project_targets_before_starting_tools() {
+    let temporary = tempfile::tempdir().unwrap();
+    let created = cli(
+        temporary.path(),
+        &["new", "--name", "Browser", "--target", "web"],
+    );
+    assert!(created.status.success());
+    let application = temporary.path().join("Browser");
+    for (target, message) in [
+        ("ios", "does not declare"),
+        ("android", "does not declare"),
+        ("web", "requires Android or iOS"),
+    ] {
+        let output = cli(
+            &application,
+            &["task", "run", "app:prepare", "--target", target],
+        );
+        assert!(!output.status.success());
+        assert!(String::from_utf8_lossy(&output.stderr).contains(message));
+    }
+}

@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::{
     collections::BTreeSet,
     fs::{self, File},
-    io,
+    io::{self, Read as _, Seek as _, SeekFrom},
     path::{Path, PathBuf},
 };
 use zip::ZipArchive;
@@ -36,7 +36,6 @@ fn extract_files(path: &Path, into: &Path) -> Result<BTreeSet<String>, TaskError
         .map_err(TaskError::operation)?;
     // The ZIP reader indexes files by name. Count all central headers before using that index.
     let mut central = File::open(path).map_err(TaskError::operation)?;
-    use std::io::{Read as _, Seek as _, SeekFrom};
     central
         .seek(SeekFrom::Start(archive.central_directory_start()))
         .map_err(TaskError::operation)?;
@@ -103,7 +102,7 @@ async fn verify(
 ) -> TaskResult {
     let products: BTreeSet<_> = names
         .iter()
-        .filter(|n| !n.ends_with(".asc") && !SUMS.iter().any(|s| n.ends_with(s)))
+        .filter(|n| n.strip_suffix(".asc").is_none() && !SUMS.iter().any(|s| n.ends_with(s)))
         .map(String::as_str)
         .collect();
     let signatures: BTreeSet<_> = names

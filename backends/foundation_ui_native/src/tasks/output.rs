@@ -34,6 +34,10 @@ impl TaskOutput for Query {
     }
 }
 
+/// Read bounded standard output from a successful command.
+///
+/// # Errors
+/// Returns process failures and output limit errors.
 pub async fn query(ctx: &TaskContext, command: ProcessCommand) -> Result<Vec<u8>, TaskError> {
     let (result, bytes) = query_status(ctx, command).await?;
     result?;
@@ -48,6 +52,10 @@ pub(super) async fn query_status(
     query_limit(ctx, command, env.query_bytes).await
 }
 
+/// Read a bounded device report.
+///
+/// # Errors
+/// Returns process failures and device report limit errors.
 pub async fn device_query(
     ctx: &TaskContext,
     command: ProcessCommand,
@@ -166,6 +174,10 @@ impl TaskOutput for Artifact {
     }
 }
 
+/// Find a package artifact in Cargo build messages.
+///
+/// # Errors
+/// Returns process failures, invalid messages, or a missing artifact error.
 pub async fn artifact(
     ctx: &TaskContext,
     command: ProcessCommand,

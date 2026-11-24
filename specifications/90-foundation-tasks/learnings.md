@@ -290,3 +290,5 @@ Keep companion paths relative to the embedded directory. Keep the selected inter
 The task package must declare the directory as a Cargo build input for incremental builds.
 
 Start the process monitor before transferring child ownership. A failed monitor must leave the original process guard available for cleanup.
+
+Validate target selection before checking for a native library. Server applications can also request a target absent from their manifest.

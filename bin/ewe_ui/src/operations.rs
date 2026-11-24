@@ -29,7 +29,7 @@ struct DeviceTarget {
     target: Target,
 }
 #[derive(Args)]
-struct Device {
+struct DeviceSelection {
     #[command(flatten)]
     platform: DeviceTarget,
     /// Device identifier from devices list.
@@ -84,7 +84,7 @@ async fn devices(ctx: TaskContext, args: DeviceTarget) -> TaskResult {
     }
     Ok(())
 }
-async fn open(ctx: TaskContext, args: Device, run: bool) -> TaskResult {
+async fn open(ctx: TaskContext, args: DeviceSelection, run: bool) -> TaskResult {
     let target = args.platform.target;
     let loaded = if run {
         let dir = ctx.require::<Directory>()?;
@@ -151,13 +151,13 @@ pub fn register(set: &mut TaskSet) -> TaskResult {
     set.add(
         "devices-start",
         "Start the selected simulator or emulator and wait until it is ready",
-        |ctx, args: Device| open(ctx, args, false),
+        |ctx, args: DeviceSelection| open(ctx, args, false),
     )?;
     set.expose("devices-start", &["devices", "start"])?;
     set.add(
         "run",
         "Build, install, and launch an application on the selected device",
-        |ctx, args: Device| open(ctx, args, true),
+        |ctx, args: DeviceSelection| open(ctx, args, true),
     )?;
     set.expose("run", &["run"])
 }

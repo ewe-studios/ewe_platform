@@ -34,14 +34,26 @@ pub async fn prepare(
     target: Target,
     release: bool,
 ) -> TaskResult {
-    let Some(lib) = &app.native else {
-        return Ok(());
-    };
     match target {
-        Target::Android => libraries::android(ctx, root, android(app)?, lib, release).await,
-        Target::Ios => libraries::apple(ctx, root, ios(app)?, lib, release).await,
-        Target::Web => Err(problem(target)),
+        Target::Android => {
+            let project = android(app)?;
+            if let Some(lib) = &app.native {
+                libraries::android(ctx, root, project, lib, release).await?;
+            }
+        }
+        Target::Ios => {
+            let project = ios(app)?;
+            if let Some(lib) = &app.native {
+                libraries::apple(ctx, root, project, lib, release).await?;
+            }
+        }
+        Target::Web => {
+            return Err(TaskError::operation(
+                "Native preparation requires Android or iOS",
+            ))
+        }
     }
+    Ok(())
 }
 
 /// Build the selected native host. Return its verified artifact path.
@@ -82,56 +94,7 @@ pub async fn build(
             } else {
                 output.join(format!("apk/debug/{}-debug.apk", project.module))
             };
-            let mut required = project.framework_libraries.clone();
-            if let Some(lib) = &app.native {
-                required.push(format!("lib{}.so", lib.library));
-            }
-            let source = fs::File::open(&archive).map_err(TaskError::operation)?;
-            let zip = zip::ZipArchive::new(source).map_err(TaskError::operation)?;
-            let mut names = BTreeMap::new();
-            for name in zip.file_names() {
-                let name = name.map_err(TaskError::operation)?.into_owned();
-                *names.entry(name).or_insert(0usize) += 1;
-            }
-            for abi in &project.architectures {
-                for lib in &required {
-                    let name = format!("{}lib/{abi}/{lib}", if release { "base/" } else { "" });
-                    if names.get(&name) != Some(&1) {
-                        return Err(TaskError::operation(format!(
-                            "Expected one {name} in {}",
-                            archive.display()
-                        )));
-                    }
-                }
-            }
-            if release
-                && !names.keys().any(|name| {
-                    name.starts_with("META-INF/")
-                        && [".RSA", ".DSA", ".EC"]
-                            .iter()
-                            .any(|ext| name.ends_with(ext))
-                })
-            {
-                return Err(TaskError::operation("The Android release bundle is unsigned. Configure the release signing settings in the application module."));
-            }
-            if release {
-                let verification = text(
-                    ctx,
-                    ProcessCommand::new("jarsigner")
-                        .args(["-J-Duser.language=en", "-J-Duser.country=US", "-verify"])
-                        .arg(&archive),
-                )
-                .await?;
-                if !verification
-                    .lines()
-                    .any(|line| line.trim() == "jar verified.")
-                {
-                    return Err(TaskError::operation(format!(
-                        "Cannot verify the Android release signature in {}",
-                        archive.display()
-                    )));
-                }
-            }
+            verify_android(ctx, app, project, &archive, release).await?;
             Ok(archive)
         }
         Target::Ios => {
@@ -224,7 +187,7 @@ pub async fn launch(
                     .await?;
             }
             Target::Web => return Err(problem(target)),
-        };
+        }
         Ok(())
     }
     .await;
@@ -232,4 +195,64 @@ pub async fn launch(
         task: format!("Launch {} on {id}", target.directory()),
         source: Box::new(e),
     })
+}
+
+async fn verify_android(
+    ctx: &TaskContext,
+    app: &Application,
+    project: &AndroidProject,
+    archive: &Path,
+    release: bool,
+) -> TaskResult {
+    let mut required = project.framework_libraries.clone();
+    if let Some(lib) = &app.native {
+        required.push(format!("lib{}.so", lib.library));
+    }
+    let source = fs::File::open(archive).map_err(TaskError::operation)?;
+    let zip = zip::ZipArchive::new(source).map_err(TaskError::operation)?;
+    let mut names = BTreeMap::new();
+    for name in zip.file_names() {
+        let name = name.map_err(TaskError::operation)?.into_owned();
+        *names.entry(name).or_insert(0usize) += 1;
+    }
+    for abi in &project.architectures {
+        for lib in &required {
+            let name = format!("{}lib/{abi}/{lib}", if release { "base/" } else { "" });
+            if names.get(&name) != Some(&1) {
+                return Err(TaskError::operation(format!(
+                    "Expected one {name} in {}",
+                    archive.display()
+                )));
+            }
+        }
+    }
+    if release
+        && !names.keys().any(|name| {
+            name.starts_with("META-INF/")
+                && [".RSA", ".DSA", ".EC"]
+                    .iter()
+                    .any(|ext| name.ends_with(ext))
+        })
+    {
+        return Err(TaskError::operation("The Android release bundle is unsigned. Configure the release signing settings in the application module."));
+    }
+    if release {
+        let verification = text(
+            ctx,
+            ProcessCommand::new("jarsigner")
+                .args(["-J-Duser.language=en", "-J-Duser.country=US", "-verify"])
+                .arg(archive),
+        )
+        .await?;
+        if !verification
+            .lines()
+            .any(|line| line.trim() == "jar verified.")
+        {
+            return Err(TaskError::operation(format!(
+                "Cannot verify the Android release signature in {}",
+                archive.display()
+            )));
+        }
+    }
+    Ok(())
 }

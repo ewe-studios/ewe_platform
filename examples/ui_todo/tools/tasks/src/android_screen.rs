@@ -218,8 +218,10 @@ impl Screen<'_> {
                 self.wait(&[local, "1 open todo"], &[remote]).await?;
             }
             "theme-review" => {
-                self.themes(captures.ok_or_else(|| TaskError::operation("Set EWE_THEME_CAPTURES"))?)
-                    .await?
+                self.themes(
+                    captures.ok_or_else(|| TaskError::operation("Set EWE_THEME_CAPTURES"))?,
+                )
+                .await?;
             }
             _ => {
                 return Err(TaskError::operation(format!(
@@ -277,10 +279,10 @@ impl Screen<'_> {
         let controls = self.wait(&[title, "Cancel", "Add"], &[]).await?;
         let (cancel, add) = (controls["Cancel"], controls["Add"]);
         if cancel[3].min(add[3]) <= cancel[1].max(add[1])
-            || !self
+            || self
                 .find(&["dumpsys", "input_method"], "mInputShown=true")
                 .await?
-                .is_some()
+                .is_none()
         {
             return Err(TaskError::operation(
                 "Input controls or keyboard are not visible",
@@ -450,55 +452,7 @@ pub(super) async fn peer(ctx: TaskContext, args: Peer) -> TaskResult {
         PeerPhase::ShowAll => screen.tap("All", &[]).await?,
         PeerPhase::Add | PeerPhase::PendingAdd => {
             let title = label(0)?;
-            if !title
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || matches!(c, ' ' | '-' | '_'))
-            {
-                return Err(TaskError::operation(
-                    "Peer titles accept ASCII letters, digits, spaces, hyphens, and underscores",
-                ));
-            }
-            screen.tap("Add", &["Todos"]).await?;
-            screen.tap("<editor>", &["New todo"]).await?;
-            super::device::wait_for(
-                &ctx,
-                screen.timeout,
-                screen.interval,
-                "editor focus",
-                || async {
-                    let visible = screen.wait(&["<editor>"], &[]).await?;
-                    Ok(visible.contains_key("<focused-editor>")
-                        || screen
-                            .find(&["dumpsys", "input_method"], "mInputShown=true")
-                            .await?
-                            .is_some())
-                },
-            )
-            .await?;
-            for (index, c) in title.char_indices() {
-                screen
-                    .shell(&[
-                        "input",
-                        "text",
-                        &if c == ' ' {
-                            "%s".to_owned()
-                        } else {
-                            c.to_string()
-                        },
-                    ])
-                    .await?;
-                if c != ' ' {
-                    screen
-                        .wait(&[&title[..index + c.len_utf8()], "New todo"], &[])
-                        .await?;
-                }
-            }
-            screen.tap("Add", &["New todo"]).await?;
-            if matches!(args.phase, PeerPhase::PendingAdd) {
-                screen.wait(&[title, "Pending"], &["New todo"]).await?;
-            } else {
-                screen.wait(&[title], &["New todo"]).await?;
-            }
+            add_peer(&screen, title, matches!(args.phase, PeerPhase::PendingAdd)).await?;
         }
         PeerPhase::Retry | PeerPhase::Complete | PeerPhase::Reopen => {
             let (tap, next) = match args.phase {
@@ -516,6 +470,59 @@ pub(super) async fn peer(ctx: TaskContext, args: Peer) -> TaskResult {
                 .wait(&["Todos"], &[label(0)?, "Delete this todo?"])
                 .await?;
         }
+    }
+    Ok(())
+}
+
+async fn add_peer(screen: &Screen<'_>, title: &str, pending: bool) -> TaskResult {
+    if !title
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, ' ' | '-' | '_'))
+    {
+        return Err(TaskError::operation(
+            "Peer titles accept ASCII letters, digits, spaces, hyphens, and underscores",
+        ));
+    }
+    screen.tap("Add", &["Todos"]).await?;
+    screen.tap("<editor>", &["New todo"]).await?;
+    super::device::wait_for(
+        screen.ctx,
+        screen.timeout,
+        screen.interval,
+        "editor focus",
+        || async {
+            let visible = screen.wait(&["<editor>"], &[]).await?;
+            Ok(visible.contains_key("<focused-editor>")
+                || screen
+                    .find(&["dumpsys", "input_method"], "mInputShown=true")
+                    .await?
+                    .is_some())
+        },
+    )
+    .await?;
+    for (index, c) in title.char_indices() {
+        screen
+            .shell(&[
+                "input",
+                "text",
+                &if c == ' ' {
+                    "%s".to_owned()
+                } else {
+                    c.to_string()
+                },
+            ])
+            .await?;
+        if c != ' ' {
+            screen
+                .wait(&[&title[..index + c.len_utf8()], "New todo"], &[])
+                .await?;
+        }
+    }
+    screen.tap("Add", &["New todo"]).await?;
+    if pending {
+        screen.wait(&[title, "Pending"], &["New todo"]).await?;
+    } else {
+        screen.wait(&[title], &["New todo"]).await?;
     }
     Ok(())
 }

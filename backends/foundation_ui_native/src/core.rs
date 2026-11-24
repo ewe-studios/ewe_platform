@@ -471,13 +471,13 @@ impl foundation_ui_runtime::action::ChildActionCaller for CoreCaller {
             .trigger(reference, event)
             .await
             .map_err(|cause| {
-                let code = match &cause {
+                let error_code = match &cause {
                     ManagerError::Lookup(error) => error.code(),
                     ManagerError::InvalidInput(_) => ErrorCode::InvalidInput,
                     ManagerError::UnsupportedInput => ErrorCode::UnsupportedAction,
                     _ => ErrorCode::ActionFailed,
                 };
-                ActionError::new(code, cause.to_string())
+                ActionError::new(error_code, cause.to_string())
             })?;
         if let Some(bytes) = reply {
             core.deliver_action_reply(bytes)?;

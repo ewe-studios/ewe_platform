@@ -37,6 +37,10 @@ impl Options {
     }
 }
 
+/// Read bounded text from a host command.
+///
+/// # Errors
+/// Returns command failures and invalid UTF-8 output.
 pub async fn text(ctx: &TaskContext, cmd: ProcessCommand) -> Result<String, TaskError> {
     Ok(String::from_utf8(query(ctx, cmd).await?)
         .map_err(TaskError::operation)?
@@ -44,6 +48,10 @@ pub async fn text(ctx: &TaskContext, cmd: ProcessCommand) -> Result<String, Task
         .to_string())
 }
 
+/// Wait until the deadline or task cancellation.
+///
+/// # Errors
+/// Returns cancellation, clock range, or missing timer errors.
 pub async fn sleep(ctx: &TaskContext, duration: Duration) -> TaskResult {
     let host = ctx.context();
     let deadline = host

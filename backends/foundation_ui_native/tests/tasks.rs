@@ -223,7 +223,7 @@ fn archive_checks_platform_slices_and_reproduces_the_same_bytes() {
     }
     let info = bundle.join("Info.plist");
     let plist = |v: &Vec<serde_json::Value>| {
-        plist::to_file_xml(&info, &serde_json::json!({"AvailableLibraries":v})).unwrap()
+        plist::to_file_xml(&info, &serde_json::json!({"AvailableLibraries":v})).unwrap();
     };
     plist(&slices);
     let invoke = || {
@@ -383,7 +383,7 @@ fn swift_release_reproduces_the_checksum_commit_in_an_independent_clone() {
         })
     });
     assert_eq!(exit, std::process::ExitCode::SUCCESS);
-    assert!(git(&["status", "--porcelain"]).is_empty());
+    assert_eq!(git(&["status", "--porcelain"]), "");
 }
 
 #[test]

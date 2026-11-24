@@ -49,6 +49,10 @@ fn emulator(ctx: &TaskContext) -> Result<ProcessCommand, TaskError> {
     ))
 }
 
+/// List connected devices and installed virtual devices.
+///
+/// # Errors
+/// Returns errors from the selected platform tools.
 pub async fn list(ctx: &TaskContext, target: Target) -> Result<Vec<Device>, TaskError> {
     match target {
         Target::Android => {
@@ -119,6 +123,10 @@ pub async fn list(ctx: &TaskContext, target: Target) -> Result<Vec<Device>, Task
         )),
     }
 }
+/// Select a device by its identifier or unique name.
+///
+/// # Errors
+/// Returns an error if the name is missing or ambiguous.
 pub fn select(devices: &[Device], name: &str) -> Result<Device, TaskError> {
     let mut found = devices.iter().filter(|d| d.id == name || d.name == name);
     let first = found.next().ok_or_else(|| {
@@ -133,6 +141,10 @@ pub fn select(devices: &[Device], name: &str) -> Result<Device, TaskError> {
     }
     Ok(first.clone())
 }
+/// Start the selected device and wait for readiness.
+///
+/// # Errors
+/// Returns selection, cancellation, startup, or timeout errors.
 pub async fn start(
     ctx: &TaskContext,
     target: Target,
