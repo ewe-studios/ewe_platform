@@ -202,3 +202,81 @@ printf '{"containerimage.digest":"sha256:local"}' > "$meta"
         "verified image\n"
     );
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_control_uses_the_selected_container_id_and_preserves_failures() {
+    use std::{fs, os::unix::fs::PermissionsExt, process::Command};
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let docker = root.join("docker");
+    fs::write(
+        &docker,
+        r#"#!/bin/sh
+printf '<%s>' "$@" >> calls
+printf '\n' >> calls
+if test "$1" = container; then
+  test -z "$FAIL" || exit "$FAIL"
+  test -z "$STATE" || printf '%s %s\n' "$ID" "$STATE"
+fi
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(docker, fs::Permissions::from_mode(0o755)).unwrap();
+    let id = "1".repeat(64);
+    let invoke = |args: &[&str], state: &str, fail: &str| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", root)
+            .env("ID", &id)
+            .env("STATE", state)
+            .env("FAIL", fail)
+            .args(["task", "run"])
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    let down = [
+        "images:vm-down",
+        "--name",
+        "fixture.vm",
+        "--stop-seconds",
+        "5",
+    ];
+    assert!(invoke(&down, "", "").status.success());
+    assert_eq!(invoke(&down, "", "42").status.code(), Some(42));
+    assert!(invoke(&down, "running", "").status.success());
+    let calls = fs::read_to_string(root.join("calls")).unwrap();
+    assert!(calls.contains("<name=^/fixture\\.vm$>"));
+    assert!(calls.contains(&format!("<stop><--time><5><{id}>\n<rm><{id}>")));
+    fs::write(root.join("guest.pub"), "ssh-ed25519 public-fixture guest\n").unwrap();
+    let up = [
+        "images:vm-up",
+        "--name",
+        "fixture.vm",
+        "--os",
+        "macos",
+        "--storage",
+        "disk with spaces",
+        "--image",
+        "fixture/image:local",
+        "--key",
+        "guest",
+        "--kvm-device",
+        "/dev/null",
+        "--tun-device",
+        "/dev/null",
+        "--version",
+        "sonoma",
+        "--web-port",
+        "8708",
+    ];
+    assert!(!invoke(&up, "running", "").status.success());
+    assert!(invoke(&up, "exited", "").status.success());
+    let calls = fs::read_to_string(root.join("calls")).unwrap();
+    assert!(calls.contains(&format!("<rm><{id}>\n<run><--detach><--name><fixture.vm>")));
+    assert!(calls.contains("<127.0.0.1:2222:22>") && calls.contains("<127.0.0.1:8708:8006>"));
+    assert!(calls.contains("disk with spaces:/storage>") && calls.contains("<VERSION=sonoma>"));
+    assert!(calls.contains("<PI_SSH_AUTHORIZED_KEY=ssh-ed25519 public-fixture guest>"));
+    assert!(!calls.contains("<RAM_SIZE=>"));
+}

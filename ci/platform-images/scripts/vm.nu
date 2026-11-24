@@ -67,6 +67,13 @@ def container-running [name: string]: nothing -> bool {
     $r.exit_code == 0 and ($r.stdout | str trim) == "true"
 }
 
+# Use the checkout's independent task runner for host container operations.
+def host-task [operation: string, arguments: list<string>] {
+    let manifest = $env.FILE_PWD | path join .. .. .. backends foundation_ci Cargo.toml | path expand
+    ^cargo run --locked --quiet --profile uat --manifest-path $manifest -- task run $operation ...$arguments
+    if $env.LAST_EXIT_CODE != 0 { exit $env.LAST_EXIT_CODE }
+}
+
 # Start the VM container. A fresh /storage installs the OS (Windows:
 # unattended, with the image's provisioning; macOS: manually, see README).
 def "main up" [
@@ -82,28 +89,11 @@ def "main up" [
     --cpus: string = ""             # CPU_CORES
     --disk: string = ""             # DISK_SIZE
 ] {
-    check-os $os
-    if ($image | is-empty) or ($storage | is-empty) or ($key | is-empty) { fail "--image, --storage and --key are required" }
-    if not ("/dev/kvm" | path exists) { fail "/dev/kvm does not exist: this host cannot run the VM (see the README on KVM)" }
-    let pub = $"($key).pub"
-    if not ($pub | path exists) { fail $"no public key at ($pub)" }
-    mkdir $storage
-    if (container-running $name) { fail $"a container named ($name) is already running" }
-    ^docker rm -f $name | complete | ignore
-
-    mut args = [
-        run --detach --name $name
-        --device /dev/kvm --device /dev/net/tun --cap-add NET_ADMIN
-        --stop-timeout 120
-        --publish $"127.0.0.1:($port):22"
-        --publish $"127.0.0.1:($web_port):8006"
-        --volume $"($storage | path expand):/storage"
-        --env $"PI_SSH_AUTHORIZED_KEY=(open --raw $pub | str trim)"
+    host-task images:vm-up [
+        --os $os --image $image --name $name --storage ($storage | into string) --key ($key | into string)
+        --port ($port | into string) --web-port ($web_port | into string)
+        --version $version --ram $ram --cpus $cpus --disk $disk
     ]
-    for kv in [[VERSION $version] [RAM_SIZE $ram] [CPU_CORES $cpus] [DISK_SIZE $disk]] {
-        if ($kv.1 | is-not-empty) { $args = ($args | append [--env $"($kv.0)=($kv.1)"]) }
-    }
-    ^docker ...$args $image
     print $"started ($name) from ($image): web viewer on http://127.0.0.1:($web_port), SSH on 127.0.0.1:($port)"
 }
 
@@ -338,10 +328,7 @@ def "main logs" [
 # Stop the VM (an orderly shutdown via dockurr, up to 2 minutes) and remove
 # the container. The disk in --storage stays.
 def "main down" [--name: string = "pi-vm"] {
-    let r = ^docker inspect $name | complete
-    if $r.exit_code != 0 { print $"no container ($name)"; return }
-    ^docker stop --time 120 $name
-    ^docker rm $name
+    host-task images:vm-down [--name $name]
 }
 
 def main [] {

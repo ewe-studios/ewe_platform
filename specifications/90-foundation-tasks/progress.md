@@ -510,7 +510,9 @@ A CLI installation built from the listed package inputs generated an independent
 The virtual machine host changes are in progress. Cargo checked the Rust start and stop tasks.
 Nushell passed the storage path, image, ports, and key path to the independent runner.
 A failing runner returned exit code 42 through the existing Nushell command.
-The Rust integration tests and Docker fixture remain pending while the host verifies the mobile applications.
+The Rust integration test and strict Clippy checks passed.
+Docker started, inspected, stopped, and removed two isolated containers with loopback ports.
+This host check used test device mappings. Guest boot verification still needs a Linux host with hardware acceleration.
 
 The linked checkout package inventory limitation is tracked in issue #818.
 The clean source export passed the registry input check and the independent generator installation.

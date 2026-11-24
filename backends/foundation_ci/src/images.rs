@@ -5,6 +5,7 @@ mod files;
 mod inputs;
 mod registry;
 mod smoke;
+mod vm;
 
 use crate::CiEnvironment;
 use clap::{Args, ValueEnum};
@@ -96,6 +97,7 @@ pub fn set() -> Result<TaskSet, TaskError> {
             .await
         },
     )?;
+    vm::register(&mut set)?;
     set.add("prepare", "Prepare an image build context", prepare)?;
     set.expose("prepare", &["image-prepare"])?;
     set.add(

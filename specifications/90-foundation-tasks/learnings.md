@@ -344,3 +344,6 @@ A hosted verification without publication needs an image that is already present
 Cargo listed all generator inputs in a clean source export.
 In the linked checkout, Cargo collected the input paths and failed while checking repository metadata.
 The same failure occurred for foundation_context. Issue #818 records both commands and the successful export check.
+
+Docker returns the full container identifier with the state. Stop and remove that identifier to protect a replacement container.
+The host fixture checked both an exited container and a running container. A second stop succeeded after removal.
