@@ -13,6 +13,7 @@
 mod support;
 
 mod create;
+mod drop;
 mod exec;
 mod misc;
 mod properties;

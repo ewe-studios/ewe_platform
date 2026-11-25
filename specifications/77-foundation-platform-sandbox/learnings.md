@@ -996,3 +996,16 @@ it against one manager, and compares each step with the state table: `Exec` only
 while `Ready`; `Stop` and `Kill` idempotent and the first report wins; a substrate
 exit moves the record to `Stopped` through the watcher; `get` and `list` follow the
 registry. The test keeps the value of a stateful oracle without a second model type.
+
+**Fixed in this change (2026-11-25, issue #852).** The fix is option 1, a
+receiver-owned guard, because it keeps the change in `foundation_sandbox` and
+does not change `foundation_core`'s public behaviour. `CreateGuard` holds the
+cancel flag, the wakers and the record slot. The `GuardedCreateIterator` that
+the caller receives and the `create_ready` future hold an `Arc<CreateGuard>`
+and call `cancel()` on drop. `cancel()` marks the create cancelled, wakes the
+task's cancellation future, and moves the record to a background `kill_record`.
+`AwaitSlave` and `Prepare` select on that future, so the worker leaves its wait
+at once. `CreateTask::drop` also calls `cancel`. The final result calls
+`finish()`, which disarms the guard for a later drop. The tests
+`drop_create_receiver_cancels` and `drop_create_future_cancels` fail on
+`befb4397d` and pass after the fix.

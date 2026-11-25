@@ -303,30 +303,18 @@ fn run_with_limit_truncates() {
 #[test]
 fn run_with_timeout() {
     let _serial = support::serial();
-    let (ctx, clock) = support::ctx(29);
+    let (ctx, _clock, timer) = support::recording_ctx(29);
     let slave = Arc::new(ScriptedSlave::new());
     slave.with_gated_exec(vec![started()], exit(137));
     let driver = Arc::new(SimDriver::new(support::driver_id()));
     let (manager, _slave, _driver) = create(ctx, Arc::clone(&slave), driver);
     let handle = support::block_on(manager.create(spec())).expect("create");
+    // The timer answers the command deadline at once, so the timer task sends
+    // the signal and the gate releases without a clock move.
+    timer.resolve_long_waits();
     let mut command = Command::new(["sleep"]);
     command.timeout = Some(Duration::from_secs(5));
-    let runner = handle.clone();
-    let task =
-        execute(from_future(async move { runner.run(command).await }), None).expect("schedule");
-    let mut attempts = 0;
-    while slave.call_count("exec") == 0 && attempts < 10_000 {
-        std::thread::yield_now();
-        attempts += 1;
-    }
-    clock.advance(Duration::from_secs(5));
-    let mut attempts = 0;
-    while slave.signals().is_empty() && attempts < 10_000 {
-        std::thread::yield_now();
-        attempts += 1;
-    }
-    let (result, _rest) = support::block_on(task.into_ready_future()).expect("result");
-    let error = support::expect_error(result, "timeout");
+    let error = support::expect_error(support::block_on(handle.run(command)), "timeout");
     assert!(matches!(error, SandboxError::ExecTimeout), "{error:?}");
 }
 

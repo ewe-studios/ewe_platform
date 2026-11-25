@@ -213,7 +213,7 @@ passes with the default features and with no default features.
 
 Checks on the macOS host pass: `cargo check` for native, with `slave`, and for
 wasm32 with and without the default features; `cargo test` (25 contract tests);
-`cargo test --features testing control_` (60 control tests); `cargo fmt --check`;
+`cargo test --features testing control_` (62 control tests); `cargo fmt --check`;
 and `cargo clippy --no-deps --all-targets` with `-D warnings`, with and without
 `testing`. `ci/packages.toml` adds `testing` to the Linux, macOS and Windows runs.
 
@@ -224,11 +224,15 @@ stay for the Linux CI job that feature 06 adds.
 The review added two tests: `state_machine_model` (a small proptest of the state table
 with `Exec`, `Stop`, `Kill`, substrate exit and lookup steps) and
 `store_error_after_ready_is_logged` (a store that fails after `Ready`; the stop result
-does not change and the manager stays usable). The test row `rpc_create_dropped_cleans_up`
-is now a recorded defect, not a test: dropping the create receiver does not drop the pool
-task, so the create guard of section 6.4 does not run at the drop. Issue
-[#852](https://github.com/ewe-studios/ewe_platform/issues/852) (severity: high) records
-the measured behaviour and the likely fix, and `feature.md` section 7 states it.
+does not change and the manager stays usable).
+
+Issue [#852](https://github.com/ewe-studios/ewe_platform/issues/852) (severity: high)
+recorded the dropped-create defect: dropping the create receiver did not drop the pool
+task, so the create guard of section 6.4 did not run at the drop. It is fixed in this
+branch by a receiver-owned `CreateGuard`. Dropping the create stream or the create
+future cancels the task, kills and cleans up any launched substrate, and removes the
+record. `drop_create_receiver_cancels` and `drop_create_future_cancels` prove it: both
+fail on `befb4397d` and pass after the fix.
 
 ## In progress
 

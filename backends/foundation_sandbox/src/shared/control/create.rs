@@ -3,16 +3,17 @@
 
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+use std::task::{Poll, Waker};
 use std::time::Duration;
 
 use foundation_compact::Instant;
 use foundation_context::Ctx;
-use foundation_core::valtron::{task, Stream, TaskStatus};
+use foundation_core::valtron::{task, Stream, StreamIteratorExt, TaskStatus};
 use foundation_errstacks::ErrorTrace;
-use futures::future::select_all;
+use futures::future::{select, select_all, Either};
 
-use crate::shared::control::handle::LocalSandboxOps;
+use crate::shared::control::handle::{LocalSandboxOps, SendIterator};
 use crate::shared::control::manager::{apply_default_limits, choose_driver, Inner};
 use crate::shared::control::record::{created_unix_ms, SandboxRecord};
 use crate::shared::control::slave_client::SlaveClient;
@@ -21,6 +22,7 @@ use crate::shared::control::{wait_until, SandboxState};
 use crate::shared::control::{SandboxHandle, SandboxIdPolicy};
 use crate::shared::driver::{CreateProgress, LaunchStream, SubstrateHandle};
 use crate::shared::error::{SandboxError, SandboxResult};
+use crate::shared::handles::CreateStream;
 use crate::shared::ids::SandboxId;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::rpc::messages::{PrepareRequest, SlaveInfo, SlaveLimits};
@@ -102,8 +104,8 @@ pub struct CreateTask {
     pub state: Option<CreateState>,
     /// The record, once the task chose the identifier.
     pub record: Option<Arc<SandboxRecord>>,
-    /// The guard that cleans up when the create future is dropped.
-    pub cleanup: Option<CreateCleanup>,
+    /// The guard that cancels the create when its owner goes away.
+    pub guard: Arc<CreateGuard>,
     /// The highest progress value already passed on.
     pub last_progress: Option<u8>,
     /// The spec that the caller gave.
@@ -111,14 +113,14 @@ pub struct CreateTask {
 }
 
 impl CreateTask {
-    /// A task for one spec.
+    /// A task for one spec and its guard.
     #[must_use]
-    pub fn new(inner: Arc<Inner>, spec: SandboxSpec) -> Self {
+    pub fn new(inner: Arc<Inner>, spec: SandboxSpec, guard: Arc<CreateGuard>) -> Self {
         Self {
             inner,
             state: Some(CreateState::Choose),
             record: None,
-            cleanup: None,
+            guard,
             last_progress: None,
             spec,
         }
@@ -127,12 +129,6 @@ impl CreateTask {
     fn next(mut self, state: CreateState) -> Self {
         self.state = Some(state);
         self
-    }
-
-    fn disarm(&mut self) {
-        if let Some(cleanup) = &mut self.cleanup {
-            cleanup.armed = false;
-        }
     }
 
     /// Passes a progress value on unless it is lower than the last one.
@@ -158,28 +154,170 @@ fn progress_rank(progress: CreateProgress) -> u8 {
     }
 }
 
-/// The clean-up guard of one create.
-///
-/// The `Drop` runs when the caller drops the create future or stream before
-/// the task is done. It moves the clean-up to a background task, because a
-/// `Drop` cannot wait.
-pub struct CreateCleanup {
-    inner: Arc<Inner>,
-    record: Arc<SandboxRecord>,
-    armed: bool,
+impl Drop for CreateTask {
+    fn drop(&mut self) {
+        self.guard.cancel();
+    }
 }
 
-impl Drop for CreateCleanup {
-    fn drop(&mut self) {
-        if !self.armed {
-            return;
-        }
-        let inner = Arc::clone(&self.inner);
-        let record = Arc::clone(&self.record);
-        spawn_detached(async move {
-            let _ = kill_record(inner, record).await;
-        });
+/// The clean-up owner of one create.
+///
+/// The receiver of the create stream and the task share one guard. Dropping
+/// either one calls [`CreateGuard::cancel`], which marks the create cancelled,
+/// wakes the task out of its waits, and kills and removes any substrate that
+/// the create already launched. A `Drop` cannot wait, so the kill and the
+/// removal move to a background task.
+///
+/// The task calls [`CreateGuard::finish`] on its last success or error. A later
+/// drop then has nothing to cancel.
+pub struct CreateGuard {
+    inner: Arc<Inner>,
+    state: Mutex<GuardState>,
+}
+
+#[derive(Default)]
+struct GuardState {
+    kind: GuardKind,
+    record: Option<Arc<SandboxRecord>>,
+    wakers: Vec<Waker>,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum GuardKind {
+    /// The create still runs.
+    #[default]
+    Idle,
+    /// An owner went away; the create must stop.
+    Cancelled,
+    /// The task gave its last result.
+    Finished,
+}
+
+impl CreateGuard {
+    /// A guard over one manager.
+    #[must_use]
+    pub fn new(inner: Arc<Inner>) -> Arc<Self> {
+        Arc::new(Self {
+            inner,
+            state: Mutex::new(GuardState::default()),
+        })
     }
+
+    /// The record that a cancel must kill and remove.
+    fn set_record(&self, record: Arc<SandboxRecord>) {
+        self.state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .record = Some(record);
+    }
+
+    /// Whether an owner cancelled the create.
+    #[must_use]
+    pub fn is_cancelled(&self) -> bool {
+        self.state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .kind
+            == GuardKind::Cancelled
+    }
+
+    /// Marks the create finished, so a later drop does nothing.
+    fn finish(&self) {
+        let wakers = {
+            let mut state = self
+                .state
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if state.kind != GuardKind::Idle {
+                return;
+            }
+            state.kind = GuardKind::Finished;
+            state.record.take();
+            std::mem::take(&mut state.wakers)
+        };
+        for waker in wakers {
+            waker.wake();
+        }
+    }
+
+    /// Cancels the create and starts the kill and the removal of its record.
+    fn cancel(&self) {
+        let record = {
+            let mut state = self
+                .state
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if state.kind != GuardKind::Idle {
+                return;
+            }
+            state.kind = GuardKind::Cancelled;
+            let record = state.record.take();
+            for waker in state.wakers.drain(..) {
+                waker.wake();
+            }
+            record
+        };
+        if let Some(record) = record {
+            let inner = Arc::clone(&self.inner);
+            spawn_detached(async move {
+                let _ = kill_record(inner, record).await;
+            });
+        }
+    }
+
+    /// Resolves when an owner cancels the create or the task finishes.
+    async fn cancelled(&self) {
+        futures::future::poll_fn(|context| {
+            let mut state = self
+                .state
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if state.kind != GuardKind::Idle {
+                return Poll::Ready(());
+            }
+            state.wakers.push(context.waker().clone());
+            Poll::Pending
+        })
+        .await;
+    }
+}
+
+/// The iterator that the caller receives. Its drop cancels the create.
+struct GuardedCreateIterator<I> {
+    inner: I,
+    guard: Arc<CreateGuard>,
+}
+
+impl<I: Iterator> Iterator for GuardedCreateIterator<I> {
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+impl<I> Drop for GuardedCreateIterator<I> {
+    fn drop(&mut self) {
+        self.guard.cancel();
+    }
+}
+
+/// Calls cancel when the create future is dropped before it gives a result.
+struct CancelOnDrop(Arc<CreateGuard>);
+
+impl Drop for CancelOnDrop {
+    fn drop(&mut self) {
+        self.0.cancel();
+    }
+}
+
+/// Ends a cancelled create without a result.
+fn stopped(task: CreateTask) -> (CreateTask, Status) {
+    task.guard.finish();
+    (
+        task.next(CreateState::Done),
+        TaskStatus::Ready(Err(SandboxError::SandboxStopped.into())),
+    )
 }
 
 type Status = TaskStatus<SandboxResult<SandboxHandle>, CreateProgress>;
@@ -198,6 +336,9 @@ pub async fn create_sandbox(
     // the manager's context, which the host seeded with the injected effects.
     drop(ctx);
     let ctx = task.inner.ctx.clone();
+    if task.guard.is_cancelled() {
+        return None;
+    }
     let step = task.state.take()?;
     match step {
         CreateState::Choose => Some(choose(ctx, task).await),
@@ -243,6 +384,9 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
         Ok(chosen) => chosen,
         Err(error) => return fail(task, error.current_context().clone()).await,
     };
+    if task.guard.is_cancelled() {
+        return stopped(task);
+    }
     if task.inner.live_count() >= task.inner.config.max_sandboxes {
         return fail(task, SandboxError::TooManySessions).await;
     }
@@ -270,13 +414,12 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
     ));
     task.inner.insert(Arc::clone(&record));
     task.record = Some(Arc::clone(&record));
-    task.cleanup = Some(CreateCleanup {
-        inner: Arc::clone(&task.inner),
-        record: Arc::clone(&record),
-        armed: true,
-    });
+    task.guard.set_record(Arc::clone(&record));
     if let Err(error) = task.inner.store.put(record.stored()).await {
         return fail(task, error.current_context().clone()).await;
+    }
+    if task.guard.is_cancelled() {
+        return stopped(task);
     }
     let deadline = ctx.clock().now() + spec.limits.boot_timeout;
     let launch = driver.launch(ctx, id.clone(), spec.clone(), deadline);
@@ -330,6 +473,9 @@ async fn launch_state(
                 state.endpoint = Some(endpoint.clone());
                 state.substrate = Some(Arc::clone(&handle));
             }
+            if task.guard.is_cancelled() {
+                return stopped(task);
+            }
             let transport = match task.inner.connector.connect(&ctx, &endpoint, &spec.limits) {
                 Ok(transport) => transport,
                 Err(error) => return fail(task, error.current_context().clone()).await,
@@ -347,6 +493,9 @@ async fn launch_state(
                 if let Err(error) = task.inner.store.put(record.stored()).await {
                     return fail(task, error.current_context().clone()).await;
                 }
+            }
+            if task.guard.is_cancelled() {
+                return stopped(task);
             }
             (
                 task.next(CreateState::AwaitSlave {
@@ -370,7 +519,7 @@ async fn launch_state(
                 task.inner.remove(&record.id);
                 let _ = task.inner.store.remove(&record.id).await;
             }
-            task.disarm();
+            task.guard.finish();
             (task.next(CreateState::Done), TaskStatus::Ready(Err(error)))
         }
         Some(Stream::Delayed(delay)) => (
@@ -404,6 +553,8 @@ enum Wait {
     Deadline,
     /// The timer failed.
     Timer(SandboxResult<()>),
+    /// An owner dropped the create.
+    Cancelled,
 }
 
 #[allow(
@@ -429,9 +580,14 @@ async fn await_slave(
     let info_client = Arc::clone(&client);
     let exit_handle = Arc::clone(&substrate.handle);
     let timer_ctx = ctx.clone();
+    let cancel_guard = Arc::clone(&task.guard);
     let futures: Vec<Pin<Box<dyn Future<Output = Wait> + Send>>> = vec![
         Box::pin(async move { Wait::Info(info_client.info(timeout).await) }),
         Box::pin(async move { Wait::Exit(exit_handle.exited().await) }),
+        Box::pin(async move {
+            cancel_guard.cancelled().await;
+            Wait::Cancelled
+        }),
         Box::pin(async move {
             match wait_until(deadline, &timer_ctx).await {
                 Ok(()) => Wait::Deadline,
@@ -496,6 +652,7 @@ async fn await_slave(
             let _ = substrate.handle.cleanup().await;
             fail_without_kill(task, error).await
         }
+        Wait::Cancelled => stopped(task),
         Wait::Deadline | Wait::Timer(Ok(())) => {
             boot_timeout(task, &substrate.handle, "slave").await
         }
@@ -567,8 +724,12 @@ async fn prepare(
         },
         limits: slave_limits(&spec.limits),
     };
-    match client.prepare(request, left).await {
-        Ok(_answer) => {
+    let cancel_guard = Arc::clone(&task.guard);
+    let prepare = client.prepare(request, left);
+    let cancel = async move { cancel_guard.cancelled().await };
+    match select(Box::pin(prepare), Box::pin(cancel)).await {
+        Either::Right(((), _prepare)) => stopped(task),
+        Either::Left((Ok(_answer), _cancel)) => {
             let Some(record) = task.record.clone() else {
                 return fail(task, SandboxError::SlaveHandshake).await;
             };
@@ -594,7 +755,7 @@ async fn prepare(
                 spec.limits.clone(),
             ));
             let handle = SandboxHandle::new(id, ops);
-            task.disarm();
+            task.guard.finish();
             let status = if task.progress(CreateProgress::SlaveReady) {
                 TaskStatus::Pending(CreateProgress::SlaveReady)
             } else {
@@ -605,7 +766,7 @@ async fn prepare(
                 status,
             )
         }
-        Err(error) => {
+        Either::Left((Err(error), _cancel)) => {
             let error = error.current_context().clone();
             fail(task, error).await
         }
@@ -614,7 +775,7 @@ async fn prepare(
 
 /// Fails the create: kills and cleans up, removes the record, and emits the
 /// one error result.
-async fn fail(mut task: CreateTask, error: SandboxError) -> (CreateTask, Status) {
+async fn fail(task: CreateTask, error: SandboxError) -> (CreateTask, Status) {
     if let Some(record) = task.record.clone() {
         let substrate = record
             .state
@@ -629,7 +790,7 @@ async fn fail(mut task: CreateTask, error: SandboxError) -> (CreateTask, Status)
         task.inner.remove(&record.id);
         let _ = task.inner.store.remove(&record.id).await;
     }
-    task.disarm();
+    task.guard.finish();
     (
         task.next(CreateState::Done),
         TaskStatus::Ready(Err(error.into())),
@@ -638,7 +799,7 @@ async fn fail(mut task: CreateTask, error: SandboxError) -> (CreateTask, Status)
 
 /// Fails the create after the substrate already stopped: it cleans up and
 /// removes the record, and sends the substrate no `kill`.
-async fn fail_without_kill(mut task: CreateTask, error: SandboxError) -> (CreateTask, Status) {
+async fn fail_without_kill(task: CreateTask, error: SandboxError) -> (CreateTask, Status) {
     if let Some(record) = task.record.clone() {
         let substrate = record
             .state
@@ -652,7 +813,7 @@ async fn fail_without_kill(mut task: CreateTask, error: SandboxError) -> (Create
         task.inner.remove(&record.id);
         let _ = task.inner.store.remove(&record.id).await;
     }
-    task.disarm();
+    task.guard.finish();
     (
         task.next(CreateState::Done),
         TaskStatus::Ready(Err(error.into())),
@@ -673,5 +834,59 @@ pub fn slave_limits(limits: &SandboxLimits) -> SlaveLimits {
         input_queue_bytes: chunk.saturating_mul(4),
         max_message_bytes: u32::try_from(limits.max_message_bytes).unwrap_or(u32::MAX),
         event_queue_len: 4,
+    }
+}
+
+/// Runs one create to its one result.
+///
+/// A caller that drops this future cancels the task and kills any substrate
+/// that the task already launched.
+///
+/// # Errors
+/// The error of the create, or [`SandboxError::SlaveHandshake`] when the task
+/// ends without a result.
+pub(crate) async fn create_ready(
+    inner: Arc<Inner>,
+    spec: SandboxSpec,
+) -> SandboxResult<SandboxHandle> {
+    let guard = CreateGuard::new(Arc::clone(&inner));
+    let _cancel = CancelOnDrop(Arc::clone(&guard));
+    let task = CreateTask::new(inner, spec, Arc::clone(&guard));
+    let stream =
+        foundation_core::valtron::execute(create_sandbox::new(task), None).map_err(|error| {
+            SandboxError::Io {
+                op: "create".to_string(),
+                message: error.to_string(),
+            }
+        })?;
+    let (result, _rest) = stream
+        .into_ready_future()
+        .await
+        .ok_or(SandboxError::SlaveHandshake)?;
+    guard.finish();
+    result
+}
+
+/// The progress stream of one create.
+///
+/// Dropping the stream cancels the task and kills any substrate that the task
+/// already launched.
+pub(crate) fn create_stream(inner: Arc<Inner>, spec: SandboxSpec) -> CreateStream {
+    let guard = CreateGuard::new(Arc::clone(&inner));
+    let task = CreateTask::new(inner, spec, Arc::clone(&guard));
+    match foundation_core::valtron::execute(create_sandbox::new(task), None) {
+        Ok(iterator) => CreateStream::new(Box::new(GuardedCreateIterator {
+            inner: SendIterator::new(iterator),
+            guard,
+        })),
+        Err(error) => {
+            let item: Stream<SandboxResult<SandboxHandle>, CreateProgress> =
+                Stream::Next(Err(SandboxError::Io {
+                    op: "create".to_string(),
+                    message: error.to_string(),
+                }
+                .into()));
+            CreateStream::new(Box::new(std::iter::once(item)))
+        }
     }
 }

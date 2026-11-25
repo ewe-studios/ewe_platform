@@ -1,6 +1,7 @@
 //! The support of the control-plane tests.
 
 use std::future::Future;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use std::time::Duration;
 
@@ -57,7 +58,7 @@ const SHORT_WAIT: Duration = Duration::from_secs(1);
 pub struct RecordingTimer {
     clock: Arc<SimulatedClock>,
     waits: Mutex<Vec<Duration>>,
-    resolve_long: bool,
+    resolve_long: AtomicBool,
 }
 
 impl RecordingTimer {
@@ -67,7 +68,7 @@ impl RecordingTimer {
         Self {
             clock,
             waits: Mutex::new(Vec::new()),
-            resolve_long: false,
+            resolve_long: AtomicBool::new(false),
         }
     }
 
@@ -77,8 +78,13 @@ impl RecordingTimer {
         Self {
             clock,
             waits: Mutex::new(Vec::new()),
-            resolve_long: true,
+            resolve_long: AtomicBool::new(true),
         }
+    }
+
+    /// Answers every later long wait at once.
+    pub fn resolve_long_waits(&self) {
+        self.resolve_long.store(true, Ordering::SeqCst);
     }
 
     /// The waits that the code asked for, in order.
@@ -98,7 +104,7 @@ impl Timer for RecordingTimer {
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .push(wait);
-        if wait <= SHORT_WAIT || self.resolve_long {
+        if wait <= SHORT_WAIT || self.resolve_long.load(Ordering::SeqCst) {
             Box::pin(async {})
         } else {
             Box::pin(std::future::pending())

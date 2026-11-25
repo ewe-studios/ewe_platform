@@ -7,19 +7,13 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_context::Ctx;
-use foundation_core::valtron::Stream as ValtronStream;
-use foundation_core::valtron::StreamIteratorExt;
 
 use crate::shared::container::ContainerControl;
-use crate::shared::control::create::CreateTask;
-use crate::shared::control::handle::SendIterator;
 use crate::shared::control::record::{created_unix_ms, RecordStore, SandboxRecord};
 use crate::shared::control::send_box;
 use crate::shared::control::stop::{kill_record, spawn_detached, start_watcher, stop_record};
 use crate::shared::control::{ExitReport, SandboxInfo, SandboxProvider, SandboxState};
-use crate::shared::driver::{
-    CreateProgress, HostReport, SandboxDriver, StoredRecord, Substrate, SubstrateHandle,
-};
+use crate::shared::driver::{HostReport, SandboxDriver, StoredRecord, Substrate, SubstrateHandle};
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::handles::CreateStream;
 use crate::shared::host::SlaveConnector;
@@ -395,20 +389,7 @@ impl SandboxManager {
         &self,
         spec: SandboxSpec,
     ) -> SandboxResult<crate::shared::control::SandboxHandle> {
-        let task = CreateTask::new(Arc::clone(&self.inner), spec);
-        let stream = foundation_core::valtron::execute(
-            crate::shared::control::create::create_sandbox::new(task),
-            None,
-        )
-        .map_err(|error| SandboxError::Io {
-            op: "create".to_string(),
-            message: error.to_string(),
-        })?;
-        let (result, _rest) = stream
-            .into_ready_future()
-            .await
-            .ok_or(SandboxError::SlaveHandshake)?;
-        result
+        crate::shared::control::create::create_ready(Arc::clone(&self.inner), spec).await
     }
 }
 
@@ -447,24 +428,7 @@ impl SandboxProvider for SandboxManager {
     }
 
     fn create_with_progress(&self, spec: SandboxSpec) -> CreateStream {
-        let task = CreateTask::new(Arc::clone(&self.inner), spec);
-        match foundation_core::valtron::execute(
-            crate::shared::control::create::create_sandbox::new(task),
-            None,
-        ) {
-            Ok(iterator) => CreateStream::new(Box::new(SendIterator::new(iterator))),
-            Err(error) => {
-                let error = SandboxError::Io {
-                    op: "create".to_string(),
-                    message: error.to_string(),
-                };
-                let item: ValtronStream<
-                    SandboxResult<crate::shared::control::SandboxHandle>,
-                    CreateProgress,
-                > = ValtronStream::Next(Err(error.into()));
-                CreateStream::new(Box::new(std::iter::once(item)))
-            }
-        }
+        crate::shared::control::create::create_stream(Arc::clone(&self.inner), spec)
     }
 
     fn get(
