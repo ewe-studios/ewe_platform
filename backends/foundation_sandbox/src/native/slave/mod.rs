@@ -558,6 +558,7 @@ impl Slave {
 
     /// The `exec_signal` body.
     fn exec_signal_inner(&self, request: &ExecSignalRequest) -> SandboxResult<()> {
+        self.prepared()?;
         if !(1..=64).contains(&request.signal) {
             return Err(slave_error(
                 SlaveErrorCode::BadRequest,
@@ -566,7 +567,12 @@ impl Slave {
             ));
         }
         let exec_id = Self::parse_exec_id(&request.exec_id)?;
-        let session = self.session(&exec_id)?;
+        let session = match self.sessions.get(&exec_id) {
+            Some(session) => session,
+            // A session that ended recently accepts the call and does nothing.
+            None if self.sessions.is_recently_finished(&exec_id) => return Ok(()),
+            None => return Err(Self::unknown_session(&exec_id)),
+        };
         match session.signal_group(request.signal) {
             Ok(()) => Ok(()),
             // A program that ended already accepts the call and does nothing.
@@ -789,9 +795,14 @@ pub(crate) mod wait {
     }
 
     /// Waits until the descriptor is ready.
+    ///
+    /// The caller clears the readiness before it performs its I/O attempt, not
+    /// here. The shared selector is edge-triggered: a clear before the wait
+    /// erases the edge that the wait exists to return, and a level condition
+    /// that emits no new edge (a pending `SIGCHLD`, end of file, the rest of a
+    /// pipe) then never wakes the task again.
     pub async fn ready(readiness: Arc<FdReadiness>) {
         futures::future::poll_fn(move |cx| {
-            readiness.clear();
             if readiness.is_ready(None) {
                 return Poll::Ready(());
             }

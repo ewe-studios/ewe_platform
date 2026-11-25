@@ -1009,3 +1009,92 @@ at once. `CreateTask::drop` also calls `cancel`. The final result calls
 `finish()`, which disarms the guard for a later drop. The tests
 `drop_create_receiver_cancels` and `drop_create_future_cancels` fail on
 `befb4397d` and pass after the fix.
+
+## 13. The Linux test failures of feature 01 (2026-11-26)
+
+The first Linux run of the slave tests failed in three ways. Each has one cause, and two
+of them are in the feature's own code.
+
+### 13.1 Typed errors were lost on the client
+
+The failing run was `3c3eb07fa`, which does not contain #850. That change rebuilds the
+wire details of a server error on the unary path and in the stream terminator. The
+message in the test (`Rpc { code: "not_found", message: "slave error not_found: ..." }`)
+proves the server sent the typed error and the client dropped its detail. The branch now
+carries #850; `exec_not_found`, `exec_not_executable` and `exec_id_conflict` pass without
+a change to the slave.
+
+### 13.2 The test process kept `SIGCHLD` unblocked on its main thread
+
+A libtest test cannot be the slave's process. `/proc/<pid>/task/<tid>/status` showed
+`SigBlk: 0000000000000000` on the process main thread and `0000000000010000` (SIGCHLD)
+on the test thread and every pool thread. The test ran on a spawned harness thread, so
+`block_sigchld` in the test entry set the mask of the wrong thread. `SIGCHLD` is
+process-directed and the unblocked main thread took it, so the `signalfd` never became
+readable and the reaper never collected a child. A zombie stayed under the slave and the
+`Exit` event never came.
+
+The slave process of the tests is now the program `tests/support/slave_main.rs`, a
+`[[bin]]` target (`test = false`, `required-features = ["slave"]`). Its `main` blocks
+`SIGCHLD` before any thread starts, and the tests start it through
+`CARGO_BIN_EXE_slave_test_driver`.
+
+### 13.3 The readiness helper cleared before the wait
+
+`wait::ready` called `FdReadiness::clear()` and then checked `is_ready`. The shared
+selector registers with `EPOLLET`, and `rearm_readable` is a no-op on epoll. A clear
+before the wait therefore erased the edge the wait existed to return; a level condition
+that emits no new edge (a pending `SIGCHLD`, end of file on a pipe that never carried
+data) then never woke the task again. The first run showed the stdout pump reading and
+the stderr pump and the reaper parked for ever.
+
+The clear now happens in the caller, immediately before the I/O attempt: `ready()`,
+then `readiness.clear()`, then `read` or `write`. The output pump also drains its pipe to
+`WouldBlock` before it parks, because a partial read on an edge-triggered selector leaves
+data that emits no new edge. The signs of the old bug were a stalled `head` in the
+test's pipeline and a full pipe no task was reading.
+
+### 13.4 The exit watch spun on a finished stream
+
+`wait_for_exit` woke on `streams_done` even when the exit status was absent. A stream
+that ends before the reaper reports the child is common, so the condition was true at
+every poll and the task spun at 100 percent of one pool worker until the call deadline.
+The wait now acts only on the exit status before the deadline, and on the finished
+streams or the deadline after it.
+
+### 13.5 What remains open
+
+The `exec_output_property` case is intermittent: a run that starts the slave and sends
+a large output can park the HTTP/1.1 connection task with frames waiting and no wake.
+The same class of run passed with extra timing (`P:` trace prints) and failed without
+them. The three fixes above removed the deterministic causes (the two named stalls and
+every typed-error check); this one is a wake race in the shared HTTP/1.1 streaming path
+and needs its own issue. `stream_drop_kills` is in the same class: the server's connection
+task did not drop the handler stream within one second of the client closing it, so the
+`Drop` that sends `SIGKILL` to the group did not run yet.
+
+### 13.6 `ExecSignal` before `Prepare` returned `NotFound`
+
+The invariant I1 says that every call but `Info`, `Prepare` and `Shutdown` fails with
+`NotPrepared` before `Prepare`. `exec_signal_inner` looked up the session first, so an
+unknown `exec_id` gave `NotFound`. `not_prepared` now checks `self.prepared()` first.
+
+A signal that arrives just after `Exit` must be accepted. The exit watch remembers the
+`exec_id` **before** it removes the session, so the two states overlap and a signal can
+never find neither. The branch head had lost the branch of `exec_signal_inner` that reads
+the remembered set, so `signal_after_exit` got `NotFound`; it is back. `signal_bad_number`
+drops its stream: it ran a program that sleeps for a minute and then drained it.
+
+### 13.7 This host's container has no `openat2`
+
+The Linux image on this host (OrbStack) answers `openat2` with `ENOSYS` (errno 38), so
+every file test fails here with `open the parent directory: Function not implemented`.
+The GitHub `ubuntu-latest` runner has a 6.x kernel and the earlier job reached the file
+code, so the tests run there. The guest kernels of this spec are 6.1 and 6.12, which
+have `openat2`. The feature states that limit.
+
+### 13.8 The check for the next feature
+
+`grep -rn unsafe src/native/slave/` must show only `sys.rs` and the fork child block of
+`exec.rs`. A libtest test must not be the slave process. A readiness helper clears in
+the caller, before the attempt, never before the wait.

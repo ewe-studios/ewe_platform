@@ -69,6 +69,9 @@ impl ChildTable {
 /// The operating system error of `signalfd`, or of its readiness.
 pub fn start(table: Arc<ChildTable>) -> io::Result<Arc<FdReadiness>> {
     let signal = sys::signalfd()?;
+    // The shared selector is edge-triggered. The reaper clears the readiness
+    // before each signalfd read, not before the wait; a clear before the wait
+    // would erase the pending `SIGCHLD` edge and park for ever.
     let readiness = Arc::new(FdReadiness::register(signal.as_raw_fd())?);
     spawn_reaper(signal, Arc::clone(&readiness), table);
     Ok(readiness)
@@ -89,6 +92,9 @@ async fn run(signal: OwnedFd, readiness: Arc<FdReadiness>, table: Arc<ChildTable
     let mut buffer = [0_u8; 128];
     loop {
         super::wait::ready(Arc::clone(&readiness)).await;
+        // Clear before the read: the clear consumes the edge this wait returned
+        // for, and the read consumes the pending signal.
+        readiness.clear();
         // The descriptor stays readable while notifications wait; one read
         // takes them all, and the status comes from `waitpid`.
         let _ = sys::read(signal.as_raw_fd(), &mut buffer);

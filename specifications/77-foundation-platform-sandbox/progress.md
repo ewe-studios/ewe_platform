@@ -234,6 +234,36 @@ future cancels the task, kills and cleans up any launched substrate, and removes
 record. `drop_create_receiver_cancels` and `drop_create_future_cancels` prove it: both
 fail on `befb4397d` and pass after the fix.
 
+## Feature 01 Linux CI fixes (2026-11-26)
+
+The first Linux run of the slave tests (job of run 45541929114, commit `3c3eb07fa`) failed
+in three groups. The branch now carries:
+
+- #850 (`21c254bfe`), which rebuilds the wire details of a server error on the client.
+  Every typed-error check passes without a slave change.
+
+- The slave process of the tests is `tests/support/slave_main.rs`, a `[[bin]]` target
+  (`test = false`, `required-features = ["slave"]`). Its `main` blocks `SIGCHLD` before
+  any thread starts. A libtest test cannot be the slave: the harness runs it on a spawned
+  thread and leaves the process main thread's mask clear, so `SIGCHLD` went there and the
+  `signalfd` missed every child.
+
+- A descriptor's readiness is cleared in the caller, before the I/O attempt, not before
+  the wait. The shared selector is edge-triggered, so the old order erased the edge that
+  the wake carried; a pending `SIGCHLD` or end of file then never woke the task. The
+  output pump drains its pipe to `WouldBlock` before it parks.
+
+- The exit watch no longer wakes on a finished output stream while the exit status is
+  absent; that condition made it spin on one worker.
+
+- A finished `exec_id` is remembered before the session leaves the table, so a signal
+  that arrives just after `Exit` is accepted. `signal_bad_number` drops its stream
+  instead of draining a one-minute program.
+
+Open: `exec_output_property` can still stall on an intermittent lost wake in the
+shared HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and
+every typed-error check pass.
+
 ## In progress
 
 **Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.

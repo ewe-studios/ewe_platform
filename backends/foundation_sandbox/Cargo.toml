@@ -100,5 +100,16 @@ cli = []
 # The simulation helpers (feature 02).
 testing = ["dep:foundation_netio"]
 
+# The slave process of the tests. A libtest test cannot be that process: the
+# harness starts a thread before the test, and the process main thread keeps
+# `SIGCHLD` unblocked, so the reaper's `signalfd` misses a child. This program
+# blocks `SIGCHLD` in `main`, before any thread starts. `tests/slave/support.rs`
+# starts it through `CARGO_BIN_EXE_slave_test_driver`.
+[[bin]]
+name = "slave_test_driver"
+path = "tests/support/slave_main.rs"
+test = false
+required-features = ["slave"]
+
 [lints]
 workspace = true

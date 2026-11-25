@@ -177,7 +177,8 @@ fn signal_bad_number() {
             Some(SlaveErrorCode::BadRequest.to_string())
         );
     }
-    let _ = drain(stream);
+    // The program sleeps for a minute; dropping the stream kills its group.
+    drop(stream);
 }
 
 /// A signal after the program ended is accepted and does nothing.

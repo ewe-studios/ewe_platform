@@ -1,9 +1,11 @@
 //! The support of the slave tests: a slave process on a Unix socket and a
 //! caller for it.
 //!
-//! Every test sends `RootSource::Plain`. The helper starts the test binary again
-//! with one test selected, and that test runs the slave on the socket of the
-//! temporary directory.
+//! Every test sends `RootSource::Plain`. The helper starts the small program
+//! `tests/support/slave_main.rs`, whose `main` blocks `SIGCHLD` before any
+//! thread starts. A libtest test cannot be that process: the harness starts a
+//! thread first, and the process main thread keeps `SIGCHLD` unblocked, so the
+//! reaper's `signalfd` misses a child.
 
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
@@ -15,13 +17,10 @@ use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     ClientOptions, ConnectError, H1Transport, Request, RpcCtx, ServerStream,
 };
-use foundation_context::Ctx;
 use foundation_core::valtron::{block_on_future, initialize_pool};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::HttpClientBuilder;
 
-use foundation_sandbox::native::slave::serve::ListenAddr;
-use foundation_sandbox::native::slave::{block_sigchld, run, SlaveArgs};
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::rpc::messages::{
     Empty, ExecEventKind, ExecEventMsg, ExecInputRequest, ExecInputResponse, ExecRequest,
@@ -32,36 +31,6 @@ use foundation_sandbox::shared::rpc::messages::{
 };
 use foundation_sandbox::shared::rpc::SlaveServiceClient;
 use foundation_sandbox::shared::spec::{RootMode, RootSetup, RootSource};
-
-/// The name of the test that runs the slave in the child process.
-pub const SLAVE_ENTRY: &str = "slave::support::slave_process_entry";
-
-/// The test that the helper starts in the child process. Without
-/// `EWE_SLAVE_SOCKET` it does nothing, so a normal test run passes it.
-#[test]
-fn slave_process_entry() {
-    let Ok(socket) = std::env::var("EWE_SLAVE_SOCKET") else {
-        return;
-    };
-    let plain_root = std::env::var("EWE_SLAVE_PLAIN_ROOT").unwrap_or_else(|_| "/".to_string());
-    let threads: usize = std::env::var("EWE_SLAVE_THREADS")
-        .ok()
-        .and_then(|value| value.parse().ok())
-        .unwrap_or(8);
-    // The signal mask must be set before any thread starts: a new thread copies
-    // the mask of the thread that made it.
-    block_sigchld().expect("the slave blocks SIGCHLD");
-    std::mem::forget(initialize_pool(1, Some(threads)));
-    let args = SlaveArgs {
-        listen: ListenAddr::Unix {
-            path: PathBuf::from(socket),
-        },
-        control: false,
-        plain_root: PathBuf::from(plain_root),
-    };
-    let code = run(Ctx::host(), args);
-    std::process::exit(code);
-}
 
 /// A temporary directory that is removed on drop.
 pub struct TempDir {
@@ -118,12 +87,9 @@ impl SlaveProcess {
         let directory = TempDir::new(tag);
         let socket = directory.join("slave.sock");
         let plain_root = plain_root.unwrap_or_else(|| PathBuf::from("/"));
-        let program = std::env::current_exe().expect("the test program path");
+        // The driver blocks `SIGCHLD` in `main`, before any thread starts.
+        let program = env!("CARGO_BIN_EXE_slave_test_driver");
         let mut child = Command::new(program)
-            .arg("--exact")
-            .arg(SLAVE_ENTRY)
-            .arg("--test-threads=1")
-            .arg("--nocapture")
             .env("EWE_SLAVE_SOCKET", &socket)
             .env("EWE_SLAVE_PLAIN_ROOT", &plain_root)
             .env("EWE_SLAVE_THREADS", threads.to_string())

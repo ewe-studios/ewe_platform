@@ -582,13 +582,14 @@ impl Drop for SessionStream {
             self.session.mark_caller_gone();
             let _ = self.session.signal_group(libc::SIGKILL);
         }
-        // The identifier is free at once, so a new `Exec` may use it. A late
-        // signal is still accepted.
-        self.table.remove(&self.session.exec_id);
+        // Remember the identifier before the entry leaves the table: a signal
+        // that arrives between the two must find one of them.
         self.table.remember_finished(
             &self.session.exec_id,
             self.session.limits.max_exec_sessions as usize,
         );
+        // The identifier is free at once, so a new `Exec` may use it.
+        self.table.remove(&self.session.exec_id);
         self.session.sink.close();
         self.session.stop_pumps();
     }
@@ -939,6 +940,7 @@ async fn wait_for_start(status: &OwnedFd) -> SandboxResult<()> {
     let mut report = [0_u8; 8];
     let bytes = loop {
         super::wait::ready(Arc::clone(&readiness)).await;
+        readiness.clear();
         match sys::read(status.as_raw_fd(), &mut report) {
             Ok(bytes) => break bytes,
             Err(error) if error.kind() == io::ErrorKind::WouldBlock => {}
@@ -1145,7 +1147,7 @@ async fn output_pump(pipe: Arc<OwnedFd>, stdout: bool, session: Arc<Session>) {
     };
     let chunk = (session.limits.chunk_bytes as usize).clamp(1, EVENT_POLL_BYTES);
     let mut buffer = vec![0_u8; chunk];
-    loop {
+    'read: loop {
         let stop = Arc::clone(&session.stop);
         let state = Arc::clone(&session);
         if super::wait::ready_or_cancelled(Arc::clone(&readiness), stop, move || {
@@ -1155,24 +1157,31 @@ async fn output_pump(pipe: Arc<OwnedFd>, stdout: bool, session: Arc<Session>) {
         {
             break;
         }
-        match sys::read(pipe.as_raw_fd(), &mut buffer) {
-            Ok(0) => break,
-            Ok(bytes) => {
-                let data = buffer[..bytes].to_vec();
-                let kind = if stdout {
-                    ExecEventKind::Stdout { data }
-                } else {
-                    ExecEventKind::Stderr { data }
-                };
-                if !session.sink.send(kind).await {
-                    break;
+        // The edge this wait returned for. Clear it before the attempt, so an
+        // edge that arrives after a `WouldBlock` is not erased. The selector is
+        // edge-triggered, so the pipe is drained to `WouldBlock` before the
+        // next park; a partial read leaves data that emits no new edge.
+        readiness.clear();
+        loop {
+            match sys::read(pipe.as_raw_fd(), &mut buffer) {
+                Ok(0) => break 'read,
+                Ok(bytes) => {
+                    let data = buffer[..bytes].to_vec();
+                    let kind = if stdout {
+                        ExecEventKind::Stdout { data }
+                    } else {
+                        ExecEventKind::Stderr { data }
+                    };
+                    if !session.sink.send(kind).await {
+                        break 'read;
+                    }
                 }
-            }
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {}
-            Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
-            Err(error) => {
-                tracing::debug!(error = %error, "an output pipe ended with an error");
-                break;
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+                Err(error) => {
+                    tracing::debug!(error = %error, "an output pipe ended with an error");
+                    break 'read;
+                }
             }
         }
     }
@@ -1228,6 +1237,8 @@ async fn input_pump(pipe: Arc<OwnedFd>, session: Arc<Session>) {
                         broken = true;
                         break;
                     }
+                    // Clear the edge before the next write attempt.
+                    readiness.clear();
                 }
                 Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
                 Err(error) if error.raw_os_error() == Some(libc::EPIPE) => {
@@ -1271,8 +1282,8 @@ async fn exit_watch(session: Arc<Session>, table: Arc<SessionTable>) {
         session.mark_finished();
         session.sink.close();
         session.stop_pumps();
-        table.remove(&session.exec_id);
         table.remember_finished(&session.exec_id, session.limits.max_exec_sessions as usize);
+        table.remove(&session.exec_id);
         return;
     }
     if waited == ExitWait::TimedOut {
@@ -1286,8 +1297,8 @@ async fn exit_watch(session: Arc<Session>, table: Arc<SessionTable>) {
         .await;
     session.sink.close();
     session.mark_finished();
-    table.remove(&session.exec_id);
     table.remember_finished(&session.exec_id, session.limits.max_exec_sessions as usize);
+    table.remove(&session.exec_id);
     session.stop_pumps();
 }
 
@@ -1322,12 +1333,18 @@ async fn wait_for_exit(session: &Arc<Session>) -> ExitWait {
         //   sink's `room` signal, so this branch does not poll.
         let wait = super::wait::until(changed, move || {
             let snapshot = state.snapshot();
-            if snapshot.caller_gone || snapshot.streams_done() {
+            if snapshot.caller_gone {
                 return true;
             }
             match deadline {
+                // Without a deadline the exit status is the only change this
+                // wait acts on. A finished stream alone must not wake it: the
+                // exit has not arrived, and a wake would spin.
                 None => snapshot.exit.is_some(),
-                Some(deadline) => state.ctx.clock().now() >= deadline && state.sink.has_room(),
+                Some(deadline) => {
+                    snapshot.streams_done()
+                        || (state.ctx.clock().now() >= deadline && state.sink.has_room())
+                }
             }
         });
         match deadline {
