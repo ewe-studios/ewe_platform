@@ -85,6 +85,13 @@ pub trait ExecHandleOps: Send + Sync + 'static {
 
     /// Waits for the program and reads and discards its output.
     fn wait(&self) -> BoxFuture<'_, SandboxResult<ExitStatus>>;
+
+    /// Whether the command passed its time limit.
+    ///
+    /// The default is `false` for a handle that has no timer.
+    fn timed_out(&self) -> bool {
+        false
+    }
 }
 
 /// A handle to one running program.
@@ -139,6 +146,12 @@ impl ExecHandle {
     /// passed its time limit, or the error of the slave call.
     pub async fn wait(self) -> SandboxResult<ExitStatus> {
         self.ops.wait().await
+    }
+
+    /// Whether the command passed its time limit.
+    #[must_use]
+    pub fn timed_out(&self) -> bool {
+        self.ops.timed_out()
     }
 }
 

@@ -730,12 +730,18 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 | I13, "A substrate that dies ..." | `substrate_exit_fails_sandbox` | fault |
 | I12, "Dropping a command handle ..." | `drop_exec_handle` | expected outcome |
 | I15, "The same seed gives the same trace" | `same_seed_same_trace` | identity |
-| the restart, drop, fixed id, limit, input and read scenarios above | `restore_ready_record`, `restore_dead_substrate`, `drop_detach`, `drop_kill_all`, `fixed_id`, `max_sandboxes`, `stdin_gives_up`, `read_file_gap`, `stdin_bytes_mode`, `run_with_timeout`, `store_error_in_create_fails`, `store_error_after_ready_is_logged` | expected outcome |
+| the restart, drop, fixed id, limit, input and read scenarios above | `restore_ready_record`, `restore_dead_substrate`, `drop_detach`, `drop_kill_all`, `drop_create_receiver_cancels`, `drop_create_future_cancels`, `fixed_id`, `max_sandboxes`, `stdin_gives_up`, `read_file_gap`, `stdin_bytes_mode`, `run_with_timeout`, `store_error_in_create_fails`, `store_error_after_ready_is_logged` | expected outcome |
 | `restore`, more cases (section 6.2) | `restore_ready_record`, `restore_dead_substrate`, `restore_unprepared_slave`, `restore_unfinished_record` (one for `Creating`, one for `Stopping`), `restore_twice`; `fixed_id` (the sandbox ID is the configured one; a second create fails with `TooManySessions`) | expected outcome |
-| law L11 of the requirements (the same outcome through the library and through RPC) | `rpc_parity_sim`: every simulation scenario of this table that uses a `SandboxHandle` runs a second time through `SandboxRpcClient` + `ControlService` over the pipe connection, and the outcomes are equal; `rpc_error_variants` (each `SandboxError` variant that a control call can return keeps its variant and fields); `rpc_create_dropped_cleans_up` | differential, identity, fault |
+| law L11 of the requirements (the same outcome through the library and through RPC) | `rpc_parity_sim`: every simulation scenario of this table that uses a `SandboxHandle` runs a second time through `SandboxRpcClient` + `ControlService` over the pipe connection, and the outcomes are equal; `rpc_error_variants` (each `SandboxError` variant that a control call can return keeps its variant and fields) | differential, identity, fault |
 | `authorize` | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | expected outcome |
 | `SandboxManager::containers` | `manager_containers` (a `SimDriver` with no control gives `None`; a driver with a fake control gives it; the first driver in order wins) | expected outcome |
 | I16 | the wasm check in section 8; `no_os_calls` (a source scan of `src/shared/control/`) | build, example |
+
+Dropping the create receiver or the create future cancels the create.
+`drop_create_receiver_cancels` and `drop_create_future_cancels` prove it: the
+launched substrate gets `kill` and `cleanup`, and the record leaves the registry.
+Issue [#852](https://github.com/ewe-studios/ewe_platform/issues/852)
+(severity: high) recorded the defect that these tests close.
 
 Real slave process (`control_slave_process_*.rs`, Linux, features `slave` and `testing`). A
 test driver, `ProcessDriver` (in `tests/support/`), starts the slave test program of

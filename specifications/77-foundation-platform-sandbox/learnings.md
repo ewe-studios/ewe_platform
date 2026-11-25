@@ -911,3 +911,101 @@ listen, `accept4` and `fcntl`) and in `pid1.rs` (the console write of a failed p
 They are now `sys::vsock_listen`, `sys::accept_stream`, `sys::set_nonblocking_mode` and
 `sys::write`. A review found this. The check is `grep -rn unsafe src/native/slave/`: only
 `sys.rs` and the fork child block of `exec.rs` may appear.
+
+## 13. Feature 02 implementation findings (2026-11-25)
+
+### 13.1 The task context is not the manager context
+
+The `#[task]` transition receives the context of the executor that drives it, not
+the context of the manager. `execute(task, None)` seeds the task from the pool root,
+which has a real clock and a real timer. A create that read `ctx.clock()` or
+`ctx.require_env()` from that argument waited on real time and gave a real creation
+time, so the deterministic tests could not control it. The transition now ignores
+the argument and reads `task.inner.ctx`. The same rule applies to the remote create
+task in `service.rs`: it reads `task.ctx`. A later task that needs effects takes its
+context from the state, not from the argument.
+
+### 13.2 Unary deadlines do not belong on a stream
+
+The first version gave `Exec` and `FileRead` the `rpc_timeout` deadline, as a unary
+call has. The deadline is absolute on the injected clock, so a test that moved the
+clock past `rpc_timeout` to fire a command timeout also ended the event stream with
+`DeadlineExceeded`, and `events()` reported `StreamLost`. A stream has no unary
+deadline: its caller ends it, or the slave does. `SlaveClient` and the scoped client
+use a context without a deadline for `Exec` and `FileRead`.
+
+### 13.3 The in-memory transport must stream
+
+`ConnectRpcHandler::dispatch` collects a streaming response in memory. A
+server-streaming call whose handler waits for a signal then never completes inside
+`dispatch`, so the client never receives the first event and the test deadlocks. The
+test transport calls `dispatch_to` with a `ResponseSink` that writes the head and
+each frame into the response pipe as the handler produces it. The request body is a
+`RequestBody` over the request pipe. The same transport now serves unary and
+streaming calls.
+
+### 13.4 The Connect client dropped error details (issue #850)
+
+The unary client rebuilt a server error from `WireError.code` and `WireError.message`
+and dropped `details`. The streaming path did the same in `wire_error_to_trace`. A
+typed `SandboxError` therefore arrived as `SandboxError::Rpc`, which breaks law L11.
+Both paths now rebuild each detail with `WireErrorDetail::to_detail()` and add it to
+the error. The fix is in `foundation_connectrpc`; the control-plane test
+`rpc_error_variants` covers the unary case.
+
+### 13.5 A timer is the `Env` timer, not `valtron::sleep_until`
+
+`foundation_core::valtron::sleep_until` is re-exported from the executor module: it
+returns a `Result<DrivenStreamIterator<SleepingTask>>`, not a future, and the
+`timer` module is native-only. The control plane waits on
+`ctx.require_env()?.timer().sleep_until(ctx.clone(), deadline)`, which is the same
+injected timer on native and on wasm and never reads the real clock. A missing
+`Env` is `HostNotConfigured`.
+
+### 13.6 Send on wasm
+
+The connectrpc client futures and `ServerStream` are `!Send` on single-threaded
+wasm when the `multi` feature is off. The crate keeps the `Send` bound on every
+public future and stream. On wasm it wraps the future in
+`foundation_compact::SendWrapper` (`send_box`) and the stream in `SendStream`. On
+native the wrapper is transparent, so the value must be `Send` already. Native
+builds enable `foundation_core/multi` in a target-specific dependency table; the
+wasm build keeps the one-thread executor.
+
+### 13.7 The pool is shared and a leaked task starves it
+
+The test binary starts one valtron pool with four workers. A gated `Exec` stream
+whose gate is never released, or a create task that waits for an `Info` that never
+answers, holds a worker forever. The tests release each gate, end each waiting
+create with a clock advance, and use a streaming transport that ends its dispatch
+task. `cargo test` must run the control tests with `--test-threads=1`: the
+`ControlService` create stream drives a blocking iterator, and several such calls
+at once can exhaust the pool.
+
+**Measured at review (2026-11-25).** Dropping the `CreateStream` receiver does not
+drop the `#[task]` state machine. `execute` schedules the task on the pool and
+returns a receiver; dropping the receiver closes the result queue and leaves the
+task to run. A create over a slave that never answers `Info` keeps one worker until
+the boot deadline, and a substrate that the create already launched stays alive.
+Issue #852 (severity: high) records this. The fix is a cancellation signal that the
+receiver owns, or a guard on the receiver that starts the kill and the removal on
+drop. The feature test `rpc_create_dropped_cleans_up` waits for that fix.
+
+The review also added a small stateful model test. It draws a random op list, runs
+it against one manager, and compares each step with the state table: `Exec` only
+while `Ready`; `Stop` and `Kill` idempotent and the first report wins; a substrate
+exit moves the record to `Stopped` through the watcher; `get` and `list` follow the
+registry. The test keeps the value of a stateful oracle without a second model type.
+
+**Fixed in this change (2026-11-25, issue #852).** The fix is option 1, a
+receiver-owned guard, because it keeps the change in `foundation_sandbox` and
+does not change `foundation_core`'s public behaviour. `CreateGuard` holds the
+cancel flag, the wakers and the record slot. The `GuardedCreateIterator` that
+the caller receives and the `create_ready` future hold an `Arc<CreateGuard>`
+and call `cancel()` on drop. `cancel()` marks the create cancelled, wakes the
+task's cancellation future, and moves the record to a background `kill_record`.
+`AwaitSlave` and `Prepare` select on that future, so the worker leaves its wait
+at once. `CreateTask::drop` also calls `cancel`. The final result calls
+`finish()`, which disarms the guard for a later drop. The tests
+`drop_create_receiver_cancels` and `drop_create_future_cancels` fail on
+`befb4397d` and pass after the fix.
