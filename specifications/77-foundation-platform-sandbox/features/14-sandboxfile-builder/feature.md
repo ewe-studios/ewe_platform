@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "3"
 depends_on: ["13-container-image-source"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 14: The `Sandboxfile` builder
@@ -443,9 +443,9 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "images testing slave" --profile uat sandboxfile_ build_
-cargo test -p foundation_platform_sandbox --features "images testing slave" --profile uat e2e_images -- --nocapture
+cargo clippy -p foundation_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "images testing slave" --profile uat sandboxfile_ build_
+cargo test -p foundation_sandbox --features "images testing slave" --profile uat e2e_images -- --nocapture
 ```
 
 ## 9. Done when

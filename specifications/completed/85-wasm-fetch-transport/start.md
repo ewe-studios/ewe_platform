@@ -44,7 +44,7 @@ builders, the DO stub client), `foundation_http` (the two wasm bridges), `founda
 under the pinned Deno. It passes `--no-default-features` on wasm32 (`build.rs:273-276`), so
 `foundation_netio` needs no new crate. `foundation_connectrpc` does: `foundation_core` with
 `multi` is a hard error on wasm32 (`foundation_core/src/lib.rs:20`). The suite ran on
-2026-11-15: five tests found, four pass, one hangs (#565). Do not touch `foundation_platform_sandbox` or `foundation_agent_rpc`: their
+2026-11-15: five tests found, four pass, one hangs (#565). Do not touch `foundation_sandbox` or `foundation_agent_rpc`: their
 specs record the dependency and do their own change.
 
 **Root rules that decide the hard cases:** rule 4 (stream, do not buffer), rule 6 (async all

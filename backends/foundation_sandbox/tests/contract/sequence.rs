@@ -2,7 +2,7 @@
 
 use std::cmp::Ordering;
 
-use foundation_platform_sandbox::shared::sequence::{Sequence, SequenceCheck};
+use foundation_sandbox::shared::sequence::{Sequence, SequenceCheck};
 use proptest::prelude::*;
 
 use super::common;

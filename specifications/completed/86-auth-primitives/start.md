@@ -29,7 +29,7 @@ created: 2026-11-15
 **Order:** T2 → T1 → T3 → T4 → T5 → T6.
 
 **Owned crates:** `foundation_auth` and the `auth` module of `foundation_connectrpc`. Do not
-change `foundation_platform_sandbox`, `foundation_agent_rpc` or `foundation_proxy`: their specs
+change `foundation_sandbox`, `foundation_agent_rpc` or `foundation_proxy`: their specs
 record the dependency and do their own change.
 
 **Version:** `foundation_auth` moves one minor version. Every crate that takes the new

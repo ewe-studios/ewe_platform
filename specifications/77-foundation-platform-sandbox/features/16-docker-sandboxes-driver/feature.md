@@ -5,7 +5,7 @@ priority: "low"
 model: "sonnet"
 phase: "later"
 depends_on: ["06-programs-rpc-provider", "10-docker-driver"]
-crates: ["foundation_platform_sandbox", "foundation_deployment_platform"]
+crates: ["foundation_sandbox", "foundation_deployment_platform"]
 ---
 
 # Feature 16: The driver for the Docker Sandboxes product (`sbx`)
@@ -465,11 +465,11 @@ adds no key to `ci/packages.toml`.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "docker-sbx testing" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "docker-sbx testing" --profile uat sbx_
+cargo clippy -p foundation_sandbox --features "docker-sbx testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "docker-sbx testing" --profile uat sbx_
 cargo test -p foundation_deployment_platform --profile uat provider_docker_sbx_sim
 mise run sandbox:slave
-EWE_SANDBOX_SLAVE=<slave path> cargo test -p foundation_platform_sandbox --features "docker-sbx testing" --profile uat e2e_sbx -- --nocapture
+EWE_SANDBOX_SLAVE=<slave path> cargo test -p foundation_sandbox --features "docker-sbx testing" --profile uat e2e_sbx -- --nocapture
 ```
 
 ## 9. Done when
