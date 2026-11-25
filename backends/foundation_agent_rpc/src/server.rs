@@ -31,7 +31,7 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 
 use crate::auth::{tls_listeners, EnrollmentService, MtlsConfig};
-use crate::bootstrap::{BootstrapPayload, PAYLOAD_VERSION};
+use crate::bootstrap::BootstrapPayload;
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::instance::{InstanceRegistry, RegistryConfig};
 use crate::model::ModelHandle;
@@ -409,23 +409,22 @@ impl RunningServer {
     /// # Errors
     /// [`AgentRpcError::Config`] for a plaintext server.
     pub fn payload_with(&self, secret: &SignedSecret) -> AgentRpcResult<BootstrapPayload> {
-        let (Some(tls), Some(bootstrap_addr)) = (&self.tls, self.bootstrap_addr) else {
+        let (Some(tls), Some(bootstrap_url)) = (&self.tls, self.bootstrap_url()) else {
             return Err(AgentRpcError::Config(
                 "a plaintext server has no bootstrap payload".into(),
             )
             .into());
         };
         Ok(BootstrapPayload {
-            version: PAYLOAD_VERSION,
-            addr: self.addr.to_string(),
-            bootstrap_addr: bootstrap_addr.to_string(),
+            url: self.base_url(),
+            enroll_url: bootstrap_url,
             tls_fingerprint_sha256: tls.fingerprint_sha256.clone(),
             token: secret.encode().to_string(),
             capabilities: Capabilities {
                 // One listener serves all three (h1: Connect, gRPC-Web; h2: gRPC).
                 protocols: vec!["connect".into(), "grpc".into(), "grpc-web".into()],
                 models: self.models.clone(),
-                auth_mode: "mtls".into(),
+                auth_modes: vec!["mtls".into()],
                 ..Default::default()
             }
             .into(),

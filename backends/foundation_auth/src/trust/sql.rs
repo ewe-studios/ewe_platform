@@ -8,7 +8,7 @@ use foundation_db::{DataValue, QueryStore, SqlRow};
 use futures_util::StreamExt;
 
 use super::client::{
-    SecretUse, TrustError, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
+    ClientKeyRecord, SecretUse, TrustError, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
     TrustedClientStream, UseOutcome,
 };
 
@@ -64,6 +64,8 @@ impl<Q: QueryStore + ?Sized + 'static> SqlTrustStore<Q> {
         let client_ids = self.table("trusted_client_ids");
         let uses = self.table("bootstrap_secret_uses");
         let revoked = self.table("revoked_secrets");
+        let keys = self.table("client_keys");
+        let nonces = self.table("refresh_nonces");
         format!(
             "CREATE TABLE IF NOT EXISTS {clients} (
                 fingerprint TEXT PRIMARY KEY,
@@ -87,6 +89,17 @@ impl<Q: QueryStore + ?Sized + 'static> SqlTrustStore<Q> {
                 secret_id TEXT PRIMARY KEY,
                 revoked_at INTEGER NOT NULL,
                 valid_until INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS {keys} (
+                client_id TEXT PRIMARY KEY,
+                alg TEXT NOT NULL,
+                public_key BLOB NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS {nonces} (
+                client_id TEXT NOT NULL,
+                nonce BLOB NOT NULL,
+                seen_at INTEGER NOT NULL,
+                PRIMARY KEY (client_id, nonce)
             );"
         )
     }
@@ -318,6 +331,83 @@ impl<Q: QueryStore + ?Sized + 'static> TrustStore for SqlTrustStore<Q> {
         })
     }
 
+    fn record_client_key<'a>(
+        &'a self,
+        client_id: &'a str,
+        key: &'a ClientKeyRecord,
+    ) -> TrustFuture<'a, ()> {
+        Box::pin(async move {
+            let sql = format!(
+                "INSERT INTO {} (client_id, alg, public_key) VALUES (?, ?, ?)",
+                self.table("client_keys")
+            );
+            self.storage
+                .execute(
+                    &sql,
+                    &[
+                        DataValue::Text(client_id.to_string()),
+                        DataValue::Text(key.alg.clone()),
+                        DataValue::Blob(key.public_key.clone()),
+                    ],
+                )
+                .await
+                .map_err(Self::storage_error)?;
+            Ok(())
+        })
+    }
+
+    fn client_key<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<ClientKeyRecord>> {
+        Box::pin(async move {
+            let sql = format!(
+                "SELECT alg, public_key FROM {} WHERE client_id = ?",
+                self.table("client_keys")
+            );
+            let mut rows = self
+                .storage
+                .query(&sql, &[DataValue::Text(client_id.to_string())])
+                .await
+                .map_err(Self::storage_error)?;
+            match rows.next().await {
+                Some(row) => {
+                    let row = row.map_err(Self::storage_error)?;
+                    Ok(Some(ClientKeyRecord {
+                        alg: row.get(0).map_err(Self::storage_error)?,
+                        public_key: row.get(1).map_err(Self::storage_error)?,
+                    }))
+                }
+                None => Ok(None),
+            }
+        })
+    }
+
+    fn consume_refresh_nonce<'a>(
+        &'a self,
+        client_id: &'a str,
+        nonce: &'a [u8],
+        at: u64,
+    ) -> TrustFuture<'a, bool> {
+        Box::pin(async move {
+            let sql = format!(
+                "INSERT INTO {} (client_id, nonce, seen_at) VALUES (?, ?, ?) \
+                 ON CONFLICT (client_id, nonce) DO NOTHING",
+                self.table("refresh_nonces")
+            );
+            let changed = self
+                .storage
+                .execute(
+                    &sql,
+                    &[
+                        DataValue::Text(client_id.to_string()),
+                        DataValue::Blob(nonce.to_vec()),
+                        int(at),
+                    ],
+                )
+                .await
+                .map_err(Self::storage_error)?;
+            Ok(changed > 0)
+        })
+    }
+
     fn mark_seen<'a>(&'a self, fingerprint: &'a str, at: u64) -> TrustFuture<'a, ()> {
         Box::pin(async move {
             let sql = format!(
@@ -421,6 +511,15 @@ impl<Q: QueryStore + ?Sized + 'static> TrustStore for SqlTrustStore<Q> {
                     .await
                     .map_err(Self::storage_error)?;
             }
+            let sql = format!(
+                "DELETE FROM {} WHERE seen_at < ?",
+                self.table("refresh_nonces")
+            );
+            removed += self
+                .storage
+                .execute(&sql, &[int(cutoff)])
+                .await
+                .map_err(Self::storage_error)?;
             Ok(removed)
         })
     }

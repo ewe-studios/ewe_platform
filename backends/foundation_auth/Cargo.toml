@@ -81,7 +81,7 @@ webauthn-rs = { version = "0.5", optional = true, features = ["danger-allow-stat
 # OpenSSL 3 installation. `webauthn-rs` pulls the same `openssl` version, so this
 # declaration only adds the `vendored` feature to the unified build.
 openssl = { version = "0.10", features = ["vendored"], optional = true }
-url = { version = "2", optional = true }
+url = { workspace = true, optional = true }
 
 # Wasm-bindgen OAuth support (gated behind wasm-bindgen-oauth feature)
 wasm-bindgen = { version = "0.2", optional = true }

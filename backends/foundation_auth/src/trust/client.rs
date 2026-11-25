@@ -44,6 +44,15 @@ impl TrustedClient {
     }
 }
 
+/// The public key of a client-key enrollment.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ClientKeyRecord {
+    /// The algorithm name: `ed25519` or `p256`.
+    pub alg: String,
+    /// The raw public key bytes.
+    pub public_key: Vec<u8>,
+}
+
 /// One use of a secret to record.
 #[derive(Debug, Clone, Copy)]
 pub struct SecretUse<'a> {
@@ -99,6 +108,25 @@ pub trait TrustStore: Send + Sync + 'static {
         client: &'a TrustedClient,
         cert_pem: &'a str,
     ) -> TrustFuture<'a, ()>;
+
+    /// Record the public key of a client-key enrollment.
+    fn record_client_key<'a>(
+        &'a self,
+        client_id: &'a str,
+        key: &'a ClientKeyRecord,
+    ) -> TrustFuture<'a, ()>;
+
+    /// The public key of a client-key enrollment.
+    fn client_key<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<ClientKeyRecord>>;
+
+    /// Record one refresh nonce. The result is `true` for the first use of the
+    /// nonce, and `false` for a replay.
+    fn consume_refresh_nonce<'a>(
+        &'a self,
+        client_id: &'a str,
+        nonce: &'a [u8],
+        at: u64,
+    ) -> TrustFuture<'a, bool>;
 
     /// Revoke a client at `at` (Unix seconds). The result says whether a client
     /// changed from active to revoked.
