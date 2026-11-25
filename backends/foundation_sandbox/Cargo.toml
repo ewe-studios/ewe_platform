@@ -46,10 +46,10 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-f
 # The control plane runs its tasks and its watchers on the shared thread pool.
 # The feature is native only: single-threaded wasm keeps the one-thread executor.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false, features = ["netio-core"] }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18", default-features = false, features = ["netio-core"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18", default-features = false }
 
 [dev-dependencies]
 # The workspace holds one `proptest` version for every crate (spec 77 rule).
@@ -69,7 +69,7 @@ foundation_reactor = { path = "../foundation_reactor", version = "0.0.5", option
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", default-features = false, features = ["fd"], optional = true }
 # The HTTP/1.1 server and the UDS/TCP client. `default-features = false`: no
 # TLS, so the static musl slave links without a C compiler.
-foundation_http = { path = "../foundation_http", version = "0.0.16", default-features = false, features = ["netio-core"], optional = true }
+foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, features = ["netio-core"], optional = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, optional = true }
 # `fork`, `execve`, `mount`, `signalfd`, `openat2` and the other system calls.
 libc = { version = "0.2", optional = true }

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `rpc_multi` enables `foundation_http/multi`, so the wasm `rpc` build stays free of `foundation_core/multi`.
+
 ## [0.0.16](https://github.com/ewe-studios/ewe_platform/compare/foundation_connectrpc-v0.0.13...foundation_connectrpc-v0.0.16) - 2026-11-24
 
 ### Added

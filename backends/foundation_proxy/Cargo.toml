@@ -13,7 +13,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
-foundation_http = { path = "../foundation_http", version = "0.0.16", features = ["multi", "ssl"] }
+foundation_http = { path = "../foundation_http", version = "0.0.17", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 foundation_iogate = { path = "../foundation_iogate", version = "0.0.7" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", features = ["fd"] }
@@ -24,7 +24,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # `default-features = false` keeps it lean: we only need the transport seam.
 # `rpc_multi` adds the server side (Router, ConnectRpcServe) and the threaded
 # valtron executor that the registration listener runs on.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false, features = ["rpc_multi"] }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18", default-features = false, features = ["rpc_multi"] }
 # Registration authority security parts (spec 81 / 87): signed enrollment
 # secrets, the certificate authority, the trust store and the mutual-TLS (mTLS)
 # verifier and configuration builders. Public API only; this crate adds no copy.

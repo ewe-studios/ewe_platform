@@ -375,7 +375,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "async-trait",
  "base64",

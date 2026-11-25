@@ -1009,7 +1009,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_connectrpc"
-version = "0.0.17"
+version = "0.0.18"
 dependencies = [
  "base64",
  "brotli 8.0.4",
@@ -1137,7 +1137,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_http"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "async-trait",
  "base64",
