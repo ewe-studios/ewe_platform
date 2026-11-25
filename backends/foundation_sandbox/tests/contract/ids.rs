@@ -4,9 +4,9 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use foundation_context::Ctx;
-use foundation_platform_sandbox::shared::container::ContainerId;
-use foundation_platform_sandbox::shared::error::SandboxError;
-use foundation_platform_sandbox::shared::ids::{check_socket_path, ExecId, SandboxId, UploadId};
+use foundation_sandbox::shared::container::ContainerId;
+use foundation_sandbox::shared::error::SandboxError;
+use foundation_sandbox::shared::ids::{check_socket_path, ExecId, SandboxId, UploadId};
 
 use super::common;
 

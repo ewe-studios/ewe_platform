@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["01-slave-core", "02-control-plane-core", "03-guest-artifacts", "04-firecracker-api-client"]
-crates: ["foundation_platform_sandbox", "foundation_netio"]
+crates: ["foundation_sandbox", "foundation_netio"]
 ---
 
 # Feature 05: The Firecracker driver and the native side effects
@@ -571,7 +571,7 @@ value; the boundary passes the real environment reader, tests pass a map.
 part wraps the `Ctx` with the handles it has. This part adds `NativePlatform`:
 
 ```rust
-// foundation_platform_sandbox/src/native/platform.rs
+// foundation_sandbox/src/native/platform.rs
 pub struct NativePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -599,7 +599,7 @@ decides the substrate and the wrapper does not.
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/`. Each scenario of section 5 is one test.
+`backends/foundation_sandbox/tests/`. Each scenario of section 5 is one test.
 
 No VM (`firecracker_sim_*.rs`): `SimulatedClock`, a fake `ProcessSpawner` and `HostFs` from
 the `testing` module, a `FakeFirecrackerApi` that records calls.
@@ -661,12 +661,12 @@ plus:
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox -p foundation_netio --all-targets --profile uat --no-deps -- -D warnings
+cargo clippy -p foundation_sandbox -p foundation_netio --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_netio --profile uat unix_socket_preamble
-cargo test -p foundation_platform_sandbox --features testing --profile uat firecracker_sim native_host
+cargo test -p foundation_sandbox --features testing --profile uat firecracker_sim native_host
 cargo build -p agent_slave --profile agent --target x86_64-unknown-linux-musl   # the program of feature 06
 EWE_SANDBOX_SLAVE=<slave path> EWE_FIRECRACKER=<firecracker path> \
-  cargo test -p foundation_platform_sandbox --features testing --profile uat e2e_firecracker -- --nocapture
+  cargo test -p foundation_sandbox --features testing --profile uat e2e_firecracker -- --nocapture
 ```
 
 The slave program of feature 06 is a three-line `main`. Until feature 06 lands, build the

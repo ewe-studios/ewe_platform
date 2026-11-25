@@ -1,10 +1,10 @@
 //! I5: every error variant keeps its type and its Connect code over RPC.
 
 use foundation_connectrpc::{Code, ConnectError};
-use foundation_platform_sandbox::shared::driver::{Capabilities, HostCheck, HostReport};
-use foundation_platform_sandbox::shared::error::{SandboxError, SlaveErrorCode};
-use foundation_platform_sandbox::shared::ids::DriverId;
-use foundation_platform_sandbox::shared::platform::PlatformKind;
+use foundation_sandbox::shared::driver::{Capabilities, HostCheck, HostReport};
+use foundation_sandbox::shared::error::{SandboxError, SlaveErrorCode};
+use foundation_sandbox::shared::ids::DriverId;
+use foundation_sandbox::shared::platform::PlatformKind;
 use proptest::prelude::*;
 
 use super::common;

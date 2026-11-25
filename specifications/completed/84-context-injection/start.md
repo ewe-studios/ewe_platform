@@ -28,7 +28,7 @@ T2. T4 needs T2 and T3. T5 needs T2 and T3. T6 is last.
 
 **Owned crates:** `foundation_context`, `foundation_core`, `foundation_macros`,
 `foundation_ai`, `foundation_connectrpc` (only the deadline read), and the six `clippy.toml`
-files. Do not change `foundation_auth`, `foundation_platform_sandbox` or `foundation_http` in
+files. Do not change `foundation_auth`, `foundation_sandbox` or `foundation_http` in
 this specification; their specs record the dependency and do their own change.
 
 **Workflow:** Requirements → Select task → Implement → Report → Verify → Commit → Update

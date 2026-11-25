@@ -742,7 +742,7 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does not compile. Remove this opt-out when the issue is fixed."
 
-[packages.foundation_platform_sandbox]
+[packages.foundation_sandbox]
 # The contract compiles on every target. `control` and `firecracker` are the
 # default features; their code lands in features 02 and 05.
 wasm = "enforce"

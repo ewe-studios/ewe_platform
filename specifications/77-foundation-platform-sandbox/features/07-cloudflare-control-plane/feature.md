@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["01-slave-core", "02-control-plane-core"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 07: The control plane on Cloudflare (library part)
@@ -410,7 +410,7 @@ adapter holds its value inside `foundation_compact::SendWrapper`, the same seam 
 on single-threaded wasm and does not compile with the wasm `atomics` target feature.
 
 ```rust
-// foundation_platform_sandbox/src/cloudflare/mod.rs — wasm32 with the `cloudflare` feature
+// foundation_sandbox/src/cloudflare/mod.rs — wasm32 with the `cloudflare` feature
 
 /// `ContainerApi` over the DO's `worker::Container`. The container binding is a JS object.
 pub struct WorkerContainer(SendWrapper<worker::Container>);
@@ -488,7 +488,7 @@ gets no change, and each part wraps the `Ctx` with the handles it has. This part
 `ContainerApi`, so only `WorkerContainer` and the other `worker` types are wasm-only.
 
 ```rust
-// foundation_platform_sandbox/src/shared/cloudflare/platform.rs
+// foundation_sandbox/src/shared/cloudflare/platform.rs
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -677,7 +677,7 @@ failed; `List` in feature 08 removes an entry whose DO answers `NotFound`.
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/cloudflare_*.rs`, native, features `testing`.
+`backends/foundation_sandbox/tests/cloudflare_*.rs`, native, features `testing`.
 Each scenario of section 5 is one test.
 
 | Law or scenario | Test | Oracle |
@@ -710,11 +710,36 @@ Each scenario of section 5 is one test.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "testing slave" --profile uat cloudflare_ control_sim
-cargo check -p foundation_platform_sandbox --no-default-features --features "control cloudflare" --profile uat
-cargo check -p foundation_platform_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
+cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "testing slave" --profile uat cloudflare_ control_sim
+cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --profile uat
+cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
 ```
+
+### 6.10 The slave may be another Durable Object (decision D16)
+
+A Cloudflare sandbox does not always need a container. The slave can be a second Durable
+Object that answers the same `SlaveService`:
+
+- `DoSlaveConnector`: a `SlaveConnector` over a service binding. Each call is
+  `stub.fetch("https://slave.rpc/<Service>/<Method>")` in Connect framing, exactly like
+  `ContainerPortTransport`, so the control-plane core does not change.
+- `ModelSlave`: the code inside that DO. It runs one turn against OpenRouter or the
+  Cloudflare Model API, and maps `exec` to one turn: the program and its arguments become
+  the prompt, and the model's answer becomes stdout. `write_file` and `read_file` keep a
+  small file table in the DO's storage.
+- `CloudflareDoDriver` (driver id `cloudflare-do`): a `SandboxDriver` whose `launch` returns
+  the endpoint of the slave DO instead of starting a container. It has no `ContainerControl`.
+
+**Limits, stated plainly.** This substrate gives no operating-system isolation. The model
+never runs a program; it answers text. It exists so a model runtime is reachable through the
+same `SandboxService` and the same `Provider` surface as an isolated sandbox, which is what
+an agent that has no other execution target needs. A spec that needs a real command result
+uses a container or a microVM.
+
+**Where the Worker code is.** The two DO classes (`control`, `slave`) are feature 08's
+Worker: it hosts both substrates and selects one from the `SandboxSpec`. The library part
+above is tested on a native host with a fake service binding.
 
 ## 9. Done when
 

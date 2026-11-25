@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: []
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 00: The contract (domain types and the two RPC services)
@@ -21,7 +21,7 @@ ASD-STE100.
 
 ## 1. Goal
 
-Create `backends/foundation_platform_sandbox` with everything that the other features agree
+Create `backends/foundation_sandbox` with everything that the other features agree
 on: the domain types, the error type, the limits, the two RPC service definitions, and the
 traits that drivers, side effects and the control plane implement. No behaviour that needs
 an operating system. The crate compiles for native targets and for
@@ -221,7 +221,7 @@ Feature: Contract
 
 ### 6.1 Crate
 
-`backends/foundation_platform_sandbox`, version `0.0.1`, workspace edition, lints and
+`backends/foundation_sandbox`, version `0.0.1`, workspace edition, lints and
 licence.
 
 | Cargo feature | Adds | Default |
@@ -889,7 +889,7 @@ Rules:
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/contract_*.rs`. Property tests use
+`backends/foundation_sandbox/tests/contract_*.rs`. Property tests use
 `proptest` (latest stable, a dev-dependency of this crate) with a fixed seed in one
 `ProptestConfig` per test file. `foundation_core` has no property-test crate; its
 dev-dependencies are not transitive, so this crate declares its own.
@@ -919,10 +919,10 @@ dev-dependencies are not transitive, so this crate declares its own.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --profile uat contract
-cargo check -p foundation_platform_sandbox --no-default-features --target wasm32-unknown-unknown --profile uat
-cargo check -p foundation_platform_sandbox --no-default-features --target x86_64-unknown-linux-musl --profile uat
+cargo clippy -p foundation_sandbox --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --profile uat contract
+cargo check -p foundation_sandbox --no-default-features --target wasm32-unknown-unknown --profile uat
+cargo check -p foundation_sandbox --no-default-features --target x86_64-unknown-linux-musl --profile uat
 ```
 
 ## 9. Done when

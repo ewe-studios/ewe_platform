@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["06-programs-rpc-provider"]
-crates: ["foundation_platform_sandbox", "foundation_deployment_platform"]
+crates: ["foundation_sandbox", "foundation_deployment_platform"]
 ---
 
 # Feature 10: The Docker driver, and the control plane in a container
@@ -349,7 +349,7 @@ This part adds `DockerPlatform` (requirements section 6.0). A Docker host builds
 caller takes `&DockerPlatform`:
 
 ```rust
-// foundation_platform_sandbox/src/native/platform.rs
+// foundation_sandbox/src/native/platform.rs
 pub struct DockerPlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -462,10 +462,10 @@ The real-daemon tests run in the existing Docker CI workflow
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "docker testing" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "docker testing" --profile uat docker_sim native_host contract
+cargo clippy -p foundation_sandbox --features "docker testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "docker testing" --profile uat docker_sim native_host contract
 mise run sandbox:slave
-EWE_SANDBOX_SLAVE=<slave path> cargo test -p foundation_platform_sandbox --features "docker testing" --profile uat e2e_docker -- --nocapture
+EWE_SANDBOX_SLAVE=<slave path> cargo test -p foundation_sandbox --features "docker testing" --profile uat e2e_docker -- --nocapture
 infrastructure/sandbox_control_image/test/run.sh
 ```
 

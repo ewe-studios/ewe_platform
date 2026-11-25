@@ -9,14 +9,14 @@
 
 use std::path::{Path, PathBuf};
 
-/// The crates with core logic. `foundation_platform_sandbox` is planned in spec
-/// 77 and has no crate yet, so it is not in this list.
+/// The crates with core logic.
 const CORES: &[&str] = &[
     "foundation_core",
     "foundation_auth",
     "foundation_connectrpc",
     "foundation_http",
     "foundation_ai",
+    "foundation_sandbox",
 ];
 
 /// The paths that core logic may not call.

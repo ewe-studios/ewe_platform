@@ -6,16 +6,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_connectrpc::Router;
-use foundation_platform_sandbox::shared::command::{
-    Command, ExecEvent, ExecOutput, ExitStatus, StdinMode,
-};
-use foundation_platform_sandbox::shared::control::{ExitReport, SandboxInfo, SandboxState};
-use foundation_platform_sandbox::shared::driver::{
-    Capabilities, CreateProgress, HostCheck, HostReport,
-};
-use foundation_platform_sandbox::shared::ids::DriverId;
-use foundation_platform_sandbox::shared::limits::SandboxLimits;
-use foundation_platform_sandbox::shared::rpc::messages::{
+use foundation_sandbox::shared::command::{Command, ExecEvent, ExecOutput, ExitStatus, StdinMode};
+use foundation_sandbox::shared::control::{ExitReport, SandboxInfo, SandboxState};
+use foundation_sandbox::shared::driver::{Capabilities, CreateProgress, HostCheck, HostReport};
+use foundation_sandbox::shared::ids::DriverId;
+use foundation_sandbox::shared::limits::SandboxLimits;
+use foundation_sandbox::shared::rpc::messages::{
     CreateEvent, CreateRequest, Empty, ExecEventKind, ExecEventMsg, ExecInputRequest,
     ExecInputResponse, ExecRequest, ExecSignalRequest, FileChunk, FileReadRequest,
     FileWriteAbortRequest, FileWriteBeginRequest, FileWriteBeginResponse, FileWriteChunkRequest,
@@ -23,11 +19,11 @@ use foundation_platform_sandbox::shared::rpc::messages::{
     ListResponse, PrepareRequest, PrepareResponse, ProbeResponse, SandboxRef, Scoped,
     ShutdownRequest, SlaveInfo, SlaveLimits,
 };
-use foundation_platform_sandbox::shared::rpc::{
+use foundation_sandbox::shared::rpc::{
     register_sandbox_service, register_slave_service, UnimplementedSandboxServiceHandler,
     UnimplementedSlaveServiceHandler,
 };
-use foundation_platform_sandbox::shared::spec::{
+use foundation_sandbox::shared::spec::{
     FsType, GuestArch, GuestMount, HostMount, ImageRef, KernelSource, NetworkMode, RootFs,
     RootMode, RootSetup, RootSource, SandboxSpec,
 };
@@ -97,6 +93,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
     });
     roundtrip(&ExitReport::default());
     roundtrip(&DriverId::CloudflareContainer);
+    roundtrip(&DriverId::CloudflareDo);
     roundtrip(&RootMode::ReadOnly);
     roundtrip(&NetworkMode::Host);
     roundtrip(&FsType::Squashfs);
