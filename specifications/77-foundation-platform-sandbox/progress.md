@@ -260,9 +260,34 @@ in three groups. The branch now carries:
   that arrives just after `Exit` is accepted. `signal_bad_number` drops its stream
   instead of draining a one-minute program.
 
-Open: `exec_output_property` can still stall on an intermittent lost wake in the
-shared HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and
-every typed-error check pass.
+Residual pass on 2026-11-26:
+
+- `stream_drop_kills` passes now. The HTTP/1.1 transport in `foundation_connectrpc`
+  ends the exchange when the caller drops the response body (`StopOnDrop` sets a
+  `ResumeSignal`, `StopDrive` ends the drive task and adds the signal to every wait).
+  The exchange drops, the connection closes, the server sees the hangup, and the
+  handler stream drops with the `Drop` that sends `SIGKILL`. Fail-then-pass: 1.67 s
+  FAILED without the change, 0.42 s ok with it, Linux container. The crate goes from
+  0.0.18 to 0.0.19 and every pin follows.
+
+- Issue #866 (severity: medium) records the intermittent lost wake
+  (`exec_output_property`, `input_model`). The branch does not close it.
+
+- The full Linux run with `--test-threads=1` hangs at the first slave test,
+  `slave::exec::drain_timeout`. The hang is pre-existing: it reproduces on
+  `8ee13b8db` without this change, and the test passes alone in 0.87 s. Issue
+  #867 (severity: medium) records it. The slave module alone (`-- slave::`) runs
+  to the end: 35 pass; the ten `slave::files` cases fail for the missing
+  `openat2` of this host, and `slave::input::input_model` hit #866 once.
+
+- `slave::lifecycle::no_blocking_calls` failed: the source scan matched
+  `Files::read`, a domain method, not a blocking descriptor read. The method is
+  now `Files::read_file`. Issue #868 (severity: high) records it, and this change
+  closes it.
+
+Open: the lost wake of #866 stays intermittent; it is a wake race in the shared
+HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and every
+typed-error check pass.
 
 ## In progress
 

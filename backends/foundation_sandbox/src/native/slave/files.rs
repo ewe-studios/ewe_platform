@@ -249,10 +249,16 @@ impl Files {
 
     /// Opens one file for reading and returns its chunks.
     ///
+    /// The name is `read_file`, not `read`: the source scan of
+    /// `tests/slave/lifecycle.rs` rejects a method call with the `read` name in
+    /// the slave, because a descriptor read must go through `sys.rs` and the
+    /// reactor. The scan reads the raw text, so comments must avoid the pattern
+    /// too.
+    ///
     /// # Errors
     /// A `BadRequest` for a path that leaves the root or names a directory,
     /// `NotFound`, `PermissionDenied` and `Io`.
-    pub fn read(&self, path: &str) -> SandboxResult<FileReadStream> {
+    pub fn read_file(&self, path: &str) -> SandboxResult<FileReadStream> {
         let (_, _) = split_guest_path(path)?;
         let path_c = CString::new(path).map_err(|_| bad_path(path))?;
         let file = sys::open_in_root(self.root.as_raw_fd(), &path_c, libc::O_RDONLY, 0)

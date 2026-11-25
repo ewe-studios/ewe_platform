@@ -24,7 +24,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
 # `default-features = false` keeps it lean: we only need the transport seam.
 # `rpc_multi` adds the server side (Router, ConnectRpcServe) and the threaded
 # valtron executor that the registration listener runs on.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18", default-features = false, features = ["rpc_multi"] }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["rpc_multi"] }
 # Registration authority security parts (spec 81 / 87): signed enrollment
 # secrets, the certificate authority, the trust store and the mutual-TLS (mTLS)
 # verifier and configuration builders. Public API only; this crate adds no copy.

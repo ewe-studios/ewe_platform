@@ -1062,16 +1062,14 @@ every poll and the task spun at 100 percent of one pool worker until the call de
 The wait now acts only on the exit status before the deadline, and on the finished
 streams or the deadline after it.
 
-### 13.5 What remains open
+### 13.5 The open wake race
 
-The `exec_output_property` case is intermittent: a run that starts the slave and sends
-a large output can park the HTTP/1.1 connection task with frames waiting and no wake.
-The same class of run passed with extra timing (`P:` trace prints) and failed without
-them. The three fixes above removed the deterministic causes (the two named stalls and
-every typed-error check); this one is a wake race in the shared HTTP/1.1 streaming path
-and needs its own issue. `stream_drop_kills` is in the same class: the server's connection
-task did not drop the handler stream within one second of the client closing it, so the
-`Drop` that sends `SIGKILL` to the group did not run yet.
+The `exec_output_property` and `input_model` cases can park the HTTP/1.1 connection
+task with frames waiting and no wake. The same class of run passed with extra timing
+(`P:` trace prints) and failed without them. The fixes above removed the deterministic
+causes (the two named stalls and every typed-error check). This one is a wake race in
+the shared HTTP/1.1 streaming path. Issue #866 (severity: medium) records it, with the
+failing cases, the observed trace and the suspected files. The branch does not close it.
 
 ### 13.6 `ExecSignal` before `Prepare` returned `NotFound`
 
@@ -1098,3 +1096,63 @@ have `openat2`. The feature states that limit.
 `grep -rn unsafe src/native/slave/` must show only `sys.rs` and the fork child block of
 `exec.rs`. A libtest test must not be the slave process. A readiness helper clears in
 the caller, before the attempt, never before the wait.
+
+### 13.9 A dropped response body now ends the exchange
+
+`stream_drop_kills` failed: after the caller dropped the `Exec` stream, the program was
+still alive after one second. The server's connection task had not dropped the handler
+stream, so the `Drop` that sends `SIGKILL` to the process group never ran.
+
+The cause is on the client side, in `foundation_connectrpc`. The HTTP/1.1 transport
+spawns one drive task for the exchange (`h1.rs`). The task owns the exchange, and with
+it the connection. Dropping the caller's response body closed only the body observer's
+queue: `SplitCollectorMapContinuation` treats a closed queue as an accepted push,
+because the head observer closes the same way. The drive task therefore stayed parked
+on the next exchange item, the socket stayed open, and the server never saw a hangup.
+
+The fix keeps the split as it is. The transport now wraps the body observer in
+`StopOnDrop`, which sets a `ResumeSignal` when the caller drops it, and the drive task
+in `StopDrive`, which ends when the signal is set and adds the signal to every
+`Depends` wait, so a parked drive task wakes at once. The exchange then drops, the
+connection closes, the server's hangup watcher fires, and the handler stream drops.
+
+Fail-then-pass, on the same tree:
+`stream_drop_kills` failed in 1.67 s without the `h1.rs` change and passed in 0.42 s
+with it (`cargo test -p foundation_sandbox --features slave,testing --test mod`, Linux
+container). `foundation_connectrpc` goes from 0.0.18 to 0.0.19, because the transport
+behaviour changes.
+
+### 13.10 The full test run with one thread hangs at the first slave test
+
+`cargo test -p foundation_sandbox --features slave,testing -- --test-threads=1`
+runs the 86 control and contract tests, then stops at `slave::exec::drain_timeout`
+for ever. The test passes alone in 0.87 s. Every thread of the test process waits
+on a `futex`, and the process has no `reactor-drain` thread; the slave driver is
+idle and its reactor waits in `epoll_pwait`.
+
+The hang is not from this feature. It also happens on `8ee13b8db` without the
+`h1.rs` change. The control tests run first in the same process and use the global
+valtron pool; #852 records that a dropped `CreateStream` receiver leaves its task on
+the pool. Issue #867 (severity: medium) records the hang, the two trees, the
+observations and the likely fix. CI runs the same command without
+`--test-threads=1`, so the current job does not show it.
+
+`gdb` cannot attach on this host: OrbStack answers `Couldn't get registers:
+Input/output error`, so the trace above is from `/proc/<tid>/wchan` and the process
+trees.
+
+### 13.11 The source scan rejected a method name, not a blocking call
+
+`slave::lifecycle::no_blocking_calls` scans the slave source text for `.read(` and
+`.write(`. `Files::read`, the file-read RPC handler, matched `.read(`. That method
+opens the file through `sys::open_in_root` and returns a stream, so the scan found
+a false positive. The failure was deterministic but stayed hidden until the earlier
+stalls were fixed, because no run had reached `slave::lifecycle` before.
+
+The method is now `Files::read_file`, with a doc comment that names the scan. The
+scan reads the raw text, so the comment names the pattern in words and does not
+write it. The scan keeps its meaning: a blocking call with the `read` or `write`
+name in the slave sources is still rejected. Issue #868 (severity: high) records
+it.
+
+

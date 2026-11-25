@@ -474,7 +474,7 @@ impl SlaveService for Slave {
         let answer = self
             .prepared()
             .and_then(|_| self.files())
-            .and_then(|files| files.read(&request.msg.path));
+            .and_then(|files| files.read_file(&request.msg.path));
         match answer {
             Ok(stream) => Ok(Box::pin(stream)),
             Err(error) => Err(connect_of(&error, max)),

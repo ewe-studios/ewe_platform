@@ -22,7 +22,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # The HTTP client, the Unix-socket transport and the HTTP/2 gRPC health probe.
 foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 # The generated registration client and the gRPC health probe.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18" }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19" }
 # Docker discovery and stats through the generated client.
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
 # SIGTERM and SIGHUP reception for the binary's lifecycle.

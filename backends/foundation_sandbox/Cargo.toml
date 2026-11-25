@@ -46,10 +46,10 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-f
 # The control plane runs its tasks and its watchers on the shared thread pool.
 # The feature is native only: single-threaded wasm keeps the one-thread executor.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18", default-features = false, features = ["netio-core"] }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["netio-core"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.18", default-features = false }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false }
 
 [dev-dependencies]
 # The workspace holds one `proptest` version for every crate (spec 77 rule).
