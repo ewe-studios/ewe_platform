@@ -17,10 +17,13 @@ version is not on crates.io. A successful publish is tagged and pushed, as
 HOW: the order is the topological order of the normal and build dependency
 edges, because those are acyclic. Dev-dependencies form cycles in this
 workspace (`foundation_nativeapis` and `foundation_db` need each other), and
-cargo's package verification resolves dev-dependencies from crates.io. A crate
-that fails on such a cycle is published once with `--no-verify`; the log names
-the reason. A published version is skipped. A rate limit (HTTP 429) sleeps for
-the time crates.io asks for, and retries.
+cargo's package preparation resolves **every** dependency, including
+dev-dependencies, from crates.io; `--no-verify` skips the build, not that
+resolution. For a crate that fails on such a cycle, the script comments out
+that one dev-dependency in the manifest, publishes the crate, and restores the
+manifest at once. Dev-dependencies are not needed by consumers. A published
+version is skipped. A rate limit (HTTP 429) sleeps for the time crates.io asks
+for, and retries.
 
 Usage:
     python3 scripts/ci/publish_crates.py [--dry-run] [--deadline-seconds N]
@@ -129,6 +132,41 @@ def order(metadata: dict) -> list[dict]:
     return [packages[pid] for pid in ordered]
 
 
+
+def without_dev_dependency(manifest: Path, name: str) -> str | None:
+    """Comment out one dev-dependency and return the original text.
+
+    Returns `None` when the manifest names no such dev-dependency. The caller
+    restores the returned text after the publish, so a failed run leaves the
+    tree unchanged.
+    """
+    text = manifest.read_text()
+    lines = text.splitlines(keepends=True)
+    output: list[str] = []
+    section: str | None = None
+    commenting = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("["):
+            section = stripped
+            commenting = False
+        if section in {"[dev-dependencies]", "[dev_dependencies]"}:
+            if re.match(rf"^{re.escape(name)}\s*=", stripped):
+                output.append("# " + line)
+                continue
+        if section in {f"[dev-dependencies.{name}]", f"[dev_dependencies.{name}]"}:
+            commenting = True
+        if commenting:
+            output.append("# " + line if not stripped.startswith("#") else line)
+            continue
+        output.append(line)
+    new_text = "".join(output)
+    if new_text == text:
+        return None
+    manifest.write_text(new_text)
+    return text
+
+
 def retry_after(output: str) -> int | None:
     """Seconds to wait, from the message crates.io gave."""
     for pattern in (r"try again after .*?(\d+) (?:seconds|minutes)", r"retry-after[: ]+(\d+)", r"(\d+) seconds"):
@@ -190,18 +228,25 @@ def main() -> int:
                 r"failed to select a version for the requirement `([A-Za-z0-9_-]+) = ", output
             )
             if missing and missing.group(1) in {package["name"] for package in ordered}:
-                # A dev-dependency cycle: cargo cannot verify this tarball until
-                # the other crate exists, and the other crate cannot publish
-                # until this one does. Ship it unverified, once, and say so.
-                print(
-                    f"warning: {name} and {missing.group(1)} form a dev-dependency "
-                    f"cycle; publishing {name} with --no-verify",
-                    file=sys.stderr,
-                )
-                result = run(["cargo", "publish", "-p", name, "--no-verify"], check=False)
-                output = f"{result.stdout}\n{result.stderr}"
-                if result.returncode == 0:
-                    break
+                # A dev-dependency cycle: cargo resolves the dev-dependency at
+                # package preparation, and the other crate cannot exist until
+                # this one publishes. Comment the dev-dependency out for this
+                # one publish; consumers never need it.
+                manifest = Path(package["manifest_path"])
+                original = without_dev_dependency(manifest, missing.group(1))
+                if original is not None:
+                    print(
+                        f"warning: {name} and {missing.group(1)} form a dev-dependency "
+                        f"cycle; publishing {name} without that dev-dependency",
+                        file=sys.stderr,
+                    )
+                    try:
+                        result = run(["cargo", "publish", "-p", name], check=False)
+                        output = f"{result.stdout}\n{result.stderr}"
+                    finally:
+                        manifest.write_text(original)
+                    if result.returncode == 0:
+                        break
             print(output.strip(), file=sys.stderr)
             return 1
 
