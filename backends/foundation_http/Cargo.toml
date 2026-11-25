@@ -101,8 +101,8 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 [features]
 # The default set keeps the behaviour of the crate before the split: every
 # feature of `foundation_netio` that its own defaults gave this crate.
-default = ["netio-defaults"]
-multi = ["foundation_core/multi"]
+default = ["netio-defaults", "multi"]
+multi = ["foundation_core/multi", "foundation_netio/multi"]
 # The HTTP server and client surface of `foundation_netio` without TLS. A
 # consumer that must not link a C TLS library, such as the static musl slave,
 # enables this feature alone.
@@ -110,7 +110,6 @@ netio-core = [
     "foundation_netio/standard",
     "foundation_netio/std",
     "foundation_netio/wire-native",
-    "foundation_netio/multi",
     "foundation_netio/compression",
     "foundation_iogate/netio-core",
 ]
