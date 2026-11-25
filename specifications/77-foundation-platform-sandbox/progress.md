@@ -275,7 +275,11 @@ during the work: `send_async` ended a large HTTPS body early (issue #861, the st
 use it), and the exchange task pooled a `Connection: close` socket (issue #860, fixed in
 this change). `learnings.md` section 14 has the details.
 
-Checks on the macOS host: see the pull request. The Linux run is the pull request's CI job.
+The real x86_64 Alpine 3.22.8 archive, with its pinned hash, unpacked through the store on
+macOS: `bin/busybox` is a `0755` file and `usr/bin/yes` links to `/bin/busybox`. The two
+real-download tests skipped on this host because the content delivery networks measured 13 to
+17 KiB/s on 2026-11-25; `learnings.md` section 14.9 records the bounded probe. The Linux run
+and a full-link run of the network tests are the pull request's CI job.
 
 ## In progress
 

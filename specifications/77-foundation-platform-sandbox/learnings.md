@@ -1031,6 +1031,11 @@ The code lists no bucket at run time.
 The prefix layout in section 2.6 (`<YYYYMMDD>-<hash>/`) is old. The bucket now
 uses one directory for each Firecracker version.
 
+The real x86_64 Alpine 3.22.8 archive (SHA-256 `2d7f46af…96e5`) unpacked through the store on
+2026-11-25 from a local copy: the hash matched the pinned value, `bin/busybox` is a regular
+file with mode `0755`, and `usr/bin/yes` is a symbolic link to `/bin/busybox`. The tree has
+520 entries.
+
 ### 14.2 The feature text names a download example that does not match the code
 
 Feature section 3.2 says: "Read how
