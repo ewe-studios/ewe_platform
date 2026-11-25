@@ -6421,9 +6421,10 @@ dependencies = [
 
 [[package]]
 name = "foundation_sandbox"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "base64 0.22.1",
+ "bytes",
  "derive_more",
  "foundation_auth",
  "foundation_compact",

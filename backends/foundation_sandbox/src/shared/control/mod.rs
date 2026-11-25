@@ -1,10 +1,16 @@
-//! The control-plane interface and the sandbox handle.
+//! The control-plane interface, the sandbox handle and its implementation.
+//!
+//! Feature 00 declares the interface in this module. The `control` feature
+//! adds the implementation in the submodules: `SandboxManager`, the create
+//! task, the record store, the slave client, the handles, the stop and kill
+//! stories, the two remote procedure call (RPC) adapters and the simulation
+//! helpers.
 
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::shared::command::Command;
+use crate::shared::command::{Command, ExecOutput};
 use crate::shared::container::ContainerHandle;
 use crate::shared::driver::HostReport;
 use crate::shared::error::SandboxResult;
@@ -13,6 +19,109 @@ use crate::shared::ids::{DriverId, SandboxId};
 use crate::shared::rpc::messages::SlaveInfo;
 use crate::shared::spec::SandboxSpec;
 use crate::shared::{BoxByteStream, BoxFuture, ByteStream};
+
+#[cfg(feature = "control")]
+pub mod create;
+#[cfg(feature = "control")]
+pub mod handle;
+#[cfg(feature = "control")]
+pub mod manager;
+#[cfg(feature = "control")]
+pub mod record;
+#[cfg(feature = "control")]
+pub mod service;
+#[cfg(feature = "control")]
+pub mod slave_client;
+#[cfg(feature = "control")]
+pub mod stop;
+#[cfg(feature = "testing")]
+pub mod testing;
+
+#[cfg(feature = "control")]
+pub use handle::{
+    exec_session, run_capture, write_file_stream, LocalSandboxOps, RemoteSandboxOps, ScopedCalls,
+};
+#[cfg(feature = "control")]
+pub use manager::{DropPolicy, ManagerConfig, SandboxIdPolicy, SandboxManager};
+#[cfg(feature = "control")]
+pub use record::{MemoryRecordStore, RecordState, RecordStore, SandboxRecord, StopGate};
+#[cfg(feature = "control")]
+pub use service::{authorize, ControlService, SandboxRpcClient};
+#[cfg(feature = "control")]
+pub use slave_client::SlaveClient;
+#[cfg(feature = "control")]
+pub use stop::{kill_record, spawn_detached, start_watcher, stop_record};
+
+/// Waits until `deadline` on the timer of the injected environment.
+///
+/// # Errors
+/// [`crate::shared::error::SandboxError::HostNotConfigured`] when the context
+/// holds no environment with a timer.
+#[cfg(feature = "control")]
+pub(crate) async fn wait_until(
+    deadline: foundation_compact::Instant,
+    ctx: &foundation_context::Ctx,
+) -> SandboxResult<()> {
+    let env = ctx
+        .require_env()
+        .map_err(|_| crate::shared::error::SandboxError::HostNotConfigured)?;
+    env.timer().sleep_until(ctx.clone(), deadline).await;
+    Ok(())
+}
+
+/// Boxes a future for a `Send` slot.
+///
+/// On a native target the future must be `Send` already. On single-threaded
+/// wasm the connectrpc client futures are not `Send`, so the wrapper asserts
+/// the bound; the target has one thread, and the value never crosses one.
+#[cfg(all(feature = "control", not(target_family = "wasm")))]
+pub(crate) fn send_box<'a, F, T>(future: F) -> BoxFuture<'a, T>
+where
+    F: std::future::Future<Output = T> + Send + 'a,
+    T: 'a,
+{
+    Box::pin(future)
+}
+
+/// Boxes a future for a `Send` slot on single-threaded wasm.
+#[cfg(all(feature = "control", target_family = "wasm"))]
+pub(crate) fn send_box<'a, F, T>(future: F) -> BoxFuture<'a, T>
+where
+    F: std::future::Future<Output = T> + 'a,
+    T: 'a,
+{
+    Box::pin(foundation_compact::SendWrapper::new(future))
+}
+
+/// An adapter that makes a stream `Send` on single-threaded wasm.
+///
+/// On a native target [`foundation_compact::SendWrapper`] is transparent, so
+/// the stream must be `Send` already. On wasm it supplies the bound.
+#[cfg(feature = "control")]
+pub(crate) struct SendStream<S>(foundation_compact::SendWrapper<S>);
+
+#[cfg(feature = "control")]
+impl<S> SendStream<S> {
+    pub(crate) fn new(inner: S) -> Self {
+        Self(foundation_compact::SendWrapper::new(inner))
+    }
+}
+
+#[cfg(feature = "control")]
+impl<S> futures::Stream for SendStream<S>
+where
+    S: futures::Stream + Unpin,
+{
+    type Item = S::Item;
+
+    fn poll_next(
+        self: std::pin::Pin<&mut Self>,
+        context: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        std::pin::Pin::new(&mut *this.0).poll_next(context)
+    }
+}
 
 /// The state of one sandbox.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -91,6 +200,10 @@ pub trait SandboxOps: Send + Sync + 'static {
     /// Runs one command.
     fn exec(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecHandle>>;
 
+    /// Runs one command and captures at most `max_captured_output` bytes of
+    /// each output stream.
+    fn run(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecOutput>>;
+
     /// Writes one file from a byte stream.
     fn write_file(
         &self,
@@ -163,6 +276,16 @@ impl SandboxHandle {
         self.ops.exec(command).await
     }
 
+    /// Runs one command and captures its output, up to `max_captured_output`
+    /// bytes for each stream.
+    ///
+    /// # Errors
+    /// [`crate::shared::error::SandboxError::SandboxStopped`] when the sandbox
+    /// is not ready, or the error of the slave call.
+    pub async fn run(&self, command: Command) -> SandboxResult<ExecOutput> {
+        self.ops.run(command).await
+    }
+
     /// Writes one file from a byte stream and returns its size.
     ///
     /// # Errors
@@ -176,6 +299,12 @@ impl SandboxHandle {
     ) -> SandboxResult<u64> {
         let data: BoxByteStream = Box::pin(data);
         self.ops.write_file(path.to_string(), mode, data).await
+    }
+
+    /// The low-level execution and file calls of this sandbox.
+    #[must_use]
+    pub fn calls(&self) -> Arc<dyn ExecFileCalls> {
+        self.ops.calls()
     }
 
     /// Reads one file as a byte stream.

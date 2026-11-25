@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sandbox"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -28,9 +28,13 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-fea
 serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
+bytes = "1"
 derive_more = { workspace = true }
 futures = "0.3"
 tracing = { workspace = true }
+# The in-memory transport of the simulation helpers builds a real HTTP request
+# object for the router. It is optional: only the `testing` feature needs it.
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, optional = true }
 
 # The code-first service macro, `Request`/`Response`, `ConnectError` and the
 # context. The renderer's default features are not needed: this crate uses the
@@ -39,6 +43,9 @@ tracing = { workspace = true }
 # The wasm build must not enable it: it would turn on `multi` for the wasm
 # netio, whose single-threaded code has no `Send` bound.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
+# The control plane runs its tasks and its watchers on the shared thread pool.
+# The feature is native only: single-threaded wasm keeps the one-thread executor.
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false, features = ["netio-core"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
@@ -91,7 +98,7 @@ cloudflare = []
 # The command structures (feature 06). Native only.
 cli = []
 # The simulation helpers (feature 02).
-testing = []
+testing = ["dep:foundation_netio"]
 
 [lints]
 workspace = true

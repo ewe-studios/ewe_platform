@@ -181,6 +181,46 @@ with `runs = ["", "slave"]` and keeps the contract tests on macOS and Windows.
 Checks on the macOS host: see the pull request. The Linux test run is the pull request's
 CI job.
 
+## Feature 02: the control-plane core (2026-11-25)
+
+Feature 02 is on the branch `spec77/f02-control-plane-core`, stacked on feature 01
+(`spec77/f01-slave-core`, pull request #848) and, through it, on the crate rename
+(`spec77/rename-foundation-sandbox`, pull request #824).
+
+`src/shared/control/` is now a directory. `mod.rs` keeps the feature-00 interface and
+adds one method, `SandboxHandle::run`, which captures the output of a command. The
+`control` feature adds:
+
+- `manager.rs`: `SandboxManager`, `ManagerConfig`, the registry, the driver choice,
+  `restore` and `containers`.
+- `create.rs`: the `#[task]` create state machine, the one deadline and the fault
+  table of section 6.4.
+- `record.rs`: `SandboxRecord`, the state machine, `RecordStore` and
+  `MemoryRecordStore`.
+- `slave_client.rs`: `SlaveClient`, the typed client of `SlaveService`.
+- `handle.rs`: `exec_session`, `run_capture`, `write_file_stream`, `read_file_stream`,
+  `LocalSandboxOps`, `RemoteSandboxOps` and the scoped `ExecFileCalls` client.
+- `stop.rs`: the stop and kill stories and the watcher.
+- `service.rs`: `ControlService`, `SandboxRpcClient` and `authorize`.
+- `testing.rs` (feature `testing`): `SimDriver`, `ScriptedSlave`, `in_memory_connector`,
+  `in_memory_control_transport` and the counting and failing stores.
+
+The tests are `tests/control/` in the crate's single test binary. They run the real
+slave client, codec and router in the same process with no socket. They need the
+`testing` feature; the default `cargo test` builds them but runs none, so CI runs
+`cargo test -p foundation_sandbox --features testing control_`. The wasm32 check
+passes with the default features and with no default features.
+
+Checks on the macOS host pass: `cargo check` for native, with `slave`, and for
+wasm32 with and without the default features; `cargo test` (25 contract tests);
+`cargo test --features testing control_` (58 control tests); `cargo fmt --check`;
+and `cargo clippy --no-deps --all-targets` with `-D warnings`, with and without
+`testing`. `ci/packages.toml` adds `testing` to the Linux, macOS and Windows runs.
+
+The real slave process tests of feature section 7 (`control_slave_process_*`) are not
+in this change: they need Linux with the `slave` feature, and this host is macOS. They
+stay for the Linux CI job that feature 06 adds.
+
 ## In progress
 
 **Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
