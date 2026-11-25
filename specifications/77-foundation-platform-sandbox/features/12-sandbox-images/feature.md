@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "3"
 depends_on: ["06-programs-rpc-provider", "09-libkrun-driver"]
-crates: ["foundation_platform_sandbox", "sandbox_krun"]
+crates: ["foundation_sandbox", "sandbox_krun"]
 ---
 
 # Feature 12: Sandbox images (the image form, a writable root, and unpack)
@@ -451,9 +451,9 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox -p sandbox_krun --features "libkrun slave testing" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "libkrun slave testing" --profile uat images_ slave_unpack control_sim libkrun_sim
-cargo test -p foundation_platform_sandbox --features "libkrun slave testing" --profile uat e2e_images -- --nocapture
+cargo clippy -p foundation_sandbox -p sandbox_krun --features "libkrun slave testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat images_ slave_unpack control_sim libkrun_sim
+cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat e2e_images -- --nocapture
 cargo check -p agent_slave --target x86_64-unknown-linux-musl --profile uat
 ```
 

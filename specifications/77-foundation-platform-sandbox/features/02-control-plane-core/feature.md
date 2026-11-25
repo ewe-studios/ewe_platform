@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["00-contract"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 02: The control-plane core (`SandboxManager`)
@@ -701,12 +701,12 @@ fn authorize(header: Option<&str>, token: &Secret) -> SandboxResult<()>;
 ```
 
 `Secret`, `Secret::from_bearer` and `Secret::ct_eq` are `foundation_auth` types from spec
-86. `foundation_platform_sandbox` takes `foundation_auth` as a dependency for them; it does
+86. `foundation_sandbox` takes `foundation_auth` as a dependency for them; it does
 not copy the code. The test name `check_bearer_cases` stays.
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/`. Each has the valtron test attributes.
+`backends/foundation_sandbox/tests/`. Each has the valtron test attributes.
 
 Simulation (`control_sim_*.rs`), with `Ctx::with_seed`, `SimulatedClock`, `SimDriver`,
 `ScriptedSlave`:
@@ -759,10 +759,10 @@ spawner in the test support. These tests call the shared acceptance scenarios
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features testing --profile uat control_sim
-cargo test -p foundation_platform_sandbox --features "testing slave" --profile uat control_slave_process
-cargo check -p foundation_platform_sandbox --no-default-features --features control --target wasm32-unknown-unknown --profile uat
+cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features testing --profile uat control_sim
+cargo test -p foundation_sandbox --features "testing slave" --profile uat control_slave_process
+cargo check -p foundation_sandbox --no-default-features --features control --target wasm32-unknown-unknown --profile uat
 python3 scripts/ci/check_executor_wake.py
 ```
 

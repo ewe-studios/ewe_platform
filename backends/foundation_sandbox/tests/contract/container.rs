@@ -7,17 +7,17 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_context::Ctx;
-use foundation_platform_sandbox::shared::command::{Command, ExecEvent, ExitStatus};
-use foundation_platform_sandbox::shared::container::{
+use foundation_sandbox::shared::command::{Command, ExecEvent, ExitStatus};
+use foundation_sandbox::shared::container::{
     ContainerCapabilities, ContainerControl, ContainerHandle, ContainerId, ContainerInfo,
     ContainerOps, ContainerResources, ContainerSpec, ContainerStatus, PortRequest, PortResponse,
 };
-use foundation_platform_sandbox::shared::driver::SubstrateExit;
-use foundation_platform_sandbox::shared::error::{SandboxError, SandboxResult};
-use foundation_platform_sandbox::shared::handles::{ExecEvents, ExecHandle, ExecHandleOps};
-use foundation_platform_sandbox::shared::ids::{DriverId, ExecId};
-use foundation_platform_sandbox::shared::spec::NetworkMode;
-use foundation_platform_sandbox::shared::{BoxByteStream, BoxFuture};
+use foundation_sandbox::shared::driver::SubstrateExit;
+use foundation_sandbox::shared::error::{SandboxError, SandboxResult};
+use foundation_sandbox::shared::handles::{ExecEvents, ExecHandle, ExecHandleOps};
+use foundation_sandbox::shared::ids::{DriverId, ExecId};
+use foundation_sandbox::shared::spec::NetworkMode;
+use foundation_sandbox::shared::{BoxByteStream, BoxFuture};
 use futures::executor::block_on;
 use futures::StreamExt;
 
@@ -33,7 +33,7 @@ impl ExecHandleOps for FakeExecOps {
         self.pid
     }
 
-    fn stdin(&self) -> Option<foundation_platform_sandbox::shared::handles::ExecStdin> {
+    fn stdin(&self) -> Option<foundation_sandbox::shared::handles::ExecStdin> {
         None
     }
 

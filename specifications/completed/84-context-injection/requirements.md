@@ -162,7 +162,7 @@ graph TD
     CTX --> CONN[foundation_connectrpc: call deadline]
     CTX --> AUTH[foundation_auth: keys and tokens]
     CTX --> AI[foundation_ai: session and turn IDs]
-    CTX --> SBX[foundation_platform_sandbox: sandbox IDs]
+    CTX --> SBX[foundation_sandbox: sandbox IDs]
 ```
 
 _The diagram shows one context with one optional entry and four consumers._
@@ -467,7 +467,7 @@ specification's change set, and spec 77 records it as decision D16.
 ## 6. Enforcement
 
 1. A `clippy.toml` in `foundation_core`, `foundation_auth`, `foundation_ai`,
-   `foundation_connectrpc`, `foundation_platform_sandbox` and `foundation_http` lists the
+   `foundation_connectrpc`, `foundation_sandbox` and `foundation_http` lists the
    globals that core code may not call:
 
    ```toml

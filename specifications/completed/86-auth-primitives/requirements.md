@@ -468,7 +468,7 @@ All tests are in `backends/foundation_auth/tests/`.
 | T6 | `StaticToken`; version bumps and the consumer list in section 4 | `foundation_auth/src/server_credential/static_token.rs` | `static_token_missing`, `static_token_constant_time` pass |
 
 The `foundation_auth` version moves by one minor version (new public types). Each crate that
-takes the new requirement moves with it: `foundation_connectrpc`, `foundation_platform_sandbox`
+takes the new requirement moves with it: `foundation_connectrpc`, `foundation_sandbox`
 (when it lands), `foundation_agent_rpc` (when it lands), `foundation_proxy` (when it lands).
 
 ## 8. Verify

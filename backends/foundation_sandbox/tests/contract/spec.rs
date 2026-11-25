@@ -2,11 +2,11 @@
 
 use std::path::PathBuf;
 
-use foundation_platform_sandbox::shared::driver::Capabilities;
-use foundation_platform_sandbox::shared::error::{SandboxError, SandboxResult};
-use foundation_platform_sandbox::shared::ids::DriverId;
-use foundation_platform_sandbox::shared::limits::SandboxLimits;
-use foundation_platform_sandbox::shared::spec::{
+use foundation_sandbox::shared::driver::Capabilities;
+use foundation_sandbox::shared::error::{SandboxError, SandboxResult};
+use foundation_sandbox::shared::ids::DriverId;
+use foundation_sandbox::shared::limits::SandboxLimits;
+use foundation_sandbox::shared::spec::{
     HostMount, ImageRef, NetworkMode, RootFs, RootMode, SandboxSpec,
 };
 

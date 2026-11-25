@@ -116,6 +116,10 @@ pub enum DriverId {
     Docker,
     /// A Cloudflare container.
     CloudflareContainer,
+    /// A Cloudflare Durable Object that serves the slave itself: the turn runs
+    /// against `OpenRouter` or the Cloudflare Model API. It gives no operating
+    /// system isolation (spec 77 decision D16).
+    CloudflareDo,
 }
 
 impl fmt::Display for DriverId {
@@ -125,6 +129,7 @@ impl fmt::Display for DriverId {
             Self::Libkrun => "libkrun",
             Self::Docker => "docker",
             Self::CloudflareContainer => "cloudflare-container",
+            Self::CloudflareDo => "cloudflare-do",
         };
         formatter.write_str(name)
     }
@@ -139,6 +144,7 @@ impl FromStr for DriverId {
             "libkrun" => Ok(Self::Libkrun),
             "docker" => Ok(Self::Docker),
             "cloudflare-container" => Ok(Self::CloudflareContainer),
+            "cloudflare-do" => Ok(Self::CloudflareDo),
             other => Err(SandboxError::InvalidSpec {
                 field: "driver".to_string(),
                 reason: format!("unknown driver {other}"),
