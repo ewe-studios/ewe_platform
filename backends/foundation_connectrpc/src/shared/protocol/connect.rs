@@ -431,7 +431,11 @@ fn decode_end_stream(data: &Bytes) -> Frame {
 /// Reconstruct an `ErrorTrace<ConnectError>` from a wire error (server-sent).
 fn wire_error_to_trace(wire: WireError) -> ErrorTrace<ConnectError> {
     let code = Code::from_str(&wire.code).unwrap_or(Code::Unknown);
-    ConnectError::wire(code, wire.message.unwrap_or_default()).into()
+    let mut error = ConnectError::wire(code, wire.message.unwrap_or_default());
+    for detail in wire.details.unwrap_or_default() {
+        error.add_detail(detail.to_detail());
+    }
+    error.into()
 }
 
 // ── protocol handler / client ─────────────────────────────────────────────────
