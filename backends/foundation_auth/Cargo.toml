@@ -112,7 +112,7 @@ rsa = { version = "0.9", optional = true }
 rand_chacha = { version = "0.3", optional = true }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
-pbkdf2 = "0.12"
+pbkdf2 = "0.13"
 # Certificate authority, trust verifier and TLS configuration (spec 87).
 rcgen = { workspace = true }
 rustls = { workspace = true }
