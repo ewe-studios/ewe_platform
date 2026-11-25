@@ -34,8 +34,10 @@ import argparse
 import email.utils
 import re
 import shlex
+import os
 import subprocess
 import sys
+from pathlib import Path
 import time
 from datetime import datetime, timezone
 
@@ -143,9 +145,42 @@ class Backoff:
         self.next = self.base
 
 
+def publish_in_dependency_order(deadline: float) -> None:
+    """Publish in an order that includes dev-dependency cycles (issue #468).
+
+    `release-plz release` orders crates by their normal dependencies, but cargo's
+    package verification also resolves dev-dependencies. This workspace has a
+    dev-dependency cycle between `foundation_nativeapis` and `foundation_db`, so
+    release-plz can stall. `publish_crates.py` orders correctly and breaks the
+    cycle; `release-plz release` then fills in tags and GitHub releases.
+
+    The prelude runs only with a registry token: the tests of this script run
+    `main` without one, so they never touch the network.
+    """
+    script = Path(__file__).with_name("publish_crates.py")
+    if not script.is_file() or not os.environ.get("CARGO_REGISTRY_TOKEN"):
+        return
+    seconds = int(deadline - 60)
+    if seconds <= 60:
+        return
+    print("::group::publish in dependency order", flush=True)
+    code = subprocess.run(
+        [sys.executable, str(script), "--deadline-seconds", str(seconds)],
+        check=False,
+    ).returncode
+    print("::endgroup::", flush=True)
+    if code != 0:
+        print(
+            f"::warning::publish_crates.py stopped with code {code}; "
+            "release-plz continues with what is left",
+            flush=True,
+        )
+
+
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     start = time.monotonic()
+    publish_in_dependency_order(args.deadline)
     backoff = Backoff(args.base_delay, args.max_delay)
     failures = 0
     attempt = 0
