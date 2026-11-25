@@ -206,3 +206,118 @@ pub fn expect_error<T>(
 pub fn driver_id() -> DriverId {
     DriverId::Firecracker
 }
+
+/// A record store that starts to fail when the test flips its switch.
+#[derive(Debug, Default)]
+pub struct SwitchStore {
+    inner: Mutex<
+        std::collections::HashMap<
+            foundation_sandbox::shared::ids::SandboxId,
+            foundation_sandbox::shared::driver::StoredRecord,
+        >,
+    >,
+    failing: std::sync::atomic::AtomicBool,
+}
+
+impl SwitchStore {
+    /// An empty store that accepts writes.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Makes every later `put` and `remove` fail.
+    pub fn fail(&self) {
+        self.failing
+            .store(true, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    /// Makes every later `put` and `remove` succeed again.
+    pub fn recover(&self) {
+        self.failing
+            .store(false, std::sync::atomic::Ordering::SeqCst);
+    }
+
+    /// The records that the store holds.
+    #[must_use]
+    pub fn records(&self) -> Vec<foundation_sandbox::shared::driver::StoredRecord> {
+        self.inner
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .values()
+            .cloned()
+            .collect()
+    }
+
+    fn error() -> foundation_errstacks::ErrorTrace<foundation_sandbox::shared::error::SandboxError>
+    {
+        foundation_sandbox::shared::error::SandboxError::Io {
+            op: "store".to_string(),
+            message: "the store is full".to_string(),
+        }
+        .into()
+    }
+}
+
+impl RecordStore for SwitchStore {
+    fn put(
+        &self,
+        record: foundation_sandbox::shared::driver::StoredRecord,
+    ) -> foundation_sandbox::shared::BoxFuture<
+        '_,
+        foundation_sandbox::shared::error::SandboxResult<()>,
+    > {
+        if self.failing.load(std::sync::atomic::Ordering::SeqCst) {
+            return Box::pin(async { Err(Self::error()) });
+        }
+        let id = record.id.clone();
+        let inner = &self.inner;
+        Box::pin(async move {
+            inner
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .insert(id, record);
+            Ok(())
+        })
+    }
+
+    fn remove(
+        &self,
+        id: &foundation_sandbox::shared::ids::SandboxId,
+    ) -> foundation_sandbox::shared::BoxFuture<
+        '_,
+        foundation_sandbox::shared::error::SandboxResult<()>,
+    > {
+        if self.failing.load(std::sync::atomic::Ordering::SeqCst) {
+            return Box::pin(async { Err(Self::error()) });
+        }
+        let id = id.clone();
+        let inner = &self.inner;
+        Box::pin(async move {
+            inner
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .remove(&id);
+            Ok(())
+        })
+    }
+
+    fn list(
+        &self,
+    ) -> foundation_sandbox::shared::BoxFuture<
+        '_,
+        foundation_sandbox::shared::error::SandboxResult<
+            Vec<foundation_sandbox::shared::driver::StoredRecord>,
+        >,
+    > {
+        let inner = &self.inner;
+        Box::pin(async move {
+            Ok(inner
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .values()
+                .cloned()
+                .collect())
+        })
+    }
+}

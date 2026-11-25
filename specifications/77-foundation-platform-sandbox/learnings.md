@@ -981,3 +981,18 @@ create with a clock advance, and use a streaming transport that ends its dispatc
 task. `cargo test` must run the control tests with `--test-threads=1`: the
 `ControlService` create stream drives a blocking iterator, and several such calls
 at once can exhaust the pool.
+
+**Measured at review (2026-11-25).** Dropping the `CreateStream` receiver does not
+drop the `#[task]` state machine. `execute` schedules the task on the pool and
+returns a receiver; dropping the receiver closes the result queue and leaves the
+task to run. A create over a slave that never answers `Info` keeps one worker until
+the boot deadline, and a substrate that the create already launched stays alive.
+Issue #852 (severity: high) records this. The fix is a cancellation signal that the
+receiver owns, or a guard on the receiver that starts the kill and the removal on
+drop. The feature test `rpc_create_dropped_cleans_up` waits for that fix.
+
+The review also added a small stateful model test. It draws a random op list, runs
+it against one manager, and compares each step with the state table: `Exec` only
+while `Ready`; `Stop` and `Kill` idempotent and the first report wins; a substrate
+exit moves the record to `Stopped` through the watcher; `get` and `list` follow the
+registry. The test keeps the value of a stateful oracle without a second model type.

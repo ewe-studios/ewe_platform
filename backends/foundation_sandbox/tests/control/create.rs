@@ -299,6 +299,39 @@ fn store_error_in_create_fails() {
 }
 
 #[test]
+fn store_error_after_ready_is_logged() {
+    let _serial = support::serial();
+    let (ctx, _clock) = support::ctx(19);
+    let slave = Arc::new(ScriptedSlave::new());
+    let sim = Arc::new(SimDriver::new(support::driver_id()));
+    slave.with_shutdown_exit(sim.substrate());
+    let store = Arc::new(support::SwitchStore::new());
+    let manager = support::manager(
+        ctx,
+        vec![Arc::clone(&sim) as Arc<dyn SandboxDriver>],
+        slave,
+        ManagerConfig::default(),
+        Arc::clone(&store) as Arc<dyn RecordStore>,
+    );
+    let handle = support::block_on(manager.create(spec())).expect("create");
+    assert_eq!(store.records().len(), 1);
+    store.fail();
+    let report = support::block_on(handle.stop())
+        .expect("a store error after Ready does not change the stop result");
+    assert!(!report.killed);
+    assert_eq!(handle.info().state, SandboxState::Stopped);
+    assert!(support::block_on(manager.list()).expect("list").is_empty());
+    // The failed remove is logged and leaves the record in the store.
+    assert_eq!(store.records().len(), 1);
+    // The manager stays usable after the logged error.
+    store.recover();
+    sim.substrate().reset();
+    let again = support::block_on(manager.create(spec())).expect("a later create");
+    assert_eq!(again.info().state, SandboxState::Ready);
+    support::block_on(again.kill()).expect("kill");
+}
+
+#[test]
 fn max_sandboxes() {
     let _serial = support::serial();
     let (ctx, _clock) = support::ctx(12);
