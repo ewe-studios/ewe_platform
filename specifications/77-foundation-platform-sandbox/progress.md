@@ -281,6 +281,49 @@ real-download tests skipped on this host because the content delivery networks m
 17 KiB/s on 2026-11-25; `learnings.md` section 14.9 records the bounded probe. The Linux run
 and a full-link run of the network tests are the pull request's CI job.
 
+## Feature 04: the Firecracker API client (2026-11-26)
+
+Feature 04 is on the branch `spec77/f04-firecracker-api-client`, stacked on feature 03
+(`spec77/f03-guest-artifacts`, pull request #863) and, through it, on features 02 and 01
+and the crate rename.
+
+- `backends/foundation_sandbox/specs/firecracker-v1.19.yaml`: the vendored Firecracker
+  Swagger 2.0 file, commit `778a26c`, API version `1.19.0-dev`, with `specs/README.md`.
+- `artefacts/cloud_providers/firecracker/openapi.json`: the OpenAPI 3 form.
+- `scripts/openapi/swagger2openapi.py`: the shared Swagger 2.0 converter. The Docker script
+  is now a thin wrapper, so one implementation converts both specifications.
+- `backends/foundation_sandbox/build.rs`: the generator declaration and the staleness
+  check. On a stale tree it regenerates `src/native/firecracker/generated/`.
+- The generator gained three opt-in rules: inline string enums with renames, optional
+  fields that are absent when `None`, and error-response schemas. The rules are off by
+  default, so the other providers keep their committed output.
+- `src/native/firecracker/client.rs`: `FirecrackerClient` and `FirecrackerLimits` over a
+  Unix domain socket. Each call races the generated request with the injected timer at
+  `rpc_timeout`. A non-2xx answer becomes `SubstrateApi` with the vendor `fault_message`;
+  a silent server becomes the new `ApiTimeout` error.
+
+The tests are `tests/firecracker/` in the crate's single test binary. They use a mock HTTP
+server on a Unix socket. The time-out test uses `SimulatedClock`; no real sleep bounds a
+call. `generator_is_stable` is `scripts/sandbox/check-firecracker-gen.sh`: it hashes the
+generated tree, runs the build script again and compares the hash.
+
+Checks on the macOS host pass: `cargo check` for native, with `firecracker`, for wasm32,
+with no default features and with `--no-default-features --features libkrun`; `cargo test`
+(66 tests); `cargo test --features testing` (128 tests); `cargo fmt --check`; and clippy
+with `-D warnings` for `foundation_sandbox`, `foundation_openapi` and
+`foundation_codegentools`. The generator script passes.
+
+`types_match_real_firecracker` needs the `firecracker` program and `/dev/kvm`; this host has
+neither, so the test prints a skip message. The Linux CI job runs it. All other tests run on
+macOS and Linux. Windows compiles the generated module but not the client.
+
+The change also moves three crate versions: `foundation_openapi` 0.0.8 to 0.0.9,
+`foundation_codegentools` 0.1.7 to 0.1.8 and `foundation_sandbox` 0.0.5 to 0.0.6.
+
+Issue [#864](https://github.com/ewe-studios/ewe_platform/issues/864) (severity: low) records
+a finding: the committed Docker OpenAPI artefact is stale relative to its script and YAML.
+The shared-script move is behaviour-preserving; the stale value predates this change.
+
 ## In progress
 
 **Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.

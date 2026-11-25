@@ -14,7 +14,8 @@ use std::path::{Path, PathBuf};
 
 use super::analyzer::ApiGroup;
 use super::emit::{
-    self, Field, ModuleFile, TypeDef, Variant, VariantShape, ARGS_DERIVES, SCHEMA_DERIVES,
+    self, EnumVariant, Field, ModuleFile, TypeDef, Variant, VariantShape, ARGS_DERIVES,
+    SCHEMA_DERIVES,
 };
 
 /// How deep `allOf` members are followed through `$ref`s before giving up — a
@@ -255,6 +256,30 @@ fn sanitize_module_name(name: &str) -> String {
     } else {
         name.to_string()
     }
+}
+
+/// A legal Rust variant identifier for an `OpenAPI` enum value.
+///
+/// A value is free text: it can hold a space (`Not started`), start with a
+/// digit (`2M`) or be the reserved word `Self`. Every non-alphanumeric
+/// character separates words, and the result is CamelCase.
+fn variant_ident(value: &str) -> String {
+    let mut name: String = value
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .filter(|part| !part.is_empty())
+        .map(to_pascal_case)
+        .collect();
+    if name.is_empty() {
+        return "Empty".to_string();
+    }
+    if name.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        name = format!("Variant{name}");
+    }
+    // `Self` is the one keyword that CamelCase can produce.
+    if name == "Self" {
+        name.push_str("Value");
+    }
+    name
 }
 
 /// Rename a type that conflicts with Rust std types by adding a suffix.
@@ -1150,6 +1175,20 @@ fn format_files(paths: &[PathBuf]) -> Result<(), GenError> {
     }
 }
 
+/// The opt-in `OpenAPI` rules that change the generated types.
+///
+/// They are off by default, so a provider keeps the committed output it was
+/// generated with. Spec 77 feature 04 turns them on for the Firecracker API.
+#[derive(Debug, Clone, Copy, Default)]
+struct StrictRules {
+    /// Emit an inline string `enum` as a Rust enum instead of `String`.
+    inline_enums: bool,
+    /// Omit an optional field from the JSON when it is `None`.
+    skip_optional_none: bool,
+    /// Generate the schemas that error responses name.
+    error_types: bool,
+}
+
 /// Unified generator that produces cohesive per-endpoint units.
 pub struct UnifiedGenerator {
     output_dir: PathBuf,
@@ -1175,6 +1214,8 @@ pub struct UnifiedGenerator {
     /// single right Rust shape, and turning every one into an enum would change
     /// the public types of every provider.
     typed_unions: std::collections::BTreeSet<String>,
+    /// The opt-in rules that change the generated types.
+    strict: StrictRules,
     /// Shared-types-only mode (see [`UnifiedGenerator::shared_types_only`]).
     shared_types_only: bool,
 }
@@ -1351,8 +1392,35 @@ impl UnifiedGenerator {
             shared_crate_dir: None,
             sibling_crates_dir: None,
             typed_unions: std::collections::BTreeSet::new(),
+            strict: StrictRules::default(),
             shared_types_only: false,
         }
+    }
+
+    /// Emit an inline string `enum` as a Rust enum.
+    ///
+    /// A value with a space or a leading digit gets a legal variant name and an
+    /// explicit `#[serde(rename = "...")]`. The enum keeps the exact strings
+    /// the API sends and accepts.
+    #[must_use]
+    pub fn with_inline_enums(mut self, enabled: bool) -> Self {
+        self.strict.inline_enums = enabled;
+        self
+    }
+
+    /// Omit an optional field from the JSON when it is `None`.
+    #[must_use]
+    pub fn with_skip_optional_none(mut self, enabled: bool) -> Self {
+        self.strict.skip_optional_none = enabled;
+        self
+    }
+
+    /// Generate the schema of each error response, so the client can parse the
+    /// vendor's error message with a generated type.
+    #[must_use]
+    pub fn with_error_types(mut self, enabled: bool) -> Self {
+        self.strict.error_types = enabled;
+        self
     }
 
     /// Emit the named schemas' `oneOf` as untagged enums.
@@ -1953,6 +2021,14 @@ impl UnifiedGenerator {
             if let Some(rt) = &ep.request_type {
                 extract_type_names_from_generic(rt, &mut all_types);
             }
+            // The schema of an error response is not a success answer, so the
+            // endpoint's response type does not name it. A client that parses
+            // the vendor's error message needs the type, so opt in to emit it.
+            if self.strict.error_types {
+                for error_name in ep.error_types.values() {
+                    extract_type_names_from_generic(error_name, &mut all_types);
+                }
+            }
         }
 
         // Second pass: collect all transitively referenced types from schemas.
@@ -2080,18 +2156,20 @@ impl UnifiedGenerator {
 
             // Try to find the schema for this type (may be PascalCase while
             // schemas use the original spec key convention)
-            let def = match schemas.resolve(type_name) {
+            let defs = match schemas.resolve(type_name) {
                 Some(schema) => {
-                    self.type_def_from_schema(&safe_type_name, schema, schemas, &recursive_types)
+                    self.type_defs_from_schema(&safe_type_name, schema, schemas, &recursive_types)
                 }
                 // No schema to say what it is: any JSON value.
-                None => TypeDef::alias(
+                None => vec![TypeDef::alias(
                     &safe_type_name,
                     &format!("`{safe_type_name}` type (no schema in the spec)."),
                     "serde_json::Value",
-                ),
+                )],
             };
-            module.push(def);
+            for def in defs {
+                module.push(def);
+            }
 
             generated_types.insert(safe_type_name.clone());
         }
@@ -2183,6 +2261,23 @@ impl UnifiedGenerator {
         Ok(module)
     }
 
+    /// Every type a schema generates: the type itself, then any inline string
+    /// enum its fields need.
+    fn type_defs_from_schema(
+        &self,
+        type_name: &str,
+        schema: &crate::spec::Schema,
+        schemas: &SchemaIndex<'_>,
+        recursive_types: &std::collections::HashSet<String>,
+    ) -> Vec<TypeDef> {
+        let mut enums = Vec::new();
+        let main =
+            self.type_def_from_schema(type_name, schema, schemas, recursive_types, &mut enums);
+        let mut defs = vec![main];
+        defs.append(&mut enums);
+        defs
+    }
+
     /// The type a schema generates: a struct for an object with properties
     /// (or an `allOf`), and an alias for everything else.
     ///
@@ -2201,13 +2296,16 @@ impl UnifiedGenerator {
         schema: &crate::spec::Schema,
         schemas: &SchemaIndex<'_>,
         recursive_types: &std::collections::HashSet<String>,
+        enums: &mut Vec<TypeDef>,
     ) -> TypeDef {
         use crate::spec::Schema as SpecSchema;
         use std::collections::BTreeMap;
 
         let doc = format!("`{type_name}` type.");
         if self.typed_unions.contains(type_name) {
-            if let Some(def) = self.union_def(type_name, &doc, schema, schemas, recursive_types) {
+            if let Some(def) =
+                self.union_def(type_name, &doc, schema, schemas, recursive_types, enums)
+            {
                 return def;
             }
         }
@@ -2227,7 +2325,7 @@ impl UnifiedGenerator {
         // so we must emit per-field #[serde(rename)] when the original name differs
         // from the snake_cased field name. A single rename_all can't handle mixed
         // specs like Docker (ApiVersion + architecture in the same schema).
-        let field =
+        let mut field =
             |field_name: &str, prop_name: &str, prop_schema: &SpecSchema, required: bool| {
                 self.field_of(
                     field_name,
@@ -2236,6 +2334,8 @@ impl UnifiedGenerator {
                     required,
                     schemas,
                     recursive_types,
+                    type_name,
+                    enums,
                 )
             };
 
@@ -2296,6 +2396,10 @@ impl UnifiedGenerator {
     /// both — Hetzner's pagination `next_page` is always there and is null on
     /// the last page. Only a field that is required AND not nullable can be a
     /// bare T.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one internal helper carries the field's whole context"
+    )]
     fn field_of(
         &self,
         field_name: &str,
@@ -2304,17 +2408,27 @@ impl UnifiedGenerator {
         required: bool,
         schemas: &SchemaIndex<'_>,
         recursive_types: &std::collections::HashSet<String>,
+        parent: &str,
+        enums: &mut Vec<TypeDef>,
     ) -> Field {
-        let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+        let rust_type = if self.strict.inline_enums {
+            Self::inline_enum_type(prop_schema, parent, prop_name, enums)
+                .unwrap_or_else(|| self.schema_to_rust_type(prop_schema, schemas))
+        } else {
+            self.schema_to_rust_type(prop_schema, schemas)
+        };
         let rust_type = maybe_box_type(&rust_type, recursive_types);
         let is_required = required && !is_nullable(prop_schema, schemas);
+        let mut attrs = Vec::new();
+        if prop_name != field_name {
+            attrs.push(format!("#[serde(rename = \"{prop_name}\")]"));
+        }
+        if !is_required && self.strict.skip_optional_none {
+            attrs.push("#[serde(skip_serializing_if = \"Option::is_none\")]".to_string());
+        }
         Field {
             doc: format!("`{prop_name}` property."),
-            attrs: if prop_name == field_name {
-                Vec::new()
-            } else {
-                vec![format!("#[serde(rename = \"{prop_name}\")]")]
-            },
+            attrs,
             name: field_name.to_string(),
             ty: if is_required {
                 rust_type
@@ -2322,6 +2436,60 @@ impl UnifiedGenerator {
                 format!("Option<{rust_type}>")
             },
         }
+    }
+
+    /// The generated enum for an inline string `enum`, or `None` when the
+    /// schema is not one.
+    ///
+    /// The type is named after its parent and property (`InstanceInfoState`),
+    /// so two groups that share a schema each get their own local enum and need
+    /// no cross-module import. The same property appears once in a module, so
+    /// an enum already in `enums` is returned without a second definition.
+    fn inline_enum_type(
+        schema: &crate::spec::Schema,
+        parent: &str,
+        prop_name: &str,
+        enums: &mut Vec<TypeDef>,
+    ) -> Option<String> {
+        if schema.schema_type.as_deref() != Some("string") {
+            return None;
+        }
+        let values = schema.enum_values.as_ref().filter(|v| !v.is_empty())?;
+        let name = format!("{parent}{}", variant_ident(prop_name));
+        if enums.iter().any(|def| def.name == name) {
+            return Some(name);
+        }
+        let mut taken: HashSet<String> = HashSet::new();
+        let mut variants = Vec::with_capacity(values.len());
+        for value in values {
+            let text = match value {
+                serde_json::Value::String(text) => text.clone(),
+                other => other.to_string(),
+            };
+            let mut variant = variant_ident(&text);
+            if !taken.insert(variant.clone()) {
+                let mut n = 2;
+                loop {
+                    let candidate = format!("{variant}{n}");
+                    if taken.insert(candidate.clone()) {
+                        variant = candidate;
+                        break;
+                    }
+                    n += 1;
+                }
+            }
+            variants.push(EnumVariant {
+                doc: format!("`{text}`."),
+                name: variant,
+                value: text,
+            });
+        }
+        enums.push(TypeDef::enumeration(
+            &name,
+            &format!("`{prop_name}` enum."),
+            variants,
+        ));
+        Some(name)
     }
 
     /// An untagged enum for a `oneOf` schema, or `None` when the schema is not
@@ -2340,6 +2508,7 @@ impl UnifiedGenerator {
         schema: &crate::spec::Schema,
         schemas: &SchemaIndex<'_>,
         recursive_types: &std::collections::HashSet<String>,
+        enums: &mut Vec<TypeDef>,
     ) -> Option<TypeDef> {
         let members = schema.one_of.as_ref().filter(|m| m.len() >= 2)?;
         let mut taken: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -2370,6 +2539,8 @@ impl UnifiedGenerator {
                         required.contains(prop_name),
                         schemas,
                         recursive_types,
+                        type_name,
+                        enums,
                     ));
                 }
                 let base = member
@@ -2957,18 +3128,20 @@ impl UnifiedGenerator {
             // Schemas are keyed by original spec names (usually snake_case);
             // shared_resources stores PascalCase names. resolve_schema_key
             // tries multiple naming conventions.
-            let def = match index.resolve(type_name) {
+            let defs = match index.resolve(type_name) {
                 Some(schema) => {
-                    self.type_def_from_schema(&safe_name, schema, &index, &recursive_types)
+                    self.type_defs_from_schema(&safe_name, schema, &index, &recursive_types)
                 }
                 // No schema to say what it is: any JSON value.
-                None => TypeDef::alias(
+                None => vec![TypeDef::alias(
                     &safe_name,
                     &format!("Shared type `{safe_name}` (no schema in the spec)."),
                     "serde_json::Value",
-                ),
+                )],
             };
-            module.push(def);
+            for def in defs {
+                module.push(def);
+            }
         }
 
         Ok(module)

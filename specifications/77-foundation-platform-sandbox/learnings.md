@@ -1147,3 +1147,144 @@ both modules `std::mem::forget` their guard. The second start blocked forever, a
 control tests waited on their serial mutex behind it. `tests/pool/mod.rs` now owns the one
 start, and both support modules call it.
 
+## 15. Feature 04 implementation findings (2026-11-26)
+
+### 15.1 The unified generator had no inline-enum support
+
+`foundation_openapi::spec::Schema` parses `enum_values`, but no generator code read it.
+Every property with an inline `enum` became `String`, so `InstanceInfo.state` could not be
+`Not started`, and `MachineConfiguration.huge_pages` could not be `2M`. This is a real
+generator gap, not a Firecracker peculiarity.
+
+The fix, in `foundation_openapi/src/unified/`:
+
+- `emit.rs`: `TypeBody::Enum { derives, variants }` and `EnumVariant { doc, name, value }`.
+  The renderer writes `#[serde(rename = "...")]` when the variant name differs from the
+  value, and `#[default]` on the first variant, because a generated struct that holds the
+  enum in a required field derives `Default`.
+- `generator.rs`: `inline_enum_type` names an enum after its parent and property
+  (`InstanceInfoState`), so two groups that share a schema each get a local enum and need no
+  cross-module import. Variant names come from `variant_ident`: `Not started` ->
+  `NotStarted`, `2M` -> `Variant2M`, `Self` -> `SelfValue`, an empty value -> `Empty`.
+  A duplicate mapped name gets a number suffix.
+
+The rule is opt-in (`with_inline_enums`) because changing the default rewrites the
+committed types of every provider in one go. Spec 77 feature 04 turns it on.
+
+### 15.2 Optional fields serialized as `null`
+
+`field_of` emitted `Option<T>` with no `skip_serializing_if`, and serde writes `None` as
+`null`. Firecracker rejects a `null` for several fields, and invariant I2 forbids it. The
+opt-in `with_skip_optional_none` adds
+`#[serde(skip_serializing_if = "Option::is_none")]` to every optional field. The request
+body tests assert that the bodies carry no `null`.
+
+### 15.3 Error-response schemas were never generated
+
+The type closure starts at each endpoint's request and success response types. The
+extractor also collects `error_types` (status -> schema name), but the generator never read
+them, so `Error { fault_message }` did not exist. The opt-in `with_error_types` adds those
+names to the closure. The generated `Error` aliases a shared `FaultMessageObject` shape, and
+the client parses the bounded error body with it. The feature's "Error body" generator point
+now holds.
+
+### 15.4 Shape hoisting and enum fields
+
+The generator hoists identical structs whose fields name no generated type into `shared`
+(`MachineConfigurationShape`) and keeps the public name as an alias. A struct with an enum
+field no longer qualifies, so `MachineConfiguration` stays a real struct in each module that
+uses it (`machine_config`, `config`). Each copy has its own local enum. That is correct and
+needs no cross-module import. Do not try to force such a struct back into `shared` without
+also hoisting its enum.
+
+### 15.5 `JsonHash` expands in the deriving crate
+
+`#[derive(JsonHash)]` expands to code that calls `base85rs::encode` and `sha2::Sha256`, so
+the crate that derives it must name both. `foundation_sandbox` now has
+`base85rs = "0.1"` and `sha2` under the `firecracker` feature. Without them the generated
+code fails with 109 `unresolved import base85rs` errors. `foundation_deployment_docker`
+already names both for the same reason.
+
+### 15.6 The build script is the generator; the CLI cannot target a submodule
+
+The feature names `gen_api generate --output-dir backends/foundation_sandbox/src/native/firecracker`.
+For a provider not in `SPLIT_OUT_PROVIDERS`, the CLI writes
+`<output-dir>/<provider>/generated/`, so that command would create
+`src/native/firecracker/firecracker/generated/`. The `foundation_codegentools::Codegen`
+builder supports the layout with `.output_dir(crate).provider_dir(crate/src/native/firecracker)`,
+so the build script is the declaration and the generator (root rule 5).
+
+`scripts/sandbox/check-firecracker-gen.sh` proves invariant I5: it hashes the generated
+tree, touches `build.rs` so Cargo runs the build script again, fails if the script reports
+a regeneration, and compares the hash. It passed with hash
+`a3b158e6798543fd82977f398f37e5947dc46a859c21d494480bab8969e7bceb`.
+
+### 15.7 The feature text names a specification file that the CLI does not discover
+
+Feature section 3.2 names `artefacts/cloud_providers/firecracker/firecracker-v1.19.json`.
+`gen_api generate --provider firecracker` discovers only `openapi.json` or
+`firecracker.json` in that directory. The converted file is
+`artefacts/cloud_providers/firecracker/openapi.json` (the repository convention), and the
+version pin lives in the build script (`spec_version("1.19.0-dev")`) and `specs/README.md`.
+A `firecracker-v1.19.json` copy would be a second copy of the same input.
+
+### 15.8 A 204 answer is `()`, not `Empty`
+
+The feature's generator table expects a 204 PUT to return `Empty`. The generator returns
+`ApiResponse<()>` and calls `send_without_body`, which never reads the body. This is the
+existing convention (Docker's PUTs use `()`), and `()` is the accurate type for "no body".
+Changing it would regenerate every provider's committed output. The client accepts `()`.
+The table row is a documentation mismatch; the functional requirement (a typed empty
+success) holds.
+
+### 15.9 The time-out test and the injected timer
+
+`ValtronTimer` compares the deadline with the clock of the `Ctx` it receives, and
+`SimulatedClock::advance` nudges the timer thread. A simulated clock therefore ends a
+waiting call with no real sleep. Two details matter:
+
+- `HttpClientBuilder`'s Unix read timeout defaults to 5 s, the same as the default
+  `rpc_timeout`. A real transport timeout can then race the injected one and give `Io`
+  instead of `ApiTimeout`. The client sets `transport_timeout` (default 60 s, nginx's
+  `send_timeout`) so the injected timer ends a silent call first.
+- The test advances the clock only after the mock server has read the request. The `call`
+  helper computes the deadline and creates the timer before it polls the request, so after
+  the server has the request the deadline is fixed; advancing earlier can move `now` past
+  the deadline before it is computed.
+
+### 15.10 Socket path length and the test socket
+
+`UnixListener::bind` rejects a path at or over `SUN_LEN` (104 bytes on macOS, 108 on Linux
+including the NUL). The macOS temporary directory plus a descriptive test name exceeds that,
+and the first test run failed with `path must be shorter than SUN_LEN`. The test helper uses
+`/tmp`. The client rejects a path over `max_socket_path` (default 107, the Linux
+`sockaddr_un.sun_path` 108 less the NUL) with `SocketPathTooLong`.
+
+### 15.11 The `ApiTimeout` error variant
+
+No existing `SandboxError` variant meant "the API did not answer". `BootTimeout` names a
+boot stage, and `ExecTimeout` names a command. `ApiTimeout { timeout_ms }` maps to
+`Code::DeadlineExceeded`. The contract wire test and the code-table test include it.
+
+### 15.12 Version bumps
+
+Rule 12 moved three crates and their consumers: `foundation_openapi` 0.0.8 to 0.0.9,
+`foundation_codegentools` 0.1.7 to 0.1.8, `foundation_sandbox` 0.0.5 to 0.0.6. The
+consumers are `bin/platform` and the three deployment crates whose build scripts use the
+generator.
+
+### 15.13 Platform
+
+All feature 04 tests need a Unix domain socket. `types_match_real_firecracker` also needs
+the `firecracker` program and Linux `/dev/kvm`; on a host without them it prints a skip
+message. On Windows the generated module compiles, but `client.rs` is `#[cfg(unix)]`, so
+the client is absent. This is correct: Firecracker's API is a Unix socket.
+
+### 15.14 The Docker artefact was stale before the shared script
+
+Moving the conversion to `scripts/openapi/swagger2openapi.py` is behaviour-preserving: the
+old script from `HEAD`, run on the current YAML, gives the new output byte for byte. The
+committed `artefacts/cloud_providers/docker/openapi.json` differs in one value (the `t`
+query parameter of `POST /build` is `array` in the file and `string` in the YAML). Issue
+[#864](https://github.com/ewe-studios/ewe_platform/issues/864) (severity: low) records it.
+

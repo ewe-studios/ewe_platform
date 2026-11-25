@@ -246,6 +246,12 @@ pub struct Codegen {
     overlays: Vec<PathBuf>,
     /// Schemas whose `oneOf` is emitted as an untagged enum.
     typed_unions: Vec<String>,
+    /// Emit an inline string `enum` as a Rust enum.
+    inline_enums: bool,
+    /// Omit an optional field from the JSON when it is `None`.
+    skip_optional_none: bool,
+    /// Generate the schemas that error responses name.
+    error_types: bool,
 }
 
 impl Default for Codegen {
@@ -271,6 +277,9 @@ impl Default for Codegen {
             },
             overlays: Vec::new(),
             typed_unions: Vec::new(),
+            inline_enums: false,
+            skip_optional_none: false,
+            error_types: false,
         }
     }
 }
@@ -446,6 +455,34 @@ impl Codegen {
         S: Into<String>,
     {
         self.typed_unions.extend(names.into_iter().map(Into::into));
+        self
+    }
+
+    /// Emit an inline string `enum` as a Rust enum, not `String`.
+    ///
+    /// Opt-in: changing the default rewrites the committed types of every
+    /// provider. Spec 77 feature 04 needs it for the Firecracker API.
+    #[must_use]
+    pub fn with_inline_enums(mut self, enabled: bool) -> Self {
+        self.inline_enums = enabled;
+        self
+    }
+
+    /// Add `skip_serializing_if = "Option::is_none"` to every optional field,
+    /// so a `None` is absent from the JSON and never `null`.
+    ///
+    /// Opt-in for the same reason as [`Self::with_inline_enums`].
+    #[must_use]
+    pub fn with_skip_optional_none(mut self, enabled: bool) -> Self {
+        self.skip_optional_none = enabled;
+        self
+    }
+
+    /// Generate the schemas that error responses name, so a client can parse
+    /// the vendor's error message with a generated type.
+    #[must_use]
+    pub fn with_error_types(mut self, enabled: bool) -> Self {
+        self.error_types = enabled;
         self
     }
 
@@ -852,7 +889,10 @@ impl Codegen {
         })?;
 
         let mut generator = UnifiedGenerator::new(targets.output.clone())
-            .with_typed_unions(self.typed_unions.iter());
+            .with_typed_unions(self.typed_unions.iter())
+            .with_inline_enums(self.inline_enums)
+            .with_skip_optional_none(self.skip_optional_none)
+            .with_error_types(self.error_types);
         if let Some(dir) = &targets.provider_dir {
             generator = generator.with_provider_dir(dir.clone());
         }

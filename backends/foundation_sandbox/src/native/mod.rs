@@ -1,13 +1,17 @@
 //! Native adapters.
 //!
 //! Feature 01 adds the slave engine, feature 03 adds the guest-artifact store,
-//! feature 05 adds the Firecracker driver, feature 09 adds libkrun and feature
-//! 10 adds Docker.
+//! feature 04 adds the Firecracker API client, feature 05 adds the Firecracker
+//! driver, feature 09 adds libkrun and feature 10 adds Docker.
 
 /// The guest-artifact store: the cache of kernels, root file systems and
 /// initramfs archives.
 #[cfg(feature = "artifacts")]
 pub mod artifacts;
+
+/// The Firecracker API client (feature 04). Feature 05 adds the driver here.
+#[cfg(feature = "firecracker")]
+pub mod firecracker;
 
 /// The real host file system behind `HostFs`.
 pub mod host;

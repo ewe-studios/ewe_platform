@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sandbox"
-version = "0.0.5"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -55,9 +55,24 @@ flate2 = { version = "1", optional = true }
 tar = { version = "0.4", optional = true }
 # The SHA-256 hasher of a streamed download (feature 03).
 sha2 = { version = "0.10", optional = true }
+# The `JsonHash` derive of the generated Firecracker types calls `base85rs` and
+# `sha2`; a derive expands in this crate, so this crate names them.
+base85rs = { version = "0.1", optional = true }
+# The common API types (`ApiClient`, `ApiError`, `ApiResponse`, `BodyLimits`)
+# that the generated Firecracker client uses (feature 04). This is the same
+# dependency that `foundation_deployment_docker` takes for its generated client.
+foundation_deployment = { path = "../foundation_deployment", version = "0.0.7", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false }
+
+# The generator that keeps `src/native/firecracker/generated/` honest against
+# the vendored API file (feature 04). Optional: only the `firecracker` feature
+# runs it, and a crate built without that feature needs no build step.
+[build-dependencies.foundation_codegentools]
+path = "../foundation_codegentools"
+version = "0.1.8"
+optional = true
 
 [dev-dependencies]
 # The workspace holds one `proptest` version for every crate (spec 77 rule).
@@ -82,7 +97,6 @@ foundation_http = { path = "../foundation_http", version = "0.0.16", default-fea
 libc = { version = "0.2", optional = true }
 
 [features]
-default = ["control", "firecracker", "artifacts"]
 # The guest-artifact store (feature 03) and its manifest.
 artifacts = [
     "dep:foundation_netio",
@@ -91,6 +105,107 @@ artifacts = [
     "dep:sha2",
     "foundation_netio?/ssl",
 ]
+# The command structures (feature 06). Native only.
+cli = []
+# The Cloudflare part (feature 07).
+cloudflare = []
+# `SandboxManager` (feature 02).
+control = []
+default = ["control", "firecracker", "artifacts"]
+# The Docker driver (feature 10).
+docker = []
+# The Firecracker API client and driver (features 04 and 05). Linux only in use.
+# The generator writes one `firecracker_<group>` feature for each operation
+# group; this feature turns them all on, below the one `firecracker` gate.
+firecracker = [
+    "dep:base85rs",
+    "dep:foundation_codegentools",
+    "dep:foundation_deployment",
+    "dep:foundation_netio",
+    "dep:sha2",
+    "firecracker_actions",
+    "firecracker_balloon",
+    "firecracker_boot_source",
+    "firecracker_config",
+    "firecracker_cpu_config",
+    "firecracker_create",
+    "firecracker_default",
+    "firecracker_drives",
+    "firecracker_enclave",
+    "firecracker_entropy",
+    "firecracker_load",
+    "firecracker_logger",
+    "firecracker_machine_config",
+    "firecracker_memory",
+    "firecracker_metrics",
+    "firecracker_mmds",
+    "firecracker_network_interfaces",
+    "firecracker_pmem",
+    "firecracker_serial",
+    "firecracker_start",
+    "firecracker_statistics",
+    "firecracker_status",
+    "firecracker_stop",
+    "firecracker_version",
+    "firecracker_vm",
+    "firecracker_vsock",
+]
+firecracker_actions = []
+firecracker_all = [
+    "firecracker_actions",
+    "firecracker_balloon",
+    "firecracker_boot_source",
+    "firecracker_config",
+    "firecracker_cpu_config",
+    "firecracker_create",
+    "firecracker_default",
+    "firecracker_drives",
+    "firecracker_enclave",
+    "firecracker_entropy",
+    "firecracker_load",
+    "firecracker_logger",
+    "firecracker_machine_config",
+    "firecracker_memory",
+    "firecracker_metrics",
+    "firecracker_mmds",
+    "firecracker_network_interfaces",
+    "firecracker_pmem",
+    "firecracker_serial",
+    "firecracker_start",
+    "firecracker_statistics",
+    "firecracker_status",
+    "firecracker_stop",
+    "firecracker_version",
+    "firecracker_vm",
+    "firecracker_vsock",
+]
+firecracker_balloon = []
+firecracker_boot_source = []
+firecracker_config = []
+firecracker_cpu_config = []
+firecracker_create = []
+firecracker_default = []
+firecracker_drives = []
+firecracker_enclave = []
+firecracker_entropy = []
+firecracker_load = []
+firecracker_logger = []
+firecracker_machine_config = []
+firecracker_memory = []
+firecracker_metrics = []
+firecracker_mmds = []
+firecracker_network_interfaces = []
+firecracker_pmem = []
+firecracker_serial = []
+firecracker_start = []
+firecracker_statistics = []
+firecracker_status = []
+firecracker_stop = []
+firecracker_version = []
+firecracker_vm = []
+firecracker_vsock = []
+# The libkrun driver (feature 09).
+libkrun = []
 # The slave engine (feature 01). Native only.
 slave = [
     "dep:foundation_reactor",
@@ -100,18 +215,6 @@ slave = [
     "dep:libc",
     "foundation_core/multi",
 ]
-# `SandboxManager` (feature 02).
-control = []
-# The Firecracker driver (features 04 and 05). Linux only in use.
-firecracker = []
-# The libkrun driver (feature 09).
-libkrun = []
-# The Docker driver (feature 10).
-docker = []
-# The Cloudflare part (feature 07).
-cloudflare = []
-# The command structures (feature 06). Native only.
-cli = []
 # The simulation helpers (feature 02).
 testing = ["dep:foundation_netio"]
 
