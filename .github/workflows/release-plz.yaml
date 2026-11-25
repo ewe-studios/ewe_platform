@@ -314,10 +314,11 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
         run: |
           set -euo pipefail
-          git fetch --prune origin '+refs/heads/release-plz-*:refs/remotes/origin/release-plz-*'
-          branch=$(git for-each-ref --sort=-committerdate \
-            --format='%(refname:short)' 'refs/remotes/origin/release-plz-*' \
-            | head -1 | sed 's|^origin/||')
+          # release-plz names its branch `release-plz-<UTC timestamp>`, so the
+          # newest name is the branch it just created or updated. `ls-remote`
+          # reads the remote directly: a remote-tracking ref can be missing.
+          branch=$(git ls-remote --heads origin 'refs/heads/release-plz-*' \
+            | awk '{print $2}' | sed 's|refs/heads/||' | sort | tail -1)
           if [ -z "$branch" ]; then
             echo "::error::no release-plz branch on origin; the release PR was not created"
             exit 1
