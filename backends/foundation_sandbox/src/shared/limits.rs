@@ -100,6 +100,134 @@ impl Default for SandboxLimits {
     }
 }
 
+/// Every size and time limit of the guest-artifact store.
+///
+/// Build a value with [`ArtifactLimits::default`] and change the fields that
+/// matter with the `with_` methods. The store reads it from
+/// [`HostConfig`](crate::shared::host::HostConfig)`::artifact_limits`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ArtifactLimits {
+    /// The largest body that one download writes.
+    ///
+    /// Default 1 GiB. The largest pinned artifact is the Firecracker kernel at
+    /// about 40 MiB; a user image can be larger.
+    pub max_download_bytes: u64,
+    /// The most bytes that one archive unpack writes.
+    ///
+    /// Default 4 GiB. The type is `u64` because a 32-bit target cannot hold
+    /// 4 GiB in `usize`.
+    pub max_unpacked_bytes: u64,
+    /// The most entries that one archive unpack reads.
+    ///
+    /// Default 1 000 000. The Alpine minirootfs has about 500 entries.
+    pub max_entries: usize,
+    /// The most bytes of an error body that the store reads.
+    ///
+    /// Default 64 KiB: `BodyLimits::max_error_body` in this repository, the
+    /// same value as [`SandboxLimits::max_error_message`].
+    pub max_error_message: usize,
+    /// The largest buffer that one body read or one file write uses.
+    ///
+    /// Default 64 KiB: the Linux pipe buffer size. The download holds at most
+    /// one buffer of this size.
+    pub chunk_bytes: usize,
+    /// The deadline for the connection to the artifact server.
+    ///
+    /// Default 10 s. The transport of Go `net/http` waits 30 s, and the
+    /// `dial_timeout` default of Caddy is 5 s. 10 s covers a slow CI host.
+    #[serde(with = "duration_millis")]
+    pub connect_timeout: Duration,
+    /// The longest time that one body read waits for the next bytes.
+    ///
+    /// Default 60 s: the `client_body_timeout` default of nginx. A body that
+    /// sends no byte in this time fails the download.
+    #[serde(with = "duration_millis")]
+    pub idle_timeout: Duration,
+}
+
+impl Default for ArtifactLimits {
+    fn default() -> Self {
+        Self {
+            max_download_bytes: 1024 * 1024 * 1024,
+            max_unpacked_bytes: 4 * 1024 * 1024 * 1024,
+            max_entries: 1_000_000,
+            max_error_message: 64 * 1024,
+            chunk_bytes: 64 * 1024,
+            connect_timeout: Duration::from_secs(10),
+            idle_timeout: Duration::from_secs(60),
+        }
+    }
+}
+
+impl ArtifactLimits {
+    /// A set of limits with every default.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Replaces [`Self::max_download_bytes`].
+    #[must_use]
+    pub fn with_max_download_bytes(mut self, value: u64) -> Self {
+        self.max_download_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::max_unpacked_bytes`].
+    #[must_use]
+    pub fn with_max_unpacked_bytes(mut self, value: u64) -> Self {
+        self.max_unpacked_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::max_entries`].
+    #[must_use]
+    pub fn with_max_entries(mut self, value: usize) -> Self {
+        self.max_entries = value;
+        self
+    }
+
+    /// Replaces [`Self::max_error_message`].
+    #[must_use]
+    pub fn with_max_error_message(mut self, value: usize) -> Self {
+        self.max_error_message = value;
+        self
+    }
+
+    /// Replaces [`Self::chunk_bytes`].
+    #[must_use]
+    pub fn with_chunk_bytes(mut self, value: usize) -> Self {
+        self.chunk_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::connect_timeout`].
+    #[must_use]
+    pub fn with_connect_timeout(mut self, value: Duration) -> Self {
+        self.connect_timeout = value;
+        self
+    }
+
+    /// Replaces [`Self::idle_timeout`].
+    #[must_use]
+    pub fn with_idle_timeout(mut self, value: Duration) -> Self {
+        self.idle_timeout = value;
+        self
+    }
+
+    /// Whether every time and every size limit is more than zero.
+    #[must_use]
+    pub fn all_positive(&self) -> bool {
+        self.max_download_bytes > 0
+            && self.max_unpacked_bytes > 0
+            && self.max_entries > 0
+            && self.max_error_message > 0
+            && self.chunk_bytes > 0
+            && !self.connect_timeout.is_zero()
+            && !self.idle_timeout.is_zero()
+    }
+}
+
 impl SandboxLimits {
     /// A set of limits with every default.
     #[must_use]

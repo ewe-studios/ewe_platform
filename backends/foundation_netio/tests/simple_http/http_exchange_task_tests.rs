@@ -45,6 +45,29 @@ fn raw_http_serve(status: u16, body: &'static str) -> std::net::SocketAddr {
     addr
 }
 
+/// Raw TCP server that answers without a `Connection` header, so the response
+/// allows the client to keep the connection for another request.
+fn raw_http_serve_keep_alive(status: u16, body: &'static str) -> std::net::SocketAddr {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let body_bytes = body.as_bytes().to_vec();
+    std::thread::spawn(move || {
+        if let Some(stream) = listener.incoming().next() {
+            let mut stream = stream.expect("accept");
+            let mut buf = [0u8; 4096];
+            let _n = stream.read(&mut buf).unwrap_or(0);
+            let response = format!(
+                "HTTP/1.1 {status} OK\r\nContent-Length: {}\r\n\r\n",
+                body_bytes.len()
+            );
+            let mut out = response.into_bytes();
+            out.extend_from_slice(&body_bytes);
+            let _ = stream.write_all(&out);
+        }
+    });
+    addr
+}
+
 /// Build a `PreparedRequest` for a given URL + method.
 fn request_to(method: SimpleMethod, url: &str) -> PreparedRequest {
     let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
@@ -251,7 +274,7 @@ fn map_ready_receives_both_head_and_body() {
 #[test]
 fn test_connection_returned_to_pool_after_exchange() {
     let _guard = foundation_core::valtron::initialize_pool(85, Some(4));
-    let addr = raw_http_serve(200, "pool return test");
+    let addr = raw_http_serve_keep_alive(200, "pool return test");
     let url = format!("http://127.0.0.1:{}/test", addr.port());
     let (pool, config) = default_pool_and_config();
 
@@ -275,6 +298,34 @@ fn test_connection_returned_to_pool_after_exchange() {
     assert_eq!(
         pool.connection_count(host, port),
         1,
-        "connection should be returned to pool after exchange completes"
+        "a keep-alive connection should return to the pool after the exchange"
+    );
+}
+
+/// Test: a response with `Connection: close` does not put its socket back into
+/// the pool. The next request on the same client would wait on the dead socket
+/// until the response-head deadline.
+#[test]
+fn test_connection_close_is_not_pooled() {
+    let _guard = foundation_core::valtron::initialize_pool(86, Some(4));
+    let addr = raw_http_serve(200, "close test");
+    let url = format!("http://127.0.0.1:{}/test", addr.port());
+    let (pool, config) = default_pool_and_config();
+
+    let host = "127.0.0.1";
+    let port = addr.port();
+    let task = HttpExchangeTask::new(
+        request_to(SimpleMethod::GET, &url),
+        config.max_redirects,
+        pool.clone(),
+        config,
+    );
+    let mut stream = valtron::execute(task, None).expect("execute");
+    while stream.next().is_some() {}
+
+    assert_eq!(
+        pool.connection_count(host, port),
+        0,
+        "a Connection: close socket must not return to the pool"
     );
 }

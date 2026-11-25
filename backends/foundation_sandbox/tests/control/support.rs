@@ -2,7 +2,7 @@
 
 use std::future::Future;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
 
 use foundation_compact::Instant;
@@ -10,7 +10,7 @@ use foundation_context::env::{Env, Timer, TimerFuture};
 use foundation_context::Clock;
 use foundation_context::Ctx;
 use foundation_core::env;
-use foundation_core::valtron::{initialize_pool, SimulatedClock};
+use foundation_core::valtron::SimulatedClock;
 
 use foundation_sandbox::shared::control::testing::{
     in_memory_connector, CountingStore, ScriptedSlave, SimDriver,
@@ -35,10 +35,7 @@ pub fn serial() -> MutexGuard<'static, ()> {
 
 /// Starts the shared valtron pool one time for the test binary.
 pub fn pool() {
-    static POOL: OnceLock<()> = OnceLock::new();
-    POOL.get_or_init(|| {
-        std::mem::forget(initialize_pool(7, Some(8)));
-    });
+    crate::pool::pool();
 }
 
 /// Drives a future to its result on the test thread.
@@ -46,8 +43,7 @@ pub fn pool() {
 /// The valtron tasks that the future starts run on the shared pool, and their
 /// wakes reach this executor.
 pub fn block_on<F: Future>(future: F) -> F::Output {
-    pool();
-    futures::executor::block_on(future)
+    crate::pool::block_on(future)
 }
 
 /// The longest wait that the recording timer answers at once.
