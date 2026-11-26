@@ -697,3 +697,26 @@ fn given_a_preflight_when_it_runs_then_it_allows_the_protocol_headers() {
             .is_some_and(|value| value.contains("Stream-Next-Offset")));
     });
 }
+
+#[test]
+fn given_an_absolute_expiry_when_head_runs_then_the_timestamp_is_returned() {
+    smol::block_on(async {
+        let service = service();
+        let expires_at = "2030-01-01T00:00:00Z";
+        send(
+            &service,
+            SimpleMethod::PUT,
+            "expires-head",
+            headers(&[("stream-expires-at", expires_at)]),
+            None,
+            "",
+        )
+        .await
+        .expect("create");
+
+        let head = send(&service, SimpleMethod::HEAD, "expires-head", headers(&[]), None, "")
+            .await
+            .expect("head");
+        assert_eq!(head.header("Stream-Expires-At"), Some(expires_at));
+    });
+}

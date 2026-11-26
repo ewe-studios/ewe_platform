@@ -810,11 +810,20 @@ async fn handle_head(
             "true".to_string(),
         ));
     }
-    if let Some(Expiry::Ttl(ttl)) = head.expires {
-        headers.push((
+    match head.expires {
+        Some(Expiry::Ttl(ttl)) => headers.push((
             SimpleHeader::custom(header::STREAM_TTL),
             ttl.as_secs().to_string(),
-        ));
+        )),
+        Some(Expiry::Absolute(millis)) => {
+            if let Some(value) = format_expires_at(millis) {
+                headers.push((
+                    SimpleHeader::custom(header::STREAM_EXPIRES_AT),
+                    value,
+                ));
+            }
+        }
+        None => {}
     }
 
     Ok(DurableResponse {
@@ -1003,6 +1012,14 @@ async fn handle_delete(
         headers: base_headers(),
         body: Vec::new(),
     })
+}
+
+/// Format a UNIX millisecond deadline as an RFC 3339 timestamp.
+fn format_expires_at(millis: i64) -> Option<String> {
+    let nanos = i128::from(millis).checked_mul(1_000_000)?;
+    let at = time::OffsetDateTime::from_unix_timestamp_nanos(nanos).ok()?;
+    at.format(&time::format_description::well_known::Rfc3339)
+        .ok()
 }
 
 fn offset_text(offset: &StreamOffset) -> String {
