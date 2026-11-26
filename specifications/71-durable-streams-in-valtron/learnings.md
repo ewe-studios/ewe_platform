@@ -247,3 +247,10 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   must return `Stream::Wait` with a wake registration, not block.
 - **No client-side timeout can fix this.** The Durable Streams adapter keeps Server-Sent Events
   off until the netio event task stops blocking. The client gate stays at 208 pass, 0 fail.
+
+## SSE block location (2026-11-27)
+
+- **`EventSourceState::ReadingStream` polls a blocking iterator.** `event_source/native/task.rs`
+  holds a boxed `Iterator`. The task's `next()` calls it, and `into_pure_future_stream` calls
+  `next()` from `poll_next`, so the poll parks in the socket read. A readiness-aware state that
+  returns `TaskStatus::Wait` is the fix. Issue #963.
