@@ -70,8 +70,8 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
    no tests yet. Add restart, fork, soft-delete and conformance tests, then run the crate tests.
 2. Feature 09: the S3/R2 VFS. The design is in the feature file.
 3. Feature 06: the ConnectRPC surface.
-4. Feature 07: the valtron client wrapper. The design puts it in `foundation_core`, which cannot
-   depend on `foundation_netio`. The owner must confirm the home crate.
+4. Feature 07: the valtron client wrapper. Resolved: the client core and the wrapper live in
+   `foundation_core::durable::client`. `foundation_netio` implements the transport trait.
 5. Feature 10: subscriptions. The six skipped server tests must pass.
 6. Feature 08: the CI wiring. `ci/durable_conformance.sh` is the command to call.
 6. The wider oracle matrix: differential, crash and recovery, deterministic simulation testing

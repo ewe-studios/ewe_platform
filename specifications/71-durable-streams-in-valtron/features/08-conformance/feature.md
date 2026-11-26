@@ -123,7 +123,7 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] The server suite passes against `HttpAdapter` with valtron disabled.
 - [ ] The client suite passes with the Rust adapter.
 - [ ] Both cross-runs pass.
-- [ ] Every skip has a recorded reason and owner approval.
+- [ ] Every skip names an open GitHub issue with a severity. A skip without an issue fails review.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
 - [ ] Every protocol rule has a derived oracle.
 - [ ] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL.
