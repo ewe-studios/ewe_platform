@@ -331,7 +331,7 @@ runs = ["", "multi", "test-clock", "testing"]
 # `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
 # the single-threaded executor. `test-clock` compiles `SimulatedClock`, which
 # exists in no other tree.
-clippy-runs = ["", "multi", "test-clock"]
+clippy-runs = ["", "multi", "test-clock", "testing"]
 # At zero clippy warnings in both trees: a new one fails CI (spec 70 feature 116).
 clippy-deny-warnings = true
 wasm = "enforce"
@@ -698,6 +698,7 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # `h3` adds the HTTP/3 suites (tests/h3_*), which no run compiled before.
 # `testing` adds the in-memory network and transport (spec 83 feature 04).
 runs = ["", "h3", "testing"]
+clippy-runs = ["", "testing"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
 # Spec 70 feature 128: the rpc wasm build is at zero warnings, and the gate
