@@ -41,13 +41,16 @@ use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
 use foundation_core::valtron::{
     self, BoxedSendableDataIterator, BoxedSendableIterator, CollectionState,
-    SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIterator, TaskIteratorExt,
+    SplitCollectorMapContinuation, SplitCollectorMapObserver, SplitUntilContinuationMap,
+    SplitUntilObserverMap, Stream, TaskIteratorExt,
 };
 use serde::de::DeserializeOwned;
 
 use crate::network_client::DynNetClient;
 use crate::shared::client::request_builder::PreparedRequestBuilder;
-use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
+use crate::shared::client::request_task::{
+    HttpExchange, HttpExchangeClientTask, HttpExchangePending,
+};
 use crate::shared::http::{HttpClientError, SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH};
 
 // ============================================================================
@@ -2214,16 +2217,17 @@ pub type ExchangeBodyObserver =
 ///
 /// The caller sends this to valtron — typically `valtron::send(task.map_ready(|_| ()))`.
 ///
-/// The `+ Send` bound is native-only: on wasm valtron runs single-threaded and the
-/// split machinery is non-sendable, so the boxed continuation is not `Send` there.
-#[cfg(not(target_family = "wasm"))]
-pub type ExchangeContinuation =
-    Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending> + Send>;
-
-/// Unsent continuation from [`split_exchange`] (wasm — no `Send` bound).
-#[cfg(target_family = "wasm")]
-pub type ExchangeContinuation =
-    Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending>>;
+/// The alias names the concrete split type, so its `Send` bound follows the
+/// valtron task extensions. With `multi` on, the type is `Send`.
+/// With `multi` off, the type is not `Send`.
+/// On wasm, `multi` is always off.
+pub type ExchangeContinuation = SplitCollectorMapContinuation<
+    SplitUntilContinuationMap<
+        HttpExchangeClientTask,
+        Result<(Status, SimpleHeaders), ExchangeError>,
+    >,
+    Result<Bytes, ExchangeError>,
+>;
 
 /// Split an unsent HTTP exchange into head + body observers plus a continuation.
 ///
@@ -2276,7 +2280,7 @@ pub fn split_exchange(
         DEFAULT_PUSHABLE_DEPTH,
     );
 
-    (head, body, Box::new(body_cont))
+    (head, body, body_cont)
 }
 
 /// Split an HTTP exchange **and** send the continuation to valtron.

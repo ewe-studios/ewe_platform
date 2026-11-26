@@ -1202,3 +1202,10 @@ The mise environment sets the development profile to Cranelift. Cranelift cannot
 `cargo ndk -o <directory>` copies the library it selects, which was a dependency here.
 Build with an explicit `--target-dir` and copy `lib<library>.so` from `<target-dir>/<triple>/release` yourself.
 Name the Cargo library separately from the package. The two are equal today, but the artifact name follows the library.
+
+## A public alias must not fix a feature-dependent bound
+
+`ExchangeContinuation` forced `Send` on every non-wasm target, but the split extensions are sendable only with `multi`.
+Name the concrete continuation type. Its bounds then follow the feature set of each build.
+The host build hid the defect because the default features include `multi`.
+Check a crate with the feature set that the consumer uses, not only with its defaults.

@@ -1524,4 +1524,17 @@ The other known library files are still removed from each destination.
 A missing artifact returns an error that names its path.
 Two new tests cover both ABI destinations and the missing artifact. The Todo task test follows the same shape.
 Strict Clippy passes for the crate, and all 26 native task tests pass.
-A real Android build still stops in `foundation_netio`. Issue [879](https://github.com/ewe-studios/ewe_platform/issues/879) records that failure.
+The real Android build now finishes. Both architectures receive `libui_todo.so` (22 MB and 21 MB) and `libfoundation_ui_native.so` (11.5 MB).
+
+## Android client continuation compiles
+
+Issue [879](https://github.com/ewe-studios/ewe_platform/issues/879) is fixed.
+The Android graph builds `foundation_netio` without the `multi` feature, so the split extensions are not sendable there.
+The old alias forced `Send` on every non-wasm target.
+`ExchangeContinuation` now names the concrete split type. Its `Send` bound follows the selected extensions.
+No in-tree caller of the alias exists besides the function that returns it.
+`cargo check -p foundation_netio --target aarch64-linux-android` passes with the Android compiler.
+The host build without the `multi` feature also passes; it failed before the change.
+All netio test suites pass, with 1242 tests in the largest. Strict Clippy reports no warning.
+The wasm check passes with the `std` and `wire-native` features.
+The full `native:build-android --with-todo` run now finishes in 1 minute 24 seconds and stages both libraries.
