@@ -28,6 +28,15 @@ mod slave;
 /// The Cloudflare tests. They need the `cloudflare` and `testing` features.
 #[cfg(all(feature = "cloudflare", feature = "testing"))]
 mod cloudflare;
+
+/// The Cloudflare end-to-end tests (spec 77 feature 08). They need a running
+/// Worker: `infrastructure/sandbox_worker/test/run.sh` starts it.
+#[cfg(all(
+    not(target_family = "wasm"),
+    feature = "control",
+    feature = "cloudflare"
+))]
+mod e2e_cloudflare;
 /// The native side-effect tests of feature 05. They start real processes and
 /// dial real Unix sockets, with no virtual machine.
 #[cfg(all(unix, feature = "control"))]
