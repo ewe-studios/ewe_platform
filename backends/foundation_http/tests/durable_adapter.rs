@@ -720,3 +720,28 @@ fn given_an_absolute_expiry_when_head_runs_then_the_timestamp_is_returned() {
         assert_eq!(head.header("Stream-Expires-At"), Some(expires_at));
     });
 }
+
+#[test]
+fn given_new_data_when_a_read_runs_then_the_etag_changes() {
+    smol::block_on(async {
+        let service = service();
+        send(&service, SimpleMethod::PUT, "etag-data", headers(&[]), None, "abc")
+            .await
+            .expect("create");
+        let first = send(&service, SimpleMethod::GET, "etag-data", headers(&[]), None, "")
+            .await
+            .expect("read");
+        let first_tag = first.header("ETag").expect("etag").to_string();
+
+        send(&service, SimpleMethod::POST, "etag-data", headers(&[]), None, "def")
+            .await
+            .expect("append");
+        let second = send(&service, SimpleMethod::GET, "etag-data", headers(&[]), None, "")
+            .await
+            .expect("read");
+        let second_tag = second.header("ETag").expect("etag").to_string();
+
+        assert_ne!(first_tag, second_tag);
+        assert_eq!(second.body, b"abcdef");
+    });
+}
