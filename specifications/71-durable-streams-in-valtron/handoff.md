@@ -53,15 +53,27 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
 - Partial fix: the client sends one `HEAD` request first and uses its status and encoding header.
 - Full fix: return a head with the stream.
 
+## 3.3 Owner corrections (2026-11-27)
+
+- The client core and the `ClientTransport` trait live in `foundation_core::durable::client`.
+  `foundation_netio` holds only the native transport. Done.
+- The reserved subscription APIs are in scope. Feature 10 and issue #1000 record the work.
+  The six server skips are a gap, not an approved exclusion.
+- Use `foundation_core::valtron::block_on_future_scoped` in tests. It drives a borrowed,
+  non-`Send` future on the caller's thread. Do not use `smol` in the durable tests.
+- Where one future yields many values, return a `futures_core::Stream` (the client SSE read).
+
 ## 4. Next features
 
-1. Feature 05: the file VFS in `foundation_nativeapis`. The owner chose an atomically replaced
-   metadata file on 2026-11-27 (no LMDB dependency). The design and task T4 are updated.
+1. Feature 05: the file VFS in `foundation_nativeapis`. The first implementation is in
+   `foundation_nativeapis/src/native/vfs/durable_file.rs` and compiles under `vfs-native`. It has
+   no tests yet. Add restart, fork, soft-delete and conformance tests, then run the crate tests.
 2. Feature 09: the S3/R2 VFS. The design is in the feature file.
 3. Feature 06: the ConnectRPC surface.
 4. Feature 07: the valtron client wrapper. The design puts it in `foundation_core`, which cannot
    depend on `foundation_netio`. The owner must confirm the home crate.
-5. Feature 08: the CI wiring. `ci/durable_conformance.sh` is the command to call.
+5. Feature 10: subscriptions. The six skipped server tests must pass.
+6. Feature 08: the CI wiring. `ci/durable_conformance.sh` is the command to call.
 6. The wider oracle matrix: differential, crash and recovery, deterministic simulation testing
    (DST) across VFS implementations.
 
