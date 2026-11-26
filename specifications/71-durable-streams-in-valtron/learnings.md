@@ -254,3 +254,10 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   holds a boxed `Iterator`. The task's `next()` calls it, and `into_pure_future_stream` calls
   `next()` from `poll_next`, so the poll parks in the socket read. A readiness-aware state that
   returns `TaskStatus::Wait` is the fix. Issue #963.
+
+## SSE watchdog experiment (2026-11-27)
+
+- **A watchdog removes the stall but not the gap.** Answering a parked SSE read from a timer gives
+  212 pass and 46 fail: the real read never returns, so every data test sees an empty result.
+- **No adapter-side workaround delivers SSE data.** The readiness-aware `ReadingStream` state in
+  issue #963 is the only fix. The gate stays at 208 pass, 0 fail with SSE off.
