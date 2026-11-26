@@ -103,6 +103,8 @@ impl CloudflareContainerDriver {
                 endpoint,
                 created_unix_ms,
             }),
+            calls: None,
+            slave: None,
         }
     }
 }
@@ -245,6 +247,8 @@ fn substrate_of(
             endpoint,
             created_unix_ms,
         }),
+        calls: None,
+        slave: None,
     }
 }
 
@@ -452,6 +456,8 @@ impl CloudflareDoDriver {
             },
             mounts: Vec::new(),
             handle: Box::new(ModelSubstrateHandle),
+            calls: None,
+            slave: None,
         }
     }
 }

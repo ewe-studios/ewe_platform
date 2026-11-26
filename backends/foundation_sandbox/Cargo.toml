@@ -144,7 +144,6 @@ libc = { version = "0.2", optional = true }
 artifacts = [
     "dep:flate2",
     "dep:tar",
-    "dep:sha2",
 ]
 # The HTTPS download of an artifact. It enables the TLS provider of
 # `foundation_netio`, which links `ring` and its C code. The static guest slave
@@ -185,8 +184,6 @@ firecracker = [
     "dep:base85rs",
     "dep:foundation_api_common",
     "dep:foundation_codegentools",
-    "dep:foundation_deployment",
-    "dep:sha2",
     "firecracker_actions",
     "firecracker_balloon",
     "firecracker_boot_source",

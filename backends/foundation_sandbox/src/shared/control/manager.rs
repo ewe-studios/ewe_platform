@@ -313,6 +313,7 @@ impl SandboxManager {
             connector,
             store,
             config,
+            image_resolver: Mutex::new(None),
             entries: Mutex::new(HashMap::new()),
             stopped: Mutex::new(Vec::new()),
             restored: AtomicBool::new(false),

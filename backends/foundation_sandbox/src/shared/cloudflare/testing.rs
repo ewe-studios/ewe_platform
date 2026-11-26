@@ -987,6 +987,7 @@ pub fn control_exec_request(
             cwd: None,
             stdin,
             timeout_ms: None,
+            user: None,
         },
     };
     let body = serde_json::to_vec(&request).unwrap_or_default();

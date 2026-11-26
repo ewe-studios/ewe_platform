@@ -178,6 +178,7 @@ impl ContainerService for ContainerControlService {
             timeout: exec_request
                 .timeout_ms
                 .map(std::time::Duration::from_millis),
+            user: exec_request.user,
         };
         let mut exec = exec_session_with_id(
             self.ctx.clone(),

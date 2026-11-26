@@ -715,6 +715,7 @@ fn remote_exec(
             timeout_ms: command
                 .timeout
                 .map(|timeout| u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX)),
+            user: command.user,
         };
         let stream = Arc::clone(&client)
             .exec(

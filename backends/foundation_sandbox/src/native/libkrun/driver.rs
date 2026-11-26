@@ -355,6 +355,8 @@ fn ready(ctx: &Ctx, plan: KrunPlan) -> (KrunLaunch, Status) {
         root,
         mounts,
         handle: Box::new(handle),
+        calls: None,
+        slave: None,
     };
     (KrunLaunch::Done, TaskStatus::Ready(Ok(substrate)))
 }

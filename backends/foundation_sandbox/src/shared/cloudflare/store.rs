@@ -47,6 +47,7 @@ impl DoRecordStore {
             created_unix_ms: record.created_unix_ms,
             expires_at_unix_ms: record.expires_at_unix_ms,
             slave: None,
+            manifest: record.manifest.clone(),
         }
     }
 }
