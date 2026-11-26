@@ -14,6 +14,9 @@ mod fault;
 /// Engine, so the `images` feature (which pulls `docker`) gates them.
 #[cfg(feature = "images")]
 mod import;
+/// The registry reference tests (feature 15, section 6.1).
+#[cfg(feature = "images")]
+mod oci_reference;
 mod store;
 mod unpack;
 mod user;
