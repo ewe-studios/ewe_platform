@@ -151,6 +151,34 @@ fn start_cmd_without_a_manifest_command() {
 }
 
 #[test]
+fn unpack_limit_becomes_artifact_too_large() {
+    let _serial = crate::control::support::serial();
+    let manifest = support::manifest(foundation_sandbox::shared::spec::GuestArch::host());
+    let created = create_image(99, resolver_with(manifest));
+    created.slave.with_unpack_error(SandboxError::SlaveError {
+        code: foundation_sandbox::shared::error::SlaveErrorCode::Io,
+        errno: Some(libc::ENOSPC),
+        message: format!(
+            "{}: more than 4 bytes",
+            foundation_sandbox::shared::unpack::UNPACK_LIMIT_MESSAGE
+        ),
+    });
+    let tar = futures::stream::iter(vec![Ok(vec![0_u8; 8])]);
+    let error = crate::control::support::expect_error(
+        crate::pool::block_on(created.handle.unpack(
+            "/",
+            tar,
+            foundation_sandbox::shared::unpack::UnpackOptions::default(),
+        )),
+        "an unpack over the limit",
+    );
+    assert!(
+        matches!(error, SandboxError::ArtifactTooLarge { .. }),
+        "the control plane maps the slave limit to ArtifactTooLarge: {error:?}"
+    );
+}
+
+#[test]
 fn image_without_a_resolver() {
     let _serial = crate::control::support::serial();
     let (ctx, _clock) = crate::control::support::ctx(98);

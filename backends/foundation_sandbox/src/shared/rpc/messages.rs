@@ -77,6 +77,12 @@ pub struct SlaveLimits {
     pub max_message_bytes: u32,
     /// The events held for one `Exec` stream before the pumps wait. Default 4.
     pub event_queue_len: u32,
+    /// The most entries that one image unpack applies (feature 12).
+    pub max_unpack_entries: u32,
+    /// The most bytes that one image unpack writes (feature 12).
+    pub max_unpack_bytes: u64,
+    /// The longest path that one image unpack accepts (feature 12).
+    pub max_unpack_path_bytes: u32,
 }
 
 /// The default of [`SlaveLimits::input_pipe_bytes`]: 64 KiB, the Linux pipe
@@ -230,6 +236,69 @@ pub struct FileWriteCommitResponse {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FileWriteAbortRequest {
     /// The upload identifier.
+    pub upload_id: String,
+}
+
+/// The request of `UnpackBegin` (feature 12).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackBeginRequest {
+    /// The target directory in the guest.
+    pub dest: String,
+    /// Whether OCI whiteout entries remove earlier entries.
+    pub oci_whiteouts: bool,
+    /// Exact paths, relative to `dest`, that the reader drops.
+    #[serde(default)]
+    pub skip: Vec<String>,
+}
+
+/// The response of `UnpackBegin`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackBeginResponse {
+    /// The unpack identifier.
+    pub upload_id: String,
+}
+
+/// The request of `UnpackChunk`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackChunkRequest {
+    /// The unpack identifier.
+    pub upload_id: String,
+    /// The byte offset of this chunk.
+    pub offset: u64,
+    /// The uncompressed tar bytes.
+    #[serde(with = "base64_bytes")]
+    pub data: Vec<u8>,
+}
+
+/// The response of `UnpackChunk`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackChunkResponse {
+    /// The next offset that the slave accepts.
+    pub next_offset: u64,
+}
+
+/// The request of `UnpackCommit`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackCommitRequest {
+    /// The unpack identifier.
+    pub upload_id: String,
+    /// The final size of the tar stream in bytes.
+    pub size: u64,
+}
+
+/// The response of `UnpackCommit`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackCommitResponse {
+    /// The number of applied entries.
+    pub entries: u64,
+    /// The number of file data bytes.
+    pub bytes: u64,
+}
+
+/// The request of `UnpackAbort`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackAbortRequest {
+    /// The unpack identifier.
     pub upload_id: String,
 }
 

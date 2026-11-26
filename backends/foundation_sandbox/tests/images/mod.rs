@@ -10,4 +10,5 @@ mod control;
 #[cfg(all(unix, feature = "libkrun"))]
 mod disks;
 mod store;
+mod unpack;
 mod writable;

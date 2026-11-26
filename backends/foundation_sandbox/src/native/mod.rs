@@ -29,6 +29,11 @@ pub mod images;
 ))]
 pub mod libkrun;
 
+/// The tar reader and applier of an image unpack (feature 12). It is portable
+/// Unix code, so a test applies a tar to a temporary directory without root.
+#[cfg(unix)]
+pub mod unpack;
+
 /// The native platform wrapper (feature 05).
 #[cfg(feature = "control")]
 pub mod platform;

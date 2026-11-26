@@ -48,7 +48,8 @@ use crate::shared::rpc::messages::{
     ExecSignalRequest, FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::{
     register_sandbox_service, register_slave_service, SandboxService, SlaveService,
@@ -737,6 +738,7 @@ struct ScriptedInner {
     shutdown_count: Mutex<usize>,
     info_pending: AtomicBool,
     shutdown_error: Mutex<Option<SandboxError>>,
+    unpack_error: Mutex<Option<SandboxError>>,
 }
 
 /// A `SlaveService` implementation that a test scripts.
@@ -775,8 +777,18 @@ impl ScriptedSlave {
                 shutdown_count: Mutex::new(0),
                 info_pending: AtomicBool::new(false),
                 shutdown_error: Mutex::new(None),
+                unpack_error: Mutex::new(None),
             }),
         }
+    }
+
+    /// Makes the next `UnpackCommit` fail with `error`.
+    pub fn with_unpack_error(&self, error: SandboxError) {
+        *self
+            .inner
+            .unpack_error
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(error);
     }
 
     /// Makes `Shutdown` fail.
@@ -1351,6 +1363,54 @@ impl SlaveService for ScriptedSlave {
                 forced: false,
             });
         }
+        Ok(Response::new(Empty {}))
+    }
+
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackBeginRequest>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        Ok(Response::new(UnpackBeginResponse {
+            upload_id: "unpack-00000001".to_string(),
+        }))
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackChunkRequest>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        Ok(Response::new(UnpackChunkResponse {
+            next_offset: request.msg.offset + request.msg.data.len() as u64,
+        }))
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackCommitRequest>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let error = self
+            .inner
+            .unpack_error
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take();
+        if let Some(error) = error {
+            return Err(slave_connect_error(&error));
+        }
+        Ok(Response::new(UnpackCommitResponse {
+            entries: 0,
+            bytes: 0,
+        }))
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackAbortRequest>,
+    ) -> ConnectResult<Response<Empty>> {
         Ok(Response::new(Empty {}))
     }
 }

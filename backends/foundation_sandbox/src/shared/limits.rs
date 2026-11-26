@@ -78,6 +78,10 @@ pub struct SandboxLimits {
     /// Default 16 GiB. The type is `u64` because a 32-bit target cannot hold
     /// 16 GiB in `usize`. Feature 12 uses this limit.
     pub max_unpack_bytes: u64,
+    /// The longest path that one image unpack accepts.
+    ///
+    /// Default 4096: `PATH_MAX` on Linux. A longer path fails the unpack.
+    pub max_unpack_path_bytes: usize,
 }
 
 impl Default for SandboxLimits {
@@ -96,6 +100,7 @@ impl Default for SandboxLimits {
             input_retry_timeout: Duration::from_secs(30),
             max_unpack_entries: 1_000_000,
             max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+            max_unpack_path_bytes: 4096,
         }
     }
 }
@@ -376,6 +381,13 @@ impl SandboxLimits {
         self
     }
 
+    /// Replaces [`Self::max_unpack_path_bytes`].
+    #[must_use]
+    pub fn with_max_unpack_path_bytes(mut self, value: usize) -> Self {
+        self.max_unpack_path_bytes = value;
+        self
+    }
+
     /// Whether every time and every size limit is more than zero.
     #[must_use]
     pub fn all_positive(&self) -> bool {
@@ -392,5 +404,6 @@ impl SandboxLimits {
             && !self.input_retry_timeout.is_zero()
             && self.max_unpack_entries > 0
             && self.max_unpack_bytes > 0
+            && self.max_unpack_path_bytes > 0
     }
 }

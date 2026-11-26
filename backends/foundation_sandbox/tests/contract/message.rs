@@ -180,6 +180,9 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         input_pipe_bytes: 32_768,
         max_message_bytes: 4_194_304,
         event_queue_len: 4,
+        max_unpack_entries: 1_000_000,
+        max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+        max_unpack_path_bytes: 4096,
     });
     roundtrip(&PrepareRequest {
         root: RootSetup {
@@ -203,6 +206,9 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             input_pipe_bytes: 32_768,
             max_message_bytes: 4_194_304,
             event_queue_len: 4,
+            max_unpack_entries: 1_000_000,
+            max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+            max_unpack_path_bytes: 4096,
         },
     });
     roundtrip(&PrepareResponse {

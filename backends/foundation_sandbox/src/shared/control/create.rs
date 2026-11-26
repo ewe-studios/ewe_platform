@@ -862,6 +862,9 @@ pub fn slave_limits(limits: &SandboxLimits) -> SlaveLimits {
         input_pipe_bytes: 64 * 1024,
         max_message_bytes: u32::try_from(limits.max_message_bytes).unwrap_or(u32::MAX),
         event_queue_len: 4,
+        max_unpack_entries: u32::try_from(limits.max_unpack_entries).unwrap_or(u32::MAX),
+        max_unpack_bytes: limits.max_unpack_bytes,
+        max_unpack_path_bytes: u32::try_from(limits.max_unpack_path_bytes).unwrap_or(u32::MAX),
     }
 }
 

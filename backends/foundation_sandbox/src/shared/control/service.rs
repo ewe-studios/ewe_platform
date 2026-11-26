@@ -23,7 +23,8 @@ use crate::shared::rpc::messages::{
     ExecRequest, ExecSignalRequest, FileChunk, FileReadRequest, FileWriteAbortRequest,
     FileWriteBeginRequest, FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse,
     FileWriteCommitRequest, FileWriteCommitResponse, ListResponse, ProbeResponse, SandboxRef,
-    Scoped,
+    Scoped, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::{SandboxService, SandboxServiceClient};
 use crate::shared::{BoxFuture, Secret};
@@ -330,6 +331,62 @@ impl SandboxService for ControlService {
             })
         });
         Ok(Box::pin(mapped))
+    }
+
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackBeginRequest>>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        let answer = sandbox
+            .calls()
+            .unpack_begin(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackChunkRequest>>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        let answer = sandbox
+            .calls()
+            .unpack_chunk(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackCommitRequest>>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        let answer = sandbox
+            .calls()
+            .unpack_commit(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackAbortRequest>>,
+    ) -> ConnectResult<Response<Empty>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        sandbox
+            .calls()
+            .unpack_abort(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(Empty {}))
     }
 }
 

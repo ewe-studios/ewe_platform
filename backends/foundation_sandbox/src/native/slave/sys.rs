@@ -650,6 +650,35 @@ pub fn mount(source: &str, target: &Path, fstype: &str, flags: u64, data: &str) 
     Ok(())
 }
 
+/// Makes `path` the root directory of this process.
+///
+/// # Errors
+/// The operating system error of `chroot`, such as `EPERM` when the process
+/// has no right to change its root.
+pub fn chroot(path: &str) -> io::Result<()> {
+    let path = CString::new(path.as_bytes()).map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `path` is a valid zero-terminated string.
+    let result = unsafe { libc::chroot(path.as_ptr()) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+/// Changes the working directory of this process.
+///
+/// # Errors
+/// The operating system error of `chdir`.
+pub fn chdir(path: &Path) -> io::Result<()> {
+    let path = CString::new(path.as_os_str().as_bytes()).map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `path` is a valid zero-terminated string.
+    let result = unsafe { libc::chdir(path.as_ptr()) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
 /// Unmounts `target`.
 ///
 /// # Errors

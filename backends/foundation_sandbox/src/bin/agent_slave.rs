@@ -11,6 +11,22 @@ fn main() {
     use foundation_sandbox::cli::slave::{run, SlaveCli};
     use foundation_sandbox::native::slave::block_sigchld;
 
+    // The unpack child mode: the slave starts this same program with the target
+    // and the options, and the child applies the tar stream from its standard
+    // input after a `chroot`.
+    let arguments: Vec<String> = std::env::args().collect();
+    if arguments.get(1).map(String::as_str)
+        == Some(foundation_sandbox::native::slave::unpack::UNPACK_CHILD_FLAG)
+    {
+        let (Some(dest), Some(options)) = (arguments.get(2), arguments.get(3)) else {
+            eprintln!("agent-slave: the unpack child needs a target and options");
+            std::process::exit(64);
+        };
+        std::process::exit(foundation_sandbox::native::slave::unpack::run_unpack_child(
+            dest, options,
+        ));
+    }
+
     // The signal mask belongs to a thread and a new thread copies it. Block
     // `SIGCHLD` before any thread starts, so the reaper's `signalfd` sees every
     // child.

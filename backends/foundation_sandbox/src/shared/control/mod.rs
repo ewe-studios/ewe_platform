@@ -19,6 +19,7 @@ use crate::shared::ids::{DriverId, SandboxId};
 use crate::shared::images::ImageManifest;
 use crate::shared::rpc::messages::SlaveInfo;
 use crate::shared::spec::SandboxSpec;
+use crate::shared::unpack::{UnpackOptions, UnpackReport};
 use crate::shared::{BoxByteStream, BoxFuture, ByteStream};
 
 #[cfg(feature = "control")]
@@ -219,6 +220,14 @@ pub trait SandboxOps: Send + Sync + 'static {
     /// Reads one file as a byte stream.
     fn read_file(&self, path: String) -> BoxFuture<'_, SandboxResult<FileStream>>;
 
+    /// Applies one uncompressed tar stream to a directory of the guest.
+    fn unpack(
+        &self,
+        dest: String,
+        options: UnpackOptions,
+        tar: BoxByteStream,
+    ) -> BoxFuture<'_, SandboxResult<UnpackReport>>;
+
     /// Stops the sandbox.
     fn stop(&self) -> BoxFuture<'_, SandboxResult<ExitReport>>;
 
@@ -331,6 +340,22 @@ impl SandboxHandle {
     ) -> SandboxResult<u64> {
         let data: BoxByteStream = Box::pin(data);
         self.ops.write_file(path.to_string(), mode, data).await
+    }
+
+    /// Applies one uncompressed tar stream to `dest` in the guest (feature 12).
+    ///
+    /// # Errors
+    /// [`SandboxError::SandboxStopped`] when the sandbox is not ready, the error
+    /// of the slave call, or [`SandboxError::ArtifactTooLarge`] when the
+    /// archive passes a configured unpack limit.
+    pub async fn unpack(
+        &self,
+        dest: &str,
+        tar: impl ByteStream,
+        options: UnpackOptions,
+    ) -> SandboxResult<UnpackReport> {
+        let tar: BoxByteStream = Box::pin(tar);
+        self.ops.unpack(dest.to_string(), options, tar).await
     }
 
     /// The low-level execution and file calls of this sandbox.

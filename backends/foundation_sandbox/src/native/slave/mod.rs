@@ -16,6 +16,7 @@ pub mod root;
 pub mod serve;
 pub mod state;
 pub mod sys;
+pub mod unpack;
 
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -37,7 +38,8 @@ use crate::shared::rpc::messages::{
     FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::SlaveService;
 
@@ -47,6 +49,7 @@ use self::exec::{SessionStream, SessionTable};
 use self::files::Files;
 use self::reaper::ChildTable;
 use self::state::{Phase, PrepareRecord, State};
+use self::unpack::{ChildOptions, UnpackSessions};
 
 /// The number of threads of the valtron pool that the slave starts when its
 /// caller did not start one. Four workers keep both output pumps of one session
@@ -77,6 +80,7 @@ pub struct Slave {
     sessions: Arc<SessionTable>,
     children: Arc<ChildTable>,
     files: Mutex<Option<Arc<Files>>>,
+    unpack: Mutex<Option<Arc<UnpackSessions>>>,
     shutdown: Arc<ShutdownSignal>,
 }
 
@@ -110,6 +114,7 @@ impl Slave {
             sessions: Arc::new(SessionTable::new()),
             children: Arc::new(ChildTable::new()),
             files: Mutex::new(None),
+            unpack: Mutex::new(None),
             shutdown,
         })
     }
@@ -266,6 +271,42 @@ impl Slave {
         Ok(opened)
     }
 
+    /// The unpack sessions, opened on the first unpack call.
+    fn unpack_sessions(&self) -> SandboxResult<Arc<UnpackSessions>> {
+        let prepared = self.prepared()?;
+        let mut slot = self
+            .unpack
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(sessions) = slot.as_ref() {
+            return Ok(Arc::clone(sessions));
+        }
+        let limits = prepared.limits();
+        let sessions = Arc::new(UnpackSessions::new(
+            self.ctx.clone(),
+            limits.max_exec_sessions as usize,
+            std::time::Duration::from_millis(u64::from(limits.upload_idle_timeout_ms)),
+        ));
+        *slot = Some(Arc::clone(&sessions));
+        start_unpack_timer(
+            self.ctx.clone(),
+            Arc::clone(&sessions),
+            std::time::Duration::from_millis(u64::from(limits.upload_idle_timeout_ms) / 2),
+        );
+        Ok(sessions)
+    }
+
+    /// The child limits of one unpack.
+    fn unpack_limits(&self, limits: crate::shared::rpc::messages::SlaveLimits) -> ChildOptions {
+        ChildOptions {
+            oci_whiteouts: false,
+            skip: Vec::new(),
+            max_entries: limits.max_unpack_entries as usize,
+            max_bytes: limits.max_unpack_bytes,
+            max_path_bytes: limits.max_unpack_path_bytes as usize,
+        }
+    }
+
     /// Unmounts a writable root cleanly before the machine powers off.
     ///
     /// It unmounts the bind mounts below the root, flushes the buffers and
@@ -326,17 +367,28 @@ impl Slave {
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .clone(),
+            self.unpack
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .clone(),
         );
     }
 }
 
-/// Ends every session and removes every upload.
-fn end_everything(sessions: &Arc<SessionTable>, files: Option<Arc<Files>>) {
+/// Ends every session, removes every upload and stops every unpack.
+fn end_everything(
+    sessions: &Arc<SessionTable>,
+    files: Option<Arc<Files>>,
+    unpack: Option<Arc<UnpackSessions>>,
+) {
     for session in sessions.snapshot() {
         let _ = session.signal_group(libc::SIGKILL);
     }
     if let Some(files) = files {
         files.remove_all();
+    }
+    if let Some(unpack) = unpack {
+        unpack.remove_all();
     }
 }
 
@@ -346,6 +398,7 @@ async fn shutdown_sessions(
     ctx: Ctx,
     sessions: Arc<SessionTable>,
     files: Option<Arc<Files>>,
+    unpack: Option<Arc<UnpackSessions>>,
     shutdown: Arc<ShutdownSignal>,
     grace: std::time::Duration,
 ) {
@@ -358,7 +411,7 @@ async fn shutdown_sessions(
         let step = remaining.min(std::time::Duration::from_millis(20));
         foundation_core::valtron::timer::sleep_for(step, &ctx).await;
     }
-    end_everything(&sessions, files);
+    end_everything(&sessions, files, unpack);
     shutdown.turn_on();
 }
 
@@ -376,6 +429,21 @@ fn start_upload_timer(ctx: Ctx, files: Arc<Files>, interval: std::time::Duration
         foundation_core::valtron::send(foundation_core::valtron::from_future(future))
     {
         tracing::error!(error = %error, "the slave could not start the upload timer");
+    }
+}
+
+/// Starts the task that stops an unpack that stays idle.
+fn start_unpack_timer(ctx: Ctx, unpack: Arc<UnpackSessions>, interval: std::time::Duration) {
+    let future = async move {
+        loop {
+            foundation_core::valtron::timer::sleep_for(interval, &ctx).await;
+            unpack.expire_idle();
+        }
+    };
+    if let Err(error) =
+        foundation_core::valtron::send(foundation_core::valtron::from_future(future))
+    {
+        tracing::error!(error = %error, "the slave could not start the unpack timer");
     }
 }
 
@@ -532,6 +600,72 @@ impl SlaveService for Slave {
         }
     }
 
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackBeginRequest>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        let max = self.max_error_message();
+        let answer = self.prepared().and_then(|prepared| {
+            let sessions = self.unpack_sessions()?;
+            let mut child = self.unpack_limits(prepared.limits());
+            child.oci_whiteouts = request.msg.oci_whiteouts;
+            child.skip = request.msg.skip.clone();
+            let upload_id = sessions.begin(&prepared.exec_root, &request.msg.dest, &child)?;
+            Ok(UnpackBeginResponse {
+                upload_id: upload_id.to_string(),
+            })
+        });
+        to_connect(answer, max).map(Response::new)
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackChunkRequest>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        let max = self.max_error_message();
+        let answer = self
+            .prepared()
+            .and_then(|_| self.unpack_sessions())
+            .and_then(|sessions| {
+                sessions.chunk(
+                    &request.msg.upload_id,
+                    request.msg.offset,
+                    &request.msg.data,
+                )
+            })
+            .map(|next_offset| UnpackChunkResponse { next_offset });
+        to_connect(answer, max).map(Response::new)
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackCommitRequest>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let max = self.max_error_message();
+        let answer = self
+            .prepared()
+            .and_then(|_| self.unpack_sessions())
+            .and_then(|sessions| sessions.commit(&request.msg.upload_id, request.msg.size))
+            .map(|(entries, bytes)| UnpackCommitResponse { entries, bytes });
+        to_connect(answer, max).map(Response::new)
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackAbortRequest>,
+    ) -> ConnectResult<Response<Empty>> {
+        let max = self.max_error_message();
+        let answer = self
+            .prepared()
+            .and_then(|_| self.unpack_sessions())
+            .map(|sessions| sessions.abort(&request.msg.upload_id));
+        to_connect(answer, max).map(|()| Response::new(Empty {}))
+    }
+
     async fn shutdown(
         &self,
         _ctx: RpcCtx,
@@ -554,10 +688,15 @@ impl SlaveService for Slave {
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .clone();
+            let unpack = self
+                .unpack
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .clone();
             let shutdown = Arc::clone(&self.shutdown);
             let grace = std::time::Duration::from_millis(u64::from(request.msg.grace_ms));
             let future = async move {
-                shutdown_sessions(ctx, sessions, files, shutdown, grace).await;
+                shutdown_sessions(ctx, sessions, files, unpack, shutdown, grace).await;
             };
             if let Err(error) =
                 foundation_core::valtron::send(foundation_core::valtron::from_future(future))
