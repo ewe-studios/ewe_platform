@@ -94,6 +94,14 @@ version=$(python3 -c "import tomllib; print(tomllib.load(open('${REPO_ROOT}/back
 slave_image="ewe/agent-slave:${version}"
 tools_image=$(python3 -c "import tomllib; print(tomllib.load(open('${REPO_ROOT}/ci/sandbox.toml', 'rb'))['cloudflare_sandbox_tools_image'])")
 
+# Invariants I4 and I5: the crate does not name the shim and does not depend on
+# the product package. The control plane uses `DriverId::CloudflareContainer`.
+if grep -RIn --include='*.rs' -e 'sandbox-shim' -e '@cloudflare/sandbox' \
+    "${REPO_ROOT}/backends/foundation_sandbox/src"; then
+    echo "the foundation_sandbox sources name the product shim or package" >&2
+    exit 1
+fi
+
 cd "${REPO_ROOT}"
 
 # Step 1: the donor image and the product Dockerfile.
