@@ -688,15 +688,22 @@ fn rootfs_from_path(path: &Path) -> Result<RootFs, i32> {
 #[cfg(all(feature = "artifacts", target_os = "linux"))]
 fn default_rootfs(ctx: &Ctx) -> Result<PathBuf, i32> {
     let host = SandboxHost::from_ctx(ctx).map_err(|error| failure(&error))?;
-    let store = crate::native::artifacts::ArtifactStore::new(
+    // `block_on_future` runs the future on a task, so the future must own the
+    // store. An `Arc` gives it that ownership.
+    let store = Arc::new(crate::native::artifacts::ArtifactStore::new(
         ctx.clone(),
         host.fs.clone(),
         host.config.cache_dir.clone(),
-    );
+    ));
     eprintln!("agent-sandbox: fetching the default kernel and root file system");
-    let _kernel = block_on_future(store.firecracker_kernel(GuestArch::host()))
+    let kernel_store = Arc::clone(&store);
+    let arch = GuestArch::host();
+    let _kernel = block_on_future(async move { kernel_store.firecracker_kernel(arch).await })
         .map_err(|error| failure(&error))?;
-    block_on_future(store.firecracker_ci_rootfs(GuestArch::host())).map_err(|error| failure(&error))
+    let rootfs_store = Arc::clone(&store);
+    let arch = GuestArch::host();
+    block_on_future(async move { rootfs_store.firecracker_ci_rootfs(arch).await })
+        .map_err(|error| failure(&error))
 }
 
 /// Another build or target has no default image.
