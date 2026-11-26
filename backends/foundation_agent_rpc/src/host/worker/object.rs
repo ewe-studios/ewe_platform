@@ -381,7 +381,7 @@ fn archive_target(
     let env_js = wasm_bindgen::JsValue::from(env.clone());
     let bucket = R2Bucket::from_env(&env_js, ARCHIVE_BINDING).ok()?;
     Some(Arc::new(HistoryArchive::new(
-        Arc::new(R2WasmStorage::new(bucket, "archives")),
+        Arc::new(R2WasmStorage::new(bucket, "archives").with_part_size(config.archive.part_size)),
         config.archive.clone(),
         ctx,
     )))
