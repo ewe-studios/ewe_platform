@@ -74,7 +74,7 @@ Today the platform has the pieces, but not one reusable contract:
   `into_future_stream` and `#[task]`. These are the pieces a durable stream needs. They are not
   named as one thing.
 
-This spec names the contract. It puts the protocol core in `foundation_core::durable`. It puts
+This spec names the contract. It puts the protocol core in `foundation_core::durable::shared`. It puts
 the valtron wrapper in `foundation_core::valtron::durable`. The valtron layer is required.
 
 **The core rule.** The protocol core must pass conformance without valtron. The valtron layer
@@ -129,8 +129,10 @@ flowchart TB
 
 _Caption: The core serves every runtime and transport, so it works without valtron._
 
-The core is `foundation_core::durable`. The valtron wrapper is
-`foundation_core::valtron::durable`. The client core is `foundation_netio::durable`.
+The core is `foundation_core::durable::shared`. The valtron wrapper is
+`foundation_core::valtron::durable`. The client core is
+`foundation_netio::durable::shared`. Platform code follows the repository layout: `shared/`,
+`wasm/`, `cf/` and `native/`.
 
 Rules:
 
@@ -183,7 +185,7 @@ protocol rule.
 
 ### 3.1 Core types (feature 01)
 
-The types use `core` and `alloc`. They live in `foundation_core::durable`.
+The types use `core` and `alloc`. They live in `foundation_core::durable::shared`.
 
 ```rust
 // Opaque, lexicographically-ordered offset. Built only by the store.
@@ -648,7 +650,8 @@ status that mirrors `ResumeCursor`. It does not use SSE frames, ETags or `Stream
 ### 3.10 Client core (feature 07)
 
 The client core is a plain async library. It has no valtron dependency. It uses the shared
-types from `foundation_core::durable`. It lives in `foundation_netio::durable` and uses the
+types from `foundation_core::durable::shared`. It lives in `foundation_netio::durable::shared`
+and uses the
 injected HTTP transport.
 
 API:
@@ -739,6 +742,9 @@ conformance spike after 01 and 06.
     rule needs a derived oracle. A fixed example alone is not enough.
 18. **Every VFS has conformance and coverage tests.** The VFS crate runs the shared conformance
     scenarios and its own coverage tests. Coverage exercises every VFS method and native path.
+19. **Follow the directory layout.** `shared/` compiles on every target. `wasm/` holds
+    wasm-only code. `cf/` holds Cloudflare-only code. `native/` holds native-only code. Do not
+    put platform code in `shared/`.
 
 ## 6. Verification protocol
 
@@ -853,7 +859,7 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 
 ## 8. Done for the whole spec
 
-- [ ] `foundation_core::durable` exists and has no valtron dependency.
+- [ ] `foundation_core::durable::shared` exists and has no valtron dependency.
 - [ ] The core types and store trait are complete.
 - [ ] The core reader classifies `up_to_date` and `closed` correctly.
 - [ ] The producer fences a stale epoch, deduplicates a retry and rejects a gap.

@@ -23,7 +23,7 @@ reference client conformance suite with its adapter.
 
 ## 2. Requirements
 
-1. **Shared types.** The client uses `foundation_core::durable` types. It does not define a
+1. **Shared types.** The client uses `foundation_core::durable::shared` types. It does not define a
    second offset, cursor or error model.
 2. **Driver.** `ClientDriver` provides the transport, clock and retry policy. The client business
    API takes a driver. Embedded, HTTP, WebSocket and DO are client drivers. The transport is
@@ -67,6 +67,14 @@ reference client conformance suite with its adapter.
 21. **wasm32.** The client core builds and runs on wasm32. The transport and clock are drivers.
 
 ## 3. Design
+
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| Client core | `foundation_netio/src/shared/durable/` |
+| wasm client | `foundation_netio/src/wasm/durable/` |
+| Valtron client wrapper | `foundation_core/src/valtron/durable/` |
 
 ```rust
 pub struct DurableClient { /* transport, base URL, headers, retry, clock */ }

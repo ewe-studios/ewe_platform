@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: durable core moved to `foundation_core::durable::shared`. Added the
+  `shared/`, `wasm/`, `cf/` and `native/` layout rule and the per-feature path tables. 21
+  durable tests pass.
 - 2026-11-27: feature 09 designed from the Rivet study. The S3/R2 VFS uses immutable segment
   keys, a local spool, one PUT per batch, conditional-write CAS, publish-after-PUT, read
   revalidation, a lifecycle with a grace window, and explicit R2 settings. No feature started

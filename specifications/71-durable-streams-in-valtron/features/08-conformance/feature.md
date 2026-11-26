@@ -52,6 +52,14 @@ merge.
 
 ## 3. Design
 
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| VFS testkit | `foundation_core/src/durable/shared/testkit.rs` |
+| Conformance harness | `tests/conformance/` |
+| Per-crate VFS tests | each VFS crate's `tests/` directory |
+
 ```mermaid
 flowchart TD
   A[Spec change] --> B[Unit and DST tests]

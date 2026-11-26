@@ -115,6 +115,16 @@ pub struct S3Vfs { store: Arc<dyn ObjectStore>, spool: Spool, batcher: Batcher }
 pub struct R2Vfs { store: Arc<dyn ObjectStore>, spool: Spool, batcher: Batcher }
 ```
 
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| Shared object store, batcher and spool | `foundation_nativeapis/src/shared/vfs/durable/` |
+| S3 VFS | `foundation_nativeapis/src/native/vfs/s3.rs` |
+| R2 VFS | `foundation_nativeapis/src/native/vfs/r2.rs` |
+| R2 binding | `foundation_db/src/wasm/bindgen/cf/r2.rs` |
+| D1 binding | `foundation_db/src/wasm/bindgen/cf/d1.rs` |
+
 The write path:
 
 1. Append to the spool and fsync.

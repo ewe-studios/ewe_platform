@@ -64,6 +64,9 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   VFS trait is object-safe via boxed futures. The memory VFS lives in `foundation_core`. The
   file VFS lives in `foundation_nativeapis`. The protocol core and `Ctx` do not change when the
   VFS changes. `Ctx` holds `Arc<DurableStream>`.
+- **Follow `shared/`, `wasm/`, `cf/` and `native/`.** The durable core and memory VFS live in
+  `foundation_core/src/durable/shared/`. Platform VFS code lives in the `native/`, `wasm/` or
+  `cf/` module of its home crate. Do not put platform code in `shared/`.
 - **Each VFS lives in its native crate.** The memory VFS uses `foundation_core`. The file VFS
   uses `foundation_nativeapis`, so it can use native file I/O and LMDB. R2/S3 uses
   `foundation_nativeapis` too. DO SQLite and D1 use their spec 83 crates. The VFS uses the full

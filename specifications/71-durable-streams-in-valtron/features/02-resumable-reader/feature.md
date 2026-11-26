@@ -47,6 +47,13 @@ without valtron. The valtron reader adds `StreamIterator`, `Stream::Wait`, `Stre
 
 ## 3. Design
 
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| Core reader | `foundation_core/src/durable/shared/` |
+| Valtron reader | `foundation_core/src/valtron/durable/` |
+
 ```rust
 pub struct DurableStreamReader<Store> {
     service: DurableService<Store>,

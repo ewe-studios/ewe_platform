@@ -79,13 +79,16 @@ impl DurableDriver for DurableStream { type Store = Self; /* ... */ }
 
 The VFS contract is in `requirements.md` section 3.7.
 
-| VFS | Crate |
+| VFS | Crate and path |
 |---|---|
-| Memory | `foundation_core` |
-| File | `foundation_nativeapis` |
-| R2 / S3 | `foundation_nativeapis` (feature 09) |
-| DO SQLite | spec 83 crate |
-| D1 | spec 83 crate |
+| Memory | `foundation_core/src/durable/shared/memory.rs` |
+| File | `foundation_nativeapis/src/native/vfs/durable_file.rs` |
+| R2 / S3 | `foundation_nativeapis/src/native/vfs/{r2,s3}.rs` (feature 09) |
+| DO SQLite | spec 83 `cf/` module |
+| D1 | `foundation_db/src/wasm/bindgen/cf/d1.rs` |
+
+Shared VFS pieces live in `foundation_nativeapis/src/shared/vfs/durable/`. Platform code
+follows the repository layout.
 
 ## 4. Tasks
 

@@ -55,6 +55,14 @@ Conformance tests the core and these adapters, with valtron disabled.
 
 ## 3. Design
 
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| Core service | `foundation_core/src/durable/shared/` |
+| HTTP adapter | `foundation_http/src/shared/durable/` with wasm code in `src/wasm/durable/` |
+| ConnectRPC adapter | `foundation_connectrpc/src/shared/durable/` with wasm code in `src/wasm/durable/` |
+
 ```rust
 pub struct DurableService<Store> { store: Store, limits: DurableLimits }
 
