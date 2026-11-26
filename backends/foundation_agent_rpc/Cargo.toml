@@ -91,8 +91,14 @@ prost = "0.12"
 prost-types = "0.12"
 
 [dev-dependencies]
-tracing-subscriber = { workspace = true }
+# The wasm test targets (the Cloudflare host tests) use the async helpers. The
+# other test dependencies are native only: they pull the `multi` executor, a
+# temporary directory or a native signing key, and a wasm test target must not
+# compile them.
 futures-lite = { workspace = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
 foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi", "testing"] }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
@@ -242,6 +248,12 @@ required-features = ["candle", "multi"]
 name = "model_handle_tests"
 path = "tests/model_handle_tests.rs"
 required-features = ["candle", "multi"]
+
+# The enrollment tests use deterministic Ed25519 client keys, which are native.
+[[test]]
+name = "enroll_tests"
+path = "tests/enroll_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "native_config_tests"

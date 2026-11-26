@@ -37,12 +37,48 @@ fn config() -> AgentRpcConfig {
     config
 }
 
+/// The plan of a valid configuration.
+fn valid_plan(config: &AgentRpcConfig) -> foundation_deployment_cloudflare::DeploymentPlan {
+    agent_rpc_plan(config).expect("the configuration is valid")
+}
+
+#[test]
+fn cloudflare_plan_refuses_a_malformed_secret_reference() {
+    // Oracle: issue #1003. A model that names malformed JSON is a typed
+    // configuration error, not a plain secret name.
+    let mut config = config();
+    config.models = vec![model("gpt", "{\"kind\":")];
+    let error = agent_rpc_plan(&config).expect_err("the secret reference is malformed");
+    assert!(
+        error.to_string().contains("api_key_secret"),
+        "the error names the field: {error}"
+    );
+}
+
+#[test]
+fn cloudflare_plan_keeps_the_container_port_in_configuration() {
+    // Oracle: issue #1006. The port is a configuration field with the default
+    // 8080. A caller that changes it still gets a valid plan, and the same
+    // value goes to `AgentContainer::call`.
+    let default_config = AgentRpcConfig::default();
+    assert_eq!(
+        default_config.port,
+        foundation_agent_rpc::core::config::DEFAULT_AGENT_RPC_PORT
+    );
+    assert_eq!(default_config.port, 8_080);
+
+    let mut config = config();
+    config.port = 9_090;
+    let plan = valid_plan(&config);
+    assert_eq!(plan.containers.len(), 1);
+}
+
 #[test]
 fn cloudflare_plan_passes_the_spec_77_validation() {
     // Oracle: the spec 77 deployer reads this plan. Its validator accepts it:
     // one Worker, unique bindings, and a container class with a DO binding and
     // a migration.
-    let plan = agent_rpc_plan(&config());
+    let plan = valid_plan(&config());
     foundation_deployment_cloudflare::validate(&plan).expect("the plan is valid");
 }
 
@@ -50,7 +86,7 @@ fn cloudflare_plan_passes_the_spec_77_validation() {
 fn cloudflare_plan_names_the_agent_instance_do_class() {
     // Oracle: the DO binding, the migration and the container all name the
     // same class, so the spec 77 deployer accepts the plan.
-    let plan = agent_rpc_plan(&config());
+    let plan = valid_plan(&config());
     assert_eq!(plan.worker.name, "cf-agent-rpc");
     assert_eq!(
         plan.worker.main,
@@ -86,7 +122,7 @@ fn cloudflare_plan_names_the_agent_instance_do_class() {
 fn cloudflare_plan_names_one_container_deployment() {
     // Oracle: the plan holds exactly one container, and it belongs to the
     // instance DO class.
-    let plan = agent_rpc_plan(&config());
+    let plan = valid_plan(&config());
     assert_eq!(plan.containers.len(), 1);
     let container = &plan.containers[0];
     assert_eq!(container.class_name, DEFAULT_INSTANCE_CLASS);
@@ -108,7 +144,7 @@ fn cloudflare_plan_names_one_container_deployment() {
 fn cloudflare_plan_holds_one_secret_ref_for_each_secret() {
     // Oracle: one `SecretRef` for each unique secret name, and the plan holds
     // no secret value: a `SecretRef` is a name and a source only.
-    let plan = agent_rpc_plan(&config());
+    let plan = valid_plan(&config());
     let names: Vec<&str> = plan
         .secrets
         .iter()
@@ -132,7 +168,7 @@ fn cloudflare_plan_maps_a_secrets_store_binding() {
         "gpt",
         "{\"kind\":\"secrets_store\",\"binding\":\"AI_KEYS\"}",
     )];
-    let plan = agent_rpc_plan(&config);
+    let plan = valid_plan(&config);
     assert_eq!(plan.secrets.len(), 1);
     assert_eq!(plan.secrets[0].name, "AI_KEYS");
     assert_eq!(
@@ -149,7 +185,7 @@ fn cloudflare_plan_without_a_container_has_no_container_deployment() {
     let mut config = AgentRpcConfig::new("cf-agent-rpc", "build/worker/shim.mjs");
     config.container = None;
     config.models = vec![model("llama", "WORKERS_AI_API_TOKEN")];
-    let plan = agent_rpc_plan(&config);
+    let plan = valid_plan(&config);
     assert_eq!(plan.containers.len(), 0, "no container is deployed");
     assert!(plan
         .bindings
@@ -165,7 +201,7 @@ fn cloudflare_plan_uses_a_dockerfile_when_one_is_configured() {
         dockerfile: Some(std::path::PathBuf::from("Dockerfile.agent-rpc")),
         ..ContainerConfig::default()
     });
-    let plan = agent_rpc_plan(&config);
+    let plan = valid_plan(&config);
     assert_eq!(
         plan.containers[0].image,
         ContainerImage::Dockerfile(std::path::PathBuf::from("Dockerfile.agent-rpc"))

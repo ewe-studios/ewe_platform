@@ -36,8 +36,9 @@ use foundation_sandbox::shared::spec::NetworkMode;
 /// The port of the Connect and gRPC-Web server in the native agent-rpc image.
 ///
 /// The image starts `agent-slave` as process identifier 1 (PID 1), and the
-/// slave starts the native agent-rpc server on this port.
-pub const AGENT_RPC_PORT: u16 = 8_080;
+/// slave starts the native agent-rpc server on this port. A caller that changes
+/// the port passes the value from `AgentRpcConfig::port`.
+pub const AGENT_RPC_PORT: u16 = crate::core::config::DEFAULT_AGENT_RPC_PORT;
 
 /// The image entry point of the agent-rpc container.
 ///

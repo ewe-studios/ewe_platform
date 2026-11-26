@@ -246,6 +246,12 @@ impl Default for EnrollConfig {
     }
 }
 
+/// The default port of the native agent-rpc server in a Cloudflare container.
+///
+/// The image must listen on this port. `AgentRpcConfig::port` changes the value
+/// that the caller passes to `AgentContainer::call`.
+pub const DEFAULT_AGENT_RPC_PORT: u16 = 8_080;
+
 /// A token-bucket rate limit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RateLimit {
