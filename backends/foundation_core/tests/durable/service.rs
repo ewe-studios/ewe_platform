@@ -58,3 +58,59 @@ fn given_protocol_limits_when_built_then_each_value_is_configurable() {
     assert_eq!(limits.long_poll_timeout_ms, 1_000);
     assert_eq!(limits.sse_lifetime_ms, 5_000);
 }
+
+#[test]
+fn given_a_page_limit_when_a_read_runs_then_no_page_exceeds_it() {
+    smol::block_on(async {
+        use foundation_core::durable::{
+            AppendRequest, Chunk, CreateSpec, DurableLimits, DurableService, DurableStream,
+            MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
+        };
+        use std::sync::Arc;
+
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let service = DurableService::with_limits(
+            stream,
+            DurableLimits::default().with_page_bytes(4),
+        );
+        let name = StreamName::parse("bounded/page").expect("name");
+        service
+            .create(name.clone(), CreateSpec::default())
+            .await
+            .expect("create");
+        service
+            .append(
+                &name,
+                AppendRequest::new(Chunk::new(b"0123456789".to_vec())),
+            )
+            .await
+            .expect("append");
+
+        let mut offset = ReadFrom::Start;
+        let mut total = Vec::new();
+        let mut pages = 0;
+        loop {
+            let page = service
+                .read(
+                    &name,
+                    ReadRequest {
+                        from: offset.clone(),
+                        limit: ReadLimit::default(),
+                    },
+                )
+                .await
+                .expect("read");
+            pages += 1;
+            for chunk in &page.chunks {
+                assert!(chunk.as_bytes().len() <= 4, "page exceeded the byte limit");
+                total.extend_from_slice(chunk.as_bytes());
+            }
+            if page.cursor.up_to_date {
+                break;
+            }
+            offset = ReadFrom::Offset(page.cursor.next.clone());
+        }
+        assert_eq!(total, b"0123456789");
+        assert!(pages >= 3, "the limit forces several pages");
+    });
+}

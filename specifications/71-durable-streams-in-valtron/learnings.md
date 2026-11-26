@@ -284,3 +284,9 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **`StreamSeq` compares bytes.** A producer that uses decimal numbers must zero-pad them
   (`0009` before `0010`). Plain `9` sorts after `10`, so the store refuses `10`. The property
   test uses four-digit values and pins the rule.
+
+## Bounded read oracle (2026-11-27)
+
+- **The page byte limit is enforced by the service.** With a 4-byte page, a 10-byte stream
+  takes at least three reads and no chunk exceeds 4 bytes. The test walks the cursor to the tail
+  and joins the bytes. This pins the "no VFS materialises a whole stream" rule.
