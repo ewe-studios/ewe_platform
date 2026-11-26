@@ -7012,6 +7012,7 @@ dependencies = [
  "base64 0.22.1",
  "concurrent-queue",
  "derive_more",
+ "flate2",
  "foundation_auth",
  "foundation_compact",
  "foundation_context",

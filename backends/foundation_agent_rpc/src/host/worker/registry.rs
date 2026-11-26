@@ -6,7 +6,7 @@
 //! name in the index, then sends the call to the DO with the checked principal.
 //!
 //! WHAT: [`DurableObjectRegistry`], which implements [`InstanceRegistry`] over
-//! the D1 table `agent_rpc_instances` and [`instance_client`].
+//! the D1 table `agent_rpc_instances` and [`InstanceStub`].
 //!
 //! HOW: `create` inserts the row before it calls the DO, so two callers cannot
 //! reserve one name; a failed create removes the row. `list` reads one ordered
@@ -23,15 +23,14 @@ use crate::core::registry::{
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::proto::v1 as pb;
 use base64::Engine;
-use foundation_compact::SendWrapper;
-use foundation_connectrpc::{ConnectError, Request, RpcCtx};
+use buffa::Message;
 use foundation_context::Ctx;
 use foundation_db::wasm::bindgen::cf::D1Database;
 use foundation_db::{D1WasmStorage, DataValue, QueryStore, SqlRow};
 use foundation_errstacks::ErrorTrace;
 
 use crate::host::worker::config::ServeLimits;
-use crate::host::worker::do_client::instance_client;
+use crate::host::worker::do_client::InstanceStub;
 
 /// The D1 table of the instance index.
 pub const INDEX_TABLE: &str = "agent_rpc_instances";
@@ -89,17 +88,9 @@ impl DurableObjectRegistry {
     }
 
     /// The generated client for `name`, with the principal forwarded.
-    fn client(
-        &self,
-        caller: &Caller,
-        name: &str,
-    ) -> AgentRpcResult<crate::proto::v1::agent_service::AgentServiceClient> {
-        instance_client(
-            &self.env,
-            name,
-            &self.limits,
-            Some(caller.principal.subject.as_str()),
-        )
+    fn stub(&self, caller: &Caller, name: &str) -> AgentRpcResult<InstanceStub> {
+        let _ = &self.limits;
+        InstanceStub::new(&self.env, name, caller.principal.subject.as_str())
     }
 
     /// Validate an instance name with the registry rules.
@@ -231,14 +222,15 @@ impl InstanceRegistry for DurableObjectRegistry {
                 return Err(AgentRpcError::InstanceExists(spec.name).into());
             }
 
-            let request = create_request(&spec);
-            let client = self.client(caller, &spec.name)?;
-            let info = match SendWrapper::new(
-                client.create_instance(RpcCtx::client(self.ctx.clone()), Request::new(request)),
-            )
-            .await
+            let stub = self.stub(caller, &spec.name)?;
+            let body = match stub
+                .unary(
+                    crate::proto::v1::agent_service::procedure::CREATE_INSTANCE,
+                    create_request(&spec).encode_to_vec(),
+                )
+                .await
             {
-                Ok(response) => response.msg,
+                Ok(body) => body,
                 Err(error) => {
                     // The DO did not create the instance: release the name.
                     let _ = self
@@ -247,9 +239,14 @@ impl InstanceRegistry for DurableObjectRegistry {
                             &[DataValue::Text(scope), DataValue::Text(spec.name.clone())],
                         )
                         .await;
-                    return Err(remote_error(&error));
+                    return Err(error);
                 }
             };
+            let info = pb::InstanceInfo::decode_from_slice(&body).map_err(|error| {
+                ErrorTrace::new(AgentRpcError::Transport(format!(
+                    "the instance info did not decode: {error}"
+                )))
+            })?;
             let _ = self
                 .execute(
                     &format!(
@@ -337,16 +334,16 @@ impl InstanceRegistry for DurableObjectRegistry {
 
     fn destroy<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()> {
         Box::pin(async move {
-            let client = self.client(caller, name)?;
-            SendWrapper::new(client.destroy_instance(
-                RpcCtx::client(self.ctx.clone()),
-                Request::new(pb::DestroyInstanceRequest {
+            let stub = self.stub(caller, name)?;
+            stub.unary(
+                crate::proto::v1::agent_service::procedure::DESTROY_INSTANCE,
+                pb::DestroyInstanceRequest {
                     name: name.to_string(),
                     ..Default::default()
-                }),
-            ))
-            .await
-            .map_err(|error| remote_error(&error))?;
+                }
+                .encode_to_vec(),
+            )
+            .await?;
             self.execute(
                 &format!("DELETE FROM {INDEX_TABLE} WHERE scope = ? AND name = ?"),
                 &[
@@ -368,30 +365,20 @@ impl InstanceRegistry for DurableObjectRegistry {
         Box::pin(async move {
             // A turn on a name that the index does not hold is a not-found.
             let _ = self.get(caller, name).await?;
-            let client = self.client(caller, name)?;
-            let stream = SendWrapper::new(client.chat_stream(
-                RpcCtx::client(self.ctx.clone()),
-                Request::new(pb::ChatRequest {
-                    instance: name.to_string(),
-                    prompt,
-                    ..Default::default()
-                }),
-            ))
-            .await
-            .map_err(|error| remote_error(&error))?;
-            let stream = SendWrapper::new(stream);
-            let events =
-                futures::stream::unfold((stream, false), |(mut stream, done)| async move {
-                    if done {
-                        return None;
-                    }
-                    match SendWrapper::new(stream.receive()).await {
-                        Ok(Some(event)) => Some((Ok(event), (stream, false))),
-                        Ok(None) => None,
-                        Err(error) => Some((Err(remote_error(&error)), (stream, true))),
-                    }
-                });
-            Ok(Box::pin(events) as TurnEventStream)
+            let stub = self.stub(caller, name)?;
+            let chat = pb::ChatRequest {
+                instance: name.to_string(),
+                prompt,
+                ..Default::default()
+            };
+            let body = connect_envelope(&chat.encode_to_vec());
+            let stream = stub
+                .stream(
+                    crate::proto::v1::agent_service::procedure::CHAT_STREAM,
+                    body,
+                )
+                .await?;
+            Ok(stream)
         })
     }
 
@@ -433,10 +420,13 @@ fn create_request(spec: &InstanceSpec) -> pb::CreateInstanceRequest {
     }
 }
 
-fn remote_error(error: &ErrorTrace<ConnectError>) -> ErrorTrace<AgentRpcError> {
-    ErrorTrace::new(AgentRpcError::Transport(
-        error.current_context().to_string(),
-    ))
+/// One Connect envelope: flag zero, a big-endian length and the message.
+fn connect_envelope(message: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(5 + message.len());
+    out.push(0);
+    out.extend_from_slice(&u32::try_from(message.len()).unwrap_or(0).to_be_bytes());
+    out.extend_from_slice(message);
+    out
 }
 
 fn encode_token(name: &str) -> String {
