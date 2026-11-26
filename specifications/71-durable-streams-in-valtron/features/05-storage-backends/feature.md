@@ -100,7 +100,7 @@ follows the repository layout.
       `durable_stream_delegates_to_vfs`.
 - [ ] **T3 — memory VFS.** In `foundation_core`. `BTreeMap` and a notifier. Tests: shared
       conformance scenarios, `memory_vfs_notifies_on_append`, bounded read coverage.
-- [ ] **T4 — file VFS.** In `foundation_nativeapis`. An append-only log file and an atomically
+- [ ] **T4 — file VFS (first implementation compiles; tests pending).** In `foundation_nativeapis`. An append-only log file and an atomically
       replaced metadata file. Tests: shared conformance scenarios, `file_vfs_persists_across_restart`,
       metadata and group-commit coverage.
 - [ ] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS

@@ -77,6 +77,12 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
 6. The wider oracle matrix: differential, crash and recovery, deterministic simulation testing
    (DST) across VFS implementations.
 
+## 4.1 Working tree
+
+- Uncommitted: `foundation_nativeapis/src/native/vfs/durable_file.rs` and the `vfs/mod.rs` line.
+  The first file VFS implementation compiles under `vfs-native`. It needs tests before a commit.
+- Uncommitted: `Cargo.lock`, from the removed test dependency. Check it before the next commit.
+
 ## 5. Rules that matter here
 
 - Run `ci/durable_conformance.sh` before you call a protocol change done.

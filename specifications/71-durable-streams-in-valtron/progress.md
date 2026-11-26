@@ -13,6 +13,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-27: feature 08 records the verified conformance commands and their results in its
   feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
   71 skip. The harness task remains.
+- 2026-11-27: process update. The handoff lives in `handoff.md` in this spec. A fresh agent
+  continues from it. The file VFS first implementation is in
+  `foundation_nativeapis/src/native/vfs/durable_file.rs` and compiles under `vfs-native`; it has
+  no tests, so it is uncommitted. `block_on_future_scoped` replaces `smol` in the durable tests
+  (106 pass).
 - 2026-11-27: the owner corrected two scope points. The client core and transport trait live in
   core. The reserved subscription APIs are in scope; feature 10 records the work. The six server
   skips are a gap, not an owner decision.
