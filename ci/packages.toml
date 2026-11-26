@@ -816,10 +816,11 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # on every operating system. The slave tests start the real slave process, so
 # they run on Linux with the `slave` feature.
 wasm = "enforce"
-wasm-runs = ["", "--no-default-features"]
-runs = ["", "slave", "testing"]
+wasm-runs = ["", "--no-default-features", "--no-default-features --features control cloudflare"]
+runs = ["", "slave", "testing", "cloudflare testing"]
 # The slave tests are Linux only: "the slave is a Linux guest program". It calls
 # fork, signalfd, mount and the process identifier 1 duties, which no other
-# operating system has. macOS and Windows run the contract and control tests.
-macos-runs = ["", "testing"]
-windows-runs = ["", "testing"]
+# operating system has. macOS and Windows run the contract, control and
+# Cloudflare tests.
+macos-runs = ["", "testing", "cloudflare testing"]
+windows-runs = ["", "testing", "cloudflare testing"]

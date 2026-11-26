@@ -77,6 +77,24 @@ pub struct ContainerExecRequest {
     pub request: ExecRequest,
 }
 
+/// The request of the container `ExecInput` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerExecInputRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The input chunk of the slave.
+    pub request: ExecInputRequest,
+}
+
+/// The request of the container `ExecSignal` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerExecSignalRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The signal of the slave.
+    pub request: ExecSignalRequest,
+}
+
 /// The request of the container `Signal` call.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContainerSignalRequest {
@@ -223,6 +241,12 @@ pub struct ExecRequest {
     pub cwd: Option<String>,
     /// Whether the program reads input. `false` uses `/dev/null`.
     pub stdin: bool,
+    /// The time limit in milliseconds, or `None` for no time limit.
+    ///
+    /// The slave may use it. The field is additive and defaults to `None`, so
+    /// an older peer ignores it.
+    #[serde(default)]
+    pub timeout_ms: Option<u64>,
 }
 
 /// One event of a running program.

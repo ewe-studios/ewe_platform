@@ -4,6 +4,7 @@
 //! the server side inside the Durable Object. [`DoContainerClient`] is the
 //! remote client over the internal `ContainerService`.
 
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -25,14 +26,15 @@ use crate::shared::control::slave_client::{event_stream, SlaveClient};
 use crate::shared::control::wait_until;
 use crate::shared::driver::{SlaveEndpoint, SubstrateExit};
 use crate::shared::error::{SandboxError, SandboxResult};
-use crate::shared::handles::{ExecEvents, ExecHandle, ExecHandleOps, ExecStdin};
+use crate::shared::handles::{ExecEvents, ExecHandle, ExecHandleOps, ExecStdin, ExecStdinOps};
 use crate::shared::host::SlaveConnector;
 use crate::shared::ids::{DriverId, ExecId};
 use crate::shared::limits::SandboxLimits;
 use crate::shared::rpc::messages::{
-    ContainerDestroyRequest, ContainerExecRequest, ContainerFetchEvent, ContainerFetchRequest,
+    ContainerDestroyRequest, ContainerExecInputRequest, ContainerExecRequest,
+    ContainerExecSignalRequest, ContainerFetchEvent, ContainerFetchRequest,
     ContainerLogTailRequest, ContainerSignalRequest, ContainerStopRequest, ContainerWaitRequest,
-    ExecEventKind, ExecEventMsg, ExecRequest,
+    ExecEventKind, ExecEventMsg, ExecInputRequest, ExecRequest, ExecSignalRequest,
 };
 use crate::shared::rpc::ContainerServiceClient;
 use crate::shared::{BoxByteStream, BoxFuture, Secret};
@@ -546,7 +548,14 @@ impl ContainerOps for DoContainerClient {
         let ctx = self.ctx.clone();
         let rpc_ctx = self.stream_ctx();
         let container_id = self.container_id();
-        remote_exec(ctx, rpc_ctx, client, container_id, command)
+        remote_exec(
+            ctx,
+            rpc_ctx,
+            client,
+            container_id,
+            self.limits.clone(),
+            command,
+        )
     }
 
     fn signal(&self, signo: i32) -> BoxFuture<'_, SandboxResult<()>> {
@@ -691,6 +700,7 @@ fn remote_exec(
     rpc_ctx: RpcCtx,
     client: Arc<ContainerServiceClient>,
     container_id: String,
+    limits: SandboxLimits,
     command: Command,
 ) -> BoxFuture<'static, SandboxResult<ExecHandle>> {
     send_box(async move {
@@ -702,12 +712,15 @@ fn remote_exec(
             env: command.env,
             cwd: command.cwd,
             stdin,
+            timeout_ms: command
+                .timeout
+                .map(|timeout| u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX)),
         };
-        let stream = client
+        let stream = Arc::clone(&client)
             .exec(
                 rpc_ctx,
                 Request::new(ContainerExecRequest {
-                    container_id,
+                    container_id: container_id.clone(),
                     request,
                 }),
             )
@@ -716,23 +729,125 @@ fn remote_exec(
                 ErrorTrace::new(SandboxError::from_connect(error.current_context()))
             })?;
         let events = event_stream(stream);
-        let ops = RemoteExecOps::new(events);
+        let ops = RemoteExecOps::new(
+            client,
+            container_id,
+            ctx,
+            limits,
+            exec_id.to_string(),
+            stdin,
+            events,
+        );
         Ok(ExecHandle::new(exec_id, Arc::new(ops)))
     })
 }
 
+/// The input writer of one remote execution.
+struct RemoteExecStdin {
+    client: Arc<ContainerServiceClient>,
+    container_id: String,
+    exec_id: String,
+    ctx: Ctx,
+    limits: SandboxLimits,
+    next_seq: AtomicU64,
+}
+
+impl RemoteExecStdin {
+    fn rpc_ctx(&self) -> RpcCtx {
+        RpcCtx::client(self.ctx.clone()).with_deadline(self.limits.rpc_timeout)
+    }
+
+    fn send(&self, data: Vec<u8>, eof: bool) -> BoxFuture<'_, SandboxResult<u64>> {
+        let client = Arc::clone(&self.client);
+        let container_id = self.container_id.clone();
+        let exec_id = self.exec_id.clone();
+        let seq = self.next_seq.load(Ordering::SeqCst);
+        let rpc_ctx = self.rpc_ctx();
+        send_box(async move {
+            let answer = client
+                .exec_input(
+                    rpc_ctx,
+                    Request::new(ContainerExecInputRequest {
+                        container_id,
+                        request: ExecInputRequest {
+                            exec_id,
+                            seq,
+                            data,
+                            eof,
+                        },
+                    }),
+                )
+                .await
+                .map_err(|error| {
+                    ErrorTrace::new(SandboxError::from_connect(error.current_context()))
+                })?;
+            Ok(answer.msg.next_seq)
+        })
+    }
+}
+
+impl ExecStdinOps for RemoteExecStdin {
+    fn write(&self, bytes: Vec<u8>) -> BoxFuture<'_, SandboxResult<()>> {
+        send_box(async move {
+            let chunk = self.limits.chunk_bytes.max(1);
+            for piece in bytes.chunks(chunk) {
+                let next = self.send(piece.to_vec(), false).await?;
+                self.next_seq.store(next, Ordering::SeqCst);
+            }
+            Ok(())
+        })
+    }
+
+    fn close(&self) -> BoxFuture<'_, SandboxResult<()>> {
+        send_box(async move {
+            let next = self.send(Vec::new(), true).await?;
+            self.next_seq.store(next, Ordering::SeqCst);
+            Ok(())
+        })
+    }
+}
 /// The handle of one execution on a remote container.
 struct RemoteExecOps {
+    client: Arc<ContainerServiceClient>,
+    container_id: String,
+    ctx: Ctx,
+    limits: SandboxLimits,
+    exec_id: String,
+    stdin_requested: bool,
+    stdin_taken: AtomicBool,
     stream: std::sync::Mutex<Option<crate::shared::ExecEventStream>>,
     exit: Arc<std::sync::Mutex<Option<ExitStatus>>>,
 }
 
 impl RemoteExecOps {
-    fn new(stream: crate::shared::ExecEventStream) -> Self {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the handle needs the client, the session and its stream"
+    )]
+    fn new(
+        client: Arc<ContainerServiceClient>,
+        container_id: String,
+        ctx: Ctx,
+        limits: SandboxLimits,
+        exec_id: String,
+        stdin_requested: bool,
+        stream: crate::shared::ExecEventStream,
+    ) -> Self {
         Self {
+            client,
+            container_id,
+            ctx,
+            limits,
+            exec_id,
+            stdin_requested,
+            stdin_taken: AtomicBool::new(false),
             stream: std::sync::Mutex::new(Some(stream)),
             exit: Arc::new(std::sync::Mutex::new(None)),
         }
+    }
+
+    fn rpc_ctx(&self) -> RpcCtx {
+        RpcCtx::client(self.ctx.clone()).with_deadline(self.limits.rpc_timeout)
     }
 }
 
@@ -742,7 +857,17 @@ impl ExecHandleOps for RemoteExecOps {
     }
 
     fn stdin(&self) -> Option<ExecStdin> {
-        None
+        if !self.stdin_requested || self.stdin_taken.swap(true, Ordering::SeqCst) {
+            return None;
+        }
+        Some(ExecStdin::new(Arc::new(RemoteExecStdin {
+            client: Arc::clone(&self.client),
+            container_id: self.container_id.clone(),
+            exec_id: self.exec_id.clone(),
+            ctx: self.ctx.clone(),
+            limits: self.limits.clone(),
+            next_seq: AtomicU64::new(0),
+        })))
     }
 
     fn events(&self) -> ExecEvents {
@@ -786,12 +911,25 @@ impl ExecHandleOps for RemoteExecOps {
         ExecEvents::new(Box::pin(state))
     }
 
-    fn signal(&self, _signal: i32) -> BoxFuture<'_, SandboxResult<()>> {
-        send_box(async {
-            Err(SandboxError::UnsupportedCapability {
-                capability: "exec signal".to_string(),
-            }
-            .into())
+    fn signal(&self, signal: i32) -> BoxFuture<'_, SandboxResult<()>> {
+        let client = Arc::clone(&self.client);
+        let container_id = self.container_id.clone();
+        let exec_id = self.exec_id.clone();
+        let rpc_ctx = self.rpc_ctx();
+        send_box(async move {
+            client
+                .exec_signal(
+                    rpc_ctx,
+                    Request::new(ContainerExecSignalRequest {
+                        container_id,
+                        request: ExecSignalRequest { exec_id, signal },
+                    }),
+                )
+                .await
+                .map(|_response| ())
+                .map_err(|error| {
+                    ErrorTrace::new(SandboxError::from_connect(error.current_context()))
+                })
         })
     }
 

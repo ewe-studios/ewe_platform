@@ -248,6 +248,14 @@ pub struct CloudflareConfig {
     ///
     /// Default `SLAVE`.
     pub slave_binding: String,
+    /// The most bytes of error text that one port error carries.
+    ///
+    /// Default 64 KiB: [`crate::shared::limits::SandboxLimits::max_error_message`].
+    pub max_error_message: usize,
+    /// The most response frames held for one streaming response.
+    ///
+    /// Default 4: [`foundation_core::valtron::Pipe::DEFAULT_DEPTH`].
+    pub stream_queue_len: usize,
 }
 
 impl Default for CloudflareConfig {
@@ -262,6 +270,8 @@ impl Default for CloudflareConfig {
             wait_timeout: None,
             model: None,
             slave_binding: "SLAVE".to_string(),
+            max_error_message: crate::shared::limits::SandboxLimits::default().max_error_message,
+            stream_queue_len: foundation_core::valtron::Pipe::<()>::DEFAULT_DEPTH,
         }
     }
 }
@@ -335,6 +345,20 @@ impl CloudflareConfig {
         self
     }
 
+    /// Replaces [`Self::max_error_message`].
+    #[must_use]
+    pub fn with_max_error_message(mut self, value: usize) -> Self {
+        self.max_error_message = value;
+        self
+    }
+
+    /// Replaces [`Self::stream_queue_len`].
+    #[must_use]
+    pub fn with_stream_queue_len(mut self, value: usize) -> Self {
+        self.stream_queue_len = value;
+        self
+    }
+
     /// The entry point of the slave in the container.
     #[must_use]
     pub fn slave_entrypoint(&self) -> Vec<String> {
@@ -353,8 +377,8 @@ impl CloudflareConfig {
 /// "try again", so a changed text costs nothing but a less exact message. This
 /// function is platform-agnostic, so its test runs on a native host.
 #[must_use]
-pub fn port_error_from_text(text: &str) -> PortError {
-    let max = crate::shared::limits::SandboxLimits::default().max_error_message;
+pub fn port_error_from_text(text: &str, max_error_message: usize) -> PortError {
+    let max = max_error_message;
     if text.contains("the container is not listening") {
         PortError::NotListening
     } else {

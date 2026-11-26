@@ -229,7 +229,13 @@ impl ModelSlave {
         let mut router = foundation_connectrpc::Router::new();
         crate::shared::rpc::register_slave_service(&mut router, Arc::new(self.clone_for_router()));
         let handler = router.into_handler();
-        handler.dispatch(self.ctx.clone(), request).await
+        crate::shared::cloudflare::control::dispatch_streaming(
+            self.ctx.clone(),
+            &handler,
+            request,
+            foundation_core::valtron::Pipe::<()>::DEFAULT_DEPTH,
+        )
+        .await
     }
 
     /// A reference that the router can own.

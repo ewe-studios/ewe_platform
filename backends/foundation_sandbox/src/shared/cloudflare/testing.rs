@@ -8,8 +8,9 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Waker};
 
-use foundation_connectrpc::ConnectRpcHandler;
+use foundation_connectrpc::{in_memory_body, CallHooks, ConnectRpcHandler, ResponseSink};
 use foundation_context::Ctx;
+use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
 use foundation_netio::shared::http::SimpleOutgoingResponse;
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
@@ -303,15 +304,130 @@ fn one_chunk(body: Vec<u8>) -> BoxByteStream {
     Box::pin(futures::stream::once(async move { Ok(body) }))
 }
 
+/// One event of a fake port response.
+enum PortEvent {
+    Whole(SimpleOutgoingResponse),
+    Head(SimpleOutgoingResponse),
+    Chunk(bytes::Bytes),
+    End,
+}
+
+/// The sink that turns router writes into fake port events.
+struct PortSink {
+    sender: PipeSender<PortEvent>,
+}
+
+impl ResponseSink for PortSink {
+    fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, std::io::Result<()>> {
+        let sender = self.sender.clone();
+        Box::pin(async move {
+            sender
+                .send(PortEvent::Whole(response))
+                .await
+                .map_err(|_error| broken_pipe())
+        })
+    }
+
+    fn open(&mut self, mut head: SimpleOutgoingResponse) -> BoxFuture<'_, std::io::Result<()>> {
+        head.body = None;
+        let sender = self.sender.clone();
+        Box::pin(async move {
+            sender
+                .send(PortEvent::Head(head))
+                .await
+                .map_err(|_error| broken_pipe())
+        })
+    }
+
+    fn chunk(&mut self, bytes: bytes::Bytes) -> BoxFuture<'_, std::io::Result<()>> {
+        let sender = self.sender.clone();
+        Box::pin(async move {
+            sender
+                .send(PortEvent::Chunk(bytes))
+                .await
+                .map_err(|_error| broken_pipe())
+        })
+    }
+
+    fn finish(&mut self) -> BoxFuture<'_, std::io::Result<()>> {
+        let sender = self.sender.clone();
+        Box::pin(async move {
+            sender
+                .send(PortEvent::End)
+                .await
+                .map_err(|_error| broken_pipe())
+        })
+    }
+}
+
+fn broken_pipe() -> std::io::Error {
+    std::io::Error::new(std::io::ErrorKind::BrokenPipe, "the fake port sink closed")
+}
+
+/// The dispatch future of one fake port response, or its end.
+enum PortDispatch {
+    Running(BoxFuture<'static, std::io::Result<()>>),
+    Done,
+}
+
+/// The next fake port event, driving the router while the pipe is empty.
+async fn next_port_event(
+    state: &mut PortDispatch,
+    receiver: &PipeReceiver<PortEvent>,
+) -> Option<PortEvent> {
+    loop {
+        match state {
+            PortDispatch::Done => return receiver.receive().await,
+            PortDispatch::Running(_) => {
+                let PortDispatch::Running(dispatch) = std::mem::replace(state, PortDispatch::Done)
+                else {
+                    return None;
+                };
+                let waiting = receiver.clone();
+                match futures::future::select(dispatch, Box::pin(waiting.receive())).await {
+                    futures::future::Either::Left((_result, _waiting)) => {
+                        *state = PortDispatch::Done;
+                    }
+                    futures::future::Either::Right((event, dispatch)) => {
+                        *state = PortDispatch::Running(dispatch);
+                        return event;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// A port response body that forwards the router frames.
+fn port_body_stream(state: PortDispatch, receiver: PipeReceiver<PortEvent>) -> BoxByteStream {
+    let inner = futures::stream::unfold((state, receiver), |(mut state, receiver)| async move {
+        loop {
+            match next_port_event(&mut state, &receiver).await {
+                Some(PortEvent::Chunk(bytes)) => {
+                    return Some((Ok(bytes.to_vec()), (state, receiver)));
+                }
+                Some(PortEvent::Whole(response)) => {
+                    let (_, _, body) = response_parts(response);
+                    if !body.is_empty() {
+                        return Some((Ok(body), (state, receiver)));
+                    }
+                }
+                Some(PortEvent::End) | None => return None,
+                Some(PortEvent::Head(_)) => {}
+            }
+        }
+    });
+    Box::pin(crate::shared::cloudflare::SendStream::new(inner))
+}
+
 /// Dispatches one port request to an in-process Connect router and turns the
-/// answer into a port response.
+/// answer into a streamed port response.
 ///
 /// # Errors
-/// [`PortError::Other`] when the request URL is invalid or the router gives a
-/// body that the fake does not read.
+/// [`PortError::Other`] when the request URL is invalid.
 pub async fn dispatch_port(
     handler: &ConnectRpcHandler,
-    request: PortRequest,
+    mut request: PortRequest,
 ) -> Result<PortResponse, PortError> {
     let path = if request.path.starts_with('/') {
         request.path.clone()
@@ -321,38 +437,57 @@ pub async fn dispatch_port(
     let full = format!("{TEST_AUTHORITY}{path}");
     let uri = foundation_core::url::Uri::parse(&full)
         .map_err(|error| PortError::Other(error.to_string()))?;
-    let incoming = SimpleIncomingRequest::builder()
+    let mut incoming = SimpleIncomingRequest::builder()
         .with_plain_url(path)
         .with_uri(uri)
         .with_method(SimpleMethod::from(request.method))
         .with_headers(headers_to_simple(request.headers))
-        .with_body_bytes(request.body)
+        .with_body_bytes(std::mem::take(&mut request.body))
         .with_proto(Proto::HTTP11)
         .build()
         .map_err(|error| PortError::Other(error.to_string()))?;
-    let response = handler.dispatch(Ctx::host(), incoming).await;
-    response_to_port(response)
+    let body = in_memory_body(incoming.body.take());
+    let (sender, receiver) = Pipe::<PortEvent>::with_depth(Pipe::<()>::DEFAULT_DEPTH);
+    let sink: Box<dyn ResponseSink> = Box::new(PortSink { sender });
+    let dispatch = handler.dispatch_to(Ctx::host(), incoming, body, sink, CallHooks::default());
+    let mut state = PortDispatch::Running(dispatch);
+    match next_port_event(&mut state, &receiver).await {
+        Some(PortEvent::Whole(response)) => Ok(response_to_port(response)),
+        Some(PortEvent::Head(head)) => {
+            let status = u16::try_from(head.status.clone().into_usize()).unwrap_or(0);
+            let headers = flatten_headers(head.headers);
+            Ok(PortResponse {
+                status,
+                headers,
+                body: port_body_stream(state, receiver),
+            })
+        }
+        Some(PortEvent::Chunk(_) | PortEvent::End) | None => Err(PortError::Other(
+            "the fake router gave no response head".to_string(),
+        )),
+    }
 }
 
-/// One HTTP response as a port response.
-fn response_to_port(response: SimpleOutgoingResponse) -> Result<PortResponse, PortError> {
+/// The status, headers and body bytes of one whole response.
+fn response_parts(response: SimpleOutgoingResponse) -> (u16, Vec<(String, String)>, Vec<u8>) {
     let status = u16::try_from(response.status.into_usize()).unwrap_or(0);
     let headers = flatten_headers(response.headers);
     let body = match response.body {
-        None | Some(SendSafeBody::None) => Vec::new(),
         Some(SendSafeBody::Bytes(bytes)) => bytes,
         Some(SendSafeBody::Text(text)) => text.into_bytes(),
-        Some(_) => {
-            return Err(PortError::Other(
-                "the in-memory router gave a streamed body; the fake does not read it".to_string(),
-            ))
-        }
+        _ => Vec::new(),
     };
-    Ok(PortResponse {
+    (status, headers, body)
+}
+
+/// One HTTP response as a port response.
+fn response_to_port(response: SimpleOutgoingResponse) -> PortResponse {
+    let (status, headers, body) = response_parts(response);
+    PortResponse {
         status,
         headers,
         body: one_chunk(body),
-    })
+    }
 }
 
 /// The HTTP headers of one port request.
@@ -785,24 +920,92 @@ pub fn control_get_request(id: &SandboxId) -> crate::shared::cloudflare::HttpReq
 /// The status of one control-plane response.
 #[must_use]
 pub fn response_status(response: &crate::shared::cloudflare::HttpResponseParts) -> u16 {
-    u16::try_from(response.status.clone().into_usize()).unwrap_or(0)
+    response.status
 }
 
 /// The body bytes of one control-plane response.
+///
+/// It collects the body, so it is for a test only.
 #[must_use]
-pub fn response_body(response: crate::shared::cloudflare::HttpResponseParts) -> Vec<u8> {
-    match response.body {
-        Some(SendSafeBody::Bytes(bytes)) => bytes,
-        Some(SendSafeBody::Text(text)) => text.into_bytes(),
-        None
-        | Some(
-            SendSafeBody::None
-            | SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_)
-            | SendSafeBody::SseStream(_),
-        ) => Vec::new(),
-    }
+pub fn response_body(mut response: crate::shared::cloudflare::HttpResponseParts) -> Vec<u8> {
+    futures::executor::block_on(async move {
+        use futures::StreamExt;
+        let mut body = Vec::new();
+        while let Some(item) = response.body.next().await {
+            body.extend(item.unwrap_or_default());
+        }
+        body
+    })
+}
+
+/// The calls of the slave in the one container of a host.
+///
+/// # Errors
+/// The error of the transport or the client.
+pub fn slave_calls(
+    ctx: &Ctx,
+    host: &CloudflareHost,
+    limits: &crate::shared::limits::SandboxLimits,
+) -> SandboxResult<Arc<dyn crate::shared::handles::ExecFileCalls>> {
+    let connector = crate::shared::cloudflare::transport::PortConnector {
+        container: Arc::clone(&host.container),
+        config: Arc::clone(&host.config),
+        do_slave: None,
+    };
+    let transport = connector.connect(
+        ctx,
+        &crate::shared::driver::SlaveEndpoint::CloudflarePort {
+            port: host.config.slave_port,
+        },
+        limits,
+    )?;
+    let client = crate::shared::control::SlaveClient::new(ctx.clone(), transport, limits.clone())?;
+    Ok(Arc::new(client))
+}
+
+/// One `Exec` request to a control plane, in Connect streaming JSON.
+///
+/// # Panics
+/// When the fixed test URL does not parse, or the fixed request does not build.
+#[must_use]
+pub fn control_exec_request(
+    id: &SandboxId,
+    exec_id: &str,
+    stdin: bool,
+) -> crate::shared::cloudflare::HttpRequestParts {
+    use foundation_netio::shared::http::SimpleIncomingRequest;
+
+    let path = "/ewe.sandbox.control.v1.SandboxService/Exec";
+    let full = format!("{TEST_AUTHORITY}{path}");
+    let uri = foundation_core::url::Uri::parse(&full).expect("the test URL parses");
+    let request = crate::shared::rpc::messages::Scoped {
+        sandbox_id: id.to_string(),
+        inner: crate::shared::rpc::messages::ExecRequest {
+            exec_id: exec_id.to_string(),
+            argv: vec!["echo".to_string(), "hi".to_string()],
+            env: Vec::new(),
+            cwd: None,
+            stdin,
+            timeout_ms: None,
+        },
+    };
+    let body = serde_json::to_vec(&request).unwrap_or_default();
+    // A Connect streaming request carries one envelope: a flag byte, a
+    // big-endian length, then the JSON message.
+    let mut framed = Vec::with_capacity(body.len() + 5);
+    framed.push(0);
+    framed.extend_from_slice(&u32::try_from(body.len()).unwrap_or(u32::MAX).to_be_bytes());
+    framed.extend_from_slice(&body);
+    SimpleIncomingRequest::builder()
+        .with_plain_url(path)
+        .with_uri(uri)
+        .with_method(SimpleMethod::POST)
+        .add_header(SimpleHeader::CONTENT_TYPE, "application/connect+json")
+        .add_header(SimpleHeader::custom("connect-protocol-version"), "1")
+        .with_body_bytes(framed)
+        .with_proto(Proto::HTTP11)
+        .build()
+        .expect("the test request builds")
 }
 
 /// A transport to the internal container service of one control.
@@ -818,12 +1021,14 @@ pub fn container_transport(
     ctx: Ctx,
     control: Arc<dyn crate::shared::container::ContainerControl>,
     limits: crate::shared::limits::SandboxLimits,
+    calls: Arc<dyn crate::shared::handles::ExecFileCalls>,
     name: SandboxId,
 ) -> Arc<dyn foundation_connectrpc::shared::transport::Transport> {
     let service = Arc::new(crate::shared::cloudflare::ContainerControlService::new(
         ctx.clone(),
         control,
         limits.clone(),
+        calls,
     ));
     let mut router = foundation_connectrpc::Router::new();
     crate::shared::rpc::register_container_service(&mut router, service);

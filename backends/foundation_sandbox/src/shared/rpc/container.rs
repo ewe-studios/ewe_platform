@@ -13,11 +13,11 @@
 use foundation_connectrpc::{service, ConnectResult, Request, Response, RpcCtx};
 
 use super::messages::{
-    ContainerDestroyRequest, ContainerExecRequest, ContainerFetchEvent, ContainerFetchRequest,
-    ContainerGetRequest, ContainerGetResponse, ContainerInfo, ContainerListResponse,
-    ContainerLogTailRequest, ContainerLogTailResponse, ContainerSignalRequest,
-    ContainerStartRequest, ContainerStopRequest, ContainerWaitRequest, Empty, ExecEventMsg,
-    SubstrateExit,
+    ContainerDestroyRequest, ContainerExecInputRequest, ContainerExecRequest,
+    ContainerExecSignalRequest, ContainerFetchEvent, ContainerFetchRequest, ContainerGetRequest,
+    ContainerGetResponse, ContainerInfo, ContainerListResponse, ContainerLogTailRequest,
+    ContainerLogTailResponse, ContainerSignalRequest, ContainerStartRequest, ContainerStopRequest,
+    ContainerWaitRequest, Empty, ExecEventMsg, ExecInputResponse, SubstrateExit,
 };
 
 /// The container control of one Durable Object.
@@ -57,6 +57,20 @@ pub trait ContainerService {
         ctx: RpcCtx,
         req: Request<ContainerExecRequest>,
     ) -> ConnectResult<impl futures::Stream<Item = ConnectResult<ExecEventMsg>>>;
+
+    /// Writes one chunk of input to a running command.
+    async fn exec_input(
+        &self,
+        ctx: RpcCtx,
+        req: Request<ContainerExecInputRequest>,
+    ) -> ConnectResult<Response<ExecInputResponse>>;
+
+    /// Sends one signal to a running command.
+    async fn exec_signal(
+        &self,
+        ctx: RpcCtx,
+        req: Request<ContainerExecSignalRequest>,
+    ) -> ConnectResult<Response<Empty>>;
 
     /// Sends one signal to the container.
     async fn signal(

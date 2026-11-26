@@ -39,7 +39,8 @@ pub mod testing;
 
 #[cfg(feature = "control")]
 pub use handle::{
-    exec_session, run_capture, write_file_stream, LocalSandboxOps, RemoteSandboxOps, ScopedCalls,
+    exec_session, exec_session_with_id, run_capture, write_file_stream, LocalSandboxOps,
+    RemoteSandboxOps, ScopedCalls,
 };
 #[cfg(feature = "control")]
 pub use manager::{DropPolicy, ManagerConfig, SandboxIdPolicy, SandboxManager};

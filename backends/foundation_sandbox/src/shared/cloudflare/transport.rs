@@ -141,8 +141,12 @@ impl Transport for ContainerPortTransport {
 
 /// The `NetClient` of one port source.
 ///
-/// Only `open_exchange` is used: `H1Transport` calls it for every exchange. The
-/// other client methods are not part of this contract and answer a typed error.
+/// Only `open_exchange` is used. `H1Transport` is the one consumer, and the
+/// trait needs the other methods only because `NetClient` extends `HttpClient`.
+/// A container port is not a general origin: it has no scheme, host or TLS, and
+/// `fetch` takes the request on that port. The four `send*` methods therefore
+/// answer a typed error instead of inventing a URL, and no code in this
+/// workspace calls them on this client (the type is private to this module).
 struct ContainerPortClient {
     source: Arc<dyn PortSource>,
 }

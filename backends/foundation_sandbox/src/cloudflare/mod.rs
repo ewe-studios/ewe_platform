@@ -61,19 +61,34 @@ fn js_error(error: JsValue) -> foundation_errstacks::ErrorTrace<SandboxError> {
 }
 
 /// `ContainerApi` over the Durable Object's `worker::Container`.
-pub struct WorkerContainer(SendWrapper<worker::Container>);
+pub struct WorkerContainer {
+    container: SendWrapper<worker::Container>,
+    max_error_message: usize,
+}
 
 impl WorkerContainer {
     /// The adapter over one worker container.
     #[must_use]
     pub fn new(container: worker::Container) -> Self {
-        Self(SendWrapper::new(container))
+        Self::new_with_max_error_message(
+            container,
+            crate::shared::limits::SandboxLimits::default().max_error_message,
+        )
+    }
+
+    /// The adapter with the cap on one port error text.
+    #[must_use]
+    pub fn new_with_max_error_message(container: worker::Container, max: usize) -> Self {
+        Self {
+            container: SendWrapper::new(container),
+            max_error_message: max,
+        }
     }
 }
 
 impl ContainerApi for WorkerContainer {
     fn running(&self) -> bool {
-        self.0.running()
+        self.container.running()
     }
 
     fn start(&self, options: ContainerStart) -> SandboxResult<()> {
@@ -84,7 +99,7 @@ impl ContainerApi for WorkerContainer {
         for (key, value) in &options.env {
             startup.add_env(key, value);
         }
-        self.0.start(Some(startup)).map_err(|error| {
+        self.container.start(Some(startup)).map_err(|error| {
             SandboxError::SubstrateApi {
                 status: 0,
                 message: error.to_string(),
@@ -95,17 +110,17 @@ impl ContainerApi for WorkerContainer {
 
     fn destroy(&self) -> BoxFuture<'_, SandboxResult<()>> {
         Box::pin(SendWrapper::new(async move {
-            self.0.destroy(None).await.map_err(worker_error)
+            self.container.destroy(None).await.map_err(worker_error)
         }))
     }
 
     fn signal(&self, signo: i32) -> SandboxResult<()> {
-        self.0.signal(signo).map_err(worker_error)
+        self.container.signal(signo).map_err(worker_error)
     }
 
     fn wait_for_exit(&self) -> BoxFuture<'_, SandboxResult<()>> {
         Box::pin(SendWrapper::new(async move {
-            self.0.wait_for_exit().await.map_err(worker_error)
+            self.container.wait_for_exit().await.map_err(worker_error)
         }))
     }
 
@@ -116,7 +131,7 @@ impl ContainerApi for WorkerContainer {
     ) -> BoxFuture<'_, Result<PortResponse, PortError>> {
         Box::pin(SendWrapper::new(async move {
             let fetcher = self
-                .0
+                .container
                 .get_tcp_port(port)
                 .map_err(|error| PortError::Other(error.to_string()))?;
             let headers = worker::Headers::new();
@@ -143,12 +158,14 @@ impl ContainerApi for WorkerContainer {
             let mut response = fetcher
                 .fetch_request(worker_request)
                 .await
-                .map_err(|error| port_error_from_text(&error.to_string()))?;
+                .map_err(|error| {
+                    port_error_from_text(&error.to_string(), self.max_error_message)
+                })?;
             let status = response.status_code();
             let headers = response.headers().entries().collect::<Vec<_>>();
-            let stream = response
-                .stream()
-                .map_err(|error| port_error_from_text(&error.to_string()))?;
+            let stream = response.stream().map_err(|error| {
+                port_error_from_text(&error.to_string(), self.max_error_message)
+            })?;
             let body = stream.map(|item| {
                 item.map_err(|error| {
                     SandboxError::Io {
@@ -263,7 +280,10 @@ impl CloudflareHost {
         let storage = state.storage();
         let raw_storage = state.as_raw().storage().map_err(js_error)?;
         Ok(Self {
-            container: Arc::new(WorkerContainer::new(container)),
+            container: Arc::new(WorkerContainer::new_with_max_error_message(
+                container,
+                config.max_error_message,
+            )),
             storage: Arc::new(WorkerStorage::new(storage)),
             alarm: Arc::new(WorkerAlarm::new(raw_storage)),
             index,

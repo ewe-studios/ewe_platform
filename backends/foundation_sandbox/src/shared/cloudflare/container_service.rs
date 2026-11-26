@@ -12,14 +12,17 @@ use foundation_errstacks::ErrorTrace;
 use futures::{Stream, StreamExt};
 
 use crate::shared::container::{ContainerControl, ContainerId};
+use crate::shared::control::exec_session_with_id;
 use crate::shared::error::SandboxError;
+use crate::shared::handles::ExecFileCalls;
+use crate::shared::ids::ExecId;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::rpc::messages::{
-    ContainerDestroyRequest, ContainerExecRequest, ContainerFetchEvent, ContainerFetchRequest,
-    ContainerGetRequest, ContainerGetResponse, ContainerInfo, ContainerListResponse,
-    ContainerLogTailRequest, ContainerLogTailResponse, ContainerSignalRequest,
-    ContainerStartRequest, ContainerStopRequest, ContainerWaitRequest, Empty, ExecEventKind,
-    ExecEventMsg, SubstrateExit,
+    ContainerDestroyRequest, ContainerExecInputRequest, ContainerExecRequest,
+    ContainerExecSignalRequest, ContainerFetchEvent, ContainerFetchRequest, ContainerGetRequest,
+    ContainerGetResponse, ContainerInfo, ContainerListResponse, ContainerLogTailRequest,
+    ContainerLogTailResponse, ContainerSignalRequest, ContainerStartRequest, ContainerStopRequest,
+    ContainerWaitRequest, Empty, ExecEventKind, ExecEventMsg, ExecInputResponse, SubstrateExit,
 };
 use crate::shared::rpc::ContainerService;
 
@@ -28,16 +31,23 @@ pub struct ContainerControlService {
     ctx: Ctx,
     control: Arc<dyn ContainerControl>,
     limits: SandboxLimits,
+    calls: Arc<dyn ExecFileCalls>,
 }
 
 impl ContainerControlService {
     /// A service over one control.
     #[must_use]
-    pub fn new(ctx: Ctx, control: Arc<dyn ContainerControl>, limits: SandboxLimits) -> Self {
+    pub fn new(
+        ctx: Ctx,
+        control: Arc<dyn ContainerControl>,
+        limits: SandboxLimits,
+        calls: Arc<dyn ExecFileCalls>,
+    ) -> Self {
         Self {
             ctx,
             control,
             limits,
+            calls,
         }
     }
 
@@ -150,22 +160,34 @@ impl ContainerService for ContainerControlService {
         _ctx: RpcCtx,
         req: Request<ContainerExecRequest>,
     ) -> ConnectResult<Pin<Box<dyn Stream<Item = ConnectResult<ExecEventMsg>> + Send>>> {
-        let handle = self.handle(&req.msg.container_id).await?;
+        self.handle(&req.msg.container_id).await?;
         let exec_request = req.msg.request;
-        let mut exec = handle
-            .exec(crate::shared::command::Command {
-                argv: exec_request.argv,
-                env: exec_request.env,
-                cwd: exec_request.cwd,
-                stdin: if exec_request.stdin {
-                    crate::shared::command::StdinMode::Piped
-                } else {
-                    crate::shared::command::StdinMode::Null
-                },
-                timeout: None,
-            })
-            .await
-            .map_err(|error| self.connect_error(&error))?;
+        let exec_id = exec_request
+            .exec_id
+            .parse::<ExecId>()
+            .map_err(|error| self.connect_error(&ErrorTrace::new(error)))?;
+        let command = crate::shared::command::Command {
+            argv: exec_request.argv,
+            env: exec_request.env,
+            cwd: exec_request.cwd,
+            stdin: if exec_request.stdin {
+                crate::shared::command::StdinMode::Piped
+            } else {
+                crate::shared::command::StdinMode::Null
+            },
+            timeout: exec_request
+                .timeout_ms
+                .map(std::time::Duration::from_millis),
+        };
+        let mut exec = exec_session_with_id(
+            self.ctx.clone(),
+            self.limits.clone(),
+            Arc::clone(&self.calls),
+            command,
+            exec_id,
+        )
+        .await
+        .map_err(|error| self.connect_error(&error))?;
         let stream = exec.events();
         let max = self.limits.max_error_message;
         let mut seq = 0_u64;
@@ -191,6 +213,33 @@ impl ContainerService for ContainerControlService {
             }
         });
         Ok(Box::pin(mapped))
+    }
+
+    async fn exec_input(
+        &self,
+        _ctx: RpcCtx,
+        req: Request<ContainerExecInputRequest>,
+    ) -> ConnectResult<Response<ExecInputResponse>> {
+        self.handle(&req.msg.container_id).await?;
+        let answer = self
+            .calls
+            .exec_input(req.msg.request)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn exec_signal(
+        &self,
+        _ctx: RpcCtx,
+        req: Request<ContainerExecSignalRequest>,
+    ) -> ConnectResult<Response<Empty>> {
+        self.handle(&req.msg.container_id).await?;
+        self.calls
+            .exec_signal(req.msg.request)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(Empty {}))
     }
 
     async fn signal(

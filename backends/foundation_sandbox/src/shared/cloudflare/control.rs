@@ -5,11 +5,15 @@
 //! `foundation_connectrpc` router, and stops an idle sandbox when the one alarm
 //! fires.
 
+use std::io;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use foundation_connectrpc::ConnectRpcHandler;
+use bytes::Bytes;
+use foundation_connectrpc::{in_memory_body, CallHooks, ConnectRpcHandler, ResponseSink};
 use foundation_context::Ctx;
+use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeaders, SimpleOutgoingResponse, Status};
 
 use crate::shared::cloudflare::container_service::ContainerControlService;
 use crate::shared::cloudflare::driver::{CloudflareContainerDriver, CloudflareDoDriver};
@@ -27,6 +31,7 @@ use crate::shared::error::SandboxResult;
 use crate::shared::ids::SandboxId;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::rpc::{register_container_service, register_sandbox_service};
+use crate::shared::{BoxByteStream, BoxFuture};
 
 /// The storage key of the DO's sandbox identifier.
 pub const SANDBOX_ID_KEY: &str = "sandbox_id";
@@ -37,7 +42,198 @@ pub const IDLE_DEADLINE_KEY: &str = "idle_deadline_ms";
 pub type HttpRequestParts = foundation_netio::shared::http::SimpleIncomingRequest;
 
 /// One response from the Durable Object.
-pub type HttpResponseParts = foundation_netio::shared::http::SimpleOutgoingResponse;
+///
+/// The body is a stream, so the response head leaves before the body ends. A
+/// unary answer is one chunk. This type replaces the collected
+/// `SimpleOutgoingResponse` that the router's `dispatch` gives.
+pub struct HttpResponseParts {
+    /// The HTTP status.
+    pub status: u16,
+    /// The response headers.
+    pub headers: Vec<(String, String)>,
+    /// The response body, one chunk at a time.
+    pub body: BoxByteStream,
+}
+
+impl HttpResponseParts {
+    /// A response with one body chunk.
+    #[must_use]
+    pub fn whole(status: u16, headers: Vec<(String, String)>, body: Vec<u8>) -> Self {
+        Self {
+            status,
+            headers,
+            body: Box::pin(futures::stream::once(async move { Ok(body) })),
+        }
+    }
+
+    /// A response with no body.
+    #[must_use]
+    pub fn empty(status: u16) -> Self {
+        Self::whole(status, Vec::new(), Vec::new())
+    }
+}
+
+/// One event of a streamed response.
+enum ResponseEvent {
+    /// A complete response, unary or a stream that produced no frame.
+    Whole(SimpleOutgoingResponse),
+    /// The head of a streamed response.
+    Head(SimpleOutgoingResponse),
+    /// One response frame.
+    Chunk(Bytes),
+    /// The end of a streamed response.
+    End,
+}
+
+/// The response sink that turns router writes into stream events.
+struct StreamSink {
+    sender: PipeSender<ResponseEvent>,
+}
+
+impl StreamSink {
+    fn closed() -> io::Error {
+        io::Error::new(io::ErrorKind::BrokenPipe, "the response sink is closed")
+    }
+
+    fn send(&self, event: ResponseEvent) -> BoxFuture<'_, io::Result<()>> {
+        let sender = self.sender.clone();
+        Box::pin(async move { sender.send(event).await.map_err(|_error| Self::closed()) })
+    }
+}
+
+impl ResponseSink for StreamSink {
+    fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
+        self.send(ResponseEvent::Whole(response))
+    }
+
+    fn open(&mut self, mut head: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
+        head.body = None;
+        self.send(ResponseEvent::Head(head))
+    }
+
+    fn chunk(&mut self, bytes: Bytes) -> BoxFuture<'_, io::Result<()>> {
+        self.send(ResponseEvent::Chunk(bytes))
+    }
+
+    fn finish(&mut self) -> BoxFuture<'_, io::Result<()>> {
+        self.send(ResponseEvent::End)
+    }
+}
+
+/// Runs one request through the router and streams its response.
+///
+/// The head of the response returns before its stream ends.
+pub(crate) async fn dispatch_streaming(
+    ctx: Ctx,
+    handler: &ConnectRpcHandler,
+    mut request: HttpRequestParts,
+    queue_len: usize,
+) -> HttpResponseParts {
+    let body = in_memory_body(request.body.take());
+    let (sender, receiver) = Pipe::<ResponseEvent>::with_depth(queue_len);
+    let sink: Box<dyn ResponseSink> = Box::new(StreamSink { sender });
+    let dispatch = handler.dispatch_to(ctx, request, body, sink, CallHooks::default());
+    let mut state = DispatchState::Running(dispatch);
+    match next_event(&mut state, &receiver).await {
+        Some(ResponseEvent::Whole(response)) => {
+            let (status, headers, body) = split_whole(response);
+            HttpResponseParts::whole(status, headers, body)
+        }
+        Some(ResponseEvent::Head(head)) => HttpResponseParts {
+            status: status_u16(&head.status),
+            headers: flatten_headers(head.headers),
+            body: body_stream(state, receiver),
+        },
+        Some(ResponseEvent::Chunk(_) | ResponseEvent::End) | None => HttpResponseParts::empty(500),
+    }
+}
+
+/// The dispatch future of one response, or its end.
+enum DispatchState {
+    /// The router is still writing.
+    Running(BoxFuture<'static, io::Result<()>>),
+    /// The router finished. The remaining buffered events stay readable.
+    Done,
+}
+
+/// The next response event, driving the router while the pipe is empty.
+async fn next_event(
+    state: &mut DispatchState,
+    receiver: &PipeReceiver<ResponseEvent>,
+) -> Option<ResponseEvent> {
+    loop {
+        match state {
+            DispatchState::Done => return receiver.receive().await,
+            DispatchState::Running(_) => {
+                let DispatchState::Running(dispatch) =
+                    std::mem::replace(state, DispatchState::Done)
+                else {
+                    return None;
+                };
+                let waiting = receiver.clone();
+                match futures::future::select(dispatch, Box::pin(waiting.receive())).await {
+                    futures::future::Either::Left((_result, _waiting)) => {
+                        *state = DispatchState::Done;
+                    }
+                    futures::future::Either::Right((event, dispatch)) => {
+                        *state = DispatchState::Running(dispatch);
+                        return event;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// The body stream of a streamed response.
+fn body_stream(state: DispatchState, receiver: PipeReceiver<ResponseEvent>) -> BoxByteStream {
+    let inner = futures::stream::unfold((state, receiver), |(mut state, receiver)| async move {
+        loop {
+            match next_event(&mut state, &receiver).await {
+                Some(ResponseEvent::Chunk(bytes)) => {
+                    return Some((Ok(bytes.to_vec()), (state, receiver)));
+                }
+                Some(ResponseEvent::Whole(response)) => {
+                    let (_, _, body) = split_whole(response);
+                    if !body.is_empty() {
+                        return Some((Ok(body), (state, receiver)));
+                    }
+                }
+                Some(ResponseEvent::End) | None => return None,
+                Some(ResponseEvent::Head(_)) => {}
+            }
+        }
+    });
+    Box::pin(crate::shared::cloudflare::SendStream::new(inner))
+}
+
+/// The status, headers and body bytes of a whole response.
+fn split_whole(response: SimpleOutgoingResponse) -> (u16, Vec<(String, String)>, Vec<u8>) {
+    let status = status_u16(&response.status);
+    let headers = flatten_headers(response.headers);
+    let body = match response.body {
+        Some(SendSafeBody::Bytes(bytes)) => bytes,
+        Some(SendSafeBody::Text(text)) => text.into_bytes(),
+        _ => Vec::new(),
+    };
+    (status, headers, body)
+}
+
+/// One status as a number.
+fn status_u16(status: &Status) -> u16 {
+    u16::try_from(status.clone().into_usize()).unwrap_or(0)
+}
+
+/// The headers of one response as a flat list.
+fn flatten_headers(headers: SimpleHeaders) -> Vec<(String, String)> {
+    let mut flat = Vec::new();
+    for (name, values) in headers {
+        for value in values {
+            flat.push((name.to_string(), value));
+        }
+    }
+    flat
+}
 
 /// The shared state of one DO control plane.
 struct Inner {
@@ -129,10 +325,22 @@ impl DoControlPlane {
             )
             .with_limits(limits.clone()),
         );
+        let slave_transport = crate::shared::host::SlaveConnector::connect(
+            connector.as_ref(),
+            &ctx,
+            &crate::shared::driver::SlaveEndpoint::CloudflarePort {
+                port: host.config.slave_port,
+            },
+            &limits,
+        )?;
+        let slave_client =
+            crate::shared::control::SlaveClient::new(ctx.clone(), slave_transport, limits.clone())?;
+        let calls: Arc<dyn crate::shared::handles::ExecFileCalls> = Arc::new(slave_client);
         let container_service = Arc::new(ContainerControlService::new(
             ctx.clone(),
             control,
             limits.clone(),
+            calls,
         ));
         let mut router = foundation_connectrpc::Router::new();
         register_sandbox_service(&mut router, sandbox_service);
@@ -186,13 +394,20 @@ impl DoControlPlane {
     }
 
     /// Handles one HTTP request to this DO.
+    ///
+    /// The head of the response returns before its stream ends. A streaming
+    /// call keeps the sender alive on the pool, so a long `Exec` does not hold
+    /// the whole answer in memory.
     pub async fn handle(&self, request: HttpRequestParts) -> HttpResponseParts {
         self.restore().await;
         self.touch().await;
-        self.inner
-            .handler
-            .dispatch(self.inner.ctx.clone(), request)
-            .await
+        dispatch_streaming(
+            self.inner.ctx.clone(),
+            &self.inner.handler,
+            request,
+            self.inner.host.config.stream_queue_len,
+        )
+        .await
     }
 
     /// The one DO alarm.

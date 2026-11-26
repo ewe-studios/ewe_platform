@@ -340,16 +340,35 @@ pub async fn exec_session(
     command: Command,
 ) -> SandboxResult<ExecHandle> {
     let exec_id = ExecId::generate(&ctx);
+    exec_session_with_id(ctx, limits, calls, command, exec_id).await
+}
+
+/// Opens one execution session with the caller's execution identifier.
+///
+/// # Errors
+/// The error of the `Exec` call, or [`SandboxError::StreamLost`] when the
+/// first event is not `Started` with sequence zero.
+pub async fn exec_session_with_id(
+    ctx: Ctx,
+    limits: SandboxLimits,
+    calls: Arc<dyn ExecFileCalls>,
+    command: Command,
+    exec_id: ExecId,
+) -> SandboxResult<ExecHandle> {
     if command.timeout.is_some() && ctx.require_env().is_err() {
         return Err(SandboxError::HostNotConfigured.into());
     }
     let stdin_requested = !matches!(&command.stdin, StdinMode::Null);
+    let timeout_ms = command
+        .timeout
+        .map(|timeout| u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX));
     let request = ExecRequest {
         exec_id: exec_id.to_string(),
         argv: command.argv.clone(),
         env: command.env.clone(),
         cwd: command.cwd.clone(),
         stdin: stdin_requested,
+        timeout_ms,
     };
     let mut stream = calls.exec(request).await?;
     let Some(Ok(ExecEventMsg {
