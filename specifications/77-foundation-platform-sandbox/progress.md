@@ -43,7 +43,8 @@ ASD-STE100.
   products. Feature 16 (the driver for Docker Sandboxes, through the `sbx` program) and
   feature 17 (support for the Cloudflare Sandbox product: product images and a plain HTTP
   way in) were added. Requirements section 2.3 was rewritten. Decisions D10 to D13 record
-  the answers; questions Q1 and Q3 are closed. `agent-slave` stays in `bin/agent_slave`.
+  the answers; questions Q1 and Q3 are closed. `agent-slave` stays in `bin/agent_slave`
+  (superseded on 2026-11-25: decision D11 puts it in `foundation_sandbox/src/bin/`).
 
 - 2026-11-12: the owner made feature 16 (Docker Sandboxes product) a draft that is not a
   must have, because the product is not ready (decision D14). It is out of the lane order.
