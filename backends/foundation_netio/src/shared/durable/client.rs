@@ -530,6 +530,28 @@ impl ReadBuilder {
         #[cfg(not(feature = "std"))]
         use futures_lite::StreamExt;
 
+        // The event stream carries no status, so one HEAD request decides
+        // whether the stream exists and is readable.
+        let probe = self
+            .handle
+            .transport
+            .send(self.handle.request(HttpMethod::Head, "", &self.headers, Vec::new()))
+            .await?;
+        match probe.status {
+            200 | 204 => {}
+            404 => {
+                return Err(ClientError::NotFound {
+                    path: self.handle.path.clone(),
+                })
+            }
+            410 => {
+                return Err(ClientError::Gone {
+                    path: self.handle.path.clone(),
+                })
+            }
+            status => return Err(unexpected(status, &probe)),
+        }
+
         let mut stream = self.handle.transport.open_sse(request).await?;
         let mut result = ReadResult {
             status: 200,

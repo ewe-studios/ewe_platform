@@ -316,7 +316,7 @@ fn sse(event_type: &str, data: &str) -> Result<SseEvent, TransportError> {
 #[test]
 fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk_and_offset() {
     smol::block_on(async {
-        let transport = MockTransport::with(Vec::new());
+        let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").extend([
             sse("data", "hello"),
             sse(
@@ -337,7 +337,7 @@ fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk
 #[test]
 fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes() {
     smol::block_on(async {
-        let transport = MockTransport::with(Vec::new());
+        let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").extend([
             sse("data", "SGVsbG8="),
             sse("control", r#"{"streamNextOffset":"00ff","streamClosed":true}"#),
@@ -358,7 +358,7 @@ fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes(
 #[test]
 fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_read() {
     smol::block_on(async {
-        let transport = MockTransport::with(Vec::new());
+        let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").push(Ok(SseEvent {
             event_type: None,
             data: r#"{"streamNextOffset":"00aa","upToDate":true}"#.to_string(),
@@ -378,7 +378,7 @@ fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_re
 #[test]
 fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
     smol::block_on(async {
-        let transport = MockTransport::with(Vec::new());
+        let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").extend([
             sse("data", ""),
             sse("control", r#"{"streamNextOffset":"00bb","upToDate":true}"#),
@@ -391,5 +391,19 @@ fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
             .expect("sse");
 
         assert!(result.chunks.is_empty());
+    });
+}
+
+#[test]
+fn given_a_missing_stream_when_an_sse_read_runs_then_the_probe_answers_not_found() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(404, &[], b"")]);
+        let error = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .send()
+            .await
+            .expect_err("missing");
+        assert!(matches!(error, ClientError::NotFound { .. }));
     });
 }
