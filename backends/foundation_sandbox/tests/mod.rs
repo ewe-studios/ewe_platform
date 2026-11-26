@@ -20,6 +20,12 @@ mod control;
 #[cfg(all(unix, feature = "control", feature = "testing"))]
 mod images;
 
+/// The image import end-to-end tests (feature 13). They need a Linux host with
+/// KVM, Firecracker and `mkfs.ext4`; each test prints a reason and returns when
+/// the host cannot run it, so the module compiles and passes on every Unix host.
+#[cfg(all(unix, feature = "images"))]
+mod e2e_images;
+
 /// The Firecracker API client tests. They need the `firecracker` feature and a
 /// Unix domain socket.
 #[cfg(all(feature = "firecracker", unix))]

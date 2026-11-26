@@ -824,7 +824,7 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # `Provider` facade (spec 77 feature 06).
 wasm = "enforce"
 wasm-runs = ["", "--no-default-features"]
-runs = ["", "slave", "testing", "slave cli testing", "cli provider testing", "libkrun libkrun-runner testing"]
+runs = ["", "slave", "testing", "slave cli testing", "cli provider testing", "libkrun libkrun-runner testing", "images docker testing slave", "images docker testing slave cli"]
 # Lint each feature tree of this phase: a warning in the CLI, the slave, the
 # provider or the libkrun driver must fail CI too.
 clippy-runs = ["", "slave cli testing", "cli provider testing", "libkrun libkrun-runner testing"]
@@ -834,7 +834,9 @@ clippy-deny-warnings = true
 # operating system has. macOS and Windows run the contract, control, CLI and
 # provider tests. The libkrun driver tests run on Linux and macOS. They start no
 # virtual machine: the real-machine tests return with a report when libkrun is
-# absent. Windows keeps the default runs: the driver is Unix only, so its tests
-# do not compile there.
-macos-runs = ["", "testing", "cli testing", "libkrun libkrun-runner testing"]
+# absent. The image import tests (spec 77 feature 13) run on both: their
+# end-to-end rows print a reason and return when the host has no KVM, no
+# Firecracker program or no `mkfs.ext4` (issues #994 and #996). Windows keeps
+# the default runs: the import needs Docker and the image store is Unix only.
+macos-runs = ["", "testing", "cli testing", "libkrun libkrun-runner testing", "images docker testing slave", "images docker testing slave cli"]
 windows-runs = ["", "testing", "cli testing"]
