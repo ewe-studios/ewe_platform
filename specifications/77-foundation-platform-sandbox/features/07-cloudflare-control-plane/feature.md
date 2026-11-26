@@ -339,6 +339,7 @@ Feature: Cloudflare control plane
 | `src/shared/cloudflare/driver.rs` | all | `CloudflareContainerDriver`, its handle. |
 | `src/shared/cloudflare/container.rs` | all | `CloudflareContainerControl`, `DoContainerOps`, `DoContainerClient`. |
 | `src/shared/cloudflare/container_service.rs` | all | The internal `ContainerService` router. |
+| `src/shared/rpc/container.rs` | all | The `#[service(package = "ewe.sandbox.container.v1")]` trait of the internal service, next to `sandbox.rs` and `slave.rs`. |
 | `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, the `as_cloudflare` helper. |
 | `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
 | `src/shared/cloudflare/do_slave.rs` | all | `DoSlaveConnector`: a `SlaveConnector` over a service binding (section 6.10). |
@@ -577,8 +578,10 @@ response. `Exec` is server-streaming, as the slave `Exec` is. `Wait` is unary an
 deadline unless `CloudflareConfig.wait_timeout` sets one (the default is `None`).
 
 The internal service is not part of `SandboxService`. It has its own package, so a client
-that only controls a container does not need the sandbox messages. The Worker entry of
-feature 08 routes both services to the DO.
+that only controls a container does not need the sandbox messages. The service is a
+`#[service]` trait in `src/shared/rpc/container.rs`, as `SandboxService` is in
+`src/shared/rpc/sandbox.rs`. Its request and response messages join
+`src/shared/rpc/messages.rs`. The Worker entry of feature 08 routes both services to the DO.
 
 ### 6.5 `ContainerPortTransport`
 
