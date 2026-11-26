@@ -75,3 +75,26 @@ _The diagram shows which task must finish before another task starts._
   `server-key.pem`). Task K3 seals them and removes the plain-text files.
 - The history archive to R2 (feature 05 task T26) stores objects without encryption in the POC.
   Task K4 adds envelope encryption of each object.
+
+## 5. Verify
+
+```bash
+cargo fmt --all --check
+cargo clippy -p foundation_auth -p foundation_agent_rpc --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_auth --features testing --profile uat keystore
+cargo test -p foundation_agent_rpc --features testing --profile uat kek_
+cargo test -p foundation_auth --features testing --profile uat kms
+```
+
+The `kms` tests need a Vault dev server in a container. They print the reason and return when
+Docker is absent.
+
+## 6. Done when
+
+- The sealer contract passes for `KekSealer`, `PassphraseSealer`, `WebCryptoSealer` and
+  `EnvelopeSealer` with `FakeKms`.
+- No store writes an unsealed private key. A legacy plain-text key file is sealed and then
+  removed.
+- `agent-rpc keys migrate` and `agent-rpc keys rotate` work against a legacy state directory.
+- The Vault Transit test passes when Docker is present.
+- The `Debug` output and the error text of every key type hold no key bytes.
