@@ -9,8 +9,10 @@
 #![allow(async_fn_in_trait)] // Native async trait. The trait is used generically, never as `dyn`.
 
 mod memory;
+mod service;
 
 pub use memory::MemoryVfs;
+pub use service::{DurableLimits, DurableService};
 
 use core::fmt;
 use core::future::Future;

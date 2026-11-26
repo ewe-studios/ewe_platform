@@ -75,7 +75,7 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 
 ## 4. Tasks
 
-- [ ] **T1 — service.** `DurableService` wraps the store and applies protocol semantics. Test:
+- [x] **T1 — service.** `DurableService` wraps the store and applies protocol semantics. Test:
       `service_uses_no_transport_type` (compile).
 - [ ] **T2 — verbs and statuses.** Create, append, close, read, head and delete. Tests:
       `create_is_idempotent`, `append_after_close_is_rejected`, `close_only_is_idempotent`,
