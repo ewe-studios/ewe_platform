@@ -1,3 +1,4 @@
+mod durable;
 mod event_source;
 mod http2;
 mod http3;

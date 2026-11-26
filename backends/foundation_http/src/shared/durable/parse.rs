@@ -128,12 +128,7 @@ pub fn parse_offset(value: &str) -> Result<ReadFrom, StoreError> {
 /// bytes. A client passes the text back unchanged.
 #[must_use]
 pub fn encode_offset(offset: &StreamOffset) -> String {
-    let mut text = String::with_capacity(offset.as_bytes().len() * 2);
-    for byte in offset.as_bytes() {
-        text.push(char::from_digit(u32::from(byte >> 4), 16).unwrap_or('0'));
-        text.push(char::from_digit(u32::from(byte & 0x0f), 16).unwrap_or('0'));
-    }
-    text
+    foundation_core::durable::wire::offset_text(offset)
 }
 
 /// Decode wire text into the internal offset bytes.
@@ -141,42 +136,8 @@ pub fn encode_offset(offset: &StreamOffset) -> String {
 /// # Errors
 ///
 /// Returns [`StoreError::BadRequest`] with [`BadRequestKind::Offset`] when the
-/// text is not an even-length, lowercase hexadecimal string.
+/// text is not a valid offset.
 pub fn decode_offset(value: &str) -> Result<StreamOffset, StoreError> {
-    if let Some((sequence, position)) = value.split_once('_') {
-        // The reference server writes a composite `<sequence>_<byte>` offset.
-        // This store orders by byte position, so the byte part is the offset.
-        if sequence.is_empty() || position.is_empty() {
-            return Err(StoreError::BadRequest(BadRequestKind::Offset));
-        }
-        if sequence.bytes().all(|byte| byte == b'0') && position.bytes().all(|byte| byte == b'0') {
-            return Ok(StreamOffset::from_bytes(vec![0; 8]));
-        }
-        let byte = position
-            .parse::<u64>()
-            .map_err(|_| StoreError::BadRequest(BadRequestKind::Offset))?;
-        return Ok(StreamOffset::from_bytes(byte.to_be_bytes().to_vec()));
-    }
-    if value.is_empty() || value.len() % 2 != 0 {
-        return Err(StoreError::BadRequest(BadRequestKind::Offset));
-    }
-    let mut bytes = Vec::with_capacity(value.len() / 2);
-    let mut chunks = value.as_bytes().chunks_exact(2);
-    for chunk in &mut chunks {
-        let high = hex_digit(chunk[0])?;
-        let low = hex_digit(chunk[1])?;
-        bytes.push((high << 4) | low);
-    }
-    if !chunks.remainder().is_empty() {
-        return Err(StoreError::BadRequest(BadRequestKind::Offset));
-    }
-    Ok(StreamOffset::from_bytes(bytes))
-}
-
-fn hex_digit(byte: u8) -> Result<u8, StoreError> {
-    match byte {
-        b'0'..=b'9' => Ok(byte - b'0'),
-        b'a'..=b'f' => Ok(byte - b'a' + 10),
-        _ => Err(StoreError::BadRequest(BadRequestKind::Offset)),
-    }
+    foundation_core::durable::wire::parse_offset(value)
+        .ok_or(StoreError::BadRequest(BadRequestKind::Offset))
 }

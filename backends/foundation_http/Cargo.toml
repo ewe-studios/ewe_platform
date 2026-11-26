@@ -23,7 +23,7 @@ rand_chacha = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
-time = { workspace = true }
+time = { workspace = true, features = ["parsing", "formatting"] }
 
 regex = { version = "1.12" }
 bytes = { version = "1.5" }

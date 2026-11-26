@@ -97,9 +97,9 @@ impl StreamHandle {
 
 ## 4. Tasks
 
-- [ ] **T1 — client core.** Types, transport and the six verbs. Tests:
+- [x] **T1 — client core.** Types, transport and the six verbs. Tests:
       `create_is_idempotent`, `append_returns_offset`, `head_returns_metadata`.
-- [ ] **T2 — catch-up and long-poll.** Offset handling, byte-exact resumption and `204`.
+- [x] **T2 — catch-up and long-poll.** Offset handling, byte-exact resumption and `204`.
       Tests: `read_resumes_byte_exactly`, `long_poll_timeout_is_up_to_date`.
 - [ ] **T3 — SSE and auto.** Parser, base64, control events, unknown events, auto fallback.
       Tests: `sse_decodes_base64`, `sse_ignores_unknown_event`, `auto_falls_back_to_long_poll`.

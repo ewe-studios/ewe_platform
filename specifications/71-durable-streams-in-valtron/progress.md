@@ -2,6 +2,11 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 client core started. `foundation_netio::shared::durable` has the
+  injected `ClientTransport`, the six verbs and a catch-up/long-poll read. The offset wire codec
+  moved to `foundation_core::durable::wire`, so the server and the client share one codec.
+  10 client tests pass and the wasm32 check passes. The native HTTP transport, SSE, retry,
+  producer batching, dynamic headers, the adapter and the client conformance run remain.
 - 2026-11-27: feature 06 server conformance passes. The reference
   `@durable-streams/server-conformance-tests` suite reports 332 pass, 6 skip, 0 fail against
   `DurableHandler` over the memory VFS. The run found and fixed: composite offset input, the
@@ -91,7 +96,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full
   server conformance run landed. ConnectRPC and `429` remain.
-- **07-durable-streams-client** — ⏳ not started (0/10)
+- **07-durable-streams-client** — 🟡 in progress (2/11). The client core, transport injection and
+  catch-up/long-poll reads landed. SSE, retry, producer, dynamic headers, the adapter and the
+  conformance run remain.
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 

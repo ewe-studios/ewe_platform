@@ -1,0 +1,542 @@
+//! The Durable Streams client.
+//!
+//! The client speaks the wire protocol over an injected transport. It owns no
+//! socket and no runtime.
+
+use crate::shared::durable::transport::{
+    ClientRequest, ClientResponse, ClientTransport, HttpMethod, TransportError,
+};
+use foundation_core::durable::{ContentType, StreamName};
+use std::collections::BTreeMap;
+use std::sync::Arc;
+
+/// The client configuration.
+#[derive(Clone, Debug)]
+pub struct ClientConfig {
+    /// The server base URL, without a trailing slash.
+    pub base_url: String,
+    /// The headers every request carries.
+    pub default_headers: Vec<(String, String)>,
+}
+
+/// A client failure.
+#[derive(Debug)]
+pub enum ClientError {
+    /// The transport failed.
+    Transport(String),
+    /// The stream is absent.
+    NotFound {
+        /// The requested path.
+        path: String,
+    },
+    /// The stream is soft-deleted.
+    Gone {
+        /// The requested path.
+        path: String,
+    },
+    /// The request conflicts with the stream state.
+    Conflict(String),
+    /// The stream is closed.
+    Closed,
+    /// An offset is malformed.
+    InvalidOffset(String),
+    /// The server answered an unexpected status.
+    UnexpectedStatus {
+        /// The status code.
+        status: u16,
+        /// A bounded message body.
+        body: String,
+    },
+    /// The server body is malformed.
+    Parse(String),
+}
+
+impl core::fmt::Display for ClientError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Transport(message) => write!(f, "network error: {message}"),
+            Self::NotFound { path } => write!(f, "stream not found: {path}"),
+            Self::Gone { path } => write!(f, "stream is gone: {path}"),
+            Self::Conflict(message) => write!(f, "conflict: {message}"),
+            Self::Closed => f.write_str("stream is closed"),
+            Self::InvalidOffset(value) => write!(f, "invalid offset: {value}"),
+            Self::UnexpectedStatus { status, body } => {
+                write!(f, "unexpected status {status}: {body}")
+            }
+            Self::Parse(message) => write!(f, "parse error: {message}"),
+        }
+    }
+}
+
+impl core::error::Error for ClientError {}
+
+impl From<TransportError> for ClientError {
+    fn from(error: TransportError) -> Self {
+        Self::Transport(error.message().to_string())
+    }
+}
+
+/// The live read mode.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReadMode {
+    /// Read what exists now.
+    CatchUp,
+    /// Wait for new data, then answer.
+    LongPoll,
+    /// Keep the connection open and send events.
+    Sse,
+    /// Catch up, then choose a live mode.
+    Auto,
+}
+
+/// One chunk of stream data.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReadChunk {
+    /// The bytes of the message.
+    pub data: Vec<u8>,
+}
+
+/// The result of a read.
+#[derive(Clone, Debug, Default)]
+pub struct ReadResult {
+    /// The HTTP status.
+    pub status: u16,
+    /// The chunks read.
+    pub chunks: Vec<ReadChunk>,
+    /// The next wire offset.
+    pub next_offset: Option<String>,
+    /// True when the client caught up with the tail.
+    pub up_to_date: bool,
+    /// True when the stream is closed.
+    pub closed: bool,
+    /// The collapsing cursor.
+    pub cursor: Option<String>,
+}
+
+/// The result of a head request.
+#[derive(Clone, Debug, Default)]
+pub struct HeadResult {
+    /// The HTTP status.
+    pub status: u16,
+    /// The tail wire offset.
+    pub offset: Option<String>,
+    /// The content type.
+    pub content_type: Option<String>,
+    /// The time-to-live seconds.
+    pub ttl_seconds: Option<u64>,
+    /// True when the stream is closed.
+    pub closed: bool,
+}
+
+/// The result of an append, create or close.
+#[derive(Clone, Debug, Default)]
+pub struct AppendResult {
+    /// The HTTP status.
+    pub status: u16,
+    /// The next wire offset.
+    pub offset: Option<String>,
+    /// The response headers of interest.
+    pub headers: BTreeMap<String, String>,
+    /// True when the server treated the write as a duplicate.
+    pub duplicate: bool,
+}
+
+/// A Durable Streams client over an injected transport.
+#[derive(Clone)]
+pub struct DurableClient {
+    transport: Arc<dyn ClientTransport>,
+    config: ClientConfig,
+}
+
+impl DurableClient {
+    /// Build a client.
+    #[must_use]
+    pub fn new(transport: Arc<dyn ClientTransport>, config: ClientConfig) -> Self {
+        Self { transport, config }
+    }
+
+    /// Return a handle for a stream name.
+    #[must_use]
+    pub fn stream(&self, name: &StreamName) -> StreamHandle {
+        self.handle(&format!("/{}", name.as_str()))
+    }
+
+    /// Return a handle for a path relative to the base URL.
+    #[must_use]
+    pub fn handle(&self, path: &str) -> StreamHandle {
+        let base = self.config.base_url.trim_end_matches('/');
+        let path = if path.starts_with('/') {
+            path.to_string()
+        } else {
+            format!("/{path}")
+        };
+        StreamHandle {
+            transport: self.transport.clone(),
+            url: format!("{base}{path}"),
+            path,
+            headers: self.config.default_headers.clone(),
+        }
+    }
+}
+
+/// A handle for one stream.
+#[derive(Clone)]
+pub struct StreamHandle {
+    transport: Arc<dyn ClientTransport>,
+    url: String,
+    path: String,
+    headers: Vec<(String, String)>,
+}
+
+impl StreamHandle {
+    /// The stream path.
+    #[must_use]
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    fn request(
+        &self,
+        method: HttpMethod,
+        query: &str,
+        headers: &[(String, String)],
+        body: Vec<u8>,
+    ) -> ClientRequest {
+        let mut all = self.headers.clone();
+        all.extend_from_slice(headers);
+        let url = if query.is_empty() {
+            self.url.clone()
+        } else {
+            format!("{}?{query}", self.url)
+        };
+        ClientRequest {
+            method,
+            url,
+            headers: all,
+            body,
+        }
+    }
+
+    /// Create the stream with an explicit wire configuration.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn create(
+        &self,
+        content_type: Option<&str>,
+        ttl_seconds: Option<u64>,
+        expires_at: Option<&str>,
+        closed: bool,
+        data: Vec<u8>,
+    ) -> Result<AppendResult, ClientError> {
+        let mut headers = Vec::new();
+        if let Some(content_type) = content_type {
+            headers.push(("content-type".to_string(), content_type.to_string()));
+        }
+        if let Some(ttl) = ttl_seconds {
+            headers.push(("stream-ttl".to_string(), ttl.to_string()));
+        }
+        if let Some(expires_at) = expires_at {
+            headers.push(("stream-expires-at".to_string(), expires_at.to_string()));
+        }
+        if closed {
+            headers.push(("stream-closed".to_string(), "true".to_string()));
+        }
+        let response = self
+            .transport
+            .send(self.request(HttpMethod::Put, "", &headers, data))
+            .await?;
+        outcome(&self.path, response)
+    }
+
+    /// Append a message.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a refused append.
+    pub async fn append(
+        &self,
+        data: Vec<u8>,
+        content_type: Option<&str>,
+        stream_seq: Option<&str>,
+        producer: Option<(&str, u64, u64)>,
+        close: bool,
+    ) -> Result<AppendResult, ClientError> {
+        let mut headers = Vec::new();
+        if let Some(content_type) = content_type {
+            headers.push(("content-type".to_string(), content_type.to_string()));
+        }
+        if let Some(seq) = stream_seq {
+            headers.push(("stream-seq".to_string(), seq.to_string()));
+        }
+        if let Some((id, epoch, seq)) = producer {
+            headers.push(("producer-id".to_string(), id.to_string()));
+            headers.push(("producer-epoch".to_string(), epoch.to_string()));
+            headers.push(("producer-seq".to_string(), seq.to_string()));
+        }
+        if close {
+            headers.push(("stream-closed".to_string(), "true".to_string()));
+        }
+        let response = self
+            .transport
+            .send(self.request(HttpMethod::Post, "", &headers, data))
+            .await?;
+        outcome(&self.path, response)
+    }
+
+    /// Read stream metadata.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn head(&self) -> Result<HeadResult, ClientError> {
+        let response = self
+            .transport
+            .send(self.request(HttpMethod::Head, "", &[], Vec::new()))
+            .await?;
+        match response.status {
+            200 => Ok(HeadResult {
+                status: 200,
+                offset: response.header("stream-next-offset").map(str::to_string),
+                content_type: response.header("content-type").map(str::to_string),
+                ttl_seconds: response
+                    .header("stream-ttl")
+                    .and_then(|value| value.parse().ok()),
+                closed: response.header("stream-closed") == Some("true"),
+            }),
+            404 => Err(ClientError::NotFound {
+                path: self.path.clone(),
+            }),
+            410 => Err(ClientError::Gone {
+                path: self.path.clone(),
+            }),
+            status => Err(unexpected(status, &response)),
+        }
+    }
+
+    /// Delete the stream.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn delete(&self) -> Result<u16, ClientError> {
+        let response = self
+            .transport
+            .send(self.request(HttpMethod::Delete, "", &[], Vec::new()))
+            .await?;
+        match response.status {
+            200 | 204 => Ok(response.status),
+            404 => Err(ClientError::NotFound {
+                path: self.path.clone(),
+            }),
+            410 => Err(ClientError::Gone {
+                path: self.path.clone(),
+            }),
+            status => Err(unexpected(status, &response)),
+        }
+    }
+
+    /// Close the stream, optionally with a final message.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn close(
+        &self,
+        data: Vec<u8>,
+        content_type: Option<&str>,
+    ) -> Result<AppendResult, ClientError> {
+        let mut headers = vec![("stream-closed".to_string(), "true".to_string())];
+        if !data.is_empty() {
+            if let Some(content_type) = content_type {
+                headers.push(("content-type".to_string(), content_type.to_string()));
+            }
+        }
+        let response = self
+            .transport
+            .send(self.request(HttpMethod::Post, "", &headers, data))
+            .await?;
+        outcome(&self.path, response)
+    }
+
+    /// Start a read.
+    #[must_use]
+    pub fn read(&self) -> ReadBuilder {
+        ReadBuilder {
+            handle: self.clone(),
+            offset: None,
+            mode: ReadMode::CatchUp,
+            headers: Vec::new(),
+            max_chunks: None,
+        }
+    }
+}
+
+/// Builds one read.
+pub struct ReadBuilder {
+    handle: StreamHandle,
+    offset: Option<String>,
+    mode: ReadMode,
+    headers: Vec<(String, String)>,
+    max_chunks: Option<usize>,
+}
+
+impl ReadBuilder {
+    /// Set the starting wire offset. `None` starts at the beginning.
+    #[must_use]
+    pub fn offset(mut self, offset: impl Into<String>) -> Self {
+        self.offset = Some(offset.into());
+        self
+    }
+
+    /// Set the live mode.
+    #[must_use]
+    pub fn mode(mut self, mode: ReadMode) -> Self {
+        self.mode = mode;
+        self
+    }
+
+    /// Add a request header.
+    #[must_use]
+    pub fn header(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.headers.push((name.into(), value.into()));
+        self
+    }
+
+    /// Stop after this many chunks.
+    #[must_use]
+    pub fn max_chunks(mut self, count: usize) -> Self {
+        self.max_chunks = Some(count);
+        self
+    }
+
+    /// Send the read.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn send(self) -> Result<ReadResult, ClientError> {
+        let mut query = String::new();
+        if let Some(offset) = &self.offset {
+            query.push_str("offset=");
+            query.push_str(offset);
+        }
+        match self.mode {
+            ReadMode::CatchUp => {}
+            ReadMode::LongPoll => {
+                if !query.is_empty() {
+                    query.push('&');
+                }
+                query.push_str("live=long-poll");
+            }
+            ReadMode::Sse => {
+                if !query.is_empty() {
+                    query.push('&');
+                }
+                query.push_str("live=sse");
+            }
+            ReadMode::Auto => {}
+        }
+
+        let response = self
+            .handle
+            .transport
+            .send(self.handle.request(HttpMethod::Get, &query, &self.headers, Vec::new()))
+            .await?;
+
+        match response.status {
+            200 | 204 => {
+                let closed = response.header("stream-closed") == Some("true");
+                let up_to_date = response.header("stream-up-to-date") == Some("true");
+                let cursor = response.header("stream-cursor").map(str::to_string);
+                let next_offset = response.header("stream-next-offset").map(str::to_string);
+                let mut chunks = parse_body(&response)?;
+                if let Some(limit) = self.max_chunks {
+                    chunks.truncate(limit);
+                }
+                Ok(ReadResult {
+                    status: response.status,
+                    chunks,
+                    next_offset,
+                    up_to_date,
+                    closed,
+                    cursor,
+                })
+            }
+            404 => Err(ClientError::NotFound {
+                path: self.handle.path.clone(),
+            }),
+            410 => Err(ClientError::Gone {
+                path: self.handle.path.clone(),
+            }),
+            400 => Err(ClientError::InvalidOffset(
+                self.offset.unwrap_or_default(),
+            )),
+            status => Err(unexpected(status, &response)),
+        }
+    }
+}
+
+fn outcome(path: &str, response: ClientResponse) -> Result<AppendResult, ClientError> {
+    let mut headers = BTreeMap::new();
+    for (key, values) in &response.headers {
+        if let Some(value) = values.first() {
+            headers.insert(key.clone(), value.clone());
+        }
+    }
+    let result = AppendResult {
+        status: response.status,
+        offset: response.header("stream-next-offset").map(str::to_string),
+        headers,
+        duplicate: response.status == 204,
+    };
+    match response.status {
+        200 | 201 | 204 => Ok(result),
+        404 => Err(ClientError::NotFound {
+            path: path.to_string(),
+        }),
+        410 => Err(ClientError::Gone {
+            path: path.to_string(),
+        }),
+        409 => {
+            if response.header("stream-closed") == Some("true") {
+                Err(ClientError::Closed)
+            } else {
+                Err(ClientError::Conflict(bounded_body(&response)))
+            }
+        }
+        status => Err(unexpected(status, &response)),
+    }
+}
+
+fn parse_body(response: &ClientResponse) -> Result<Vec<ReadChunk>, ClientError> {
+    if response.body.is_empty() {
+        return Ok(Vec::new());
+    }
+    let content_type = response.header("content-type").unwrap_or_default();
+    let normalized = ContentType::parse(content_type).unwrap_or_default();
+    if normalized.is_json() {
+        let values: Vec<serde_json::Value> = serde_json::from_slice(&response.body)
+            .map_err(|error| ClientError::Parse(error.to_string()))?;
+        values
+            .into_iter()
+            .map(|value| {
+                serde_json::to_vec(&value)
+                    .map(|data| ReadChunk { data })
+                    .map_err(|error| ClientError::Parse(error.to_string()))
+            })
+            .collect()
+    } else {
+        Ok(vec![ReadChunk {
+            data: response.body.clone(),
+        }])
+    }
+}
+
+fn unexpected(status: u16, response: &ClientResponse) -> ClientError {
+    ClientError::UnexpectedStatus {
+        status,
+        body: bounded_body(response),
+    }
+}
+
+fn bounded_body(response: &ClientResponse) -> String {
+    const LIMIT: usize = 512;
+    let text = String::from_utf8_lossy(&response.body);
+    text.chars().take(LIMIT).collect()
+}

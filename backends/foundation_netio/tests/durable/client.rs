@@ -1,0 +1,296 @@
+//! Given/When/Then scenarios for the Durable Streams client core.
+
+use std::collections::{BTreeMap, VecDeque};
+use std::sync::{Arc, Mutex};
+
+use foundation_core::durable::StreamName;
+use foundation_netio::shared::durable::{
+    ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientTransport,
+    DurableClient, ReadMode,
+};
+
+#[derive(Default)]
+struct MockTransport {
+    responses: Mutex<VecDeque<ClientResponse>>,
+    requests: Mutex<Vec<ClientRequest>>,
+}
+
+impl MockTransport {
+    fn with(responses: Vec<ClientResponse>) -> Arc<Self> {
+        Arc::new(Self {
+            responses: Mutex::new(responses.into()),
+            requests: Mutex::new(Vec::new()),
+        })
+    }
+
+    fn last_request(&self) -> ClientRequest {
+        self.requests
+            .lock()
+            .expect("requests")
+            .last()
+            .cloned()
+            .expect("a request")
+    }
+}
+
+impl ClientTransport for MockTransport {
+    fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse> {
+        self.requests.lock().expect("requests").push(request);
+        let response = self
+            .responses
+            .lock()
+            .expect("responses")
+            .pop_front()
+            .unwrap_or(ClientResponse {
+                status: 500,
+                headers: BTreeMap::new(),
+                body: Vec::new(),
+            });
+        Box::pin(async move { Ok(response) })
+    }
+}
+
+fn response(status: u16, headers: &[(&str, &str)], body: &[u8]) -> ClientResponse {
+    let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for (key, value) in headers {
+        map.entry((*key).to_string())
+            .or_default()
+            .push((*value).to_string());
+    }
+    ClientResponse {
+        status,
+        headers: map,
+        body: body.to_vec(),
+    }
+}
+
+fn client(transport: Arc<MockTransport>) -> DurableClient {
+    DurableClient::new(
+        transport,
+        ClientConfig {
+            base_url: "http://server".to_string(),
+            default_headers: vec![("x-test".to_string(), "1".to_string())],
+        },
+    )
+}
+
+fn handle(transport: Arc<MockTransport>) -> foundation_netio::shared::durable::StreamHandle {
+    client(transport).stream(&StreamName::parse("v1/stream/orders").expect("name"))
+}
+
+#[test]
+fn given_a_client_when_it_creates_a_stream_then_it_sends_a_put_with_the_configuration() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            201,
+            &[("stream-next-offset", "0000000000000003")],
+            b"",
+        )]);
+        let result = handle(transport.clone())
+            .create(Some("application/json"), Some(60), None, false, b"abc".to_vec())
+            .await
+            .expect("create");
+
+        assert_eq!(result.status, 201);
+        assert_eq!(result.offset.as_deref(), Some("0000000000000003"));
+
+        let request = transport.last_request();
+        assert_eq!(request.method.as_str(), "PUT");
+        assert_eq!(request.url, "http://server/v1/stream/orders");
+        assert!(request
+            .headers
+            .contains(&("content-type".to_string(), "application/json".to_string())));
+        assert!(request
+            .headers
+            .contains(&("stream-ttl".to_string(), "60".to_string())));
+        assert!(request
+            .headers
+            .contains(&("x-test".to_string(), "1".to_string())));
+        assert_eq!(request.body, b"abc");
+    });
+}
+
+#[test]
+fn given_a_duplicate_producer_write_when_the_server_answers_204_then_it_is_a_duplicate() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(204, &[], b"")]);
+        let result = handle(transport.clone())
+            .append(
+                b"x".to_vec(),
+                Some("text/plain"),
+                None,
+                Some(("p1", 0, 0)),
+                false,
+            )
+            .await
+            .expect("append");
+
+        assert_eq!(result.status, 204);
+        assert!(result.duplicate);
+
+        let request = transport.last_request();
+        assert_eq!(request.method.as_str(), "POST");
+        assert!(request
+            .headers
+            .contains(&("producer-id".to_string(), "p1".to_string())));
+    });
+}
+
+#[test]
+fn given_a_text_stream_when_a_catch_up_read_runs_then_it_returns_one_chunk() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[
+                ("content-type", "text/plain"),
+                ("stream-next-offset", "0000000000000005"),
+                ("stream-up-to-date", "true"),
+            ],
+            b"hello",
+        )]);
+        let result = handle(transport.clone())
+            .read()
+            .offset("-1")
+            .send()
+            .await
+            .expect("read");
+
+        assert_eq!(result.chunks.len(), 1);
+        assert_eq!(result.chunks[0].data, b"hello");
+        assert_eq!(result.next_offset.as_deref(), Some("0000000000000005"));
+        assert!(result.up_to_date);
+        assert_eq!(
+            transport.last_request().url,
+            "http://server/v1/stream/orders?offset=-1"
+        );
+    });
+}
+
+#[test]
+fn given_a_json_stream_when_a_read_runs_then_it_returns_one_chunk_per_message() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("content-type", "application/json")],
+            br#"[{"n":1},{"n":2}]"#,
+        )]);
+        let result = handle(transport)
+            .read()
+            .send()
+            .await
+            .expect("read");
+
+        assert_eq!(result.chunks.len(), 2);
+        assert_eq!(result.chunks[1].data, br#"{"n":2}"#);
+    });
+}
+
+#[test]
+fn given_a_long_poll_timeout_when_the_server_answers_204_then_the_client_is_up_to_date() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            204,
+            &[
+                ("stream-next-offset", "0000000000000005"),
+                ("stream-up-to-date", "true"),
+            ],
+            b"",
+        )]);
+        let result = handle(transport.clone())
+            .read()
+            .mode(ReadMode::LongPoll)
+            .offset("0000000000000005")
+            .send()
+            .await
+            .expect("read");
+
+        assert_eq!(result.status, 204);
+        assert!(result.chunks.is_empty());
+        assert!(result.up_to_date);
+        assert_eq!(
+            transport.last_request().url,
+            "http://server/v1/stream/orders?offset=0000000000000005&live=long-poll"
+        );
+    });
+}
+
+#[test]
+fn given_a_head_response_when_head_runs_then_it_reports_the_tail_and_closure() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[
+                ("stream-next-offset", "0000000000000009"),
+                ("content-type", "text/plain"),
+                ("stream-ttl", "30"),
+                ("stream-closed", "true"),
+            ],
+            b"",
+        )]);
+        let head = handle(transport.clone()).head().await.expect("head");
+
+        assert_eq!(head.offset.as_deref(), Some("0000000000000009"));
+        assert_eq!(head.content_type.as_deref(), Some("text/plain"));
+        assert_eq!(head.ttl_seconds, Some(30));
+        assert!(head.closed);
+        assert_eq!(transport.last_request().method.as_str(), "HEAD");
+    });
+}
+
+#[test]
+fn given_a_missing_stream_when_delete_runs_then_the_error_names_the_path() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(404, &[], b"")]);
+        let error = handle(transport).delete().await.expect_err("missing");
+
+        match error {
+            ClientError::NotFound { path } => assert_eq!(path, "/v1/stream/orders"),
+            other => panic!("unexpected error: {other}"),
+        }
+    });
+}
+
+#[test]
+fn given_a_closed_stream_when_append_runs_then_the_error_is_closed() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            409,
+            &[("stream-closed", "true")],
+            b"stream is closed",
+        )]);
+        let error = handle(transport)
+            .append(b"x".to_vec(), Some("text/plain"), None, None, false)
+            .await
+            .expect_err("closed");
+
+        assert!(matches!(error, ClientError::Closed));
+    });
+}
+
+#[test]
+fn given_a_malformed_json_body_when_a_read_runs_then_the_error_is_a_parse_error() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("content-type", "application/json")],
+            b"{",
+        )]);
+        let error = handle(transport).read().send().await.expect_err("parse");
+        assert!(matches!(error, ClientError::Parse(_)));
+    });
+}
+
+#[test]
+fn given_a_bad_status_when_a_read_runs_then_the_error_carries_the_status() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(503, &[], b"down")]);
+        let error = handle(transport).read().send().await.expect_err("status");
+        match error {
+            ClientError::UnexpectedStatus { status, body } => {
+                assert_eq!(status, 503);
+                assert_eq!(body, "down");
+            }
+            other => panic!("unexpected error: {other}"),
+        }
+    });
+}

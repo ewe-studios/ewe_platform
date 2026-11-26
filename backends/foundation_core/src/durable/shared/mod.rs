@@ -11,6 +11,7 @@
 pub mod cache;
 mod memory;
 mod service;
+pub mod wire;
 
 pub use memory::MemoryVfs;
 pub use service::{DurableLimits, DurableService};

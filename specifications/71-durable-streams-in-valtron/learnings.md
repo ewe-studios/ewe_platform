@@ -144,3 +144,13 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   An expired stream answers `404`.
 - **The suite waits inside a 5 s test limit.** Set the long-poll timeout to 3 s in the
   conformance server. Keep the 30 s production default.
+
+## Client core (2026-11-27)
+
+- **One offset codec for both sides.** The server adapter and the client must agree on the wire
+  text. The codec lives in `foundation_core::durable::wire`. A second copy in the client would
+  drift.
+- **Inject the transport, not the runtime.** `ClientTransport` takes one request and returns one
+  response. A mock transport tests every verb with no socket; a native host wraps the
+  `foundation_netio` client; a wasm host wraps `fetch`.
+- **The client core builds for wasm32.** It uses `shared/` only, with no native or valtron type.
