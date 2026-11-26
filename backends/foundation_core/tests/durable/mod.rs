@@ -5,6 +5,8 @@ mod architecture;
 #[cfg(not(target_arch = "wasm32"))]
 mod cache;
 #[cfg(not(target_arch = "wasm32"))]
+mod client;
+#[cfg(not(target_arch = "wasm32"))]
 mod conformance_edges;
 #[cfg(not(target_arch = "wasm32"))]
 mod fork;

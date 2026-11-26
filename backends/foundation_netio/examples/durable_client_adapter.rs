@@ -24,7 +24,7 @@ fn main() {
     let stdin = std::io::stdin();
     let sink = std::sync::Arc::new(Sink::new());
     let mut sequence = 0_u64;
-    let mut client: Option<foundation_netio::shared::durable::DurableClient> = None;
+    let mut client: Option<foundation_core::durable::client::DurableClient> = None;
     let mut types: std::collections::HashMap<String, String> = std::collections::HashMap::new();
     let mut seqs: std::collections::HashMap<(String, String), u64> = std::collections::HashMap::new();
     let mut sent: std::collections::HashMap<(String, String), Vec<u8>> = std::collections::HashMap::new();
@@ -93,7 +93,7 @@ fn main() {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-type Client = foundation_netio::shared::durable::DurableClient;
+type Client = foundation_core::durable::client::DurableClient;
 
 /// Writes one result line per command, in command order.
 #[cfg(not(target_arch = "wasm32"))]
@@ -196,8 +196,8 @@ fn failure_result(command_type: &str, code: &str, message: &str) -> serde_json::
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn client_error(command_type: &str, error: &foundation_netio::shared::durable::ClientError) -> serde_json::Value {
-    use foundation_netio::shared::durable::ClientError;
+fn client_error(command_type: &str, error: &foundation_core::durable::client::ClientError) -> serde_json::Value {
+    use foundation_core::durable::client::ClientError;
     let (code, status) = match error {
         ClientError::Transport(_) => ("NETWORK_ERROR", None),
         ClientError::NotFound { .. } => ("NOT_FOUND", Some(404)),
@@ -221,9 +221,9 @@ fn client_error(command_type: &str, error: &foundation_netio::shared::durable::C
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(not(target_arch = "wasm32"))]
 fn retry_delay(
-    error: &foundation_netio::shared::durable::ClientError,
+    error: &foundation_core::durable::client::ClientError,
 ) -> Option<std::time::Duration> {
-    use foundation_netio::shared::durable::ClientError;
+    use foundation_core::durable::client::ClientError;
     match error {
         ClientError::Transport(_) => Some(std::time::Duration::from_millis(50)),
         ClientError::UnexpectedStatus {
@@ -289,7 +289,7 @@ async fn handle(
     dynamic: &mut Dynamic,
 ) -> (serde_json::Value, bool) {
     use foundation_netio::native::durable::NetioTransport;
-    use foundation_netio::shared::durable::{ClientConfig, DurableClient, ReadMode};
+    use foundation_core::durable::client::{ClientConfig, DurableClient, ReadMode};
     use std::sync::Arc;
 
     if kind == "shutdown" {
@@ -446,7 +446,7 @@ async fn handle(
                         false,
                     )
                 }
-                Err(foundation_netio::shared::durable::ClientError::Conflict(message))
+                Err(foundation_core::durable::client::ClientError::Conflict(message))
                     if stream_seq.is_some() =>
                 {
                     (failure_result(kind, "SEQUENCE_CONFLICT", &message), false)
@@ -680,7 +680,7 @@ async fn handle(
                             seq += 1;
                             break;
                         }
-                        Err(foundation_netio::shared::durable::ClientError::UnexpectedStatus {
+                        Err(foundation_core::durable::client::ClientError::UnexpectedStatus {
                             status: 403,
                             headers,
                             ..
@@ -839,7 +839,7 @@ async fn handle_read(
     params_sent: serde_json::Map<String, serde_json::Value>,
     binary: bool,
 ) -> serde_json::Value {
-    use foundation_netio::shared::durable::ReadMode;
+    use foundation_core::durable::client::ReadMode;
 
     let mode = match command["live"].as_str() {
         Some("long-poll") => ReadMode::LongPoll,

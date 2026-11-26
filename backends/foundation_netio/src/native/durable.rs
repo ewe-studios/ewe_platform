@@ -5,7 +5,7 @@
 
 use crate::shared::client::body_reader::try_collect_bytes;
 use crate::shared::client::request_builder::PreparedRequestBuilder;
-use crate::shared::durable::{
+use foundation_core::durable::client::{
     ClientFuture, ClientRequest, ClientResponse, ClientSseStream, ClientTransport, HttpMethod,
     SseEvent, TransportError,
 };

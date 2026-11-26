@@ -44,6 +44,7 @@ futures-core = { version = "0.3", default-features = false, optional = true }
 futures-lite = { version = "2", default-features = false, features = ["std"], optional = true }
 derive_more = { version = "2.0", features = ["from", "debug", "error", "display"] }
 serde = { version = "1", features = ["derive"] }
+base64 = "0.22"
 concurrent-queue = { version = "2.5.0" }
 toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }

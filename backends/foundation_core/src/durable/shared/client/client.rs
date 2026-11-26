@@ -3,10 +3,10 @@
 //! The client speaks the wire protocol over an injected transport. It owns no
 //! socket and no runtime.
 
-use crate::shared::durable::transport::{
+use super::transport::{
     ClientRequest, ClientResponse, ClientTransport, HttpMethod, TransportError,
 };
-use foundation_core::durable::{ContentType, StreamName};
+use crate::durable::{ContentType, StreamName};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -652,9 +652,9 @@ impl ReadBuilder {
 /// the wall clock. The wait is short and a test adapter can afford it.
 #[cfg(feature = "std")]
 async fn next_sse(
-    stream: &mut crate::shared::durable::ClientSseStream,
+    stream: &mut super::transport::ClientSseStream,
     deadline: std::time::Instant,
-) -> Option<Result<crate::shared::durable::SseEvent, TransportError>> {
+) -> Option<Result<super::transport::SseEvent, TransportError>> {
     futures_lite::future::poll_fn(|cx| match stream.as_mut().poll_next(cx) {
         std::task::Poll::Pending => {
             if std::time::Instant::now() >= deadline {

@@ -9,6 +9,7 @@
 #![allow(async_fn_in_trait)] // Native async trait. The trait is used generically, never as `dyn`.
 
 pub mod cache;
+pub mod client;
 mod memory;
 mod service;
 pub mod wire;

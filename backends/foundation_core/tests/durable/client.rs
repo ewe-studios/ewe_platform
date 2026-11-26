@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 use foundation_core::durable::StreamName;
-use foundation_netio::shared::durable::{
+use foundation_core::durable::client::{
     ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientSseStream,
     ClientTransport, DurableClient, ReadMode, SseEvent, TransportError,
 };
@@ -85,7 +85,7 @@ fn client(transport: Arc<MockTransport>) -> DurableClient {
     )
 }
 
-fn handle(transport: Arc<MockTransport>) -> foundation_netio::shared::durable::StreamHandle {
+fn handle(transport: Arc<MockTransport>) -> foundation_core::durable::client::StreamHandle {
     client(transport).stream(&StreamName::parse("v1/stream/orders").expect("name"))
 }
 

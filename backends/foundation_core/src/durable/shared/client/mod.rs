@@ -1,11 +1,11 @@
 //! The Durable Streams client core.
 //!
-//! The core speaks the protocol and injects its transport. It has no socket,
-//! runtime or valtron type. A native host uses the `foundation_netio` client as
-//! its transport; a wasm host uses `fetch`; a test uses a mock.
+//! The core defines the client and the transport trait it expects. A native
+//! or web host implements [`ClientTransport`] above this crate.
 
 mod client;
 mod transport;
+pub mod valtron;
 
 pub use client::{
     AppendResult, ClientConfig, ClientError, DurableClient, HeadResult, ReadBuilder, ReadChunk,

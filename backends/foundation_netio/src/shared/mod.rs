@@ -2,7 +2,6 @@
 
 pub mod client;
 pub mod context;
-pub mod durable;
 pub mod core;
 pub mod errors;
 pub mod http;
