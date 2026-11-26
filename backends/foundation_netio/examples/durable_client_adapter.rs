@@ -311,12 +311,24 @@ async fn handle(
                 _ if command["live"].as_bool() == Some(true) => ReadMode::Auto,
                 _ => ReadMode::CatchUp,
             };
-            let mut builder = handle.read().mode(mode);
+            let binary = types.get(path).is_some_and(|content_type| {
+                !(content_type.starts_with("text/")
+                    || content_type.starts_with("application/json"))
+            });
+            let mut builder = handle.read().mode(mode).sse_binary(binary);
             if let Some(offset) = command["offset"].as_str() {
                 builder = builder.offset(offset);
             }
             if let Some(limit) = command["maxChunks"].as_u64() {
                 builder = builder.max_chunks(usize::try_from(limit).unwrap_or(usize::MAX));
+            }
+            if mode == ReadMode::Sse {
+                // The adapter announces SSE as unsupported until its streaming
+                // path passes the whole suite.
+                return (
+                    failure_result(kind, "NOT_SUPPORTED", "sse is not enabled"),
+                    false,
+                );
             }
             let mut attempt = 0;
             let mut result = loop {

@@ -172,3 +172,12 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   and then deduplicates, so the retry writes no data.
 - **Announce every unsupported feature as false.** The runner skips its tests, so the pass
   result states exactly what the adapter supports.
+
+## Client Server-Sent Events (SSE) (2026-11-27)
+
+- **A background read blocks a serial adapter.** The runner marks a read as background and
+  continues. A single-threaded adapter that blocks on that read stops answering. An end-to-end
+  SSE adapter needs a timeout per read, and it should serve commands while a stream is open.
+- **Keep the announced features honest.** When the end-to-end path is not green, announce the
+  feature as unsupported and keep the gate at zero failures. A partial feature that hangs the
+  adapter fails more tests than an absent feature.

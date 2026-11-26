@@ -6,7 +6,8 @@
 use crate::shared::client::body_reader::try_collect_bytes;
 use crate::shared::client::request_builder::PreparedRequestBuilder;
 use crate::shared::durable::{
-    ClientFuture, ClientRequest, ClientResponse, ClientTransport, HttpMethod, TransportError,
+    ClientFuture, ClientRequest, ClientResponse, ClientSseStream, ClientTransport, HttpMethod,
+    SseEvent, TransportError,
 };
 use crate::shared::http::SimpleHeader;
 use crate::{DynNetClient, HttpClientBuilder};
@@ -69,6 +70,51 @@ impl Default for NetioTransport {
 }
 
 impl ClientTransport for NetioTransport {
+    fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, ClientSseStream> {
+        let client = self.client.clone();
+        Box::pin(async move {
+            let mut builder = PreparedRequestBuilder::get(&request.url)
+                .map_err(|error| TransportError::new(error.to_string()))?;
+            builder = builder.header(SimpleHeader::ACCEPT, "text/event-stream");
+            for (name, value) in request.headers {
+                builder = builder.header(known_header(&name), value);
+            }
+            let inner = client
+                .send_sse_async(builder.build())
+                .await
+                .map_err(|error| TransportError::new(error.to_string()))?;
+            let events = futures_lite::stream::unfold(inner, |mut inner| async move {
+                use foundation_core::valtron::Stream;
+                use futures_lite::StreamExt;
+                loop {
+                    match inner.next().await {
+                        None => return None,
+                        Some(Stream::Next(parsed)) => {
+                            let event = match parsed.event {
+                                crate::event_source::Event::Message {
+                                    event_type, data, ..
+                                } => SseEvent {
+                                    event_type,
+                                    data,
+                                },
+                                crate::event_source::Event::Comment(_)
+                                | crate::event_source::Event::Reconnect => continue,
+                            };
+                            return Some((Ok(event), inner));
+                        }
+                        Some(Stream::Pending(
+                            crate::shared::client::SseProgress::Failed(message),
+                        )) => {
+                            return Some((Err(TransportError::new(message)), inner));
+                        }
+                        _ => continue,
+                    }
+                }
+            });
+            Ok(Box::pin(events) as ClientSseStream)
+        })
+    }
+
     fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse> {
         let client = self.client.clone();
         Box::pin(async move {

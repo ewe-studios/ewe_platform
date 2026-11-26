@@ -12,5 +12,6 @@ pub use client::{
     ReadMode, ReadResult, StreamHandle,
 };
 pub use transport::{
-    ClientFuture, ClientRequest, ClientResponse, ClientTransport, HttpMethod, TransportError,
+    ClientFuture, ClientRequest, ClientResponse, ClientSseStream, ClientTransport, HttpMethod,
+    SseEvent, TransportError,
 };

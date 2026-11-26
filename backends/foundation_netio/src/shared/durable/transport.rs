@@ -103,8 +103,33 @@ impl core::fmt::Display for TransportError {
 
 impl core::error::Error for TransportError {}
 
+/// One Server-Sent Events (SSE) event.
+#[derive(Clone, Debug)]
+pub struct SseEvent {
+    /// The event type, when the event names one.
+    pub event_type: Option<String>,
+    /// The event data, with its data lines joined.
+    pub data: String,
+}
+
+/// A boxed SSE event stream.
+pub type ClientSseStream =
+    Pin<Box<dyn futures_core::Stream<Item = Result<SseEvent, TransportError>> + Send>>;
+
 /// The injected client transport.
 pub trait ClientTransport: Send + Sync {
     /// Send one request and return the response.
     fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse>;
+
+    /// Open a Server-Sent Events (SSE) response.
+    ///
+    /// The default fails with a transport error. A transport that cannot
+    /// stream keeps this default, and the client reports `NOT_SUPPORTED`.
+    fn open_sse(&self, _request: ClientRequest) -> ClientFuture<'_, ClientSseStream> {
+        Box::pin(async {
+            Err(TransportError::new(
+                "this transport does not stream Server-Sent Events",
+            ))
+        })
+    }
 }

@@ -374,6 +374,7 @@ impl StreamHandle {
             mode: ReadMode::CatchUp,
             headers: Vec::new(),
             max_chunks: None,
+            sse_binary: false,
         }
     }
 }
@@ -386,6 +387,7 @@ pub struct ReadBuilder {
     mode: ReadMode,
     headers: Vec<(String, String)>,
     max_chunks: Option<usize>,
+    sse_binary: bool,
 }
 
 impl ReadBuilder {
@@ -414,6 +416,13 @@ impl ReadBuilder {
     #[must_use]
     pub fn max_chunks(mut self, count: usize) -> Self {
         self.max_chunks = Some(count);
+        self
+    }
+
+    /// Tell the reader that a Server-Sent Events (SSE) payload is base64.
+    #[must_use]
+    pub fn sse_binary(mut self, binary: bool) -> Self {
+        self.sse_binary = binary;
         self
     }
 
@@ -447,11 +456,13 @@ impl ReadBuilder {
             ReadMode::Auto => {}
         }
 
-        let response = self
+        let request = self
             .handle
-            .transport
-            .send(self.handle.request(HttpMethod::Get, &query, &self.headers, Vec::new()))
-            .await?;
+            .request(HttpMethod::Get, &query, &self.headers, Vec::new());
+        if self.mode == ReadMode::Sse {
+            return self.send_sse(request).await;
+        }
+        let response = self.handle.transport.send(request).await?;
 
         match response.status {
             200 | 204 => {
@@ -483,6 +494,51 @@ impl ReadBuilder {
             )),
             status => Err(unexpected(status, &response)),
         }
+    }
+}
+
+impl ReadBuilder {
+    async fn send_sse(self, request: ClientRequest) -> Result<ReadResult, ClientError> {
+        use futures_lite::StreamExt;
+
+        let mut stream = self.handle.transport.open_sse(request).await?;
+        let mut result = ReadResult {
+            status: 200,
+            ..ReadResult::default()
+        };
+        while let Some(item) = stream.next().await {
+            let event = item?;
+            match event.event_type.as_deref() {
+                Some("data") => {
+                    let data = if self.sse_binary {
+                        base64::Engine::decode(
+                            &base64::engine::general_purpose::STANDARD,
+                            event.data.as_bytes(),
+                        )
+                        .map_err(|error| ClientError::Parse(error.to_string()))?
+                    } else {
+                        event.data.into_bytes()
+                    };
+                    result.chunks.push(ReadChunk { data });
+                }
+                Some("control") => {
+                    if let Ok(value) = serde_json::from_str::<serde_json::Value>(&event.data) {
+                        result.next_offset =
+                            value["streamNextOffset"].as_str().map(str::to_string);
+                        result.cursor = value["streamCursor"]
+                            .as_u64()
+                            .map(|value| value.to_string());
+                        result.up_to_date =
+                            value["upToDate"].as_bool().unwrap_or(false);
+                        result.closed =
+                            value["streamClosed"].as_bool().unwrap_or(false);
+                    }
+                    break;
+                }
+                _ => {}
+            }
+        }
+        Ok(result)
     }
 }
 

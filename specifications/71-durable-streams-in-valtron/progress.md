@@ -2,6 +2,11 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 Server-Sent Events (SSE) core. `ClientTransport::open_sse` streams
+  parsed events, the native transport maps the netio event stream, and the read builder turns an
+  SSE response into chunks and a control result. Two mock-transport tests pass. The adapter still
+  announces SSE, auto mode and streaming as unsupported, because the end-to-end path does not
+  yet pass the whole suite. The client gate stays at 194 pass, 0 fail, 75 skip.
 - 2026-11-27: feature 07 client conformance passes with the announced features. The reference
   client suite reports 194 pass, 0 fail, 75 skip. The skips are Server-Sent Events (SSE),
   automatic mode, batching and dynamic headers, which the adapter announces as unsupported.

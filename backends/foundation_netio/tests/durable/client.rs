@@ -5,14 +5,15 @@ use std::sync::{Arc, Mutex};
 
 use foundation_core::durable::StreamName;
 use foundation_netio::shared::durable::{
-    ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientTransport,
-    DurableClient, ReadMode,
+    ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientSseStream,
+    ClientTransport, DurableClient, ReadMode, SseEvent, TransportError,
 };
 
 #[derive(Default)]
 struct MockTransport {
     responses: Mutex<VecDeque<ClientResponse>>,
     requests: Mutex<Vec<ClientRequest>>,
+    events: Mutex<Vec<Result<SseEvent, TransportError>>>,
 }
 
 impl MockTransport {
@@ -20,6 +21,7 @@ impl MockTransport {
         Arc::new(Self {
             responses: Mutex::new(responses.into()),
             requests: Mutex::new(Vec::new()),
+            events: Mutex::new(Vec::new()),
         })
     }
 
@@ -47,6 +49,15 @@ impl ClientTransport for MockTransport {
                 body: Vec::new(),
             });
         Box::pin(async move { Ok(response) })
+    }
+
+    fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, ClientSseStream> {
+        self.requests.lock().expect("requests").push(request);
+        let events = self.events.lock().expect("events").drain(..).collect::<Vec<_>>();
+        Box::pin(async move {
+            let stream = futures_lite::stream::iter(events);
+            Ok(Box::pin(stream) as ClientSseStream)
+        })
     }
 }
 
@@ -292,5 +303,54 @@ fn given_a_bad_status_when_a_read_runs_then_the_error_carries_the_status() {
             }
             other => panic!("unexpected error: {other}"),
         }
+    });
+}
+
+fn sse(event_type: &str, data: &str) -> Result<SseEvent, TransportError> {
+    Ok(SseEvent {
+        event_type: Some(event_type.to_string()),
+        data: data.to_string(),
+    })
+}
+
+#[test]
+fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk_and_offset() {
+    smol::block_on(async {
+        let transport = MockTransport::with(Vec::new());
+        transport.events.lock().expect("events").extend([
+            sse("data", "hello"),
+            sse(
+                "control",
+                r#"{"streamNextOffset":"00ff","streamCursor":7,"upToDate":true}"#,
+            ),
+        ]);
+        let result = handle(transport).read().mode(ReadMode::Sse).send().await.expect("sse");
+
+        assert_eq!(result.chunks.len(), 1);
+        assert_eq!(result.chunks[0].data, b"hello");
+        assert_eq!(result.next_offset.as_deref(), Some("00ff"));
+        assert_eq!(result.cursor.as_deref(), Some("7"));
+        assert!(result.up_to_date);
+    });
+}
+
+#[test]
+fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes() {
+    smol::block_on(async {
+        let transport = MockTransport::with(Vec::new());
+        transport.events.lock().expect("events").extend([
+            sse("data", "SGVsbG8="),
+            sse("control", r#"{"streamNextOffset":"00ff","streamClosed":true}"#),
+        ]);
+        let result = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .sse_binary(true)
+            .send()
+            .await
+            .expect("sse");
+
+        assert_eq!(result.chunks[0].data, b"Hello");
+        assert!(result.closed);
     });
 }
