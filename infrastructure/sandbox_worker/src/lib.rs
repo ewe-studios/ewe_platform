@@ -58,10 +58,22 @@ static CTX: OnceLock<Ctx> = OnceLock::new();
 static POOL: OnceLock<PoolGuard> = OnceLock::new();
 
 /// The `Ctx` of this isolate.
+///
+/// The entry builds the effect bundle. The control plane waits on its timer for
+/// a boot deadline, a stop grace and a stream limit, so a Worker with no timer
+/// cannot create or stop a sandbox. Without these waits a create fails with
+/// `HostNotConfigured`.
+///
+/// # Panics
+/// When the timer or the entropy source of the bundle does not build. A Worker
+/// cannot work without the bundle, so the entry stops on the first request.
 pub(crate) fn ctx() -> Ctx {
     CTX.get_or_init(|| {
         POOL.get_or_init(|| initialize_pool(42, None));
-        Ctx::host()
+        let ctx = Ctx::host();
+        foundation_core::env::install(&ctx, foundation_core::env::wasm)
+            .expect("the effect environment of the Worker builds");
+        ctx
     })
     .clone()
 }
