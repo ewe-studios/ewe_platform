@@ -665,6 +665,29 @@ fn e2e_cloudflare_model_token() {
     });
 }
 
+/// Creates the sandbox that the restart harness restarts (invariant I7 of
+/// feature 07). The harness sets `EWE_SANDBOX_RESTART_CREATE=1` and
+/// `EWE_SANDBOX_RESTART_ID_FILE`; the test leaves the sandbox running.
+#[test]
+fn e2e_cloudflare_restart_create() {
+    if std::env::var("EWE_SANDBOX_RESTART_CREATE").as_deref() != Ok("1") {
+        println!("e2e_cloudflare_restart_create: this test runs only from test/run.sh");
+        return;
+    }
+    if skip("e2e_cloudflare_restart_create") {
+        return;
+    }
+    let path =
+        std::env::var("EWE_SANDBOX_RESTART_ID_FILE").expect("EWE_SANDBOX_RESTART_ID_FILE is set");
+    run(async move {
+        let control = client(Some(&token()));
+        let sandbox = SandboxProvider::create(&control, container_spec())
+            .await
+            .expect("the create");
+        std::fs::write(&path, sandbox.id().as_str()).expect("the identifier file");
+    });
+}
+
 /// A restarted Durable Object finds its sandbox, or finds none, exactly once.
 ///
 /// The harness performs the restart. It sets `EWE_SANDBOX_RESTART_ID` and

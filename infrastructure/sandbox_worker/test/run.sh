@@ -74,32 +74,11 @@ cleanup() {
     fi
 }
 
-if [ -z "${DEPLOYED_URL}" ]; then
-    WORKER_PORT="${EWE_SANDBOX_WORKER_PORT:-8787}"
-    MODEL_PORT="${EWE_FAKE_MODEL_PORT:-8799}"
-    TOKEN="${EWE_SANDBOX_WORKER_TOKEN:-test}"
-    DEPLOYED_URL="http://127.0.0.1:${WORKER_PORT}"
-
-    cat > .dev.vars <<EOF
-SANDBOX_TOKEN=${TOKEN}
-MODEL_BACKEND=openrouter
-MODEL_BASE_URL=http://127.0.0.1:${MODEL_PORT}
-MODEL_NAME=fake
-MODEL_API_KEY=test
-EOF
-
-    python3 "${SCRIPT_DIR}/fake_model.py" --port "${MODEL_PORT}" &
-    MODEL_PID=$!
-    npx wrangler dev --local --port "${WORKER_PORT}" >"${WORKER_DIR}/wrangler-dev.log" 2>&1 &
+start_wrangler() {
+    npx wrangler dev --local --port "${WORKER_PORT}" --persist-to "${STATE_DIR}" \
+        >>"${WORKER_DIR}/wrangler-dev.log" 2>&1 &
     WRANGLER_PID=$!
-
-    if [ "${KEEP_RUNNING}" = "1" ]; then
-        echo "wrangler dev PID ${WRANGLER_PID}; fake model PID ${MODEL_PID}"
-    else
-        trap cleanup EXIT
-    fi
-
-    ready=0
+    local ready=0
     for _ in $(seq 1 180); do
         if ! kill -0 "${WRANGLER_PID}" 2>/dev/null; then
             echo "wrangler dev stopped; see ${WORKER_DIR}/wrangler-dev.log" >&2
@@ -116,6 +95,35 @@ EOF
         echo "the Worker did not become ready at ${DEPLOYED_URL}" >&2
         exit 1
     fi
+}
+
+LOCAL=0
+if [ -z "${DEPLOYED_URL}" ]; then
+    LOCAL=1
+    WORKER_PORT="${EWE_SANDBOX_WORKER_PORT:-8787}"
+    MODEL_PORT="${EWE_FAKE_MODEL_PORT:-8799}"
+    TOKEN="${EWE_SANDBOX_WORKER_TOKEN:-test}"
+    DEPLOYED_URL="http://127.0.0.1:${WORKER_PORT}"
+    STATE_DIR="${WORKER_DIR}/.wrangler/restart-state"
+
+    cat > .dev.vars <<EOF
+SANDBOX_TOKEN=${TOKEN}
+MODEL_BACKEND=openrouter
+MODEL_BASE_URL=http://127.0.0.1:${MODEL_PORT}
+MODEL_NAME=fake
+MODEL_API_KEY=test
+EOF
+
+    python3 "${SCRIPT_DIR}/fake_model.py" --port "${MODEL_PORT}" &
+    MODEL_PID=$!
+    : >"${WORKER_DIR}/wrangler-dev.log"
+    start_wrangler
+
+    if [ "${KEEP_RUNNING}" = "1" ]; then
+        echo "wrangler dev PID ${WRANGLER_PID}; fake model PID ${MODEL_PID}"
+    else
+        trap cleanup EXIT
+    fi
     export EWE_SANDBOX_WORKER_TOKEN="${TOKEN}"
 fi
 
@@ -123,3 +131,32 @@ export EWE_SANDBOX_WORKER_URL="${DEPLOYED_URL}"
 cd "${REPO_ROOT}"
 cargo test -p foundation_sandbox --features "testing cloudflare" --profile uat \
     e2e_cloudflare -- --nocapture --test-threads=1
+
+# The restart scenario: create a sandbox, restart `wrangler dev` with the same
+# state directory, then check the exact outcome of the surviving or lost
+# sandbox (#917). It needs the local Worker, so a deploy run skips it.
+if [ "${LOCAL}" = "1" ] && [ "${KEEP_RUNNING}" = "0" ]; then
+    restart_id_file="$(mktemp)"
+    EWE_SANDBOX_RESTART_CREATE=1 \
+        EWE_SANDBOX_RESTART_ID_FILE="${restart_id_file}" \
+        cargo test -p foundation_sandbox --features "testing cloudflare" --profile uat \
+        e2e_cloudflare::e2e_cloudflare_restart_create -- --nocapture --test-threads=1
+    restart_id="$(cat "${restart_id_file}")"
+    rm -f "${restart_id_file}"
+    if [ -z "${restart_id}" ]; then
+        echo "the restart harness made no sandbox" >&2
+        exit 1
+    fi
+    kill "${WRANGLER_PID}" 2>/dev/null || true
+    wait "${WRANGLER_PID}" 2>/dev/null || true
+    start_wrangler
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q 'ewe-sandbox'; then
+        restart_state="ready"
+    else
+        restart_state="absent"
+    fi
+    EWE_SANDBOX_RESTART_ID="${restart_id}" \
+        EWE_SANDBOX_RESTART_STATE="${restart_state}" \
+        cargo test -p foundation_sandbox --features "testing cloudflare" --profile uat \
+        e2e_cloudflare::e2e_cloudflare_restart -- --nocapture --test-threads=1
+fi

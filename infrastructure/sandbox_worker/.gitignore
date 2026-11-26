@@ -6,3 +6,5 @@ agent-slave
 build/
 node_modules/
 target/
+# The local Durable Object state of `wrangler dev --persist-to`.
+.wrangler/
