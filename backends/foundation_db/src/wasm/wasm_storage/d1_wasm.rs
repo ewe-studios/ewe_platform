@@ -331,6 +331,34 @@ impl KeyValueStore for D1WasmStorage {
         foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
+    async fn insert_if_absent_async<V: serde::Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        foundation_compact::SendWrapper::new(async move {
+            let table = format!("{}_kv", self.table_prefix);
+            let json_value = serde_json::to_string(&value)
+                .map_err(|e| StorageError::Serialization(e.to_string()))?;
+            // One statement: D1 runs it atomically, and the row count says
+            // whether this call inserted the row.
+            let sql = format!(
+                "INSERT INTO {table} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO NOTHING"
+            );
+            let changed = self
+                .execute_async(
+                    &sql,
+                    &[
+                        DataValue::Text(key.to_string()),
+                        DataValue::Text(json_value),
+                    ],
+                )
+                .await?;
+            Ok(changed > 0)
+        })
+        .await
+    }
+
     fn take_is_atomic(&self) -> bool {
         true
     }

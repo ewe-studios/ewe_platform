@@ -17,7 +17,8 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-f
 foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.17", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+# `crypto-chacha` gives the key store its sealed-blob cipher.
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", features = ["crypto-chacha"] }
 # The VFS trait that the operator key files read through. It builds on wasm:
 # only `NativeFs` is native. Feature `secret`.
 foundation_nativeapis = { workspace = true, optional = true, default-features = false, features = ["vfs"] }
@@ -26,8 +27,11 @@ foundation_nativeapis = { workspace = true, optional = true, default-features = 
 # reads OpenSSH private key files, and `p256` reads the P-256 PKCS#8 and SEC1
 # forms. All three are pure Rust, so the key module builds on every target.
 ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"], optional = true }
-ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
+ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256", "encryption"], optional = true }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"], optional = true }
+# Encrypted PKCS#8 (`-----BEGIN ENCRYPTED PRIVATE KEY-----`). The `encryption`
+# feature adds PBES2 and PBKDF2, so a passphrase-protected key file loads.
+pkcs8 = { version = "0.10", default-features = false, features = ["alloc", "encryption", "pem"], optional = true }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -97,6 +101,7 @@ web-sys = { workspace = true, features = [
   "AbortController",
   "ServiceWorkerGlobalScope",
   "Window",
+  "WorkerGlobalScope",
   "Crypto",
   "SubtleCrypto",
   "CryptoKey",
@@ -117,6 +122,8 @@ rand_chacha = { version = "0.3", optional = true }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
 pbkdf2 = { workspace = true }
+# The passphrase prompt of the key encryption key (KEK) source, with no echo.
+rpassword = "7"
 # Certificate authority, trust verifier and TLS configuration (spec 87). The
 # `mtls` feature names them: they link `ring`, which has C code, so a consumer
 # that must stay free of C code, such as the static musl slave, leaves it off.
@@ -157,7 +164,7 @@ default = ["turso", "secret", "jwt", "mtls", "netio-ssl"]
 turso = ["foundation_db/turso"]
 # Signed secrets (spec 81) and the operator key module. Ed25519, OpenSSH key
 # parsing and P-256 key parsing are pure Rust, so this builds for wasm.
-secret = ["dep:foundation_nativeapis", "dep:ed25519-compact", "dep:ssh-key", "dep:p256"]
+secret = ["dep:foundation_nativeapis", "dep:ed25519-compact", "dep:ssh-key", "dep:p256", "dep:pkcs8"]
 # Mutual TLS (spec 87): the certificate authority, the trust verifier and the
 # TLS providers. They link `ring`, which has C code; a consumer that must stay
 # free of C code, such as the static musl slave, leaves this off.
@@ -207,6 +214,20 @@ wasm-bindgen-session = [
 # Native server with WebAuthn (openssl dep, wasm-incompatible)
 server-native = ["server", "dep:webauthn-rs", "dep:openssl", "dep:url", "dep:serde_cbor"]
 
+# Test-only key-store helpers: the fixed KEK source and the fake KMS backend.
+# Off by default; the key-store tests turn it on.
+testing = []
+
+# The Worker key encryption key: a non-extractable WebCrypto AES-GCM key and
+# the Secrets Store and Worker secret sources (wasm only).
+wasm-kek = [
+  "wasm",
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
+
 # Test module tree (units/ + integration/ via lib.rs)
 [[test]]
 name = "foundation_auth_tests"
@@ -230,6 +251,19 @@ required-features = ["secret"]
 name = "keys_tests"
 path = "tests/keys/mod.rs"
 required-features = ["secret"]
+
+# Spec 83 feature 08: the key store, sealing, the race, rotation and no
+# clear-text private key.
+[[test]]
+name = "keystore_tests"
+path = "tests/keystore/mod.rs"
+required-features = ["testing"]
+
+# Spec 83 feature 08: envelope encryption with a remote key management service.
+[[test]]
+name = "kms_tests"
+path = "tests/kms/mod.rs"
+required-features = ["testing"]
 
 # Spec 81 feature 00: the signed-secret, JWT, plaintext and composite providers.
 [[test]]

@@ -28,8 +28,15 @@
 //! `Arc`-backed handle. A deterministic simulation test depends on this crate
 //! with `default-features = false`, so it gets `core` only.
 
+/// The `agent-rpc` process command line (spec 83 feature 08).
+#[cfg(not(target_family = "wasm"))]
+pub mod cli;
 pub mod core;
 pub mod error;
+/// The `agent-rpc keys` commands and the native key encryption key (KEK)
+/// selection (spec 83 feature 08).
+#[cfg(not(target_family = "wasm"))]
+pub mod keys;
 pub mod proto;
 
 #[cfg(feature = "multi")]

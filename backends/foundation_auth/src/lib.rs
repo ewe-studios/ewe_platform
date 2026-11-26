@@ -22,6 +22,14 @@ pub mod secret;
 #[cfg(feature = "secret")]
 pub mod keys;
 
+/// The key store and sealed key records (spec 83 feature 08).
+///
+/// A private key is always encrypted at rest. The module builds on the operator
+/// key parsers (`keys`) and on the signed-secret keys (`secret`), so it needs
+/// the `secret` feature.
+#[cfg(feature = "secret")]
+pub mod keystore;
+
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 

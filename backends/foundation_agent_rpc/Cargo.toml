@@ -147,8 +147,20 @@ web-client = [
   "foundation_netio/wasm-fetch",
   "foundation_auth/wasm",
 ]
-# Fakes for tests. Never in a release build.
+# Fakes for tests, and the test-only helpers of the key-store commands
+# (spec 83 feature 08). Never in a release build.
 testing = ["multi", "foundation_ai/testing"]
+
+[[test]]
+name = "kek_selection_tests"
+path = "tests/kek_selection_tests.rs"
+required-features = ["testing", "multi"]
+
+# The process entry point: `agent-rpc keys migrate|rotate|rotate-kek`.
+[[bin]]
+name = "agent-rpc"
+path = "src/bin/agent-rpc.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "model_share_tests"
