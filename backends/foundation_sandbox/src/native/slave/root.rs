@@ -298,14 +298,24 @@ fn write_name_servers(
 
     let target = join_guest(root, "/etc/resolv.conf");
     match request.root.mode {
-        RootMode::Overlay | RootMode::Writable => {
-            // The overlay makes the file when the image has none, and the
-            // writable root holds the file in the image. A failure to write it
-            // here means that the image path cannot hold the file.
+        RootMode::Overlay => {
+            // The overlay makes the file when the image has none. A failure to
+            // write it here means that the image path cannot hold the file.
             if let Err(error) = host.mounts.write_file(&target, b"") {
                 if error.raw_os_error() != Some(libc::EROFS) {
                     return Err(root_setup_failure("name server target", &target, &error));
                 }
+            }
+        }
+        RootMode::Writable => {
+            // The file is in the image itself. Make it only when it is missing:
+            // an image that has its own name servers keeps them, and the bind
+            // mount below hides them for this run. `symlink_metadata` does not
+            // follow a link, so a link in the image cannot name another file.
+            if std::fs::symlink_metadata(&target).is_err() {
+                host.mounts
+                    .write_file(&target, b"")
+                    .map_err(|error| root_setup_failure("name server target", &target, &error))?;
             }
         }
         RootMode::ReadOnly => {
