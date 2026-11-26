@@ -1335,3 +1335,19 @@ Other facts that cost time:
   `..Default::default()`.
 - The new trait methods made `foundation_auth` a breaking change for a `TrustStore`
   implementor. The version is 0.0.16, and every workspace consumer names it.
+
+## A dependency split also changes the example locks (2026-11-27)
+
+Feature 04 moved several dependencies of `foundation_ai`, `foundation_netio` and
+`foundation_agent_rpc` behind optional features. The Plan job of the pull request then
+failed in `foundation_ci check-lockfiles`, because two nested workspaces kept a lock file
+from before the change:
+
+- `examples/cf-agent-loop/Cargo.lock`
+- `examples/cf-cloud-provider/Cargo.lock`
+
+**Rule.** A change to the dependency list of a crate that a nested workspace uses also needs
+a lock refresh in that workspace. Run `cargo metadata --format-version 1 --manifest-path
+<dir>/Cargo.toml` in each nested directory, then `scripts/ci/sync_release_tree.py --check`
+and `cargo run -p foundation_ci -- check-lockfiles` before the push. A feature change alone
+never changes a lock; an added or removed dependency does.
