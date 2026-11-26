@@ -342,10 +342,12 @@ impl DurableStreamVfs for MemoryVfs {
                         entry.meta.version = entry.meta.version.saturating_add(1);
                     } else {
                         entries.remove(name);
-                    }
-                    if let Some(source) = source {
-                        if let Some(entry) = entries.get_mut(&source) {
-                            entry.ref_count = entry.ref_count.saturating_sub(1);
+                        // A soft-deleted entry keeps its source reference until it is
+                        // collected, because a deeper fork still reads through it.
+                        if let Some(source) = source {
+                            if let Some(entry) = entries.get_mut(&source) {
+                                entry.ref_count = entry.ref_count.saturating_sub(1);
+                            }
                         }
                     }
                     Ok(soft)

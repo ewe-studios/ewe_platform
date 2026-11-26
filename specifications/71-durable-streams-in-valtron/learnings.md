@@ -116,3 +116,31 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   body runs to connection close. The response adds `Connection: close`.
 - **Limits are configuration.** The SSE connection lifetime is `DurableLimits::sse_lifetime_ms`
   (default 60 s, the protocol guidance), next to the long-poll timeout.
+
+## Server conformance run (2026-11-27)
+
+- **Run the reference suite early.** The first run failed 63 of 338 tests. The failures clustered
+  into a few root causes, not 63 bugs. Run the suite as soon as the adapter answers one request.
+- **Offset formats differ.** The suite hard-codes the reference zero offset
+  `0000000000000000_0000000000000000` and a beyond-length offset in the same
+  `<sequence>_<byte>` form. The decoder accepts the composite form and uses the byte part. Our
+  own offsets stay lowercase hexadecimal.
+- **Producer state decides before closure.** An append to a closed stream must first check the
+  producer tuple. A duplicate answers `204`; anything else answers `409` with
+  `Stream-Closed: true`. `close` is a producer write: it opens the writer state, slides the
+  time-to-live (TTL) window and deduplicates.
+- **Error responses carry protocol headers.** A `403` carries `Producer-Epoch`. A `409`
+  sequence gap carries `Producer-Expected-Seq` and `Producer-Received-Seq`. A closed `409` carries
+  `Stream-Closed` and `Stream-Next-Offset`.
+- **A soft-deleted fork keeps its source reference.** Deleting a fork must not decrement the
+  source count until the fork itself is collected. Otherwise a deeper fork loses its chain.
+- **SSE framing uses `data:` with no space.** The suite matches `data:{json}`. A control event
+  follows each data event; an idle open stream sends one control on connect. Every carriage
+  return and line feed in a payload starts a new `data:` line, so a payload cannot inject an
+  event.
+- **`offset=now` is not cacheable.** The response uses `Cache-Control: no-store`. For long-poll,
+  `now` becomes the tail and then the read waits.
+- **A soft-deleted path answers `409` on a create and on a fork.** A read still answers `410`.
+  An expired stream answers `404`.
+- **The suite waits inside a 5 s test limit.** Set the long-poll timeout to 3 s in the
+  conformance server. Keep the 30 s production default.

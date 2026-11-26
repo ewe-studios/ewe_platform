@@ -7,7 +7,8 @@ use crate::native::writer::{
     render_head, render_message, write_response, ResponseWriter, WriterConfig,
 };
 use crate::shared::durable::parse::{
-    encode_offset, parse_offset, parse_producer, parse_stream_closed, parse_stream_seq, parse_ttl,
+    decode_offset, encode_offset, parse_expires_at, parse_offset, parse_producer,
+    parse_stream_closed, parse_stream_seq, parse_sub_offset, parse_ttl,
 };
 use crate::shared::durable::status::{header, status_for};
 use crate::shared::serve::ServeOutcome;
@@ -47,12 +48,12 @@ pub struct DurableHandler {
 
 impl ServeFactory for DurableHandler {
     fn create(ctx: &Ctx) -> Self {
+        let limits = ctx
+            .get::<DurableLimits>()
+            .map_or_else(DurableLimits::default, |limits| *limits);
         Self {
             service: ctx.get::<DurableStream>().map(|stream| {
-                Arc::new(DurableService::with_limits(
-                    (*stream).clone(),
-                    DurableLimits::default(),
-                ))
+                Arc::new(DurableService::with_limits((*stream).clone(), limits))
             }),
         }
     }
@@ -169,6 +170,11 @@ pub async fn dispatch(
             handle_post(service, &request.name, &request.headers, request.body).await
         }
         SimpleMethod::DELETE => handle_delete(service, &request.name).await,
+        SimpleMethod::OPTIONS => Ok(DurableResponse {
+            status: 204,
+            headers: cors_preflight_headers(),
+            body: Vec::new(),
+        }),
         _ => Ok(DurableResponse {
             status: 405,
             headers: base_headers(),
@@ -197,6 +203,8 @@ impl Serve for DurableHandler {
         let path = req.request_url.url.clone();
         let headers = req.headers.clone();
         let queries = req.request_url.queries.clone();
+        let host = header_value(&req.headers, "host");
+        let empty_offset = has_empty_offset(&req.request_uri.to_string());
         let body = req.take_async_body();
 
         crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
@@ -204,6 +212,13 @@ impl Serve for DurableHandler {
                 Some(body) => collect_bytes_bounded(body, MAX_BODY_BYTES).await,
                 None => Vec::new(),
             };
+
+            if empty_offset && method == SimpleMethod::GET {
+                let error = StoreError::BadRequest(
+                    foundation_core::durable::BadRequestKind::Offset,
+                );
+                return respond_error(conn, &ctx, &error).await;
+            }
 
             let name = match stream_name_from_path(&path) {
                 Ok(name) => name,
@@ -229,10 +244,39 @@ impl Serve for DurableHandler {
             };
 
             match dispatch(&service, &ctx, request).await {
-                Ok(response) => respond(conn, &ctx, response).await,
+                Ok(mut response) => {
+                    absolutize_location(&mut response, host.as_deref());
+                    respond(conn, &ctx, response).await
+                }
                 Err(error) => respond_error(conn, &ctx, &error).await,
             }
         }))
+    }
+}
+
+/// True when the raw query string names `offset` with an empty value.
+///
+/// The query parser drops an empty value, so the adapter reads the raw URI to
+/// refuse `?offset=` with `400`.
+fn has_empty_offset(uri: &str) -> bool {
+    uri.split_once('?')
+        .map(|(_, query)| {
+            query
+                .split('&')
+                .any(|pair| pair == "offset=")
+        })
+        .unwrap_or(false)
+}
+
+/// Make a relative `Location` absolute for the request host.
+fn absolutize_location(response: &mut DurableResponse, host: Option<&str>) {
+    let Some(host) = host else {
+        return;
+    };
+    for (key, value) in &mut response.headers {
+        if *key == SimpleHeader::LOCATION && value.starts_with('/') {
+            *value = format!("http://{host}{value}");
+        }
     }
 }
 
@@ -258,6 +302,7 @@ async fn respond_error(
     error: &StoreError,
 ) -> ServeOutcome {
     let mut headers = base_headers();
+    headers.extend(error_headers(error));
     headers.push((
         SimpleHeader::CONTENT_TYPE,
         "text/plain; charset=utf-8".to_string(),
@@ -274,6 +319,37 @@ async fn respond_error(
     .await
 }
 
+/// The protocol headers an error response must carry.
+fn error_headers(error: &StoreError) -> Vec<(SimpleHeader, String)> {
+    match error {
+        StoreError::Fenced { current_epoch } => vec![(
+            SimpleHeader::custom(header::PRODUCER_EPOCH),
+            current_epoch.to_string(),
+        )],
+        StoreError::SequenceGap { expected, received } => vec![
+            (
+                SimpleHeader::custom(header::PRODUCER_EXPECTED_SEQ),
+                expected.to_string(),
+            ),
+            (
+                SimpleHeader::custom(header::PRODUCER_RECEIVED_SEQ),
+                received.to_string(),
+            ),
+        ],
+        StoreError::Closed { tail } => vec![
+            (
+                SimpleHeader::custom(header::STREAM_CLOSED),
+                "true".to_string(),
+            ),
+            (
+                SimpleHeader::custom(header::STREAM_NEXT_OFFSET),
+                offset_text(tail),
+            ),
+        ],
+        _ => Vec::new(),
+    }
+}
+
 fn base_headers() -> Vec<(SimpleHeader, String)> {
     vec![
         (
@@ -284,7 +360,35 @@ fn base_headers() -> Vec<(SimpleHeader, String)> {
             SimpleHeader::custom("cross-origin-resource-policy"),
             "cross-origin".to_string(),
         ),
+        // A browser client reads the protocol headers on a cross-origin read.
+        (
+            SimpleHeader::custom("access-control-expose-headers"),
+            "Stream-Next-Offset, Stream-Cursor, Stream-Up-To-Date, Stream-Closed, ETag, Location"
+                .to_string(),
+        ),
     ]
+}
+
+/// The cross-origin preflight answer. `*` satisfies a request without credentials.
+fn cors_preflight_headers() -> Vec<(SimpleHeader, String)> {
+    let mut headers = base_headers();
+    headers.push((
+        SimpleHeader::custom("access-control-allow-origin"),
+        "*".to_string(),
+    ));
+    headers.push((
+        SimpleHeader::custom("access-control-allow-methods"),
+        "GET, POST, PUT, HEAD, DELETE, OPTIONS".to_string(),
+    ));
+    headers.push((
+        SimpleHeader::custom("access-control-allow-headers"),
+        "*".to_string(),
+    ));
+    headers.push((
+        SimpleHeader::custom("access-control-max-age"),
+        "86400".to_string(),
+    ));
+    headers
 }
 
 fn header_value(headers: &SimpleHeaders, name: &str) -> Option<String> {
@@ -292,13 +396,6 @@ fn header_value(headers: &SimpleHeaders, name: &str) -> Option<String> {
         .iter()
         .find(|(key, _)| key.to_string().eq_ignore_ascii_case(name))
         .and_then(|(_, values)| values.first().cloned())
-}
-
-fn content_type(headers: &SimpleHeaders) -> Result<ContentType, StoreError> {
-    match header_value(headers, "content-type") {
-        Some(value) => ContentType::parse(&value),
-        None => Ok(ContentType::default()),
-    }
 }
 
 /// The wire body for one read page.
@@ -515,6 +612,8 @@ async fn handle_catch_up(
         Some(value) => parse_offset(value)?,
         None => ReadFrom::Start,
     };
+    // `offset=now` must never be stored: the tail offset changes as data arrives.
+    let from_tail = matches!(from, ReadFrom::Tail);
 
     let head = service.head(name).await?;
     let page = service
@@ -567,7 +666,13 @@ async fn handle_catch_up(
     response_headers.push((SimpleHeader::ETAG, tag));
     response_headers.push((
         SimpleHeader::CACHE_CONTROL,
-        CachePolicy::Public.header_value().to_string(),
+        if from_tail {
+            CachePolicy::NoStore
+        } else {
+            CachePolicy::Public
+        }
+        .header_value()
+        .to_string(),
     ));
 
     Ok(DurableResponse {
@@ -664,22 +769,33 @@ async fn handle_put(
     headers: &SimpleHeaders,
     body: Vec<u8>,
 ) -> Result<DurableResponse, StoreError> {
-    let content_type = content_type(headers)?;
+    let content_type = header_value(headers, "content-type")
+        .map(|value| ContentType::parse(&value))
+        .transpose()?;
     let closed = parse_stream_closed(header_value(headers, "stream-closed").as_deref());
     let ttl = header_value(headers, "stream-ttl")
         .map(|value| parse_ttl(&value))
         .transpose()?;
-    let expires = Expiry::from_headers(ttl, None)?;
+    let expires_at = header_value(headers, "stream-expires-at")
+        .map(|value| parse_expires_at(&value))
+        .transpose()?;
+    let expires = Expiry::from_headers(ttl, expires_at)?;
 
-    let fork = header_value(headers, "stream-forked-from")
+    let fork_from = header_value(headers, "stream-forked-from");
+    let fork_sub = header_value(headers, "stream-fork-sub-offset");
+    if fork_sub.is_some() && fork_from.is_none() {
+        return Err(StoreError::BadRequest(
+            foundation_core::durable::BadRequestKind::Fork,
+        ));
+    }
+    let fork = fork_from
         .map(|source| -> Result<ForkSpec, StoreError> {
             let source = StreamName::parse(source.trim_start_matches('/'))?;
             let at = header_value(headers, "stream-fork-offset")
-                .map(|value| StreamOffset::from_bytes(value.into_bytes()));
-            let sub_offset = match header_value(headers, "stream-fork-sub-offset") {
-                Some(value) => value
-                    .parse::<u32>()
-                    .map_err(|_| StoreError::BadRequest(foundation_core::durable::BadRequestKind::Fork))?,
+                .map(|value| decode_offset(&value))
+                .transpose()?;
+            let sub_offset = match fork_sub {
+                Some(ref value) => parse_sub_offset(value)?,
                 None => 0,
             };
             Ok(ForkSpec {
@@ -691,7 +807,7 @@ async fn handle_put(
         .transpose()?;
 
     let spec = CreateSpec {
-        content_type: Some(content_type),
+        content_type,
         expires,
         closed,
         initial: (!body.is_empty()).then(|| Chunk::new(body)),
@@ -738,6 +854,7 @@ async fn handle_post(
     )?;
     let stream_seq = header_value(headers, "stream-seq").map(|value| parse_stream_seq(&value));
 
+    let close_only = body.is_empty();
     let outcome = if body.is_empty() {
         if !close {
             return Err(StoreError::BadRequest(
@@ -751,7 +868,13 @@ async fn handle_post(
             })
             .await?
     } else {
-        let content_type = content_type(headers)?;
+        // A non-empty append must name its content type.
+        let Some(value) = header_value(headers, "content-type") else {
+            return Err(StoreError::BadRequest(
+                foundation_core::durable::BadRequestKind::Body,
+            ));
+        };
+        let content_type = ContentType::parse(&value)?;
         service
             .append(
                 name,
@@ -791,14 +914,15 @@ async fn handle_post(
         ));
     }
 
-    let status = if producer.is_some() {
-        if matches!(outcome.kind, foundation_core::durable::AppendKind::Duplicate) {
-            204
-        } else {
-            200
-        }
-    } else {
+    // A plain append and a close-only request answer 204. A producer's first
+    // accepted write answers 200; a duplicate answers 204.
+    let status = if close_only
+        || producer.is_none()
+        || matches!(outcome.kind, foundation_core::durable::AppendKind::Duplicate)
+    {
         204
+    } else {
+        200
     };
 
     Ok(DurableResponse {
@@ -832,23 +956,46 @@ fn offset_text(offset: &StreamOffset) -> String {
 pub fn sse_data_event(payload: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(payload.len() + 16);
     out.extend_from_slice(b"event: data\n");
-    let mut pieces = payload.split(|byte| *byte == b'\n').peekable();
-    while let Some(piece) = pieces.next() {
-        out.extend_from_slice(b"data: ");
-        out.extend_from_slice(piece);
+    for line in sse_lines(payload) {
+        out.extend_from_slice(b"data:");
+        out.extend_from_slice(line);
         out.push(b'\n');
-        if pieces.peek().is_none() {
-            break;
-        }
     }
     out.push(b'\n');
     out
 }
 
+/// Split a payload into SSE data lines.
+///
+/// Every carriage return and line feed ends a line, so a payload cannot break
+/// the event framing. An empty payload is one empty line.
+fn sse_lines(payload: &[u8]) -> Vec<&[u8]> {
+    let mut lines = Vec::new();
+    let mut start = 0;
+    let mut index = 0;
+    while index < payload.len() {
+        match payload[index] {
+            b'\r' | b'\n' => {
+                lines.push(&payload[start..index]);
+                if payload[index] == b'\r' && payload.get(index + 1) == Some(&b'\n') {
+                    index += 1;
+                }
+                start = index + 1;
+            }
+            _ => {}
+        }
+        index += 1;
+    }
+    if start < payload.len() || lines.is_empty() {
+        lines.push(&payload[start..]);
+    }
+    lines
+}
+
 /// The wire text of one SSE `control` event.
 #[must_use]
 pub fn sse_control_event(json: &str) -> Vec<u8> {
-    format!("event: control\ndata: {json}\n\n").into_bytes()
+    format!("event: control\ndata:{json}\n\n").into_bytes()
 }
 
 /// The control payload for one SSE step.
@@ -948,6 +1095,7 @@ async fn serve_sse(
 
     let deadline =
         ctx.clock().now() + Duration::from_millis(service.limits().sse_lifetime_ms);
+    let mut first = true;
     loop {
         let signal = append_wait(service, name);
         let page = match service
@@ -967,7 +1115,8 @@ async fn serve_sse(
             }
         };
 
-        if !page.chunks.is_empty() {
+        let sent_data = !page.chunks.is_empty();
+        if sent_data {
             let body = render_page_body(&head.content_type, &page);
             let payload = if binary {
                 base64::engine::general_purpose::STANDARD
@@ -983,24 +1132,30 @@ async fn serve_sse(
         }
 
         let closed = page.cursor.closed;
-        let cursor = if closed {
-            None
-        } else {
-            Some(cursor_value(ctx, client))
-        };
-        let control = sse_control_json(
-            &page.cursor.next,
-            cursor,
-            page.cursor.up_to_date || closed,
-            closed,
-        );
-        if let Err(error) = writer.write_all(&sse_control_event(&control)).await {
-            tracing::debug!("durable sse control write ended: {error}");
-            return ServeOutcome::Close(None);
-        }
-        if let Err(error) = writer.flush().await {
-            tracing::debug!("durable sse flush ended: {error}");
-            return ServeOutcome::Close(None);
+        // A control event follows every data event. An idle open stream sends
+        // one on connect, so a client learns the tail offset at once.
+        let send_control = sent_data || closed || first;
+        first = false;
+        if send_control {
+            let cursor = if closed {
+                None
+            } else {
+                Some(cursor_value(ctx, client))
+            };
+            let control = sse_control_json(
+                &page.cursor.next,
+                cursor,
+                page.cursor.up_to_date || closed,
+                closed,
+            );
+            if let Err(error) = writer.write_all(&sse_control_event(&control)).await {
+                tracing::debug!("durable sse control write ended: {error}");
+                return ServeOutcome::Close(None);
+            }
+            if let Err(error) = writer.flush().await {
+                tracing::debug!("durable sse flush ended: {error}");
+                return ServeOutcome::Close(None);
+            }
         }
 
         if closed {
@@ -1012,7 +1167,7 @@ async fn serve_sse(
         if now >= deadline {
             return ServeOutcome::Close(None);
         }
-        if page.chunks.is_empty() {
+        if !sent_data {
             wait_or_timeout(signal, deadline.saturating_duration_since(now), ctx).await;
         }
     }

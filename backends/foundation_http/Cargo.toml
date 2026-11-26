@@ -23,6 +23,7 @@ rand_chacha = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
+time = { workspace = true }
 
 regex = { version = "1.12" }
 bytes = { version = "1.5" }
@@ -136,3 +137,7 @@ workspace = true
 name = "http3_server_tests"
 path = "tests/http3_server_tests.rs"
 required-features = ["quic"]
+
+[[example]]
+name = "durable_server"
+required-features = ["multi"]

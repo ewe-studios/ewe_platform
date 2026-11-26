@@ -943,9 +943,10 @@ impl DurableStream {
 
     async fn expire(&self, name: &StreamName) -> StoreError {
         match self.vfs.remove(name).await {
-            Ok(true) => StoreError::Gone,
-            Ok(false) | Err(VfsError::NotFound) => StoreError::NotFound,
-            Err(VfsError::Gone) => StoreError::Gone,
+            // An expired stream reads as missing. A fork that still refs the data keeps it.
+            Ok(true) | Ok(false) => StoreError::NotFound,
+            Err(VfsError::NotFound) => StoreError::NotFound,
+            Err(VfsError::Gone) => StoreError::NotFound,
             Err(error) => StoreError::from(error),
         }
     }
@@ -1076,9 +1077,22 @@ impl DurableStreamStore for DurableStream {
         } = spec;
 
         let (content_type, fork_info, start_len, expires) = if let Some(fork) = fork {
-            let source = self.vfs.meta(&fork.source).await?;
+            let source = match self.vfs.meta(&fork.source).await {
+                Ok(source) => source,
+                // A fork from a soft-deleted source is a configuration conflict, not a read.
+                Err(VfsError::Gone) => return Err(StoreError::ConfigConflict),
+                Err(error) => return Err(error.into()),
+            };
             if Self::is_expired(&source, self.now_ms()) {
                 return Err(self.expire(&fork.source).await);
+            }
+            if let Some(requested) = &content_type {
+                if requested != &source.content_type {
+                    return Err(StoreError::ContentTypeMismatch {
+                        expected: source.content_type.clone(),
+                        got: requested.clone(),
+                    });
+                }
             }
             let mut at = match fork.at {
                 Some(at) => VfsOffset::from(&at).0,
@@ -1115,7 +1129,7 @@ impl DurableStreamStore for DurableStream {
             }
 
             (
-                content_type.unwrap_or(source.content_type),
+                content_type.unwrap_or_else(|| source.content_type.clone()),
                 Some(ForkInfo {
                     source: fork.source,
                     at,
@@ -1128,11 +1142,31 @@ impl DurableStreamStore for DurableStream {
         };
         let closed = fork_info.is_none() && closed;
 
+        let already = match self.vfs.meta(&name).await {
+            Ok(meta) => Some(meta),
+            Err(VfsError::NotFound) => None,
+            Err(VfsError::Gone) => return Err(StoreError::ConfigConflict),
+            Err(error) => return Err(error.into()),
+        };
+        if let Some(existing) = &already {
+            if Self::is_expired(existing, self.now_ms()) {
+                return Err(self.expire(&name).await);
+            }
+            let same = existing.content_type == content_type
+                && existing.expires == expires
+                && existing.fork == fork_info
+                && existing.closed == closed;
+            if !same {
+                return Err(StoreError::ConfigConflict);
+            }
+        }
+
         let is_json = content_type.is_json();
         let meta = VfsMeta {
             content_type,
             len: start_len,
-            closed,
+            // A stream with initial content is created open, then closed after the append.
+            closed: closed && initial.is_none(),
             expires,
             writer: WriterState::default(),
             fork: fork_info,
@@ -1140,16 +1174,22 @@ impl DurableStreamStore for DurableStream {
             trim_from: 0,
             version: 0,
         };
-        let created = self.vfs.create(&name, meta).await?;
-        if let Some(initial) = initial {
-            let bytes = if is_json {
-                encode_json(initial.as_bytes(), true)?
-            } else {
-                initial.as_bytes().to_vec()
-            };
-            self.vfs.append(&name, &bytes).await?;
-            if closed {
-                self.vfs.close(&name).await?;
+        let created = match self.vfs.create(&name, meta).await {
+            Ok(created) => created,
+            Err(VfsError::Gone) => return Err(StoreError::ConfigConflict),
+            Err(error) => return Err(error.into()),
+        };
+        if created {
+            if let Some(initial) = initial {
+                let bytes = if is_json {
+                    encode_json(initial.as_bytes(), true)?
+                } else {
+                    initial.as_bytes().to_vec()
+                };
+                self.vfs.append(&name, &bytes).await?;
+                if closed {
+                    self.vfs.close(&name).await?;
+                }
             }
         }
         let head = self.vfs.meta(&name).await?;
@@ -1190,6 +1230,23 @@ impl DurableStreamStore for DurableStream {
             }
             meta.last_access_ms = now;
             if meta.closed {
+                // A retry of the close that already landed is a duplicate, not a conflict.
+                if let Some(producer) = &producer {
+                    if let Ok(ProducerDecision::Duplicate(last_seq)) =
+                        validate_producer(&meta.writer, producer)
+                    {
+                        return Ok(AppendOutcome {
+                            kind: AppendKind::Duplicate,
+                            cursor: ResumeCursor {
+                                next: StreamOffset::from(VfsOffset(meta.len)),
+                                up_to_date: true,
+                                closed: true,
+                            },
+                            producer_seq: Some(last_seq),
+                            closed: true,
+                        });
+                    }
+                }
                 return Err(StoreError::Closed {
                     tail: StreamOffset::from(VfsOffset(meta.len)),
                 });
@@ -1312,34 +1369,98 @@ impl DurableStreamStore for DurableStream {
         name: &StreamName,
         req: CloseRequest,
     ) -> Result<AppendOutcome, StoreError> {
-        let before = self.vfs.meta(name).await?;
-        if Self::is_expired(&before, self.now_ms()) {
-            return Err(self.expire(name).await);
-        }
-        if let Some(chunk) = req.final_chunk {
-            let bytes = if before.content_type.is_json() {
-                encode_json(chunk.as_bytes(), false)?
-            } else {
-                chunk.as_bytes().to_vec()
+        const MAX_CLOSE_ATTEMPTS: usize = 8;
+
+        for _ in 0..MAX_CLOSE_ATTEMPTS {
+            let mut before = self.vfs.meta(name).await?;
+            let now = self.now_ms();
+            if Self::is_expired(&before, now) {
+                return Err(self.expire(name).await);
+            }
+            if before.closed {
+                if let Some(producer) = &req.producer {
+                    if let Ok(ProducerDecision::Duplicate(last_seq)) =
+                        validate_producer(&before.writer, producer)
+                    {
+                        return Ok(AppendOutcome {
+                            kind: AppendKind::Duplicate,
+                            cursor: ResumeCursor {
+                                next: StreamOffset::from(VfsOffset(before.len)),
+                                up_to_date: true,
+                                closed: true,
+                            },
+                            producer_seq: Some(last_seq),
+                            closed: true,
+                        });
+                    }
+                    return Err(StoreError::Closed {
+                        tail: StreamOffset::from(VfsOffset(before.len)),
+                    });
+                }
+                return Ok(AppendOutcome {
+                    kind: AppendKind::Duplicate,
+                    cursor: ResumeCursor {
+                        next: StreamOffset::from(VfsOffset(before.len)),
+                        up_to_date: true,
+                        closed: true,
+                    },
+                    producer_seq: None,
+                    closed: true,
+                });
+            }
+
+            before.last_access_ms = now;
+            if let Some(producer) = &req.producer {
+                match validate_producer(&before.writer, producer)? {
+                    ProducerDecision::Duplicate(last_seq) => {
+                        return Ok(AppendOutcome {
+                            kind: AppendKind::Duplicate,
+                            cursor: ResumeCursor {
+                                next: StreamOffset::from(VfsOffset(before.len)),
+                                up_to_date: true,
+                                closed: false,
+                            },
+                            producer_seq: Some(last_seq),
+                            closed: false,
+                        });
+                    }
+                    ProducerDecision::Accept(state) => {
+                        before.writer.producers.insert(producer.id.clone(), state);
+                    }
+                }
+            }
+
+            let bytes = match &req.final_chunk {
+                Some(chunk) if before.content_type.is_json() => encode_json(chunk.as_bytes(), false)?,
+                Some(chunk) => chunk.as_bytes().to_vec(),
+                None => Vec::new(),
             };
-            self.vfs.append(name, &bytes).await?;
+            before.closed = true;
+            let expected_version = before.version;
+            match self
+                .vfs
+                .append_with_meta(name, &bytes, before, expected_version)
+                .await
+            {
+                Ok(_) => {
+                    let after = self.vfs.meta(name).await?;
+                    return Ok(AppendOutcome {
+                        kind: AppendKind::Created,
+                        cursor: ResumeCursor {
+                            next: StreamOffset::from(VfsOffset(after.len)),
+                            up_to_date: true,
+                            closed: true,
+                        },
+                        producer_seq: req.producer.as_ref().map(|producer| producer.seq),
+                        closed: true,
+                    });
+                }
+                Err(VfsError::Conflict) => continue,
+                Err(error) => return Err(StoreError::from(error)),
+            }
         }
-        self.vfs.close(name).await?;
-        let after = self.vfs.meta(name).await?;
-        Ok(AppendOutcome {
-            kind: if before.closed {
-                AppendKind::Duplicate
-            } else {
-                AppendKind::Created
-            },
-            cursor: ResumeCursor {
-                next: StreamOffset::from(VfsOffset(after.len)),
-                up_to_date: true,
-                closed: true,
-            },
-            producer_seq: req.producer.as_ref().map(|producer| producer.seq),
-            closed: true,
-        })
+
+        Err(StoreError::Storage(Box::new(ContentionError)))
     }
 
     async fn delete(&self, name: &StreamName) -> Result<DeleteOutcome, StoreError> {

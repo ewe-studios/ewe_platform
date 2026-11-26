@@ -6,7 +6,7 @@ pub mod parse;
 pub mod status;
 
 pub use parse::{
-    decode_offset, encode_offset, parse_offset, parse_producer, parse_stream_closed,
-    parse_stream_seq, parse_ttl,
+    decode_offset, encode_offset, parse_expires_at, parse_offset, parse_producer,
+    parse_stream_closed, parse_stream_seq, parse_sub_offset, parse_ttl,
 };
 pub use status::{header, status_for};

@@ -45,10 +45,18 @@ async fn send(
     service: &DurableService<DurableStream>,
     method: SimpleMethod,
     name: &str,
-    headers: SimpleHeaders,
+    mut headers: SimpleHeaders,
     queries: Option<BTreeMap<String, String>>,
     body: &str,
 ) -> Result<DurableResponse, StoreError> {
+    if matches!(method, SimpleMethod::POST | SimpleMethod::PUT)
+        && !headers.keys().any(|key| key.to_string().eq_ignore_ascii_case("content-type"))
+    {
+        headers.insert(
+            SimpleHeader::custom("content-type"),
+            vec!["text/plain".to_string()],
+        );
+    }
     dispatch(
         service,
         &Ctx::host(),
@@ -232,7 +240,7 @@ fn given_a_stream_when_head_runs_then_it_reports_the_tail_without_a_body() {
             .await
             .expect("head");
         assert_eq!(response.status, 200);
-        assert!(response.body.is_empty());
+        assert_eq!(response.body, Vec::<u8>::new());
         assert_eq!(
             response.header("Stream-Next-Offset"),
             Some(offset(3).as_str())
@@ -319,7 +327,7 @@ fn given_a_matching_etag_when_get_runs_then_it_returns_304() {
         .await
         .expect("conditional read");
         assert_eq!(second.status, 304);
-        assert!(second.body.is_empty());
+        assert_eq!(second.body, Vec::<u8>::new());
     });
 }
 
@@ -579,7 +587,7 @@ fn given_a_text_payload_with_newlines_when_it_becomes_a_data_event_then_each_lin
     let event = sse_data_event(b"a\nb\n");
     assert_eq!(
         String::from_utf8(event).expect("utf-8"),
-        "event: data\ndata: a\ndata: b\ndata: \n\n"
+        "event: data\ndata:a\ndata:b\n\n"
     );
 }
 
@@ -597,5 +605,5 @@ fn given_a_control_step_when_it_is_rendered_then_it_carries_the_offset_and_curso
     assert!(!closed.contains("streamCursor"));
 
     let event = String::from_utf8(sse_control_event(&json)).expect("utf-8");
-    assert_eq!(event, format!("event: control\ndata: {json}\n\n"));
+    assert_eq!(event, format!("event: control\ndata:{json}\n\n"));
 }

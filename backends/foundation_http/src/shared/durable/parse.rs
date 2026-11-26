@@ -67,6 +67,36 @@ fn parse_safe_integer(value: &str) -> Result<u64, StoreError> {
     Ok(value)
 }
 
+/// Parse `Stream-Fork-Sub-Offset`. The value is a decimal integer with no
+/// sign and no leading zero.
+///
+/// # Errors
+/// Returns [`StoreError::BadRequest`] with [`BadRequestKind::Fork`] for a
+/// malformed value.
+pub fn parse_sub_offset(value: &str) -> Result<u32, StoreError> {
+    if value.is_empty() || !value.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err(StoreError::BadRequest(BadRequestKind::Fork));
+    }
+    if value.len() > 1 && value.starts_with('0') {
+        return Err(StoreError::BadRequest(BadRequestKind::Fork));
+    }
+    value
+        .parse::<u32>()
+        .map_err(|_| StoreError::BadRequest(BadRequestKind::Fork))
+}
+
+/// Parse `Stream-Expires-At` as an RFC 3339 timestamp into UNIX milliseconds.
+///
+/// # Errors
+/// Returns [`StoreError::BadRequest`] with [`BadRequestKind::Header`] for a
+/// malformed timestamp.
+pub fn parse_expires_at(value: &str) -> Result<i64, StoreError> {
+    let at = time::OffsetDateTime::parse(value, &time::format_description::well_known::Rfc3339)
+        .map_err(|_| StoreError::BadRequest(BadRequestKind::Header))?;
+    i64::try_from(at.unix_timestamp_nanos() / 1_000_000)
+        .map_err(|_| StoreError::BadRequest(BadRequestKind::Header))
+}
+
 /// Parse `Stream-Seq`. The value is opaque.
 #[must_use]
 pub fn parse_stream_seq(value: &str) -> StreamSeq {
@@ -113,6 +143,20 @@ pub fn encode_offset(offset: &StreamOffset) -> String {
 /// Returns [`StoreError::BadRequest`] with [`BadRequestKind::Offset`] when the
 /// text is not an even-length, lowercase hexadecimal string.
 pub fn decode_offset(value: &str) -> Result<StreamOffset, StoreError> {
+    if let Some((sequence, position)) = value.split_once('_') {
+        // The reference server writes a composite `<sequence>_<byte>` offset.
+        // This store orders by byte position, so the byte part is the offset.
+        if sequence.is_empty() || position.is_empty() {
+            return Err(StoreError::BadRequest(BadRequestKind::Offset));
+        }
+        if sequence.bytes().all(|byte| byte == b'0') && position.bytes().all(|byte| byte == b'0') {
+            return Ok(StreamOffset::from_bytes(vec![0; 8]));
+        }
+        let byte = position
+            .parse::<u64>()
+            .map_err(|_| StoreError::BadRequest(BadRequestKind::Offset))?;
+        return Ok(StreamOffset::from_bytes(byte.to_be_bytes().to_vec()));
+    }
     if value.is_empty() || value.len() % 2 != 0 {
         return Err(StoreError::BadRequest(BadRequestKind::Offset));
     }

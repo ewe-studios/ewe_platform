@@ -96,7 +96,7 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `security_headers_on_all_responses`, `cors_exposes_stream_headers`.
 - [ ] **T9 — ConnectRPC.** The eight methods and the live stream. Test:
       `rpc_stream_resumes_from_offset`, `http_and_rpc_return_same_chunks`.
-- [ ] **T10 — server conformance.** Run the reference suite against `HttpAdapter`. Record every
+- [x] **T10 — server conformance.** Run the reference suite against `HttpAdapter`. Record every
       failure and skip. Do not close the feature until it passes.
 - [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
       oracles. Tests: `status_table_matches`, `server_suite_passes`,
@@ -107,6 +107,7 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 - [ ] `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc` green.
 - [x] The HTTP adapter has no valtron stream or task dependency. It uses only the
   injected-clock timer for the live-read timeout.
-- [ ] The server conformance suite passes against `HttpAdapter`.
+- [x] The server conformance suite passes against `DurableHandler` (332 pass, 6 skip).
+  Command: run `examples/durable_server` with `--features multi`, then run the reference suite.
 - [ ] Every `StoreError` variant maps to one documented status.
 - [ ] `cargo check --workspace --all-targets --profile dev` green.
