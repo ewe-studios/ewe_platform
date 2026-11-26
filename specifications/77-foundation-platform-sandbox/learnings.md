@@ -766,3 +766,428 @@ The two defects of the client itself are recorded, not hidden:
   (decision D16). State its limit in every document: it gives no isolation.
 - **A crate rename touches every spec.** 70 files named the old crate. Search the whole
   tree, including the completed specifications, before the first commit.
+
+## 12. Feature 01 implementation findings (2026-11-25)
+
+### 12.1 The TLS-free build opened three dependency layers
+
+The slave builds as a static musl program, so the `slave` feature must not link a C
+TLS library. The measurement on 2026-11-11 was correct about `ring`, but four crates
+forced it into the graph, not one:
+
+| Crate | What forced TLS | Fix |
+|---|---|---|
+| `foundation_http` | its `foundation_netio` dependency used the netio default features, and `default` was empty | `netio-core` (no TLS) and `netio-defaults` (TLS); `default = ["netio-defaults"]` |
+| `foundation_connectrpc` | the native `foundation_http` and `foundation_netio` dependencies used their defaults | the same two features; `rpc` enables `netio-defaults` |
+| `foundation_iogate` | the `foundation_netio` dependency used the defaults | `default-features = false` with `wire-native`, and the same two features |
+| `foundation_auth` | the native `foundation_netio` dependency used the defaults, and the spec 87 modules (`rcgen`, `rustls`, `x509-parser`) were unconditional | a `netio-ssl` feature, and a new `mtls` feature that names the spec 87 modules; both are in the default set |
+| `foundation_db` | the `foundation_netio` dependency asked for `ssl` by name | a `netio-ssl` feature, enabled by `d1`, `r2` and the default set |
+
+A consumer that must stay free of C code takes each crate with `default-features = false`
+and the `netio-core` feature. Every existing consumer keeps today's set, because the new
+features are in each crate's default set.
+
+Two more gaps appeared only in the TLS-free build:
+
+- `foundation_netio`'s `http` module had never compiled without a TLS provider: it
+  imports `netcap::ssl::SSLConnector`, and `native/ssl/nossl.rs` was an empty file. The
+  file now defines a `SSLConnector` type that fails at use, and `http/mod.rs` gates the
+  `tls_task` module and its re-export.
+- `foundation_connectrpc`'s native modules need netio's `http` module, so the native
+  build always turns `netio-core` on. The wasm build must not: `netio-core` enables
+  `multi`, which turns the single-threaded wasm netio onto valtron's `Send` path. So the
+  `foundation_sandbox` dependency on `foundation_connectrpc` is split into one native
+  table and one wasm table.
+
+### 12.2 What `foundation_netio` and `foundation_http` did not have
+
+- `Connection` had no constructor from an accepted descriptor of another address
+  family. `Connection::from_stream_fd(OwnedFd)` is new; a vsock stream socket is a
+  stream descriptor like a Unix domain socket.
+- `Acceptor` is implemented for `TcpListener` only. The slave adds a `UnixAcceptor` in
+  `serve.rs`; `local_addr` returns an error for a Unix socket, and the server then uses
+  its bind label.
+- `HttpServer::serve_with_acceptor` is the path for UDS, TCP and vsock.
+
+### 12.3 The fork must not cross an `await`
+
+A `Vec<*const c_char>` is not `Send`. A future that builds the `execve` pointer lists and
+then awaits (the start-status wait) is not `Send`, and the generated service trait needs
+`Send`. The fix is a synchronous `fork_process` helper: the pointer lists live across the
+`fork` and nowhere else, so the async part holds no raw pointer.
+
+### 12.4 The wake pattern
+
+Every parked task uses one rule: register the waker, then check the condition. This is
+the only pattern that loses no wake with a `Mutex<Vec<Waker>>` notifier. The pumps park on
+`FdReadiness` (`clear`, check, `register_waker`, check) and on the same notifier for the
+"stop" flag. A close of the sink or of an input queue wakes every parked sender and
+receiver.
+
+### 12.4.1 The drain wait must not wake on its own condition
+
+The first exit watch put `exit.is_some()` in the condition of its wait, and then
+wrapped that wait in a `select` with the drain timer. After the exit the condition was
+true at every poll, so the `select` returned at once and the task spun until the
+deadline. The condition now names the state that must wake it: before the deadline is
+set, the exit; after it, the deadline plus room in the event sink. A receiver that
+takes an event notifies the session's change signal through the sink, so the room check
+has a wake and is not a poll.
+
+### 12.5 Limits and the server bind
+
+`SlaveLimits` (the `Prepare` message) has no `max_error_message` field, so the slave cuts
+an error message with `SandboxLimits::default().max_error_message`. The HTTP/1.1 server
+binds before `Prepare`, so its request body limit is the default `max_message_bytes`; the
+service checks the limits of `Prepare` for the input chunk size.
+
+`libc::open_how` is `#[non_exhaustive]`, so `sys.rs` defines the three-field kernel layout
+itself and passes `RESOLVE_IN_ROOT` to `openat2`.
+
+### 12.6 Test layout and CI
+
+- The crate has one test binary (`tests/mod.rs`). The slave tests are the module
+  `tests/slave/` (`support`, `info`, `exec`, `input`, `files`, `root`, `lifecycle`), not
+  the `tests/slave_*.rs` files of the feature text, which would be a second test binary
+  and would restart the whole harness for each group.
+- The child slave process is the same test binary started with
+  `--exact slave::support::slave_process_entry --test-threads=1`. One thread is necessary:
+  `SIGCHLD` must be blocked on the process's only thread before the pool starts, and the
+  libtest harness runs a test in a new thread unless it runs one test at a time.
+- `ci/packages.toml` runs `["", "slave"]` on Linux. macOS and Windows run `[""]` through
+  `macos-runs` and `windows-runs` rather than `macos-tests = "none"`: the contract tests
+  still run there, and the reason "the slave is a Linux guest program" is in the comment.
+
+### 12.7 Dead ends
+
+- A stub `SSLConnector` was not enough for the netio `http` module; the `tls_task` module
+  also had to be gated. Do not try to compile that module without a provider.
+- `std::fs::read_dir("/proc")` for the zombie check needs no `CONFIG_PROC_CHILDREN`; the
+  `stat` file of every process is enough. `/proc/<pid>/task/<tid>/children` is not
+  portable across the CI kernels.
+- `Slave::arc_self` (an `Arc` pointer cast from `&self`) was wrong: an `Arc<'T>` value's
+  address is not the address of its data. The shutdown handler captures the pieces it
+  needs (`Ctx`, session table, file state, shutdown signal) instead of the slave.
+
+### 12.8 The version bump of the changed libraries
+
+Rule 12 of the root `AGENTS.md` moves the version of a crate that gains public API, and of
+every workspace consumer of that crate, in the same change. This feature changes seven
+crates:
+
+| Crate | Old | New | Why |
+|---|---|---|---|
+| `foundation_netio` | 0.0.17 | 0.0.18 | new `Connection::from_stream_fd`, a new `nossl::SSLConnector` type, the `http` module without TLS |
+| `foundation_http` | 0.0.15 | 0.0.16 | the `netio-core` and `netio-defaults` features |
+| `foundation_connectrpc` | 0.0.16 | 0.0.17 | the same two features |
+| `foundation_iogate` | 0.0.6 | 0.0.7 | the same two features |
+| `foundation_auth` | 0.0.15 | 0.0.16 | the `mtls` and `netio-ssl` features |
+| `foundation_db` | 0.0.10 | 0.0.11 | the `netio-ssl` feature |
+| `foundation_sandbox` | 0.0.2 | 0.0.3 | the `native::slave` module and the `SlaveHost` bundle |
+
+`foundation_netio` is not the only crate that needs the new source: `foundation_sandbox`
+0.0.3 names the `netio-core` features of `foundation_connectrpc`, `foundation_http` and
+`foundation_iogate`, and builds `foundation_auth` and `foundation_db` without their TLS
+dependencies. A packaged consumer that resolved the old registry version of any of them
+would fail the musl build. So all seven move together, and 77 manifests move their version
+requirement. This is a wide but mechanical diff; the pull request's CI covers the affected
+packages.
+
+### 12.9 The musl check found two portability facts
+
+- `libc::ioctl` takes an unsigned long request number on the GNU C library and an int
+  on musl. `sys.rs` names the type in one place, `IoctlRequest`, with a `target_env`
+  branch. A cast at each call is not portable and a truncating cast fails clippy.
+- `cargo check` for a musl target prints `dropping unsupported crate type cdylib` for
+  `foundation_nativeapis`, which declares `["rlib", "cdylib"]`. The warning is old and
+  does not affect the slave, which links the rlib. The feature's musl check is the first
+  build that shows it.
+
+### 12.10 The `unsafe` placement rule
+
+Feature section 6.2 allows `unsafe` only in `sys.rs` and the `fork` child block of
+`exec.rs`. The first commit also held raw `libc` calls in `serve.rs` (vsock socket, bind,
+listen, `accept4` and `fcntl`) and in `pid1.rs` (the console write of a failed power off).
+They are now `sys::vsock_listen`, `sys::accept_stream`, `sys::set_nonblocking_mode` and
+`sys::write`. A review found this. The check is `grep -rn unsafe src/native/slave/`: only
+`sys.rs` and the fork child block of `exec.rs` may appear.
+
+## 13. Feature 02 implementation findings (2026-11-25)
+
+### 13.1 The task context is not the manager context
+
+The `#[task]` transition receives the context of the executor that drives it, not
+the context of the manager. `execute(task, None)` seeds the task from the pool root,
+which has a real clock and a real timer. A create that read `ctx.clock()` or
+`ctx.require_env()` from that argument waited on real time and gave a real creation
+time, so the deterministic tests could not control it. The transition now ignores
+the argument and reads `task.inner.ctx`. The same rule applies to the remote create
+task in `service.rs`: it reads `task.ctx`. A later task that needs effects takes its
+context from the state, not from the argument.
+
+### 13.2 Unary deadlines do not belong on a stream
+
+The first version gave `Exec` and `FileRead` the `rpc_timeout` deadline, as a unary
+call has. The deadline is absolute on the injected clock, so a test that moved the
+clock past `rpc_timeout` to fire a command timeout also ended the event stream with
+`DeadlineExceeded`, and `events()` reported `StreamLost`. A stream has no unary
+deadline: its caller ends it, or the slave does. `SlaveClient` and the scoped client
+use a context without a deadline for `Exec` and `FileRead`.
+
+### 13.3 The in-memory transport must stream
+
+`ConnectRpcHandler::dispatch` collects a streaming response in memory. A
+server-streaming call whose handler waits for a signal then never completes inside
+`dispatch`, so the client never receives the first event and the test deadlocks. The
+test transport calls `dispatch_to` with a `ResponseSink` that writes the head and
+each frame into the response pipe as the handler produces it. The request body is a
+`RequestBody` over the request pipe. The same transport now serves unary and
+streaming calls.
+
+### 13.4 The Connect client dropped error details (issue #850)
+
+The unary client rebuilt a server error from `WireError.code` and `WireError.message`
+and dropped `details`. The streaming path did the same in `wire_error_to_trace`. A
+typed `SandboxError` therefore arrived as `SandboxError::Rpc`, which breaks law L11.
+Both paths now rebuild each detail with `WireErrorDetail::to_detail()` and add it to
+the error. The fix is in `foundation_connectrpc`; the control-plane test
+`rpc_error_variants` covers the unary case.
+
+### 13.5 A timer is the `Env` timer, not `valtron::sleep_until`
+
+`foundation_core::valtron::sleep_until` is re-exported from the executor module: it
+returns a `Result<DrivenStreamIterator<SleepingTask>>`, not a future, and the
+`timer` module is native-only. The control plane waits on
+`ctx.require_env()?.timer().sleep_until(ctx.clone(), deadline)`, which is the same
+injected timer on native and on wasm and never reads the real clock. A missing
+`Env` is `HostNotConfigured`.
+
+### 13.6 Send on wasm
+
+The connectrpc client futures and `ServerStream` are `!Send` on single-threaded
+wasm when the `multi` feature is off. The crate keeps the `Send` bound on every
+public future and stream. On wasm it wraps the future in
+`foundation_compact::SendWrapper` (`send_box`) and the stream in `SendStream`. On
+native the wrapper is transparent, so the value must be `Send` already. Native
+builds enable `foundation_core/multi` in a target-specific dependency table; the
+wasm build keeps the one-thread executor.
+
+### 13.7 The pool is shared and a leaked task starves it
+
+The test binary starts one valtron pool with four workers. A gated `Exec` stream
+whose gate is never released, or a create task that waits for an `Info` that never
+answers, holds a worker forever. The tests release each gate, end each waiting
+create with a clock advance, and use a streaming transport that ends its dispatch
+task. `cargo test` must run the control tests with `--test-threads=1`: the
+`ControlService` create stream drives a blocking iterator, and several such calls
+at once can exhaust the pool.
+
+**Measured at review (2026-11-25).** Dropping the `CreateStream` receiver does not
+drop the `#[task]` state machine. `execute` schedules the task on the pool and
+returns a receiver; dropping the receiver closes the result queue and leaves the
+task to run. A create over a slave that never answers `Info` keeps one worker until
+the boot deadline, and a substrate that the create already launched stays alive.
+Issue #852 (severity: high) records this. The fix is a cancellation signal that the
+receiver owns, or a guard on the receiver that starts the kill and the removal on
+drop. The feature test `rpc_create_dropped_cleans_up` waits for that fix.
+
+The review also added a small stateful model test. It draws a random op list, runs
+it against one manager, and compares each step with the state table: `Exec` only
+while `Ready`; `Stop` and `Kill` idempotent and the first report wins; a substrate
+exit moves the record to `Stopped` through the watcher; `get` and `list` follow the
+registry. The test keeps the value of a stateful oracle without a second model type.
+
+**Fixed in this change (2026-11-25, issue #852).** The fix is option 1, a
+receiver-owned guard, because it keeps the change in `foundation_sandbox` and
+does not change `foundation_core`'s public behaviour. `CreateGuard` holds the
+cancel flag, the wakers and the record slot. The `GuardedCreateIterator` that
+the caller receives and the `create_ready` future hold an `Arc<CreateGuard>`
+and call `cancel()` on drop. `cancel()` marks the create cancelled, wakes the
+task's cancellation future, and moves the record to a background `kill_record`.
+`AwaitSlave` and `Prepare` select on that future, so the worker leaves its wait
+at once. `CreateTask::drop` also calls `cancel`. The final result calls
+`finish()`, which disarms the guard for a later drop. The tests
+`drop_create_receiver_cancels` and `drop_create_future_cancels` fail on
+`befb4397d` and pass after the fix.
+
+## 13. The Linux test failures of feature 01 (2026-11-26)
+
+The first Linux run of the slave tests failed in three ways. Each has one cause, and two
+of them are in the feature's own code.
+
+### 13.1 Typed errors were lost on the client
+
+The failing run was `3c3eb07fa`, which does not contain #850. That change rebuilds the
+wire details of a server error on the unary path and in the stream terminator. The
+message in the test (`Rpc { code: "not_found", message: "slave error not_found: ..." }`)
+proves the server sent the typed error and the client dropped its detail. The branch now
+carries #850; `exec_not_found`, `exec_not_executable` and `exec_id_conflict` pass without
+a change to the slave.
+
+### 13.2 The test process kept `SIGCHLD` unblocked on its main thread
+
+A libtest test cannot be the slave's process. `/proc/<pid>/task/<tid>/status` showed
+`SigBlk: 0000000000000000` on the process main thread and `0000000000010000` (SIGCHLD)
+on the test thread and every pool thread. The test ran on a spawned harness thread, so
+`block_sigchld` in the test entry set the mask of the wrong thread. `SIGCHLD` is
+process-directed and the unblocked main thread took it, so the `signalfd` never became
+readable and the reaper never collected a child. A zombie stayed under the slave and the
+`Exit` event never came.
+
+The slave process of the tests is now the program `tests/support/slave_main.rs`, a
+`[[bin]]` target (`test = false`, `required-features = ["slave"]`). Its `main` blocks
+`SIGCHLD` before any thread starts, and the tests start it through
+`CARGO_BIN_EXE_slave_test_driver`.
+
+### 13.3 The readiness helper cleared before the wait
+
+`wait::ready` called `FdReadiness::clear()` and then checked `is_ready`. The shared
+selector registers with `EPOLLET`, and `rearm_readable` is a no-op on epoll. A clear
+before the wait therefore erased the edge the wait existed to return; a level condition
+that emits no new edge (a pending `SIGCHLD`, end of file on a pipe that never carried
+data) then never woke the task again. The first run showed the stdout pump reading and
+the stderr pump and the reaper parked for ever.
+
+The clear now happens in the caller, immediately before the I/O attempt: `ready()`,
+then `readiness.clear()`, then `read` or `write`. The output pump also drains its pipe to
+`WouldBlock` before it parks, because a partial read on an edge-triggered selector leaves
+data that emits no new edge. The signs of the old bug were a stalled `head` in the
+test's pipeline and a full pipe no task was reading.
+
+### 13.4 The exit watch spun on a finished stream
+
+`wait_for_exit` woke on `streams_done` even when the exit status was absent. A stream
+that ends before the reaper reports the child is common, so the condition was true at
+every poll and the task spun at 100 percent of one pool worker until the call deadline.
+The wait now acts only on the exit status before the deadline, and on the finished
+streams or the deadline after it.
+
+### 13.5 The open wake race
+
+The `exec_output_property` and `input_model` cases can park the HTTP/1.1 connection
+task with frames waiting and no wake. The same class of run passed with extra timing
+(`P:` trace prints) and failed without them. The fixes above removed the deterministic
+causes (the two named stalls and every typed-error check). This one is a wake race in
+the shared HTTP/1.1 streaming path. Issue #866 (severity: medium) records it, with the
+failing cases, the observed trace and the suspected files. The branch does not close it.
+
+### 13.6 `ExecSignal` before `Prepare` returned `NotFound`
+
+The invariant I1 says that every call but `Info`, `Prepare` and `Shutdown` fails with
+`NotPrepared` before `Prepare`. `exec_signal_inner` looked up the session first, so an
+unknown `exec_id` gave `NotFound`. `not_prepared` now checks `self.prepared()` first.
+
+A signal that arrives just after `Exit` must be accepted. The exit watch remembers the
+`exec_id` **before** it removes the session, so the two states overlap and a signal can
+never find neither. The branch head had lost the branch of `exec_signal_inner` that reads
+the remembered set, so `signal_after_exit` got `NotFound`; it is back. `signal_bad_number`
+drops its stream: it ran a program that sleeps for a minute and then drained it.
+
+### 13.7 This host's container has no `openat2`
+
+The Linux image on this host (OrbStack) answers `openat2` with `ENOSYS` (errno 38), so
+every file test fails here with `open the parent directory: Function not implemented`.
+The GitHub `ubuntu-latest` runner has a 6.x kernel and the earlier job reached the file
+code, so the tests run there. The guest kernels of this spec are 6.1 and 6.12, which
+have `openat2`. The feature states that limit.
+
+### 13.8 The check for the next feature
+
+`grep -rn unsafe src/native/slave/` must show only `sys.rs` and the fork child block of
+`exec.rs`. A libtest test must not be the slave process. A readiness helper clears in
+the caller, before the attempt, never before the wait.
+
+### 13.9 A dropped response body now ends the exchange
+
+`stream_drop_kills` failed: after the caller dropped the `Exec` stream, the program was
+still alive after one second. The server's connection task had not dropped the handler
+stream, so the `Drop` that sends `SIGKILL` to the process group never ran.
+
+The cause is on the client side, in `foundation_connectrpc`. The HTTP/1.1 transport
+spawns one drive task for the exchange (`h1.rs`). The task owns the exchange, and with
+it the connection. Dropping the caller's response body closed only the body observer's
+queue: `SplitCollectorMapContinuation` treats a closed queue as an accepted push,
+because the head observer closes the same way. The drive task therefore stayed parked
+on the next exchange item, the socket stayed open, and the server never saw a hangup.
+
+The fix keeps the split as it is. The transport now wraps the body observer in
+`StopOnDrop`, which sets a `ResumeSignal` when the caller drops it, and the drive task
+in `StopDrive`, which ends when the signal is set and adds the signal to every
+`Depends` wait, so a parked drive task wakes at once. The exchange then drops, the
+connection closes, the server's hangup watcher fires, and the handler stream drops.
+
+Fail-then-pass, on the same tree:
+`stream_drop_kills` failed in 1.67 s without the `h1.rs` change and passed in 0.42 s
+with it (`cargo test -p foundation_sandbox --features slave,testing --test mod`, Linux
+container). `foundation_connectrpc` goes from 0.0.18 to 0.0.19, because the transport
+behaviour changes.
+
+### 13.10 The full test run with one thread hangs at the first slave test
+
+`cargo test -p foundation_sandbox --features slave,testing -- --test-threads=1`
+runs the 86 control and contract tests, then stops at `slave::exec::drain_timeout`
+for ever. The test passes alone in 0.87 s. Every thread of the test process waits
+on a `futex`, and the process has no `reactor-drain` thread; the slave driver is
+idle and its reactor waits in `epoll_pwait`.
+
+The hang is not from this feature. It also happens on `8ee13b8db` without the
+`h1.rs` change. The control tests run first in the same process and use the global
+valtron pool; #852 records that a dropped `CreateStream` receiver leaves its task on
+the pool. Issue #867 (severity: medium) records the hang, the two trees, the
+observations and the likely fix. CI runs the same command without
+`--test-threads=1`, so the current job does not show it.
+
+`gdb` cannot attach on this host: OrbStack answers `Couldn't get registers:
+Input/output error`, so the trace above is from `/proc/<tid>/wchan` and the process
+trees.
+
+### 13.11 The source scan rejected a method name, not a blocking call
+
+`slave::lifecycle::no_blocking_calls` scans the slave source text for `.read(` and
+`.write(`. `Files::read`, the file-read RPC handler, matched `.read(`. That method
+opens the file through `sys::open_in_root` and returns a stream, so the scan found
+a false positive. The failure was deterministic but stayed hidden until the earlier
+stalls were fixed, because no run had reached `slave::lifecycle` before.
+
+The method is now `Files::read_file`, with a doc comment that names the scan. The
+scan reads the raw text, so the comment names the pattern in words and does not
+write it. The scan keeps its meaning: a blocking call with the `read` or `write`
+name in the slave sources is still rejected. Issue #868 (severity: high) records
+it.
+
+### 13.12 The two input failures of the real CI runner
+
+The Linux job (`cargo test --profile uat -p foundation_sandbox --no-fail-fast
+--features slave -- --nocapture`, run 45676172618) failed on two input tests that
+pass on this host.
+
+**`input_model`.** The smallest counterexample was `ops = [(1, [], false)]`, seed
+`b1264a50226f1c7b2d9f66fee316ce396e7f3056f652576ef9e08fb7bb94e125`, with
+`next_seq` 1 against the model's 0. The model built a repeat as
+`next.saturating_sub(1)`. Before the first chunk `next` is 0, so the request was
+`seq 0`, which is the expected number and not a repeat: the slave applies it and
+answers 1, exactly as `Sequence::accept` says (`seq < next` is a repeat,
+`seq == next` applies). The slave was right and the model was wrong. The model now
+treats that one case as the first chunk, and the root case has its own test,
+`input_repeat_before_the_first_chunk`. The seed is committed in
+`tests/slave/input.proptest-regressions`; with the old model the file reproduces
+the exact failure (left 1, right 0) and the new model passes.
+
+**`input_queue_full_then_retry`.** The test ran `sh -c "sleep 1; cat >/dev/null"`
+and sent chunks until the queue refused one. On the runner the program started to
+read before the queue filled, so no call was refused. The test depended on the
+race between a one-second sleep and the send loop.
+
+The fix adds `SlaveLimits::input_pipe_bytes` (default 64 KiB, the Linux default of
+16 pages) and applies it with `F_SETPIPE_SZ` before the fork, so the pipe bound is
+configuration. The test then stops the reader with `SIGSTOP` and sends five 4 KiB
+chunks against a 4 KiB pipe and an 8 KiB queue. Five chunks are exactly one more
+than the storage holds: one chunk in the pipe, two in the queue, and one that the
+input pump popped and holds while the pipe is full. The fifth call must fail. The
+test continues the program with `SIGCONT` and retries; every refusal is followed by
+one `Stdout` event of `cat`, which proves that the program consumed bytes and the
+queue has room. No sleep and no timing assumption remains. Five runs pass in 0.78
+to 0.84 s each.
+
+
+

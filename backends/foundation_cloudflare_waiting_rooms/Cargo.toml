@@ -11,8 +11,8 @@ description = "Generated Cloudflare API client: waiting_rooms group"
 [dependencies]
 foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.3" }
 foundation_deployment = { path = "../foundation_deployment", version = "0.0.7" }
-foundation_macros = { workspace = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false, features = ["ssl", "multi"] }
+foundation_macros = { path = "../foundation_macros", version = "0.0.25" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["ssl", "multi"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 base85rs = "0.1"

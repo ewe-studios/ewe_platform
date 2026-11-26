@@ -56,9 +56,11 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 # its full default set — `multi` (threaded valtron) plus the TLS/socket HTTP
 # modules — and libsql's row streams use async-stream. Neither is used on wasm,
 # where `multi` would also force the single-threaded CF storage code onto
-# valtron's Send-required path.
+# valtron's Send-required path. TLS is the feature `netio-ssl`: d1, r2 and the
+# default set enable it, so a consumer that must not link a C TLS library, such
+# as the static musl slave, keeps it off.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["standard", "std", "compression", "wire-native", "multi"] }
 foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.3" }
 async-stream = "0.3"
 # Connection gate for the single-connection SQL stores (already in the tree via foundation_netio).
@@ -97,8 +99,11 @@ test-hooks = []
 default = ["turso", "d1", "r2"]
 turso = ["dep:turso", "multi"]
 libsql = ["dep:libsql", "multi"]
-d1 = ["foundation_netio/multi"]
-r2 = ["foundation_netio/multi"]
+d1 = ["foundation_netio/multi", "netio-ssl"]
+r2 = ["foundation_netio/multi", "netio-ssl"]
+# The TLS provider of foundation_netio. On by default, through d1 and r2; a
+# consumer that must stay free of C code leaves the two stores off.
+netio-ssl = ["foundation_netio/ssl"]
 
 # Multi-threaded support - enables foundation_core's multi feature
 multi = ["foundation_core/multi", "foundation_netio/multi"]

@@ -20,9 +20,9 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
 # The `ErrorTrace` type of a failed Connect call.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # The HTTP client, the Unix-socket transport and the HTTP/2 gRPC health probe.
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 # The generated registration client and the gRPC health probe.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16" }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19" }
 # Docker discovery and stats through the generated client.
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
 # SIGTERM and SIGHUP reception for the binary's lifecycle.
@@ -65,7 +65,7 @@ foundation_proxy = { path = "../foundation_proxy", version = "0.2.0" }
 # The installer's Docker deploy target for the end-to-end test.
 foundation_installer = { path = "../foundation_installer", version = "0.0.1" }
 # The proxy's shutdown signal in the client tests.
-foundation_http = { path = "../foundation_http", version = "0.0.16", features = ["multi", "ssl"] }
+foundation_http = { path = "../foundation_http", version = "0.0.17", features = ["multi", "ssl"] }
 futures-lite = "2"
 tempfile = "3"
 tracing-subscriber = { workspace = true }

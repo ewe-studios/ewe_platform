@@ -11,7 +11,9 @@
 pub mod messages;
 
 mod sandbox;
-mod slave;
+/// The slave service. The module is public so the server reads the generated
+/// procedure paths of [`slave::procedure`].
+pub mod slave;
 
 pub use sandbox::{
     register_sandbox_service, SandboxService, SandboxServiceClient, SandboxServiceClientExt,

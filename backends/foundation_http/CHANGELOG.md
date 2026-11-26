@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `netio-core` no longer enables `foundation_netio/multi`; `multi` now enables it.
+
 ## [0.0.15](https://github.com/ewe-studios/ewe_platform/compare/foundation_http-v0.0.12...foundation_http-v0.0.15) - 2026-11-24
 
 ### Added

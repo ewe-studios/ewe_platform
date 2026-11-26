@@ -1,6 +1,6 @@
 [package]
 name = "foundation_http"
-version = "0.0.16"
+version = "0.0.17"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -37,11 +37,15 @@ concurrent-queue = { workspace = true }
 # only — there is no reactor on wasm. iogate brings foundation_nativeapis in
 # transitively, above netio, so no dependency cycle forms.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-foundation_iogate = { path = "../foundation_iogate", version = "0.0.6" }
+# The defaults are off: the `netio-defaults` feature (in this crate's default
+# set) restores them. A consumer that must not link a C TLS library, such as
+# the static musl slave, uses `default-features = false, features =
+# ["netio-core"]` and keeps the HTTP/1.1 server without TLS.
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.7", default-features = false }
 # netio is target-gated so wasm never pulls its `multi` feature (native =
-# defaults, wasm = the crate's `wasm-fetch` feature) — mirroring
-# foundation_auth/foundation_ai.
-foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
+# `netio-core` or `netio-defaults`, wasm = the crate's `wasm-fetch` feature) —
+# mirroring foundation_auth/foundation_ai.
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false }
 
 # On wasm32 the crate uses netio's fetch client only when the `wasm-fetch`
 # feature is on. The feature is part of `wasm-bindgen-http`, so every current
@@ -50,7 +54,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
 # Identifiers come from `foundation_compact::uuid`, whose entropy backend the
 # target selects, so the crate needs no `uuid` randomness feature of its own.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false }
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { workspace = true, optional = true }
@@ -92,8 +96,22 @@ rcgen = { version = "0.13", default-features = false, features = ["ring", "pem",
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 
 [features]
-default = []
-multi = ["foundation_core/multi"]
+# The default set keeps the behaviour of the crate before the split: every
+# feature of `foundation_netio` that its own defaults gave this crate.
+default = ["netio-defaults", "multi"]
+multi = ["foundation_core/multi", "foundation_netio/multi"]
+# The HTTP server and client surface of `foundation_netio` without TLS. A
+# consumer that must not link a C TLS library, such as the static musl slave,
+# enables this feature alone.
+netio-core = [
+    "foundation_netio/standard",
+    "foundation_netio/std",
+    "foundation_netio/wire-native",
+    "foundation_netio/compression",
+    "foundation_iogate/netio-core",
+]
+# The full `foundation_netio` default set, with the TLS providers.
+netio-defaults = ["netio-core", "foundation_netio/ssl", "foundation_iogate/netio-defaults"]
 # TLS backends — uses foundation_netio's SSL feature set.
 # `ssl` is the recommended default (rustls + ring).
 ssl = ["foundation_netio/ssl-rustls-ring"]

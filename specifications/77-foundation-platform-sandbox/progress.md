@@ -157,6 +157,151 @@ Two corrections from the owner changed the design.
    driver id is `cloudflare-do`. It gives no operating-system isolation. Decision D16,
    feature 07 section 6.10, and feature 08's Worker hosts both DO classes.
 
+## Feature 01: the slave core (2026-11-25)
+
+Feature 01 is on the branch `spec77/f01-slave-core`, stacked on the crate rename
+(`spec77/rename-foundation-sandbox`, pull request #824).
+
+The crate gains `src/native/slave/` behind `#[cfg(all(target_os = "linux", feature =
+"slave"))]`: `mod.rs` (`Slave`, `SlaveArgs`, `run`), `serve.rs` (UDS, TCP and vsock
+acceptors, the HTTP/1.1 Connect server), `state.rs`, `pid1.rs`, `root.rs`, `exec.rs`,
+`reaper.rs`, `files.rs` and `sys.rs`. `shared/host.rs` gains `SlaveHost`, `GuestMounts`
+and `GuestPower`.
+
+The `slave` feature links no C TLS library. The dependency change is in
+`learnings.md` section 12.1: `foundation_http`, `foundation_connectrpc`, `foundation_iogate`,
+`foundation_auth` and `foundation_db` gain a TLS-free feature set, and their default sets
+keep today's behaviour. `foundation_netio` now compiles without a TLS provider, and
+`Connection::from_stream_fd` wraps an accepted vsock descriptor.
+
+The tests are `tests/slave/` in the crate's single test binary: the scenarios and the
+property tests of feature section 7. They need Linux; `ci/packages.toml` runs them there
+with `runs = ["", "slave"]` and keeps the contract tests on macOS and Windows.
+
+Checks on the macOS host: see the pull request. The Linux test run is the pull request's
+CI job.
+
+## Feature 02: the control-plane core (2026-11-25)
+
+Feature 02 is on the branch `spec77/f02-control-plane-core`, stacked on feature 01
+(`spec77/f01-slave-core`, pull request #848) and, through it, on the crate rename
+(`spec77/rename-foundation-sandbox`, pull request #824).
+
+`src/shared/control/` is now a directory. `mod.rs` keeps the feature-00 interface and
+adds one method, `SandboxHandle::run`, which captures the output of a command. The
+`control` feature adds:
+
+- `manager.rs`: `SandboxManager`, `ManagerConfig`, the registry, the driver choice,
+  `restore` and `containers`.
+- `create.rs`: the `#[task]` create state machine, the one deadline and the fault
+  table of section 6.4.
+- `record.rs`: `SandboxRecord`, the state machine, `RecordStore` and
+  `MemoryRecordStore`.
+- `slave_client.rs`: `SlaveClient`, the typed client of `SlaveService`.
+- `handle.rs`: `exec_session`, `run_capture`, `write_file_stream`, `read_file_stream`,
+  `LocalSandboxOps`, `RemoteSandboxOps` and the scoped `ExecFileCalls` client.
+- `stop.rs`: the stop and kill stories and the watcher.
+- `service.rs`: `ControlService`, `SandboxRpcClient` and `authorize`.
+- `testing.rs` (feature `testing`): `SimDriver`, `ScriptedSlave`, `in_memory_connector`,
+  `in_memory_control_transport` and the counting and failing stores.
+
+The tests are `tests/control/` in the crate's single test binary. They run the real
+slave client, codec and router in the same process with no socket. They need the
+`testing` feature; the default `cargo test` builds them but runs none, so CI runs
+`cargo test -p foundation_sandbox --features testing control_`. The wasm32 check
+passes with the default features and with no default features.
+
+Checks on the macOS host pass: `cargo check` for native, with `slave`, and for
+wasm32 with and without the default features; `cargo test` (25 contract tests);
+`cargo test --features testing control_` (62 control tests); `cargo fmt --check`;
+and `cargo clippy --no-deps --all-targets` with `-D warnings`, with and without
+`testing`. `ci/packages.toml` adds `testing` to the Linux, macOS and Windows runs.
+
+The real slave process tests of feature section 7 (`control_slave_process_*`) are not
+in this change: they need Linux with the `slave` feature, and this host is macOS. They
+stay for the Linux CI job that feature 06 adds.
+
+The review added two tests: `state_machine_model` (a small proptest of the state table
+with `Exec`, `Stop`, `Kill`, substrate exit and lookup steps) and
+`store_error_after_ready_is_logged` (a store that fails after `Ready`; the stop result
+does not change and the manager stays usable).
+
+Issue [#852](https://github.com/ewe-studios/ewe_platform/issues/852) (severity: high)
+recorded the dropped-create defect: dropping the create receiver did not drop the pool
+task, so the create guard of section 6.4 did not run at the drop. It is fixed in this
+branch by a receiver-owned `CreateGuard`. Dropping the create stream or the create
+future cancels the task, kills and cleans up any launched substrate, and removes the
+record. `drop_create_receiver_cancels` and `drop_create_future_cancels` prove it: both
+fail on `befb4397d` and pass after the fix.
+
+## Feature 01 Linux CI fixes (2026-11-26)
+
+The first Linux run of the slave tests (job of run 45541929114, commit `3c3eb07fa`) failed
+in three groups. The branch now carries:
+
+- #850 (`21c254bfe`), which rebuilds the wire details of a server error on the client.
+  Every typed-error check passes without a slave change.
+
+- The slave process of the tests is `tests/support/slave_main.rs`, a `[[bin]]` target
+  (`test = false`, `required-features = ["slave"]`). Its `main` blocks `SIGCHLD` before
+  any thread starts. A libtest test cannot be the slave: the harness runs it on a spawned
+  thread and leaves the process main thread's mask clear, so `SIGCHLD` went there and the
+  `signalfd` missed every child.
+
+- A descriptor's readiness is cleared in the caller, before the I/O attempt, not before
+  the wait. The shared selector is edge-triggered, so the old order erased the edge that
+  the wake carried; a pending `SIGCHLD` or end of file then never woke the task. The
+  output pump drains its pipe to `WouldBlock` before it parks.
+
+- The exit watch no longer wakes on a finished output stream while the exit status is
+  absent; that condition made it spin on one worker.
+
+- A finished `exec_id` is remembered before the session leaves the table, so a signal
+  that arrives just after `Exit` is accepted. `signal_bad_number` drops its stream
+  instead of draining a one-minute program.
+
+Residual pass on 2026-11-26:
+
+- `stream_drop_kills` passes now. The HTTP/1.1 transport in `foundation_connectrpc`
+  ends the exchange when the caller drops the response body (`StopOnDrop` sets a
+  `ResumeSignal`, `StopDrive` ends the drive task and adds the signal to every wait).
+  The exchange drops, the connection closes, the server sees the hangup, and the
+  handler stream drops with the `Drop` that sends `SIGKILL`. Fail-then-pass: 1.67 s
+  FAILED without the change, 0.42 s ok with it, Linux container. The crate goes from
+  0.0.18 to 0.0.19 and every pin follows.
+
+- Issue #866 (severity: medium) records the intermittent lost wake
+  (`exec_output_property`, `input_model`). The branch does not close it.
+
+- The full Linux run with `--test-threads=1` hangs at the first slave test,
+  `slave::exec::drain_timeout`. The hang is pre-existing: it reproduces on
+  `8ee13b8db` without this change, and the test passes alone in 0.87 s. Issue
+  #867 (severity: medium) records it. The slave module alone (`-- slave::`) runs
+  to the end: 35 pass; the ten `slave::files` cases fail for the missing
+  `openat2` of this host, and `slave::input::input_model` hit #866 once.
+
+- `slave::lifecycle::no_blocking_calls` failed: the source scan matched
+  `Files::read`, a domain method, not a blocking descriptor read. The method is
+  now `Files::read_file`. Issue #868 (severity: high) records it, and this change
+  closes it.
+
+- The real Linux job (run 45676172618) failed on two input tests:
+  - `input_model` compared a repeat before the first chunk with an idempotent
+    repeat. The slave applies `seq 0` there, as `Sequence::accept` says. The model
+    now follows it, the case has its own test, and the seed is committed in
+    `tests/slave/input.proptest-regressions`.
+  - `input_queue_full_then_retry` depended on a one-second sleep in the child.
+    `SlaveLimits::input_pipe_bytes` (default 64 KiB) now bounds the input pipe
+    with `F_SETPIPE_SZ`, and the test stops the reader, fills the bounded storage
+    by one chunk, and retries on a `Stdout` event, with no sleep.
+
+  In the Linux container: the seven input tests pass; the queue test passes five
+  times in a row (0.78 to 0.84 s each), and `input_model` passes three times.
+
+Open: the lost wake of #866 stays intermittent; it is a wake race in the shared
+HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and every
+typed-error check pass.
+
 ## In progress
 
 **Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
@@ -171,7 +316,8 @@ this host.
 
 ## Next
 
-1. Features 01, 02, 03 and 04 in parallel (one agent each).
+1. Features 02, 03 and 04 in parallel (one agent each). Feature 01 is done; feature 02
+   and feature 07 build on it.
 2. Feature 05, then feature 06: MVP-A (Firecracker).
 3. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
    MVP-B (Cloudflare).

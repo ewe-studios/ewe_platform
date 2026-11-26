@@ -830,6 +830,18 @@ pub(crate) fn connect_unix_nonblocking(
 }
 
 impl Connection {
+    /// Wraps an accepted stream socket of any address family.
+    ///
+    /// A vsock (`AF_VSOCK`) stream socket is a stream descriptor in the same
+    /// way as a Unix domain socket: the server reads and writes it with the
+    /// same calls. The caller checked that the descriptor is connected and
+    /// close-on-exec.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn from_stream_fd(fd: std::os::fd::OwnedFd) -> Self {
+        Self::Unix(unix_net::UnixStream::from(fd))
+    }
+
     /// Create a new TCP connection without a timeout.
     ///
     /// The connect runs on a non-blocking socket and settles from `SO_ERROR`

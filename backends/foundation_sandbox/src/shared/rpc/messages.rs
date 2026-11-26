@@ -67,10 +67,22 @@ pub struct SlaveLimits {
     pub upload_idle_timeout_ms: u32,
     /// The input queue size in bytes. It is four times `chunk_bytes`.
     pub input_queue_bytes: u32,
+    /// The capacity of the standard-input pipe in bytes.
+    ///
+    /// The kernel rounds it up to a page multiple. Zero keeps the system
+    /// default. Default 64 KiB: the Linux pipe default (16 pages).
+    #[serde(default = "default_input_pipe_bytes")]
+    pub input_pipe_bytes: u32,
     /// The largest request that the server reads.
     pub max_message_bytes: u32,
     /// The events held for one `Exec` stream before the pumps wait. Default 4.
     pub event_queue_len: u32,
+}
+
+/// The default of [`SlaveLimits::input_pipe_bytes`]: 64 KiB, the Linux pipe
+/// default of 16 pages.
+fn default_input_pipe_bytes() -> u32 {
+    64 * 1024
 }
 
 /// The response of `Prepare`.

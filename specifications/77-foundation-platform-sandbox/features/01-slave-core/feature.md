@@ -110,7 +110,7 @@ Links to other entities: SlaveInfo.prepared == (state != Booted)
 
 Entity: Session
 Conserved value:         bytes the program wrote to a stream = bytes in the events of that stream (until a drain time-out or a kill)
-Bound:                   sessions <= max_exec_sessions; input queue <= input_queue_bytes; one event data <= chunk_bytes
+Bound:                   sessions <= max_exec_sessions; input queue <= input_queue_bytes; input pipe <= input_pipe_bytes; one event data <= chunk_bytes
 Inverse pairs:           none
 Idempotent verbs:        ExecInput with a sequence number that was applied; ExecSignal after the program exited (accepted, no effect)
 Ordering pairs:          Exec -> ExecInput, ExecSignal (enabling); events: Started first, Exit last, seq grows by 1;
@@ -240,10 +240,11 @@ Feature: Slave core
     And the program got no byte
 
   Scenario: A full input queue pushes back
-    Given input_queue_bytes is 8192 and a session that runs ["sleep", "60"] with stdin true
-    When the caller sends ExecInput chunks of 4096 bytes without a stop
+    Given input_queue_bytes is 8192, input_pipe_bytes is 4096 and a session that runs ["cat"] with stdin true
+    When the caller stops the program and sends ExecInput chunks of 4096 bytes
     Then one of the calls fails with InputQueueFull
-    And the same seq succeeds later, after the queue has room
+    And after the caller continues the program, the same seq succeeds
+    And every accepted byte reaches the program in order
 
   Scenario: A signal reaches the whole process group
     Given a session that runs ["sh", "-c", "sleep 60 & wait"]
@@ -491,7 +492,9 @@ tmpfs and ext4 built in (`learnings.md` sections 2.5 and 3.8).
    one, look in each directory of `PATH` (merged environment), below `exec_root`, for a
    regular file with an execute bit. No match gives `NotFound` with `ENOENT`.
 4. Make the pipes: standard output and standard error always; standard input when `stdin`
-   is true, else `/dev/null`. Parent ends: `O_CLOEXEC | O_NONBLOCK`, registered on the
+   is true, else `/dev/null`. The standard-input pipe capacity is `input_pipe_bytes`, set
+   with `F_SETPIPE_SZ` before the fork, so the back-pressure bound is the caller's value
+   and not the system default. Parent ends: `O_CLOEXEC | O_NONBLOCK`, registered on the
    reactor.
 5. Take the child-table lock. `fork()`. Child, with only async-signal-safe calls:
    `setsid()`, `dup2` the three streams, `chroot(exec_root)` (skipped when `exec_root` is

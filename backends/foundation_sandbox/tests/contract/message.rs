@@ -177,6 +177,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         output_drain_timeout_ms: 2_000,
         upload_idle_timeout_ms: 60_000,
         input_queue_bytes: 262_144,
+        input_pipe_bytes: 32_768,
         max_message_bytes: 4_194_304,
         event_queue_len: 4,
     });
@@ -199,6 +200,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             output_drain_timeout_ms: 2_000,
             upload_idle_timeout_ms: 60_000,
             input_queue_bytes: 262_144,
+            input_pipe_bytes: 32_768,
             max_message_bytes: 4_194_304,
             event_queue_len: 4,
         },

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_iogate"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -18,7 +18,9 @@ tracing = { workspace = true }
 # edges here — not in netio — keeps netio free of the nativeapis→foundation_db
 # →netio dependency cycle. See Feature 48.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
+# The defaults are off so a consumer that must not link a C TLS library can
+# leave them off. This crate itself needs only the netcap connection types.
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["wire-native"] }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", features = ["fd"] }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.5" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
@@ -37,7 +39,11 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 serial_test = { version = "3" }
 
 [features]
-default = []
+# Keeps the behaviour of the crate before the split: the netio default set,
+# with TLS. foundation_http enables `netio-core` instead for a TLS-free build.
+default = ["netio-defaults"]
+netio-core = []
+netio-defaults = ["netio-core", "foundation_netio/ssl"]
 
 [lints]
 workspace = true

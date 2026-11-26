@@ -37,7 +37,7 @@ foundation_packager = { path = "../../backends/foundation_packager", version = "
 foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.11" }
 foundation_core = { path = "../../backends/foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_context = { path = "../../backends/foundation_context", version = "0.0.4" }
-foundation_netio = { workspace = true, features = ["default"] }
+foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.10" }
 foundation_macros = { workspace = true }
 # Referenced by the code `foundation_macros::EmbedDirectoryAs` expands to.

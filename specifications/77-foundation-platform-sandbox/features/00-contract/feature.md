@@ -398,6 +398,7 @@ pub struct SlaveLimits {
     pub output_drain_timeout_ms: u32,
     pub upload_idle_timeout_ms: u32,
     pub input_queue_bytes: u32,       // chunk_bytes * 4
+    pub input_pipe_bytes: u32,        // standard-input pipe capacity; default 64 KiB, zero keeps the system size
     pub max_message_bytes: u32,       // the largest request that the server reads
     pub event_queue_len: u32,         // events held for one Exec stream before the pumps wait; default 4
 }

@@ -14,7 +14,7 @@ derive_more = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
 foundation_packager = { path = "../foundation_packager", version = "0.1.7" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.25" }

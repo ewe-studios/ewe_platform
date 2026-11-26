@@ -7,7 +7,8 @@
 //!
 //! The library code lives in [`shared`]. The modules [`native`], [`cloudflare`]
 //! and [`cli`] are boundaries for later features; each one compiles only on its
-//! own target and feature.
+//! own target and feature. The `slave` feature adds the slave engine to the
+//! `native` module: a Linux guest program that serves `SlaveService`.
 //!
 //! # Determinism
 //!

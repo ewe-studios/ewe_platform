@@ -1,8 +1,9 @@
-//! The side-effect bundle of the native control plane.
+//! The side-effect bundles of the native roles.
 //!
-//! Only a boundary builds this bundle and puts it in the
+//! Only a boundary builds a bundle and puts it in the
 //! [`Ctx`](foundation_context::Ctx). Library code reads it with
-//! [`SandboxHost::from_ctx`] and never falls back to the real system.
+//! [`SandboxHost::from_ctx`] or [`SlaveHost::from_ctx`] and never falls back to
+//! the real system.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -194,4 +195,72 @@ pub trait HostFs: Send + Sync + 'static {
 
     /// Whether a file or directory exists.
     fn exists(&self, path: &Path) -> bool;
+}
+
+/// The guest side effects of the slave.
+///
+/// The real one is `SlaveHost::native()`, which the slave entry point builds.
+/// A test gives a fake only for the parts that need root rights: the mounts and
+/// the power off. Process start, pipes and signals are not behind a trait: they
+/// are the slave's own job, they need no root right, and the tests use the real
+/// ones.
+#[derive(Clone)]
+pub struct SlaveHost {
+    /// Mounts, directories and the files that a mount needs.
+    pub mounts: Arc<dyn GuestMounts>,
+    /// The sync and the power off of the machine.
+    pub power: Arc<dyn GuestPower>,
+}
+
+impl SlaveHost {
+    /// Reads the bundle from `ctx`.
+    ///
+    /// # Errors
+    /// [`SandboxError::HostNotConfigured`] when the context holds no bundle.
+    pub fn from_ctx(ctx: &Ctx) -> SandboxResult<Self> {
+        ctx.get::<Self>()
+            .map(|host| (*host).clone())
+            .ok_or_else(|| SandboxError::HostNotConfigured.into())
+    }
+}
+
+/// The mounts of the guest.
+pub trait GuestMounts: Send + Sync + 'static {
+    /// Mounts `source` on `target` with `fstype`, `flags` and `data`.
+    ///
+    /// # Errors
+    /// The operating system error of the mount call.
+    fn mount(
+        &self,
+        source: &str,
+        target: &Path,
+        fstype: &str,
+        flags: u64,
+        data: &str,
+    ) -> std::io::Result<()>;
+
+    /// Makes `path` and its parents, with `mode`.
+    ///
+    /// # Errors
+    /// The operating system error of the directory calls.
+    fn mkdir_p(&self, path: &Path, mode: u32) -> std::io::Result<()>;
+
+    /// Writes `data` to `path`, and replaces its contents.
+    ///
+    /// # Errors
+    /// The operating system error of the file calls.
+    fn write_file(&self, path: &Path, data: &[u8]) -> std::io::Result<()>;
+}
+
+/// The power state of the guest.
+pub trait GuestPower: Send + Sync + 'static {
+    /// Flushes the file system buffers.
+    fn sync(&self);
+
+    /// Powers the machine off. A successful call never returns: the guest stops
+    /// before the result can leave.
+    ///
+    /// # Errors
+    /// The operating system error of the reboot call.
+    fn power_off(&self) -> std::io::Result<std::convert::Infallible>;
 }
