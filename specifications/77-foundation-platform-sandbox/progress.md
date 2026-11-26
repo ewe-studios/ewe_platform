@@ -585,7 +585,7 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 6. Feature 10 (the Docker driver): pull request #946, in review. The real engine subset passes.
 7. Feature 17 (the Cloudflare Sandbox product): pull request #962.
 8. Feature 11 (nested sandboxes): on branch `spec77/f11-nested-sandboxes`, from feature 10.
-9. Feature 12 (sandbox images): on branch `spec77/f12-sandbox-images`, from feature 09.
+9. Feature 12 (sandbox images): pull request #982.
 10. Phase 3: features 13 to 15 (image source, Sandboxfile, registry pull).
 
 ## Milestones
