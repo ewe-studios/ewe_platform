@@ -1755,3 +1755,18 @@ threads releases the lease before it joins them (`pool::release()`).
 3. A test that spawns threads which drive their own futures releases the lease first.
 4. The acceptance for a suite is the plain command, with no thread flag. A suite that needs
    `--test-threads=1` hides a shared-state defect.
+
+## 24. Two clocks meet in the Durable Object (2026-11-27)
+
+The idle alarm and the lifetime deadline are wall-clock times, stored in milliseconds. The
+stream guard's touch timer runs on the monotonic clock, because a timer measures an interval.
+A test that advances one clock without the other sees a deadline that does not move.
+
+**The rule.** A simulation test advances the wall clock first and the monotonic clock second,
+in that order, so a guard that reads the wall clock sees the new time when it wakes. In
+production both clocks move together, so the order never matters there.
+
+The test `an_open_stream_holds_the_sandbox_alive` documents this: it advances 30 minutes of
+wall time over three idle periods, sees the stored idle deadline move to `4 * idle_timeout`,
+fires the alarm, and checks that the sandbox still runs. Then it advances past the one-hour
+cap and expects the `deadline_exceeded` terminal frame.
