@@ -15,6 +15,7 @@
 //! session. `CreateInstance` records the row; `DestroyInstance` archives the
 //! history to R2 and then deletes the row.
 
+use std::future::{ready, Future};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -113,8 +114,7 @@ impl AgentInstanceObject {
         let _ = foundation_core::env::install(&ctx, foundation_core::env::system);
         let test_reset = env
             .var(TEST_RESET_VAR)
-            .map(|value| value.to_string() == "1")
-            .unwrap_or(false);
+            .is_ok_and(|value| value.to_string() == "1");
         Self {
             state,
             env,
@@ -126,6 +126,14 @@ impl AgentInstanceObject {
     }
 
     /// Build the parts once, then reuse them.
+    ///
+    /// A Durable Object runs on one wasm thread. Its parts hold JavaScript
+    /// handles, which are not `Send` or `Sync`; the `Arc` is shared only inside
+    /// this thread (spec 83 feature 05, section 5.7).
+    #[allow(
+        clippy::arc_with_non_send_sync,
+        reason = "one Durable Object runs on one wasm thread"
+    )]
     async fn inner(&self) -> AgentRpcResult<Arc<AgentInner>> {
         if let Some(inner) = self
             .inner
@@ -200,10 +208,15 @@ impl AgentInstanceObject {
     /// The instance idle time to live (`instance_idle_ttl`) is off by default,
     /// so no alarm is armed. This answers the runtime and keeps the door open
     /// for the idle sweep.
-    pub async fn alarm(&self) -> worker::Result<worker::Response> {
-        Ok(worker::Response::empty().map_err(|error| {
+    ///
+    /// # Errors
+    /// A JavaScript error while building the empty response.
+    /// # Errors
+    /// A JavaScript error while building the empty response.
+    pub fn alarm(&self) -> impl Future<Output = worker::Result<worker::Response>> {
+        ready(worker::Response::empty().map_err(|error| {
             worker::Error::RustError(format!("the empty alarm response: {error}"))
-        })?)
+        }))
     }
 }
 
@@ -442,7 +455,7 @@ async fn restore_instances(inner: &AgentInner, subject: &str) -> AgentRpcResult<
                 .get_by_name::<Option<f64>>("temperature")
                 .ok()
                 .flatten()
-                .map(|value| value as f32),
+                .map(temperature_to_f32),
         };
         let info = InstanceInfo {
             name,
@@ -473,4 +486,16 @@ fn optional_integer(value: Option<usize>) -> DataValue {
 
 fn optional_real(value: Option<f32>) -> DataValue {
     value.map_or(DataValue::Null, |number| DataValue::Real(f64::from(number)))
+}
+
+/// A stored temperature as a 32-bit float.
+///
+/// A temperature is a small value, so the cast cannot overflow; it can only
+/// round. The session stores and reads it as a 32-bit float.
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "a temperature is a small value, so the cast only rounds"
+)]
+fn temperature_to_f32(value: f64) -> f32 {
+    value as f32
 }

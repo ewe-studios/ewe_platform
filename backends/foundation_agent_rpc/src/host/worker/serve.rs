@@ -222,17 +222,16 @@ impl CfServe for ConnectService {
         } else {
             handle.into_response()
         };
-        match response {
-            Some(response) => conn.set_response(response),
-            None => {
-                // The handler ended before it opened a stream and wrote no
-                // whole response either. Report an internal error.
-                let error = ServeError::InternalError {
-                    status: 500,
-                    reason: "the Connect handler wrote no response".to_string(),
-                };
-                return CfConnectionResult::Close(Some(ErrorTrace::new(error)));
-            }
+        if let Some(response) = response {
+            conn.set_response(response);
+        } else {
+            // The handler ended before it opened a stream and wrote no whole
+            // response either. Report an internal error.
+            let error = ServeError::InternalError {
+                status: 500,
+                reason: "the Connect handler wrote no response".to_string(),
+            };
+            return CfConnectionResult::Close(Some(ErrorTrace::new(error)));
         }
         CfConnectionResult::Ok
     }

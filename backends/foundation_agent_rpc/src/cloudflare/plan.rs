@@ -26,6 +26,7 @@ use foundation_deployment_cloudflare::{
 
 use crate::core::config::SecretRef as ModelSecretRef;
 use crate::core::model::ApiModelConfig;
+use crate::error::AgentRpcResult;
 
 /// The default name of the agent-rpc Worker.
 pub const DEFAULT_WORKER_NAME: &str = "cf-agent-rpc";
@@ -119,6 +120,12 @@ pub struct AgentRpcConfig {
     pub secrets: Vec<SecretRef>,
     /// The route patterns of the Worker.
     pub routes: Vec<String>,
+    /// The port of the native agent-rpc server in the container.
+    ///
+    /// Default [`crate::core::config::DEFAULT_AGENT_RPC_PORT`]. The image must
+    /// listen on this port, and the Durable Object passes it to
+    /// `AgentContainer::call`.
+    pub port: u16,
     /// The native agent-rpc container. `None` skips the container deployment.
     pub container: Option<ContainerConfig>,
 }
@@ -137,6 +144,7 @@ impl Default for AgentRpcConfig {
             models: Vec::new(),
             secrets: Vec::new(),
             routes: Vec::new(),
+            port: crate::core::config::DEFAULT_AGENT_RPC_PORT,
             container: Some(ContainerConfig::default()),
         }
     }
@@ -159,18 +167,14 @@ impl AgentRpcConfig {
     /// times is one secret; the first source wins. The map is sorted by name,
     /// so the same configuration gives the same plan.
     ///
-    /// A malformed JSON reference is not a value: the text becomes a plain
-    /// secret name, as a text that is not JSON does. The deployer then reports
-    /// the missing secret. The Worker host reports the same error at isolate
-    /// start.
-    #[must_use]
-    pub fn secret_refs(&self) -> Vec<SecretRef> {
+    /// # Errors
+    /// [`crate::error::AgentRpcError::Config`] when a model names a malformed
+    /// JSON secret reference.
+    pub fn secret_refs(&self) -> AgentRpcResult<Vec<SecretRef>> {
         let mut secrets: BTreeMap<String, SecretSource> = BTreeMap::new();
         for model in &self.models {
-            let (name, source) = match ModelSecretRef::parse(&model.api_key_secret) {
-                Ok(reference) => plan_secret(&reference),
-                Err(_) => (model.api_key_secret.clone(), SecretSource::WorkerSecret),
-            };
+            let reference = ModelSecretRef::parse(&model.api_key_secret)?;
+            let (name, source) = plan_secret(&reference);
             secrets.entry(name).or_insert(source);
         }
         for secret in &self.secrets {
@@ -178,16 +182,19 @@ impl AgentRpcConfig {
                 .entry(secret.name.clone())
                 .or_insert(secret.source.clone());
         }
-        secrets
+        Ok(secrets
             .into_iter()
             .map(|(name, source)| SecretRef { name, source })
-            .collect()
+            .collect())
     }
 }
 
 /// The plan of the agent-rpc Worker.
-#[must_use]
-pub fn agent_rpc_plan(config: &AgentRpcConfig) -> DeploymentPlan {
+///
+/// # Errors
+/// [`crate::error::AgentRpcError::Config`] when a model names a malformed JSON
+/// secret reference.
+pub fn agent_rpc_plan(config: &AgentRpcConfig) -> AgentRpcResult<DeploymentPlan> {
     let mut bindings = vec![Binding::DurableObject {
         name: config.instance_binding.clone(),
         class_name: config.instance_class.clone(),
@@ -227,7 +234,7 @@ pub fn agent_rpc_plan(config: &AgentRpcConfig) -> DeploymentPlan {
         })
         .collect();
 
-    DeploymentPlan {
+    Ok(DeploymentPlan {
         worker: WorkerDeployment {
             name: config.worker_name.clone(),
             main: config.worker_main.clone(),
@@ -240,8 +247,8 @@ pub fn agent_rpc_plan(config: &AgentRpcConfig) -> DeploymentPlan {
         }],
         containers,
         routes,
-        secrets: config.secret_refs(),
-    }
+        secrets: config.secret_refs()?,
+    })
 }
 
 /// Map the model secret reference of the Worker host to the plan reference.
