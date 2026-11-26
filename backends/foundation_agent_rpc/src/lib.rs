@@ -30,6 +30,7 @@ pub mod bootstrap;
 pub mod client;
 pub mod core;
 pub mod error;
+pub mod host;
 pub mod instance;
 pub mod model;
 pub mod proto;
