@@ -36,9 +36,11 @@ slave as the container's main process. This feature is library code only:
 6. The internal `ContainerService` that gives a native caller or a Worker a remote
    `ContainerHandle`.
 7. In `src/cloudflare/`: the implementations of the traits on the `worker` crate types.
+8. The model-slave substrate of decision D16: `CloudflareDoDriver`, `DoSlaveConnector`,
+   `ModelSlave`, `ModelClient` and `ModelConfig` (section 6.10).
 
-The logic of items 1 to 6 depends only on traits, so it compiles and is tested on a native
-host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
+The logic of items 1 to 6 and item 8 depends only on traits, so it compiles and is tested on
+a native host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
 
 ## 2. Story
 
@@ -50,6 +52,8 @@ host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
 - **S4**: "Nobody uses the sandbox for some time; it stops by itself."
 - **S5**: "The container is not listening yet, crashes, or was destroyed by the platform."
 - **S6**: "A caller stops the sandbox; the container is destroyed and the record is gone."
+- **S7**: "A caller creates a sandbox with the driver `cloudflare-do`; no container starts,
+  and each command answers with one model turn."
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
@@ -58,12 +62,13 @@ host with fakes. Feature 08 adds the Worker crate and the end-to-end test.
 | U3 | Restore | DO | first request after a restart of the DO | The manager has the sandbox again, or the record is removed. |
 | U4 | Idle stop | alarm | the idle deadline passed | `stop()`. |
 | U5 | Handle a request | DO class | an HTTP request | The `SandboxService` answer. |
+| U6 | Launch a model sandbox (D16) | control plane | `driver.launch` with driver `cloudflare-do` | No container; the endpoint is `CloudflareDo { binding: "SLAVE", name: id }`. |
 
 ## 3. Bounded context
 
 **Inside this feature:** the Cloudflare driver, the container control and handle, the port
-transport, the DO record store, the idle rule, the request handler of one DO, and the
-internal container service.
+transport, the DO record store, the idle rule, the request handler of one DO, the internal
+container service, and the model-slave substrate of decision D16 (section 6.10).
 
 **Outside:** `SandboxManager` and its laws (feature 02); the slave (feature 01); the Worker
 entry, routing to a DO, the token check and the container image (feature 08); the
@@ -79,6 +84,8 @@ Cloudflare runtime.
 | Idle deadline | The time after which an unused sandbox stops. Key `idle_deadline_ms`. | `DoControlPlane` |
 | Alarm | The DO's one timer. | `DoAlarm` trait |
 | Index | The list of sandboxes of the Worker. | feature 08 (an index DO); written here through `SandboxIndex` trait |
+| Model slave (D16) | A second DO that answers `SlaveService` with model turns. | `ModelSlave` (logic); feature 08 hosts the `ModelSlaveDo` class |
+| Model backend (D16) | OpenRouter or the Cloudflare Model API. | `ModelClient` trait; `WorkerModelClient` in feature 08 |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
@@ -334,10 +341,14 @@ Feature: Cloudflare control plane
 | `src/shared/cloudflare/container_service.rs` | all | The internal `ContainerService` router. |
 | `src/shared/cloudflare/platform.rs` | all | `CloudflarePlatform`, the `as_cloudflare` helper. |
 | `src/shared/cloudflare/transport.rs` | all | `ContainerPortTransport`, `PortConnector`. |
+| `src/shared/cloudflare/do_slave.rs` | all | `DoSlaveConnector`: a `SlaveConnector` over a service binding (section 6.10). |
+| `src/shared/cloudflare/model_slave.rs` | all | `ModelSlave`, the `ModelClient` trait and `ModelConfig` (section 6.10). |
 | `src/shared/cloudflare/store.rs` | all | `DoRecordStore`. |
 | `src/shared/cloudflare/control.rs` | all | `DoControlPlane`: restore, touch, alarm, request handling. |
-| `src/shared/cloudflare/testing.rs` | feature `testing` | `FakeContainer`, `MemoryDoStorage`, `FakeAlarm`, `MemoryIndex`. |
-| `src/cloudflare/mod.rs` | wasm32, feature `cloudflare` | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `CloudflareHost::from_state(&state, index)`. |
+| `src/shared/cloudflare/testing.rs` | feature `testing` | `FakeContainer`, `MemoryDoStorage`, `FakeAlarm`, `MemoryIndex`, `FakeModelClient`, `MemoryServiceBinding`. |
+| `src/cloudflare/mod.rs` | wasm32, feature `cloudflare` | `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `WorkerModelClient`, `CloudflareHost::from_state(&state, index)`. |
+
+`src/shared/cloudflare/driver.rs` also holds `CloudflareDoDriver` (section 6.10).
 
 The `shared/cloudflare/` code has no target gate (`.agents` rule: platform-agnostic code is
 in `shared/`). It uses only the traits below.
@@ -391,6 +402,8 @@ pub struct CloudflareConfig {
                                          // A cold container start with a first image pull takes much longer than a microVM boot.
     pub wait_timeout: Option<Duration>,  // default None: the internal `Wait` call has no deadline.
                                          // A container runs for hours; a boot deadline is wrong for it.
+    pub model: Option<ModelConfig>,      // default None: the model slave (D16) needs this config.
+    pub slave_binding: String,           // default "SLAVE": the binding of the model slave.
 }
 ```
 
@@ -607,8 +620,10 @@ index error is logged and does not fail the call (the index is a view; section 6
 pub struct DoControlPlane { /* ctx, host, manager, service, restored flag */ }
 
 impl DoControlPlane {
-    /// Builds a SandboxManager with one driver, PortConnector, DoRecordStore,
-    /// max_sandboxes 1, SandboxIdPolicy::Fixed(id) and DropPolicy::Detach.
+    /// Builds a SandboxManager with two drivers (the container driver of section 6.4 and
+    /// the DO driver of section 6.10), a connector that dispatches on the endpoint
+    /// (`CloudflarePort` to `ContainerPortTransport`, `CloudflareDo` to `DoSlaveConnector`),
+    /// DoRecordStore, max_sandboxes 1, SandboxIdPolicy::Fixed(id) and DropPolicy::Detach.
     /// `id`: `Some` on a request (the DO name, from the request); `None` on an alarm.
     /// The ID is stored under the key `sandbox_id` the first time it is known, and read
     /// from there when `id` is `None`. With no stored ID and `None`, there is nothing to
@@ -675,10 +690,64 @@ failed; `List` in feature 08 removes an entry whose DO answers `NotFound`.
 | `Prepare` fails | `destroy`; removes the record. | the `SlaveError` | nothing |
 | The DO is removed from memory during `Create` | The next request runs `restore`: a `Creating` record is cleaned up (`destroy`) and removed. | the first caller's stream ends with a transport error; a later `Get` gives `NotFound` | nothing |
 
+### 6.10 The slave may be another Durable Object (decision D16)
+
+A Cloudflare sandbox does not always need a container. The slave can be a second Durable
+Object that answers the same `SlaveService`:
+
+| Item | File | What it does |
+|---|---|---|
+| `DoSlaveConnector` | `shared/cloudflare/do_slave.rs` | A `SlaveConnector` over a service binding. Each call is `stub.fetch("https://slave.rpc/<Service>/<Method>")` in Connect framing, as `ContainerPortTransport` sends to a port, so the control-plane core does not change. |
+| `ModelSlave` | `shared/cloudflare/model_slave.rs` | The logic inside the slave DO. It serves `SlaveService` over `DoStorage`: `exec` runs one turn; `write_file` and `read_file` keep a small file table under `files/<path>`. |
+| `ModelClient` | the same file | The trait of one turn: `complete` takes the prompt and gives the answer. `WorkerModelClient` in `src/cloudflare/` is the wasm adapter; `FakeModelClient` is the test double. |
+| `CloudflareDoDriver` | `shared/cloudflare/driver.rs` | Driver id `cloudflare-do`. `launch` starts no container. Its substrate endpoint is `SlaveEndpoint::CloudflareDo { binding, name }`, and its handle has no `ContainerControl`. |
+
+`SlaveEndpoint` gains one variant:
+
+```rust
+/// A slave in a second Durable Object, through a service binding.
+CloudflareDo {
+    /// The name of the service binding, for example `SLAVE`.
+    binding: String,
+    /// The name of the slave DO: the sandbox id.
+    name: SandboxId,
+},
+```
+
+The native `SlaveConnector` refuses this variant with `PlatformMismatch`, as it refuses
+`CloudflarePort` today (`native/host.rs`).
+
+`ModelSlave` maps one `exec` to one turn: the program and its arguments become the prompt,
+and the model's answer becomes stdout. `ModelConfig` sits on `CloudflareConfig`:
+
+| Field | Meaning | Default |
+|---|---|---|
+| `backend` | `ModelBackend`: `OpenRouter { base_url, model }` or `CloudflareAi { model }`. The operator names the model; there is no built-in model name. | none: a launch with no backend is `UnsupportedCapability` |
+| `api_key_entry` | The `Ctx` entry name that holds the OpenRouter key. The `CloudflareAi` backend uses the `AI` binding and needs no key. The key never enters the record or a log. | none: an `OpenRouter` backend with no entry is `HostNotConfigured` |
+| `max_prompt_bytes` | The cap on the prompt built from the program and its arguments. | 64 KiB |
+| `max_answer_bytes` | The cap on stdout. A larger answer ends `exec` with `Rpc { code: "resource_exhausted" }`, and the message names the cap. | 1 MiB |
+| `turn_timeout` | The deadline of one turn. | 120 s |
+
+**Limits, stated plainly.** This substrate gives no operating-system isolation. The model
+never runs a program; it answers text. It exists so a model runtime is reachable through the
+same `SandboxService` and the same `Provider` surface as an isolated sandbox, which is what
+an agent that has no other execution target needs. A spec that needs a real command result
+uses a container or a microVM.
+
+**Where the Worker code is.** `ModelSlaveDo` is feature 08's `#[durable_object]` wrapper. It
+builds a `WorkerStorage`, a `WorkerModelClient` and a `ModelSlave`, and calls
+`ModelSlave::handle` for each request. Feature 08's Worker hosts it beside `SandboxDo`, and
+selects the substrate from the `SandboxSpec`: the driver `cloudflare-container` starts a
+container, and the driver `cloudflare-do` gives the endpoint of the `SLAVE` binding. The
+library part above is tested on a native host with a fake service binding.
+
 ## 7. Tests
 
-`backends/foundation_sandbox/tests/cloudflare_*.rs`, native, features `testing`.
-Each scenario of section 5 is one test.
+The tests are native modules in `backends/foundation_sandbox/tests/cloudflare/`:
+`driver.rs`, `container.rs`, `transport.rs`, `control.rs` and `model_slave.rs`.
+`tests/mod.rs` registers the directory under
+`#[cfg(all(feature = "cloudflare", feature = "testing"))]`. Each scenario of section 5 is
+one test.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
@@ -705,41 +774,22 @@ Each scenario of section 5 is one test.
 | container start | `container_start_handle` (the spec image, entry point and network flag; no sandbox record) | example |
 | container wait | `container_wait_deadline` (with `wait_timeout` set to 100 ms, a remote `Wait` on a container that never exits gives `DeadlineExceeded`) | expected outcome |
 | I9 | the native test run itself, and the wasm check in section 8 | build |
+| D16 (section 6.10), a launch starts no container | `do_driver_launch` (no `ContainerApi` call; the endpoint is `CloudflareDo { binding }`), `do_driver_attach` | example |
+| D16 (section 6.10), one `exec` is one turn | `model_slave_exec` (the prompt is the program and its arguments; the answer is stdout; the exit code is 0) | example |
+| D16, the caps of `ModelConfig` | `model_slave_answer_cap` (an answer over `max_answer_bytes` ends `exec` with `Rpc { code: "resource_exhausted" }`), `model_slave_turn_timeout` | expected outcome |
+| D16, the file table | `model_slave_file_table` (write, read, list, over `MemoryDoStorage`; a path with `..` is `InvalidSpec { field: "path" }`) | conservation |
+| D16, calls through the binding | `do_slave_connector_calls` (a fake service binding records one `fetch` for each RPC; a failed binding is `Rpc { code: "unavailable" }`) | identity |
+| D16, no container control | `do_driver_no_container_control` (the handle answers `container() == None` and `containers() == None`) | expected outcome |
 
 ## 8. Verify
 
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "testing slave" --profile uat cloudflare_ control_sim
+cargo test -p foundation_sandbox --features "testing slave" --profile uat cloudflare control_sim
 cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --profile uat
 cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
 ```
-
-### 6.10 The slave may be another Durable Object (decision D16)
-
-A Cloudflare sandbox does not always need a container. The slave can be a second Durable
-Object that answers the same `SlaveService`:
-
-- `DoSlaveConnector`: a `SlaveConnector` over a service binding. Each call is
-  `stub.fetch("https://slave.rpc/<Service>/<Method>")` in Connect framing, exactly like
-  `ContainerPortTransport`, so the control-plane core does not change.
-- `ModelSlave`: the code inside that DO. It runs one turn against OpenRouter or the
-  Cloudflare Model API, and maps `exec` to one turn: the program and its arguments become
-  the prompt, and the model's answer becomes stdout. `write_file` and `read_file` keep a
-  small file table in the DO's storage.
-- `CloudflareDoDriver` (driver id `cloudflare-do`): a `SandboxDriver` whose `launch` returns
-  the endpoint of the slave DO instead of starting a container. It has no `ContainerControl`.
-
-**Limits, stated plainly.** This substrate gives no operating-system isolation. The model
-never runs a program; it answers text. It exists so a model runtime is reachable through the
-same `SandboxService` and the same `Provider` surface as an isolated sandbox, which is what
-an agent that has no other execution target needs. A spec that needs a real command result
-uses a container or a microVM.
-
-**Where the Worker code is.** The two DO classes (`control`, `slave`) are feature 08's
-Worker: it hosts both substrates and selects one from the `SandboxSpec`. The library part
-above is tested on a native host with a fake service binding.
 
 ## 9. Done when
 
@@ -750,3 +800,5 @@ above is tested on a native host with a fake service binding.
 - A restarted DO control plane finds its sandbox again (invariant I7).
 - A `ContainerHandle` starts, talks to, runs commands in, and stops a container with no
   sandbox record.
+- The driver `cloudflare-do` starts no container. `ModelSlave` answers `exec` with one turn,
+  and its file table survives a restart of the DO (decision D16).

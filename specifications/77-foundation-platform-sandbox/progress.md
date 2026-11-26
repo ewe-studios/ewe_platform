@@ -155,7 +155,8 @@ Two corrections from the owner changed the design.
 3. **A Cloudflare slave may be another Durable Object (DO).** That DO answers
    `SlaveService` with agent turns against OpenRouter or the Cloudflare Model API. The
    driver id is `cloudflare-do`. It gives no operating-system isolation. Decision D16,
-   feature 07 section 6.10, and feature 08's Worker hosts both DO classes.
+   feature 07 section 6.10, and feature 08's Worker hosts the class `ModelSlaveDo` beside
+   `SandboxDo` and `SandboxIndexDo`.
 
 ## Feature 01: the slave core (2026-11-25)
 
@@ -436,25 +437,96 @@ Issue [#872](https://github.com/ewe-studios/ewe_platform/issues/872) (severity: 
 records that the generic `SandboxSpec::validate` does not enforce
 `Capabilities::max_vcpus`; the Firecracker driver checks the value in its `Prepare` state.
 
+## The chain merges and the decision-16 correction (2026-11-26)
+
+Features 00 to 05 and the two fixes merged into `master`:
+
+- `5329c1c46` merge `fix/sync-target-tables`;
+- `9928e2aea` merge `spec77/f01-slave-core`;
+- `9a6f64274` merge `spec77/f03-guest-artifacts`;
+- `d1d79a0cf` merge `spec77/f04-firecracker-api-client`;
+- `6fc3b8c34` merge `spec77/f05-firecracker-driver`;
+- `7ba24e558` merge `fix/registrar-proto-reuse`.
+
+`scripts/ci/sync_release_tree.py` then set every path requirement to the tree version and
+regenerated 28 nested lock files (`5f1c6362e`).
+
+The full check of the merged tree is the `check.yaml` run with `packages=all`. A run
+cancelled by a newer push is not a failure (specifications rule 2). The run of the final
+commit is the record.
+
+The feature 07 and feature 08 documents now agree with decision D16. One part was not
+written down before: where each piece lives.
+
+| Piece | Owner |
+|---|---|
+| `DoSlaveConnector`, `ModelSlave`, `ModelClient`, `CloudflareDoDriver`, `SlaveEndpoint::CloudflareDo` | feature 07 library, `shared/cloudflare/` |
+| `ModelSlaveDo` (the `#[durable_object]` wrapper), `WorkerModelClient`, the `SLAVE` and `AI` bindings | feature 08 Worker |
+
+The other corrections:
+
+- `DoControlPlane::open` builds the manager with **two** drivers and one connector that
+  dispatches on the endpoint. Before, it named one driver and one `PortConnector`.
+- The `CloudflareAi` backend uses the `AI` binding and needs no key. Only `OpenRouter`
+  reads a key, from the `Ctx` environment entry that `ModelConfig.api_key_entry` names.
+- The model tests use a local fake model server. A model key is not in CI.
+
+Issue [#880](https://github.com/ewe-studios/ewe_platform/issues/880) (severity: low)
+records that `worker` has nine crate-local declarations, no `[workspace.dependencies]`
+entry, and a lock at 0.8.5 while the latest stable is 0.9.0.
+
+## Feature 06: the programs, the RPC server and the Provider (2026-11-27)
+
+Feature 06 is on the branch `spec77/f06-programs-rpc-provider`, from `master` at
+`35cd63630`, as pull request #881. Commits `4b9e2de92` and `22cff605a`.
+
+- `src/bin/agent_sandbox.rs` and `src/bin/agent_slave.rs`; the slave binary needs only
+  `slave,cli`.
+- `src/cli/`: `SandboxCli`, `SlaveCli`, `run(ctx, cli) -> i32`, `parse_listen`,
+  `parse_connect`, exit codes 64, 69, 125 and 1, signal handling, progress lines.
+- `src/native/serve.rs`: `SandboxService` on a Unix domain socket (mode 0600, stale-file
+  handling, path limit) and on TCP (constant-time bearer check, no start without a token).
+  `bind_control`, `serve_bound` and `serve_control_with` let a test read the port that the
+  kernel gives.
+- `src/native/connect.rs`: `ConnectAddr` and `SandboxRpcClient::connect` for `unix:`,
+  `tcp:` and `http(s)://`.
+- `src/providers/` behind the `provider` feature.
+- `foundation_deployment_platform`: `ProviderId::Firecracker` and the `sandbox` feature.
+- `sandbox-e2e.yaml` (Firecracker 1.15.0, KVM, mise slave build, `EWE_SANDBOX_E2E_REQUIRED=1`),
+  `ci/packages.toml` runs, the `agent` profile, the `sandbox:slave` task, `docs/sandbox.md`.
+- Versions: `foundation_sandbox` 0.0.8 and `foundation_deployment_platform` 0.1.9.
+
+The checks on the macOS host pass: 149 tests with `cli,provider,testing`, clippy with
+`-D warnings`, the wasm32 check, both musl checks, and `sync_release_tree.py --check`.
+
+The agent did not update this file, because the coordinator held uncommitted edits here and
+asked for explicit paths only. This section is that update.
+
+**Not done, and why:**
+
+| Item | Reason |
+|---|---|
+| `rpc_create_dropped_cleans_up`, `rpc_input_duplicate_and_gap` over a real Unix domain socket | The simulation half exists in feature 02. The real-socket half needs a Linux run. |
+| `token_never_logged` | No tracing-capture dev-dependency. A source scan is a cheaper proof. |
+| `cli_remote_flow`, `cli_run_*`, `provider_e2e_firecracker` | They need Linux with KVM. |
+| `agent_sandbox_cli.rs` as the test path | The tests live in `foundation_sandbox/tests/`, where the binary is built. |
+| The musl static-link `file` check | Only `cargo check` for both musl targets ran on macOS. `mise run sandbox:slave` runs it on Linux. |
+
+The source scan of invariant I12 treats `src/cli/` as a boundary, because
+`cli::sandbox::run` is the body of the `agent-sandbox` main function. The test documents
+this.
+
 ## In progress
 
-**Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
-The crate `backends/foundation_sandbox` holds the domain types, the typed error,
-the limits as configuration, the two RPC service definitions and the traits. It is in
-`ci/packages.toml`.
+Feature 06 is in pull request #881. Its review and merge are next.
 
-The checks pass: `cargo check` for native and wasm32, `cargo test` (25 tests),
-`cargo fmt --check`, and clippy with `-D warnings`. The no-default-features build passes
-for native and wasm32. The musl check was not run because the target is not installed on
-this host.
+Features 00 to 05 are on `master` and their tests pass in CI.
 
 ## Next
 
-1. Features 02, 03 and 04 in parallel (one agent each). Feature 01 is done; feature 02
-   and feature 07 build on it.
-2. Feature 06: MVP-A (Firecracker). Feature 05 is done.
-3. Feature 07 in parallel with 06 (it needs only 01 and 02); then feature 08:
-   MVP-B (Cloudflare).
+1. Feature 07 (the Cloudflare control plane, library), on a branch from the merged tree.
+2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B.
+3. Spec 83 feature 04 (the native host and the deterministic simulation tests).
 4. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
    product). Feature 17 needs 08.
 5. Phase 3: features 12 to 15 (images).

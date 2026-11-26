@@ -1576,3 +1576,76 @@ the two sweeps, the state model of the handle and the source scan of invariant I
 final gate is Linux, and the Linux continuous integration (CI) image is the check for it.
 The native side-effect tests (7 on macOS) run on both Unix systems. The real microVM tests
 are Linux with Kernel-based Virtual Machine (KVM) only.
+
+## 17. The decision-16 documents did not agree (2026-11-26)
+
+Decision D16 puts the model slave in the Cloudflare part. Requirements section 8 and
+decision D16 name "feature 07 (library) and feature 08 (Worker classes)". Feature 07 gained
+section 6.10 on 2026-11-25. Feature 08 was not updated: its goal, its context table, its
+`wrangler.toml`, its deployment plan and its tests named two DO classes only.
+
+A reader of feature 08 would have built a Worker with no `SLAVE` class and no binding for
+it. The plan had a hole, not only a wording fault.
+
+### 17.1 Root cause
+
+The decision was recorded in two files that describe the same fact at different levels
+(requirements and feature 07), and the third file that depends on it (feature 08) was left
+alone. A cross-document check was missing. The owner asked for the check ("review to
+validate"); it found the gap.
+
+### 17.2 What the correction adds
+
+- A table in feature 07 section 6.10 that names the file of each type. Before, it named the
+  types only.
+- `SlaveEndpoint::CloudflareDo { binding, name }`. The name is necessary: a service binding
+  names a class, and `id_from_name` gives the instance. Without the name, every sandbox
+  would reach one slave DO.
+- Two drivers and one endpoint-dispatching connector in `DoControlPlane::open`. The first
+  text named one driver and `PortConnector`.
+- `ModelSlaveDo`, `WorkerModelClient`, the `SLAVE` and `AI` bindings, `Binding::Ai` in the
+  plan, and the model rows of feature 08's test table.
+- The `CloudflareAi` backend uses the `AI` binding, so it needs no key. Only `OpenRouter`
+  reads a key. This keeps one secret out of the Worker.
+
+### 17.3 Size
+
+Feature 07 is 794 lines and feature 08 is 728 lines, over the 700-line review line of
+`specifications/CLAUDE.md`. Both files grew by the D16 part. A later pass may split the D16
+library into its own feature; requirements section 8 would then need a new number and a new
+edge in the feature graph. The current order keeps 07 and 08 as the owner's decision D16
+states.
+
+## 18. Feature 06 implementation findings (2026-11-27)
+
+### 18.1 The default binary needs the driver
+
+The first commit of feature 06 built `agent-sandbox` without the `firecracker` feature, so
+`run` had no driver on a Linux host. Commit `22cff605a` gives the default feature set the
+Firecracker driver. A binary that ships a default action needs the default provider of that
+action.
+
+### 18.2 Two crates became non-optional for the native build
+
+`foundation_http` and `foundation_netio` are now non-optional native dependencies. Both were
+already in every native graph through the slave and the artifact store. The two musl checks
+show that the slave binary still links no TLS library.
+
+### 18.3 The I12 source scan needs a boundary list
+
+The scan of invariant I12 looks for sandbox logic in the program crates. It must exempt
+`src/cli/`, because `cli::sandbox::run` holds the body of the `agent-sandbox` main function.
+A scan without that exemption reports the program's own entry point as a violation. The test
+names the exemption and its reason.
+
+### 18.4 The test binary owns the CLI tests
+
+The feature named `agent_sandbox_cli.rs` as the test file. The crate has one test binary
+(`tests/mod.rs`), so the CLI tests are modules of it. This follows root rule 7 and keeps one
+binary for the whole crate.
+
+### 18.5 What a macOS host cannot prove
+
+The static-link check, the real Unix domain socket cases of the create and input paths, and
+every microVM case need Linux. The macOS run proves the types, the parsing and the wasm and
+musl checks. The pull request's CI job is the proof for the rest.
