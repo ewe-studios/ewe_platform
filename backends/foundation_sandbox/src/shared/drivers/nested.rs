@@ -415,6 +415,13 @@ async fn poll_stopped(provider: &SandboxRpcClient, inner: &SandboxId, ctx: &Ctx)
             // A stopped inner sandbox is not ready, so `get` refuses it.
             Err(_) => return,
         }
-        foundation_core::valtron::timer::sleep_for(Duration::from_secs(1), ctx).await;
+        // The injected timer works on a native host and on wasm.
+        let deadline = ctx.clock().now() + Duration::from_secs(1);
+        if crate::shared::control::wait_until(deadline, ctx)
+            .await
+            .is_err()
+        {
+            return;
+        }
     }
 }
