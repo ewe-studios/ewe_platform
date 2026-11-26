@@ -16,7 +16,7 @@ jobs:
       commit: ${{ steps.pack.outputs.commit }}
     steps:
       - uses: actions/checkout@v4.4.0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24.21.0
           package-manager-cache: false
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.4.0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24.21.0
           package-manager-cache: false
