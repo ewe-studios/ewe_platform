@@ -27,6 +27,7 @@ fn main() {
     let mut types: std::collections::HashMap<String, String> = std::collections::HashMap::new();
     let mut seqs: std::collections::HashMap<(String, String), u64> = std::collections::HashMap::new();
     let mut sent: std::collections::HashMap<(String, String), Vec<u8>> = std::collections::HashMap::new();
+    let mut dynamic = Dynamic::default();
 
     for line in stdin.lock().lines() {
         let Ok(line) = line else { break };
@@ -50,6 +51,7 @@ fn main() {
             &mut types,
             &mut seqs,
             &mut sent,
+            &mut dynamic,
         ));
         let _ = writeln!(stdout, "{result}");
         let _ = stdout.flush();
@@ -61,6 +63,58 @@ fn main() {
 
 #[cfg(not(target_arch = "wasm32"))]
 type Client = foundation_netio::shared::durable::DurableClient;
+
+/// The dynamic header and query values, evaluated once per request.
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Default)]
+struct Dynamic {
+    headers: std::collections::HashMap<String, (String, u64, String)>,
+    params: std::collections::HashMap<String, (String, u64)>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Dynamic {
+    fn headers_for_request(&mut self) -> (Vec<(String, String)>, serde_json::Map<String, serde_json::Value>) {
+        let mut values = Vec::new();
+        let mut sent = serde_json::Map::new();
+        for (name, (kind, counter, token)) in &mut self.headers {
+            let value = match kind.as_str() {
+                "counter" => {
+                    *counter += 1;
+                    counter.to_string()
+                }
+                "timestamp" => std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|value| value.as_millis().to_string())
+                    .unwrap_or_default(),
+                _ => token.clone(),
+            };
+            sent.insert(name.clone(), value.clone().into());
+            values.push((name.clone(), value));
+        }
+        (values, sent)
+    }
+
+    fn params_for_request(&mut self) -> (Vec<(String, String)>, serde_json::Map<String, serde_json::Value>) {
+        let mut values = Vec::new();
+        let mut sent = serde_json::Map::new();
+        for (name, (kind, counter)) in &mut self.params {
+            let value = match kind.as_str() {
+                "timestamp" => std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|value| value.as_millis().to_string())
+                    .unwrap_or_default(),
+                _ => {
+                    *counter += 1;
+                    counter.to_string()
+                }
+            };
+            sent.insert(name.clone(), value.clone().into());
+            values.push((name.clone(), value));
+        }
+        (values, sent)
+    }
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 fn failure_result(command_type: &str, code: &str, message: &str) -> serde_json::Value {
@@ -146,6 +200,7 @@ async fn handle(
     types: &mut std::collections::HashMap<String, String>,
     seqs: &mut std::collections::HashMap<(String, String), u64>,
     sent: &mut std::collections::HashMap<(String, String), Vec<u8>>,
+    dynamic: &mut Dynamic,
 ) -> (serde_json::Value, bool) {
     use foundation_netio::native::durable::NetioTransport;
     use foundation_netio::shared::durable::{ClientConfig, DurableClient, ReadMode};
@@ -179,7 +234,7 @@ async fn handle(
                     "auto": false,
                     "streaming": false,
                     "batching": true,
-                    "dynamicHeaders": false,
+                    "dynamicHeaders": true,
                 },
             }),
             false,
@@ -190,7 +245,13 @@ async fn handle(
         return (failure_result(kind, "INTERNAL_ERROR", "init was not sent"), false);
     };
     let path = command["path"].as_str().unwrap_or("");
-    let handle = client.handle(path).with_headers(headers_of(command));
+    let (dynamic_headers, headers_sent) = dynamic.headers_for_request();
+    let (dynamic_params, params_sent) = dynamic.params_for_request();
+    let handle = client
+        .handle(path)
+        .with_headers(headers_of(command))
+        .with_headers(dynamic_headers)
+        .with_query(dynamic_params);
 
     match kind {
         "create" => {
@@ -292,6 +353,8 @@ async fn handle(
                             "duplicate": duplicate,
                             "producerEpoch": header_number(&outcome.headers, "producer-epoch"),
                             "producerSeq": header_number(&outcome.headers, "producer-seq"),
+                            "headersSent": headers_sent,
+                            "paramsSent": params_sent,
                         }),
                         false,
                     )
@@ -402,6 +465,8 @@ async fn handle(
                     "upToDate": result.up_to_date,
                     "streamClosed": result.closed,
                     "cursor": result.cursor,
+                    "headersSent": headers_sent,
+                    "paramsSent": params_sent,
                 }),
                 false,
             )
@@ -599,10 +664,24 @@ async fn handle(
             serde_json::json!({"type": "idempotent-detach", "success": true, "status": 200}),
             false,
         ),
-        "set-dynamic-header" | "set-dynamic-param" | "clear-dynamic" => (
-            serde_json::json!({"type": kind, "success": true}),
-            false,
-        ),
+        "set-dynamic-header" => {
+            let name = command["name"].as_str().unwrap_or("").to_string();
+            let kind = command["valueType"].as_str().unwrap_or("token").to_string();
+            let initial = command["initialValue"].as_str().unwrap_or("").to_string();
+            dynamic.headers.insert(name, (kind.clone(), 0, initial));
+            (serde_json::json!({"type": kind, "success": true}), false)
+        }
+        "set-dynamic-param" => {
+            let name = command["name"].as_str().unwrap_or("").to_string();
+            let kind = command["valueType"].as_str().unwrap_or("counter").to_string();
+            dynamic.params.insert(name, (kind.clone(), 0));
+            (serde_json::json!({"type": kind, "success": true}), false)
+        }
+        "clear-dynamic" => {
+            dynamic.headers.clear();
+            dynamic.params.clear();
+            (serde_json::json!({"type": "clear-dynamic", "success": true}), false)
+        }
         "validate" => validate(command),
         _ => (failure_result(kind, "NOT_SUPPORTED", "the adapter does not handle this command"), false),
     }

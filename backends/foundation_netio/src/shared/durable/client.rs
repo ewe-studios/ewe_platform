@@ -177,6 +177,7 @@ impl DurableClient {
             url: format!("{base}{path}"),
             path,
             headers: self.config.default_headers.clone(),
+            extra_query: Vec::new(),
         }
     }
 }
@@ -188,6 +189,7 @@ pub struct StreamHandle {
     url: String,
     path: String,
     headers: Vec<(String, String)>,
+    extra_query: Vec<(String, String)>,
 }
 
 impl StreamHandle {
@@ -205,6 +207,14 @@ impl StreamHandle {
         clone
     }
 
+    /// Return a copy of this handle that adds query parameters to every request.
+    #[must_use]
+    pub fn with_query(&self, params: Vec<(String, String)>) -> Self {
+        let mut clone = self.clone();
+        clone.extra_query.extend(params);
+        clone
+    }
+
     fn request(
         &self,
         method: HttpMethod,
@@ -214,6 +224,15 @@ impl StreamHandle {
     ) -> ClientRequest {
         let mut all = self.headers.clone();
         all.extend_from_slice(headers);
+        let mut query = query.to_string();
+        for (name, value) in &self.extra_query {
+            if !query.is_empty() {
+                query.push('&');
+            }
+            query.push_str(name);
+            query.push('=');
+            query.push_str(value);
+        }
         let url = if query.is_empty() {
             self.url.clone()
         } else {

@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 dynamic headers and params are enabled. The adapter evaluates a
+  counter, timestamp or token value on each request and reports `headersSent` and `paramsSent`.
+  The client gate rises to 202 pass, 0 fail, 67 skip.
 - 2026-11-27: feature 08 records the verified conformance commands and their results in its
   feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
   71 skip. The harness task remains.
