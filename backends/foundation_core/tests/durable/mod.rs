@@ -3,6 +3,8 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod property;
 #[cfg(not(target_arch = "wasm32"))]
+mod reader;
+#[cfg(not(target_arch = "wasm32"))]
 mod scenarios;
 mod store_contract;
 mod support;
