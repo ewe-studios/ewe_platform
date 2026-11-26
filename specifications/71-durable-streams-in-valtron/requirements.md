@@ -1,5 +1,5 @@
 ---
-description: "Embed the Durable Streams protocol as a transport-neutral, conformance-tested core in foundation_core::durable. Add an HTTP adapter, a ConnectRPC adapter, a Rust client and a conformance gate. Then wrap the core in foundation_core::valtron::durable with Stream::Wait, WakeableStream, Stream::Spread and #[task], so the core works with or without valtron."
+description: "Embed the Durable Streams protocol as a transport-neutral, conformance-tested core in foundation_core::durable. Add an HTTP adapter, a ConnectRPC adapter, a Rust client and a conformance gate. Then wrap the core in foundation_core::durable::valtron with Stream::Wait, WakeableStream, Stream::Spread and #[task], so the core works with or without valtron."
 status: "planned"
 priority: "high"
 created: 2026-10-30
@@ -75,7 +75,7 @@ Today the platform has the pieces, but not one reusable contract:
   named as one thing.
 
 This spec names the contract. It puts the protocol core in `foundation_core::durable::shared`. It puts
-the valtron wrapper in `foundation_core::valtron::durable`. The valtron layer is required.
+the valtron wrapper in `foundation_core::durable::valtron`. The valtron layer is required.
 
 **The core rule.** The protocol core must pass conformance without valtron. The valtron layer
 wraps the core. It must not change protocol outcomes.
@@ -130,7 +130,7 @@ flowchart TB
 _Caption: The core serves every runtime and transport, so it works without valtron._
 
 The core is `foundation_core::durable::shared`. The valtron wrapper is
-`foundation_core::valtron::durable`. The client core is
+`foundation_core::durable::valtron`. The client core is
 `foundation_core::durable::client`. The client defines the transport trait it expects.
 `foundation_netio` implements it for the native and web hosts, above the core. Platform code
 follows the repository layout: `shared/`, `wasm/`, `cf/` and `native/`.

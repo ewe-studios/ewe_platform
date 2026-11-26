@@ -306,3 +306,40 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The page byte limit is enforced by the service.** With a 4-byte page, a 10-byte stream
   takes at least three reads and no chunk exceeds 4 bytes. The test walks the cursor to the tail
   and joins the bytes. This pins the "no VFS materialises a whole stream" rule.
+
+## File VFS (2026-11-27)
+
+- **The first implementation did not compile.** `StoredFork` derived `Default`, but
+  `StreamName` has no `Default`. Remove the derive. `Option<StoredFork>` needs no `Default` for
+  the parent struct.
+- **A fork length is relative to its base.** The data log holds only the bytes the stream wrote.
+  Add the fork base to the log length. A raw log length made a fork report too small a tail after
+  an append.
+- **A missing fork source is `NotFound`, not `Io`.** Map `io::ErrorKind::NotFound` in the
+  metadata read. The protocol maps `NotFound` to the right status.
+- **The metadata version must not change on touch.** The store reads a version, then appends with
+  that expected version. A touch bump causes false conflicts. Only append, close and trim bump
+  the version.
+- **Cascade needs a loop.** Removing a fork can drop its source to zero references. A single scan
+  leaves that source on disk. Repeat until no candidate remains.
+- **Append must notify.** The notifier is the long-poll wake path. Call it after a successful
+  append, append-with-meta, close and soft delete.
+
+## Valtron wrappers in the durable tree (2026-11-27)
+
+- **The owner put both wrappers under `durable`.** The new path is
+  `foundation_core::durable::valtron`. A glob re-export at
+  `foundation_core::valtron::durable` keeps the old path. Keep one copy only.
+- **A module-level re-export does not cycle.** The wrapper imports `crate::valtron` items, and the
+  compatibility module re-exports the wrapper. Rust resolves this because the items are not
+  recursive.
+- **The client wrapper imports its sibling core by full path.** `super::client` inside
+  `valtron/client.rs` names the wrapper's own module, not the client core. Use
+  `crate::durable::shared::client`.
+
+## Scoped block_on (2026-11-27)
+
+- **`mpsc::channel` needs its type at the call.** Write `mpsc::channel::<Waker>()`. The
+  receiver's later use does not infer it.
+- **A poll count proves park, not spin.** The cross-thread test records two polls: one `Pending`,
+  one after `unpark`. A busy loop would record many.

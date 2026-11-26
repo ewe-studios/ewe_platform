@@ -52,7 +52,7 @@ Paths follow the repository layout:
 | Item | Path |
 |---|---|
 | Core reader | `foundation_core/src/durable/shared/` |
-| Valtron reader | `foundation_core/src/valtron/durable/` |
+| Valtron reader | `foundation_core/src/durable/shared/valtron/` |
 
 ```rust
 pub struct DurableStreamReader {

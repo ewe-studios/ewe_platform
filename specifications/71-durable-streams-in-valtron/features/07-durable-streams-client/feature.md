@@ -75,7 +75,7 @@ Paths follow the repository layout:
 | Client core and transport trait | `foundation_core/src/durable/shared/client/` |
 | Native transport | `foundation_netio/src/native/durable.rs` |
 | wasm transport | `foundation_netio/src/wasm/durable/` |
-| Valtron client wrapper | `foundation_core/src/durable/shared/client/valtron.rs` |
+| Valtron client wrapper | `foundation_core/src/durable/shared/valtron/client.rs` |
 
 ```rust
 pub struct DurableClient { /* transport, base URL, headers, retry, clock */ }

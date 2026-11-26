@@ -63,7 +63,7 @@ Paths follow the repository layout:
 | Item | Path |
 |---|---|
 | Core writer and producer | `foundation_core/src/durable/shared/` |
-| Valtron writer and task | `foundation_core/src/valtron/durable/` |
+| Valtron writer and task | `foundation_core/src/durable/shared/valtron/` |
 
 ```rust
 pub struct DurableStreamWriter<Store> { service: DurableService<Store>, name: StreamName }

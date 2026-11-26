@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 05 T4 landed. `FileVfs` in `foundation_nativeapis` has 8 tests:
+  create, append, exact read, restart, stale-version conflict, fork prefix, invisible
+  source append, soft-delete cascade, missing fork source, closed append and notifier.
+  The crate suite with `vfs-native` is 238 pass, 0 fail, 5 ignored.
+- 2026-11-27: the valtron wrappers moved to `foundation_core::durable::valtron`. The
+  old `foundation_core::valtron::durable` path re-exports them. The durable suite is
+  106 pass, 0 fail.
+- 2026-11-27: `block_on_future_scoped` has 4 tests: a borrowed non-`Send` future, a
+  cross-thread wake, a self-wake and a panic. They pass with and without `multi`.
 - 2026-11-27: feature 07 auto mode and streaming are enabled. The adapter catches up, then
   waits once with a long-poll read. The client gate rises to 208 pass, 0 fail, 61 skip.
 - 2026-11-27: feature 07 dynamic headers and params are enabled. The adapter evaluates a
@@ -112,7 +121,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-27: spec restructured to version 2.0. The protocol core moves to
   `foundation_core::durable` and has no valtron, HTTP or socket dependency. The HTTP and
   ConnectRPC adapters call `DurableService`. The valtron reader, writer and producer task move to
-  `foundation_core::valtron::durable` as the required wrapper. Added feature 07 (Rust client) and
+  `foundation_core::durable::valtron` as the required wrapper. Added feature 07 (Rust client) and
   feature 08 (conformance). Server and client conformance are a hard gate. The runtime matrix
   covers local embedded, DO, Worker, WebSocket and the `foundation_ai` Session. The owner
   reviewed and approved the 716-line scope for `requirements.md` on 2026-11-27. No feature
