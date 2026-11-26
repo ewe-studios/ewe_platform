@@ -18,6 +18,8 @@ pub struct DurableLimits {
     pub page_chunks: usize,
     /// The long-poll timeout in milliseconds.
     pub long_poll_timeout_ms: u64,
+    /// The longest a Server-Sent Events (SSE) connection lives, in milliseconds.
+    pub sse_lifetime_ms: u64,
 }
 
 impl Default for DurableLimits {
@@ -30,6 +32,9 @@ impl Default for DurableLimits {
             page_chunks: 256,
             // 30 s: the Go `net/http` server default read/write idle expectation.
             long_poll_timeout_ms: 30_000,
+            // 60 s: the protocol guidance, so a content delivery network (CDN) can collapse
+            // reconnects.
+            sse_lifetime_ms: 60_000,
         }
     }
 }

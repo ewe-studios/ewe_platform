@@ -3,27 +3,38 @@
 //! The adapter owns the wire rules. It calls the transport-neutral `DurableService`.
 
 use crate::native::serve::{Serve, ServeFactory};
-use crate::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
+use crate::native::writer::{
+    render_head, render_message, write_response, ResponseWriter, WriterConfig,
+};
 use crate::shared::durable::parse::{
     encode_offset, parse_offset, parse_producer, parse_stream_closed, parse_stream_seq, parse_ttl,
 };
 use crate::shared::durable::status::{header, status_for};
 use crate::shared::serve::ServeOutcome;
+use base64::Engine as _;
+use foundation_compact::rng::Rng;
 use foundation_context::Ctx;
-use foundation_core::durable::cache::{etag, CachePolicy};
+use foundation_core::durable::cache::{etag, generate_cursor, CachePolicy, CursorConfig};
 use foundation_core::durable::{
     AppendRequest, Chunk, CloseRequest, ContentType, CreateSpec, DurableLimits, DurableService,
-    DurableStream, Expiry, ForkSpec, ReadFrom, ReadLimit, ReadRequest, StoreError,
+    DurableStream, Expiry, ForkSpec, ReadFrom, ReadLimit, ReadPage, ReadRequest, StoreError,
     StreamName, StreamOffset,
 };
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::valtron::timer::sleep_for;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::collect_bytes_bounded;
 use foundation_netio::shared::http::{
-    SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleOutgoingResponse, Status,
 };
 use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::future::Future;
+use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll, Waker};
+use std::time::{Duration, UNIX_EPOCH};
 
 /// The largest request body the adapter reads. 8 MiB: the wasm bridge default, well below the
 /// Cloudflare 100 MB cap and above the nginx 1 MiB default.
@@ -100,21 +111,50 @@ pub fn stream_name_from_path(path: &str) -> Result<StreamName, StoreError> {
     StreamName::parse(path)
 }
 
+/// How a GET reads the stream.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LiveMode {
+    /// Read what exists now and return.
+    CatchUp,
+    /// Wait for new data, then return it.
+    LongPoll,
+    /// Keep the connection open and send events.
+    Sse,
+}
+
+/// Read the `live` query parameter.
+///
+/// # Errors
+/// Returns [`StoreError::BadRequest`] for an unknown live mode.
+pub fn live_mode(queries: Option<&BTreeMap<String, String>>) -> Result<LiveMode, StoreError> {
+    match queries.and_then(|queries| queries.get("live")).map(String::as_str) {
+        None => Ok(LiveMode::CatchUp),
+        Some("long-poll") => Ok(LiveMode::LongPoll),
+        Some("sse") => Ok(LiveMode::Sse),
+        Some(_) => Err(StoreError::BadRequest(
+            foundation_core::durable::BadRequestKind::Header,
+        )),
+    }
+}
+
 /// Answers one request against the service.
 ///
-/// The adapter calls this from `serve`. A test calls it directly.
+/// The adapter calls this from `serve`. A test calls it directly. Server-Sent
+/// Events (SSE) needs the connection, so `serve` handles it before this call.
 ///
 /// # Errors
 /// Returns the [`StoreError`] the service reported. The caller maps it to a
 /// status with [`status_for`].
 pub async fn dispatch(
     service: &DurableService<DurableStream>,
+    ctx: &Ctx,
     request: DurableRequest,
 ) -> Result<DurableResponse, StoreError> {
     match request.method {
         SimpleMethod::GET => {
             handle_get(
                 service,
+                ctx,
                 &request.name,
                 &request.headers,
                 request.queries.as_ref(),
@@ -170,6 +210,16 @@ impl Serve for DurableHandler {
                 Err(error) => return respond_error(conn, &ctx, &error).await,
             };
 
+            if method == SimpleMethod::GET {
+                match live_mode(queries.as_ref()) {
+                    Ok(LiveMode::Sse) => {
+                        return serve_sse(&service, &ctx, &name, queries.as_ref(), conn).await;
+                    }
+                    Ok(_) => {}
+                    Err(error) => return respond_error(conn, &ctx, &error).await,
+                }
+            }
+
             let request = DurableRequest {
                 method,
                 name,
@@ -178,7 +228,7 @@ impl Serve for DurableHandler {
                 body,
             };
 
-            match dispatch(&service, request).await {
+            match dispatch(&service, &ctx, request).await {
                 Ok(response) => respond(conn, &ctx, response).await,
                 Err(error) => respond_error(conn, &ctx, &error).await,
             }
@@ -251,18 +301,217 @@ fn content_type(headers: &SimpleHeaders) -> Result<ContentType, StoreError> {
     }
 }
 
+/// The wire body for one read page.
+///
+/// JSON streams wrap the page in a JSON array. Every other content type
+/// concatenates the chunks.
+#[must_use]
+pub fn render_page_body(content_type: &ContentType, page: &ReadPage) -> Vec<u8> {
+    let mut body = Vec::new();
+    if content_type.is_json() {
+        body.push(b'[');
+        for (index, chunk) in page.chunks.iter().enumerate() {
+            if index > 0 {
+                body.push(b',');
+            }
+            body.extend_from_slice(chunk.as_bytes());
+        }
+        body.push(b']');
+    } else {
+        for chunk in &page.chunks {
+            body.extend_from_slice(chunk.as_bytes());
+        }
+    }
+    body
+}
+
+fn cursor_value(ctx: &Ctx, client: Option<u64>) -> u64 {
+    let now = ctx
+        .clock()
+        .wall_now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or(Duration::ZERO)
+        .as_secs();
+    let jitter = {
+        let rng = ctx.rng();
+        let mut rng = rng
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        (rng.next_u64() % 3600) + 1
+    };
+    generate_cursor(client, now, &CursorConfig::default(), jitter)
+}
+
+fn client_cursor(queries: Option<&BTreeMap<String, String>>) -> Option<u64> {
+    queries
+        .and_then(|queries| queries.get("cursor"))
+        .and_then(|value| value.parse::<u64>().ok())
+}
+
+/// A one-shot wake when a stream appends or closes.
+struct AppendWait {
+    fired: Arc<AtomicBool>,
+    waker: Arc<Mutex<Option<Waker>>>,
+}
+
+impl Future for AppendWait {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
+        if self.fired.load(Ordering::SeqCst) {
+            return Poll::Ready(());
+        }
+        *self
+            .waker
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(cx.waker().clone());
+        if self.fired.load(Ordering::SeqCst) {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
+        }
+    }
+}
+
+/// Register a wake on the stream notifier before the first read.
+///
+/// A store without a notifier fires at once, so a live read then answers
+/// without data instead of hanging.
+fn append_wait(service: &DurableService<DurableStream>, name: &StreamName) -> AppendWait {
+    let fired = Arc::new(AtomicBool::new(false));
+    let waker: Arc<Mutex<Option<Waker>>> = Arc::new(Mutex::new(None));
+    match service.notifier(name) {
+        Some(notifier) => {
+            let fired = fired.clone();
+            let slot = waker.clone();
+            notifier.register(Box::new(move || {
+                fired.store(true, Ordering::SeqCst);
+                if let Some(waker) = slot
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .take()
+                {
+                    waker.wake();
+                }
+            }));
+        }
+        None => fired.store(true, Ordering::SeqCst),
+    }
+    AppendWait { fired, waker }
+}
+
+/// A future that completes when either input completes.
+struct First<A, B> {
+    first: A,
+    second: B,
+}
+
+impl<A, B> Future for First<A, B>
+where
+    A: Future<Output = ()> + Unpin,
+    B: Future<Output = ()> + Unpin,
+{
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<()> {
+        let this = self.get_mut();
+        if Pin::new(&mut this.first).poll(cx).is_ready() {
+            return Poll::Ready(());
+        }
+        if Pin::new(&mut this.second).poll(cx).is_ready() {
+            return Poll::Ready(());
+        }
+        Poll::Pending
+    }
+}
+
+async fn wait_or_timeout(wait: AppendWait, timeout: Duration, ctx: &Ctx) {
+    First {
+        first: wait,
+        second: sleep_for(timeout, ctx),
+    }
+    .await;
+}
+
+/// Build a live response for one page.
+///
+/// A page with no chunks answers `204`; a page with chunks answers `200`.
+fn live_response(
+    ctx: &Ctx,
+    content_type: &ContentType,
+    page: &ReadPage,
+    client: Option<u64>,
+) -> DurableResponse {
+    let closed = page.cursor.closed;
+    let mut headers = base_headers();
+    headers.push((
+        SimpleHeader::custom(header::STREAM_NEXT_OFFSET),
+        offset_text(&page.cursor.next),
+    ));
+    if page.cursor.up_to_date || closed {
+        headers.push((
+            SimpleHeader::custom(header::STREAM_UP_TO_DATE),
+            "true".to_string(),
+        ));
+    }
+    if closed {
+        headers.push((
+            SimpleHeader::custom(header::STREAM_CLOSED),
+            "true".to_string(),
+        ));
+    } else {
+        headers.push((
+            SimpleHeader::custom(header::STREAM_CURSOR),
+            cursor_value(ctx, client).to_string(),
+        ));
+    }
+    headers.push((
+        SimpleHeader::CACHE_CONTROL,
+        CachePolicy::NoCache.header_value().to_string(),
+    ));
+
+    if page.chunks.is_empty() {
+        return DurableResponse {
+            status: 204,
+            headers,
+            body: Vec::new(),
+        };
+    }
+
+    headers.push((
+        SimpleHeader::CONTENT_TYPE,
+        content_type.as_str().to_string(),
+    ));
+    DurableResponse {
+        status: 200,
+        headers,
+        body: render_page_body(content_type, page),
+    }
+}
+
 async fn handle_get(
     service: &DurableService<DurableStream>,
+    ctx: &Ctx,
     name: &StreamName,
     headers: &SimpleHeaders,
     queries: Option<&BTreeMap<String, String>>,
 ) -> Result<DurableResponse, StoreError> {
-    if queries.and_then(|queries| queries.get("live")).is_some() {
-        return Err(StoreError::Unsupported);
+    match live_mode(queries)? {
+        LiveMode::CatchUp => handle_catch_up(service, ctx, name, headers, queries).await,
+        LiveMode::LongPoll => handle_long_poll(service, ctx, name, queries).await,
+        // SSE needs the connection, so `serve` handles it before dispatch.
+        LiveMode::Sse => Err(StoreError::Unsupported),
     }
+}
 
-    let offset = queries.and_then(|queries| queries.get("offset"));
-    let from = match offset {
+async fn handle_catch_up(
+    service: &DurableService<DurableStream>,
+    ctx: &Ctx,
+    name: &StreamName,
+    headers: &SimpleHeaders,
+    queries: Option<&BTreeMap<String, String>>,
+) -> Result<DurableResponse, StoreError> {
+    let from = match queries.and_then(|queries| queries.get("offset")) {
         Some(value) => parse_offset(value)?,
         None => ReadFrom::Start,
     };
@@ -278,22 +527,7 @@ async fn handle_get(
         )
         .await?;
 
-    let mut body = Vec::new();
-    if head.content_type.is_json() {
-        body.push(b'[');
-        for (index, chunk) in page.chunks.iter().enumerate() {
-            if index > 0 {
-                body.push(b',');
-            }
-            body.extend_from_slice(chunk.as_bytes());
-        }
-        body.push(b']');
-    } else {
-        for chunk in &page.chunks {
-            body.extend_from_slice(chunk.as_bytes());
-        }
-    }
-
+    let body = render_page_body(&head.content_type, &page);
     let closed = page.cursor.closed;
     let tag = etag(name.as_str(), 0, body.len() as u64, closed);
     if header_value(headers, "if-none-match").as_deref() == Some(tag.as_str()) {
@@ -324,6 +558,11 @@ async fn handle_get(
             SimpleHeader::custom(header::STREAM_CLOSED),
             "true".to_string(),
         ));
+    } else {
+        response_headers.push((
+            SimpleHeader::custom(header::STREAM_CURSOR),
+            cursor_value(ctx, client_cursor(queries)).to_string(),
+        ));
     }
     response_headers.push((SimpleHeader::ETAG, tag));
     response_headers.push((
@@ -336,6 +575,49 @@ async fn handle_get(
         headers: response_headers,
         body,
     })
+}
+
+async fn handle_long_poll(
+    service: &DurableService<DurableStream>,
+    ctx: &Ctx,
+    name: &StreamName,
+    queries: Option<&BTreeMap<String, String>>,
+) -> Result<DurableResponse, StoreError> {
+    let Some(value) = queries.and_then(|queries| queries.get("offset")) else {
+        return Err(StoreError::BadRequest(
+            foundation_core::durable::BadRequestKind::Offset,
+        ));
+    };
+    let from = parse_offset(value)?;
+    let client = client_cursor(queries);
+    let content_type = service.head(name).await?.content_type;
+
+    let signal = append_wait(service, name);
+    let mut page = service
+        .read(
+            name,
+            ReadRequest {
+                from,
+                limit: ReadLimit::default(),
+            },
+        )
+        .await?;
+
+    if page.chunks.is_empty() && !page.cursor.closed {
+        let timeout = Duration::from_millis(service.limits().long_poll_timeout_ms);
+        wait_or_timeout(signal, timeout, ctx).await;
+        page = service
+            .read(
+                name,
+                ReadRequest {
+                    from: ReadFrom::Offset(page.cursor.next.clone()),
+                    limit: ReadLimit::default(),
+                },
+            )
+            .await?;
+    }
+
+    Ok(live_response(ctx, &content_type, &page, client))
 }
 
 async fn handle_head(
@@ -540,4 +822,198 @@ async fn handle_delete(
 
 fn offset_text(offset: &StreamOffset) -> String {
     encode_offset(offset)
+}
+
+/// The wire text of one Server-Sent Events (SSE) `data` event.
+///
+/// A payload with newlines becomes one `data:` line per piece, as the SSE
+/// format requires.
+#[must_use]
+pub fn sse_data_event(payload: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(payload.len() + 16);
+    out.extend_from_slice(b"event: data\n");
+    let mut pieces = payload.split(|byte| *byte == b'\n').peekable();
+    while let Some(piece) = pieces.next() {
+        out.extend_from_slice(b"data: ");
+        out.extend_from_slice(piece);
+        out.push(b'\n');
+        if pieces.peek().is_none() {
+            break;
+        }
+    }
+    out.push(b'\n');
+    out
+}
+
+/// The wire text of one SSE `control` event.
+#[must_use]
+pub fn sse_control_event(json: &str) -> Vec<u8> {
+    format!("event: control\ndata: {json}\n\n").into_bytes()
+}
+
+/// The control payload for one SSE step.
+#[must_use]
+pub fn sse_control_json(
+    next: &StreamOffset,
+    cursor: Option<u64>,
+    up_to_date: bool,
+    closed: bool,
+) -> String {
+    let mut object = serde_json::Map::new();
+    object.insert(
+        "streamNextOffset".to_string(),
+        serde_json::Value::String(offset_text(next)),
+    );
+    if let Some(cursor) = cursor {
+        object.insert("streamCursor".to_string(), cursor.into());
+    }
+    if up_to_date {
+        object.insert("upToDate".to_string(), true.into());
+    }
+    if closed {
+        object.insert("streamClosed".to_string(), true.into());
+    }
+    serde_json::Value::Object(object).to_string()
+}
+
+/// Render a response head with no content length, so the body runs to close.
+fn streaming_head(headers: &[(SimpleHeader, String)]) -> Result<Vec<u8>, String> {
+    let mut builder = SimpleOutgoingResponse::builder().with_status(Status::OK);
+    for (name, value) in headers {
+        builder = builder.add_header(name.clone(), value.clone());
+    }
+    let response = builder
+        .with_body(SendSafeBody::SseStream(None))
+        .build()
+        .map_err(|error| error.to_string())?;
+    render_message(response)
+}
+
+async fn serve_sse(
+    service: &DurableService<DurableStream>,
+    ctx: &Ctx,
+    name: &StreamName,
+    queries: Option<&BTreeMap<String, String>>,
+    conn: SharedByteBufferStream<RawStream>,
+) -> ServeOutcome {
+    let Some(value) = queries.and_then(|queries| queries.get("offset")) else {
+        let error = StoreError::BadRequest(foundation_core::durable::BadRequestKind::Offset);
+        return respond_error(conn, ctx, &error).await;
+    };
+    let mut next = match parse_offset(value) {
+        Ok(from) => from,
+        Err(error) => return respond_error(conn, ctx, &error).await,
+    };
+    let head = match service.head(name).await {
+        Ok(head) => head,
+        Err(error) => return respond_error(conn, ctx, &error).await,
+    };
+    let binary = !(head.content_type.is_json()
+        || head.content_type.as_str().starts_with("text/"));
+    let client = client_cursor(queries);
+
+    let mut headers = base_headers();
+    headers.push((
+        SimpleHeader::CONTENT_TYPE,
+        "text/event-stream".to_string(),
+    ));
+    headers.push((
+        SimpleHeader::CACHE_CONTROL,
+        CachePolicy::NoCache.header_value().to_string(),
+    ));
+    headers.push((SimpleHeader::CONNECTION, "close".to_string()));
+    headers.push((
+        SimpleHeader::custom("x-accel-buffering"),
+        "no".to_string(),
+    ));
+    if binary {
+        headers.push((
+            SimpleHeader::custom(header::STREAM_SSE_DATA_ENCODING),
+            "base64".to_string(),
+        ));
+    }
+    let head_bytes = match streaming_head(&headers) {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            tracing::error!("durable sse head build failed: {error}");
+            return ServeOutcome::Close(None);
+        }
+    };
+
+    let mut writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
+    if let Err(error) = writer.write_all(&head_bytes).await {
+        tracing::debug!("durable sse head write ended: {error}");
+        return ServeOutcome::Close(None);
+    }
+
+    let deadline =
+        ctx.clock().now() + Duration::from_millis(service.limits().sse_lifetime_ms);
+    loop {
+        let signal = append_wait(service, name);
+        let page = match service
+            .read(
+                name,
+                ReadRequest {
+                    from: next.clone(),
+                    limit: ReadLimit::default(),
+                },
+            )
+            .await
+        {
+            Ok(page) => page,
+            Err(error) => {
+                tracing::debug!("durable sse read ended: {error}");
+                return ServeOutcome::Close(None);
+            }
+        };
+
+        if !page.chunks.is_empty() {
+            let body = render_page_body(&head.content_type, &page);
+            let payload = if binary {
+                base64::engine::general_purpose::STANDARD
+                    .encode(body)
+                    .into_bytes()
+            } else {
+                body
+            };
+            if let Err(error) = writer.write_all(&sse_data_event(&payload)).await {
+                tracing::debug!("durable sse data write ended: {error}");
+                return ServeOutcome::Close(None);
+            }
+        }
+
+        let closed = page.cursor.closed;
+        let cursor = if closed {
+            None
+        } else {
+            Some(cursor_value(ctx, client))
+        };
+        let control = sse_control_json(
+            &page.cursor.next,
+            cursor,
+            page.cursor.up_to_date || closed,
+            closed,
+        );
+        if let Err(error) = writer.write_all(&sse_control_event(&control)).await {
+            tracing::debug!("durable sse control write ended: {error}");
+            return ServeOutcome::Close(None);
+        }
+        if let Err(error) = writer.flush().await {
+            tracing::debug!("durable sse flush ended: {error}");
+            return ServeOutcome::Close(None);
+        }
+
+        if closed {
+            return ServeOutcome::Close(None);
+        }
+
+        next = ReadFrom::Offset(page.cursor.next.clone());
+        let now = ctx.clock().now();
+        if now >= deadline {
+            return ServeOutcome::Close(None);
+        }
+        if page.chunks.is_empty() {
+            wait_or_timeout(signal, deadline.saturating_duration_since(now), ctx).await;
+        }
+    }
 }

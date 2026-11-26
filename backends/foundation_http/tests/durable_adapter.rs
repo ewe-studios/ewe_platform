@@ -9,17 +9,23 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     DurableService, DurableStream, MemoryVfs, StoreError, StreamName, StreamOffset,
 };
 use foundation_http::native::durable::{
-    dispatch, stream_name_from_path, DurableRequest, DurableResponse,
+    dispatch, live_mode, sse_control_event, sse_control_json, sse_data_event,
+    stream_name_from_path, DurableRequest, DurableResponse, LiveMode,
 };
 use foundation_http::shared::durable::parse::encode_offset;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 
 fn service() -> DurableService<DurableStream> {
     DurableService::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+}
+
+fn service_for(stream: DurableStream) -> DurableService<DurableStream> {
+    DurableService::new(stream)
 }
 
 /// The wire text of a byte position.
@@ -45,6 +51,7 @@ async fn send(
 ) -> Result<DurableResponse, StoreError> {
     dispatch(
         service,
+        &Ctx::host(),
         DurableRequest {
             method,
             name: StreamName::parse(name).expect("valid stream name"),
@@ -382,4 +389,213 @@ fn given_a_partial_producer_header_set_when_post_runs_then_it_is_a_bad_request()
         .expect_err("partial");
         assert!(matches!(error, StoreError::BadRequest(_)));
     });
+}
+
+#[test]
+fn given_live_long_poll_values_when_parsed_then_only_known_modes_are_accepted() {
+    assert_eq!(live_mode(None).expect("catch-up"), LiveMode::CatchUp);
+
+    let mut queries = BTreeMap::new();
+    queries.insert("live".to_string(), "long-poll".to_string());
+    assert_eq!(
+        live_mode(Some(&queries)).expect("long-poll"),
+        LiveMode::LongPoll
+    );
+
+    queries.insert("live".to_string(), "sse".to_string());
+    assert_eq!(live_mode(Some(&queries)).expect("sse"), LiveMode::Sse);
+
+    queries.insert("live".to_string(), "stream".to_string());
+    assert!(live_mode(Some(&queries)).is_err());
+}
+
+#[test]
+fn given_a_stream_with_data_when_long_poll_runs_then_it_returns_the_data_at_once() {
+    smol::block_on(async {
+        let service = service();
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
+
+        let mut queries = BTreeMap::new();
+        queries.insert("offset".to_string(), "-1".to_string());
+        queries.insert("live".to_string(), "long-poll".to_string());
+        let response = send(
+            &service,
+            SimpleMethod::GET,
+            "events",
+            headers(&[]),
+            Some(queries),
+            "",
+        )
+        .await
+        .expect("long-poll");
+
+        assert_eq!(response.status, 200);
+        assert_eq!(response.body, b"abc");
+        assert!(response.header("Stream-Cursor").is_some());
+    });
+}
+
+#[test]
+fn given_an_open_stream_at_the_tail_when_an_append_arrives_then_long_poll_returns_it() {
+    smol::block_on(async {
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let service = DurableService::new(stream.clone());
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "")
+            .await
+            .expect("create");
+        let offset = send(
+            &service,
+            SimpleMethod::GET,
+            "events",
+            headers(&[]),
+            None,
+            "",
+        )
+        .await
+        .expect("read")
+        .header("Stream-Next-Offset")
+        .expect("offset")
+        .to_string();
+
+        let appender = service_for(stream);
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(20));
+            smol::block_on(async {
+                send(
+                    &appender,
+                    SimpleMethod::POST,
+                    "events",
+                    headers(&[]),
+                    None,
+                    "late",
+                )
+                .await
+                .expect("append");
+            });
+        });
+
+        let mut queries = BTreeMap::new();
+        queries.insert("offset".to_string(), offset);
+        queries.insert("live".to_string(), "long-poll".to_string());
+        let response = send(
+            &service,
+            SimpleMethod::GET,
+            "events",
+            headers(&[]),
+            Some(queries),
+            "",
+        )
+        .await
+        .expect("long-poll");
+
+        assert_eq!(response.status, 200);
+        assert_eq!(response.body, b"late");
+    });
+}
+
+#[test]
+fn given_a_closed_stream_at_the_tail_when_long_poll_runs_then_it_returns_204_closed() {
+    smol::block_on(async {
+        let service = service();
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
+        send(
+            &service,
+            SimpleMethod::POST,
+            "events",
+            headers(&[("stream-closed", "true")]),
+            None,
+            "",
+        )
+        .await
+        .expect("close");
+
+        let mut queries = BTreeMap::new();
+        queries.insert("offset".to_string(), "-1".to_string());
+        queries.insert("live".to_string(), "long-poll".to_string());
+        let response = send(
+            &service,
+            SimpleMethod::GET,
+            "events",
+            headers(&[]),
+            Some(queries),
+            "",
+        )
+        .await
+        .expect("long-poll");
+
+        assert_eq!(response.status, 200);
+        assert_eq!(response.body, b"abc");
+
+        let next = response
+            .header("Stream-Next-Offset")
+            .expect("offset")
+            .to_string();
+        let mut queries = BTreeMap::new();
+        queries.insert("offset".to_string(), next);
+        queries.insert("live".to_string(), "long-poll".to_string());
+        let eof = send(
+            &service,
+            SimpleMethod::GET,
+            "events",
+            headers(&[]),
+            Some(queries),
+            "",
+        )
+        .await
+        .expect("long-poll eof");
+        assert_eq!(eof.status, 204);
+        assert_eq!(eof.header("Stream-Closed"), Some("true"));
+        assert_eq!(eof.header("Stream-Up-To-Date"), Some("true"));
+    });
+}
+
+#[test]
+fn given_a_long_poll_without_an_offset_when_dispatch_runs_then_it_is_a_bad_request() {
+    smol::block_on(async {
+        let service = service();
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
+
+        let mut queries = BTreeMap::new();
+        queries.insert("live".to_string(), "long-poll".to_string());
+        let error = send(
+            &service,
+            SimpleMethod::GET,
+            "events",
+            headers(&[]),
+            Some(queries),
+            "",
+        )
+        .await
+        .expect_err("bad request");
+        assert!(matches!(error, StoreError::BadRequest(_)));
+    });
+}
+
+#[test]
+fn given_a_text_payload_with_newlines_when_it_becomes_a_data_event_then_each_line_has_a_prefix() {
+    let event = sse_data_event(b"a\nb\n");
+    assert_eq!(
+        String::from_utf8(event).expect("utf-8"),
+        "event: data\ndata: a\ndata: b\ndata: \n\n"
+    );
+}
+
+#[test]
+fn given_a_control_step_when_it_is_rendered_then_it_carries_the_offset_and_cursor() {
+    let next = StreamOffset::from_bytes(4_u64.to_be_bytes().to_vec());
+    let json = sse_control_json(&next, Some(7), true, false);
+    assert!(json.contains(&format!("\"streamNextOffset\":\"{}\"", encode_offset(&next))));
+    assert!(json.contains("\"streamCursor\":7"));
+    assert!(json.contains("\"upToDate\":true"));
+    assert!(!json.contains("streamClosed"));
+
+    let closed = sse_control_json(&next, None, true, true);
+    assert!(closed.contains("\"streamClosed\":true"));
+    assert!(!closed.contains("streamCursor"));
+
+    let event = String::from_utf8(sse_control_event(&json)).expect("utf-8");
+    assert_eq!(event, format!("event: control\ndata: {json}\n\n"));
 }
