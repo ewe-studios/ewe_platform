@@ -52,6 +52,7 @@ pub use core::auth_store::*;
 pub use core::backends::*;
 pub use core::cleanup::*;
 pub use core::crypto::*;
+pub use core::do_sql::*;
 pub use core::errors::*;
 pub use core::schema::*;
 pub use core::storage_provider as traits;

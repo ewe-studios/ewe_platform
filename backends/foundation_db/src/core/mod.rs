@@ -2,6 +2,7 @@
 
 pub mod auth_store;
 pub mod cleanup;
+pub mod do_sql;
 pub mod errors;
 pub(crate) mod rate_limit;
 pub mod storage_provider;
@@ -15,6 +16,7 @@ pub use auth_store::*;
 pub use backends::*;
 pub use cleanup::*;
 pub use crypto::*;
+pub use do_sql::*;
 pub use errors::*;
 pub use schema::*;
 pub use storage_provider::*;
