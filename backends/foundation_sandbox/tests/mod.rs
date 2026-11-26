@@ -25,6 +25,9 @@ mod firecracker;
 #[cfg(all(target_os = "linux", feature = "slave"))]
 mod slave;
 
+/// The Cloudflare tests. They need the `cloudflare` and `testing` features.
+#[cfg(all(feature = "cloudflare", feature = "testing"))]
+mod cloudflare;
 /// The native side-effect tests of feature 05. They start real processes and
 /// dial real Unix sockets, with no virtual machine.
 #[cfg(all(unix, feature = "control"))]

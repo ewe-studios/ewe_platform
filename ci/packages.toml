@@ -832,15 +832,15 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # programs and serves the control plane; the `provider` run proves the
 # `Provider` facade (spec 77 feature 06).
 wasm = "enforce"
-wasm-runs = ["", "--no-default-features"]
-runs = ["", "slave", "testing", "slave cli testing", "cli provider testing"]
+wasm-runs = ["", "--no-default-features", "--no-default-features --features control cloudflare"]
+runs = ["", "slave", "testing", "slave cli testing", "cli provider testing", "cloudflare testing"]
 # Lint each feature tree of this phase: a warning in the CLI, the slave or the
 # provider must fail CI too.
 clippy-runs = ["", "slave cli testing", "cli provider testing"]
 clippy-deny-warnings = true
 # The slave tests are Linux only: "the slave is a Linux guest program". It calls
 # fork, signalfd, mount and the process identifier 1 duties, which no other
-# operating system has. macOS and Windows run the contract, control, CLI and
-# provider tests.
-macos-runs = ["", "testing", "cli testing"]
-windows-runs = ["", "testing", "cli testing"]
+# operating system has. macOS and Windows run the contract, control, CLI,
+# provider and Cloudflare tests.
+macos-runs = ["", "testing", "cli testing", "cloudflare testing"]
+windows-runs = ["", "testing", "cli testing", "cloudflare testing"]

@@ -559,6 +559,13 @@ impl SlaveConnector for NativeConnector {
                 }
                 .into());
             }
+            SlaveEndpoint::CloudflareDo { .. } => {
+                return Err(SandboxError::PlatformMismatch {
+                    expected: crate::shared::platform::PlatformKind::Cloudflare,
+                    actual: crate::shared::platform::PlatformKind::Native,
+                }
+                .into());
+            }
         };
         Ok(Arc::new(H1Transport::new(client)))
     }
