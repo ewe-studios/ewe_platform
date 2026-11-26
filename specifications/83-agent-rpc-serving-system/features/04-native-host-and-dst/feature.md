@@ -94,7 +94,7 @@ feature 03).
 | `backends/foundation_core/src/valtron/sim.rs` | `SimRuntime` behind a `testing` feature: one thread, one `SimClock`, one `SeededEntropy`, a fixed task order. |
 | `backends/foundation_connectrpc/src/testing/mod.rs` | `MemNetwork` and `MemTransport` behind a `testing` feature: client and server in one process, no socket. |
 | `backends/foundation_db/src/testing/mod.rs` | `Faulty*` wrappers behind a `testing` feature: a failure injected at a named step. |
-| `backends/foundation_agent_rpc/src/testing/mod.rs` | `ScriptedCatalog` and `TestWorld` behind a `testing` feature. |
+| `backends/foundation_agent_rpc_dst/src/{lib,catalog,world}.rs` | `ScriptedCatalog` and `TestWorld` in their own package (`publish = false`), so they build without the multi-threaded pool. |
 
 ### 5.2 The start order
 
@@ -129,6 +129,11 @@ handshake task T4 copies the peer certificate into `ConnectionContext::tls`.
 
 ### 5.4 The simulation parts
 
+The harness is its own package, `foundation_agent_rpc_dst`. The crate `foundation_agent_rpc`
+enables `foundation_core/multi` through its own `multi` feature, which is in `default`. A
+package that turns `default-features` off gets the single-threaded engine and `SimRuntime`
+(issue #904).
+
 One seed sets the clock, the entropy, the identifier source and the task order. The parts are
 the table in section 3 of the DST design file. A test uses `SimRuntime::start(seed, start)` and
 `TestWorld`, and drives the flow of section 5 of that file.
@@ -155,10 +160,10 @@ All tests are modules of each crate's `tests/` directory (root rule 7).
 | Shutdown | `foundation_agent_rpc/tests/native_shutdown_tests.rs` | A running turn gets `TurnFailed("server shutting down")` after `shutdown_grace`; sessions end. |
 | Insecure guard | `foundation_agent_rpc/tests/native_config_tests.rs` | `InsecurePlaintext` with a non-loopback address fails before any bind (I2). |
 | Missing key | the same | A missing operator key names the command that makes it (I1). |
-| DST flow | `foundation_agent_rpc/tests/dst_tests.rs` | Create, enroll, one turn, destroy, all in memory, from one seed. |
+| DST flow | `foundation_agent_rpc_dst/tests/dst_tests.rs` | Create, enroll, one turn, destroy, all in memory, from one seed. |
 | DST determinism | the same | For 32 fixed seeds, two runs give identical traces. |
 | Injected failure | the same | A `Faulty` store fails at each named step; the call gives its typed error. |
-| Feature gates | `ci/packages.toml` | The runs of `foundation_agent_rpc`: `""` and `"gguf"`; and a `testing` run. |
+| Feature gates | `ci/packages.toml` | `foundation_agent_rpc`: `""` and `"gguf"`. `foundation_agent_rpc_dst` on Linux, macOS and Windows. |
 
 ## 8. Verify
 
@@ -166,7 +171,7 @@ All tests are modules of each crate's `tests/` directory (root rule 7).
 cargo fmt --all --check
 cargo clippy -p foundation_agent_rpc --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_agent_rpc --profile uat native_
-cargo test -p foundation_agent_rpc --features testing --profile uat dst_
+cargo test -p foundation_agent_rpc_dst --profile uat dst_
 cargo test -p foundation_core --features testing --profile uat sim
 cargo test -p foundation_connectrpc --features testing --profile uat mem_
 cargo test -p foundation_db --features testing --profile uat faulty
