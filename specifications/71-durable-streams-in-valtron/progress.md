@@ -13,6 +13,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-27: feature 08 records the verified conformance commands and their results in its
   feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
   71 skip. The harness task remains.
+- 2026-11-27: checkpoint. `ci/durable_conformance.sh` exits 0: server 332 pass, 6 skip, 0 fail;
+  client 208 pass, 0 fail, 61 skip. The 61 skips are Server-Sent Events (SSE) only. Closed
+  issues: #926 (405 flake, regression test), #974 (JSON page chunk limit), #975 (JSON VFS read
+  window). Open: #963 (blocking SSE poll) and #947 (head with the event stream). The client core
+  holds 21 mock tests, the HTTP adapter 28, the core 78.
 - 2026-11-27: three small verified slices. A rate-limit error answers 429 with `Retry-After`. The
   status-table test names every `StoreError` variant. `DurableLimits` has a builder for each
   field. An architecture test proves the durable core names no `::valtron`, `foundation_http`,
