@@ -19,6 +19,16 @@ of Europe (ASD), the owner of the STE standard ASD-STE100.
 Create the protocol core in `foundation_core::durable`. It has no valtron dependency. Every
 later feature builds on these types and the store trait.
 
+**User story.** As a platform engineer, I want one protocol core, so that every runtime and
+transport shares the same semantics.
+
+**BDD scenarios.**
+
+- Given two offsets from one stream, when I compare them, then byte order decides.
+- Given a media type with parameters, when I parse it, then the type is normalized.
+- Given a stream path with `..`, when I parse it, then the request is refused.
+- Given a driver, when the business API creates and appends, then a reader sees the bytes.
+
 ## 2. Requirements
 
 1. **Offsets and sequences.** `StreamOffset` and `StreamSeq` are opaque newtypes over bytes.
@@ -46,8 +56,9 @@ later feature builds on these types and the store trait.
     `BadRequestKind` names the bad-request case. `StoreError` is `Send + Sync + 'static`.
 11. **The store trait.** `DurableStreamStore` has create, head, append, read, close, delete,
     fork and notifier. It uses native `async fn`. The reader and writer are generic over it.
-12. **Injection.** `DurableStream` is the host's concrete store enum. It implements the trait by
-    delegation. `Ctx` holds `Arc<DurableStream>`, not `Arc<dyn DurableStreamStore>`.
+12. **Injection.** `DurableStream` is a struct in feature 05. It wraps `Arc<dyn DurableStreamVfs>`
+    and implements the store trait. `Ctx` holds `Arc<DurableStream>`, not
+    `Arc<dyn DurableStreamStore>`.
 13. **No valtron.** This module has no valtron type, trait or executor. It compiles without
     valtron.
 14. **Portable types.** The types use `core` and `alloc` types. The crate requires `std` today,
@@ -137,6 +148,8 @@ pub trait DurableStreamStore {
 
 ## 4. Tasks
 
+- [x] **T0 — story and scenarios.** Write the user story and the Given/When/Then scenarios
+      before the code. They guide T1 to T6.
 - [x] **T1 — core types.** All types in section 3. Tests: offset and sequence order is
       byte-lexicographic; `ContentType` normalises case and parameters; `StreamName` rejects
       traversal; `Expiry` rejects both forms at once; `StoreError` carries its detail.
@@ -150,6 +163,9 @@ pub trait DurableStreamStore {
       `given_a_driver_when_the_store_is_used_then_the_business_api_sees_it`.
 - [x] **T6 — BDD harness.** A shared Given/When/Then helper. Test:
       `given_a_scenario_when_it_runs_then_every_driver_runs_the_same_steps`.
+- [x] **T7 — oracles.** Specification and property oracles for the core types, plus an implicit
+      no-panic oracle. Tests: `given_a_malformed_type_when_parsed_then_it_is_refused`,
+      `parsing_never_panics`.
 
 ## 5. Success criteria
 
@@ -157,4 +173,5 @@ pub trait DurableStreamStore {
 - [ ] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
 - [ ] `foundation_core::durable` has no valtron, socket or global runtime dependency.
 - [ ] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
+- [ ] The specification and property oracles pass.
 - [ ] No `#[cfg(test)]` module in source files.

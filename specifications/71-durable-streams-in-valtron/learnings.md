@@ -57,9 +57,17 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   all drive the same core reader. Do not make one transport the core model.
 - **The client core is independent too.** The Rust client core is plain async. A valtron wrapper
   turns it into a `StreamIterator`. The conformance adapter drives the core, not the wrapper.
-- **The valtron layer adds only scheduling.** `Stream::Wait`, `Stream::Spread`,
-  `Stream::Pending`, `WakeableStream`, `#[task]` and the bridges sit above the core. They are
-  the right tools for the job. They are not the contract.
+- **The valtron layer is required.** `Stream::Wait`, `Stream::Spread`, `Stream::Pending`,
+  `WakeableStream`, `#[task]` and the bridges sit above the core. They make the core usable in
+  valtron tasks and streams. They are not optional. They do not change the contract.
+- **Storage is a boxed VFS.** `DurableStream` is a struct over `Arc<dyn DurableStreamVfs>`. The
+  VFS trait is object-safe via boxed futures. The memory VFS lives in `foundation_core`. The
+  file VFS lives in `foundation_nativeapis`. The protocol core and `Ctx` do not change when the
+  VFS changes. `Ctx` holds `Arc<DurableStream>`.
+- **Each VFS lives in its native crate.** The memory VFS uses `foundation_core`. The file VFS
+  uses `foundation_nativeapis`, so it can use native file I/O and LMDB. R2/S3 uses
+  `foundation_db`. DO SQLite and D1 use their spec 83 crates. The VFS uses the full capability
+  of its environment.
 - **HTTP is one surface, not the server.** The core is runtime-neutral. The same core runs in a
   local embedded process, a DO, a Worker, a WebSocket server and the `foundation_ai` Session.
   Tests prove each target. A socket, a global runtime or an HTTP type in the core is a defect.

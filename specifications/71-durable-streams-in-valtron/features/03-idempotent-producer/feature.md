@@ -16,7 +16,7 @@ Europe (ASD), the owner of the STE standard ASD-STE100.
 
 ## 1. Goal
 
-Add the core writer, the idempotent producer and `Stream-Seq`. Then add the optional valtron
+Add the core writer, the idempotent producer and `Stream-Seq`. Then add the required valtron
 writer and producer `#[task]`.
 
 ## 2. Requirements
@@ -97,6 +97,8 @@ fn producer_step(ctx: Ctx, state: ProducerState)
 - [ ] **T6 — DST harness.** A seeded crash and restart proves no duplicate chunk. Test:
       `seeded_producer_restart_has_no_duplicate`.
 - [ ] **T7 — core independence.** Producer tests run with valtron disabled.
+- [ ] **T8 — oracles.** State model, differential and property oracles. Tests:
+      `producer_model_matches`, `drivers_agree`, `stream_seq_is_monotonic`.
 
 ## 5. Success criteria
 

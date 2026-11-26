@@ -1,12 +1,12 @@
 ---
-feature: "Storage backends"
+feature: "Storage: DurableStream and the VFS"
 status: "planned"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
-crates: ["foundation_core", "foundation_db"]
+crates: ["foundation_core", "foundation_nativeapis", "foundation_db"]
 ---
 
-# Feature 05: Storage backends
+# Feature 05: Storage: DurableStream and the VFS
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -19,61 +19,106 @@ Cloudflare products, not abbreviations.
 
 ## 1. Goal
 
-Five `DurableStreamStore` implementations share one core. Each uses an existing seam. Each
-stores the full protocol state. The core and the backends have no valtron dependency.
+Put one small storage trait under `DurableStream`: `DurableStreamVfs`. Make the VFS swappable.
+Implement memory and file VFS first. Add DO SQLite and D1 later. Feature 09 adds the S3/R2 VFS.
+The protocol core never changes when the VFS changes.
 
-## 2. Backends
+**User story.** As a platform engineer, I want to swap the stream storage, so that the same
+protocol core runs on memory, a file, R2/S3, DO SQLite or D1.
 
-| Backend | Seam | Offset scheme | Notes |
-|---|---|---|---|
-| In-memory | `BTreeMap` + a notifier | a monotonic per-stream integer | DST and tests |
-| File + LMDB | a native log file + LMDB metadata | a monotonic per-stream integer in LMDB | the native `foundation_log` tail |
-| R2 / S3 segments | `foundation_db::BlobStore` + the `foundation_log` key layout | a padded last-sequence, epoch-prefixed | the sealed tier |
-| DO SQLite | `DoSqlStore` (`QueryStore`/`KeyValueStore`) | a per-stream SQL sequence | spec 83 T0 |
-| D1 | `D1WasmStorage` | a per-stream SQL sequence | spec 83 T1 |
+**BDD scenarios.**
 
-## 3. Requirements
+- Given a memory VFS, when the business API creates and appends, then a reader sees the bytes.
+- Given a file VFS, when the business API restarts, then the data is still there.
+- Given two VFS implementations, when the same scenario runs, then the results match.
 
-1. **One trait, five impls.** Each backend implements every store method.
-2. **Full state.** Each backend stores producer state, `Stream-Seq`, last-access time for TTL,
-   fork edges, reference counts and soft-delete state.
-3. **Injected.** The host builds `Arc<DurableStream>`; tests use the in-memory backend or a mock.
-4. **Async.** The store methods are native `async fn`. A blocking file backend uses
-   `blocking_boundary!`.
-5. **Atomicity.** DO SQLite and LMDB commit producer state with the append in one transaction.
-   The file backend documents the false-`SequenceGap` recovery.
-6. **Paged reads.** A read returns a bounded page. No backend materialises a whole stream.
-7. **Offsets.** The offset scheme is private. The store builds every offset. It is strictly
-   increasing and unique within a stream. It never contains `,`, `&`, `=`, `?` or `/`.
-8. **Compatibility.** The standalone port is `4437`. The store does not depend on a transport.
-9. **DST.** Every backend passes the same seeded scenario: create, append N chunks with a
-   producer, read back byte-exactly, trim the first half, and prove the trimmed offset returns
-   `Trimmed`.
-10. **No valtron.** The backends compile and test with valtron disabled.
+## 2. Requirements
+
+1. **VFS trait.** `DurableStreamVfs` is object-safe. Its methods return boxed futures. It owns
+   bytes, metadata and the append notifier.
+2. **`DurableStream`.** `DurableStream` is a struct. It wraps `Arc<dyn DurableStreamVfs>`. It
+   implements `DurableStreamStore` by delegation.
+3. **Memory VFS.** In `foundation_core`. It uses a `BTreeMap` and a notifier. It serves DST and
+   tests.
+4. **File VFS.** In `foundation_nativeapis`. It uses a log file and LMDB metadata. Blocking file
+   I/O stays at `blocking_boundary!`.
+5. **Protocol state.** `DurableStream` owns producer state, `Stream-Seq`, TTL access time, fork
+   edges, reference counts and soft-delete. It stores that state through VFS metadata records.
+6. **Later VFS.** DO SQLite and D1 implement the VFS. They may also implement the store directly
+   if the VFS does not fit. The S3/R2 VFS is feature 09.
+7. **Paged reads.** A read returns a bounded page. No VFS materialises a whole stream.
+8. **Async and runtime.** The VFS methods are async. The VFS has no transport, HTTP, valtron or
+   global runtime.
+9. **Injection.** `Ctx` holds `Arc<DurableStream>`. The VFS is boxed inside the struct. Swapping
+   storage changes one construction line.
+10. **DST.** Every VFS passes the same seeded scenario.
+11. **`DurableStream` driver.** `DurableStream` implements `DurableDriver` with `Store = Self`.
+    The business API takes the stream directly.
+12. **Home crate.** Each VFS lives in the crate that owns its environment. This lets it use the
+    full native capability of that environment.
+13. **Tests in the home crate.** Each VFS crate has conformance tests and coverage tests. The
+    shared scenarios come from the `foundation_core` testkit. Coverage exercises every VFS
+    method and native path.
+
+## 3. Design
+
+```rust
+pub struct DurableStream {
+    vfs: Arc<dyn DurableStreamVfs>,
+}
+
+impl DurableStream {
+    pub fn new(vfs: Arc<dyn DurableStreamVfs>) -> Self {
+        Self { vfs }
+    }
+}
+
+impl DurableStreamStore for DurableStream { /* delegate to self.vfs */ }
+impl DurableDriver for DurableStream { type Store = Self; /* ... */ }
+```
+
+The VFS contract is in `requirements.md` section 3.7.
+
+| VFS | Crate |
+|---|---|
+| Memory | `foundation_core` |
+| File | `foundation_nativeapis` |
+| R2 / S3 | `foundation_nativeapis` (feature 09) |
+| DO SQLite | spec 83 crate |
+| D1 | spec 83 crate |
 
 ## 4. Tasks
 
-- [ ] **T1 — in-memory backend.** `foundation_core`. Passes the DST scenario and the feature 02
-      and 03 tests. Test: `in_memory_passes_dst_scenario`.
-- [ ] **T2 — file + LMDB backend.** Native only. Group commit and `Sealed` are config fields.
-      Test: `file_lmdb_passes_dst_scenario`.
-- [ ] **T3 — R2/S3 backend.** Uses `foundation_db::BlobStore` and the `foundation_log` key
-      layout. Immutable segments, `If-None-Match: *` fencing, range `GET` reads. Test:
-      `r2_s3_passes_dst_scenario`.
-- [ ] **T4 — DO SQLite and D1 backends.** Use `DoSqlStore` and `D1WasmStorage`. Atomic producer
-      state. Test: `do_sqlite_passes_dst_scenario`, `d1_passes_dst_scenario`.
-- [ ] **T5 — fork and TTL state.** Every backend stores fork edges, refcounts, soft-delete and
-      last-access time. Test: `backends_store_fork_and_ttl_state`.
-- [ ] **T6 — no valtron or runtime.** A test crate builds the backends with valtron and sockets
+- [ ] **T1 — VFS trait.** `DurableStreamVfs`, `VfsMeta`, `VfsOffset`, `VfsEntry`, `VfsError` and
+      `VfsFuture`. Test: `vfs_is_object_safe` (compile).
+- [ ] **T2 — `DurableStream` struct.** Delegates every store method to the VFS. Test:
+      `durable_stream_delegates_to_vfs`.
+- [ ] **T3 — memory VFS.** In `foundation_core`. `BTreeMap` and a notifier. Tests: shared
+      conformance scenarios, `memory_vfs_notifies_on_append`, bounded read coverage.
+- [ ] **T4 — file VFS.** In `foundation_nativeapis`. A log file and LMDB metadata. Tests: shared
+      conformance scenarios, `file_vfs_persists_across_restart`, LMDB and group-commit coverage.
+- [ ] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS
+      metadata. Tests: `producer_state_survives_restart`, `stream_seq_state_survives_restart`.
+- [ ] **T6 — DO SQLite and D1 VFS.** Atomic producer state. Tests:
+      `do_sqlite_vfs_passes_dst_scenario`, `d1_vfs_passes_dst_scenario`.
+- [ ] **T7 — oracles.** Crash and recovery, model, differential and resource oracles. Tests:
+      `restart_preserves_stream`, `backends_match_model`, `read_is_bounded`.
+- [ ] **T8 — no valtron or runtime.** The VFS and `DurableStream` build with valtron and sockets
       disabled.
-- [ ] **T7 — `DurableStream` enum.** The concrete enum delegates to `FileStore`, `InMemoryStore`
-      and `DoSqlStore`. Test: `durable_stream_enum_delegates`.
+- [ ] **T9 — VFS testkit.** Export the shared VFS conformance scenarios from `foundation_core`
+      behind a test-only feature. Test: `every_vfs_runs_the_same_scenarios`.
+- [ ] **T10 — coverage.** Add coverage tests for each VFS native path. Record the covered
+      methods and the uncovered branches.
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core` and `cargo test -p foundation_db` green.
-- [ ] The same DST scenario passes on every backend CI can run.
-- [ ] No backend materialises a whole stream; reads are paged.
-- [ ] The backends have no valtron or socket dependency.
-- [ ] `DurableStream` implements `DurableStreamStore` by delegation.
-- [ ] `cargo check --workspace --all-targets --profile dev` green.
+- [ ] `cargo test -p foundation_core`, `cargo test -p foundation_nativeapis` and
+      `cargo test -p foundation_db` green.
+- [ ] The same DST scenario passes on memory, file, DO SQLite and D1. The S3/R2 VFS passes in
+      feature 09.
+- [ ] No VFS materialises a whole stream; reads are paged.
+- [ ] `DurableStream` wraps a boxed VFS; `Ctx` holds `Arc<DurableStream>`.
+- [ ] Swapping the VFS changes one construction line.
+- [ ] The VFS has no valtron, socket or global runtime dependency.
+- [ ] Each VFS lives in the crate that owns its environment and uses its full native capability.
+- [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.

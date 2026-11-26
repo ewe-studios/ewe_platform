@@ -2,13 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: storage design settled. `DurableStream` is a struct over a boxed
+  `DurableStreamVfs`. The memory VFS lives in `foundation_core`. The file VFS lives in
+  `foundation_nativeapis`. `Ctx` holds `Arc<DurableStream>`; swapping storage changes one
+  construction line.
 - 2026-11-27: feature 01 started. Added `foundation_core::durable` with the core types, the
-  store trait, `DurableDriver` and a Given/When/Then harness. 14 tests pass. The wasm32 check
-  passes. T4 (valtron-disabled build) remains.
+  store trait, `DurableDriver`, the `DurableStreams` business API, the boxed VFS, the memory
+  VFS, a Given/When/Then harness and a `proptest` property test. 17 tests pass. The wasm32
+  check passes. T4 (valtron-disabled build) remains.
 - 2026-11-27: spec restructured to version 2.0. The protocol core moves to
   `foundation_core::durable` and has no valtron, HTTP or socket dependency. The HTTP and
   ConnectRPC adapters call `DurableService`. The valtron reader, writer and producer task move to
-  `foundation_core::valtron::durable` as an optional wrapper. Added feature 07 (Rust client) and
+  `foundation_core::valtron::durable` as the required wrapper. Added feature 07 (Rust client) and
   feature 08 (conformance). Server and client conformance are a hard gate. The runtime matrix
   covers local embedded, DO, Worker, WebSocket and the `foundation_ai` Session. The owner
   reviewed and approved the 716-line scope for `requirements.md` on 2026-11-27. No feature
@@ -19,13 +24,13 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   mapping. Recorded conformance as a hard gate for both server and client.
 - 2026-10-30: spec written. The Durable Streams research note
   (`specifications/research/edge-data/durable-streams.md`) is the input; the features turn it into
-  `foundation_core::durable` and the optional valtron layer. No feature started yet.
+  `foundation_core::durable` and the required valtron layer. No feature started yet.
 
 ## Feature status
 
-- **01-durable-stream-types** — 🟡 in progress (5/6). Core types, store trait, `DurableDriver`
-  and BDD harness landed. 14 tests pass. The wasm32 check passes. T4 (valtron-disabled build)
-  remains.
+- **01-durable-stream-types** — 🟡 in progress (6/7). Core types, store trait, `DurableDriver`,
+  BDD harness, memory VFS, business API, property test and model comparison landed. 17 tests
+  pass. The wasm32 check passes. T4 (valtron-disabled build) remains.
 - **02-resumable-reader** — ⏳ not started (0/9)
 - **03-idempotent-producer** — ⏳ not started (0/7)
 - **04-fork-and-retention** — ⏳ not started (0/8)
@@ -33,6 +38,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **06-http-rpc-surface** — ⏳ not started (0/10)
 - **07-durable-streams-client** — ⏳ not started (0/10)
 - **08-conformance** — ⏳ not started (0/7)
+- **09-s3-r2-vfs** — ⏳ not started (0/N)
 
 ## Next steps
 

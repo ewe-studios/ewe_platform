@@ -18,7 +18,7 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 ## 1. Goal
 
 Add the Rust client core in `foundation_netio::durable`. It is plain async and has no valtron
-dependency. Then add the optional valtron client wrapper. The client core must pass the
+dependency. Then add the required valtron client wrapper. The client core must pass the
 reference client conformance suite with its adapter.
 
 ## 2. Requirements
@@ -111,6 +111,8 @@ impl StreamHandle {
       failure and skip. Do not close the feature until it passes.
 - [ ] **T11 — wasm32.** Build the client core for wasm32 and run the BDD scenarios with a wasm
       driver. Test: `wasm_client_roundtrip`.
+- [ ] **T12 — oracles.** Differential, conformance, property and failure injection oracles.
+      Tests: `client_matches_reference`, `client_suite_passes`, `retry_is_bounded`.
 
 ## 5. Success criteria
 

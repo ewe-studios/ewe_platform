@@ -8,7 +8,13 @@
 
 #![allow(async_fn_in_trait)] // Native async trait. The trait is used generically, never as `dyn`.
 
+mod memory;
+
+pub use memory::MemoryVfs;
+
 use core::fmt;
+use core::future::Future;
+use core::pin::Pin;
 use std::sync::Arc;
 
 /// An opaque, byte-lexicographically ordered position in a stream.
@@ -339,7 +345,7 @@ pub struct StreamHead {
 }
 
 /// The specification for stream creation.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CreateSpec {
     /// The content type. `None` inherits the fork source or uses the default.
     pub content_type: Option<ContentType>,
@@ -388,6 +394,20 @@ pub struct AppendRequest {
     pub producer: Option<Producer>,
     /// True to close the stream after this append.
     pub close: bool,
+}
+
+impl AppendRequest {
+    /// Build a plain append for one chunk.
+    #[must_use]
+    pub fn new(chunk: Chunk) -> Self {
+        Self {
+            chunk,
+            content_type: None,
+            stream_seq: None,
+            producer: None,
+            close: false,
+        }
+    }
 }
 
 /// Whether an append created data or was a duplicate.
@@ -576,6 +596,151 @@ pub trait Notifier: Send + Sync {
 /// A shared notifier.
 pub type NotifierRef = Arc<dyn Notifier>;
 
+/// A boxed VFS operation.
+pub type VfsFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, VfsError>> + Send + 'a>>;
+
+/// The metadata the VFS stores for one stream.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct VfsMeta {
+    /// The stream content type.
+    pub content_type: ContentType,
+    /// The stream length in bytes.
+    pub len: u64,
+    /// True when the stream is closed.
+    pub closed: bool,
+    /// The stream expiry.
+    pub expires: Option<Expiry>,
+}
+
+/// A byte position in the VFS.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct VfsOffset(pub u64);
+
+impl VfsOffset {
+    /// Build an offset.
+    #[must_use]
+    pub fn new(value: u64) -> Self {
+        Self(value)
+    }
+
+    /// Return the offset value.
+    #[must_use]
+    pub fn as_u64(self) -> u64 {
+        self.0
+    }
+}
+
+/// One VFS entry from a list.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct VfsEntry {
+    /// The stream name.
+    pub name: StreamName,
+    /// The stream metadata.
+    pub meta: VfsMeta,
+}
+
+/// A VFS refusal.
+#[derive(Debug)]
+pub enum VfsError {
+    /// The entry does not exist.
+    NotFound,
+    /// The entry exists with a different configuration.
+    Conflict,
+    /// The VFS does not support the operation.
+    Unsupported,
+    /// The storage layer failed.
+    Io(Box<dyn core::error::Error + Send + Sync + 'static>),
+}
+
+impl fmt::Display for VfsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NotFound => f.write_str("vfs entry not found"),
+            Self::Conflict => f.write_str("vfs entry conflict"),
+            Self::Unsupported => f.write_str("vfs operation not supported"),
+            Self::Io(error) => write!(f, "vfs io error: {error}"),
+        }
+    }
+}
+
+impl core::error::Error for VfsError {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
+        match self {
+            Self::Io(error) => Some(error.as_ref()),
+            _ => None,
+        }
+    }
+}
+
+impl From<VfsError> for StoreError {
+    fn from(error: VfsError) -> Self {
+        match error {
+            VfsError::NotFound => Self::NotFound,
+            VfsError::Conflict => Self::ConfigConflict,
+            VfsError::Unsupported => Self::Unsupported,
+            VfsError::Io(error) => Self::Storage(error),
+        }
+    }
+}
+
+impl From<VfsMeta> for StreamHead {
+    fn from(meta: VfsMeta) -> Self {
+        Self {
+            content_type: meta.content_type,
+            tail: StreamOffset::from(VfsOffset(meta.len)),
+            closed: meta.closed,
+            expires: meta.expires,
+        }
+    }
+}
+
+impl From<VfsOffset> for StreamOffset {
+    fn from(offset: VfsOffset) -> Self {
+        Self::from_bytes(offset.0.to_be_bytes())
+    }
+}
+
+impl From<&StreamOffset> for VfsOffset {
+    fn from(offset: &StreamOffset) -> Self {
+        let bytes = offset.as_bytes();
+        let take = bytes.len().min(8);
+        let mut buf = [0_u8; 8];
+        let start = 8_usize.saturating_sub(take);
+        buf[start..].copy_from_slice(&bytes[bytes.len() - take..]);
+        Self(u64::from_be_bytes(buf))
+    }
+}
+
+/// The swappable storage layer under [`DurableStream`].
+///
+/// The VFS owns bytes, metadata and the append notifier. It has no transport, runtime or
+/// protocol state. Its methods return boxed futures, so the trait is object-safe.
+pub trait DurableStreamVfs: Send + Sync {
+    /// Create an entry. Returns `true` when it is new, `false` when it already matches.
+    fn create(&self, name: &StreamName, meta: VfsMeta) -> VfsFuture<'_, bool>;
+
+    /// Append bytes and return the new length.
+    fn append(&self, name: &StreamName, bytes: &[u8]) -> VfsFuture<'_, VfsOffset>;
+
+    /// Read up to `limit` bytes at an offset.
+    fn read_at(&self, name: &StreamName, at: &VfsOffset, limit: usize) -> VfsFuture<'_, Vec<u8>>;
+
+    /// Return the entry metadata.
+    fn meta(&self, name: &StreamName) -> VfsFuture<'_, VfsMeta>;
+
+    /// Mark the entry closed.
+    fn close(&self, name: &StreamName) -> VfsFuture<'_, ()>;
+
+    /// Remove the entry.
+    fn remove(&self, name: &StreamName) -> VfsFuture<'_, ()>;
+
+    /// List entries under a prefix.
+    fn list(&self, prefix: &StreamName) -> VfsFuture<'_, Vec<VfsEntry>>;
+
+    /// Return the append notifier, when the VFS supports one.
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef>;
+}
+
 /// The execution-context driver for the server core.
 ///
 /// A driver supplies the store and the append notifier. Embedded, HTTP, WebSocket, DO and
@@ -658,4 +823,311 @@ pub trait DurableStreamStore {
 
     /// Return the append notifier for a stream, when the backend supports one.
     fn notifier(&self, name: &StreamName) -> Option<NotifierRef>;
+}
+
+/// The default protocol store. It wraps a boxed VFS.
+///
+/// Swap the VFS to change storage. The protocol core and `Ctx` do not change.
+pub struct DurableStream {
+    vfs: Arc<dyn DurableStreamVfs>,
+}
+
+impl DurableStream {
+    /// Build a stream store over a VFS.
+    #[must_use]
+    pub fn new(vfs: Arc<dyn DurableStreamVfs>) -> Self {
+        Self { vfs }
+    }
+
+    /// Return the VFS.
+    #[must_use]
+    pub fn vfs(&self) -> &Arc<dyn DurableStreamVfs> {
+        &self.vfs
+    }
+}
+
+impl DurableDriver for DurableStream {
+    type Store = Self;
+
+    fn store(&self) -> &Self::Store {
+        self
+    }
+
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef> {
+        self.vfs.notifier(name)
+    }
+}
+
+impl DurableStreamStore for DurableStream {
+    async fn create(
+        &self,
+        name: StreamName,
+        spec: CreateSpec,
+    ) -> Result<CreateOutcome, StoreError> {
+        let CreateSpec {
+            content_type,
+            expires,
+            closed,
+            initial,
+            fork,
+        } = spec;
+        if fork.is_some() {
+            return Err(StoreError::Unsupported);
+        }
+
+        let meta = VfsMeta {
+            content_type: content_type.unwrap_or_default(),
+            len: 0,
+            closed,
+            expires,
+        };
+        let created = self.vfs.create(&name, meta).await?;
+        if let Some(initial) = initial {
+            self.vfs.append(&name, initial.as_bytes()).await?;
+            if closed {
+                self.vfs.close(&name).await?;
+            }
+        }
+        let head = self.vfs.meta(&name).await?;
+        Ok(CreateOutcome {
+            created,
+            head: head.into(),
+        })
+    }
+
+    async fn head(&self, name: &StreamName) -> Result<StreamHead, StoreError> {
+        self.vfs
+            .meta(name)
+            .await
+            .map(StreamHead::from)
+            .map_err(StoreError::from)
+    }
+
+    async fn append(
+        &self,
+        name: &StreamName,
+        req: AppendRequest,
+    ) -> Result<AppendOutcome, StoreError> {
+        let AppendRequest {
+            chunk,
+            content_type,
+            producer,
+            close,
+            ..
+        } = req;
+
+        let before = self.vfs.meta(name).await?;
+        if before.closed {
+            return Err(StoreError::Closed {
+                tail: StreamOffset::from(VfsOffset(before.len)),
+            });
+        }
+        if let Some(content_type) = &content_type {
+            if content_type != &before.content_type {
+                return Err(StoreError::ContentTypeMismatch {
+                    expected: before.content_type,
+                    got: content_type.clone(),
+                });
+            }
+        }
+
+        self.vfs.append(name, chunk.as_bytes()).await?;
+        if close {
+            self.vfs.close(name).await?;
+        }
+        let after = self.vfs.meta(name).await?;
+        Ok(AppendOutcome {
+            kind: AppendKind::Created,
+            cursor: ResumeCursor {
+                next: StreamOffset::from(VfsOffset(after.len)),
+                up_to_date: true,
+                closed: after.closed,
+            },
+            producer_seq: producer.as_ref().map(|producer| producer.seq),
+            closed: after.closed,
+        })
+    }
+
+    async fn read(&self, name: &StreamName, req: ReadRequest) -> Result<ReadPage, StoreError> {
+        let meta = self.vfs.meta(name).await?;
+        let start = match req.from {
+            ReadFrom::Start => VfsOffset(0),
+            ReadFrom::Offset(ref offset) => VfsOffset::from(offset),
+            ReadFrom::Tail => VfsOffset(meta.len),
+        };
+        let limit = req.limit.max_bytes.unwrap_or(usize::MAX);
+        let bytes = self.vfs.read_at(name, &start, limit).await?;
+        let end = start.0.saturating_add(bytes.len() as u64).min(meta.len);
+        let chunks = if bytes.is_empty() {
+            Vec::new()
+        } else {
+            vec![Chunk::new(bytes)]
+        };
+        Ok(ReadPage {
+            chunks,
+            cursor: ResumeCursor {
+                next: StreamOffset::from(VfsOffset(end)),
+                up_to_date: end == meta.len,
+                closed: meta.closed && end == meta.len,
+            },
+        })
+    }
+
+    async fn close(
+        &self,
+        name: &StreamName,
+        req: CloseRequest,
+    ) -> Result<AppendOutcome, StoreError> {
+        let before = self.vfs.meta(name).await?;
+        if let Some(chunk) = req.final_chunk {
+            self.vfs.append(name, chunk.as_bytes()).await?;
+        }
+        self.vfs.close(name).await?;
+        let after = self.vfs.meta(name).await?;
+        Ok(AppendOutcome {
+            kind: if before.closed {
+                AppendKind::Duplicate
+            } else {
+                AppendKind::Created
+            },
+            cursor: ResumeCursor {
+                next: StreamOffset::from(VfsOffset(after.len)),
+                up_to_date: true,
+                closed: true,
+            },
+            producer_seq: req.producer.as_ref().map(|producer| producer.seq),
+            closed: true,
+        })
+    }
+
+    async fn delete(&self, name: &StreamName) -> Result<DeleteOutcome, StoreError> {
+        self.vfs.remove(name).await?;
+        Ok(DeleteOutcome {
+            soft_deleted: false,
+        })
+    }
+
+    #[allow(clippy::unused_async)] // Matches the trait; the VFS fork lands in feature 04.
+    async fn fork(&self, _name: StreamName, _spec: ForkSpec) -> Result<CreateOutcome, StoreError> {
+        Err(StoreError::Unsupported)
+    }
+
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef> {
+        self.vfs.notifier(name)
+    }
+}
+
+/// The business API for the protocol core.
+///
+/// A caller names a stream and runs the use case. The driver decides the runtime and storage.
+pub struct DurableStreams<D: DurableDriver> {
+    driver: D,
+}
+
+impl<D: DurableDriver> DurableStreams<D> {
+    /// Build the business API on a driver.
+    #[must_use]
+    pub fn new(driver: D) -> Self {
+        Self { driver }
+    }
+
+    /// Return the driver.
+    #[must_use]
+    pub fn driver(&self) -> &D {
+        &self.driver
+    }
+
+    /// Open a stream handle.
+    #[must_use]
+    pub fn stream(&self, name: StreamName) -> StreamRef<'_, D> {
+        StreamRef {
+            streams: self,
+            name,
+        }
+    }
+}
+
+/// A stream handle from the business API.
+pub struct StreamRef<'a, D: DurableDriver> {
+    streams: &'a DurableStreams<D>,
+    name: StreamName,
+}
+
+impl<D: DurableDriver> StreamRef<'_, D> {
+    /// Return the stream name.
+    #[must_use]
+    pub fn name(&self) -> &StreamName {
+        &self.name
+    }
+
+    /// Create the stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn create(&self, spec: CreateSpec) -> Result<CreateOutcome, StoreError> {
+        self.streams
+            .driver
+            .store()
+            .create(self.name.clone(), spec)
+            .await
+    }
+
+    /// Return the stream head.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn head(&self) -> Result<StreamHead, StoreError> {
+        self.streams.driver.store().head(&self.name).await
+    }
+
+    /// Append a chunk.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn append(&self, req: AppendRequest) -> Result<AppendOutcome, StoreError> {
+        self.streams.driver.store().append(&self.name, req).await
+    }
+
+    /// Read a page.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn read(&self, req: ReadRequest) -> Result<ReadPage, StoreError> {
+        self.streams.driver.store().read(&self.name, req).await
+    }
+
+    /// Close the stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn close(&self, req: CloseRequest) -> Result<AppendOutcome, StoreError> {
+        self.streams.driver.store().close(&self.name, req).await
+    }
+
+    /// Delete the stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn delete(&self) -> Result<DeleteOutcome, StoreError> {
+        self.streams.driver.store().delete(&self.name).await
+    }
+
+    /// Create a fork from this stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the driver.
+    pub async fn fork(&self, spec: ForkSpec) -> Result<CreateOutcome, StoreError> {
+        self.streams
+            .driver
+            .store()
+            .fork(self.name.clone(), spec)
+            .await
+    }
 }

@@ -2,7 +2,7 @@
 feature: "Conformance"
 status: "planned"
 priority: "high"
-depends_on: ["02-resumable-reader", "03-idempotent-producer", "04-fork-and-retention", "05-storage-backends", "06-http-rpc-surface", "07-durable-streams-client"]
+depends_on: ["02-resumable-reader", "03-idempotent-producer", "04-fork-and-retention", "05-storage-backends", "06-http-rpc-surface", "07-durable-streams-client", "09-s3-r2-vfs"]
 crates: ["foundation_core", "foundation_http", "foundation_netio"]
 ---
 
@@ -44,6 +44,11 @@ merge.
     on every driver.
 13. **Driver matrix.** The same scenario runs on the embedded, HTTP, WebSocket, DO and Session
     drivers. Do not copy a scenario for each driver.
+14. **Oracle coverage.** Every scenario names its primary oracle and its supporting oracles.
+15. **Derived oracle.** Every protocol rule has a model, differential or metamorphic oracle.
+16. **Property tests.** Use `proptest` for random operation sequences.
+17. **VFS conformance and coverage.** Every VFS crate runs the shared conformance scenarios and
+    its own coverage tests.
 
 ## 3. Design
 
@@ -86,6 +91,24 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       producer, `Stream-Seq`, fork and TTL.
 - [ ] **T12 — driver matrix.** Run every scenario on the embedded, HTTP, WebSocket, DO and
       Session drivers. Test: `same_scenario_every_driver`.
+- [ ] **T13 — model oracle.** Build a small independent state model. Test:
+      `model_matches_driver`.
+- [ ] **T14 — differential oracle.** Compare drivers and transports. Test: `drivers_agree`.
+- [ ] **T15 — metamorphic oracle.** Check append concat, suffix read and fork prefix plus tail.
+      Tests: `append_concat`, `read_from_offset_is_suffix`, `fork_is_prefix_plus_tail`.
+- [ ] **T16 — property oracle.** Use `proptest` for random operation sequences. Tests:
+      `append_read_is_byte_exact`, `offsets_are_strictly_increasing`,
+      `producer_dedup_is_stable`, `stream_seq_is_monotonic`.
+- [ ] **T17 — failure injection and fuzz.** Inject faults and malformed input. Tests:
+      `injected_error_is_typed`, `malformed_input_never_panics`.
+- [ ] **T18 — crash and resource oracles.** Restart and bounded-memory tests. Tests:
+      `restart_preserves_stream`, `read_is_bounded`.
+- [ ] **T19 — timing and readiness oracle.** Test wait and wake. Tests:
+      `wait_wakes_on_append`, `no_lost_wake`, `closed_stream_does_not_wait`.
+- [ ] **T20 — VFS testkit.** Export the shared VFS conformance scenarios. Wire them into every
+      VFS crate. Test: `every_vfs_runs_the_same_scenarios`.
+- [ ] **T21 — VFS coverage.** Add coverage tests for each VFS native path. Tests:
+      `memory_vfs_coverage`, `file_vfs_coverage`, `r2_s3_vfs_coverage`, `do_d1_vfs_coverage`.
 
 ## 5. Success criteria
 
@@ -94,5 +117,8 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] Both cross-runs pass.
 - [ ] Every skip has a recorded reason and owner approval.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
+- [ ] Every protocol rule has a derived oracle.
+- [ ] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL.
+- [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
 - [ ] The valtron layer tests pass separately.
 - [ ] CI fails on any non-skipped conformance failure.

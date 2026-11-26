@@ -90,6 +90,9 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `rpc_stream_resumes_from_offset`, `http_and_rpc_return_same_chunks`.
 - [ ] **T10 — server conformance.** Run the reference suite against `HttpAdapter`. Record every
       failure and skip. Do not close the feature until it passes.
+- [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
+      oracles. Tests: `status_table_matches`, `server_suite_passes`,
+      `injected_error_is_typed`, `security_headers_present`.
 
 ## 5. Success criteria
 

@@ -16,9 +16,9 @@ of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 ## 1. Goal
 
-Add the core page reader. Then add the optional valtron reader. The core reader must be correct
+Add the core page reader. Then add the required valtron reader. The core reader must be correct
 without valtron. The valtron reader adds `StreamIterator`, `Stream::Wait`, `Stream::Spread` and
-`WakeableStream`.
+`WakeableStream`. The valtron layer is required for platform use.
 
 ## 2. Requirements
 
@@ -88,6 +88,8 @@ not change the core state rules.
 - [ ] **T8 — DST harness.** Seeded append and read replay. Test:
       `seeded_reader_replay_is_byte_exact`.
 - [ ] **T9 — valtron independence.** The core reader tests run with valtron disabled.
+- [ ] **T10 — oracles.** Model, metamorphic and property oracles. Tests:
+      `model_matches_driver`, `read_from_offset_is_suffix`, `append_read_is_byte_exact`.
 
 ## 5. Success criteria
 

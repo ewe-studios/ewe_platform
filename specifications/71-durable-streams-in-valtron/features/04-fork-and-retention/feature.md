@@ -101,6 +101,8 @@ pub struct ForkSpec {
       `retention_trims_by_refusing_not_gapping`.
 - [ ] **T8 — valtron boundary.** The valtron reader sees one stream across the fork. Test:
       `valtron_reader_spans_fork_boundary`.
+- [ ] **T9 — oracles.** Metamorphic, model and property oracles. Tests:
+      `fork_read_is_source_prefix_plus_tail`, `ttl_model_matches`, `fork_offsets_are_unique`.
 
 ## 5. Success criteria
 

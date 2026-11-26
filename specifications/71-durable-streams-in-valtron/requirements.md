@@ -20,8 +20,8 @@ related_specs:
   - "specifications/research/edge-data"
 features:
   completed: 0
-  uncompleted: 8
-  total: 8
+  uncompleted: 9
+  total: 9
   completion_percentage: 0%
 ---
 
@@ -46,7 +46,7 @@ abbreviation. RFC 3339 is an Internet date format.
 |---|---|
 | Core | The protocol implementation. It has no valtron dependency. |
 | Adapter | A thin layer that maps the core to one transport or runtime. |
-| Valtron layer | The optional wrapper that turns the core into a valtron stream. |
+| Valtron layer | The required wrapper that turns the core into a valtron stream. |
 | Conformance | Passing the reference server suite and the reference client suite. |
 | Resume cursor | The opaque server position that a reader stores and sends back. |
 | Collapse cursor | The `Stream-Cursor` value for CDN request collapsing. It is not the resume cursor. |
@@ -75,7 +75,7 @@ Today the platform has the pieces, but not one reusable contract:
   named as one thing.
 
 This spec names the contract. It puts the protocol core in `foundation_core::durable`. It puts
-the optional valtron wrapper in `foundation_core::valtron::durable`.
+the valtron wrapper in `foundation_core::valtron::durable`. The valtron layer is required.
 
 **The core rule.** The protocol core must pass conformance without valtron. The valtron layer
 wraps the core. It must not change protocol outcomes.
@@ -116,11 +116,13 @@ flowchart TB
   A[Transport adapters: HTTP, ConnectRPC]
   C[Protocol core: DurableService]
   S[Store: DurableStreamStore]
+  F[VFS: DurableStreamVfs]
   CL[Client core: foundation_netio::durable]
   CV[Valtron client layer]
   V --> C
   A --> C
   C --> S
+  S --> F
   CV --> CL
   CL -. shared types .-> C
 ```
@@ -134,7 +136,9 @@ Rules:
 
 - The core has no valtron type, trait or executor. It compiles and tests without valtron.
 - The core has no HTTP type, status code, header, ETag, SSE frame or CDN cursor.
-- The valtron layer wraps the core. It adds waits, signals, readiness and spreads.
+- The valtron layer is required. It wraps the core and adds waits, signals, readiness and spreads.
+- The valtron layer makes the core usable in valtron tasks, streams and any valtron operation.
+- The core still passes conformance without the valtron layer, so non-valtron runtimes use it.
 - Conformance tests the core and its transport adapters. It does not require the valtron layer.
 
 **Runtime-neutral (iron law).** The core is not an HTTP server. HTTP is one surface. The same core
@@ -166,6 +170,16 @@ context.
 | Producer and `Stream-Seq` | embedded, HTTP, DO |
 | Fork and TTL | embedded, HTTP |
 | Session replay | `foundation_ai` Session |
+
+**Oracles.** Four oracles check correctness:
+
+1. **Model oracle.** A small, independent model of the protocol. Compare the core to it.
+2. **Differential oracle.** The same scenario runs on every driver. The outputs match.
+3. **Property oracle.** Random operation sequences check the invariants.
+4. **Conformance oracle.** The reference server and client suites.
+
+Use these oracles to the maximum. A test that only checks a fixed example is not enough for a
+protocol rule.
 
 ### 3.1 Core types (feature 01)
 
@@ -322,28 +336,32 @@ The store does not own:
 - Valtron scheduling.
 
 **Async and injection.** The trait uses native `async fn`. It is not object-safe. The reader and
-writer are generic over `Store: DurableStreamStore`. `DurableStream` is the host's concrete store
-enum. `Ctx` holds `Arc<DurableStream>`, not `Arc<dyn DurableStreamStore>`. Tests use a concrete
-mock type. A host with several backends uses an enum that implements the trait.
+writer are generic over `Store: DurableStreamStore`. `DurableStream` is a struct. It wraps a
+boxed `DurableStreamVfs` and implements the store trait. `Ctx` holds `Arc<DurableStream>`, not
+`Arc<dyn DurableStreamStore>`. Tests build a `DurableStream` over a memory VFS.
 
 ```rust
-pub enum DurableStream {
-    File(FileStore),
-    Memory(InMemoryStore),
-    Do(DoSqlStore),
+pub struct DurableStream {
+    vfs: Arc<dyn DurableStreamVfs>,
+}
+
+impl DurableStream {
+    pub fn new(vfs: Arc<dyn DurableStreamVfs>) -> Self {
+        Self { vfs }
+    }
 }
 
 impl DurableStreamStore for DurableStream {
     async fn head(&self, name: &StreamName) -> Result<StreamHead, StoreError> {
-        match self {
-            Self::File(s) => s.head(name).await,
-            Self::Memory(s) => s.head(name).await,
-            Self::Do(s) => s.head(name).await,
-        }
+        self.vfs.meta(name).await.map(StreamHead::from).map_err(StoreError::from)
     }
-    // One match arm per method.
+    // One delegate per method.
 }
 ```
+
+The VFS is object-safe because its methods return boxed futures. The boxing is one allocation
+per storage call. That is acceptable for I/O. A custom store can implement
+`DurableStreamStore` directly; the default path is the VFS.
 
 `StoreError` is `Send + Sync + 'static`, so it can cross a valtron task boundary. A `!Send`
 backend stays on one thread.
@@ -389,7 +407,7 @@ The core reader is a page reader. The valtron reader wraps it.
 - A closed stream at the tail returns immediately. It never waits.
 - A read of a future offset returns an empty page at the tail. The server may reject it.
 
-**Valtron reader (optional).**
+**Valtron reader (required).**
 
 `DurableStreamReader<Store>` implements `StreamIterator` with `D = Chunk` and
 `P = ReaderProgress`, and `WakeableStream`.
@@ -442,7 +460,7 @@ The store validates producer headers first. A retry with an older `Stream-Seq` i
 not refused. The store updates `Stream-Seq` only after a successful append. A fork does not
 inherit it.
 
-**Valtron writer (optional).** `DurableStreamWriter` and the producer `#[task]` wrap the core.
+**Valtron writer (required).** `DurableStreamWriter` and the producer `#[task]` wrap the core.
 The task states are `Idle`, `AwaitingAck { seq }`, `Fenced` and `Done`. `Fenced` is terminal.
 
 ### 3.6 Fork, TTL and retention (feature 04)
@@ -489,11 +507,45 @@ The nine-row fork TTL table is in feature 04, section 2.1.
 **Retention.** A store may drop old data. A read at a dropped offset returns `Trimmed`
 (`410`). Retention is optional. The reference server has none.
 
-### 3.7 Storage backends (feature 05)
+### 3.7 Storage: DurableStream and the VFS (feature 05)
 
-The five backends and their seams are in feature 05. Each backend implements every store method.
-Each stores producer, `Stream-Seq`, TTL and fork state. The offset scheme is private. Do not
-materialise a whole stream. Reads are paged.
+`DurableStream` implements the store trait over a `DurableStreamVfs`. The VFS is the swappable
+storage layer. The first implementations are memory and file. Later backends can implement the
+VFS or the store.
+
+```rust
+pub trait DurableStreamVfs: Send + Sync {
+    fn create(&self, name: &StreamName, meta: VfsMeta) -> VfsFuture<'_, bool>;
+    fn append(&self, name: &StreamName, bytes: &[u8]) -> VfsFuture<'_, VfsOffset>;
+    fn read_at(&self, name: &StreamName, at: &VfsOffset, limit: usize)
+        -> VfsFuture<'_, Vec<u8>>;
+    fn meta(&self, name: &StreamName) -> VfsFuture<'_, VfsMeta>;
+    fn close(&self, name: &StreamName) -> VfsFuture<'_, ()>;
+    fn remove(&self, name: &StreamName) -> VfsFuture<'_, ()>;
+    fn list(&self, prefix: &StreamName) -> VfsFuture<'_, Vec<VfsEntry>>;
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef>;
+}
+
+pub type VfsFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, VfsError>> + Send + 'a>>;
+```
+
+The VFS owns bytes, metadata and the append notifier. `DurableStream` owns the protocol state:
+producer, `Stream-Seq`, TTL access time, fork edges and soft-delete. It stores that state through
+the VFS metadata records. The offset scheme is private. Do not materialise a whole stream. Reads
+are paged.
+
+| VFS | Crate | Status |
+|---|---|---|
+| Memory | `foundation_core` | first |
+| File | `foundation_nativeapis` | first |
+| R2 / S3 | `foundation_nativeapis` | feature 09 |
+| DO SQLite | spec 83 crate | later |
+| D1 | spec 83 crate | later |
+
+Each VFS lives in the crate that owns its environment. It can use the full native capability of
+that environment. The memory VFS uses `foundation_core`. The file VFS uses
+`foundation_nativeapis` for file I/O and LMDB. R2/S3 uses `foundation_db`. DO SQLite and D1 use
+their spec 83 crates.
 
 ### 3.8 HTTP surface (feature 06)
 
@@ -627,7 +679,7 @@ statuses: append, delete and close report `200` even when HTTP returns `204`. Du
 
 ### 3.11 Valtron layer
 
-The valtron layer is optional. It wraps the core. It adds:
+The valtron layer is required. It wraps the core. It adds:
 
 - `DurableStreamReader` as `StreamIterator` + `WakeableStream`.
 - `Stream::Next`, `Stream::Spread`, `Stream::Pending` and `Stream::Wait`.
@@ -644,15 +696,17 @@ disabled.
 | # | Feature | Delivers | Depends on | Size |
 |---|---|---|---|---|
 | 01 | [Core types and store trait](./features/01-durable-stream-types/feature.md) | `StreamOffset`, `StreamSeq`, `ResumeCursor`, `StreamHead`, `CreateSpec`, `AppendRequest`, `AppendOutcome`, `StoreError`, the store trait and the `DurableStream` enum | — | M |
-| 02 | [Reader](./features/02-resumable-reader/feature.md) | Core page reader and the optional valtron `DurableStreamReader` | 01 | M |
+| 02 | [Reader](./features/02-resumable-reader/feature.md) | Core page reader and the required valtron `DurableStreamReader` | 01 | M |
 | 03 | [Writer, producer and `Stream-Seq`](./features/03-idempotent-producer/feature.md) | `DurableStreamWriter`, the producer task and `Stream-Seq` | 01 | M |
 | 04 | [Fork, TTL and retention](./features/04-fork-and-retention/feature.md) | Fork, sub-offset, TTL table, soft-delete and trim | 02, 03 | M |
 | 05 | [Storage backends](./features/05-storage-backends/feature.md) | In-memory, file+LMDB, R2/S3, DO SQLite, D1 | 01 | L |
 | 06 | [HTTP and ConnectRPC adapters](./features/06-http-rpc-surface/feature.md) | The full wire surface on `foundation_http` and `foundation_connectrpc` | 02, 03 | L |
 | 07 | [Client core](./features/07-durable-streams-client/feature.md) | The Rust client, the valtron client wrapper and the conformance adapter | 01 | L |
-| 08 | [Conformance](./features/08-conformance/feature.md) | Server and client suites, cross-runs and CI gates | 02–07 | M |
+| 08 | [Conformance](./features/08-conformance/feature.md) | Server and client suites, cross-runs and CI gates | 02–07, 09 | M |
+| 09 | [S3 and R2 VFS](./features/09-s3-r2-vfs/feature.md) | High-performance S3/R2 object storage with local batching and CAS | 01, 05 | L |
 
-Order: 01 → (02, 03) → 04, 05, 06 → 07 → 08. Run a conformance spike after 01 and 06.
+Order: 01 → (02, 03) → 04, 05, 06 → 07 → 08. Feature 09 runs in parallel with 05 and 06. Run a
+conformance spike after 01 and 06.
 
 ## 5. Rules
 
@@ -679,6 +733,12 @@ Order: 01 → (02, 03) → 04, 05, 06 → 07 → 08. Run a conformance spike aft
     Tests prove each target. The client core follows the same rule.
 15. **BDD with drivers.** Behaviours are Given/When/Then scenarios. They call the business API
     and run on every driver. Do not duplicate a scenario for each context.
+16. **BDD first, then drivers, then core.** Write the user story and scenario first. Write the
+    driver next. Implement the core to pass. Use the model, differential and property oracles.
+17. **Name the oracle.** Each scenario names its primary and supporting oracles. Every protocol
+    rule needs a derived oracle. A fixed example alone is not enough.
+18. **Every VFS has conformance and coverage tests.** The VFS crate runs the shared conformance
+    scenarios and its own coverage tests. Coverage exercises every VFS method and native path.
 
 ## 6. Verification protocol
 
@@ -709,6 +769,78 @@ npx @durable-streams/client-conformance-tests --run ./target/release/conformance
 - Record the pass count and every skipped test with its reason.
 - A failing or skipped test needs an owner decision before the feature closes.
 
+### 6.2 Test oracles
+
+A test oracle decides whether a result is correct. A fixed expected value is costly for many
+protocol rules. Use a layered oracle set instead. The taxonomy follows Barr et al. (2015):
+specified, derived, implicit and human oracles.
+
+| Oracle | Class | What it checks | Use in this spec |
+|---|---|---|---|
+| Specification | Specified | A protocol table or assertion gives the answer | Statuses, headers, state rules |
+| State machine / model | Specified, derived | Compare against a small state model | Create, append, close, read |
+| Differential | Derived | Two implementations agree | Drivers, transports, server and client |
+| Metamorphic | Derived | Relations between related runs | Append concat, suffix read, fork prefix and tail |
+| Property-based | Derived | Invariants over generated inputs | Random operation sequences |
+| Round-trip | Derived | Encode then decode; write then read | JSON, offsets, append and read |
+| Golden / approval | Derived | A stable snapshot | Deterministic wire payloads |
+| Conformance | Derived | The reference suite passes | Server and client suites |
+| Consistency | Derived | Read-your-writes; per-stream order | Client and drivers |
+| Crash and recovery | Derived | Restart preserves data and state | Producer and persistence |
+| Failure injection | Derived | An injected fault yields the typed error | Retry, status and SSE |
+| Security | Specified | Headers, path rules and limits | HTTP surface |
+| Implicit | Implicit | No panic, no hang, no leak | Fuzz and malformed input |
+| Resource | Implicit | Bounded memory; no full buffering | Streaming reads |
+| Timing and readiness | Specified | Wait and wake; no polling; no lost wake | Valtron layer |
+
+**Scenario to oracle map.**
+
+| Scenario or use case | Primary oracle | Supporting oracles |
+|---|---|---|
+| Core type parsing (01) | Specification | Property, implicit |
+| Append and read bytes (01, 02) | Model | Metamorphic, property, round-trip |
+| Offset resume (02) | Metamorphic | Model, property, consistency |
+| `up_to_date` and `closed` (02) | State model | Specification, property |
+| Producer dedup and fencing (03) | State model | Differential, property, crash and recovery |
+| `Stream-Seq` (03) | Model | Property (lexicographic), differential |
+| Fork, TTL and retention (04) | Metamorphic | Model, property, differential |
+| Soft-delete and cascade (04) | Model | Stateful property, differential |
+| JSON mode (06) | Round-trip | Metamorphic, property |
+| HTTP wire (06) | Specification | Conformance, golden, failure injection, security |
+| SSE and long-poll (06) | Model | Differential (modes agree), property |
+| ConnectRPC (06) | Differential | Model, conformance |
+| Client (07) | Differential | Conformance, property, failure injection |
+| Runtime matrix (08) | Differential | Consistency |
+| Valtron layer (02, 03, 07) | Model | Timing and readiness, property |
+| Persistence (05) | Crash and recovery | Model, differential |
+| VFS conformance (05) | Conformance (shared scenarios) | Differential (all VFS), model |
+| VFS coverage (05) | Coverage | Native paths |
+| Security (06) | Security | Implicit and fuzz |
+| Streaming (05, 06) | Resource | Implicit |
+
+Rules:
+
+- Each scenario names its primary oracle and its supporting oracles.
+- Every protocol rule needs a derived oracle: model, differential or metamorphic. A fixed example
+  alone is not enough.
+- Property tests use `proptest`.
+
+Reference: Barr, Harman, McMinn, Shahbaz and Yoo, "The Oracle Problem in Software Testing: A
+Survey", IEEE Transactions on Software Engineering 41(5), 2015. Chen et al., "A Survey on
+Metamorphic Testing", IEEE Transactions on Software Engineering 42, 2016.
+
+### 6.3 VFS conformance and coverage
+
+A shared testkit in `foundation_core` exposes the VFS conformance scenarios. Each VFS crate
+runs them in its own `tests/`. Each VFS crate also has coverage tests for its native paths.
+
+| Crate | Conformance | Coverage |
+|---|---|---|
+| `foundation_core` | memory VFS scenarios | memory map, notifier, bounded read |
+| `foundation_nativeapis` | file VFS scenarios | restart, LMDB metadata, group commit |
+| `foundation_db` | R2/S3 scenarios | segments, range read, fencing |
+| DO and D1 crates | DO and D1 scenarios | SQL sequence, atomic producer state |
+
 ## 7. Out of scope
 
 - A public CDN product. Keep the cursor and immutable-prefix properties. Do not build a cache.
@@ -730,8 +862,12 @@ npx @durable-streams/client-conformance-tests --run ./target/release/conformance
 - [ ] The HTTP adapter passes the server conformance suite.
 - [ ] The client core passes the client conformance suite.
 - [ ] The cross-runs pass.
+- [ ] The S3 and R2 VFS passes the shared conformance and coverage suites.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and `foundation_ai`
       Session.
 - [ ] The BDD scenario suite passes on every driver.
+- [ ] The model, differential, metamorphic and property oracles pass.
+- [ ] Every protocol rule has a derived oracle.
+- [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
 - [ ] The valtron layer passes its behaviour tests.
 - [ ] No `#[cfg(test)]` module in the changed source files. No ignored `Result`s.
