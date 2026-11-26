@@ -122,6 +122,20 @@ pub struct ImageLimits {
     /// the store removes it at start.
     #[serde(with = "duration_millis")]
     pub work_max_age: Duration,
+    /// The longest time that one image import waits for a Docker image pull.
+    ///
+    /// Default 10 minutes: the default pull deadline of the containerd
+    /// container runtime interface (CRI) is 5 minutes, and a full pull gets
+    /// twice that (feature 10, section 6.2). The import of feature 13 uses it.
+    #[serde(with = "duration_millis")]
+    pub pull_timeout: Duration,
+    /// The most bytes that one image export may stream into the guest.
+    ///
+    /// Default 16 GiB: the same value as
+    /// [`SandboxLimits::max_unpack_bytes`], the limit that the slave applies.
+    /// The importer counts the export chunks and stops one that passes this
+    /// limit (feature 13, invariant I1).
+    pub max_archive_bytes: u64,
 }
 
 impl Default for ImageLimits {
@@ -129,6 +143,8 @@ impl Default for ImageLimits {
         Self {
             default_size_mib: 4096,
             work_max_age: Duration::from_hours(24),
+            pull_timeout: Duration::from_mins(10),
+            max_archive_bytes: 16 * 1024 * 1024 * 1024,
         }
     }
 }
@@ -151,6 +167,20 @@ impl ImageLimits {
     #[must_use]
     pub fn with_work_max_age(mut self, value: Duration) -> Self {
         self.work_max_age = value;
+        self
+    }
+
+    /// Replaces [`Self::pull_timeout`].
+    #[must_use]
+    pub fn with_pull_timeout(mut self, value: Duration) -> Self {
+        self.pull_timeout = value;
+        self
+    }
+
+    /// Replaces [`Self::max_archive_bytes`].
+    #[must_use]
+    pub fn with_max_archive_bytes(mut self, value: u64) -> Self {
+        self.max_archive_bytes = value;
         self
     }
 }

@@ -23,6 +23,11 @@ use crate::shared::images::{check_arch, is_image_key, ImageManifest, ImageResolv
 use crate::shared::spec::ImageRef;
 use crate::shared::BoxFuture;
 
+/// The importer that turns a Docker image, a tar file or the Alpine archive
+/// into a sandbox image (feature 13).
+#[cfg(feature = "images")]
+pub mod import;
+
 /// The names of `mkfs.ext4` that the store tries on this host.
 const MKFS_CANDIDATES: [&str; 5] = [
     "/sbin/mkfs.ext4",
@@ -270,11 +275,57 @@ impl ImageStore {
     pub async fn commit(
         &self,
         work: PathBuf,
-        mut manifest: ImageManifest,
+        manifest: ImageManifest,
         tag: Option<&str>,
     ) -> SandboxResult<ImageRef> {
         let (sha256, size) = self.hash_file(&work)?;
         let key: String = sha256[..32].to_string();
+        self.commit_as(&work, manifest, tag, key, sha256, size)
+    }
+
+    /// Moves a work image into the store under the content-derived key `key`.
+    ///
+    /// The importer computes this key from the source identity, so a second
+    /// import of the same source finds the image before it exports or
+    /// unpacks anything (feature 13, invariant I3). The manifest keeps the
+    /// SHA-256 and the size of the work file.
+    ///
+    /// # Errors
+    /// [`SandboxError::InvalidSpec`] when `key` is not a 32-character key, and
+    /// [`SandboxError::Io`] when a file cannot be read, hashed or moved.
+    #[allow(
+        clippy::unused_async,
+        clippy::unused_async_trait_impl,
+        reason = "every store call is async, so a caller awaits one shape (root rule 6)"
+    )]
+    pub async fn commit_keyed(
+        &self,
+        work: PathBuf,
+        manifest: ImageManifest,
+        tag: Option<&str>,
+        key: String,
+    ) -> SandboxResult<ImageRef> {
+        if !is_image_key(&key) {
+            return Err(SandboxError::InvalidSpec {
+                field: "image".to_string(),
+                reason: format!("an image key is 32 lower-case hexadecimal characters: {key}"),
+            }
+            .into());
+        }
+        let (sha256, size) = self.hash_file(&work)?;
+        self.commit_as(&work, manifest, tag, key, sha256, size)
+    }
+
+    /// The common body of [`Self::commit`] and [`Self::commit_keyed`].
+    fn commit_as(
+        &self,
+        work: &Path,
+        mut manifest: ImageManifest,
+        tag: Option<&str>,
+        key: String,
+        sha256: String,
+        size: u64,
+    ) -> SandboxResult<ImageRef> {
         manifest.schema = IMAGE_SCHEMA;
         manifest.key.clone_from(&key);
         manifest.rootfs_sha256 = sha256;
@@ -285,7 +336,7 @@ impl ImageStore {
 
         let store = self.store_dir().join(&key);
         if self.host.fs.exists(&store) {
-            let _ = self.host.fs.remove_file(&work);
+            let _ = self.host.fs.remove_file(work);
             if let Some(tag) = tag {
                 self.write_tag(tag, &key)?;
                 return Ok(ImageRef::Tag(tag.to_string()));
@@ -298,7 +349,7 @@ impl ImageStore {
             .join(format!("{}.tmp-{}", key, self.random_name()?));
         let prepared = (|| -> SandboxResult<()> {
             self.host.fs.create_dir_all(&temporary, 0o755)?;
-            self.host.fs.rename(&work, &temporary.join("rootfs.ext4"))?;
+            self.host.fs.rename(work, &temporary.join("rootfs.ext4"))?;
             let json = serde_json::to_vec_pretty(&manifest).map_err(|error| SandboxError::Io {
                 op: "encode the image manifest".to_string(),
                 message: error.to_string(),
@@ -311,6 +362,7 @@ impl ImageStore {
         })();
         if let Err(error) = prepared {
             let _ = self.host.fs.remove_dir_all(&temporary);
+            let _ = self.host.fs.remove_file(work);
             return Err(error);
         }
         if let Some(tag) = tag {
@@ -319,6 +371,56 @@ impl ImageStore {
         } else {
             Ok(ImageRef::Key(key))
         }
+    }
+
+    /// The manifest of the image `key`, when the store has it.
+    ///
+    /// The importer uses it for the cache check before it exports the source
+    /// (feature 13, invariant I3).
+    #[allow(
+        clippy::unused_async,
+        clippy::unused_async_trait_impl,
+        reason = "every store call is async, so a caller awaits one shape (root rule 6)"
+    )]
+    pub async fn manifest_of(&self, key: &str) -> Option<ImageManifest> {
+        if !is_image_key(key) {
+            return None;
+        }
+        let store = self.store_dir().join(key);
+        if !self.host.fs.exists(&store.join("manifest.json")) {
+            return None;
+        }
+        read_manifest(&self.host.fs, &store).ok()
+    }
+
+    /// Points `tag` at the existing image `key`.
+    ///
+    /// # Errors
+    /// [`SandboxError::NotFound`] when the store has no image `key`, and
+    /// [`SandboxError::InvalidSpec`] when `tag` is not a plain file name.
+    #[allow(
+        clippy::unused_async,
+        clippy::unused_async_trait_impl,
+        reason = "every store call is async, so a caller awaits one shape (root rule 6)"
+    )]
+    pub async fn set_tag(&self, key: &str, tag: &str) -> SandboxResult<()> {
+        if !self.host.fs.exists(&self.store_dir().join(key)) {
+            return Err(SandboxError::NotFound {
+                what: format!("image key {key}"),
+            }
+            .into());
+        }
+        self.write_tag(tag, key)
+    }
+
+    /// Whether `image` names an image in this store.
+    ///
+    /// This is a direct file check, not a call: the command line reads it
+    /// while it builds a spec (feature 13, section 6.5).
+    #[must_use]
+    pub fn has(&self, image: &ImageRef) -> bool {
+        self.key_of(image)
+            .is_ok_and(|key| self.host.fs.exists(&self.store_dir().join(key)))
     }
 
     /// Resolves one reference to its root file and manifest.

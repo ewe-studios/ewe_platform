@@ -247,6 +247,11 @@ firecracker_vm = []
 firecracker_vsock = []
 # The libkrun driver (feature 09). Native Unix only.
 libkrun = []
+# The image importer (feature 13): the Docker source, the tar source and the
+# Alpine source. It needs the image store (`control`), the Alpine archive
+# (`artifacts`) and the Docker Engine client (`docker`). The store itself stays
+# under `control`, so a default build keeps it.
+images = ["control", "artifacts", "docker"]
 # The runner program: it loads libkrun and becomes the virtual machine.
 libkrun-runner = ["dep:libloading"]
 # The `Provider` facade over any control plane (feature 06). The `Provider`
