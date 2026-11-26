@@ -576,8 +576,10 @@ Features 00 to 05 are on `master` and their tests pass in CI.
    `spec77/f18-sandbox-lifetime-and-stream-cost`, from feature 08.
 5. Spec 83 feature 04: pull request #909, in review.
 6. Feature 10 (the Docker driver): pull request #946, in review. The real engine subset passes.
-7. Phase 2: features 11 (nested) and 17 (Cloudflare Sandbox product). Feature 17 needs 08.
-8. Phase 3: features 12 to 15 (images).
+7. Feature 17 (the Cloudflare Sandbox product): on branch
+   `spec77/f17-cloudflare-sandbox-product`, from feature 08.
+8. Feature 11 (nested sandboxes), after feature 10.
+9. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 
