@@ -21,6 +21,7 @@ pub mod kek;
 pub mod kms;
 pub mod material;
 pub mod memory;
+#[cfg(not(target_family = "wasm"))]
 pub mod migrate;
 pub mod sealing;
 #[cfg(all(target_family = "wasm", feature = "wasm-kek"))]
@@ -45,6 +46,7 @@ pub use kms::{build_backend, RemoteKmsKek, VaultTransitBackend};
 pub use kms::{EnvelopeSealer, KmsBackend, KmsConfig, SecretRef};
 pub use material::{KeyMaterial, KeyProtection};
 pub use memory::MemoryKeyStore;
+#[cfg(not(target_family = "wasm"))]
 pub use migrate::{migrate_legacy_keys, MigrationReport};
 #[cfg(not(target_family = "wasm"))]
 pub use sealing::PassphraseSealer;

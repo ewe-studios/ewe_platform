@@ -21,6 +21,7 @@ use foundation_compact::crypto::chacha::{open_with, seal_with, ChaChaKey};
 use foundation_compact::crypto::SecureBytes;
 use foundation_context::env::Env;
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_family = "wasm"))]
 use zeroize::Zeroizing;
 
 use super::{KeyId, KeyKind, KeyStoreError};

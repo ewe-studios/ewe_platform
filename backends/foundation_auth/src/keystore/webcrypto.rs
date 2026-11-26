@@ -54,11 +54,7 @@ impl WebCryptoSealer {
     ///
     /// # Errors
     /// [`KeyStoreError::Seal`] when the import fails.
-    pub async fn import(
-        kek_id: String,
-        mut raw: SecureBytes,
-        env: Env,
-    ) -> Result<Self, KeyStoreError> {
+    pub async fn import(kek_id: String, raw: SecureBytes, env: Env) -> Result<Self, KeyStoreError> {
         if raw.len() != 32 {
             return Err(KeyStoreError::Seal(
                 "a WebCrypto KEK must be 32 bytes".to_string(),
@@ -71,7 +67,13 @@ impl WebCryptoSealer {
         usages.push(&wasm_bindgen::JsValue::from_str("decrypt"));
         let data = js_sys::Uint8Array::from(raw.as_slice());
         let promise = subtle
-            .import_key_with_object("raw", &data.buffer(), &algorithm, false, &usages)
+            .import_key_with_object(
+                "raw",
+                data.unchecked_ref::<js_sys::Object>(),
+                &algorithm,
+                false,
+                &usages,
+            )
             .map_err(|e| KeyStoreError::Seal(format!("importing the KEK: {e:?}")))?;
         let key = JsFuture::from(promise)
             .await
@@ -80,7 +82,9 @@ impl WebCryptoSealer {
             .map_err(|_| {
                 KeyStoreError::Seal("the imported value is not a CryptoKey".to_string())
             })?;
-        raw.zeroize();
+        // The JavaScript array holds a copy; dropping the Rust buffer zeroes
+        // it.
+        drop(raw);
         Ok(Self { kek_id, key, env })
     }
 
@@ -107,7 +111,11 @@ impl KeySealer for WebCryptoSealer {
             let algorithm = aes_gcm_algorithm(Some(&nonce), aad)?;
             let data = js_sys::Uint8Array::from(plaintext);
             let promise = subtle
-                .encrypt_with_object_and_buffer_source(&algorithm, &self.key, &data.buffer())
+                .encrypt_with_object_and_buffer_source(
+                    &algorithm,
+                    &self.key,
+                    data.unchecked_ref::<js_sys::Object>(),
+                )
                 .map_err(|e| KeyStoreError::Seal(format!("encrypt: {e:?}")))?;
             let ciphertext = JsFuture::from(promise)
                 .await
@@ -143,7 +151,11 @@ impl KeySealer for WebCryptoSealer {
             let algorithm = aes_gcm_algorithm(Some(&nonce), aad)?;
             let data = js_sys::Uint8Array::from(ciphertext.as_slice());
             let promise = subtle
-                .decrypt_with_object_and_buffer_source(&algorithm, &self.key, &data.buffer())
+                .decrypt_with_object_and_buffer_source(
+                    &algorithm,
+                    &self.key,
+                    data.unchecked_ref::<js_sys::Object>(),
+                )
                 .map_err(|e| KeyStoreError::Seal(format!("decrypt: {e:?}")))?;
             let plaintext = JsFuture::from(promise)
                 .await
@@ -157,10 +169,7 @@ impl KeySealer for WebCryptoSealer {
 
 /// The AES-256-GCM parameters, with the nonce as the initialization vector and
 /// the record bytes as the additional authenticated data.
-fn aes_gcm_algorithm(
-    nonce: Option<&[u8]>,
-    aad: &[u8],
-) -> Result<wasm_bindgen::JsValue, KeyStoreError> {
+fn aes_gcm_algorithm(nonce: Option<&[u8]>, aad: &[u8]) -> Result<js_sys::Object, KeyStoreError> {
     let algorithm = js_sys::Object::new();
     js_sys::Reflect::set(
         &algorithm,
@@ -182,7 +191,7 @@ fn aes_gcm_algorithm(
         )
         .map_err(|e| KeyStoreError::Seal(format!("AES-GCM associated data: {e:?}")))?;
     }
-    Ok(algorithm.into())
+    Ok(algorithm)
 }
 
 /// The `crypto.subtle` handle of the current Worker or page.
@@ -256,7 +265,9 @@ impl<R: WorkerKekReader> KekSource for SecretsStoreKek<R> {
     }
 
     fn load<'a>(&'a self, env: &'a Env) -> SealFuture<'a, Arc<dyn KeySealer>> {
-        Box::pin(async move {
+        // `WebCryptoSealer::import` waits on a JavaScript promise, which is not
+        // `Send`. The wrapper asserts `Send` on single-threaded wasm.
+        Box::pin(SendWrapper::new(async move {
             let value = self.reader.get(&self.secret_name).await?.ok_or_else(|| {
                 KeyStoreError::KekUnavailable(format!(
                     "Secrets Store binding {} has no secret {}",
@@ -266,7 +277,7 @@ impl<R: WorkerKekReader> KekSource for SecretsStoreKek<R> {
             let raw = decode_kek(value.as_slice())?;
             let sealer = WebCryptoSealer::import(self.kek_id.clone(), raw, env.clone()).await?;
             Ok(Arc::new(sealer) as Arc<dyn KeySealer>)
-        })
+        }))
     }
 }
 
@@ -310,14 +321,14 @@ impl<R: WorkerKekReader> KekSource for WorkerSecretKek<R> {
     }
 
     fn load<'a>(&'a self, env: &'a Env) -> SealFuture<'a, Arc<dyn KeySealer>> {
-        Box::pin(async move {
+        Box::pin(SendWrapper::new(async move {
             let value = self.reader.get(&self.name).await?.ok_or_else(|| {
                 KeyStoreError::KekUnavailable(format!("Worker secret {} is not bound", self.name))
             })?;
             let raw = decode_kek(value.as_slice())?;
             let sealer = WebCryptoSealer::import(self.kek_id.clone(), raw, env.clone()).await?;
             Ok(Arc::new(sealer) as Arc<dyn KeySealer>)
-        })
+        }))
     }
 }
 

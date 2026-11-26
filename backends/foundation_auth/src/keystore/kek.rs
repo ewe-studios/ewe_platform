@@ -13,15 +13,22 @@
 //! a [`KeySealer`]. There is no hidden fallback to a weaker source: the
 //! configuration names one source, or the host applies the documented order.
 
+#[cfg(not(target_family = "wasm"))]
 use std::path::PathBuf;
 use std::sync::Arc;
 
+#[cfg(not(target_family = "wasm"))]
 use base64::Engine as _;
 use foundation_context::env::Env;
+#[cfg(not(target_family = "wasm"))]
 use zeroize::Zeroizing;
 
-use super::sealing::{Argon2Params, PassphraseSealer, SealFuture};
-use super::{KekSealer, KeySealer, KeyStoreError};
+use super::sealing::SealFuture;
+#[cfg(not(target_family = "wasm"))]
+use super::sealing::{Argon2Params, PassphraseSealer};
+#[cfg(not(target_family = "wasm"))]
+use super::KeyStoreError;
+use super::{KekSealer, KeySealer};
 
 /// What kind of source a [`KekSource`] is, for a log line or `keys info`.
 /// It never contains the key.
@@ -99,6 +106,7 @@ impl KekSource for FixedKek {
 /// # Errors
 /// [`KeyStoreError::KekUnavailable`] when the value is neither 32 raw bytes
 /// nor base64url for 32 bytes.
+#[cfg(not(target_family = "wasm"))]
 fn fixed_key(value: &[u8], source: &str) -> Result<[u8; 32], KeyStoreError> {
     if value.len() == 32 {
         let mut key = [0u8; 32];

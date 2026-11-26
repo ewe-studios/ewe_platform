@@ -21,11 +21,13 @@ use foundation_compact::crypto::SecureBytes;
 use foundation_context::env::Env;
 use zeroize::Zeroizing;
 
+#[cfg(not(target_family = "wasm"))]
 use super::kek::{KekSource, KekSourceInfo};
 use super::sealing::{SealFuture, SealedBlob};
 use super::{KeySealer, KeyStoreError};
 
 const B64: base64::engine::GeneralPurpose = base64::engine::general_purpose::URL_SAFE_NO_PAD;
+#[cfg(not(target_family = "wasm"))]
 const B64_STD: base64::engine::GeneralPurpose = base64::engine::general_purpose::STANDARD;
 
 /// One remote KMS.
