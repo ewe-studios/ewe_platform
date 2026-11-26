@@ -139,6 +139,30 @@ pub fn incoming_from_web_request(
         .map_err(|error| JsError::new(&format!("failed to build the request: {error}")))
 }
 
+/// The liveness route of the Worker and the instance Durable Object.
+pub struct HealthCheck;
+
+impl CfServeFactory for HealthCheck {
+    fn create(_ctx: &Ctx) -> Self {
+        Self
+    }
+}
+
+#[async_trait(?Send)]
+impl CfServe for HealthCheck {
+    async fn serve_cf(
+        &self,
+        _ctx: Ctx,
+        _req: SimpleIncomingRequest,
+        conn: &mut CfConn,
+    ) -> CfConnectionResult {
+        conn.set_status(200);
+        conn.set_header("content-type", "text/plain; charset=utf-8");
+        conn.set_body(b"ok".to_vec());
+        CfConnectionResult::Ok
+    }
+}
+
 /// The Connect service of the Worker or the instance Durable Object.
 pub struct ConnectService;
 

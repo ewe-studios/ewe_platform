@@ -41,7 +41,9 @@ use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::host::worker::config::{ServeLimits, WorkerHostConfig};
 use crate::host::worker::registry::DurableObjectRegistry;
 use crate::host::worker::secrets::read_api_keys;
-use crate::host::worker::serve::{incoming_from_web_request, ConnectService, ServedAgent};
+use crate::host::worker::serve::{
+    incoming_from_web_request, ConnectService, HealthCheck, ServedAgent,
+};
 use crate::host::worker::SERVICE_PATHS;
 use crate::proto::v1::agent_service::register_agent_service;
 
@@ -145,6 +147,7 @@ impl WorkerHost {
         register_agent_service(&mut router, service);
 
         let mut app = HttpApp::<Arc<dyn CfServe>>::with_ctx(ctx.clone());
+        app.route_any_cf::<HealthCheck>("/healthz");
         for path in SERVICE_PATHS {
             app.route_any_cf::<ConnectService>(path);
         }
