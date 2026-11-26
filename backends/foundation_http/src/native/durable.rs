@@ -208,8 +208,15 @@ impl Serve for DurableHandler {
         let queries = req.request_url.queries.clone();
         let host = header_value(&req.headers, "host");
         let empty_offset = has_empty_offset(&req.request_uri.to_string());
-        let declared_body_len = header_value(&req.headers, "content-length")
-            .and_then(|value| value.parse::<usize>().ok());
+        let declared_body_len = req
+            .body
+            .as_ref()
+            .and_then(inline_body_len)
+            .filter(|length| *length > 0)
+            .or_else(|| {
+                header_value(&req.headers, "content-length")
+                    .and_then(|value| value.parse::<usize>().ok())
+            });
         let body = req.take_async_body();
 
         crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
@@ -281,6 +288,17 @@ impl Serve for DurableHandler {
                 Err(error) => respond_error(conn, &ctx, &error).await,
             }
         }))
+    }
+}
+
+/// The length of an in-memory body, when the request carries one.
+#[must_use]
+pub fn inline_body_len(body: &foundation_netio::shared::http::SendSafeBody) -> Option<usize> {
+    use foundation_netio::shared::http::SendSafeBody;
+    match body {
+        SendSafeBody::Bytes(bytes) => Some(bytes.len()),
+        SendSafeBody::Text(text) => Some(text.len()),
+        _ => None,
     }
 }
 

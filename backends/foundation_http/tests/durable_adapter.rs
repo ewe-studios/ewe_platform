@@ -14,8 +14,9 @@ use foundation_core::durable::{
     DurableService, DurableStream, MemoryVfs, StoreError, StreamName, StreamOffset,
 };
 use foundation_http::native::durable::{
-    dispatch, error_headers, live_mode, short_body, sse_control_event, sse_control_json,
-    sse_data_event, stream_name_from_path, DurableRequest, DurableResponse, LiveMode,
+    dispatch, error_headers, inline_body_len, live_mode, short_body, sse_control_event,
+    sse_control_json, sse_data_event, stream_name_from_path, DurableRequest, DurableResponse,
+    LiveMode,
 };
 use foundation_http::shared::durable::parse::encode_offset;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
@@ -627,4 +628,13 @@ fn given_a_rate_limit_error_when_the_headers_are_built_then_retry_after_is_prese
 
     let none = error_headers(&StoreError::RateLimited { retry_after: None });
     assert!(none.is_empty());
+}
+
+#[test]
+fn given_an_inline_body_when_its_length_is_read_then_streamed_bodies_report_none() {
+    use foundation_netio::shared::http::SendSafeBody;
+    assert_eq!(inline_body_len(&SendSafeBody::Bytes(vec![1, 2, 3])), Some(3));
+    assert_eq!(inline_body_len(&SendSafeBody::Text("ab".to_string())), Some(2));
+    assert_eq!(inline_body_len(&SendSafeBody::None), None);
+    assert_eq!(inline_body_len(&SendSafeBody::Stream(None)), None);
 }
