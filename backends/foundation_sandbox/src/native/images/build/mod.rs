@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::shared::limits::BuildLimits;
 
 pub mod cache;
+pub mod executor;
 pub mod keys;
 pub mod steps;
 
