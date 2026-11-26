@@ -195,10 +195,10 @@ async fn build(state: &worker::State, env: &worker::Env, ctx: Ctx) -> AgentRpcRe
     let limits = ServeLimits::from(&config);
     let mut app = HttpApp::<Arc<dyn CfServe>>::with_ctx(ctx.clone());
     app.route_any_cf::<ConnectService>(SERVICE_PATH);
-    ctx.store(Arc::new(ServedAgent {
+    ctx.store(ServedAgent {
         handler: Arc::new(router.into_handler()),
         limits: limits.clone(),
-    }));
+    });
     Ok(AgentInner {
         app: CfHttpApp::from_app(app),
         limits,
