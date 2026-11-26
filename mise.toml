@@ -1209,6 +1209,16 @@ cp target/x86_64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave
 cp target/aarch64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-aarch64
 """
 
+[tasks."sandbox:worker-image"]
+description = "Build the static slave and copy the amd64 program into the Worker image context"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+mise run sandbox:slave
+# Cloudflare containers are linux/amd64.
+cp target/sandbox/agent-slave-x86_64 infrastructure/sandbox_worker/agent-slave
+"""
+
 [tasks.bacon]
 description = "Start bacon with bacon-ls job for IDE integration"
 run = "bacon -j bacon-ls"
