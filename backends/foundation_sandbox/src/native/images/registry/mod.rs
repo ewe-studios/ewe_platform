@@ -5,8 +5,9 @@
 //!
 //! - [`reference`] parses `registry/repository:tag` and
 //!   `registry/repository@sha256:<hex>` text.
-//! - the client reads the manifest and streams the blobs to the blob cache.
-//! - the authentication part gets a token when the registry asks for one.
+//! - [`manifest`] holds the manifest and index documents and the platform
+//!   choice.
+//! - [`client`] reads the manifest and streams the blobs to the blob cache.
 //!
 //! Every body is a stream. A layer is never held whole in memory (invariant
 //! I3).
@@ -16,6 +17,16 @@
     reason = "the feature names the module registry and keeps the spec type names"
 )]
 
+pub mod client;
+pub mod manifest;
 pub mod reference;
 
+pub use client::{
+    digest_hex, RegistryAuth, RegistryClient, RegistryLimits, RegistryOptions, ResolvedManifest,
+};
+pub use manifest::{
+    check_image_arch, choose_platform, layer_kind, DocumentKind, LayerKind, OciDescriptor,
+    OciImageConfigDocument, OciIndexEntry, OciManifestDocument, OciPlatform, GZIP_LAYER_TYPES,
+    MANIFEST_ACCEPT, PLAIN_LAYER_TYPES,
+};
 pub use reference::{OciReference, TagOrDigest, DOCKER_HUB_REGISTRY};

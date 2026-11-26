@@ -17,6 +17,12 @@ mod import;
 /// The registry reference tests (feature 15, section 6.1).
 #[cfg(feature = "images")]
 mod oci_reference;
+/// The registry client tests (feature 15, section 6.2).
+#[cfg(feature = "images")]
+mod oci_registry;
+/// The fake registry of the feature 15 tests.
+#[cfg(feature = "images")]
+mod registry_server;
 mod store;
 mod unpack;
 mod user;
