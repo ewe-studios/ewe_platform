@@ -200,6 +200,41 @@ impl HostFs for NativeFs {
         OpenOptions::new().read(true).write(true).open(path).is_ok()
     }
 
+    fn entry_meta(&self, path: &Path) -> SandboxResult<crate::shared::host::EntryMeta> {
+        let metadata = std::fs::symlink_metadata(path)
+            .map_err(|error| io_error("entry_meta", path, &error))?;
+        let file_type = metadata.file_type();
+        let kind = if file_type.is_symlink() {
+            crate::shared::host::EntryKind::Symlink
+        } else if file_type.is_dir() {
+            crate::shared::host::EntryKind::Directory
+        } else if file_type.is_file() {
+            crate::shared::host::EntryKind::File
+        } else {
+            crate::shared::host::EntryKind::Other
+        };
+        #[cfg(unix)]
+        let mode = {
+            use std::os::unix::fs::MetadataExt as _;
+            metadata.mode() & 0o7777
+        };
+        #[cfg(not(unix))]
+        let mode = if file_type.is_dir() { 0o755 } else { 0o644 };
+        Ok(crate::shared::host::EntryMeta {
+            kind,
+            mode,
+            size: metadata.len(),
+        })
+    }
+
+    fn canonicalize(&self, path: &Path) -> SandboxResult<PathBuf> {
+        std::fs::canonicalize(path).map_err(|error| io_error("canonicalize", path, &error).into())
+    }
+
+    fn read_link(&self, path: &Path) -> SandboxResult<PathBuf> {
+        std::fs::read_link(path).map_err(|error| io_error("read_link", path, &error).into())
+    }
+
     fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send>> {
         let file = File::open(path).map_err(|error| io_error("read_stream", path, &error))?;
         Ok(Box::new(file))

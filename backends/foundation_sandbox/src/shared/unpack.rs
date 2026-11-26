@@ -14,6 +14,15 @@ pub struct UnpackOptions {
     pub oci_whiteouts: bool,
     /// Exact paths, relative to the target, that the reader drops.
     pub skip: Vec<String>,
+    /// Keep the mode of a directory that already exists.
+    ///
+    /// A build writes the parent directories of an `ADD` destination and
+    /// cannot see which of them the image already has. With this option the
+    /// guest keeps the mode of an existing directory, so a `/tmp` of 1777
+    /// stays 1777; a directory that does not exist is made with the mode of
+    /// the entry.
+    #[serde(default)]
+    pub keep_existing_dirs: bool,
 }
 
 /// The result of one unpack.

@@ -395,6 +395,9 @@ pub struct UnpackBeginRequest {
     /// Exact paths, relative to `dest`, that the reader drops.
     #[serde(default)]
     pub skip: Vec<String>,
+    /// Keep the mode of a directory that already exists (feature 14).
+    #[serde(default)]
+    pub keep_existing_dirs: bool,
 }
 
 /// The response of `UnpackBegin`.

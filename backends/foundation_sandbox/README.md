@@ -53,6 +53,39 @@ agent-sandbox run --rootfs /images/ubuntu.squashfs -- echo hello
 With no `--rootfs`, `run` fetches the pinned continuous integration (CI) kernel
 and root file system into the cache and uses them.
 
+## Build an image from a Sandboxfile
+
+A `Sandboxfile` is a small build file. Each step that changes the image runs in
+one of our own microVMs, so a build of code that is not trusted is isolated.
+
+```bash
+agent-sandbox image build -f Sandboxfile --tag app .
+agent-sandbox run --image app
+```
+
+| Instruction | Form |
+|---|---|
+| `FROM` | `alpine:<version>`, `image:<tag-or-key>`, `docker:<name>` or `tar:<path>`. `oci:` needs feature 15. |
+| `KERNEL` | A kernel name of the artifact manifest, or `default`. At most one. |
+| `ENV` | `KEY=value`. The value is the rest of the line. |
+| `WORKDIR` | An absolute path. |
+| `USER` | `uid`, `uid:gid`, `name` or `name:group`. |
+| `ADD` | `[--mode <octal>] <source> <destination>`. The source is relative to the build context. |
+| `FETCH` | `<url> sha256:<64 hex> AS <destination>`. The host downloads and checks the file. |
+| `RUN` | `[--shell "<program and arguments>"] [--network none\|host] <text>`, or a here-document. |
+| `CMD` | A JSON array of strings. At most one. |
+
+The first instruction is `FROM`. A line that ends with `\` continues on the
+next line. A line whose first character after spaces is `#` is a comment.
+
+The default shell is `/bin/sh -e -s`. The builder writes the script to the
+standard input of the shell, so `--shell` must name a program that reads its
+program from standard input, for example `python3 -`.
+
+A `RUN --network host` step needs a driver with a guest network. In this spec
+only libkrun with block support gives one. A host without such a driver refuses
+the build with `UnsupportedNetwork` before it starts any work.
+
 ## The library
 
 ```rust

@@ -275,6 +275,7 @@ fn unpack_whiteouts() {
     let options = UnpackOptions {
         oci_whiteouts: true,
         skip: Vec::new(),
+        keep_existing_dirs: false,
     };
     unpack(tar.finish().as_slice(), dir.path(), &options, &limits()).expect("the archive applies");
     assert!(!dir.path().join("a/b").exists(), "the whiteout removes b");
@@ -347,6 +348,7 @@ fn unpack_skip() {
     let options = UnpackOptions {
         oci_whiteouts: false,
         skip: vec!["drop".to_string()],
+        keep_existing_dirs: false,
     };
     unpack(tar.finish().as_slice(), dir.path(), &options, &limits()).expect("the archive applies");
     assert!(dir.path().join("keep").exists());

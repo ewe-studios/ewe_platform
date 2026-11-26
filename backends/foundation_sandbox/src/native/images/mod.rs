@@ -28,6 +28,14 @@ use crate::shared::BoxFuture;
 #[cfg(feature = "images")]
 pub mod import;
 
+/// The build file grammar and its executor (feature 14).
+#[cfg(feature = "images")]
+pub mod build;
+
+/// The build file grammar (feature 14).
+#[cfg(feature = "images")]
+pub mod sandboxfile;
+
 /// The names of `mkfs.ext4` that the store tries on this host.
 const MKFS_CANDIDATES: [&str; 5] = [
     "/sbin/mkfs.ext4",
@@ -357,8 +365,17 @@ impl ImageStore {
             self.host
                 .fs
                 .write(&temporary.join("manifest.json"), &json)?;
-            self.host.fs.rename(&temporary, &store)?;
-            Ok(())
+            // Two builders can commit the same key at the same time. The
+            // second rename finds the first image; its temporary directory
+            // goes, and the first image stays (invariant I11).
+            match self.host.fs.rename(&temporary, &store) {
+                Ok(()) => Ok(()),
+                Err(_) if self.host.fs.exists(&store) => {
+                    let _ = self.host.fs.remove_dir_all(&temporary);
+                    Ok(())
+                }
+                Err(error) => Err(error),
+            }
         })();
         if let Err(error) = prepared {
             let _ = self.host.fs.remove_dir_all(&temporary);

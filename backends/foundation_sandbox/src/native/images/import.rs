@@ -844,6 +844,7 @@ pub fn export_unpack_options() -> UnpackOptions {
     UnpackOptions {
         oci_whiteouts: false,
         skip: vec![SKIP_EXPORT.to_string()],
+        keep_existing_dirs: false,
     }
 }
 

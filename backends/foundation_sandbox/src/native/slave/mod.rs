@@ -505,6 +505,7 @@ fn start_upload_timer(ctx: Ctx, files: Arc<Files>, interval: std::time::Duration
 fn unpack_child_limits(limits: crate::shared::rpc::messages::SlaveLimits) -> ChildOptions {
     ChildOptions {
         oci_whiteouts: false,
+        keep_existing_dirs: false,
         skip: Vec::new(),
         max_entries: usize::try_from(limits.max_unpack_entries).unwrap_or(usize::MAX),
         max_bytes: limits.max_unpack_bytes,
@@ -690,6 +691,7 @@ impl SlaveService for Slave {
             let sessions = self.unpack_sessions()?;
             let mut child = unpack_child_limits(prepared.limits());
             child.oci_whiteouts = request.msg.oci_whiteouts;
+            child.keep_existing_dirs = request.msg.keep_existing_dirs;
             child.skip.clone_from(&request.msg.skip);
             let upload_id = sessions.begin(&prepared.exec_root, &request.msg.dest, &child)?;
             Ok(UnpackBeginResponse {

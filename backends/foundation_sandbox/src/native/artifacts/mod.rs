@@ -14,7 +14,7 @@
 //! The module is native code: it uses the HTTP client, `flate2` and `tar`.
 
 pub mod cpio;
-mod fetch;
+pub(crate) mod fetch;
 pub mod manifest;
 mod tarball;
 

@@ -286,6 +286,7 @@ struct DriverScript {
     mounts: Vec<GuestMount>,
     attach: AttachMode,
     launch_spec: Option<SandboxSpec>,
+    fresh_substrate: bool,
 }
 
 /// A driver that a test scripts.
@@ -333,6 +334,7 @@ impl SimDriver {
                 mounts: Vec::new(),
                 attach: AttachMode::None,
                 launch_spec: None,
+                fresh_substrate: false,
             }),
             container: None,
         }
@@ -373,11 +375,16 @@ impl SimDriver {
     /// Makes the launch stream fail.
     #[must_use]
     pub fn with_launch_error(self, error: SandboxError) -> Self {
+        self.set_launch_error(error);
+        self
+    }
+
+    /// Makes the launch stream fail, on a driver that a test already holds.
+    pub fn set_launch_error(&self, error: SandboxError) {
         self.script
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .launch_error = Some(error);
-        self
     }
 
     /// Replaces the root that the driver gives the slave.
@@ -417,6 +424,19 @@ impl SimDriver {
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .attach = attach;
+        self
+    }
+
+    /// Makes every launch start from a substrate that did not exit.
+    ///
+    /// A test that stops several sandboxes on one driver needs this: a
+    /// simulated substrate stays exited after its first stop.
+    #[must_use]
+    pub fn with_fresh_substrate(self) -> Self {
+        self.script
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .fresh_substrate = true;
         self
     }
 
@@ -501,6 +521,9 @@ impl SandboxDriver for SimDriver {
             let mut script = self.script.lock().unwrap_or_else(PoisonError::into_inner);
             script.launch_calls += 1;
             script.launch_spec = Some(spec);
+            if script.fresh_substrate {
+                script.substrate.reset();
+            }
             (
                 script.progress.clone(),
                 script.launch_error.clone(),
@@ -629,6 +652,11 @@ pub enum SlaveCall {
         /// The path.
         path: String,
     },
+    /// `UnpackBegin`.
+    UnpackBegin {
+        /// Whether an existing directory keeps its mode.
+        keep_existing_dirs: bool,
+    },
     /// `Shutdown`.
     Shutdown {
         /// The grace in milliseconds.
@@ -651,6 +679,7 @@ impl SlaveCall {
             Self::FileWriteCommit { .. } => "file_write_commit",
             Self::FileWriteAbort { .. } => "file_write_abort",
             Self::FileRead { .. } => "file_read",
+            Self::UnpackBegin { .. } => "unpack_begin",
             Self::Shutdown { .. } => "shutdown",
         }
     }
@@ -1385,8 +1414,11 @@ impl SlaveService for ScriptedSlave {
     async fn unpack_begin(
         &self,
         _ctx: RpcCtx,
-        _request: Request<UnpackBeginRequest>,
+        request: Request<UnpackBeginRequest>,
     ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        self.record(SlaveCall::UnpackBegin {
+            keep_existing_dirs: request.msg.keep_existing_dirs,
+        });
         Ok(Response::new(UnpackBeginResponse {
             upload_id: "unpack-00000001".to_string(),
         }))
@@ -2070,6 +2102,41 @@ impl crate::shared::host::HostFs for FakeHostFs {
             .get(path)
             .copied()
             .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
+    }
+
+    fn entry_meta(&self, path: &Path) -> SandboxResult<crate::shared::host::EntryMeta> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(data) = state.files.get(path) {
+            return Ok(crate::shared::host::EntryMeta {
+                kind: crate::shared::host::EntryKind::File,
+                mode: 0o644,
+                size: u64::try_from(data.len()).unwrap_or(u64::MAX),
+            });
+        }
+        if state.dirs.contains(path) {
+            return Ok(crate::shared::host::EntryMeta {
+                kind: crate::shared::host::EntryKind::Directory,
+                mode: 0o755,
+                size: 0,
+            });
+        }
+        Err(SandboxError::Io {
+            op: "entry_meta".to_string(),
+            message: format!("{}: not found", path.display()),
+        }
+        .into())
+    }
+
+    fn canonicalize(&self, path: &Path) -> SandboxResult<PathBuf> {
+        if self.exists(path) {
+            Ok(path.to_path_buf())
+        } else {
+            Err(SandboxError::Io {
+                op: "canonicalize".to_string(),
+                message: format!("{}: not found", path.display()),
+            }
+            .into())
+        }
     }
 
     fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>> {

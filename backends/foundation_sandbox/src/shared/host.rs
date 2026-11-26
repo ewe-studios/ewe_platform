@@ -209,6 +209,31 @@ impl std::fmt::Debug for FileLock {
     }
 }
 
+/// The type of one host file-system entry.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EntryKind {
+    /// A regular file.
+    File,
+    /// A directory.
+    Directory,
+    /// A symbolic link.
+    Symlink,
+    /// Another type, such as a device node or a socket.
+    Other,
+}
+
+/// What the host knows about one file-system entry, without following a
+/// symbolic link.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EntryMeta {
+    /// The type of the entry.
+    pub kind: EntryKind,
+    /// The permission bits, `mode & 0o7777`.
+    pub mode: u32,
+    /// The size in bytes.
+    pub size: u64,
+}
+
 /// Reads and writes host files.
 pub trait HostFs: Send + Sync + 'static {
     /// Creates a directory and its parents.
@@ -333,6 +358,48 @@ pub trait HostFs: Send + Sync + 'static {
     /// its own rule.
     fn is_openable_read_write(&self, path: &Path) -> bool {
         self.exists(path)
+    }
+
+    /// The metadata of one entry, without following a symbolic link.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the entry cannot be read.
+    fn entry_meta(&self, path: &Path) -> SandboxResult<EntryMeta> {
+        Err(SandboxError::Io {
+            op: "entry_meta".to_string(),
+            message: format!(
+                "{}: this host cannot read an entry without following a link",
+                path.display()
+            ),
+        }
+        .into())
+    }
+
+    /// Resolves every symbolic link and `..` part of one path.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the path cannot be resolved.
+    fn canonicalize(&self, path: &Path) -> SandboxResult<PathBuf> {
+        Err(SandboxError::Io {
+            op: "canonicalize".to_string(),
+            message: format!(
+                "{}: this host cannot resolve symbolic links",
+                path.display()
+            ),
+        }
+        .into())
+    }
+
+    /// Reads the target of one symbolic link.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the link cannot be read.
+    fn read_link(&self, path: &Path) -> SandboxResult<PathBuf> {
+        Err(SandboxError::Io {
+            op: "read_link".to_string(),
+            message: format!("{}: this host cannot read a symbolic link", path.display()),
+        }
+        .into())
     }
 }
 

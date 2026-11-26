@@ -27,6 +27,10 @@ use crate::cli::{parse_connect, parse_listen};
 #[cfg(feature = "images")]
 use crate::native::docker::api::DockerApi;
 #[cfg(feature = "images")]
+use crate::native::images::build::executor::{BuildEvent, BuildProgress, ImageBuilder};
+#[cfg(feature = "images")]
+use crate::native::images::build::BuildOptions;
+#[cfg(feature = "images")]
 use crate::native::images::import::{
     ImageImporter, ImageSource, ImportEvent, ImportOptions, ImportProgress,
 };
@@ -237,6 +241,8 @@ pub enum ImageCommand {
     List,
     /// Remove one image by tag or key.
     Rm(ImageRmArgs),
+    /// Build an image from a Sandboxfile (feature 14).
+    Build(ImageBuildArgs),
 }
 
 /// `image import`: one source becomes one sandbox image.
@@ -268,6 +274,27 @@ pub struct ImageImportArgs {
 pub struct ImageRmArgs {
     /// The tag or the 32-character key of the image.
     pub image: String,
+}
+
+/// `image build`: one Sandboxfile becomes one image.
+#[cfg(feature = "images")]
+#[derive(Debug, Args)]
+pub struct ImageBuildArgs {
+    /// The build file. The default is `<context>/Sandboxfile`.
+    #[arg(short = 'f', long)]
+    pub file: Option<PathBuf>,
+    /// The tag that the image gets.
+    #[arg(long)]
+    pub tag: Option<String>,
+    /// The size of each work image in mebibytes.
+    #[arg(long = "size-mib")]
+    pub size_mib: Option<u32>,
+    /// Run every step after FROM, ignoring the cache.
+    #[arg(long = "no-cache")]
+    pub no_cache: bool,
+    /// The build context: the directory that ADD paths are relative to.
+    #[arg(default_value = ".")]
+    pub context: PathBuf,
 }
 
 /// Runs one sub-command and returns its exit code.
@@ -576,6 +603,7 @@ fn image_command(ctx: Ctx, args: ImageArgs) -> i32 {
         ImageCommand::Import(args) => image_import(&ctx, args),
         ImageCommand::List => image_list(&ctx),
         ImageCommand::Rm(args) => image_remove(&ctx, &args.image),
+        ImageCommand::Build(args) => image_build(&ctx, args),
     }
 }
 
@@ -652,6 +680,179 @@ fn image_import(ctx: &Ctx, args: ImageImportArgs) -> i32 {
             0
         }
         Err(error) => failure(&error),
+    }
+}
+
+/// `image build`: one Sandboxfile becomes one image.
+#[cfg(feature = "images")]
+fn image_build(ctx: &Ctx, args: ImageBuildArgs) -> i32 {
+    let file_path = args
+        .file
+        .clone()
+        .unwrap_or_else(|| args.context.join("Sandboxfile"));
+    let options = BuildOptions {
+        tag: args.tag.clone(),
+        size_mib: args
+            .size_mib
+            .unwrap_or_else(|| BuildOptions::default().size_mib),
+        no_cache: args.no_cache,
+        ..BuildOptions::default()
+    };
+    let text = match read_build_file(&file_path, options.limits.max_file_bytes) {
+        Ok(text) => text,
+        Err(code) => return code,
+    };
+    let file = match crate::native::images::sandboxfile::Sandboxfile::parse_with_limits(
+        &text,
+        &options.limits,
+    ) {
+        Ok(file) => file,
+        Err(error) => return failure(&error),
+    };
+    let host = match SandboxHost::from_ctx(ctx) {
+        Ok(host) => host,
+        Err(error) => return failure(&error),
+    };
+    let store = ImageStore::new(ctx.clone(), host.clone());
+    let manager = match local_manager(ctx, None) {
+        Ok(manager) => manager,
+        Err(code) => return code,
+    };
+    let docker = foundation_deployment_docker::DockerClient::connect_with_defaults()
+        .ok()
+        .map(|client| Arc::new(client) as Arc<dyn DockerApi>);
+    let importer = ImageImporter::new(
+        ctx.clone(),
+        host.clone(),
+        store.clone(),
+        Arc::clone(&manager) as Arc<dyn SandboxProvider>,
+        docker,
+    );
+    let builder = ImageBuilder::new(
+        ctx.clone(),
+        host,
+        store,
+        importer,
+        Arc::clone(&manager) as Arc<dyn SandboxProvider>,
+    );
+    let mut stream = builder.build_with_progress(file, args.context, options);
+    let result = block_on_future(async move {
+        let mut printer = BuildPrinter::default();
+        while let Some(event) = stream.next().await {
+            match event {
+                BuildEvent::Progress(progress) => printer.progress(&progress),
+                BuildEvent::Done(result) => {
+                    printer.finish();
+                    return *result;
+                }
+            }
+        }
+        Err(SandboxError::StreamLost.into())
+    });
+    match result {
+        Ok(image) => {
+            println!("{}", image_ref_text(&image));
+            0
+        }
+        Err(error) => failure(&error),
+    }
+}
+
+/// Reads a build file, within the configured size limit.
+#[cfg(feature = "images")]
+fn read_build_file(path: &Path, max_bytes: u64) -> Result<String, i32> {
+    let metadata = std::fs::metadata(path).map_err(|error| {
+        eprintln!("agent-sandbox: {}: {error}", path.display());
+        EXIT_FAILURE
+    })?;
+    if metadata.len() > max_bytes {
+        eprintln!(
+            "agent-sandbox: {} is larger than the limit {max_bytes} bytes",
+            path.display()
+        );
+        return Err(EXIT_FAILURE);
+    }
+    let bytes = std::fs::read(path).map_err(|error| {
+        eprintln!("agent-sandbox: {}: {error}", path.display());
+        EXIT_FAILURE
+    })?;
+    String::from_utf8(bytes).map_err(|_| {
+        eprintln!("agent-sandbox: {} is not valid UTF-8 text", path.display());
+        EXIT_FAILURE
+    })
+}
+
+/// The progress printer of one build.
+///
+/// It keeps the step prefix across output chunks, so one line of output has
+/// one prefix.
+#[cfg(feature = "images")]
+#[derive(Default)]
+struct BuildPrinter {
+    index: u32,
+    total: u32,
+    at_line_start: bool,
+}
+
+#[cfg(feature = "images")]
+impl BuildPrinter {
+    /// Prints one progress value.
+    fn progress(&mut self, progress: &BuildProgress) {
+        match progress {
+            BuildProgress::StepStarted {
+                index, total, text, ..
+            } => {
+                self.flush();
+                self.index = *index;
+                self.total = *total;
+                eprintln!("[{index}/{total}] {text}");
+            }
+            BuildProgress::CacheHit { index } => {
+                self.flush();
+                eprintln!("[{index}/{}] cached", self.total.max(1));
+            }
+            BuildProgress::Output { index, data, .. } => {
+                self.output(*index, data);
+            }
+            BuildProgress::StepDone { .. } => self.flush(),
+            BuildProgress::Committing => {
+                self.flush();
+                eprintln!("agent-sandbox: committing the image");
+            }
+        }
+    }
+
+    /// Prints one output chunk with the step prefix.
+    fn output(&mut self, index: u32, data: &[u8]) {
+        if index != self.index {
+            self.flush();
+            self.index = index;
+        }
+        let prefix = format!("[{}/{}] ", self.index, self.total.max(1));
+        let mut out = Vec::with_capacity(data.len() + 16);
+        for byte in data {
+            if self.at_line_start {
+                out.extend_from_slice(prefix.as_bytes());
+                self.at_line_start = false;
+            }
+            out.push(*byte);
+            if *byte == b'\n' {
+                self.at_line_start = true;
+            }
+        }
+        let _ = std::io::stderr().write_all(&out);
+    }
+
+    /// Ends a partial output line.
+    fn finish(&mut self) {
+        self.flush();
+    }
+
+    fn flush(&mut self) {
+        if !self.at_line_start {
+            eprintln!();
+            self.at_line_start = true;
+        }
     }
 }
 
