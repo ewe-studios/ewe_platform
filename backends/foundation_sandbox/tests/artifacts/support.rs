@@ -365,10 +365,6 @@ impl HostFs for RecordingFs {
         NativeFs.rename(from, to)
     }
 
-    fn remove_file(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<()> {
-        NativeFs.remove_file(path)
-    }
-
     fn read_stream(
         &self,
         path: &Path,

@@ -1962,6 +1962,30 @@ impl crate::shared::host::HostFs for FakeHostFs {
             return Ok(());
         }
         if state.dirs.remove(from) {
+            // A directory keeps its children: move each path below it.
+            let prefix = from.to_path_buf();
+            let moved_files: Vec<(PathBuf, Vec<u8>)> = state
+                .files
+                .iter()
+                .filter(|(path, _)| path.starts_with(&prefix))
+                .map(|(path, data)| (path.clone(), data.clone()))
+                .collect();
+            for (path, data) in moved_files {
+                state.files.remove(&path);
+                let suffix = path.strip_prefix(&prefix).unwrap_or(&path);
+                state.files.insert(to.join(suffix), data);
+            }
+            let moved_dirs: Vec<PathBuf> = state
+                .dirs
+                .iter()
+                .filter(|path| path.starts_with(&prefix))
+                .cloned()
+                .collect();
+            for path in moved_dirs {
+                state.dirs.remove(&path);
+                let suffix = path.strip_prefix(&prefix).unwrap_or(&path);
+                state.dirs.insert(to.join(suffix));
+            }
             state.dirs.insert(to.to_path_buf());
             return Ok(());
         }
@@ -2010,15 +2034,6 @@ impl crate::shared::host::HostFs for FakeHostFs {
             .get(path)
             .copied()
             .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
-    }
-
-    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
-        self.state
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .files
-            .remove(path);
-        Ok(())
     }
 
     fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>> {
@@ -2086,6 +2101,15 @@ impl std::io::Write for FakeFileWriter {
 
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
+    }
+}
+
+impl Drop for FakeFileWriter {
+    fn drop(&mut self) {
+        // `create_file` replaces the file contents, so an empty writer still
+        // makes an empty file. A caller that drops the writer without a write
+        // relies on it (the image store makes the work file this way).
+        let _ = self.fs.write(&self.path, &self.buffer);
     }
 }
 

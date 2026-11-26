@@ -200,14 +200,6 @@ impl HostFs for NativeFs {
         OpenOptions::new().read(true).write(true).open(path).is_ok()
     }
 
-    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
-        match std::fs::remove_file(path) {
-            Ok(()) => Ok(()),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(io_error("remove_file", path, &error).into()),
-        }
-    }
-
     fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send>> {
         let file = File::open(path).map_err(|error| io_error("read_stream", path, &error))?;
         Ok(Box::new(file))

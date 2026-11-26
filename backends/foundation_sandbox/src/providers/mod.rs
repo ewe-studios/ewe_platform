@@ -151,9 +151,9 @@ fn provider_id(driver: DriverId) -> ProviderId {
     match driver {
         DriverId::Libkrun => ProviderId::Libkrun,
         DriverId::Docker => ProviderId::DockerSandbox,
-        DriverId::Firecracker
-        | DriverId::CloudflareContainer
-        | DriverId::CloudflareDo => ProviderId::Firecracker,
+        DriverId::Firecracker | DriverId::CloudflareContainer | DriverId::CloudflareDo => {
+            ProviderId::Firecracker
+        }
     }
 }
 
