@@ -1770,3 +1770,26 @@ The test `an_open_stream_holds_the_sandbox_alive` documents this: it advances 30
 wall time over three idle periods, sees the stored idle deadline move to `4 * idle_timeout`,
 fires the alarm, and checks that the sandbox still runs. Then it advances past the one-hour
 cap and expects the `deadline_exceeded` terminal frame.
+
+## 25. The artifact TLS feature put `ring` into the static slave (2026-11-27)
+
+Feature 11 needed the static musl build of `agent-slave` with the `control` and `firecracker`
+features. The build failed in the build script of `ring`, which wants a C compiler. The
+`firecracker` feature enables `artifacts`, and `artifacts` enabled `foundation_netio/ssl`,
+which links `ring` and its C code.
+
+**Rule.** The artifact store does not need TLS to read its cache. The feature split is:
+`artifacts` has no TLS, and `artifacts-remote` adds it. The default feature set has
+`artifacts-remote`; the static slave build has `artifacts` only.
+
+**What it proves.** `cargo build -p foundation_sandbox --no-default-features --features
+"slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl` gives a
+static-pie program of 4.9 MB.
+
+**Finding.** `ContainerHostConfig` flattens a `HostConfig` and a `Resources` that both name
+`Devices`. A `Devices` value on the `HostConfig` alone is written as null, because the later
+flattened field wins. The Docker driver sets both fields (issue #966).
+
+**Finding.** The Firecracker probe of a nested host reports `kvm` false, and
+`SlaveInfo.can_control` is then false. A child create fails with `DriverUnavailable`, as
+invariant I2 says. No second code path is needed.
