@@ -14,8 +14,8 @@
 
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{Arc, Condvar, Mutex, RwLock};
+use std::time::{Duration, Instant};
 
 use foundation_ai::agentic::{AgentConfig, AgentSession, KvMemoryStore, MemoryStore};
 use foundation_ai::types::SessionId;
@@ -31,7 +31,7 @@ use crate::core::registry::{
     decode_page_token, encode_page_token, Caller, InstanceInfo, InstanceRegistry, InstanceSpec,
     Page, Scope, TurnEventStream,
 };
-use crate::core::turn::guarded_turn;
+use crate::core::turn::{guarded_turn, TurnShutdown};
 use crate::error::{AgentRpcError, AgentRpcResult};
 
 /// Makes the two stores of a new session.
@@ -198,6 +198,71 @@ where
     }
 }
 
+/// The count of running turns, for a graceful shutdown.
+#[derive(Default)]
+struct TurnActivity {
+    count: Mutex<usize>,
+    idle: Condvar,
+}
+
+impl TurnActivity {
+    fn enter(self: &Arc<Self>) -> TurnActive {
+        let mut count = self
+            .count
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *count += 1;
+        TurnActive {
+            activity: Arc::clone(self),
+        }
+    }
+
+    /// Wait until no turn runs, or until `grace` real seconds pass.
+    ///
+    /// The wait reads real time: shutdown grace is the time that a process
+    /// gets after `SIGTERM` (Kubernetes `terminationGracePeriodSeconds`), not
+    /// simulated time. It runs only at the host shutdown boundary.
+    fn wait_idle(&self, grace: Duration) -> bool {
+        let deadline = Instant::now() + grace;
+        let mut count = self
+            .count
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        while *count > 0 {
+            let now = Instant::now();
+            if now >= deadline {
+                return false;
+            }
+            let remaining = deadline.saturating_duration_since(now);
+            let (guard, _) = self
+                .idle
+                .wait_timeout(count, remaining)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            count = guard;
+        }
+        true
+    }
+}
+
+/// One running turn's count. It decrements on drop.
+struct TurnActive {
+    activity: Arc<TurnActivity>,
+}
+
+impl Drop for TurnActive {
+    fn drop(&mut self) {
+        let mut count = self
+            .activity
+            .count
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *count = count.saturating_sub(1);
+        if *count == 0 {
+            self.activity.idle.notify_all();
+        }
+    }
+}
+
 /// The table of live instances, keyed by scope and name.
 type InstanceTable<D, M> = BTreeMap<(Scope, String), InstanceHandle<D, M>>;
 
@@ -210,6 +275,8 @@ pub struct LocalInstanceRegistry<S: SessionStores = InMemoryStores> {
     instances: RwLock<InstanceTable<S::Doc, S::Mem>>,
     config: RegistryConfig,
     turns: TurnLimits,
+    shutdown: TurnShutdown,
+    activity: Arc<TurnActivity>,
 }
 
 impl<S: SessionStores> std::fmt::Debug for LocalInstanceRegistry<S> {
@@ -244,6 +311,8 @@ impl<S: SessionStores> LocalInstanceRegistry<S> {
             instances: RwLock::new(BTreeMap::new()),
             config,
             turns,
+            shutdown: TurnShutdown::default(),
+            activity: Arc::new(TurnActivity::default()),
         })
     }
 
@@ -257,6 +326,51 @@ impl<S: SessionStores> LocalInstanceRegistry<S> {
     #[must_use]
     pub fn turn_limits(&self) -> &TurnLimits {
         &self.turns
+    }
+
+    /// How many instances the table holds.
+    #[must_use]
+    pub fn instance_count(&self) -> usize {
+        self.table().len()
+    }
+
+    /// Stop the running turns and abort their sessions.
+    ///
+    /// The method waits up to `grace` for the turns to end on their own. The
+    /// turns that still run then get [`TurnShutdown::fire`], so each one emits
+    /// its terminal `TurnFailed("server shutting down")` and drops. A second
+    /// bounded wait gives them time to flush.
+    pub fn shutdown(&self, grace: Duration) {
+        if self.activity.wait_idle(grace) {
+            return;
+        }
+        self.shutdown.fire();
+        let _ = self.activity.wait_idle(grace.min(Duration::from_secs(2)));
+        let table = self.table();
+        for handle in table.values() {
+            handle.session().abort();
+        }
+    }
+
+    /// End every session and empty the table.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Inference`] when a session cannot end. The table is
+    /// emptied either way.
+    pub async fn end_all(&self) -> AgentRpcResult<()> {
+        let handles: Vec<InstanceHandle<S::Doc, S::Mem>> = self.table().values().cloned().collect();
+        let mut result = Ok(());
+        for handle in &handles {
+            handle.session().abort();
+            if let Err(error) = handle.session().end().await {
+                result = Err(ErrorTrace::new(AgentRpcError::Inference(format!(
+                    "ending instance {}: {error}",
+                    handle.name()
+                ))));
+            }
+        }
+        self.table_mut().clear();
+        result
     }
 
     fn table(&self) -> std::sync::RwLockReadGuard<'_, InstanceTable<S::Doc, S::Mem>> {
@@ -432,6 +546,7 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                     .ok_or_else(|| AgentRpcError::InstanceNotFound(name.to_string()))?
             };
             let guard = instance.begin_turn()?;
+            let active = self.activity.enter();
             let turn = instance
                 .session()
                 .run_turn_stream(prompt)
@@ -440,8 +555,9 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
             let abort: Arc<dyn Fn() + Send + Sync> = Arc::new(move || session.abort());
             Ok(guarded_turn(
                 turn.events(),
-                guard,
+                (guard, active),
                 abort,
+                self.shutdown.clone(),
                 self.ctx.clone(),
                 self.env.clone(),
                 &self.turns,

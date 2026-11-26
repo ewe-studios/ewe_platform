@@ -18,7 +18,8 @@ use foundation_connectrpc::{
 use foundation_core::valtron::valtron_test;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, Status};
 
-const ECHO: &str = "http://mem/test.EchoService/Echo";
+const ECHO_PATH: &str = "/test.EchoService/Echo";
+const ECHO_URL: &str = "http://mem/test.EchoService/Echo";
 
 #[derive(Clone, Default, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 struct TestMsg {
@@ -79,7 +80,7 @@ impl Message for TestMsg {
 fn echo_router() -> Router {
     let mut router = Router::new();
     router.unary(
-        ECHO,
+        ECHO_PATH,
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, request: Request<TestMsg>| async move { Ok(Response::new(request.msg)) },
         HandlerOptions::new(),
@@ -103,7 +104,7 @@ async fn mem_unary_round_trip_returns_the_server_reply() {
         foundation_context::Ctx::host(),
     ));
     let transport = MemTransport::new(network);
-    let request = request_descriptor(ECHO, json_headers()).expect("descriptor");
+    let request = request_descriptor(ECHO_URL, json_headers()).expect("descriptor");
     let input = TestMsg {
         id: 7,
         name: "in memory".into(),

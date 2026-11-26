@@ -20,7 +20,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", op
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # The VFS trait that the operator key files read through. It builds on wasm:
 # only `NativeFs` is native. Feature `secret`.
-foundation_nativeapis = { workspace = true, optional = true }
+foundation_nativeapis = { workspace = true, optional = true, default-features = false, features = ["vfs"] }
 
 # Signed secrets (spec 81). Ed25519 is pure Rust and builds for wasm; `ssh-key`
 # reads OpenSSH private key files, and `p256` reads the P-256 PKCS#8 and SEC1
@@ -106,7 +106,7 @@ web-sys = { workspace = true, features = [
 # The defaults are off so a consumer that must not link a C TLS library can
 # leave them off. The `netio-ssl` feature restores them and is in the default
 # set, so every existing consumer keeps today's set.
-foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["multi", "std", "wire-native", "standard", "compression"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["std", "wire-native", "standard", "compression"] }
 # RSA-PSS signed-secret keys (feature `secret-rsa`). The `ring` crate seals
 # its random source to the operating system, so it cannot take the entropy of
 # `Ctx`. `rsa` takes a caller-supplied random source instead, and

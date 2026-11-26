@@ -14,6 +14,7 @@
 //! written to the state directory. The client-certificate check reads the
 //! in-memory trust index only; it does no Input/Output (I/O).
 
+use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -22,7 +23,7 @@ use foundation_auth::pki::{CaKey, CertificateAuthority, PkiError, ServerIdentity
 use foundation_auth::secret::{
     SecretDomain, SecretIssuer, SecretVerifier, SigningKey, VerifyPolicy,
 };
-use foundation_auth::trust::{TrustError, TrustedClients};
+use foundation_auth::trust::TrustedClients;
 use foundation_compact::Duration;
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
@@ -61,15 +62,6 @@ fn storage_error(what: impl Into<String>) -> ErrorTrace<AgentRpcError> {
 
 fn pki_error(error: &PkiError) -> ErrorTrace<AgentRpcError> {
     AgentRpcError::Config(format!("certificate authority: {error}")).into()
-}
-
-fn trust_error(error: &TrustError) -> ErrorTrace<AgentRpcError> {
-    match error {
-        TrustError::Storage(_) => {
-            AgentRpcError::Storage(format!("trusted clients: {error}")).into()
-        }
-        _ => AgentRpcError::Auth(format!("trusted clients: {error}")).into(),
-    }
 }
 
 /// Read one operator key.
@@ -211,7 +203,7 @@ pub fn server_identity(
     config: &NativeHostConfig,
     ca: &CertificateAuthority,
     key: CaKey,
-    ctx: &Ctx,
+    _ctx: &Ctx,
 ) -> AgentRpcResult<ServerIdentity> {
     let identity = ca
         .issue_server_identity(
@@ -230,8 +222,6 @@ pub const SERVER_CERT_FILE: &str = "server-cert.pem";
 
 /// Write a public file atomically, readable by every user on Unix.
 fn write_public_file(path: &Path, bytes: &[u8]) -> AgentRpcResult<()> {
-    use std::io::Write;
-
     if let Some(dir) = path.parent().filter(|dir| !dir.as_os_str().is_empty()) {
         std::fs::create_dir_all(dir)
             .map_err(|error| storage_error(format!("creating {}: {error}", dir.display())))?;

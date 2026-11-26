@@ -89,8 +89,9 @@ impl NativeHost {
             ctx.clone(),
         )?);
 
+        let registry_trait: Arc<dyn crate::core::registry::InstanceRegistry> = registry.clone();
         let service = Arc::new(AgentRpcService::new(
-            registry,
+            registry_trait,
             catalog,
             config.registry.clone(),
             config.turns.clone(),
@@ -129,7 +130,7 @@ impl NativeHost {
             }
         };
 
-        listener::serve(&config, service, keys, ctx)
+        listener::serve(&config, service, keys, ctx, registry)
     }
 }
 

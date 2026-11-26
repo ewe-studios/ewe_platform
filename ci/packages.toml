@@ -370,6 +370,12 @@ clippy-deny-warnings = true
 # against the CPU build of llama.cpp.
 runs = ["", "gguf"]
 
+[packages.foundation_agent_rpc_dst]
+# The deterministic simulation tests open no socket, read no real clock and
+# use no SQLite, so they run on Linux, macOS and Windows.
+runs = [""]
+clippy-deny-warnings = true
+
 [packages.foundation_jsonschema]
 # 14 pedantic warnings; clear them and delete this override (#441).
 clippy-deny-warnings = false

@@ -61,6 +61,29 @@ pub fn generate_csr(client_name: &str) -> AgentRpcResult<(Zeroizing<String>, Str
         .map_err(|error| ErrorTrace::new(AgentRpcError::Config(format!("client CSR: {error}"))))
 }
 
+/// A fresh Ed25519 key pair and a CSR for `client_name`, seeded from `ctx`.
+///
+/// The same seed gives the same key and the same CSR on every run, so a
+/// deterministic simulation test replays the client's identity. The key never
+/// leaves the client.
+///
+/// # Errors
+/// [`AgentRpcError::Config`] when key generation or CSR serialization fails.
+pub fn generate_csr_seeded(
+    client_name: &str,
+    ctx: &Ctx,
+) -> AgentRpcResult<(Zeroizing<String>, String)> {
+    let key =
+        foundation_auth::pki::CaKey::generate(foundation_auth::pki::KeyAlgorithm::Ed25519, ctx)
+            .map_err(|error| {
+                ErrorTrace::new(AgentRpcError::Config(format!("client key: {error}")))
+            })?;
+    let csr = key
+        .csr_pem(client_name)
+        .map_err(|error| ErrorTrace::new(AgentRpcError::Config(format!("client CSR: {error}"))))?;
+    Ok((key.to_pem(), csr))
+}
+
 /// Enroll with the bootstrap listener at `bootstrap_url` (`https://host:port`),
 /// trusting only the server certificate whose SHA-256 is `fingerprint_sha256`.
 ///
@@ -177,7 +200,7 @@ async fn enroll_checked(
     ctx: &Ctx,
 ) -> foundation_connectrpc::ConnectResult<ClientIdentity> {
     let (key_pem, csr_pem) =
-        generate_csr(client_name).map_err(|error| error.current_context().clone())?;
+        generate_csr_seeded(client_name, ctx).map_err(|error| error.current_context().clone())?;
     let mut nonce = [0_u8; 32];
     let env = ctx
         .env()

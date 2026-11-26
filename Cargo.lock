@@ -4966,6 +4966,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_agent_rpc_dst"
+version = "0.0.1"
+dependencies = [
+ "ed25519-compact",
+ "foundation_agent_rpc",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_core",
+ "foundation_db",
+ "foundation_errstacks",
+ "foundation_netio",
+ "futures",
+]
+
+[[package]]
 name = "foundation_ai"
 version = "0.0.10"
 dependencies = [

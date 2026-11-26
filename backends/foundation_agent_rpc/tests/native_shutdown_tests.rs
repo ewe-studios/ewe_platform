@@ -10,22 +10,28 @@
 #![recursion_limit = "256"]
 
 use std::sync::Arc;
+use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
+use foundation_agent_rpc::core::config::TurnLimits;
 use foundation_agent_rpc::core::model::{
     select, AgentRpcFuture, CatalogEntry, Device, KindSupport, LoadState, ModelCapabilities,
     ModelCatalog, ModelDescriptor, ModelHandle, ModelKind, ModelRequest,
 };
+use foundation_agent_rpc::core::turn::{guarded_turn, TurnShutdown};
 use foundation_agent_rpc::host::native::{NativeHost, NativeHostConfig, SIGNING_KEY_FILE};
+use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::proto::v1::agent_service::AgentServiceClient;
 use foundation_agent_rpc::proto::v1::{CreateInstanceRequest, HealthRequest};
 use foundation_agent_rpc::AgentRpcError;
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
+use foundation_ai::agentic::TurnEvent as ModelTurnEvent;
 use foundation_auth::pki::{CaKey, KeyAlgorithm};
 use foundation_auth::secret::SigningKey;
 use foundation_connectrpc::{Request, RpcCtx};
 use foundation_context::{Ctx, MonotonicClock};
 use foundation_core::valtron::valtron_test;
+use futures::Stream;
 
 struct OneModel {
     handle: ModelHandle,
@@ -143,6 +149,8 @@ async fn native_shutdown_stops_the_listeners_and_ends_the_sessions() {
         )
         .await
         .expect("create");
+    let registry = Arc::clone(server.registry());
+    assert_eq!(registry.instance_count(), 1, "the instance is live");
 
     let started = Instant::now();
     server.graceful_shutdown().expect("clean shutdown");
@@ -150,6 +158,11 @@ async fn native_shutdown_stops_the_listeners_and_ends_the_sessions() {
         started.elapsed() <= grace + Duration::from_secs(5),
         "shutdown took {:?}",
         started.elapsed()
+    );
+    assert_eq!(
+        registry.instance_count(),
+        0,
+        "every session ends during shutdown"
     );
 
     // The listener is closed: the kept-alive client cannot call it.
@@ -159,5 +172,48 @@ async fn native_shutdown_stops_the_listeners_and_ends_the_sessions() {
             .await
             .is_err(),
         "a stopped listener must refuse the call"
+    );
+}
+
+#[test]
+fn native_shutdown_emits_the_terminal_event_for_a_running_turn() {
+    let ctx = ctx();
+    let shutdown = TurnShutdown::default();
+    let env = ctx
+        .require_env()
+        .expect("the test context installs an Env")
+        .as_ref()
+        .clone();
+    let abort: Arc<dyn Fn() + Send + Sync> = Arc::new(|| {});
+    let events = futures::stream::pending::<ModelTurnEvent>();
+    let mut stream = Box::pin(guarded_turn(
+        events,
+        (),
+        abort,
+        shutdown.clone(),
+        ctx,
+        env,
+        &TurnLimits::default(),
+    ));
+
+    let waker = futures::task::noop_waker();
+    let mut call = Context::from_waker(&waker);
+    assert!(
+        stream.as_mut().poll_next(&mut call).is_pending(),
+        "the turn waits for its model"
+    );
+    shutdown.fire();
+    match stream.as_mut().poll_next(&mut call) {
+        Poll::Ready(Some(Ok(event))) => match event.event {
+            Some(Event::Failed(failed)) => {
+                assert_eq!(failed.message, "server shutting down");
+            }
+            other => panic!("expected TurnFailed, got {other:?}"),
+        },
+        other => panic!("expected the terminal event, got {other:?}"),
+    }
+    assert!(
+        stream.as_mut().poll_next(&mut call).is_ready(),
+        "the turn ends after its terminal event"
     );
 }

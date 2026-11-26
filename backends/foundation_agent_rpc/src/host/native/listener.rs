@@ -15,7 +15,9 @@ use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 use std::thread::JoinHandle;
 
-use foundation_auth::mtls::{server_config_mutual, server_config_server_auth};
+use foundation_auth::mtls::{
+    server_config_mutual, server_config_optional_mutual, server_config_server_auth,
+};
 use foundation_compact::Duration;
 use foundation_connectrpc::shared::auth::ClientAuthInterceptor;
 use foundation_connectrpc::{ConnectRpcServe, ConnectRpcServeH2, Interceptor, Router};
@@ -29,6 +31,7 @@ use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 
 use crate::core::enroll::EnrollmentService;
+use crate::core::registry::LocalInstanceRegistry;
 use crate::core::service::AgentRpcService;
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::host::native::config::NativeHostConfig;
@@ -82,6 +85,7 @@ pub(crate) fn serve(
     service: Arc<AgentRpcService>,
     keys: HostKeys,
     ctx: Ctx,
+    registry: Arc<LocalInstanceRegistry>,
 ) -> AgentRpcResult<RunningServer> {
     let shutdown = Arc::new(ShutdownSignal::new());
     let agent_listener = bind(&config.bind)?;
@@ -136,6 +140,8 @@ pub(crate) fn serve(
                 models,
                 shutdown,
                 threads: vec![thread],
+                registry,
+                turn_grace: config.shutdown_grace,
             })
         }
         NativeSecurityParts::Mtls(parts) => {
@@ -144,9 +150,20 @@ pub(crate) fn serve(
             let bootstrap_addr = local_addr(&bootstrap_listener, &bootstrap_bind)?;
             let enroll_url = config.enroll_public_url(&bootstrap_addr.to_string());
 
-            let agent_tls =
-                server_config_mutual(&parts.identity, &parts.ca, parts.trust.index(), &ctx)
-                    .map_err(|error| pki_error(&error))?;
+            // A bearer access secret needs a listener that accepts a client
+            // with no certificate. The verifier still checks a presented one.
+            let agent_tls = match config.security {
+                crate::host::native::config::NativeSecurity::Mtls {
+                    accept_access_secrets: true,
+                } => server_config_optional_mutual(
+                    &parts.identity,
+                    &parts.ca,
+                    parts.trust.index(),
+                    &ctx,
+                ),
+                _ => server_config_mutual(&parts.identity, &parts.ca, parts.trust.index(), &ctx),
+            }
+            .map_err(|error| pki_error(&error))?;
             let bootstrap_tls = server_config_server_auth(&parts.identity, &ctx)
                 .map_err(|error| pki_error(&error))?;
 
@@ -205,6 +222,8 @@ pub(crate) fn serve(
                 models,
                 shutdown,
                 threads,
+                registry,
+                turn_grace: config.shutdown_grace,
             })
         }
     }
@@ -226,6 +245,8 @@ pub struct RunningServer {
     models: Vec<String>,
     shutdown: Arc<ShutdownSignal>,
     threads: Vec<JoinHandle<()>>,
+    registry: Arc<LocalInstanceRegistry>,
+    turn_grace: Duration,
 }
 
 impl std::fmt::Debug for RunningServer {
@@ -280,6 +301,19 @@ impl RunningServer {
     #[must_use]
     pub fn enrollment(&self) -> Option<&Arc<EnrollmentService>> {
         self.enrollment.as_ref()
+    }
+
+    /// How many instances the registry still holds.
+    #[must_use]
+    pub fn instance_count(&self) -> usize {
+        self.registry.instance_count()
+    }
+
+    /// The instance registry, for a test that checks the sessions after
+    /// shutdown.
+    #[must_use]
+    pub fn registry(&self) -> &Arc<LocalInstanceRegistry> {
+        &self.registry
     }
 
     /// Issue one enrollment secret, valid for `validity`.
@@ -347,6 +381,20 @@ impl RunningServer {
 
     fn stop(&mut self) -> AgentRpcResult<()> {
         self.shutdown.turn_on();
+        // Wait up to the shutdown grace for the running turns to end. The ones
+        // that still run get the terminal `TurnFailed("server shutting down")`.
+        self.registry.shutdown(self.turn_grace);
+        if self.registry.instance_count() > 0 {
+            let registry = Arc::clone(&self.registry);
+            if let Err(error) =
+                foundation_core::valtron::block_on_future(async move { registry.end_all().await })
+            {
+                tracing::warn!(
+                    error = %error.current_context(),
+                    "a session did not end cleanly during shutdown"
+                );
+            }
+        }
         let mut panicked = false;
         for thread in self.threads.drain(..) {
             panicked |= thread.join().is_err();

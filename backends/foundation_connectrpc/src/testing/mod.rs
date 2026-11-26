@@ -111,11 +111,16 @@ impl PlatformExchange for MemExchange {
                 .ok_or_else(|| {
                     TransportError::Protocol("the in-memory exchange started twice".to_string())
                 })?;
+            // The dispatcher reads a server-side path, not an absolute URL.
+            let path = match request.request_uri.query() {
+                Some(query) => format!("{}?{query}", request.request_uri.path()),
+                None => request.request_uri.path().to_string(),
+            };
             let incoming = SimpleIncomingRequest::builder()
                 .with_proto(request.proto)
                 .with_method(request.method)
                 .with_headers(request.headers)
-                .with_url(request.request_url)
+                .with_url(SimpleUrl::url_only(path))
                 .with_uri(request.request_uri)
                 .with_body_bytes(body)
                 .build()

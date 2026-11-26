@@ -32,6 +32,23 @@ fn native_loopback_bind_detection_accepts_only_a_loopback_address() {
     assert!(!is_loopback_bind("agents.example.com:7443"));
 }
 
+#[test]
+fn native_client_csr_is_seeded() {
+    let make = |seed: u64| {
+        let ctx = Ctx::with_seed(Arc::new(MonotonicClock::new()), seed);
+        foundation_core::env::install(&ctx, foundation_core::env::system).expect("Env");
+        foundation_agent_rpc::client::generate_csr_seeded("laptop", &ctx).expect("the seeded CSR")
+    };
+
+    let (key_a, csr_a) = make(42);
+    let (key_b, csr_b) = make(42);
+    assert_eq!(csr_a, csr_b, "seed 42 replays the CSR exactly");
+    assert_eq!(key_a.as_str(), key_b.as_str(), "the key is seeded too");
+
+    let (_, csr_c) = make(43);
+    assert_ne!(csr_a, csr_c, "a different seed gives a different CSR");
+}
+
 #[valtron_test]
 async fn native_insecure_plaintext_refuses_a_non_loopback_bind_before_it_binds() {
     let dir = tempfile::tempdir().expect("tempdir");
