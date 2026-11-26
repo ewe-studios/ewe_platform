@@ -84,8 +84,8 @@ pub struct ForkSpec {
 
 - [ ] **T1 — fork creation.** Head, specific offset, zero offset, default offset, closed source
       and empty source. Tests: `fork_at_tail`, `fork_at_offset`, `closed_source_fork_is_open`.
-- [ ] **T2 — sub-offset.** JSON and binary counts, `0` equals absent, overshoot, malformed and
-      missing `Forked-From`. Tests: `json_sub_offset_counts_messages`,
+- [x] **T2 — sub-offset.** JSON and binary counts, `0` equals absent and overshoot. The adapter
+      enforces the missing `Forked-From` case. Tests: `json_sub_offset_counts_messages`,
       `binary_sub_offset_counts_bytes`, `sub_offset_requires_source`.
 - [x] **T3 — read stitching.** Read across the boundary. Test:
       `fork_reads_span_the_boundary_transparently`.

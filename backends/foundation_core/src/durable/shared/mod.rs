@@ -1066,20 +1066,44 @@ impl DurableStreamStore for DurableStream {
         } = spec;
 
         let (content_type, fork_info, start_len) = if let Some(fork) = fork {
-            if fork.sub_offset != 0 {
-                return Err(StoreError::Unsupported);
-            }
             let source = self.vfs.meta(&fork.source).await?;
             if Self::is_expired(&source, self.now_ms()) {
                 return Err(self.expire(&fork.source).await);
             }
-            let at = match fork.at {
+            let mut at = match fork.at {
                 Some(at) => VfsOffset::from(&at).0,
                 None => source.len,
             };
             if at > source.len {
                 return Err(StoreError::BadRequest(BadRequestKind::Fork));
             }
+
+            if fork.sub_offset > 0 {
+                if source.content_type.is_json() {
+                    let bytes = self
+                        .vfs
+                        .read_at(&fork.source, &VfsOffset(at), usize::MAX)
+                        .await?;
+                    let messages = decode_json(&bytes)?;
+                    let skip = usize::try_from(fork.sub_offset).unwrap_or(usize::MAX);
+                    if skip > messages.len() {
+                        return Err(StoreError::BadRequest(BadRequestKind::Fork));
+                    }
+                    at = at.saturating_add(
+                        messages
+                            .iter()
+                            .take(skip)
+                            .map(|message| message.len() as u64 + 1)
+                            .sum::<u64>(),
+                    );
+                } else {
+                    at = at.saturating_add(u64::from(fork.sub_offset));
+                    if at > source.len {
+                        return Err(StoreError::BadRequest(BadRequestKind::Fork));
+                    }
+                }
+            }
+
             (
                 content_type.unwrap_or(source.content_type),
                 Some(ForkInfo {

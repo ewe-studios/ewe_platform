@@ -1,8 +1,8 @@
 //! BDD scenarios for fork and soft-delete.
 
 use foundation_core::durable::{
-    AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, ForkSpec, MemoryVfs, ReadFrom,
-    ReadLimit, ReadRequest, StoreError, StreamName, StreamOffset,
+    AppendRequest, BadRequestKind, Chunk, ContentType, CreateSpec, DurableStream, DurableStreams,
+    ForkSpec, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamOffset,
 };
 use std::sync::Arc;
 
@@ -162,6 +162,86 @@ fn given_the_last_fork_when_it_is_deleted_then_the_source_is_cleaned_up() {
         assert!(matches!(
             streams.stream(source).head().await,
             Err(StoreError::NotFound)
+        ));
+    });
+}
+
+#[test]
+fn given_a_binary_source_when_a_fork_uses_sub_offset_then_it_skips_bytes() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/binary-sub-source").expect("valid");
+        let fork = StreamName::parse("fork/binary-sub-target").expect("valid");
+        create(&streams, &source).await;
+        append(&streams, &source, b"abcde").await;
+
+        streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source,
+                at: Some(offset(1)),
+                sub_offset: 2,
+            })
+            .await
+            .expect("fork");
+
+        // The sub-offset moves the divergence point: the fork inherits source bytes 0..3.
+        assert_eq!(read_all(&streams, &fork).await, b"abc");
+    });
+}
+
+#[test]
+fn given_a_json_source_when_a_fork_uses_sub_offset_then_it_skips_messages() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/json-sub-source").expect("valid");
+        let fork = StreamName::parse("fork/json-sub-target").expect("valid");
+        streams
+            .stream(source.clone())
+            .create(CreateSpec {
+                content_type: Some(ContentType::parse("application/json").expect("valid")),
+                initial: Some(Chunk::new(br#"[{"a":1},{"b":2},{"c":3}]"#.to_vec())),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("create");
+
+        streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source,
+                at: Some(offset(0)),
+                sub_offset: 2,
+            })
+            .await
+            .expect("fork");
+
+        // The sub-offset moves the divergence point: the fork inherits the first two messages.
+        assert_eq!(read_all(&streams, &fork).await, br#"{"a":1}{"b":2}"#);
+    });
+}
+
+#[test]
+fn given_a_sub_offset_past_the_end_then_it_is_refused() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/sub-overshoot-source").expect("valid");
+        create(&streams, &source).await;
+        append(&streams, &source, b"abc").await;
+
+        let error = streams
+            .stream(StreamName::parse("fork/sub-overshoot-target").expect("valid"))
+            .fork(ForkSpec {
+                source,
+                at: Some(offset(1)),
+                sub_offset: 99,
+            })
+            .await
+            .expect_err("overshoot");
+
+        assert!(matches!(
+            error,
+            StoreError::BadRequest(BadRequestKind::Fork)
         ));
     });
 }
