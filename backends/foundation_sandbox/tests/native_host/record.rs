@@ -17,6 +17,7 @@ fn record(id: &str, created_unix_ms: u64) -> StoredRecord {
         spec: SandboxSpec::new(RootFs::ContainerImage("alpine:3.22".to_string())),
         state: SandboxState::Ready,
         created_unix_ms,
+        expires_at_unix_ms: None,
         endpoint: None,
         manifest: None,
     }

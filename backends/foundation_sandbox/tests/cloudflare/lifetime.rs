@@ -128,6 +128,7 @@ fn restore_expired_removes() {
         state: SandboxState::Ready,
         created_unix_ms: 0,
         expires_at_unix_ms: Some(60_000),
+        manifest: None,
         endpoint: Some(SlaveEndpoint::CloudflarePort { port: 1024 }),
     };
     h.storage.insert(

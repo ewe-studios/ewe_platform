@@ -41,6 +41,7 @@ fn exec_request() -> ExecRequest {
         cwd: None,
         stdin: false,
         timeout_ms: None,
+        user: None,
     }
 }
 

@@ -40,6 +40,7 @@ fn stored_ready(h: &Harness, state: SandboxState) -> StoredRecord {
         state,
         created_unix_ms: 0,
         expires_at_unix_ms: None,
+        manifest: None,
         endpoint: Some(SlaveEndpoint::CloudflarePort { port: 1024 }),
     }
 }

@@ -610,6 +610,7 @@ fn attach_cases() {
         spec: spec("alpine:3.22"),
         state: foundation_sandbox::shared::control::SandboxState::Ready,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
         endpoint: None,
         manifest: None,
     };

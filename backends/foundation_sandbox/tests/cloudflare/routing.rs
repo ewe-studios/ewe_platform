@@ -181,6 +181,7 @@ fn stream_error_removes_index_entry() {
         created_unix_ms: 0,
         expires_at_unix_ms: None,
         slave: None,
+        manifest: None,
     };
     futures::executor::block_on(SandboxIndex::put(&*index, info)).expect("the entry");
     assert!(index.get(&id).is_some());

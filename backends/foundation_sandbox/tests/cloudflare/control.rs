@@ -75,6 +75,7 @@ fn restore_dead_container() {
         state: SandboxState::Ready,
         created_unix_ms: 0,
         expires_at_unix_ms: None,
+        manifest: None,
         endpoint: Some(SlaveEndpoint::CloudflarePort { port: 1024 }),
     };
     h.storage.insert(
@@ -113,6 +114,7 @@ fn restore_unprepared_slave() {
         state: SandboxState::Ready,
         created_unix_ms: 0,
         expires_at_unix_ms: None,
+        manifest: None,
         endpoint: Some(SlaveEndpoint::CloudflarePort { port: 1024 }),
     };
     h.storage.insert(
@@ -150,6 +152,7 @@ fn restore_creating_record() {
         state: SandboxState::Creating,
         created_unix_ms: 0,
         expires_at_unix_ms: None,
+        manifest: None,
         endpoint: None,
     };
     h.storage.insert(
@@ -367,12 +370,13 @@ fn handle_streams_exec() {
     assert!(frames > 1, "the stream has the later frames");
 }
 
-/// The Connect router looks up the request URL as a path.
+/// The Connect router reads the path from the request URL.
 ///
-/// The Worker entry must pass the path alone. An absolute URL misses every
-/// route and answers an empty 404 (#988).
+/// A Worker entry may pass a full URL (spec 83 feature 05), so the router reads
+/// its path and does not look the whole URL up as a key. Both the path alone
+/// and an absolute URL therefore reach the route (issue #988).
 #[test]
-fn router_matches_the_path_not_an_absolute_url() {
+fn router_reads_the_path_of_an_absolute_url() {
     let h = Harness::new(31, true, false);
     let planner = support::planner(&h, Some(h.id()));
     block_on(planner.sandboxes().create(spec())).expect("create");
@@ -394,8 +398,8 @@ fn router_matches_the_path_not_an_absolute_url() {
     let absolute = block_on(planner.handle(request(format!("http://worker.local{path}"))));
     assert_eq!(
         response_status(&absolute),
-        404,
-        "an absolute URL is not a router path"
+        200,
+        "the router reads the path of an absolute URL"
     );
     let relative = block_on(planner.handle(request(path.to_string())));
     assert_eq!(
