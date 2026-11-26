@@ -62,12 +62,15 @@ impl ModelSlaveDo {
         store_model_key(&self.env, &ctx);
         let storage: Arc<dyn foundation_sandbox::shared::cloudflare::DoStorage> =
             Arc::new(WorkerStorage::new(self.state.storage()));
-        let client = Arc::new(WorkerModelClient::new(self.env.clone()));
+        let config = model_config_from_env(&self.env);
+        let client = Arc::new(
+            WorkerModelClient::new(self.env.clone()).with_max_answer_bytes(config.max_answer_bytes),
+        );
         let slave = Arc::new(ModelSlave::new(
             ctx,
             storage,
             client,
-            model_config_from_env(&self.env),
+            config,
             limits().max_message_bytes,
         ));
         *cell = Some(Arc::clone(&slave));

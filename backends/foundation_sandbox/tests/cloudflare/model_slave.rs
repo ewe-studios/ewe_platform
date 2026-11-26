@@ -230,3 +230,28 @@ fn do_slave_connector_failure() {
         SandboxError::Rpc { code, .. } if code == "unavailable"
     ));
 }
+
+/// The `OpenRouter` stream parser reads one delta and ignores the end marker.
+#[test]
+fn open_router_stream_events() {
+    use foundation_sandbox::shared::cloudflare::{open_router_delta, push_answer};
+
+    let delta = r#"data: {"choices":[{"delta":{"content":"hello "}}]}"#;
+    assert_eq!(open_router_delta(delta).as_deref(), Some("hello "));
+    assert_eq!(open_router_delta("data: [DONE]"), None);
+    assert_eq!(open_router_delta("event: ping"), None);
+    assert_eq!(open_router_delta("data: not json"), None);
+    assert_eq!(
+        open_router_delta(r#"data: {"choices":[{"delta":{}}]}"#),
+        None
+    );
+
+    let mut answer = Vec::new();
+    assert!(push_answer(&mut answer, b"hello ", 10));
+    assert_eq!(answer, b"hello ");
+    assert!(
+        !push_answer(&mut answer, b"world", 10),
+        "the cap is 10 bytes"
+    );
+    assert_eq!(answer, b"hello ", "a refused part is not appended");
+}

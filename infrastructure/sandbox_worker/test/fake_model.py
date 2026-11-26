@@ -15,12 +15,22 @@ TEXT = "hello from the fake model server"
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         length = int(self.headers.get("content-length", "0"))
-        self.rfile.read(length)
-        body = json.dumps(
-            {"choices": [{"message": {"content": TEXT}}]}
-        ).encode("utf-8")
+        request = json.loads(self.rfile.read(length) or b"{}")
+        if request.get("stream"):
+            # The OpenRouter server-sent event shape: one delta and [DONE].
+            body = (
+                "data: "
+                + json.dumps({"choices": [{"delta": {"content": TEXT}}]})
+                + "\n\ndata: [DONE]\n\n"
+            ).encode("utf-8")
+            content_type = "text/event-stream"
+        else:
+            body = json.dumps(
+                {"choices": [{"message": {"content": TEXT}}]}
+            ).encode("utf-8")
+            content_type = "application/json"
         self.send_response(200)
-        self.send_header("content-type", "application/json")
+        self.send_header("content-type", content_type)
         self.send_header("content-length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
