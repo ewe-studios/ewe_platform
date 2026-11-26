@@ -28,7 +28,7 @@ use foundation_sandbox::shared::control::{
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::ids::DriverId;
 use foundation_sandbox::shared::limits::SandboxLimits;
-use foundation_sandbox::shared::rpc::messages::ContainerGetRequest;
+use foundation_sandbox::shared::rpc::messages::{ContainerGetRequest, CreateRequest};
 use foundation_sandbox::shared::rpc::ContainerServiceClient;
 use foundation_sandbox::shared::spec::{RootFs, SandboxSpec};
 use foundation_sandbox::shared::Secret;
@@ -243,21 +243,13 @@ fn request_envelope(message: &Value) -> Vec<u8> {
     body
 }
 
-/// Sends one `Exec` request and parses each answer envelope as it arrives.
-fn raw_exec_stream(id: &str) -> (u16, Vec<WireFrame>) {
+/// Sends one server-streaming request and parses each answer envelope as it
+/// arrives.
+fn raw_stream(path: &str, message: &Value) -> (u16, Vec<WireFrame>) {
     crate::pool::pool();
-    let message = serde_json::json!({
-        "sandbox_id": id,
-        "exec_id": "0000000000000001",
-        "argv": ["echo", "hello"],
-        "env": [],
-        "cwd": null,
-        "stdin": false,
-        "timeout_ms": null,
-    });
-    let body = request_envelope(&message);
+    let body = request_envelope(message);
     let url = format!(
-        "{}{SERVICE}/Exec",
+        "{}{SERVICE}{path}",
         product_url().expect("the test skipped without a URL")
     );
     let request = PreparedRequestBuilder::post(&url)
@@ -299,6 +291,26 @@ fn raw_exec_stream(id: &str) -> (u16, Vec<WireFrame>) {
     }
     assert!(buffer.is_empty(), "the stream ended inside one envelope");
     (status, frames)
+}
+
+/// Creates one sandbox with one enveloped `Create` request.
+fn raw_create_stream(spec: SandboxSpec) -> (u16, Vec<WireFrame>) {
+    let message = serde_json::to_value(CreateRequest { spec }).expect("the create message");
+    raw_stream("/Create", &message)
+}
+
+/// Runs `echo hello` with one enveloped `Exec` request.
+fn raw_exec_stream(id: &str) -> (u16, Vec<WireFrame>) {
+    let message = serde_json::json!({
+        "sandbox_id": id,
+        "exec_id": "0000000000000001",
+        "argv": ["echo", "hello"],
+        "env": [],
+        "cwd": null,
+        "stdin": false,
+        "timeout_ms": null,
+    });
+    raw_stream("/Exec", &message)
 }
 
 /// The first scenario: a command runs in the product image, and the shared
@@ -491,20 +503,35 @@ fn e2e_cf_json_unary() {
     });
 }
 
-/// A plain HTTP streamed call answers with envelopes and ends with flag 0x02
-/// (I6).
+/// A plain HTTP caller creates a sandbox and runs a command with envelopes,
+/// and the streamed answer ends with flag 0x02 (I6).
 #[test]
 fn e2e_cf_json_stream() {
     if skip("e2e_cf_json_stream") {
         return;
     }
-    let id = run(async {
-        let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
-        sandbox.id().as_str().to_string()
-    });
+
+    // The Create call is server-streaming. The answer holds the sandbox id.
+    let (status, frames) = raw_create_stream(container_spec());
+    assert_eq!(status, 200, "the create answer is 200");
+    assert!(
+        frames.len() >= 2,
+        "the create answer has progress and the id"
+    );
+    let last = frames.last().expect("the last envelope");
+    assert_eq!(last.flags & 0x02, 0x02, "the last envelope ends the stream");
+    let mut id = None;
+    for frame in frames.iter().filter(|frame| frame.flags & 0x02 == 0) {
+        let value: Value = serde_json::from_slice(&frame.payload).expect("a JSON event");
+        if let Some(created) = value.get("Created") {
+            id = created
+                .get("id")
+                .and_then(Value::as_str)
+                .map(str::to_string);
+        }
+    }
+    let id = id.expect("the Created event names the sandbox");
+
     let (status, frames) = raw_exec_stream(&id);
     assert_eq!(status, 200, "the streamed answer is 200");
     assert!(frames.len() >= 2, "the answer has more than one envelope");
