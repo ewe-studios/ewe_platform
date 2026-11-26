@@ -105,6 +105,13 @@ pub trait ProcessSpawner: Send + Sync + 'static {
     /// # Errors
     /// [`SandboxError::Io`] when the program cannot start.
     fn spawn(&self, spec: ProcessSpec) -> SandboxResult<Box<dyn ChildProcess>>;
+
+    /// Whether a process with `pid` exists.
+    ///
+    /// A stale run directory of a control plane that crashed names a process
+    /// that does not exist. A host that cannot tell answers `true`, so a sweep
+    /// never removes a directory of a live process.
+    fn is_running(&self, pid: u32) -> bool;
 }
 
 /// One host process to start.
@@ -214,6 +221,34 @@ pub trait HostFs: Send + Sync + 'static {
     /// # Errors
     /// [`SandboxError::Io`] when the file cannot be created.
     fn create_file(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Write + Send>>;
+
+    /// The modification time of a path, when the host can read it.
+    ///
+    /// The default gives `None`: a host that cannot tell never reports a stale
+    /// directory. The sweep of stale run directories uses it.
+    fn modified(&self, _path: &Path) -> Option<foundation_compact::SystemTime> {
+        None
+    }
+
+    /// The direct children of a directory.
+    ///
+    /// The default gives an empty list: a host that cannot list has nothing to
+    /// sweep. The sweep of stale run directories uses it.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the directory cannot be read.
+    fn read_dir(&self, _path: &Path) -> SandboxResult<Vec<PathBuf>> {
+        Ok(Vec::new())
+    }
+
+    /// Whether the path can be opened for reading and writing.
+    ///
+    /// The default reports [`Self::exists`]. A real host opens the file, so the
+    /// `/dev/kvm` check sees a permission problem. A test fake answers with
+    /// its own rule.
+    fn is_openable_read_write(&self, path: &Path) -> bool {
+        self.exists(path)
+    }
 }
 
 /// The guest side effects of the slave.

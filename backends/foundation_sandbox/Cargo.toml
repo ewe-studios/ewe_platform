@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sandbox"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -49,7 +49,7 @@ foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19",
 # slave tests. The base set has no TLS: the static musl slave enables only the
 # `slave` feature, which keeps this dependency below. The `artifacts` feature
 # adds the TLS provider with the weak feature `foundation_netio?/ssl`.
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["standard", "std", "wire-native", "multi"], optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "wire-native", "multi"], optional = true }
 # The gzip decoder and the tar reader of the artifact store.
 flate2 = { version = "1", optional = true }
 tar = { version = "0.4", optional = true }
@@ -80,6 +80,12 @@ proptest = { workspace = true }
 # `SimulatedClock` for the deterministic identifier test. The feature is
 # test-only; it adds no code to the library build.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
+
+# The process control of the native side effects: `prctl` for the parent-death
+# signal and `kill` for a signal and a liveness check. The slave also uses it for
+# `fork`, `execve`, `mount`, `signalfd` and `openat2`.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 # The slave engine (feature 01) is a Linux guest program: process control,
 # signals and PID 1 duties have no meaning on another target. The dependencies
@@ -119,6 +125,9 @@ docker = []
 # The generator writes one `firecracker_<group>` feature for each operation
 # group; this feature turns them all on, below the one `firecracker` gate.
 firecracker = [
+    # The driver resolves the kernel, the initramfs and the root file system
+    # from the artifact store (feature 03).
+    "artifacts",
     "dep:base85rs",
     "dep:foundation_codegentools",
     "dep:foundation_deployment",
@@ -213,7 +222,6 @@ slave = [
     "dep:foundation_nativeapis",
     "dep:foundation_http",
     "dep:foundation_netio",
-    "dep:libc",
     "foundation_core/multi",
 ]
 # The simulation helpers (feature 02).

@@ -113,10 +113,11 @@ where
                 let stream = if let Some(socket_path) = unix_socket {
                     #[cfg(unix)]
                     {
-                        self.1.pool.create_connection_unix(
+                        self.1.pool.create_connection_unix_with_preamble(
                             &request.url,
                             &socket_path,
                             self.1.config.unix_read_timeout,
+                            self.1.config.unix_preamble.as_ref(),
                             &ctx,
                         )
                     }

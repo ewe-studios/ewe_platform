@@ -13,7 +13,7 @@ keywords.workspace = true
 hex = { workspace = true, optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false }
 foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.17", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
@@ -106,7 +106,7 @@ web-sys = { workspace = true, features = [
 # The defaults are off so a consumer that must not link a C TLS library can
 # leave them off. The `netio-ssl` feature restores them and is in the default
 # set, so every existing consumer keeps today's set.
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["multi", "std", "wire-native", "standard", "compression"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["multi", "std", "wire-native", "standard", "compression"] }
 # RSA-PSS signed-secret keys (feature `secret-rsa`). The `ring` crate seals
 # its random source to the operating system, so it cannot take the entropy of
 # `Ctx`. `rsa` takes a caller-supplied random source instead, and
@@ -132,7 +132,7 @@ time = { workspace = true }
 # re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
 # all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"

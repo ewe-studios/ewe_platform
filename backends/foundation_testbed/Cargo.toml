@@ -101,7 +101,7 @@ foundation_http = { path = "../foundation_http", version = "0.0.17", optional = 
 # library surface; the default `rpc_multi` is not needed for a server route.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", optional = true, default-features = false, features = ["rpc"] }
 # The `/connect` route reads a chunked body's `ChunkedData` items.
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", optional = true }
 futures = { version = "0.3", optional = true }
 foundation_browser = { path = "../foundation_browser", version = "0.0.9", optional = true }
 foundation_macros = { workspace = true, optional = true }

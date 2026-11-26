@@ -1468,3 +1468,111 @@ committed `artefacts/cloud_providers/docker/openapi.json` differs in one value (
 query parameter of `POST /build` is `array` in the file and `string` in the YAML). Issue
 [#864](https://github.com/ewe-studios/ewe_platform/issues/864) (severity: low) records it.
 
+
+## 16. Feature 05 implementation findings (2026-11-26)
+
+### 16.1 The launch races the API call with the process and the deadline
+
+`AwaitApi` must not `await` one `describe_instance()` call on its own. The real client has
+an `rpc_timeout`, but the create deadline can be shorter, and a fake API in a test can
+never answer. The state now `select_all`s three futures: the API call, `vmm.wait()` and the
+deadline timer on the injected clock. The first one that is ready decides the next state.
+
+`futures::future::select_all` needs one future type. Three `async` blocks are three
+different types, so each is boxed as `Pin<Box<dyn Future<Output = ApiWait> + Send>>`. The
+same rule as the control plane: a deadline that is not raced is not a deadline.
+
+### 16.2 The `#[task]` macro needs the full `TaskStatus` type
+
+The macro checks the last path segment of the second tuple element. A local type alias
+`type Status = TaskStatus<..>` failed with "#[task] second tuple element must be
+`TaskStatus<R, P>`". The return type is written in full in the transition only; the helper
+functions may use the alias.
+
+### 16.3 A fake process must answer a signal
+
+The clean-up of a failed launch sends `SIGKILL` and then waits for the exit. A fake child
+that records the signal but stays alive makes the launch hang. The fake child therefore
+records the exit on `SIGKILL` and `SIGTERM`. A fake that does not do this hides a leak: the
+real code waits for a process that never ends.
+
+### 16.4 `ProcessSpec` cannot be cloned
+
+`ProcessSpec.extra_fds` holds `OwnedFd` values, which are not `Clone`. The fake spawner
+therefore records a `ProcessRecord` with the fields that a test reads (program, args, env,
+working directory, log paths and the parent-death flag). The spec moves into the spawn; it is
+never copied.
+
+### 16.5 The wait thread receives the child through a channel
+
+`std::process::Child` must move into the helper thread that calls `wait()`. If the thread
+cannot start, the child is already inside the failed closure and cannot be killed. The
+helper thread now receives the child through a channel after the spawn succeeds, so the
+error path still owns the child and kills it.
+
+### 16.6 The parent-death signal follows the thread, so one thread spawns
+
+`prctl(PR_SET_PDEATHSIG, SIGKILL)` names the thread that made the child. `NativeProcessSpawner`
+starts one dedicated thread at construction and sends every `ProcessSpec` to it. The
+`spawn_kill_with_parent` test starts a helper process that makes a `sleep` through the real
+spawner and is then killed; the `sleep` is gone in less than 2 seconds.
+`spawn_survives_pool_thread_exit` makes a child from a short-lived thread through the same
+spawner and proves that the child lives after that thread ends.
+
+### 16.7 The slave transport disables `Expect: 100-continue`
+
+A local slave answers a unary call at once. The connector still sent the default
+`Expect: 100-continue` header, and a simple test server that writes its answer after the head
+then closed the socket before the body. `NativeConnector` sets `expect_continue(false)` on
+every client. The Firecracker API client already did this for the same reason.
+
+### 16.8 The vsock preamble belongs to the connection
+
+`HttpClientBuilder::unix_socket_preamble(preamble, expect, max_reply)` records the bytes in
+the `ClientConfig`. The UDS connect path (`create_connection_unix_with_preamble`) writes
+them and reads one reply line before the stream is wrapped. A Unix connection is never
+pooled, so every new connection gets the preamble and a kept connection needs no second
+one. A closed socket, a long line or a different prefix is a connection error, which the
+readiness wait treats as "not ready".
+
+### 16.9 `HostConfig::discover` needed a user identifier
+
+The last state-directory fallback is `/tmp/ewe-sbx-<uid>`. The uid comes from the `UID`
+value of the environment reader when it is there, and from `getuid(2)` otherwise. `libc`
+moved from a Linux optional dependency to a non-optional Unix dependency, so `native/host.rs`
+has it on Linux and macOS. The `slave` feature no longer lists `dep:libc`.
+
+### 16.10 `ci/sandbox.toml` did not exist
+
+Feature 05 names `ci/sandbox.toml` as the source of `min_firecracker_version`. The file was
+absent. This feature creates it with `1.15.0`, the version of the Firecracker continuous
+integration (CI) artifact prefix, and documents that only a CI run changes the value. The build script reads the key with a line parser (no TOML build dependency) and sets
+`FOUNDATION_SANDBOX_MIN_FIRECRACKER_VERSION`. A packaged crate has no file and accepts every
+version; the API fields that the driver sends are old.
+
+### 16.11 The release-tree script is not on the feature branch
+
+`scripts/ci/sync_release_tree.py` exists on `origin/master` and not on
+`origin/spec77/f04-firecracker-api-client`. The master copy was run against this tree
+(`--check` exits 0). It does not rewrite `[target.'cfg(..)'.dependencies.<name>]` tables, so
+three Firecracker consumers (`foundation_vectors` twice and
+`foundation_deployment_cloudflare`) were updated by hand to `foundation_netio` 0.0.19.
+
+### 16.12 The generic spec validation does not check `max_vcpus`
+
+Feature 05 section 6.6 says that "the manager's `validate` knows only `max_vcpus`".
+`SandboxSpec::validate` checks `vcpus >= 1` and nothing else about the count, so a spec
+with more vCPUs than the driver allows passes the manager. The Firecracker driver rejects
+it in `Prepare`. Issue [#872](https://github.com/ewe-studios/ewe_platform/issues/872)
+(severity: medium) records the gap and the likely fix.
+
+### 16.13 Test layout and the platform gate
+
+The driver is `cfg(target_os = "linux")`, so the macOS host does not compile it. During
+development it was temporarily gated `cfg(unix)` and its 23 simulation tests passed on
+macOS: the API order and bodies, the back-off waits 5, 10, 20 and 40 ms, a pending API, an
+early process exit, a rejected drive, the four spec rejections, the probe checks, `attach`,
+the two sweeps, the state model of the handle and the source scan of invariant I12. The
+final gate is Linux, and the Linux continuous integration (CI) image is the check for it.
+The native side-effect tests (7 on macOS) run on both Unix systems. The real microVM tests
+are Linux with Kernel-based Virtual Machine (KVM) only.

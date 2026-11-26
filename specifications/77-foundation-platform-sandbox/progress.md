@@ -391,6 +391,51 @@ Issue [#864](https://github.com/ewe-studios/ewe_platform/issues/864) (severity: 
 a finding: the committed Docker OpenAPI artefact is stale relative to its script and YAML.
 The shared-script move is behaviour-preserving; the stale value predates this change.
 
+## Feature 05: the Firecracker driver (2026-11-26)
+
+Feature 05 is on the branch `spec77/f05-firecracker-driver`, stacked on feature 04
+(`spec77/f04-firecracker-api-client`, pull request #865) and, through it, on #863, #848 and
+merged #824.
+
+- `src/native/firecracker/driver.rs`: `FirecrackerDriver`, `FcPlan`, the launch state
+  machine `FcLaunch`, `ConfigStep`, `FcHandle`, the boot argument builder, the host probe,
+  the stale run-directory sweep and the `FirecrackerApi` trait with its factory. The module
+  is behind the `firecracker` feature and `cfg(target_os = "linux")`.
+- `src/native/host.rs`: `NativeProcessSpawner` (one dedicated thread, `PR_SET_PDEATHSIG`,
+  empty environment, `/dev/null` input, log files), `NativeConnector` (Unix, TCP and the
+  Firecracker vsock with the `CONNECT <port>` preamble), `SandboxHost::native` and
+  `HostConfig::discover` with the documented source order.
+- `src/native/platform.rs`: `NativePlatform` and `dyn Platform::as_native`.
+- `foundation_netio`: `HttpClientBuilder::unix_socket_preamble`, the preamble step in the
+  Unix connect path, `HttpClientBuilder::unix_read_timeout`, and three tests.
+- `ci/sandbox.toml`: `min_firecracker_version = "1.15.0"`, the version of the CI artifact prefix; the build script reads it into
+  `FOUNDATION_SANDBOX_MIN_FIRECRACKER_VERSION`.
+- Tests: `tests/firecracker/driver.rs` (23 simulation tests), `tests/firecracker/e2e.rs`
+  (the real microVM tests, Linux with KVM) and `tests/native_host/` (7 tests on macOS and
+  Linux, 2 more Linux-only).
+
+Checks on the macOS host pass: `cargo check` (default, with `firecracker`, for
+wasm32-unknown-unknown and with no default features), `cargo test` (73 tests), `cargo test
+--features testing` (135 tests), `cargo fmt --check`, clippy with `-D warnings` for
+`foundation_sandbox` and `foundation_netio`, and the three `foundation_netio`
+`unix_socket_preamble` tests. The driver is Linux only, so the macOS test run does not
+compile it; during development it ran with a temporary `cfg(unix)` gate and its 23
+simulation tests passed. The Linux continuous integration (CI) image compiles the driver and
+its tests, clippy with `-D warnings` passes for all targets with the `testing` feature, and
+the 33 driver and native side-effect tests pass there, the two Linux-only process tests
+included.
+
+The real microVM tests need Linux with `/dev/kvm`, the `firecracker` program and the slave
+program. This host has no `/dev/kvm`, so those tests print a skip message. The CI job of
+feature 06 runs them and records the boot time and the oldest Firecracker version.
+
+The change moves two crate versions: `foundation_netio` 0.0.18 to 0.0.19 and
+`foundation_sandbox` 0.0.6 to 0.0.7, with every consumer.
+
+Issue [#872](https://github.com/ewe-studios/ewe_platform/issues/872) (severity: medium)
+records that the generic `SandboxSpec::validate` does not enforce
+`Capabilities::max_vcpus`; the Firecracker driver checks the value in its `Prepare` state.
+
 ## In progress
 
 **Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
@@ -407,8 +452,8 @@ this host.
 
 1. Features 02, 03 and 04 in parallel (one agent each). Feature 01 is done; feature 02
    and feature 07 build on it.
-2. Feature 05, then feature 06: MVP-A (Firecracker).
-3. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
+2. Feature 06: MVP-A (Firecracker). Feature 05 is done.
+3. Feature 07 in parallel with 06 (it needs only 01 and 02); then feature 08:
    MVP-B (Cloudflare).
 4. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
    product). Feature 17 needs 08.

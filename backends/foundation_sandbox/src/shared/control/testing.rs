@@ -5,6 +5,7 @@
 //! only.
 
 use std::collections::{HashMap, VecDeque};
+use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
@@ -38,6 +39,7 @@ use crate::shared::driver::{
     SlaveEndpoint, StoredRecord, Substrate, SubstrateExit, SubstrateHandle,
 };
 use crate::shared::error::{SandboxError, SandboxResult};
+use crate::shared::host::HostFs as _;
 use crate::shared::host::SlaveConnector;
 use crate::shared::ids::{DriverId, SandboxId};
 use crate::shared::limits::SandboxLimits;
@@ -1695,4 +1697,572 @@ pub fn spec() -> SandboxSpec {
     SandboxSpec::new(crate::shared::spec::RootFs::Directory(
         std::path::PathBuf::from("/tmp/root"),
     ))
+}
+
+/// An in-memory [`HostFs`](crate::shared::host::HostFs).
+///
+/// The fake keeps files, directories, modification times and the
+/// read-and-write flag in one map. A test seeds it with the files that the
+/// driver must find.
+#[derive(Clone, Default)]
+pub struct FakeHostFs {
+    state: Arc<Mutex<FsState>>,
+}
+
+#[derive(Default)]
+struct FsState {
+    files: HashMap<PathBuf, Vec<u8>>,
+    dirs: std::collections::HashSet<PathBuf>,
+    modified: HashMap<PathBuf, foundation_compact::SystemTime>,
+    read_write: HashMap<PathBuf, bool>,
+}
+
+impl FakeHostFs {
+    /// An empty host file system.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Adds a file with its contents.
+    pub fn insert_file(&self, path: impl Into<PathBuf>, data: impl Into<Vec<u8>>) {
+        let path = path.into();
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(parent) = path.parent() {
+            state.dirs.insert(parent.to_path_buf());
+        }
+        state.files.insert(path, data.into());
+    }
+
+    /// Adds a directory.
+    pub fn insert_dir(&self, path: impl Into<PathBuf>) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .dirs
+            .insert(path.into());
+    }
+
+    /// Sets the modification time of a path.
+    pub fn set_modified(&self, path: impl Into<PathBuf>, time: foundation_compact::SystemTime) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .modified
+            .insert(path.into(), time);
+    }
+
+    /// Sets whether a path can be opened for reading and writing.
+    pub fn set_read_write(&self, path: impl Into<PathBuf>, ok: bool) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .read_write
+            .insert(path.into(), ok);
+    }
+
+    /// The contents of a file.
+    #[must_use]
+    pub fn file(&self, path: &Path) -> Option<Vec<u8>> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .get(path)
+            .cloned()
+    }
+
+    /// Whether a file exists.
+    #[must_use]
+    pub fn has_file(&self, path: &Path) -> bool {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .contains_key(path)
+    }
+
+    /// Whether a directory exists.
+    #[must_use]
+    pub fn has_dir(&self, path: &Path) -> bool {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .dirs
+            .contains(path)
+    }
+}
+
+impl crate::shared::host::HostFs for FakeHostFs {
+    fn create_dir_all(&self, path: &Path, _mode: u32) -> SandboxResult<()> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut current = Some(path);
+        while let Some(directory) = current {
+            state.dirs.insert(directory.to_path_buf());
+            current = directory.parent();
+        }
+        Ok(())
+    }
+
+    fn remove_dir_all(&self, path: &Path) -> SandboxResult<()> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state.dirs.remove(path);
+        state.files.retain(|file, _| !file.starts_with(path));
+        state
+            .dirs
+            .retain(|dir| !dir.starts_with(path) || dir == path);
+        Ok(())
+    }
+
+    fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(parent) = path.parent() {
+            state.dirs.insert(parent.to_path_buf());
+        }
+        state.files.insert(path.to_path_buf(), data.to_vec());
+        Ok(())
+    }
+
+    fn read(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let data = state
+            .files
+            .get(path)
+            .cloned()
+            .ok_or_else(|| SandboxError::Io {
+                op: "read".to_string(),
+                message: format!("{}: not found", path.display()),
+            })?;
+        Ok(data[..data.len().min(max)].to_vec())
+    }
+
+    fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let data = state
+            .files
+            .get(path)
+            .cloned()
+            .ok_or_else(|| SandboxError::Io {
+                op: "tail".to_string(),
+                message: format!("{}: not found", path.display()),
+            })?;
+        let start = data.len().saturating_sub(max);
+        Ok(data[start..].to_vec())
+    }
+
+    fn exists(&self, path: &Path) -> bool {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state.files.contains_key(path) || state.dirs.contains(path)
+    }
+
+    fn rename(&self, from: &Path, to: &Path) -> SandboxResult<()> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(data) = state.files.remove(from) {
+            state.files.insert(to.to_path_buf(), data);
+            return Ok(());
+        }
+        if state.dirs.remove(from) {
+            state.dirs.insert(to.to_path_buf());
+            return Ok(());
+        }
+        Err(SandboxError::Io {
+            op: "rename".to_string(),
+            message: format!("{}: not found", from.display()),
+        }
+        .into())
+    }
+
+    fn create_file(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Write + Send>> {
+        Ok(Box::new(FakeFileWriter {
+            fs: self.clone(),
+            path: path.to_path_buf(),
+            buffer: Vec::new(),
+        }))
+    }
+
+    fn modified(&self, path: &Path) -> Option<foundation_compact::SystemTime> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .modified
+            .get(path)
+            .copied()
+    }
+
+    fn read_dir(&self, path: &Path) -> SandboxResult<Vec<PathBuf>> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut entries: Vec<PathBuf> = state
+            .dirs
+            .iter()
+            .chain(state.files.keys())
+            .filter(|entry| entry.parent() == Some(path))
+            .cloned()
+            .collect();
+        entries.sort();
+        entries.dedup();
+        Ok(entries)
+    }
+
+    fn is_openable_read_write(&self, path: &Path) -> bool {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state
+            .read_write
+            .get(path)
+            .copied()
+            .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
+    }
+}
+
+/// A writer over one [`FakeHostFs`] file.
+struct FakeFileWriter {
+    fs: FakeHostFs,
+    path: PathBuf,
+    buffer: Vec<u8>,
+}
+
+impl std::io::Write for FakeFileWriter {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.buffer.extend_from_slice(bytes);
+        let _ = self.fs.write(&self.path, &self.buffer);
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/// One signal that a fake child received.
+#[cfg(unix)]
+struct FakeChildState {
+    exit: Mutex<Option<crate::shared::host::ProcessExit>>,
+    signals: Mutex<Vec<i32>>,
+    wakers: Mutex<Vec<std::task::Waker>>,
+}
+
+/// The control of one fake child process.
+#[cfg(unix)]
+#[derive(Clone)]
+pub struct FakeChildControl {
+    pid: u32,
+    state: Arc<FakeChildState>,
+    live: Arc<Mutex<bool>>,
+}
+
+#[cfg(unix)]
+impl FakeChildControl {
+    /// The process identifier.
+    #[must_use]
+    pub fn pid(&self) -> u32 {
+        self.pid
+    }
+
+    /// Makes the process exit now.
+    pub fn exit_now(&self, exit: crate::shared::host::ProcessExit) {
+        self.record(exit);
+    }
+
+    /// The signals that the process received.
+    #[must_use]
+    pub fn signals(&self) -> Vec<i32> {
+        self.state
+            .signals
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()
+    }
+
+    /// Whether the process still runs.
+    #[must_use]
+    pub fn is_live(&self) -> bool {
+        *self.live.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    fn record(&self, exit: crate::shared::host::ProcessExit) {
+        self.state
+            .exit
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .replace(exit);
+        *self.live.lock().unwrap_or_else(PoisonError::into_inner) = false;
+        let wakers = std::mem::take(
+            &mut *self
+                .state
+                .wakers
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner),
+        );
+        for waker in wakers {
+            waker.wake();
+        }
+    }
+}
+
+/// One fake child process.
+#[cfg(unix)]
+pub struct FakeChildProcess {
+    pid: u32,
+    state: Arc<FakeChildState>,
+    live: Arc<Mutex<bool>>,
+}
+
+#[cfg(unix)]
+impl crate::shared::host::ChildProcess for FakeChildProcess {
+    fn pid(&self) -> u32 {
+        self.pid
+    }
+
+    fn signal(&self, signal: i32) -> SandboxResult<()> {
+        self.state
+            .signals
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .push(signal);
+        if signal == libc::SIGKILL || signal == libc::SIGTERM {
+            let control = FakeChildControl {
+                pid: self.pid,
+                state: Arc::clone(&self.state),
+                live: Arc::clone(&self.live),
+            };
+            control.record(crate::shared::host::ProcessExit {
+                code: None,
+                signal: Some(signal),
+            });
+        }
+        Ok(())
+    }
+
+    fn wait(
+        &self,
+    ) -> crate::shared::BoxFuture<'_, SandboxResult<crate::shared::host::ProcessExit>> {
+        let state = Arc::clone(&self.state);
+        Box::pin(futures::future::poll_fn(move |context| {
+            if let Some(exit) = *state.exit.lock().unwrap_or_else(PoisonError::into_inner) {
+                return Poll::Ready(Ok(exit));
+            }
+            state
+                .wakers
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .push(context.waker().clone());
+            let exit = *state.exit.lock().unwrap_or_else(PoisonError::into_inner);
+            match exit {
+                Some(exit) => Poll::Ready(Ok(exit)),
+                None => Poll::Pending,
+            }
+        }))
+    }
+
+    fn try_wait(&self) -> SandboxResult<Option<crate::shared::host::ProcessExit>> {
+        Ok(*self
+            .state
+            .exit
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner))
+    }
+}
+
+/// A process spawner that a test scripts.
+#[cfg(unix)]
+#[derive(Clone, Default)]
+pub struct FakeProcessSpawner {
+    state: Arc<Mutex<SpawnerState>>,
+}
+
+/// The recorded fields of one spawned process.
+///
+/// The file descriptors of the original spec cannot be copied, so the fake keeps
+/// the fields that a test reads.
+#[cfg(unix)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ProcessRecord {
+    /// The program path.
+    pub program: PathBuf,
+    /// The arguments after the program.
+    pub args: Vec<String>,
+    /// The full environment.
+    pub env: Vec<(String, String)>,
+    /// The working directory.
+    pub cwd: PathBuf,
+    /// The standard output file.
+    pub stdout: PathBuf,
+    /// The standard error file.
+    pub stderr: PathBuf,
+    /// Whether the child dies with this process.
+    pub kill_with_parent: bool,
+}
+
+#[cfg(unix)]
+impl ProcessRecord {
+    fn of(spec: &crate::shared::host::ProcessSpec) -> Self {
+        Self {
+            program: spec.program.clone(),
+            args: spec.args.clone(),
+            env: spec.env.clone(),
+            cwd: spec.cwd.clone(),
+            stdout: spec.stdout.clone(),
+            stderr: spec.stderr.clone(),
+            kill_with_parent: spec.kill_with_parent,
+        }
+    }
+}
+
+#[cfg(unix)]
+#[derive(Default)]
+struct SpawnerState {
+    specs: Vec<ProcessRecord>,
+    children: Vec<FakeChildControl>,
+    next_pid: u32,
+    fail_with: Option<String>,
+    version_output: Option<String>,
+    fs: Option<FakeHostFs>,
+    exit_next_with: Option<NextExit>,
+}
+
+/// How the next fake child ends at once.
+#[derive(Clone, Copy, Debug)]
+enum NextExit {
+    /// The child exits with this code.
+    Code(i32),
+    /// The child dies by a signal.
+    Signal,
+}
+
+#[cfg(unix)]
+impl FakeProcessSpawner {
+    /// A spawner that starts every process.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Makes the next spawn fail with an input or output error.
+    pub fn fail_next(&self, message: &str) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .fail_with = Some(message.to_string());
+    }
+
+    /// Makes a `--version` child write `text` and exit at once.
+    ///
+    /// The output goes to the fake file system, which must be the same one that
+    /// the driver reads.
+    pub fn with_version_output(&self, fs: FakeHostFs, text: &str) {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state.version_output = Some(text.to_string());
+        state.fs = Some(fs);
+    }
+
+    /// Makes the next non-`--version` child exit at once with `code`.
+    pub fn exit_next_with(&self, code: i32) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .exit_next_with = Some(NextExit::Code(code));
+    }
+
+    /// Makes the next non-`--version` child die by a signal at once.
+    pub fn exit_next_by_signal(&self) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .exit_next_with = Some(NextExit::Signal);
+    }
+
+    /// The specs of every spawn, in order.
+    #[must_use]
+    pub fn specs(&self) -> Vec<ProcessRecord> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .specs
+            .clone()
+    }
+
+    /// The control of the last child.
+    #[must_use]
+    pub fn last_child(&self) -> Option<FakeChildControl> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .children
+            .last()
+            .cloned()
+    }
+}
+
+#[cfg(unix)]
+impl crate::shared::host::ProcessSpawner for FakeProcessSpawner {
+    fn spawn(
+        &self,
+        spec: crate::shared::host::ProcessSpec,
+    ) -> SandboxResult<Box<dyn crate::shared::host::ChildProcess>> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(message) = state.fail_with.take() {
+            return Err(SandboxError::Io {
+                op: "spawn process".to_string(),
+                message,
+            }
+            .into());
+        }
+        state.specs.push(ProcessRecord::of(&spec));
+        state.next_pid += 1;
+        let pid = state.next_pid;
+        let child_state = Arc::new(FakeChildState {
+            exit: Mutex::new(None),
+            signals: Mutex::new(Vec::new()),
+            wakers: Mutex::new(Vec::new()),
+        });
+        let live = Arc::new(Mutex::new(true));
+        let control = FakeChildControl {
+            pid,
+            state: Arc::clone(&child_state),
+            live: Arc::clone(&live),
+        };
+        state.children.push(control.clone());
+        // A `--version` probe exits at once with its output.
+        if spec.args == ["--version"] {
+            if let (Some(text), Some(fs)) = (state.version_output.clone(), state.fs.clone()) {
+                let _ = fs.write(&spec.stdout, text.as_bytes());
+            }
+            drop(state);
+            control.record(crate::shared::host::ProcessExit {
+                code: Some(0),
+                signal: None,
+            });
+            return Ok(Box::new(FakeChildProcess {
+                pid,
+                state: child_state,
+                live,
+            }));
+        }
+        let exit_code = state.exit_next_with.take();
+        drop(state);
+        match exit_code {
+            Some(NextExit::Code(code)) => control.record(crate::shared::host::ProcessExit {
+                code: Some(code),
+                signal: None,
+            }),
+            Some(NextExit::Signal) => control.record(crate::shared::host::ProcessExit {
+                code: None,
+                signal: Some(libc::SIGKILL),
+            }),
+            None => {}
+        }
+        Ok(Box::new(FakeChildProcess {
+            pid,
+            state: child_state,
+            live,
+        }))
+    }
+
+    fn is_running(&self, pid: u32) -> bool {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state
+            .children
+            .iter()
+            .find(|child| child.pid == pid)
+            .is_some_and(FakeChildControl::is_live)
+    }
 }

@@ -20,7 +20,7 @@ tracing = { workspace = true }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # The defaults are off so a consumer that must not link a C TLS library can
 # leave them off. This crate itself needs only the netcap connection types.
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["wire-native"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["wire-native"] }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", features = ["fd"] }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.5" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }

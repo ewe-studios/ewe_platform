@@ -221,6 +221,10 @@ backends/foundation_connectrpc/integration/wasm/integrations/
 __pycache__/
 *.pyc
 
+codex-session-*
 # Local Swift package binary input
 /.build-inputs/
+<<<<<<< HEAD
 codex-session-*
+=======
+>>>>>>> origin/spec77/f05-firecracker-driver
