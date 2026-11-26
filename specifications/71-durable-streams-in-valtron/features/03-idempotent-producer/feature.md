@@ -101,9 +101,9 @@ fn producer_step(ctx: Ctx, state: ProducerState)
 - [x] **T4 — `Stream-Seq`.** Lexicographic comparison, per-stream state and producer-first order.
       Tests: `stream_seq_regression_is_conflict`, `stream_seq_skips_are_accepted`,
       `producer_retry_precedes_stream_seq`, `fork_does_not_inherit_stream_seq`.
-- [ ] **T5 — valtron producer.** The `#[task]` state machine. Test:
+- [x] **T5 — valtron producer.** The `#[task]` state machine. Test:
       `producer_task_deduplicates_and_fences`.
-- [ ] **T6 — DST harness.** A seeded crash and restart proves no duplicate chunk. Test:
+- [x] **T6 — DST harness.** A seeded crash and restart proves no duplicate chunk. Test:
       `seeded_producer_restart_has_no_duplicate`.
 - [ ] **T7 — core independence.** Producer tests run with valtron disabled.
 - [ ] **T8 — oracles.** State model, differential and property oracles. Tests:

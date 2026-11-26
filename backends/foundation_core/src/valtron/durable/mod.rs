@@ -6,13 +6,17 @@
 //! wiring land in the same feature.
 
 use crate::durable::{
-    Chunk, DurableStream, DurableStreamStore, ReadFrom, ReadLimit, ReadRequest, ResumeCursor,
-    StreamName, StreamOffset,
+    AppendKind, AppendOutcome, AppendRequest, Chunk, DurableStream, DurableStreamStore, Producer,
+    ProducerId, ReadFrom, ReadLimit, ReadRequest, ResumeCursor, StoreError, StreamName,
+    StreamOffset,
 };
 use crate::valtron::{
     drive_iterator, task, Ctx, DrivenTaskIterator, Stream, TaskSpread, TaskStatus, WakeCallback,
     WakeResult, WakeableStream,
 };
+use std::collections::VecDeque;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 
 /// The pending context a valtron reader reports.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -127,6 +131,132 @@ impl Iterator for DurableStreamReader {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(Stream::from)
     }
+}
+
+/// The pending context a producer task reports.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ProducerProgress {
+    /// The producer is sending a batch.
+    Sending,
+    /// The producer was fenced and stopped.
+    Fenced,
+}
+
+/// A producer over the core append ladder.
+#[derive(Clone)]
+pub struct DurableStreamWriter {
+    stream: DurableStream,
+    name: StreamName,
+    producer: ProducerId,
+    epoch: u64,
+    next_seq: Arc<AtomicU64>,
+}
+
+impl DurableStreamWriter {
+    /// Build a producer at `epoch`.
+    #[must_use]
+    pub fn new(stream: DurableStream, name: StreamName, producer: ProducerId, epoch: u64) -> Self {
+        Self {
+            stream,
+            name,
+            producer,
+            epoch,
+            next_seq: Arc::new(AtomicU64::new(0)),
+        }
+    }
+
+    /// Return the next sequence number.
+    #[must_use]
+    pub fn next_seq(&self) -> u64 {
+        self.next_seq.load(Ordering::SeqCst)
+    }
+
+    /// Append one chunk through the producer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`StoreError`] from the core producer ladder.
+    pub async fn append(&self, chunk: Chunk) -> Result<AppendOutcome, StoreError> {
+        let seq = self.next_seq.load(Ordering::SeqCst);
+        let outcome = self
+            .stream
+            .append(
+                &self.name,
+                AppendRequest {
+                    chunk,
+                    content_type: None,
+                    stream_seq: None,
+                    producer: Some(Producer {
+                        id: self.producer.clone(),
+                        epoch: self.epoch,
+                        seq,
+                    }),
+                    close: false,
+                },
+            )
+            .await?;
+
+        if matches!(outcome.kind, AppendKind::Created | AppendKind::Duplicate) {
+            let _ = self.next_seq.fetch_add(1, Ordering::SeqCst);
+        }
+        Ok(outcome)
+    }
+}
+
+#[derive(Clone)]
+struct ProducerState {
+    writer: DurableStreamWriter,
+    queue: Arc<Mutex<VecDeque<Chunk>>>,
+    fenced: Arc<AtomicBool>,
+}
+
+#[allow(clippy::needless_pass_by_value)] // The task macro takes the state by value.
+#[task]
+async fn producer_step(
+    ctx: Ctx,
+    state: ProducerState,
+) -> Option<(
+    ProducerState,
+    TaskStatus<Result<AppendOutcome, StoreError>, ProducerProgress>,
+)> {
+    let _ = ctx;
+    if state.fenced.load(Ordering::SeqCst) {
+        return None;
+    }
+
+    let chunk = {
+        state
+            .queue
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .pop_front()
+    };
+    let chunk = chunk?;
+
+    let result = state.writer.append(chunk).await;
+    if matches!(&result, Err(StoreError::Fenced { .. })) {
+        state.fenced.store(true, Ordering::SeqCst);
+    }
+
+    let next = state.clone();
+    Some((next, TaskStatus::Ready(result)))
+}
+
+/// Build a producer task over a fixed batch of chunks.
+///
+/// # Errors
+///
+/// Returns an error when the valtron engine is not live.
+pub fn producer_task(
+    writer: DurableStreamWriter,
+    chunks: Vec<Chunk>,
+) -> impl Iterator<Item = TaskStatus<Result<AppendOutcome, StoreError>, ProducerProgress>> {
+    let state = ProducerState {
+        writer,
+        queue: Arc::new(Mutex::new(chunks.into())),
+        fenced: Arc::new(AtomicBool::new(false)),
+    };
+    drive_iterator(producer_step::new(state), Ctx::host())
 }
 
 impl WakeableStream for DurableStreamReader {

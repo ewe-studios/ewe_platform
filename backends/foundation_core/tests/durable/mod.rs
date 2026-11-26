@@ -18,4 +18,6 @@ mod support;
 mod ttl;
 mod types;
 #[cfg(not(target_arch = "wasm32"))]
+mod valtron_producer;
+#[cfg(not(target_arch = "wasm32"))]
 mod valtron_reader;

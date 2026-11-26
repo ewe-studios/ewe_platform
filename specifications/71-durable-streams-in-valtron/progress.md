@@ -61,9 +61,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **02-resumable-reader** — 🟡 in progress (5/10). Core page reader, state rules, closure
   discovery, the valtron catch-up reader, the live tail wait/notifier and the `into_next_stream`
   bridge landed. Wake forwarding under `multi`, trim, DST and the oracle matrix remain.
-- **03-idempotent-producer** — 🟡 in progress (4/8). Core writer, producer ladder, dedup/fencing,
-  `Stream-Seq` and versioned atomic append landed. The valtron producer task, DST and oracles
-  remain.
+- **03-idempotent-producer** — 🟡 in progress (6/8). Core writer, producer ladder, dedup/fencing,
+  `Stream-Seq`, versioned atomic append, the valtron producer task and restart dedup landed.
+  Core-independence and the oracle matrix remain.
 - **04-fork-and-retention** — 🟡 in progress (3/9). Fork read stitching, idempotent creation,
   soft-delete, cascading cleanup and sliding TTL landed. Fork creation edge cases, sub-offset,
   the full TTL table, retention, valtron boundary and oracles remain.

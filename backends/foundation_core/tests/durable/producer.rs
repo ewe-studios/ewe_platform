@@ -215,6 +215,34 @@ fn given_a_producer_retry_when_stream_seq_is_older_then_it_is_deduplicated() {
 }
 
 #[test]
+fn given_a_producer_when_the_stream_restarts_then_a_retry_is_still_deduplicated() {
+    smol::block_on(async {
+        let vfs = Arc::new(MemoryVfs::new());
+        let name = StreamName::parse("producer/restart").expect("valid");
+
+        {
+            let streams = DurableStreams::new(DurableStream::new(vfs.clone()));
+            create(&streams, &name).await;
+            streams
+                .stream(name.clone())
+                .append(append(b"a", None, Some(producer("p", 0, 0))))
+                .await
+                .expect("first append");
+        }
+
+        let streams = DurableStreams::new(DurableStream::new(vfs));
+        let retry = streams
+            .stream(name.clone())
+            .append(append(b"b", None, Some(producer("p", 0, 0))))
+            .await
+            .expect("retry after restart");
+
+        assert_eq!(retry.kind, AppendKind::Duplicate);
+        assert_eq!(read_all(&streams, &name).await, b"a");
+    });
+}
+
+#[test]
 fn given_two_concurrent_producers_when_they_append_then_both_are_accepted() {
     smol::block_on(async {
         let streams = streams();
