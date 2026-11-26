@@ -13,8 +13,16 @@ pub mod artifacts;
 #[cfg(feature = "firecracker")]
 pub mod firecracker;
 
+/// The Docker driver and the container control (feature 10).
+#[cfg(feature = "docker")]
+pub mod docker;
+
 /// The real host file system behind `HostFs`.
 pub mod host;
+
+/// The record store on disk (feature 10).
+#[cfg(feature = "control")]
+pub mod record;
 
 /// The native platform wrapper (feature 05).
 #[cfg(feature = "control")]

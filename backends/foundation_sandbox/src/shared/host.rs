@@ -185,6 +185,12 @@ pub trait HostFs: Send + Sync + 'static {
     /// [`SandboxError::Io`] when the directory cannot be removed.
     fn remove_dir_all(&self, path: &Path) -> SandboxResult<()>;
 
+    /// Removes one file. A missing file is not an error.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be removed.
+    fn remove_file(&self, path: &Path) -> SandboxResult<()>;
+
     /// Writes a file and replaces its contents.
     ///
     /// # Errors

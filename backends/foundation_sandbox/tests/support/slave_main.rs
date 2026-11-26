@@ -26,6 +26,7 @@ fn main() {
         },
         control: false,
         plain_root: plain_root.into(),
+        socket_mode: 0o600,
     };
     let code = run(foundation_context::Ctx::host(), args);
     std::process::exit(code);

@@ -313,6 +313,10 @@ impl HostFs for RecordingFs {
         NativeFs.remove_dir_all(path)
     }
 
+    fn remove_file(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<()> {
+        NativeFs.remove_file(path)
+    }
+
     fn write(
         &self,
         path: &Path,

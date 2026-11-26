@@ -79,6 +79,10 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16",
 # The `Provider` trait and its identifier types (feature 06). The trait stays in
 # the deployment crate; only the sandbox facade lives here (decision D1).
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.9", optional = true }
+# The Docker Engine API client, its generated types and its streamed bodies
+# (feature 10). The driver uses them as they are; it adds no request body of its
+# own (invariant I9).
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", default-features = false, features = ["docker"], optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false }
@@ -135,8 +139,13 @@ cloudflare = []
 # `SandboxManager` (feature 02).
 control = []
 default = ["control", "firecracker", "artifacts"]
-# The Docker driver (feature 10).
-docker = []
+# The Docker driver (feature 10). It talks to the Docker Engine through the
+# client of `foundation_deployment_docker` and builds the slave tar with the
+# `tar` crate.
+docker = [
+    "dep:foundation_deployment_docker",
+    "dep:tar",
+]
 # The Firecracker API client and driver (features 04 and 05). Linux only in use.
 # The generator writes one `firecracker_<group>` feature for each operation
 # group; this feature turns them all on, below the one `firecracker` gate.

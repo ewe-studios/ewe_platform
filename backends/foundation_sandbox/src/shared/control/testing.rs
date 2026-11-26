@@ -1814,6 +1814,15 @@ impl crate::shared::host::HostFs for FakeHostFs {
         Ok(())
     }
 
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .remove(path);
+        Ok(())
+    }
+
     fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
         let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(parent) = path.parent() {

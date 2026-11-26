@@ -108,6 +108,14 @@ impl HostFs for NativeFs {
         }
     }
 
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        match std::fs::remove_file(path) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(io_error("remove_file", path, &error).into()),
+        }
+    }
+
     fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
         std::fs::write(path, data).map_err(|error| io_error("write", path, &error).into())
     }
