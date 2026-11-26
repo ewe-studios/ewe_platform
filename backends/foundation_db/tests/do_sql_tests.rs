@@ -38,7 +38,7 @@ struct Note {
 }
 
 #[test]
-fn documents_keep_order_count_and_delete() {
+fn do_sql_documents_keep_order_count_and_delete() {
     block_on(async {
         let store = store();
         let documents = SqlDocumentStore::new(store);
@@ -72,7 +72,7 @@ fn documents_keep_order_count_and_delete() {
 }
 
 #[test]
-fn key_value_store_round_trips() {
+fn do_sql_key_value_store_round_trips() {
     block_on(async {
         let store = store();
         store.set("alpha", Note { text: "a".into() }).await.unwrap();
@@ -102,7 +102,7 @@ fn key_value_store_round_trips() {
 }
 
 #[test]
-fn blob_store_round_trips_binary() {
+fn do_sql_blob_store_round_trips_binary() {
     block_on(async {
         use foundation_db::BlobStore;
         let store = store();
@@ -116,7 +116,7 @@ fn blob_store_round_trips_binary() {
 }
 
 #[test]
-fn sql_parameters_keep_text_and_integer_types() {
+fn do_sql_parameters_keep_text_and_integer_types() {
     block_on(async {
         use foundation_db::{DataValue, QueryStore};
         let store = store();
@@ -158,7 +158,7 @@ fn sql_parameters_keep_text_and_integer_types() {
 }
 
 #[test]
-fn rate_limiter_uses_the_window() {
+fn do_sql_rate_limiter_uses_the_window() {
     block_on(async {
         let store = store();
         let ctx = ctx();

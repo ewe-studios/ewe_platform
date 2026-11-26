@@ -60,8 +60,9 @@ pub(crate) enum HostKeys {
     Insecure,
     /// Mutual TLS (mTLS), with enrollment.
     Mtls {
-        /// The bootstrap signing key.
-        signing: foundation_auth::secret::SigningKey,
+        /// The bootstrap signing key. Boxed: the variant is much larger than
+        /// `Insecure`, and the key is built once.
+        signing: Box<foundation_auth::secret::SigningKey>,
         /// The certificate authority.
         ca: Arc<foundation_auth::pki::CertificateAuthority>,
         /// The server certificate.
@@ -80,11 +81,12 @@ pub(crate) enum HostKeys {
 /// [`AgentRpcError::Transport`] when an address cannot be bound;
 /// [`AgentRpcError::Config`] when the TLS material or the enrollment service
 /// cannot be built.
+#[allow(clippy::too_many_lines)] // one ordered start-up: bind, keys, apps, threads
 pub(crate) fn serve(
     config: &NativeHostConfig,
     service: Arc<AgentRpcService>,
     keys: HostKeys,
-    ctx: Ctx,
+    ctx: &Ctx,
     registry: Arc<LocalInstanceRegistry>,
 ) -> AgentRpcResult<RunningServer> {
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -101,11 +103,11 @@ pub(crate) fn serve(
             trust,
         } => crate::host::native::security::build_mtls(
             config,
-            signing,
+            *signing,
             Arc::clone(&ca),
             identity,
             Arc::clone(&trust),
-            &ctx,
+            ctx,
             &agent_url,
         )?,
     };
@@ -125,7 +127,8 @@ pub(crate) fn serve(
                 &service,
                 agent_listener,
                 agent_addr,
-                Arc::new(foundation_auth::client_auth::InsecureNoAuth::new()),
+                &(Arc::new(foundation_auth::client_auth::InsecureNoAuth::new())
+                    as Arc<dyn foundation_auth::client_auth::ClientAuth>),
                 &shutdown,
             )?;
             tracing::info!(addr = %agent_addr, "agent-rpc listening (plaintext)");
@@ -159,12 +162,12 @@ pub(crate) fn serve(
                     &parts.identity,
                     &parts.ca,
                     parts.trust.index(),
-                    &ctx,
+                    ctx,
                 ),
-                _ => server_config_mutual(&parts.identity, &parts.ca, parts.trust.index(), &ctx),
+                _ => server_config_mutual(&parts.identity, &parts.ca, parts.trust.index(), ctx),
             }
             .map_err(|error| pki_error(&error))?;
-            let bootstrap_tls = server_config_server_auth(&parts.identity, &ctx)
+            let bootstrap_tls = server_config_server_auth(&parts.identity, ctx)
                 .map_err(|error| pki_error(&error))?;
 
             let agent_auth = Arc::clone(&parts.client_auth);
@@ -446,12 +449,12 @@ fn spawn_plain(
     service: &Arc<AgentRpcService>,
     listener: TcpListener,
     addr: SocketAddr,
-    auth: Arc<dyn foundation_auth::client_auth::ClientAuth>,
+    auth: &Arc<dyn foundation_auth::client_auth::ClientAuth>,
     shutdown: &Arc<ShutdownSignal>,
 ) -> AgentRpcResult<JoinHandle<()>> {
     let app = routed_app(&AGENT_PROCEDURES, || {
         let interceptor: Arc<dyn Interceptor> =
-            Arc::new(ClientAuthInterceptor::new(Arc::clone(&auth)));
+            Arc::new(ClientAuthInterceptor::new(Arc::clone(auth)));
         let mut router = Router::new().with_global_interceptors(vec![interceptor]);
         register_agent_service(&mut router, Arc::clone(service));
         router

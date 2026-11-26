@@ -66,19 +66,18 @@ impl NativeHost {
             )));
         }
 
-        let catalog = match config.catalog.clone() {
-            Some(catalog) => catalog,
-            None => {
-                let catalog = Arc::new(LocalCatalog::new(
-                    &config.models,
-                    Arc::new(BackgroundLoader),
-                    ctx.clone(),
-                )?);
-                if config.preload {
-                    catalog.preload_all().await?;
-                }
-                catalog
+        let catalog = if let Some(catalog) = config.catalog.clone() {
+            catalog
+        } else {
+            let catalog = Arc::new(LocalCatalog::new(
+                &config.models,
+                Arc::new(BackgroundLoader),
+                ctx.clone(),
+            )?);
+            if config.preload {
+                catalog.preload_all().await?;
             }
+            catalog
         };
 
         let registry = Arc::new(LocalInstanceRegistry::new(
@@ -109,7 +108,7 @@ impl NativeHost {
                     server: server_key,
                 } = load_operator_keys(&config)?;
                 let ca = certificate_authority(&config, ca_key, &ctx)?;
-                let identity = server_identity(&config, &ca, server_key, &ctx)?;
+                let identity = server_identity(&config, &ca, &server_key, &ctx)?;
                 let db_path = config.state_dir.join(TRUSTED_CLIENTS_DB_FILE);
                 let store = SqlTrustStore::open_sqlite(db_path, ctx.clone())
                     .await
@@ -122,7 +121,7 @@ impl NativeHost {
                         state_error(format!("opening the trusted clients: {error}"))
                     })?;
                 listener::HostKeys::Mtls {
-                    signing,
+                    signing: Box::new(signing),
                     ca,
                     identity,
                     trust,
@@ -130,7 +129,7 @@ impl NativeHost {
             }
         };
 
-        listener::serve(&config, service, keys, ctx, registry)
+        listener::serve(&config, service, keys, &ctx, registry)
     }
 }
 
