@@ -678,3 +678,22 @@ fn given_a_closed_stream_when_the_old_etag_is_sent_then_the_response_is_not_304(
         assert_eq!(second.header("Stream-Closed"), Some("true"));
     });
 }
+
+#[test]
+fn given_a_preflight_when_it_runs_then_it_allows_the_protocol_headers() {
+    smol::block_on(async {
+        let service = service();
+        let response = send(&service, SimpleMethod::OPTIONS, "any", headers(&[]), None, "")
+            .await
+            .expect("preflight");
+
+        assert_eq!(response.status, 204);
+        assert_eq!(
+            response.header("access-control-allow-headers"),
+            Some("*")
+        );
+        assert!(response
+            .header("access-control-expose-headers")
+            .is_some_and(|value| value.contains("Stream-Next-Offset")));
+    });
+}
