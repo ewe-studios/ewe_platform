@@ -626,23 +626,27 @@ fn build_spec(ctx: &Ctx, args: &SpecArgs, local: bool) -> Result<SandboxSpec, i3
     if args.rootfs.is_some() && args.image.is_some() {
         return Err(usage("--rootfs and --image are alternatives"));
     }
-    let rootfs = if let Some(path) = &args.rootfs {
-        rootfs_from_path(path)?
-    } else if let Some(image) = &args.image {
-        RootFs::ContainerImage(image.clone())
-    } else if local {
-        RootFs::SquashfsImage(default_rootfs(ctx)?)
-    } else {
-        return Err(usage(
-            "run and create with --connect need --rootfs or --image",
-        ));
-    };
     let driver = match args.driver.as_deref() {
         Some(value) => match DriverId::from_str(value) {
             Ok(driver) => Some(driver),
             Err(error) => return Err(usage(&error.to_string())),
         },
         None => None,
+    };
+    let rootfs = if let Some(path) = &args.rootfs {
+        rootfs_from_path(path)?
+    } else if let Some(image) = &args.image {
+        RootFs::ContainerImage(image.clone())
+    } else if local {
+        // Only the Firecracker driver ships a default image.
+        if matches!(driver, Some(id) if id != DriverId::Firecracker) {
+            return Err(usage("this driver needs --rootfs or --image"));
+        }
+        RootFs::SquashfsImage(default_rootfs(ctx)?)
+    } else {
+        return Err(usage(
+            "run and create with --connect need --rootfs or --image",
+        ));
     };
     let network = match args.network.as_str() {
         "none" => NetworkMode::None,
