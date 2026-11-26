@@ -110,3 +110,90 @@ fn an_enrollment_payload_is_not_an_access_payload() {
         "the refusal names enrollment: {error}"
     );
 }
+
+// ── #939: the WebCrypto key, the stores and the refresh signature ─────────
+
+/// A generated key signs, and the public key verifies with the same Rust
+/// implementation that a host uses.
+#[wasm_bindgen_test]
+async fn a_generated_key_signs_and_the_public_key_verifies() {
+    use foundation_agent_rpc::client::web::WebKeyPair;
+
+    let key = WebKeyPair::generate().await.expect("a WebCrypto key");
+    let message = b"ewe.agent_rpc.refresh.v1\0client-1nonce";
+    let signature = key.sign(message).await.expect("sign");
+    let public = foundation_auth::secret::ClientPublicKey::parse(key.alg(), key.public_key())
+        .expect("the public key parses");
+    public
+        .verify(message, &signature)
+        .expect("the signature verifies with the host's verifier");
+}
+
+/// The in-memory store keeps an identity (the default IndexedDB store is
+/// tested in a headless browser; Node has no IndexedDB).
+#[wasm_bindgen_test]
+async fn the_memory_store_round_trips_an_identity() {
+    use foundation_agent_rpc::client::web::{
+        MemoryCredentialStore, WebCredentialStore, WebIdentity, WebKeyPair,
+    };
+
+    let key = WebKeyPair::generate().await.expect("a WebCrypto key");
+    let identity = WebIdentity {
+        url: URL.to_string(),
+        enroll_url: URL.to_string(),
+        client_id: "client-1".to_string(),
+        alg: key.alg().to_string(),
+        public_key: key.public_key().to_vec(),
+        private_key: key.private_key().clone(),
+    };
+    let store = MemoryCredentialStore::default();
+    store.save(URL, &identity).await.expect("save");
+    let loaded = store
+        .load(URL)
+        .await
+        .expect("load")
+        .expect("an identity");
+    assert_eq!(loaded.client_id, "client-1");
+    assert_eq!(loaded.public_key, key.public_key());
+    assert_eq!(loaded.alg, key.alg());
+}
+
+/// IndexedDB round-trips when the host has it. Node has no IndexedDB, so this
+/// case returns there; the headless browser CI job proves it.
+#[wasm_bindgen_test]
+async fn indexed_db_round_trips_when_the_host_has_it() {
+    use foundation_agent_rpc::client::web::{
+        IndexedDbCredentials, WebCredentialStore, WebIdentity, WebKeyPair,
+    };
+    use wasm_bindgen::JsValue;
+
+    let global = js_sys::global();
+    let has_indexed_db = js_sys::Reflect::get(&global, &JsValue::from_str("indexedDB"))
+        .map(|value| !value.is_undefined() && !value.is_null())
+        .unwrap_or(false);
+    let has_window = js_sys::Reflect::get(&global, &JsValue::from_str("window"))
+        .map(|value| !value.is_undefined() && !value.is_null())
+        .unwrap_or(false);
+    if !has_indexed_db || !has_window {
+        return;
+    }
+    let key = WebKeyPair::generate().await.expect("a WebCrypto key");
+    let url = format!("https://agents.example.com/{}", js_sys::Date::now() as u64);
+    let identity = WebIdentity {
+        url: url.clone(),
+        enroll_url: url.clone(),
+        client_id: "client-idb".to_string(),
+        alg: key.alg().to_string(),
+        public_key: key.public_key().to_vec(),
+        private_key: key.private_key().clone(),
+    };
+    let store = IndexedDbCredentials;
+    store.save(&url, &identity).await.expect("save to IndexedDB");
+    let loaded = store
+        .load(&url)
+        .await
+        .expect("load from IndexedDB")
+        .expect("an identity");
+    assert_eq!(loaded.client_id, "client-idb");
+    assert_eq!(loaded.public_key, key.public_key());
+}
