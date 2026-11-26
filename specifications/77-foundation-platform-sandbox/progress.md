@@ -595,10 +595,11 @@ scenario sections with letters (A to D) between "1. Goal" and their numbered tec
 sections; the other features use the nine numbered sections of the skill. The content is
 the same. A renumber is a mechanical edit for a later pass.
 
-Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
-`foundation_deployment_docker`) remains. Q1 and Q3 are closed (decisions D10 and D11). Q5 is
-closed: the 2026-11-14 pass added the `start.md` files. Q4 is closed by decisions D15 and D17: a signed
-secret or Cloudflare's own mTLS, through the `Secret` of spec 86 and the `CfMtlsAuth` of spec 87.
+Requirements section 10.2: every question is closed. Q2 is decided: the Docker client stays
+`foundation_deployment_docker`, and a rename is a separate change. Q1 and Q3 are closed
+(decisions D10 and D11). Q5 is closed: the 2026-11-14 pass added the `start.md` files. Q4 is
+closed by decisions D15 and D17: a signed secret or Cloudflare's own mTLS, through the
+`Secret` of spec 86 and the `CfMtlsAuth` of spec 87.
 
 - 2026-11-15 (sixth note): "the core idea is `DynNetClient` is the platform agnostic way",
   and "and connectrpc already builds on it". So `RuntimeFetch` leaves this specification
