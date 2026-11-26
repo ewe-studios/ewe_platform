@@ -196,3 +196,33 @@ fn given_a_json_stream_when_a_client_reads_it_then_it_gets_a_json_array() {
 
     shutdown.turn_on();
 }
+
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn given_a_body_shorter_than_its_header_when_the_client_half_closes_then_the_server_uses_the_bytes_it_read() {
+    use std::io::{Read, Write};
+    use std::net::{Shutdown, TcpStream};
+
+    let _guard = initialize_pool(42, Some(5));
+    let (addr, shutdown) = start_server(durable_app());
+
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    stream
+        .write_all(
+            b"PUT /v1/stream/short HTTP/1.1\r\nHost: test\r\nContent-Type: text/plain\r\nContent-Length: 100\r\n\r\nabc",
+        )
+        .expect("write head and short body");
+    stream.shutdown(Shutdown::Write).expect("half close");
+
+    let mut response = String::new();
+    stream.read_to_string(&mut response).expect("read response");
+    // The server rewrites the request framing to chunked and reads to the
+    // end of the half-closed connection, so the 3 bytes are the whole body.
+    assert!(
+        response.starts_with("HTTP/1.1 201"),
+        "expected 201, got: {response}"
+    );
+
+    shutdown.turn_on();
+}
