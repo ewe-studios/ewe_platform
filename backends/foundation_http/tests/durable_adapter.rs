@@ -638,3 +638,43 @@ fn given_an_inline_body_when_its_length_is_read_then_streamed_bodies_report_none
     assert_eq!(inline_body_len(&SendSafeBody::None), None);
     assert_eq!(inline_body_len(&SendSafeBody::Stream(None)), None);
 }
+
+#[test]
+fn given_a_closed_stream_when_the_old_etag_is_sent_then_the_response_is_not_304() {
+    smol::block_on(async {
+        let service = service();
+        send(&service, SimpleMethod::PUT, "etag-close", headers(&[]), None, "abc")
+            .await
+            .expect("create");
+
+        let first = send(&service, SimpleMethod::GET, "etag-close", headers(&[]), None, "")
+            .await
+            .expect("read");
+        let tag = first.header("ETag").expect("etag").to_string();
+
+        send(
+            &service,
+            SimpleMethod::POST,
+            "etag-close",
+            headers(&[("stream-closed", "true")]),
+            None,
+            "",
+        )
+        .await
+        .expect("close");
+
+        // The ETag changes on closure, so a stale tag cannot hide the EOF.
+        let second = send(
+            &service,
+            SimpleMethod::GET,
+            "etag-close",
+            headers(&[("if-none-match", &tag)]),
+            None,
+            "",
+        )
+        .await
+        .expect("conditional read");
+        assert_eq!(second.status, 200);
+        assert_eq!(second.header("Stream-Closed"), Some("true"));
+    });
+}
