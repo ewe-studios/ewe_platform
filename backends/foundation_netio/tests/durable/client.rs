@@ -532,3 +532,29 @@ fn given_a_matching_etag_when_a_read_runs_then_it_reports_not_modified() {
             .contains(&("if-none-match".to_string(), "\"tag\"".to_string())));
     });
 }
+
+#[test]
+fn given_a_closed_stream_at_the_tail_when_a_read_runs_then_it_reports_the_end() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[
+                ("stream-closed", "true"),
+                ("stream-up-to-date", "true"),
+                ("stream-next-offset", "0000000000000003"),
+            ],
+            b"",
+        )]);
+        let result = handle(transport)
+            .read()
+            .offset("0000000000000003")
+            .send()
+            .await
+            .expect("read");
+
+        assert!(result.chunks.is_empty());
+        assert!(result.closed);
+        assert!(result.up_to_date);
+        assert_eq!(result.next_offset.as_deref(), Some("0000000000000003"));
+    });
+}
