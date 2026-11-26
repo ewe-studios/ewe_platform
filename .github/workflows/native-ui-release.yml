@@ -77,6 +77,12 @@ jobs:
       - uses: jdx/mise-action@v5.2.10
         with:
           install: false
+      - name: Install the pinned protoc
+        # `foundation_ui_connectrpc`'s build script runs protoc, and this job
+        # builds outside the CI image (issue #875).
+        run: |
+          mise install --locked --yes protoc
+          echo "$(mise where protoc)/bin" >> "$GITHUB_PATH"
       - name: Build the native task command
         run: |
           cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
