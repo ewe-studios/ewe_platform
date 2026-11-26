@@ -154,3 +154,21 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   response. A mock transport tests every verb with no socket; a native host wraps the
   `foundation_netio` client; a wasm host wraps `fetch`.
 - **The client core builds for wasm32.** It uses `shared/` only, with no native or valtron type.
+
+## Client conformance run (2026-11-27)
+
+- **Initialize the valtron pool in the adapter.** The native client spawns tasks. Without the
+  pool, every request fails as `NETWORK_ERROR`.
+- **Map standard header names to their enum variant.** A custom `content-type` key sits beside
+  the builder's own `Content-Type`, so the request carries two values and the server picks the
+  wrong one.
+- **Send `offset=-1` when the caller gives no offset.** The reference server reads from the tail
+  for an omitted offset.
+- **A JSON read is one body.** The client returns the array body as one chunk. Per-message
+  chunks fail the `[{"message":"hello"}]` comparison.
+- **Track the producer sequence per `(path, producer)`.** A retried close must reuse the last
+  sequence. Append and close share the counter.
+- **Auto-claim jumps to `Producer-Epoch + 1`.** Incrementing by one walks into the fenced epoch
+  and then deduplicates, so the retry writes no data.
+- **Announce every unsupported feature as false.** The runner skips its tests, so the pass
+  result states exactly what the adapter supports.

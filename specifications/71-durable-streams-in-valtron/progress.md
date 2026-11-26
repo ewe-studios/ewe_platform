@@ -2,6 +2,13 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 client conformance passes with the announced features. The reference
+  client suite reports 194 pass, 0 fail, 75 skip. The skips are Server-Sent Events (SSE),
+  automatic mode, batching and dynamic headers, which the adapter announces as unsupported.
+  The adapter is `foundation_netio/examples/durable_client_adapter.rs`. The native transport is
+  `foundation_netio::native::durable::NetioTransport`. The run found and fixed: a missing
+  valtron pool, duplicate `content-type` keys, a missing default offset, JSON reads, producer
+  sequence tracking, client-side batch deduplication and epoch auto-claim.
 - 2026-11-27: feature 07 client core started. `foundation_netio::shared::durable` has the
   injected `ClientTransport`, the six verbs and a catch-up/long-poll read. The offset wire codec
   moved to `foundation_core::durable::wire`, so the server and the client share one codec.
@@ -96,9 +103,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full
   server conformance run landed. ConnectRPC and `429` remain.
-- **07-durable-streams-client** — 🟡 in progress (2/11). The client core, transport injection and
-  catch-up/long-poll reads landed. SSE, retry, producer, dynamic headers, the adapter and the
-  conformance run remain.
+- **07-durable-streams-client** — 🟡 in progress (5/11). The client core, transport injection,
+  catch-up/long-poll reads, the native transport, the adapter and the client conformance run
+  landed. SSE, auto mode, retry policy, batching and dynamic headers remain.
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 

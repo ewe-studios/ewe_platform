@@ -111,11 +111,11 @@ impl StreamHandle {
       `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`.
 - [ ] **T7 — dynamic headers and validation.** Per-request headers and config validation. Tests:
       `dynamic_header_counter`, `invalid_epoch_is_rejected`.
-- [ ] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
+- [x] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
       `adapter_reports_200_for_append`.
 - [ ] **T9 — valtron wrapper.** `StreamIterator` and `WakeableStream` over the client reader.
       Test: `client_reader_parks_and_wakes`.
-- [ ] **T10 — client conformance.** Run the reference client suite with the adapter. Record every
+- [x] **T10 — client conformance.** Run the reference client suite with the adapter. Record every
       failure and skip. Do not close the feature until it passes.
 - [ ] **T11 — wasm32.** Build the client core for wasm32 and run the BDD scenarios with a wasm
       driver. Test: `wasm_client_roundtrip`.

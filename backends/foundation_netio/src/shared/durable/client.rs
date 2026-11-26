@@ -46,6 +46,8 @@ pub enum ClientError {
         status: u16,
         /// A bounded message body.
         body: String,
+        /// The response headers.
+        headers: BTreeMap<String, String>,
     },
     /// The server body is malformed.
     Parse(String),
@@ -60,7 +62,7 @@ impl core::fmt::Display for ClientError {
             Self::Conflict(message) => write!(f, "conflict: {message}"),
             Self::Closed => f.write_str("stream is closed"),
             Self::InvalidOffset(value) => write!(f, "invalid offset: {value}"),
-            Self::UnexpectedStatus { status, body } => {
+            Self::UnexpectedStatus { status, body, .. } => {
                 write!(f, "unexpected status {status}: {body}")
             }
             Self::Parse(message) => write!(f, "parse error: {message}"),
@@ -193,6 +195,14 @@ impl StreamHandle {
     #[must_use]
     pub fn path(&self) -> &str {
         &self.path
+    }
+
+    /// Return a copy of this handle that adds these headers to every request.
+    #[must_use]
+    pub fn with_headers(&self, headers: Vec<(String, String)>) -> Self {
+        let mut clone = self.clone();
+        clone.headers.extend(headers);
+        clone
     }
 
     fn request(
@@ -369,6 +379,7 @@ impl StreamHandle {
 }
 
 /// Builds one read.
+#[derive(Clone)]
 pub struct ReadBuilder {
     handle: StreamHandle,
     offset: Option<String>,
@@ -415,6 +426,9 @@ impl ReadBuilder {
         if let Some(offset) = &self.offset {
             query.push_str("offset=");
             query.push_str(offset);
+        } else {
+            // An omitted offset reads from the start of the stream.
+            query.push_str("offset=-1");
         }
         match self.mode {
             ReadMode::CatchUp => {}
@@ -511,16 +525,12 @@ fn parse_body(response: &ClientResponse) -> Result<Vec<ReadChunk>, ClientError> 
     let content_type = response.header("content-type").unwrap_or_default();
     let normalized = ContentType::parse(content_type).unwrap_or_default();
     if normalized.is_json() {
-        let values: Vec<serde_json::Value> = serde_json::from_slice(&response.body)
+        // A JavaScript Object Notation (JSON) response is one array body.
+        let _: serde_json::Value = serde_json::from_slice(&response.body)
             .map_err(|error| ClientError::Parse(error.to_string()))?;
-        values
-            .into_iter()
-            .map(|value| {
-                serde_json::to_vec(&value)
-                    .map(|data| ReadChunk { data })
-                    .map_err(|error| ClientError::Parse(error.to_string()))
-            })
-            .collect()
+        Ok(vec![ReadChunk {
+            data: response.body.clone(),
+        }])
     } else {
         Ok(vec![ReadChunk {
             data: response.body.clone(),
@@ -529,9 +539,16 @@ fn parse_body(response: &ClientResponse) -> Result<Vec<ReadChunk>, ClientError> 
 }
 
 fn unexpected(status: u16, response: &ClientResponse) -> ClientError {
+    let mut headers = BTreeMap::new();
+    for (key, values) in &response.headers {
+        if let Some(value) = values.first() {
+            headers.insert(key.clone(), value.clone());
+        }
+    }
     ClientError::UnexpectedStatus {
         status,
         body: bounded_body(response),
+        headers,
     }
 }
 

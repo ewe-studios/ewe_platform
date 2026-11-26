@@ -180,8 +180,8 @@ fn given_a_json_stream_when_a_read_runs_then_it_returns_one_chunk_per_message() 
             .await
             .expect("read");
 
-        assert_eq!(result.chunks.len(), 2);
-        assert_eq!(result.chunks[1].data, br#"{"n":2}"#);
+        assert_eq!(result.chunks.len(), 1);
+        assert_eq!(result.chunks[0].data, br#"[{"n":1},{"n":2}]"#);
     });
 }
 
@@ -286,7 +286,7 @@ fn given_a_bad_status_when_a_read_runs_then_the_error_carries_the_status() {
         let transport = MockTransport::with(vec![response(503, &[], b"down")]);
         let error = handle(transport).read().send().await.expect_err("status");
         match error {
-            ClientError::UnexpectedStatus { status, body } => {
+            ClientError::UnexpectedStatus { status, body, .. } => {
                 assert_eq!(status, 503);
                 assert_eq!(body, "down");
             }
