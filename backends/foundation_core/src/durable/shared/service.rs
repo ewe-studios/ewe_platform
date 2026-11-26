@@ -39,6 +39,36 @@ impl Default for DurableLimits {
     }
 }
 
+impl DurableLimits {
+    /// Set the read page byte limit.
+    #[must_use]
+    pub fn with_page_bytes(mut self, bytes: usize) -> Self {
+        self.page_bytes = bytes;
+        self
+    }
+
+    /// Set the read page chunk limit.
+    #[must_use]
+    pub fn with_page_chunks(mut self, chunks: usize) -> Self {
+        self.page_chunks = chunks;
+        self
+    }
+
+    /// Set the long-poll timeout in milliseconds.
+    #[must_use]
+    pub fn with_long_poll_timeout_ms(mut self, milliseconds: u64) -> Self {
+        self.long_poll_timeout_ms = milliseconds;
+        self
+    }
+
+    /// Set the Server-Sent Events (SSE) connection lifetime in milliseconds.
+    #[must_use]
+    pub fn with_sse_lifetime_ms(mut self, milliseconds: u64) -> Self {
+        self.sse_lifetime_ms = milliseconds;
+        self
+    }
+}
+
 /// The transport-neutral protocol service.
 pub struct DurableService<D: DurableDriver> {
     driver: D,
