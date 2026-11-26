@@ -81,8 +81,9 @@ tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
 libc = "0.2"
-# Turns on the `test-hooks` feature for this crate's own test targets only.
-foundation_db = { path = ".", features = ["test-hooks"] }
+# Turns on the `test-hooks` and `testing` features for this crate's own test
+# targets only. The fault-injecting tests need `testing`.
+foundation_db = { path = ".", features = ["test-hooks", "testing"] }
 # `test-clock` provides `SimulatedClock`, so a test proves that a stored row
 # carries the simulated `created_at`, not the real time.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["std", "multi", "test-clock"] }
