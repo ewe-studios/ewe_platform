@@ -485,7 +485,7 @@ Spec 83 feature 06 (then "Cloudflare Deployment") and this spec said opposite th
 
 | Question | Spec 77 | Spec 83 feature 06 |
 |---|---|---|
-| Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare`. |
+| Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and its generated types (`ewe_deployables::cloudflare` was removed in spec 70 feature 22). |
 | Who owns the container surface? | The private `ContainerApi` of the Cloudflare DO (feature 07, section 6). | A public `ContainersDeploy` in `foundation_deployment_cloudflare`. |
 | Is there a handle for the container? | No. The `SandboxHandle` is the only handle. | No. `ContainersDeploy` takes a `ContainerSpec` with undefined fields. |
 

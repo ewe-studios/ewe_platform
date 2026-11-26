@@ -528,7 +528,7 @@ report when `usable` is false. It runs the shared acceptance scenarios
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "libkrun testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_sandbox --features "libkrun testing" --profile uat libkrun_sim
-cargo test -p foundation_sandbox --features "libkrun testing" --profile uat libkrun_runner
+cargo test -p foundation_sandbox --features "libkrun testing libkrun-runner" --profile uat libkrun_runner
 mise run sandbox:slave && mise run sandbox:krun
 EWE_SANDBOX_SLAVE=<slave path> EWE_SANDBOX_KRUN=<runner path> \
   cargo test -p foundation_sandbox --features "libkrun testing" --profile uat e2e_libkrun -- --nocapture
@@ -541,8 +541,11 @@ records the date, the host and the libkrun version. The Linux run is added to th
 `sandbox-e2e` with libkrun installed from the distribution package or built from the
 `stable-1.19.x` branch (the job caches the build).
 
-`ci/packages.toml`: the `libkrun` feature of `foundation_sandbox` builds and runs the runner tests on Linux and macOS;
-`windows-tests = "none"` with the reason "libkrun has no stable Windows backend".
+`ci/packages.toml`: the `libkrun` and `libkrun-runner` features of `foundation_sandbox` build
+and run the driver and runner tests on Linux and macOS. Windows keeps its normal runs: only
+the libkrun runs join `linux-runs` and `macos-runs`, because libkrun has no stable Windows
+backend. A `windows-tests = "none"` entry would remove every Windows test of the crate, and
+root rule 15 does not allow that for one driver's limit.
 
 ## 9. Done when
 

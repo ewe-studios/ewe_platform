@@ -531,6 +531,28 @@ Feature 18 adopts two techniques: a lifetime limit that shares the alarm, and a
 adopted, because `SandboxService` is RPC over HTTP. The edge cache of `Probe` and `List`, the
 Analytics Engine view and in-isolate coalescing wait for a later feature.
 
+## Feature 08: the Worker and the deployment (2026-11-27)
+
+Feature 08 is on branch `spec77/f08-cloudflare-worker`, from feature 07, with feature 06
+merged in. Commit `02fb725e4` is the first complete state.
+
+- Routing: `shared/cloudflare/routing.rs` with the property test.
+- Deployment: `foundation_deployment_cloudflare/src/deploy/{mod,plan,host,foundation,wrangler}.rs`,
+  both adapters, and `tests/deploy_plan.rs` (8 tests).
+- Provider: `ProviderId::CloudflareContainer` and `SandboxDeploymentProvider::cloudflare`.
+- Worker: `infrastructure/sandbox_worker/` with the entry, three DO classes, the model client,
+  `wrangler.toml`, the image, the README and `test/run.sh`. `worker-build --release` succeeds.
+- End to end: `tests/e2e_cloudflare/` (they print the reason and return without a URL).
+- CI: the `sandbox-cloudflare` job in `sandbox-e2e.yaml`.
+
+Local checks: 69 sandbox tests, 12 deployment tests, 4 provider tests, clippy clean, the wasm
+check clean.
+
+The review found three high gaps, filed as #910 (the generator drops a multipart upload
+body), #911 (no generated container-application operation) and #912 (no container route).
+The agent fixes them on the branch. #913 is fixed here: the specification named the
+`ewe_deployables::cloudflare` module that spec 70 feature 22 removed.
+
 ## In progress
 
 Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for
@@ -542,13 +564,15 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 
 ## Next
 
-1. Feature 07 (the Cloudflare control plane, library), on a branch from the merged tree.
-2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B.
-3. Feature 18 (the lifetime deadline and the stream bound), after 08.
-4. Spec 83 feature 04 (the native host and the deterministic simulation tests).
-5. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
-   product). Feature 17 needs 08.
-6. Phase 3: features 12 to 15 (images).
+1. Feature 07 (the Cloudflare control plane, library): pull request #901, in review.
+2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, on branch
+   `spec77/f08-cloudflare-worker`. It started from feature 07 and merges feature 06.
+3. Feature 09 (the libkrun driver): on branch `spec77/f09-libkrun-driver`, in parallel.
+4. Feature 18 (the lifetime deadline and the stream bound), after 08.
+5. Spec 83 feature 04: pull request #909, in review.
+6. Phase 2: features 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox product).
+   Feature 17 needs 08.
+7. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 

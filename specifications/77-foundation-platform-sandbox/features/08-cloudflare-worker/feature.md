@@ -503,7 +503,7 @@ Two adapters apply that plan:
 
 | Adapter | How it works | When to use it |
 |---|---|---|
-| `FoundationCloudflareDeployer` | The Rust path. It uses `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare` (the generated Worker, Durable Object, D1/KV/R2 and container types). It builds the Worker, builds and pushes the image, uploads a Worker version with the bindings and DO migrations, sets the secrets and routes, and promotes the version. | The default. CI and an operator with the Rust toolchain. |
+| `FoundationCloudflareDeployer` | The Rust path. It uses `foundation_deployment_cloudflare` and its generated types (Worker, Durable Object, D1/KV/R2 and container operations; the old `ewe_deployables::cloudflare` module was removed in spec 70 feature 22). It builds the Worker, builds and pushes the image, uploads a Worker version with the bindings and DO migrations, sets the secrets and routes, and promotes the version. | The default. CI and an operator with the Rust toolchain. |
 | `WranglerCloudflareDeployer` | The manual path. It writes the same plan as a temporary `wrangler.toml`, copies the Dockerfile, runs `npx wrangler deploy`, and reads the Worker URL from the output. It is native-only and uses an injected `CommandRunner`. | A fallback when the foundation crate is not available, and the documented manual procedure. |
 
 The foundation path is the priority. A deploy run with no adapter selected uses it. The

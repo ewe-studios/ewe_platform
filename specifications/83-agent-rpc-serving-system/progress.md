@@ -15,8 +15,8 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 01 — agent RPC model server | ✅ 10/10 + GGUF, landed as #126 | `bfff3326d` on master |
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
-| 04 — native host and DST | 🔎 T17 and T18 done; pull request #909 open. #908 (foundation_ai without multi) is the last fidelity gap | `50725c70e` and later |
-| 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete; the plan adds rules, tests and verify (2026-11-27) | — |
+| 04 — native host and DST | 🔎 T17 and T18 done; pull request #909 open. The DST harness uses a scripted registry until #908 part (b) lands | `c9e6f1c85` |
+| 05 — Worker host and web client | 🔧 in progress on branch `spec83/f05-worker-host-and-web-client` (tasks T20, T21, T22, T26) | — |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
 | 08 — key protection at rest | 📝 0/6, todo (last) | — |
@@ -34,8 +34,11 @@ Task T18 is complete: `foundation_core` `valtron::sim`, `foundation_connectrpc`
 test. The crate `foundation_agent_rpc` gains a `multi` feature, in `default`, so the harness
 gets the single-threaded engine.
 
-Issues #903 to #907 are closed by the change. #908 (high) records that `foundation_ai` does
-not build without `multi`; the harness uses a scripted registry until that is fixed.
+Issues #903 to #907 are closed by the change. #908 is split: part (a), the native build
+without `multi`, is fixed; part (b), the `TestWorld` on the real registry, waits on a
+cooperative event stream in `foundation_ai` (`agentic/turn.rs`), and the harness uses a
+scripted registry until then. The determinism guarantee holds; the registry code is not
+under test.
 
 ## Branches and PRs
 
