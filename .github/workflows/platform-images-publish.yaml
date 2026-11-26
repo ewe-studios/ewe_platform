@@ -140,7 +140,7 @@ jobs:
           submodules: false
 
       - name: Image checks
-        run: nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "chrome firefox"
+        run: cargo run --locked --profile uat -p foundation_ci -- image-smoke --layer image --browsers "chrome firefox"
 
       - name: Link the baked submodules
         uses: ./ci/platform-images/actions/link-submodules
@@ -198,10 +198,10 @@ jobs:
             "$IMAGE" sleep infinity
 
       - name: Image checks
-        run: docker exec ci nu ci/platform-images/scripts/smoke-test.nu --layer image --browsers "chrome firefox" --cuda
+        run: cargo run --locked --profile uat -p foundation_ci -- image-smoke --container ci --layer image --browsers "chrome firefox" --cuda
 
       - name: Link the baked submodules
-        run: docker exec ci nu ci/platform-images/scripts/link-submodules.nu --workspace "$GITHUB_WORKSPACE"
+        run: docker exec ci cargo run --locked --profile uat -p foundation_ci -- link-submodules --workspace "$GITHUB_WORKSPACE"
 
       - name: llama.cpp (CUDA) compiles and links
         # No GPU on the runner: this proves nvcc, the CUDA libraries and the
@@ -222,8 +222,8 @@ jobs:
           fetch-depth: 1
           submodules: false
 
-      - name: Install nushell
-        uses: ./ci/platform-images/actions/setup-nu
+      - name: Install the image task runner
+        uses: ./ci/actions/install-task-runner
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v4.8.0
@@ -249,7 +249,7 @@ jobs:
           set -euo pipefail
           tags="latest sha-${GITHUB_SHA::7}"
           for ref in $REFS; do
-            nu ci/platform-images/scripts/images.nu promote "$ref" --tags "$tags"
+            foundation-ci image-promote "$ref" --tags "$tags"
           done
           {
             echo "### Tagged latest and sha-${GITHUB_SHA::7}"

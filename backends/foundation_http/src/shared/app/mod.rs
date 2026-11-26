@@ -66,6 +66,18 @@ pub struct HttpApp<S> {
 }
 
 impl<S> HttpApp<S> {
+    /// Registers all paths from the handler through the application router.
+    ///
+    /// # Errors
+    /// Returns the router error if a declared path is invalid.
+    pub fn mount<H, K>(&mut self, handler: H) -> crate::shared::router::RouteResult<()>
+    where
+        S: Clone,
+        H: crate::Route + crate::shared::router::IntoHandler<K, Stored = S>,
+    {
+        self.router.mount(handler)
+    }
+
     /// Build an empty `HttpApp` from an explicit valtron [`Ctx`].
     ///
     /// This is the deterministic-test entry point. The app's clock and RNG

@@ -20,8 +20,8 @@ hkdf = "0.12"
 blake2 = "0.10"
 getrandom = { version = "0.2", features = ["std"] }
 base64 = "0.22"
-hex = "0.4"
-zeroize = "1"
+hex = { workspace = true }
+zeroize = { workspace = true }
 
 tracing = { workspace = true }
 derive_more = { workspace = true }
@@ -35,7 +35,7 @@ toml = { workspace = true }
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
 foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.2", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 # The project error standard. It is a common dependency: the error types in
 # `shared/error.rs` compile for every target, including wasm32.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
@@ -50,7 +50,7 @@ smoltcp = { version = "0.12", default-features = false, features = ["alloc", "me
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 # UNIX timestamp conversions for the injected wall clock. `native::node` uses
 # `foundation_compact::time::unix_seconds`; no crate repeats the epoch math.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # Data plane primitives: the native driver needs poll/fd plus the netstack.
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", default-features = false, features = ["netstack", "poll", "fd", "tun"] }
 # HTTP/netio types (Connection::Overlay, OverlayReadWrite) for F11 overlay transport.
@@ -74,8 +74,8 @@ snow = { version = "0.10", default-features = false, features = ["default-resolv
 # browser tests use `foundation_core::valtron` directly. The native section
 # turns on `multi`; wasm keeps the single-threaded executor.
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
-wasm-bindgen = "0.2"
-js-sys = "0.3"
+wasm-bindgen.workspace = true
+js-sys.workspace = true
 # wasm32 needs the JS backend for getrandom (browser crypto.getRandomValues).
 getrandom = { version = "0.2", features = ["js"] }
 
@@ -86,7 +86,7 @@ foundation_core = { path = "../foundation_core", features = ["test-clock"] }
 # wasm32 browser tests (F07 task 5). Dev-only to prevent dep cycle:
 # deployment_platform -> wireguard -> testbed -> deployment_platform
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
-wasm-bindgen-test = { version = "=0.3.76" }
+wasm-bindgen-test = { workspace = true }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"

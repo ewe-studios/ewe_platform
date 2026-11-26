@@ -14,7 +14,7 @@ use chrono::{DateTime, Duration, Utc};
 use foundation_compact::rng::Rng;
 use foundation_context::Ctx;
 use foundation_netio::shared::client::{Cookie, SameSite};
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;

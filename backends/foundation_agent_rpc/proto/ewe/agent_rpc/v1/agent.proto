@@ -1,9 +1,8 @@
-// agent-rpc wire contract (spec 83 feature 01).
+// agent-rpc wire contract (spec 83 features 01 and 07).
 //
-// AgentService is the client <-> agent-rpc API (served on the mTLS listener).
-// BootstrapService is the token -> client-certificate exchange (served on the
-// bootstrap listener). BootstrapPayload is what an operator hands a client
-// (base64 / QR) so it can connect without manual configuration.
+// AgentService is the client <-> agent-rpc API.
+// BootstrapService is the signed secret + CSR -> client certificate exchange.
+// BootstrapPayload is what an operator hands a client (base64url / QR code).
 syntax = "proto3";
 
 package ewe.agent_rpc.v1;
@@ -13,7 +12,12 @@ service AgentService {
   rpc Health(HealthRequest) returns (HealthResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
-  // Create a named instance on a hosted model (no model load).
+  // NEW (07): the model kinds, devices, models, protocols and limits of this host.
+  rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  // Create a named instance on a hosted model (no model load for local
+  // models that are already loaded).
   rpc CreateInstance(CreateInstanceRequest) returns (InstanceInfo);
   rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
@@ -26,9 +30,107 @@ service AgentService {
 }
 
 service BootstrapService {
-  // Present the bootstrap token and a CSR; receive a client certificate.
+  // Present a signed bootstrap secret and a credential (a client public key,
+  // or a CSR); receive a client_id, the credential, and a server proof.
+  // Any client can call it, a browser included (auth.md section 9.1).
   rpc Enroll(EnrollRequest) returns (EnrollResponse);
+  // NEW (07): a new access secret for a client-key client, signed with its key.
+  rpc RefreshAccess(RefreshAccessRequest) returns (RefreshAccessResponse);
 }
+
+// ---------------------------------------------------------------------------
+// Model kinds and devices. NEW (07).
+
+// The family of a model. Zero means "any kind".
+enum ModelKind {
+  MODEL_KIND_UNSPECIFIED = 0;
+  // A model at a remote provider, reached over HTTP (OpenAI-compatible,
+  // Anthropic, Workers AI).
+  MODEL_KIND_API = 1;
+  // A local safetensors model that runs on Candle.
+  MODEL_KIND_CANDLE = 2;
+  // A local GGUF model that runs on llama.cpp.
+  MODEL_KIND_GGUF = 3;
+  // Kept for future video models. No host supports it yet.
+  MODEL_KIND_VIDEO = 4;
+  // Kept for future audio models. No host supports it yet.
+  MODEL_KIND_AUDIO = 5;
+}
+
+// Where a model runs. Zero means "any device".
+enum DeviceKind {
+  DEVICE_KIND_UNSPECIFIED = 0;
+  DEVICE_KIND_CPU = 1;
+  DEVICE_KIND_CUDA = 2;
+  DEVICE_KIND_METAL = 3;
+  DEVICE_KIND_VULKAN = 4;
+  // The model runs at the remote provider. Only for MODEL_KIND_API.
+  DEVICE_KIND_REMOTE = 5;
+}
+
+message Device {
+  DeviceKind kind = 1;
+  // The GPU index. Always 0 for CPU and REMOTE.
+  uint32 ordinal = 2;
+}
+
+// The load state of one configured model.
+enum ModelLoadState {
+  MODEL_LOAD_STATE_UNSPECIFIED = 0;
+  MODEL_LOAD_STATE_NOT_LOADED = 1;
+  MODEL_LOAD_STATE_LOADING = 2;
+  MODEL_LOAD_STATE_LOADED = 3;
+  MODEL_LOAD_STATE_FAILED = 4;
+  // Nothing to load: the remote provider holds the model.
+  MODEL_LOAD_STATE_REMOTE = 5;
+}
+
+message GetCapabilitiesRequest {}
+
+message GetCapabilitiesResponse {
+  // One entry per model kind that this host can run.
+  repeated ModelKindSupport model_kinds = 1;
+  // Every model that the operator configured on this host.
+  repeated ModelDescriptor models = 2;
+  // "connect", "grpc", "grpc-web".
+  repeated string protocols = 3;
+  // "mtls", "signed-secret", "jwt", "cloudflare-mtls", "insecure".
+  repeated string auth_modes = 4;
+  InstanceLimits limits = 5;
+  // "native" or "worker".
+  string host_kind = 6;
+}
+
+message ModelKindSupport {
+  ModelKind kind = 1;
+  // The devices on which this host can run the kind.
+  repeated Device devices = 2;
+}
+
+message ModelDescriptor {
+  string name = 1;
+  ModelKind kind = 2;
+  Device device = 3;
+  ModelLoadState state = 4;
+}
+
+message InstanceLimits {
+  uint32 max_instances = 1;
+  uint32 max_name_len = 2;
+  uint32 max_prompt_bytes = 3;
+}
+
+// The error detail that a failed CreateInstance carries. NEW (07).
+message ModelSelectionError {
+  string requested_model = 1;
+  ModelKind requested_kind = 2;
+  Device requested_device = 3;
+  // What this host supports, so the client can pick again.
+  repeated ModelKindSupport supported = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Health and instances.
 
 message HealthRequest {}
 
@@ -40,15 +142,21 @@ message HealthResponse {
 
 message ModelInfo {
   string name = 1;
+  ModelKind kind = 2;   // NEW (07)
+  Device device = 3;    // NEW (07)
 }
 
 message CreateInstanceRequest {
   string name = 1;
-  // Empty selects the server's only model.
+  // Empty = pick by kind and device (see "Model selection" in proto.md).
   string model = 2;
   optional string system_prompt = 3;
   optional uint32 max_tokens = 4;
   optional float temperature = 5;
+  // NEW (07): UNSPECIFIED = any kind.
+  ModelKind kind = 6;
+  // NEW (07): not set, or DEVICE_KIND_UNSPECIFIED = any device.
+  Device device = 7;
 }
 
 message InstanceInfo {
@@ -56,12 +164,21 @@ message InstanceInfo {
   string model = 2;
   uint64 created_unix_ms = 3;
   uint64 turns = 4;
+  ModelKind kind = 5;   // NEW (07)
+  Device device = 6;    // NEW (07)
 }
 
-message ListInstancesRequest {}
+message ListInstancesRequest {
+  // NEW (07): 0 = the server default (RegistryConfig::default_page_size).
+  uint32 page_size = 1;
+  // NEW (07): empty = the first page.
+  string page_token = 2;
+}
 
 message ListInstancesResponse {
   repeated InstanceInfo instances = 1;
+  // NEW (07): empty = no more pages.
+  string next_page_token = 2;
 }
 
 message DestroyInstanceRequest {
@@ -69,6 +186,9 @@ message DestroyInstanceRequest {
 }
 
 message DestroyInstanceResponse {}
+
+// ---------------------------------------------------------------------------
+// Chat. No change in 07.
 
 message ChatRequest {
   string instance = 1;
@@ -129,37 +249,100 @@ message TurnDone {
   Usage usage = 2;
 }
 
+// ---------------------------------------------------------------------------
+// Bootstrap.
+
 message EnrollRequest {
-  // A signed bootstrap secret (base64url JSON: v, alg, public_key, secret,
-  // valid_from, valid_until, signature), as carried by BootstrapPayload.token.
+  // A signed bootstrap secret (base64url JSON, see auth.md), as carried by
+  // BootstrapPayload.token. Its purpose must be "enroll" and its aud must be
+  // this host's url.
   string token = 1;
-  // Recorded as the certificate's common name.
+  // A display name for the client, recorded with it.
   string client_name = 2;
-  // PKCS#10 certificate signing request; the private key stays on the client.
-  string csr_pem = 3;
+  // The credential the client wants. Exactly one is set.
+  oneof credential {
+    // PKCS#10 certificate signing request; the private key stays on the
+    // client. The client then uses mTLS. Native hosts only.
+    string csr_pem = 3;
+    // NEW (07): a client public key; the private key stays on the client.
+    // The client then uses access secrets. Every host that enrolls.
+    ClientKey client_key = 4;
+  }
+  // NEW (07): 32 random bytes from the client. The server signs them in
+  // server_proof.
+  bytes nonce = 5;
+}
+
+// NEW (07): a client public key.
+message ClientKey {
+  // "ed25519" (raw 32 bytes) or "p256" (uncompressed SEC1, 65 bytes).
+  string alg = 1;
+  bytes public_key = 2;
 }
 
 message EnrollResponse {
+  // Set for the csr_pem credential.
   string client_cert_pem = 1;
-  // The CA that signs client and server certificates.
+  // The CA that signs client and server certificates. Set for csr_pem.
   string ca_cert_pem = 2;
+  // NEW (07): the ID of the enrolled client.
+  string client_id = 3;
+  // NEW (07): set for the client_key credential. A SignedSecret v2 with
+  // purpose access, aud = url, sub = client_id. Send it as a bearer credential.
+  string access_secret = 4;
+  // NEW (07): the server's signature, with the payload private key, over the
+  // nonce, the client credential and client_id (auth.md section 9.1.1).
+  bytes server_proof = 5;
 }
 
+// NEW (07). Signed with the client private key over
+// "ewe.agent_rpc.refresh.v1" 0x00 client_id unix_ms nonce.
+message RefreshAccessRequest {
+  string client_id = 1;
+  uint64 unix_ms = 2;
+  bytes nonce = 3;
+  bytes signature = 4;
+}
+
+message RefreshAccessResponse {
+  string access_secret = 1;
+}
+
+// What an operator gives a client, as base64url text or a QR code.
+// CHANGED (07). There is no version field: protobuf field numbers already let
+// an old reader skip a field that it does not know, and let a new reader see
+// that an old field is absent. Section 6 of proto.md explains the choice.
 message BootstrapPayload {
-  uint32 version = 1;
-  // host:port of the mTLS AgentService listener.
-  string addr = 2;
-  // host:port of the BootstrapService listener.
-  string bootstrap_addr = 3;
+  // Removed in 07. Never reuse these numbers or names.
+  reserved 1, 2, 3;
+  reserved "version", "addr", "bootstrap_addr";
   // Lowercase hex SHA-256 of the server certificate (DER).
+  // Set: the client pins this certificate (a host with its own CA, such as
+  // the native host). Empty: the client checks the certificate against the
+  // system root certificates (a host with a public certificate, such as a
+  // Cloudflare Worker).
   string tls_fingerprint_sha256 = 4;
-  // The signed, time-boxed bootstrap secret (see EnrollRequest.token).
+  // The signed, time-boxed secret (see auth.md). It also carries the server
+  // public key. Its purpose says what the client does with it: Enroll = call
+  // Enroll at enroll_url (any client, a browser included); Access = send it
+  // as a bearer credential on each call to url.
   string token = 5;
   Capabilities capabilities = 6;
+  // NEW (07): the base URL of AgentService. One form for every host, for
+  // example "https://203.0.113.7:7443" or "https://agents.example.com/rpc".
+  string url = 7;
+  // NEW (07): the base URL of BootstrapService. Set only when the token
+  // purpose is Enroll. It can equal url (one listener, for example a Worker).
+  // The same tls_fingerprint_sha256 applies to it.
+  string enroll_url = 8;
 }
 
 message Capabilities {
   repeated string protocols = 1;
   repeated string models = 2;
-  string auth_mode = 3;
+  // Removed in 07: the single auth_mode string. Use auth_modes.
+  reserved 3;
+  reserved "auth_mode";
+  repeated ModelKind model_kinds = 4;   // NEW (07)
+  repeated string auth_modes = 5;       // NEW (07)
 }

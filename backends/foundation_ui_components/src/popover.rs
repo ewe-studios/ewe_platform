@@ -80,6 +80,7 @@ impl Default for PopoverConfig {
 }
 
 /// Slots for a popover.
+#[derive(Default)]
 pub struct PopoverSlots {
     /// Trigger content.
     pub trigger: Vec<Slot>,
@@ -89,18 +90,16 @@ pub struct PopoverSlots {
     pub arrow: Option<Slot>,
 }
 
-impl Default for PopoverSlots {
-    fn default() -> Self {
-        Self {
-            trigger: Vec::new(),
-            children: Vec::new(),
-            arrow: None,
-        }
-    }
-}
-
 /// Popover component — an anchored surface over `(open, set_open)`.
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The component keeps its template beside its reactive bindings."
+)]
 pub fn popover(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -278,3 +277,13 @@ pub fn preview_card(
         slots,
     )
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Dismiss,
+    crate::behaviour::Behaviour::FocusTrap,
+    crate::behaviour::Behaviour::Hover,
+    crate::behaviour::Behaviour::Position,
+    crate::behaviour::Behaviour::ScrollLock,
+    crate::behaviour::Behaviour::Transition,
+];

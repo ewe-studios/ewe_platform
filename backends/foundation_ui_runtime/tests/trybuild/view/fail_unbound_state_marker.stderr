@@ -1,0 +1,5 @@
+error: html!: primal::state requires component state
+ --> tests/trybuild/view/fail_unbound_state_marker.rs:4:32
+  |
+4 |     let _view = html! { <input primal::state/> };
+  |                                ^^^^^^

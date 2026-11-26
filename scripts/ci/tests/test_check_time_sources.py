@@ -1,12 +1,12 @@
-"""Tests for scripts/ci/check_time_sources.py (run: python3 -m pytest scripts/ci/tests -q)."""
+"""Tests for the time-sources Rust task (run: python3 -m pytest scripts/ci/tests -q)."""
 
 import subprocess
-import sys
+from task_command import binary
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "check_time_sources.py"
+TASK = "check-time-sources"
 REPO = Path(__file__).resolve().parents[3]
 
 PATTERNS = (
@@ -20,8 +20,8 @@ PATTERNS = (
 
 def run(root: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(SCRIPT), "--root", str(root), *args],
-        capture_output=True,
+        [binary(), TASK, "--root", str(root), *args],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True,
     )
 
@@ -41,7 +41,7 @@ def allowlist(root: Path, text: str) -> Path:
 class CheckTimeSources(unittest.TestCase):
     def test_the_repository_is_clean(self):
         result = run(REPO, "--check")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("0 violations", result.stdout)
 
     def test_a_clean_file_passes(self):

@@ -104,7 +104,7 @@ impl WebSocketServerTask {
         let writer = BatchFrameWriter::with_defaults(stream.clone(), ctx);
         Self {
             stream,
-            decoder: WebSocketFrameDecoder::new(),
+            decoder: WebSocketFrameDecoder::with_limit(config.max_message_size),
             assembler: MessageAssembler::new(config.max_message_size),
             writer,
             config,

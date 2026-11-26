@@ -26,6 +26,7 @@ use foundation_agent_rpc::secret::{
     BootstrapSecrets, SigningKey, SigningKeyConfig, SIGNING_KEY_FILE,
 };
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle, RunningServer};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{Code, Request, RpcCtx};
 use foundation_core::valtron::valtron_test;
@@ -33,7 +34,13 @@ use foundation_core::valtron::valtron_test;
 fn mock_model() -> ModelHandle {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("secure hello")]);
-    ModelHandle::from_router("mock", "mock", mock.into_router())
+    ModelHandle::from_router(
+        "mock",
+        ModelKind::Api,
+        Device::Remote,
+        "mock",
+        mock.into_router(),
+    )
 }
 
 fn ctx() -> RpcCtx {

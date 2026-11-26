@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "kind": "STACK",
+      "text": null,
+      "props": {},
+      "children": [
+        60
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 60,
+      "kind": "UNKNOWN",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    }
+  ],
+  "reports": [
+    {
+      "code": "UnknownKind",
+      "node": 60,
+      "row": 0
+    }
+  ],
+  "commands": [],
+  "errors": [],
+  "data": []
+}

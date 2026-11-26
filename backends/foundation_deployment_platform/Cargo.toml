@@ -10,15 +10,16 @@ description = "Foundation deployment platform — VM/container orchestration, Do
 keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"]
 
 [dependencies]
+hex = { workspace = true, optional = true }
 # Foundation crates
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
@@ -47,16 +48,16 @@ chrono.workspace = true
 # VM infrastructure deps (moved from foundation_testbed, spec-53 Feature 11)
 ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }
 indicatif = { version = "0.17", optional = true }
-tar = { version = "0.4", optional = true }
-flate2 = { version = "1", optional = true }
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
 xz2 = { version = "0.1", optional = true }
 dirs = { version = "6", optional = true }
 anyhow = { version = "1", optional = true }
-image = { version = "0.25", optional = true }
+image = { workspace = true, features = ["default-formats", "rayon"], optional = true }
 libc = { version = "0.2", optional = true }
 toml = { version = "0.8", optional = true }
 fs2 = { version = "0.4", optional = true }
-sha2 = { version = "0.10", optional = true }
+sha2 = { workspace = true, optional = true }
 whoami = { version = "2", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
@@ -71,7 +72,7 @@ multi = ["foundation_core/multi", "foundation_netio/multi"]
 vms = [
     "dep:ssh2", "dep:indicatif", "dep:tar", "dep:flate2", "dep:xz2",
     "dep:dirs", "dep:anyhow", "dep:image", "dep:libc",
-    "dep:toml", "dep:fs2", "dep:sha2", "dep:whoami", "dep:which",
+    "dep:toml", "dep:fs2", "dep:sha2", "dep:hex", "dep:whoami", "dep:which",
     "dep:foundation_wireguard",
 ]
 

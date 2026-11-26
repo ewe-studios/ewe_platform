@@ -25,14 +25,6 @@ function frame(protocol, version, payload) {
 }
 
 /** A minimal wire-v1 columnar payload: pad shim + header, zero ops. */
-function emptyColumnarPayload() {
-  // pad_len=7 + 7 pad bytes + [count=0, flags=0] + the THREE empty string
-  // columns (each contributes [last=0, dataLen=0] when count is 0).
-  const out = new Uint8Array(1 + 7 + 8 + 3 * 8);
-  out[0] = 7;
-  return out;
-}
-
 function jsonResponse(body, contentType) {
   return {
     ok: true,
@@ -100,21 +92,6 @@ test("sse: protocol attribute overrides the event name", async () => {
   assert.equal(results[0].type, "json", "attribute > event name");
 });
 
-test("sse: arrow events carry base64 envelope frames", async () => {
-  const wire = frame(1, 1, emptyColumnarPayload());
-  const b64 = Buffer.from(wire).toString("base64");
-  const results = [];
-  const transport = new SSETransport({
-    fetchFn: async () => sseResponse(`event: arrow\ndata: ${b64}\n\n`),
-  });
-  await transport.connect("/feed", undefined, (r) => results.push(r));
-  transport.disconnect();
-  assert.equal(results[0].type, "arrow");
-  assert.equal(results[0].columns.count, 0, "decoded through the envelope");
-});
-
-// ─── WebSocket: binary envelope sniffing + text default ───────────────────────
-
 class FakeWebSocket {
   constructor() {
     this.sent = [];
@@ -135,16 +112,6 @@ function wsHarness(config = {}) {
   transport.connect("ws://x", undefined, (r) => results.push(r));
   return { ws, results, transport };
 }
-
-test("ws: binary v1 columnar frame routes as arrow via the envelope", () => {
-  const { ws, results, transport } = wsHarness();
-  assert.equal(ws.binaryType, "arraybuffer", "transport requests binary frames");
-  ws.onmessage({ data: frame(1, 1, emptyColumnarPayload()).buffer });
-  transport.disconnect();
-  assert.equal(results.length, 1);
-  assert.equal(results[0].type, "arrow");
-  assert.equal(results[0].columns.count, 0);
-});
 
 test("ws: binary json envelope routes as json", () => {
   const { ws, results, transport } = wsHarness();
@@ -184,26 +151,9 @@ test("ws: text frames keep the json default; protocol attr overrides", () => {
 
 // ─── decodeEnvelopeFrame: v2 requires a registered reader ─────────────────────
 
-test("wire v2 without a reader is a typed error; with one, it routes", () => {
-  const payload = new Uint8Array([1, 2, 3]);
-  const errors = [];
-  const original = console.error;
-  console.error = (...args) => errors.push(args.join(" "));
-  let result;
-  try {
-    result = decodeEnvelopeFrame(frame(1, 2, payload));
-  } finally {
-    console.error = original;
-  }
-  assert.equal(result, null);
-  assert.match(errors[0], /no reader is registered/);
-
-  ProtocolHandler.arrowIpcReader = (bytes) => ({ rows: bytes.length });
-  try {
-    const routed = decodeEnvelopeFrame(frame(1, 2, payload));
-    assert.equal(routed.type, "arrow-ipc");
-    assert.deepEqual(routed.table, { rows: 3 });
-  } finally {
-    delete ProtocolHandler.arrowIpcReader;
-  }
+test("retired Arrow mounts report the migration and return empty content", async t => {
+  const error = t.mock.method(console, "error", () => {});
+  const handler = ProtocolHandler.named("arrow");
+  assert.deepEqual(await handler.process({}), {type:"raw", text:""});
+  assert.match(error.mock.calls[0].arguments[0], /use "frame"/);
 });

@@ -85,3 +85,39 @@ fn parent_drop_still_disposes_children_recursively() {
     assert_eq!(*runs.borrow(), 1, "child effects died with the parent");
     drop(child); // late child-handle drop must be a safe no-op
 }
+
+#[test]
+fn captured_child_context_can_drop_during_immediate_or_deferred_graph_removal() {
+    for during_stabilize in [false, true] {
+        let runtime = Rc::new(Runtime::new());
+        let root = Context::new(Rc::clone(&runtime));
+        let owner = root.child();
+        let child = root.child();
+        let released = Rc::new(std::cell::Cell::new(0));
+        child.on_dispose({
+            let released = Rc::clone(&released);
+            move || released.set(released.get() + 1)
+        });
+        let _signal = child.signal(0u32);
+        owner.effect(move || {
+            let _ = child.runtime();
+        });
+        let dispose = owner.disposer();
+        if during_stabilize {
+            let (trigger, set_trigger) = root.signal(false);
+            let dispose = std::cell::RefCell::new(Some(dispose));
+            root.effect(move || {
+                if trigger.get() {
+                    if let Some(dispose) = dispose.borrow_mut().take() {
+                        dispose();
+                    }
+                }
+            });
+            set_trigger.set(true);
+            runtime.stabilize();
+        } else {
+            dispose();
+        }
+        assert_eq!(released.get(), 1);
+    }
+}

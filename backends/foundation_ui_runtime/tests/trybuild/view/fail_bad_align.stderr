@@ -1,0 +1,5 @@
+error: html!: `align` needs start, center, end or stretch
+ --> tests/trybuild/view/fail_bad_align.rs:4:38
+  |
+4 |     let _view = html! { <Stack align="baseline"/> };
+  |                                      ^^^^^^^^^^

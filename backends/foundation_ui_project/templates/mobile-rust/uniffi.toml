@@ -1,0 +1,7 @@
+[bindings.kotlin]
+package_name = "{{ APP_ID }}.counter"
+cdylib_name = "counter_app"
+
+[bindings.swift]
+module_name = "CounterKit"
+ffi_module_name = "CounterFFI"

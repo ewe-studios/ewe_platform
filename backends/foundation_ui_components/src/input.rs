@@ -109,6 +109,7 @@ pub fn input(
 }
 
 /// Static config for a [`fieldset`].
+#[derive(Default)]
 pub struct FieldsetConfig {
     /// Disable the whole group (native fieldset disables descendants).
     pub disabled: bool,
@@ -116,30 +117,13 @@ pub struct FieldsetConfig {
     pub class: Option<Cow<'static, str>>,
 }
 
-impl Default for FieldsetConfig {
-    fn default() -> Self {
-        Self {
-            disabled: false,
-            class: None,
-        }
-    }
-}
-
 /// Slots for a [`fieldset`].
+#[derive(Default)]
 pub struct FieldsetSlots {
     /// Legend content.
     pub legend: Option<Slot>,
     /// Body content.
     pub children: Vec<Slot>,
-}
-
-impl Default for FieldsetSlots {
-    fn default() -> Self {
-        Self {
-            legend: None,
-            children: Vec::new(),
-        }
-    }
 }
 
 /// Native `<fieldset>` + `<legend>` with disabled inheritance.

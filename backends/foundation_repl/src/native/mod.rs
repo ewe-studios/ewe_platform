@@ -6,4 +6,6 @@
 #[cfg(feature = "native")]
 pub mod display;
 #[cfg(feature = "native")]
+pub mod form;
+#[cfg(feature = "native")]
 pub mod input;

@@ -25,9 +25,6 @@ use crate::error::{AgentRpcError, AgentRpcResult};
 
 pub use crate::proto::v1::BootstrapPayload;
 
-/// The payload format version this crate writes and reads.
-pub const PAYLOAD_VERSION: u32 = 1;
-
 /// Encode `payload` as unpadded base64url protobuf.
 #[must_use]
 pub fn encode(payload: &BootstrapPayload) -> String {
@@ -36,9 +33,12 @@ pub fn encode(payload: &BootstrapPayload) -> String {
 
 /// Decode a payload produced by [`encode`].
 ///
+/// This is the legacy decoder of feature 01. New code uses
+/// [`crate::core::bootstrap::decode`], which also checks the token.
+///
 /// # Errors
-/// [`AgentRpcError::Codec`] for invalid base64, invalid protobuf, an unknown
-/// version, or a payload missing its addresses, fingerprint or secret.
+/// [`AgentRpcError::Codec`] for invalid base64, invalid protobuf, or a payload
+/// that predates the `url` field.
 pub fn decode(encoded: &str) -> AgentRpcResult<BootstrapPayload> {
     let codec = |what: String| -> foundation_errstacks::ErrorTrace<AgentRpcError> {
         AgentRpcError::Codec(format!("bootstrap payload: {what}")).into()
@@ -50,21 +50,14 @@ pub fn decode(encoded: &str) -> AgentRpcResult<BootstrapPayload> {
     );
     let payload = BootstrapPayload::decode_from_slice(&bytes)
         .map_err(|e| codec(format!("not a payload: {e}")))?;
-    if payload.version != PAYLOAD_VERSION {
-        return Err(codec(format!(
-            "version {} (this client reads {PAYLOAD_VERSION})",
-            payload.version
-        )));
+    if payload.url.is_empty() {
+        return Err(codec(
+            "this payload has no url; payloads made before feature 07 are not accepted, issue a new one"
+                .to_string(),
+        ));
     }
-    for (field, value) in [
-        ("addr", &payload.addr),
-        ("bootstrap_addr", &payload.bootstrap_addr),
-        ("tls_fingerprint_sha256", &payload.tls_fingerprint_sha256),
-        ("token", &payload.token),
-    ] {
-        if value.is_empty() {
-            return Err(codec(format!("missing {field}")));
-        }
+    if payload.token.is_empty() {
+        return Err(codec("missing token".to_string()));
     }
     Ok(payload)
 }

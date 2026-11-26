@@ -1,0 +1,91 @@
+[tasks]
+manifest = "tools/tasks/Cargo.toml"
+namespace = "todo"
+
+[[tasks.commands]]
+name = "prepare-ios"
+description = "Build the two Todo iOS applications"
+[[tasks.commands.arguments]]
+name = "sync-bridge"
+kind = "flag"
+description = "Update the application bridge"
+[[tasks.commands.arguments]]
+name = "output"
+kind = "positional"
+description = "Destination for the generated package"
+
+[[tasks.commands]]
+name = "sync-android"
+description = "Update or check the Todo Android bindings"
+[[tasks.commands.arguments]]
+name = "check"
+kind = "flag"
+description = "Check the generated bindings without writing them"
+
+[[tasks.commands]]
+name = "test-ios"
+description = "Test the Todo iOS applications on a simulator"
+[[tasks.commands.arguments]]
+name = "device"
+kind = "positional"
+description = "Simulator identifier"
+
+[[tasks.commands]]
+name = "test-android"
+description = "Test the Todo Android applications on an emulator"
+[[tasks.commands.arguments]]
+name = "maven"
+description = "Local Maven repository"
+
+[[tasks.commands]]
+name = "test-ios-starter"
+description = "Check the iOS starter screen against the Todo server"
+[[tasks.commands.arguments]]
+name = "local-package"
+description = "Local Swift package"
+
+[[tasks.commands]]
+name = "test-android-starter"
+description = "Check the Android starter screen against the Todo server"
+[[tasks.commands.arguments]]
+name = "maven"
+description = "Local Maven repository"
+
+[[tasks.commands]]
+name = "build-android"
+description = "Build Android framework and application libraries"
+[[tasks.commands.arguments]]
+name = "with-todo"
+kind = "flag"
+description = "Build and stage the Todo library for both example hosts"
+
+[[tasks.commands]]
+name = "seed-starter"
+description = "Add one Todo through the action endpoint"
+[[tasks.commands.arguments]]
+name = "url"
+kind = "positional"
+required = true
+description = "Todo server URL"
+
+[[tasks.commands]]
+name = "peer-android"
+description = "Check an Android peer screen"
+[[tasks.commands.arguments]]
+name = "adb"
+required = true
+description = "Android device bridge executable"
+[[tasks.commands.arguments]]
+name = "device"
+required = true
+description = "Device serial number"
+[[tasks.commands.arguments]]
+name = "phase"
+kind = "positional"
+required = true
+description = "Peer check, such as ready, add, complete, reopen, or delete"
+[[tasks.commands.arguments]]
+name = "labels"
+kind = "positional"
+repeat = true
+description = "Expected labels"

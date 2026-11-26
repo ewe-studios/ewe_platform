@@ -14,6 +14,7 @@ backends/foundation_deployment_platform/src/bootstrap/logger.rs  # BootstrapLogg
 backends/foundation_deployment_platform/src/winrm/mod.rs  # WinRM::clock() getter
 backends/foundation_sshkit/src/pool.rs  # ConnectionPool::clock() getter
 backends/foundation_testbed/src/docker.rs  # DockerControl::clock() getter
+backends/foundation_ui_runtime/src/action/context/host.rs  # The action context forwards the host clock methods from Ctx.
 
 # Host entry points build the first real clock.
 backends/foundation_codegentools/src/cli/normalize.rs  # CLI entry builds the host clock

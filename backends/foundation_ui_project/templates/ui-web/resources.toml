@@ -1,0 +1,7 @@
+[[resource]]
+name = "index.html"
+path = "public/index.html"
+
+[[resource]]
+name = "app/title.txt"
+generated = "title.txt"

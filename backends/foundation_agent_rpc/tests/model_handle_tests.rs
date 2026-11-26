@@ -4,6 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_agent_rpc::{AgentRpcError, ModelHandle, ModelSource};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_context::Ctx;
 use foundation_core::valtron::valtron_test;
 
@@ -46,7 +47,7 @@ fn loads_a_candle_model_once_and_clones_share_it() {
 fn the_loader_runs_exactly_once() {
     let loads = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&loads);
-    let handle = ModelHandle::load_with("counted", move || {
+    let handle = ModelHandle::load_with("counted", ModelKind::Candle, Device::Cpu, move || {
         use foundation_ai::backends::candle::CandleBackend;
         use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
         counter.fetch_add(1, Ordering::SeqCst);
@@ -92,8 +93,20 @@ fn a_missing_model_directory_is_a_model_load_error() {
 #[test]
 fn two_separate_loads_are_different_models() {
     use foundation_ai::agentic::testing::MockModelProvider;
-    let a = ModelHandle::from_router("a", "mock", MockModelProvider::new().into_router());
-    let b = ModelHandle::from_router("b", "mock", MockModelProvider::new().into_router());
+    let a = ModelHandle::from_router(
+        "a",
+        ModelKind::Api,
+        Device::Remote,
+        "mock",
+        MockModelProvider::new().into_router(),
+    );
+    let b = ModelHandle::from_router(
+        "b",
+        ModelKind::Api,
+        Device::Remote,
+        "mock",
+        MockModelProvider::new().into_router(),
+    );
     assert!(!a.same_model(&b));
     assert!(a.clone().same_model(&a));
 }

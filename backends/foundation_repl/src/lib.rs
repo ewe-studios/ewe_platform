@@ -230,3 +230,6 @@ pub use native::display::{native_display, CrosstermHost, NativeDisplay};
 
 #[cfg(feature = "ratzilla")]
 pub use wasm::ratzilla::{ratzilla_display, RatzillaHost};
+
+#[cfg(all(feature = "native", not(target_family = "wasm")))]
+pub use native::form::{run_form, FormKey, FormStep, TerminalForm};

@@ -3,21 +3,22 @@
 //! WHY: launching one binary on a host should start an RPC server that serves
 //! many agent sessions against a model loaded **once** for the whole machine.
 //!
-//! WHAT: the crate root. Module map (spec 83 feature 01):
+//! WHAT: the crate root. Module map (spec 83 features 01 and 03):
 //!
 //! | Module | Role |
 //! |---|---|
 //! | [`auth`] | CA, mTLS config, `BootstrapService` (enrollment), client-cert verification |
 //! | [`bootstrap`] | the base64 / QR bootstrap payload |
 //! | [`client`] | enroll with a signed secret, then a typed client over mutual TLS |
+//! | [`core`] | the transport-agnostic core: models, registry, service, enrollment |
 //! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
 //! | [`proto`] | generated wire types + service stubs (`proto/`) |
 //! | [`secret`] | signing key + signed, expiring bootstrap secrets |
 //! | [`trust`] | trusted-client store (`foundation_db` SQL; SQLite by default) |
 //! | [`server`] | [`AgentRpcServer`] — builder, listener, graceful shutdown |
-//! | [`service`] | [`AgentRpcService`] — the generated `AgentService` over the registry |
-//! | [`instance`] | [`InstanceRegistry`] — named instances over the shared models |
+//! | [`service`] | [`AgentRpcService`] — the legacy generated `AgentService` over the registry |
+//! | [`instance`] | the legacy concrete instance registry over shared models |
 //!
 //! HOW: the RPC edge is async (`foundation_connectrpc` handlers); inference runs
 //! on valtron behind `Send + 'static` boundaries; the model is shared through an
@@ -27,6 +28,7 @@
 pub mod auth;
 pub mod bootstrap;
 pub mod client;
+pub mod core;
 pub mod error;
 pub mod instance;
 pub mod model;
@@ -39,6 +41,7 @@ pub mod server;
 pub mod service;
 pub mod trust;
 
+pub use core::model::{Device, ModelKind};
 pub use error::{AgentRpcError, AgentRpcResult};
 pub use instance::{
     InstanceConfig, InstanceHandle, InstanceMeta, InstanceRegistry, RegistryConfig, TurnGuard,

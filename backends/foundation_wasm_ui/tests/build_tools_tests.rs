@@ -141,9 +141,119 @@ fn cli_flags_parse() {
     };
     assert!(sub.get_flag("release"));
     assert!(sub.get_flag("skip_runtimes"));
-    assert_eq!(sub.get_one::<String>("output").unwrap(), "dist");
     assert_eq!(
-        sub.get_one::<String>("crate_directory").unwrap(),
-        "my-crate"
+        sub.get_one::<std::path::PathBuf>("output").unwrap(),
+        std::path::Path::new("dist")
     );
+    assert_eq!(
+        sub.get_one::<std::path::PathBuf>("crate_directory")
+            .unwrap(),
+        std::path::Path::new("my-crate")
+    );
+}
+
+#[test]
+fn scanned_modes_generate_the_same_rust_sources_that_build_uses() {
+    use foundation_wasm_ui::build_tools::WasmBundleGenerator;
+    use std::fs;
+    let fixture = std::env::temp_dir().join(format!("ewe-bundle-modes-{}", std::process::id()));
+    fs::create_dir(&fixture).unwrap();
+    fs::create_dir(fixture.join("src")).unwrap();
+    fs::write(fixture.join("Cargo.toml"), "[workspace]\n[package]\nname='sample'\nversion='1.0.0'\nedition='2021'\n[lib]\ncrate-type=['cdylib','rlib']\n").unwrap();
+    fs::write(fixture.join("src/lib.rs"), "pub mod screen;\n").unwrap();
+    fs::write(fixture.join("src/screen.rs"), "#[wasm_bin]\npub fn dashboard(){}\n#[wasm_worker]\npub fn background(){}\n#[wasm_service]\npub fn service(){}\n").unwrap();
+    let generator = WasmBundleGenerator::new(&fixture, &fixture.join("out")).unwrap();
+    let plan = generator.generate_sources().unwrap();
+    assert_eq!(plan.entrypoints.len(), 3);
+    for name in ["dashboard", "background", "service"] {
+        let entry = plan.entrypoints.iter().find(|e| e.name == name).unwrap();
+        assert_eq!(entry.qualified_path, format!("sample::screen::{name}"));
+        assert!(entry.source_file.ends_with("screen.rs"));
+        let main = fs::read_to_string(fixture.join(format!("bin/{name}/main.rs"))).unwrap();
+        assert!(main.contains(&format!("use sample::screen::{name};")));
+    }
+    fs::remove_dir_all(fixture).unwrap();
+}
+
+#[cfg(feature = "tasks")]
+#[test]
+fn runtime_task_checks_both_outputs_without_rewriting_them() {
+    let directory = tempfile::tempdir().unwrap();
+    let runtime = directory.path().join("runtime");
+    let output = directory.path().join("output");
+    std::fs::create_dir(&runtime).unwrap();
+    std::fs::write(
+        runtime.join("runtime-entry.js"),
+        "globalThis.booted = true;",
+    )
+    .unwrap();
+    let run = |check: bool| {
+        let mut command = std::process::Command::new(env!("CARGO_BIN_EXE_ewe-wasm-bundle"));
+        command
+            .args(["task", "run", "wasm-bundle:runtime", "--runtime-dir"])
+            .arg(&runtime)
+            .arg("--output")
+            .arg(&output);
+        if check {
+            command.arg("--check");
+        }
+        command.output().unwrap()
+    };
+    assert!(run(false).status.success());
+    assert!(run(true).status.success());
+    for name in ["foundation-ui-runtime.js", "foundation-ui-runtime.min.js"] {
+        let path = output.join(name);
+        let original = std::fs::read(&path).unwrap();
+        std::fs::write(&path, b"changed").unwrap();
+        let result = run(true);
+        assert!(!result.status.success());
+        assert!(String::from_utf8_lossy(&result.stderr).contains(name));
+        assert_eq!(std::fs::read(&path).unwrap(), b"changed");
+        std::fs::write(&path, original).unwrap();
+    }
+    assert!(run(true).status.success());
+}
+
+#[cfg(feature = "build-hook")]
+#[test]
+fn cargo_hook_generates_both_distributions() {
+    const CHILD: &str = "EWE_TEST_BROWSER_BUILD_HOOK";
+    if std::env::var_os(CHILD).is_some() {
+        foundation_wasm_ui::build_hook::generate_from_cargo().unwrap();
+        return;
+    }
+    let output = tempfile::tempdir().unwrap();
+    let result = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "cargo_hook_generates_both_distributions",
+            "--nocapture",
+        ])
+        .env(CHILD, "1")
+        .env("OUT_DIR", output.path())
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}{}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let tracked = String::from_utf8(result.stdout).unwrap();
+    for name in [
+        "runtime-entry.js",
+        "foundation-ui-actions.js",
+        "foundation-ui-vocab.js",
+    ] {
+        assert!(
+            tracked
+                .lines()
+                .any(|line| line.starts_with("cargo:rerun-if-changed=") && line.ends_with(name)),
+            "{tracked}"
+        );
+    }
+    let names = ["foundation-ui-runtime.js", "foundation-ui-runtime.min.js"];
+    let readable = std::fs::read(output.path().join(names[0])).unwrap();
+    let minified = std::fs::read(output.path().join(names[1])).unwrap();
+    assert!(!minified.is_empty() && minified.len() < readable.len());
 }

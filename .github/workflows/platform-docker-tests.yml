@@ -30,10 +30,14 @@ on:
       - 'backends/foundation_macros/**'
       - 'examples/platform_*/**'
       - 'docker-compose.yaml'
-      - 'scripts/ci/vm-host-smoke.sh'
+      - 'backends/foundation_ci/src/execution/vm_host.rs'
       - '.github/workflows/platform-docker-tests.yml'
   schedule:
     - cron: '37 3 * * *'  # 3:37am UTC daily (off-peak)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # ── macOS VM host ───────────────────────────────────────────────────────
@@ -53,7 +57,7 @@ jobs:
         env:
           EWE_SHARED_DIR: ${{ github.workspace }}
           EWE_MACOS_STORAGE: ${{ runner.temp }}/macos-storage
-        run: scripts/ci/vm-host-smoke.sh macos ewe_macos 8006 600
+        run: cargo run --locked --profile uat -p foundation_ci -- vm-host-smoke macos ewe_macos 8006 600
 
       - name: Docker connectivity tests
         # The test file is an integration test, so `--test`, not `--lib`. This
@@ -95,7 +99,7 @@ jobs:
         env:
           EWE_SHARED_DIR: ${{ github.workspace }}
           EWE_WINDOWS_STORAGE: ${{ runner.temp }}/windows-storage
-        run: scripts/ci/vm-host-smoke.sh windows ewe_windows 8008 600
+        run: cargo run --locked --profile uat -p foundation_ci -- vm-host-smoke windows ewe_windows 8008 600
 
       - name: Docker connectivity tests
         run: |

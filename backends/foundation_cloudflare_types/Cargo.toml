@@ -14,11 +14,10 @@ serde_json = { workspace = true }
 # The generated shared types derive `foundation_macros::JsonHash`, whose
 # expansion uses `sha2` for the digest and `base85rs` for the encoding.
 base85rs = "0.1"
-sha2 = "0.10"
+sha2 = { workspace = true }
 
 [dependencies.foundation_macros]
-path = "../foundation_macros"
-version = "0.0.23"
+workspace = true
 
 [lints]
 workspace = true

@@ -15,7 +15,7 @@ run-name: >-
 #   publish     ("Publish to crates.io") publishes every crate whose version is not on crates.io yet and
 #               tags it `<crate>-v<version>`. Ordinary merges change no
 #               versions, so this is a no-op until a release PR is merged.
-#               crates.io limits the publish rate. scripts/ci/publish_with_retry.py
+#               crates.io limits the publish rate. the release retry task
 #               runs release-plz again after each failure: it waits until the
 #               retry time that crates.io gives, or backs off, and stops after
 #               a set number of failures or at a deadline. The next run (or a
@@ -93,7 +93,7 @@ jobs:
     name: Publish to crates.io
     needs: [gate, image]
     # Stays on the GitHub-hosted runner. The job spends hours waiting out the
-    # crates.io rate limit (scripts/ci/publish_with_retry.py), so a paid
+    # crates.io rate limit (the release retry task), so a paid
     # runner would bill for idle time, and faster hardware does not shorten
     # a rate-limit wait.
     runs-on: ubuntu-latest
@@ -126,13 +126,8 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the stable release toolchain
-        # Releases build on stable (ci/release-rust-toolchain); the pinned
-        # nightly in rust-toolchain.toml is for development only.
-        run: |
-          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update
-          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+      - name: Install the task runner with the pinned development toolchain
+        uses: ./ci/actions/install-task-runner
 
       - name: Cache release-plz
         uses: actions/cache@v6
@@ -140,12 +135,8 @@ jobs:
           path: /tmp/release-plz
           key: release-plz-${{ env.RELEASE_PLZ_VERSION }}-${{ runner.os }}
 
-      - name: Install release-plz
-        run: |
-          if [ ! -x /tmp/release-plz/bin/release-plz ]; then
-            cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
-          fi
-          echo /tmp/release-plz/bin >> "$GITHUB_PATH"
+      - name: Select the release toolchain
+        run: foundation-ci toolchain-release --mode publish --version "$RELEASE_PLZ_VERSION" --cache /tmp/release-plz --github-env
 
       - name: Git identity
         run: |
@@ -154,16 +145,39 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Record the ewe_platform tags
+        id: tag_snapshot
         shell: bash
         run: |
+          foundation-ci record-release-tags --state "$RUNNER_TEMP/ewe-tags"
+          foundation-ci record-release-tags --product browser --state "$RUNNER_TEMP/browser-tags"
+
+      - name: Publish in dependency order
+        # WHY: `cargo publish` resolves dev-dependencies when it prepares a
+        # package, and release-plz orders crates by their normal dependencies
+        # only. The dev-dependency cycle between foundation_nativeapis and
+        # foundation_db then stalls the publish (issue #468).
+        # WHAT: publish each crate whose version is not on crates.io yet, in an
+        # order that includes dev-dependencies. The step publishes and tags; the
+        # retry step below fills in what is left. A failure is a warning, so the
+        # retry step still runs.
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          GIT_TOKEN: ${{ github.token }}
+        run: |
           set -euo pipefail
-          git ls-remote --tags origin 'refs/tags/ewe_platform-v*' | awk '{print $2}' | grep -v '\^{}$' | sort > /tmp/ewe-tags-before || true
+          if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
+            echo "::warning::CARGO_REGISTRY_TOKEN is not set; skipping the ordered publish"
+            exit 0
+          fi
+          python3 scripts/ci/publish_crates.py --deadline-seconds 17940 \
+            || echo "::warning::publish_crates.py stopped early; release-plz continues with what is left"
 
       - name: Publish what is not on crates.io yet
         shell: bash
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          GITHUB_TOKEN: ${{ github.token }}
+          GIT_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
@@ -172,29 +186,25 @@ jobs:
           fi
           # Defaults: 5 failures in a row with no new tag, backoff 30 s to
           # 15 min. The deadline (300 min) stays below the job timeout.
-          python3 scripts/ci/publish_with_retry.py \
+          foundation-ci publish-with-retry \
             --deadline 18000 \
             --progress-cmd "git ls-remote --tags origin" \
-            -- release-plz release --git-token "$GITHUB_TOKEN"
+            -- release-plz release
 
       - name: Start the binary release for a new ewe_platform tag
         # Also after a failed publish: the ewe_platform crate may be out.
-        if: always()
+        if: always() && steps.tag_snapshot.outcome == 'success'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          git ls-remote --tags origin 'refs/tags/ewe_platform-v*' | awk '{print $2}' | grep -v '\^{}$' | sort > /tmp/ewe-tags-after || true
-          comm -13 /tmp/ewe-tags-before /tmp/ewe-tags-after | while read -r ref; do
-            tag="${ref#refs/tags/}"
-            echo "starting release.yaml for $tag"
-            curl -fsS -X POST \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/workflows/release.yaml/dispatches" \
-              -d "{\"ref\": \"$tag\"}"
-          done
+          foundation-ci dispatch-binary-releases --state "$RUNNER_TEMP/ewe-tags"
+
+      - name: Start the browser release for each new runtime tag
+        if: success() && steps.tag_snapshot.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: foundation-ci dispatch-binary-releases --product browser --state "$RUNNER_TEMP/browser-tags"
 
   release-pr:
     name: Open or update the release PR
@@ -250,22 +260,8 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the pinned nightly toolchain
-        # This job uses the pinned nightly from rust-toolchain.toml, not
-        # stable. release-plz copies the repository to a temporary directory
-        # and runs `cargo package` at the commit of each crate's last
-        # release. Commits before df86d7e6 (21 October 2026) have a root
-        # Cargo.toml with the nightly-only `codegen-backend` profile key.
-        # Stable cargo refuses to load those manifests ("feature
-        # `codegen-backend` is required"). This job only computes versions
-        # and changelogs and publishes nothing, so nightly is safe here.
-        # CARGO_UNSTABLE_CODEGEN_BACKEND enables the key on nightly for an
-        # old commit. The publish job stays on stable.
-        run: |
-          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update
-          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
-          echo "CARGO_UNSTABLE_CODEGEN_BACKEND=true" >> "$GITHUB_ENV"
+      - name: Install the task runner with the pinned development toolchain
+        uses: ./ci/actions/install-task-runner
 
       - name: Cache release-plz
         uses: actions/cache@v6
@@ -273,16 +269,8 @@ jobs:
           path: /tmp/release-plz
           key: release-plz-${{ env.RELEASE_PLZ_VERSION }}-${{ runner.os }}
 
-      - name: Install release-plz
-        # Build release-plz with stable, so the cache key stays valid when
-        # the pinned nightly changes.
-        run: |
-          if [ ! -x /tmp/release-plz/bin/release-plz ]; then
-            stable=$(tr -d '[:space:]' < ci/release-rust-toolchain)
-            rustup toolchain install "$stable" --profile minimal --no-self-update
-            RUSTUP_TOOLCHAIN="$stable" cargo install release-plz --version "$RELEASE_PLZ_VERSION" --locked --root /tmp/release-plz
-          fi
-          echo /tmp/release-plz/bin >> "$GITHUB_PATH"
+      - name: Select the release toolchain
+        run: foundation-ci toolchain-release --mode pull-request --version "$RELEASE_PLZ_VERSION" --cache /tmp/release-plz --github-env
 
       - name: Git identity
         run: |
@@ -299,5 +287,29 @@ jobs:
 
       - name: Open or update the release PR
         env:
+          GIT_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: release-plz release-pr
+
+      - name: Sync the excluded workspaces, template pins and nested locks
+        # WHY: release-plz bumps the crate versions, but it does not touch the
+        # path requirements outside the root workspace, the template pins or
+        # the nested lockfiles. Those go stale and fail the release PR's own
+        # Plan and template checks (issue #544).
+        # WHAT: set every path requirement and template pin to the tree
+        # version, then regenerate each nested lockfile, and commit the result
+        # onto the branch release-plz just created or updated.
+        env:
           GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
-        run: release-plz release-pr --git-token "$GITHUB_TOKEN"
+        run: |
+          set -euo pipefail
+          # release-plz names its branch `release-plz-<UTC timestamp>`, so the
+          # newest name is the branch it just created or updated. `ls-remote`
+          # reads the remote directly: a remote-tracking ref can be missing.
+          branch=$(git ls-remote --heads origin 'refs/heads/release-plz-*' \
+            | awk '{print $2}' | sed 's|refs/heads/||' | sort | tail -1)
+          if [ -z "$branch" ]; then
+            echo "::error::no release-plz branch on origin; the release PR was not created"
+            exit 1
+          fi
+          echo "syncing $branch"
+          python3 scripts/ci/sync_release_tree.py --branch "$branch"

@@ -81,7 +81,10 @@ pub fn register(command: clap::Command) -> clap::Command {
     )
 }
 
-pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
+pub fn run(
+    args: &clap::ArgMatches,
+    ctx: &foundation_context::Ctx,
+) -> std::result::Result<(), BoxedError> {
     let project_name = args
         .get_one::<String>("project_name")
         .expect("should have project_name address");
@@ -157,7 +160,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     // `DevService::start` installs its own SIGINT/SIGTERM handling and returns
     // once Ctrl+C (or SIGTERM/SIGQUIT) arrives, so shutdown is graceful
     // without a separate ctrlc handler (which it would override anyway).
-    DevService::new(definition).start(foundation_context::Ctx::host())?;
+    DevService::new(definition).start(ctx.clone())?;
 
     Ok(())
 }

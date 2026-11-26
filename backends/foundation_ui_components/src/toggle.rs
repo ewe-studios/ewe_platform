@@ -20,6 +20,7 @@ use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 /// Static config for a toggle. Text fields are `Cow<'static, str>`.
+#[derive(Default)]
 pub struct ToggleConfig {
     /// Identifies this toggle inside a toggle-group.
     pub value: Option<Cow<'static, str>>,
@@ -31,29 +32,11 @@ pub struct ToggleConfig {
     pub aria_label: Option<Cow<'static, str>>,
 }
 
-impl Default for ToggleConfig {
-    fn default() -> Self {
-        Self {
-            value: None,
-            disabled: false,
-            class: None,
-            aria_label: None,
-        }
-    }
-}
-
 /// Slots for the toggle — its content.
+#[derive(Default)]
 pub struct ToggleSlots {
     /// Toggle content (label/icon).
     pub children: Vec<Slot>,
-}
-
-impl Default for ToggleSlots {
-    fn default() -> Self {
-        Self {
-            children: Vec::new(),
-        }
-    }
 }
 
 /// Toggle component — a two-state button.

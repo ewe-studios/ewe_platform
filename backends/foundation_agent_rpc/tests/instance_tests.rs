@@ -12,6 +12,7 @@ use std::sync::Arc;
 use foundation_agent_rpc::{
     AgentRpcError, InstanceConfig, InstanceRegistry, ModelHandle, RegistryConfig,
 };
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_context::Ctx;
 use foundation_core::valtron::valtron_test;
@@ -25,7 +26,13 @@ fn fixture_dir(name: &str) -> std::path::PathBuf {
 fn mock_model(name: &str, reply: &str) -> ModelHandle {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text(reply)]);
-    ModelHandle::from_router(name, name, mock.into_router())
+    ModelHandle::from_router(
+        name,
+        ModelKind::Api,
+        Device::Remote,
+        name,
+        mock.into_router(),
+    )
 }
 
 fn registry() -> InstanceRegistry {
@@ -151,7 +158,7 @@ async fn the_instance_limit_is_configuration() {
 async fn creating_instances_never_reloads_the_model() {
     let loads = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&loads);
-    let model = ModelHandle::load_with("tiny", move || {
+    let model = ModelHandle::load_with("tiny", ModelKind::Candle, Device::Cpu, move || {
         counter.fetch_add(1, Ordering::SeqCst);
         // Load the concrete candle model through the public loader path.
         load_candle("tiny", &fixture_dir("tiny-random-LlamaForCausalLM"))

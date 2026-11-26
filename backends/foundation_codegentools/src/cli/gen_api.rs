@@ -809,19 +809,30 @@ pub fn cargo_fix_args(crate_name: &str, feature_name: &str, profile: Option<&str
 /// If the `cargo fix` process cannot be started.
 #[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
-    match matches.subcommand() {
+    matches.subcommand().map_or_else(
+        || unreachable!("subcommand_required"),
+        |(name, matches)| run_subcommand(name, matches),
+    )
+}
+
+/// Execute a parsed leaf command.
+///
+/// # Errors
+/// Returns an error from the selected command.
+pub fn run_subcommand(name: &str, arguments: &clap::ArgMatches) -> Result<(), BoxedError> {
+    match name {
         // raw spec -> canonical artefact (spec-56 decision 05). Runs before
         // `generate`, which assumes canonical input — so a generation bug and a
         // normalization bug are never the same bug.
-        Some(("normalize", sub_matches)) => crate::cli::normalize::run(sub_matches),
-        Some(("analyze", sub_matches)) => {
-            let provider = sub_matches.get_one::<String>("provider").unwrap();
-            let spec_path = sub_matches.get_one::<String>("spec").unwrap();
-            let min_group_size = sub_matches
+        "normalize" => crate::cli::normalize::run(arguments),
+        "analyze" => {
+            let provider = arguments.get_one::<String>("provider").unwrap();
+            let spec_path = arguments.get_one::<String>("spec").unwrap();
+            let min_group_size = arguments
                 .get_one::<String>("min-group-size")
                 .and_then(|s| s.parse::<usize>().ok())
                 .unwrap_or(10);
-            let max_group_size = sub_matches
+            let max_group_size = arguments
                 .get_one::<String>("max-group-size")
                 .and_then(|s| s.parse::<usize>().ok())
                 .unwrap_or(200);
@@ -865,53 +876,53 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             Ok(())
         }
-        Some(("generate", sub_matches)) => {
-            let provider = sub_matches.get_one::<String>("provider").unwrap();
+        "generate" => {
+            let provider = arguments.get_one::<String>("provider").unwrap();
             // Only an *explicit* -o overrides the provider's own layout. The flag
             // carries a default that equals the monolith root, so treating "has a
             // value" as "the user chose one" would silently generate split-out
             // crates into foundation_deployment.
             let output_override = matches!(
-                sub_matches.value_source("output-dir"),
+                arguments.value_source("output-dir"),
                 Some(clap::parser::ValueSource::CommandLine)
             )
             .then(|| {
-                sub_matches
+                arguments
                     .get_one::<String>("output-dir")
                     .map(PathBuf::from)
                     .expect("clap guarantees a value for a flag it sourced")
             });
-            let dry_run = sub_matches.get_flag("dry-run");
-            let _with_features = sub_matches.get_flag("features");
-            let min_group_size = sub_matches
+            let dry_run = arguments.get_flag("dry-run");
+            let _with_features = arguments.get_flag("features");
+            let min_group_size = arguments
                 .get_one::<String>("min-group-size")
                 .and_then(|s| s.parse::<usize>().ok())
                 .unwrap_or(10);
-            let max_group_size = sub_matches
+            let max_group_size = arguments
                 .get_one::<String>("max-group-size")
                 .and_then(|s| s.parse::<usize>().ok())
                 .unwrap_or(200);
-            let spec_filter = sub_matches.get_one::<String>("spec").cloned();
+            let spec_filter = arguments.get_one::<String>("spec").cloned();
 
             // Selection + pins (spec-56 feature 00). Left unset, `Selection::all()`
             // generates everything — which is what cloudflare/gcp/stripe expect.
             let mut selection = foundation_openapi::Selection::all();
-            if let Some(path) = sub_matches.get_one::<String>("selection-file") {
+            if let Some(path) = arguments.get_one::<String>("selection-file") {
                 selection = crate::codegen::selection_from_file(path)?;
             }
-            if let Some(v) = sub_matches.get_many::<String>("include-path") {
+            if let Some(v) = arguments.get_many::<String>("include-path") {
                 selection = selection.paths(v.cloned().collect::<Vec<_>>());
             }
-            if let Some(v) = sub_matches.get_many::<String>("include-tag") {
+            if let Some(v) = arguments.get_many::<String>("include-tag") {
                 selection = selection.tags(v.cloned().collect::<Vec<_>>());
             }
-            if let Some(v) = sub_matches.get_many::<String>("include-operation") {
+            if let Some(v) = arguments.get_many::<String>("include-operation") {
                 selection = selection.operations(v.cloned().collect::<Vec<_>>());
             }
-            let spec_version = sub_matches.get_one::<String>("spec-version").cloned();
-            let api_version = sub_matches.get_one::<String>("api-version").cloned();
-            let check_only = sub_matches.get_flag("check");
-            let buildrs_overwrite = sub_matches.get_flag("buildrs-overwrite");
+            let spec_version = arguments.get_one::<String>("spec-version").cloned();
+            let api_version = arguments.get_one::<String>("api-version").cloned();
+            let check_only = arguments.get_flag("check");
+            let buildrs_overwrite = arguments.get_flag("buildrs-overwrite");
 
             let options = AnalysisOptions {
                 min_group_size,
@@ -929,7 +940,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     ("tags", "include-tag"),
                     ("operations", "include-operation"),
                 ] {
-                    if let Some(values) = sub_matches.get_many::<String>(id) {
+                    if let Some(values) = arguments.get_many::<String>(id) {
                         let values: Vec<&str> = values.map(String::as_str).collect();
                         println!("Selected {}: {}", label, values.join(", "));
                     }
@@ -1206,7 +1217,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             // Opt-in only (`--fix`): generated code is clean as emitted, and the
             // step compiles every group crate (feature 71 E4).
-            if !sub_matches.get_flag("fix") {
+            if !arguments.get_flag("fix") {
                 return Ok(());
             }
             println!("\n=== Running cargo fix ===");
@@ -1217,7 +1228,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             } else {
                 "foundation_deployment".to_string()
             };
-            let profile = sub_matches.get_one::<String>("profile");
+            let profile = arguments.get_one::<String>("profile");
             let fix_output = std::process::Command::new("cargo")
                 .args(cargo_fix_args(
                     &crate_name,

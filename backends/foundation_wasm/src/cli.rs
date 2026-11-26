@@ -3,7 +3,7 @@
 use std::prelude::rust_2021::*;
 use std::println;
 
-use std::path::Path;
+use std::path::PathBuf;
 
 use clap::{ArgMatches, Command};
 
@@ -22,6 +22,7 @@ pub fn command() -> Command {
                 .arg(
                     clap::Arg::new("crate_directory")
                         .required(true)
+                        .value_parser(clap::value_parser!(PathBuf))
                         .help("Path to the crate directory to scan"),
                 ),
         )
@@ -31,6 +32,7 @@ pub fn command() -> Command {
                 .arg(
                     clap::Arg::new("crate_directory")
                         .required(true)
+                        .value_parser(clap::value_parser!(PathBuf))
                         .help("Path to the crate directory to scan"),
                 ),
         )
@@ -40,18 +42,26 @@ pub fn command() -> Command {
 ///
 /// Returns errors from `WasmBinGenerator` or I/O operations.
 pub fn run(args: &ArgMatches) -> Result<(), BoxedError> {
-    match args.subcommand() {
-        Some(("list", sub_args)) => run_list(sub_args),
-        Some(("generate", sub_args)) => run_generate(sub_args),
+    args.subcommand()
+        .map_or_else(|| Ok(()), |(name, matches)| run_subcommand(name, matches))
+}
+
+/// Execute a parsed leaf command.
+///
+/// # Errors
+/// Returns an error from the selected command.
+pub fn run_subcommand(name: &str, arguments: &ArgMatches) -> Result<(), BoxedError> {
+    match name {
+        "list" => run_list(arguments),
+        "generate" => run_generate(arguments),
         _ => Ok(()),
     }
 }
 
 fn run_list(args: &ArgMatches) -> Result<(), BoxedError> {
-    let crate_dir = args
-        .get_one::<String>("crate_directory")
+    let crate_path = args
+        .get_one::<PathBuf>("crate_directory")
         .expect("crate_directory is required");
-    let crate_path = Path::new(crate_dir);
 
     let generator = WasmBinGenerator::new(crate_path)?;
     let plan = generator.plan()?;
@@ -98,10 +108,9 @@ fn run_list(args: &ArgMatches) -> Result<(), BoxedError> {
 }
 
 fn run_generate(args: &ArgMatches) -> Result<(), BoxedError> {
-    let crate_dir = args
-        .get_one::<String>("crate_directory")
+    let crate_path = args
+        .get_one::<PathBuf>("crate_directory")
         .expect("crate_directory is required");
-    let crate_path = Path::new(crate_dir);
 
     let generator = WasmBinGenerator::new(crate_path)?;
 

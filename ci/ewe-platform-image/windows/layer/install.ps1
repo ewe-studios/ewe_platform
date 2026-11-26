@@ -5,7 +5,7 @@
 #   - the toolchain rust-toolchain.toml pins (+ clippy), set as the default
 #   - the tools in the repository's mise.toml, from its lock
 #   - the submodules at their gitlink SHAs under C:\ewe\submodules, and
-#     PLATFORM_IMAGES_SUBMODULES_LOCK for link-submodules.nu
+#     PLATFORM_IMAGES_SUBMODULES_LOCK for the link-submodules task
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest

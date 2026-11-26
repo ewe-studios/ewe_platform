@@ -14,6 +14,7 @@ use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::proto::v1::agent_service::AgentServiceClient;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest};
 use foundation_agent_rpc::{AgentRpcError, AgentRpcServer, ModelHandle, RunningServer};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{
     ClientOptions, Code, H1Transport, H2Transport, Request, RpcCtx, Transport,
@@ -31,7 +32,13 @@ fn mock_server(chunks: &[&str]) -> RunningServer {
     mock.on_any(chunks.iter().map(|c| mock_text(c)).collect());
     AgentRpcServer::builder()
         .with_ctx(foundation_context::Ctx::host())
-        .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
+        .with_model(ModelHandle::from_router(
+            "mock",
+            ModelKind::Api,
+            Device::Remote,
+            "mock",
+            mock.into_router(),
+        ))
         .insecure_plaintext()
         .build()
         .expect("server builds")
@@ -161,7 +168,7 @@ fn fixture_dir(name: &str) -> std::path::PathBuf {
 async fn two_instances_chat_concurrently_on_one_loaded_model() {
     let loads = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&loads);
-    let model = ModelHandle::load_with("tiny-llama", move || {
+    let model = ModelHandle::load_with("tiny-llama", ModelKind::Candle, Device::Cpu, move || {
         use foundation_ai::backends::candle::CandleBackend;
         use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
         counter.fetch_add(1, Ordering::SeqCst);

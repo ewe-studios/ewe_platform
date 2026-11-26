@@ -14,9 +14,9 @@ keywords = ["database", "storage", "turso", "foundation"]
 # Multi-threaded support is optional - enable with `multi` feature
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["std"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", features = ["crypto-chacha"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", features = ["crypto-chacha"] }
 # `embed_migrations!` and `embed_migration_layout!` are re-exported from here.
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 # The VFS trait that reads a migration directory. `vfs` builds on wasm too.
 foundation_vfs = { workspace = true }
 
@@ -28,12 +28,12 @@ serde_json = "1"
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
 # Security
-zeroize = { version = "1.8", features = ["derive"] }
-hex = "0.4"
+zeroize = { workspace = true, features = ["derive"] }
+hex = { workspace = true }
 base64 = "0.22"
 
 # Hashing
-sha2 = "0.10"
+sha2 = { workspace = true }
 chrono = { workspace = true }
 
 # Utilities
@@ -44,9 +44,9 @@ futures-util = { workspace = true }
 async-trait = "0.1"
 
 # Optional wasm-bindgen dependencies
-wasm-bindgen = { version = "0.2", optional = true }
-js-sys = { version = "0.3", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
 
 # workers-rs interop (the `workers-rs` feature; wasm-only code).
 [target.'cfg(target_family = "wasm")'.dependencies]
@@ -118,6 +118,8 @@ wasm-bindgen-bindings = ["dep:wasm-bindgen", "dep:js-sys", "foundation_core/js-w
 
 # Wasm-bindgen storage trait implementations (calls CF JS APIs directly)
 wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futures"]
+
+browser-storage = ["dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures", "wasm"]
 
 # workers-rs interop: From<worker::D1Database> for foundation_db::D1Database
 workers-rs = ["dep:worker"]

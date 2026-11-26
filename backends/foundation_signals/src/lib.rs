@@ -1,6 +1,6 @@
 //! WHY: Fine-grained reactive state for any Rust target — native, WASM, server
 //! — with no DOM or transport coupling (decision 002). The UI layers build on
-//! top: effects queue `DomOp`s, the `html!` macro reads setter callback ids,
+//! top: effects queue operations, the `html!` macro reads setter callback ids,
 //! but this crate knows nothing about either.
 //!
 //! WHAT: An R3-style reactive graph: height-ordered topological processing
@@ -36,11 +36,15 @@
 
 extern crate alloc;
 
+#[cfg(not(any(feature = "single_threaded", feature = "thread_safe")))]
+compile_error!("Enable the single_threaded or thread_safe feature of foundation_signals.");
+
 mod arena;
 mod callback;
 mod computed;
 mod context;
 mod effect;
+mod height_queue;
 #[cfg(all(feature = "std", not(target_family = "wasm")))]
 pub mod hub;
 mod node;
@@ -61,7 +65,11 @@ pub use hub::{
 };
 pub use node::ThreeState;
 pub use notification::NotificationManager;
-pub use runtime::Runtime;
+pub use runtime::{Runtime, SingleThreadedRuntime};
+#[cfg(all(feature = "thread_safe", not(target_family = "wasm")))]
+pub mod shared;
+#[cfg(all(feature = "thread_safe", not(target_family = "wasm")))]
+pub use shared::MultiThreadedRuntime;
 pub use signal::{SignalGetter, SignalSetter};
 
 // ─── IntoHtml bridge (decision 007 / F01 integration) ─────────────────────────

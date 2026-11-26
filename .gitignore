@@ -221,4 +221,9 @@ backends/foundation_connectrpc/integration/wasm/integrations/
 __pycache__/
 *.pyc
 
+<<<<<<< HEAD
 codex-session-*
+=======
+# Local Swift package binary input
+/.build-inputs/
+>>>>>>> origin/master

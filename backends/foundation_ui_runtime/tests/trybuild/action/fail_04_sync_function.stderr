@@ -1,0 +1,5 @@
+error: #[action] needs an `async fn`
+ --> tests/trybuild/action/fail_04_sync_function.rs:4:1
+  |
+4 | fn submit(_ctx: &Context, _event: Interaction<()>) -> ActionResult {
+  | ^^

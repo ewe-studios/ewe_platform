@@ -29,6 +29,11 @@ impl core::fmt::Display for LockMode {
 /// error variants. String-wrapping variants use `#[from(ignore)]`.
 #[derive(From, Debug)]
 pub enum StorageError {
+    /// A browser storage operation failed. The name identifies the browser error type.
+    #[cfg(all(target_family = "wasm", feature = "browser-storage"))]
+    #[from(ignore)]
+    Browser { name: String, message: String },
+
     /// Backend-specific error.
     #[from(ignore)]
     Backend(String),
@@ -106,6 +111,8 @@ pub enum StorageError {
 impl core::fmt::Display for StorageError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            #[cfg(all(target_family = "wasm", feature = "browser-storage"))]
+            Self::Browser { name, message } => write!(f, "{name}: {message}"),
             Self::Backend(s) => write!(f, "Backend error: {s}"),
             Self::Connection(s) => write!(f, "Connection failed: {s}"),
             Self::NotFound(s) => write!(f, "Key not found: {s}"),

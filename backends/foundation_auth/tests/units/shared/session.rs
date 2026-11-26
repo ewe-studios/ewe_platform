@@ -135,7 +135,7 @@ fn key(id: &str, byte: u8) -> SigningKey {
 
 /// Build the old two-part token `token.tag` with a raw key.
 fn legacy_token(raw_key: &[u8; 32], plain: &str) -> String {
-    use hmac::{Hmac, Mac};
+    use hmac::{Hmac, KeyInit, Mac};
     let mut mac = Hmac::<sha2::Sha256>::new_from_slice(raw_key).expect("hmac");
     mac.update(plain.as_bytes());
     format!(

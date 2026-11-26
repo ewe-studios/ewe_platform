@@ -22,7 +22,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[must_use]
 pub fn command() -> Command {
-    Command::new("wasm-bundle")
+    let command = Command::new("wasm-bundle")
         .about("Build WASM entrypoints with their JS wrappers and bundles (feature 10)")
         .subcommand_required(true)
         .subcommand(
@@ -46,6 +46,7 @@ pub fn command() -> Command {
                     Arg::new("output")
                         .long("output")
                         .default_value("build")
+                        .value_parser(clap::value_parser!(PathBuf))
                         .help("Output directory"),
                 )
                 .arg(
@@ -65,14 +66,35 @@ pub fn command() -> Command {
             Command::new("plan")
                 .about("Dry-run: list what build would generate")
                 .arg(crate_dir_arg())
-                .arg(Arg::new("output").long("output").default_value("build")),
-        )
+                .arg(Arg::new("output").long("output").default_value("build").value_parser(clap::value_parser!(PathBuf))),
+        );
+    #[cfg(feature = "tasks")]
+    let command = command.subcommand(<crate::tasks::RuntimeArgs as clap::Args>::augment_args(
+        Command::new("runtime").about("Generate or verify the classic browser runtime scripts"),
+    ));
+    #[cfg(feature = "tasks")]
+    let command = command.subcommand(
+        Command::new("bindings")
+            .about("Create per-instance browser bindings from wasm-bindgen bundler output")
+            .arg(
+                Arg::new("input")
+                    .required(true)
+                    .value_parser(clap::value_parser!(PathBuf)),
+            )
+            .arg(
+                Arg::new("output")
+                    .required(true)
+                    .value_parser(clap::value_parser!(PathBuf)),
+            ),
+    );
+    command
 }
 
 fn crate_dir_arg() -> Arg {
     Arg::new("crate_directory")
         .long("target")
         .default_value(".")
+        .value_parser(clap::value_parser!(PathBuf))
         .help("Crate directory to scan (the spec's --target <CRATE>)")
 }
 
@@ -81,19 +103,47 @@ fn crate_dir_arg() -> Arg {
 /// # Errors
 /// Propagates generator failures (scan, compile, IO).
 pub fn run(args: &ArgMatches) -> Result<(), BoxedError> {
-    match args.subcommand() {
-        Some(("build", sub)) => run_build(sub),
-        Some(("plan", sub)) => run_plan(sub),
+    args.subcommand().map_or_else(
+        || unreachable!("subcommand_required"),
+        |(name, matches)| run_subcommand(name, matches),
+    )
+}
+
+/// Execute a parsed leaf command.
+///
+/// # Errors
+/// Returns an error from the selected command.
+pub fn run_subcommand(name: &str, arguments: &ArgMatches) -> Result<(), BoxedError> {
+    match name {
+        #[cfg(feature = "tasks")]
+        "runtime" => {
+            <crate::tasks::RuntimeArgs as clap::FromArgMatches>::from_arg_matches(arguments)?
+                .generate()?;
+            Ok(())
+        }
+        #[cfg(feature = "tasks")]
+        "bindings" => {
+            let input = arguments
+                .try_get_one::<PathBuf>("input")?
+                .ok_or("Missing input binding file")?;
+            let output = arguments
+                .try_get_one::<PathBuf>("output")?
+                .ok_or("Missing output binding file")?;
+            crate::binding_build::bindings(input, output)?;
+            Ok(())
+        }
+        "build" => run_build(arguments),
+        "plan" => run_plan(arguments),
         _ => unreachable!("subcommand_required"),
     }
 }
 
 fn generator(args: &ArgMatches) -> Result<WasmBundleGenerator, BoxedError> {
     let crate_dir = args
-        .get_one::<String>("crate_directory")
+        .get_one::<PathBuf>("crate_directory")
         .expect("defaulted");
-    let output: PathBuf = args.get_one::<String>("output").expect("defaulted").into();
-    Ok(WasmBundleGenerator::new(Path::new(crate_dir), &output)?)
+    let output = args.get_one::<PathBuf>("output").expect("defaulted");
+    Ok(WasmBundleGenerator::new(crate_dir, output)?)
 }
 
 fn run_plan(args: &ArgMatches) -> Result<(), BoxedError> {
@@ -135,14 +185,31 @@ fn run_build(args: &ArgMatches) -> Result<(), BoxedError> {
 
 /// The owned runtime assets, resolved relative to the workspace layout.
 fn runtime_assets() -> Vec<(&'static str, &'static Path)> {
-    vec![
-        (
-            "foundation-wasm.js",
-            Path::new("backends/foundation_wasm/runtime/foundation-wasm.js"),
-        ),
-        (
-            "foundation-wasm-ui.js",
-            Path::new("backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js"),
-        ),
-    ]
+    let mut assets = vec![(
+        "foundation-wasm.js",
+        Path::new("backends/foundation_wasm/runtime/foundation-wasm.js"),
+    )];
+    macro_rules! browser_assets {
+        ($($name:literal),+ $(,)?) => {
+            $(assets.push(($name, Path::new(concat!("backends/foundation_wasm_ui/runtimes/", $name))));)+
+        };
+    }
+    browser_assets!(
+        "foundation-wasm-ui.js",
+        "foundation-ui-frames.js",
+        "foundation-ui-live.js",
+        "foundation-ui-recovery.js",
+        "foundation-ui-connections.js",
+        "foundation-ui-vocab.js",
+        "foundation-ui-wire.js",
+        "foundation-ui-behaviours.js",
+        "foundation-ui-bootstrap.js",
+        "foundation-ui-actions.js",
+        "platform-scheme-interceptor.js",
+    );
+    assets.push((
+        "bundle.js",
+        Path::new("backends/foundation_wasm_ui/runtimes/foundation-ui-runtime.min.js"),
+    ));
+    assets
 }

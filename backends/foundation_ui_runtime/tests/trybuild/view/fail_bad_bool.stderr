@@ -1,0 +1,5 @@
+error: html!: `enabled` needs true or false
+ --> tests/trybuild/view/fail_bad_bool.rs:4:39
+  |
+4 |     let _view = html! { <Text enabled="yes"/> };
+  |                                       ^^^^^

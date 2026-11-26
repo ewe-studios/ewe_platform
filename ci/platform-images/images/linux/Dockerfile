@@ -10,7 +10,7 @@
 # Nothing repository-specific: no Rust toolchain, no submodules, no repo paths.
 # A repository adds those in its own layer 2 (see ../../README.md).
 #
-# The build context is staged by `nu scripts/images.nu prepare --layer base`;
+# The build context is staged by `foundation-ci image-prepare --layer base`;
 # it contains this file plus packages/, mise/, bin/ and scripts/.
 #
 # Flavors differ only in BASE_IMAGE: ubuntu:24.04 (default) or an
@@ -84,8 +84,7 @@ RUN curl -fsSL -o /tmp/rustup-init \
  && rm /tmp/rustup-init \
  && rustup --version
 
-# The platform-images nushell scripts (link-submodules.nu, ...), so layer 2
-# Dockerfiles and jobs inside the image can call them.
+# Install the guest provisioning and image smoke test scripts.
 COPY scripts/ /opt/platform-images/scripts/
 
 # Graphics without a GPU: Vulkan uses lavapipe, GL/EGL uses llvmpipe. Override

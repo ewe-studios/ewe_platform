@@ -14,3 +14,5 @@ pub mod server;
 pub mod upgrade;
 #[cfg(unix)]
 pub mod writer;
+
+pub mod routes;

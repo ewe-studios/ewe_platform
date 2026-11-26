@@ -1297,3 +1297,41 @@ The `gguf` test of `foundation_agent_rpc` did not link on `x86_64-pc-windows-msv
 runtime. Never force a runtime in one dependency. Let the target decision
 (`crt-static`) reach every `cc` and CMake build. A crate that hard-codes
 `static_crt` needs a vendored patch, as `patches/gemm-common` already does.
+
+## Feature 03 — the core meets the tree (2026-11-25)
+
+Feature 03 adds `foundation_agent_rpc::core`. The design was complete, but four parts did
+not match the tree. Each one is recorded here.
+
+1. **The client-key enrollment primitives did not exist.** `auth.md` section 9.1 calls
+   `ClientPublicKey`, `TrustedClient::for_key`, `TrustedClients::mark_refresh_nonce` and
+   `client.check_refresh_signature`. Spec 81 shipped none of them, and `TrustedClient`
+   stores no public key. A refresh signature cannot be checked from a fingerprint. This
+   change adds the missing pieces to `foundation_auth`: `ClientPublicKey` in `secret`, a
+   `ClientKeyRecord`, three `TrustStore` methods (`record_client_key`, `client_key`,
+   `consume_refresh_nonce`), the `TrustedClients` wrappers, and the SQL, key-value and
+   memory backends. The timer and the ID source come from `Ctx`.
+2. **`AgentSession::builder` takes a `Ctx`.** The design writes `builder(router)`. The tree
+   needs `builder(router, ctx)`. The provider constructors also take a `Ctx` and a
+   `DynNetClient`, not the `Arc<dyn HttpClient>` in the design. `RemoteCatalog::from_config`
+   takes `DynNetClient` and `&Ctx`.
+3. **`Ctx::host()` installs no `Env`.** A host must call
+   `foundation_core::env::install(&ctx, foundation_core::env::system)`. The registry reads
+   the ID source and the timer from the `Env`, so a test context must install one. Do not
+   fall back to a global clock or ID source.
+4. **The load-once `LocalCatalog` is task T17, not T14.** Feature 03's T14 row names
+   load-once tests, but the design puts `LocalCatalog` in `host::native`. The core tests
+   prove the property that T14 can own: many resolves return one shared `ModelHandle`.
+
+Other facts that cost time:
+
+- `foundation_auth::secret::SignedSecret` does not implement `PartialEq` or `Eq`, so
+  `Bootstrap` and `BootstrapAccess` derive `Debug` and `Clone` only.
+- The legacy feature-01 service (`src/service.rs`, `src/auth.rs`) must compile against the
+  new proto. It reports `RefreshAccess` as `UNIMPLEMENTED` with a typed error. The core
+  `EnrollmentService` serves the client-key flow. Feature 04 replaces the legacy host.
+- `buffa` oneof variants box a message: `Credential::ClientKey(Box<ClientKey>)`. Every
+  generated message has `__buffa_unknown_fields`, so a literal in a test needs
+  `..Default::default()`.
+- The new trait methods made `foundation_auth` a breaking change for a `TrustStore`
+  implementor. The version is 0.0.16, and every workspace consumer names it.

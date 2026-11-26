@@ -16,11 +16,11 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # driver and provider interfaces.
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 # The monotonic instant and wall-clock types the injected clock returns.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false }
 # The platform error trace (`ErrorTrace`), so `SandboxResult` is one trace.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # The `#[service]` macro, re-exported by `foundation_connectrpc`.
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.25" }
 # `Secret` and `extract_bearer_token` (spec 86). The crate never defines a
 # second secret type. `default-features = false` keeps the database, JWT and
 # signed-secret providers out of this crate.

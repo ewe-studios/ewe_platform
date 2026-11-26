@@ -17,16 +17,16 @@ edition = "2024"
 [dependencies]
 # Pinned to the version foundation_testbed pins and CI installs: the
 # wasm-bindgen CLI must be >= the crate it processes.
-wasm-bindgen = "=0.2.126"
+wasm-bindgen = "=0.2.130"
 
 [dev-dependencies]
-wasm-bindgen-test = "=0.3.76"
-wasm-bindgen-futures = "=0.4.76"
-js-sys = "=0.3.103"
+wasm-bindgen-test = "=0.3.80"
+wasm-bindgen-futures = "=0.4.80"
+js-sys = "=0.3.107"
 # The echo case needs fetch on all three hosts: a page, a Deno process and a
 # workerd worker. `WindowOrWorkerGlobalScope::fetch_with_request` covers both
 # global scopes; no test stub is involved.
-web-sys = { version = "=0.3.103", features = [
+web-sys = { version = "=0.3.107", features = [
   "Headers",
   "Request",
   "RequestInit",

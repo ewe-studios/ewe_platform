@@ -1,0 +1,7 @@
+error: html!: multiple root elements — wrap in a parent
+ --> tests/trybuild/view/fail_multiple_roots.rs:4:17
+  |
+4 |     let _view = html! { <div></div><span></span> };
+  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)

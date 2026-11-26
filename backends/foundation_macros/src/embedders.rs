@@ -71,6 +71,7 @@ pub fn embed_directory_on_struct(item: proc_macro::TokenStream) -> proc_macro::T
         &ast.ident,
         file_path.as_str(),
         with_utf16,
+        has_attr(&ast, "always_embed"),
         &compression,
     ))
 }
@@ -630,6 +631,7 @@ fn impl_embeddable_directory(
     struct_name: &syn::Ident,
     target_source: &str,
     with_utf16: bool,
+    always_embed: bool,
     compression: &foundation_nostd::embeddable::DataCompression,
 ) -> TokenStream {
     let cargo_manifest_dir_env =
@@ -715,7 +717,7 @@ fn impl_embeddable_directory(
         0,
     );
 
-    if cfg!(debug_assertions) {
+    if cfg!(debug_assertions) && !always_embed {
         let file_meta_list: Vec<TokenStream> = collected_entries
             .iter()
             .map(|item| match item {
@@ -834,9 +836,10 @@ fn impl_embeddable_directory(
 
 
             impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[
-                    #(#file_meta_list)*
-                ];
+                const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = {
+                    static FILES: &[foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
+                    FILES
+                };
             }
         };
 
@@ -1286,13 +1289,19 @@ fn impl_embeddable_directory(
 
     let file_data_tokens = quote! {
         impl foundation_nostd::embeddable::DirectoryData for #struct_name {
-            const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = &[#(#file_data_list)*];
+            const FILES_DATA: &'static [foundation_nostd::embeddable::StaticDirectoryData] = {
+                static DATA: &[foundation_nostd::embeddable::StaticDirectoryData] = &[#(#file_data_list)*];
+                DATA
+            };
         }
     };
 
     let embeddable_directory_tokens = quote! {
         impl foundation_nostd::embeddable::EmbeddableDirectory for #struct_name {
-            const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
+            const FILES_METADATA: &'static [foundation_nostd::embeddable::FileInfo] = {
+                static FILES: &[foundation_nostd::embeddable::FileInfo] = &[#(#file_meta_list)*];
+                FILES
+            };
         }
     };
 

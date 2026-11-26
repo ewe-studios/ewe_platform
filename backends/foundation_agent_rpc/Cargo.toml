@@ -1,6 +1,6 @@
 [package]
 name = "foundation_agent_rpc"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -27,14 +27,14 @@ foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17" 
 foundation_http = { path = "../foundation_http", version = "0.0.16", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", features = ["ssl", "multi"] }
 # Entropy for bootstrap secrets (the cross-platform substrate).
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # Client auth: the certificate authority, the trust store and the mutual-TLS
 # (mTLS) verifier and configuration builders (spec 87).
 foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
 # Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
 ring = "0.17"
 base64 = "0.22"
-zeroize = "1"
+zeroize = { workspace = true }
 # Bootstrap payload as a QR code (terminal + SVG renderers; no image codecs).
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 derive_more = { version = "2.1", features = ["display", "error"] }
@@ -45,6 +45,8 @@ futures = "0.3"
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
+# Bootstrap payload URL checks (spec 83 feature 03).
+url = { workspace = true }
 
 [build-dependencies]
 # Message types from proto/ (buffa-build, needs `protoc`) + ConnectRPC service
@@ -64,6 +66,8 @@ foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-feature
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 # State directories (CA, signing key, trusted-client DB) per test.
 tempfile = "3"
+# Deterministic Ed25519 client keys for the enrollment tests (spec 81 format).
+ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"] }
 
 [features]
 default = ["candle"]

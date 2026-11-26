@@ -1,6 +1,9 @@
 //! The trusted-client store over `foundation_db`'s SQL storage (SQLite via
 //! Turso): persistence, revocation, last-seen and single-use secrets.
 
+// The `#[valtron_test]` `Send` check descends a deep dependency chain.
+#![recursion_limit = "512"]
+
 use std::sync::Arc;
 
 use foundation_agent_rpc::trust::{

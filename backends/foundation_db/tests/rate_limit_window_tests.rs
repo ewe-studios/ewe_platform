@@ -8,6 +8,9 @@
 //! Every check takes the wall time from an injected `SimulatedClock`, so the
 //! window tests move time explicitly instead of sleeping.
 
+// Turso futures need more steps during trait resolution.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 use std::time::Duration;
 
