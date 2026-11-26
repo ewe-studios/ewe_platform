@@ -19,84 +19,240 @@
 //! };
 //! ```
 //!
-//! No template directives — `@for`/`@if` don't exist; control flow is plain
-//! Rust around (or inside) the macro. `primal:onX={h}` is the only namespaced
-//! attribute; when `h` is a `SignalSetter` its `callback_id` lands in a
-//! `primal:setter` attribute (two-way binding, decision 029 / G21).
+//! `Either` selects one branch each time Rust builds the template.
+//! `Show` and `For` track changes on a live receiver.
+//! `primal:onX={h}` binds a handler. A `SignalSetter` supplies its callback identifier through `primal:setter`.
 //!
 //! HOW: `parser` walks `TokenTree`s into a template tree; `codegen` numbers it
 //! (element ids for `Part`s, runtime indexes for the reactive id block) and
 //! emits typed `foundation_ui_traits::Html` construction plus, reactively, the
-//! `DomOp` build + effects. See each submodule's docs for the details.
+//! operation build + effects. See each submodule's docs for the details.
 
 mod codegen;
 mod parser;
 pub(crate) mod scoped_css;
 
 use proc_macro2::{TokenStream, TokenTree};
+use quote::{quote, ToTokens};
+use syn::{
+    parse::{ParseStream, Parser},
+    Expr, Token,
+};
 
-/// Expand `html!`. See the module docs for both forms.
-pub(crate) fn html(input: TokenStream) -> TokenStream {
-    // Form detection: a template starts with '<'; the reactive form starts
-    // with `ctx_expr, receiver_expr,` (arbitrary expressions up to top-level
-    // commas) before the first '<'.
-    let starts_with_tag = matches!(
-        input.clone().into_iter().next(),
-        Some(TokenTree::Punct(p)) if p.as_char() == '<'
-    );
+use crate::crate_paths::foundation_ui_runtime_path;
+use parser::{ParseError, ParseResult, ParsedAttr, ParsedNode};
 
-    let result = if starts_with_tag {
-        parser::parse_template(input).map(codegen::generate_pure)
-    } else {
-        match split_reactive_header(input) {
-            Ok((ctx, receiver, template)) => parser::parse_template(template)
-                .map(|root| codegen::generate_reactive(&ctx, &receiver, root)),
-            Err(err) => Err(err),
+fn output(result: ParseResult<TokenStream>) -> TokenStream {
+    result.unwrap_or_else(|error| {
+        let message = error.message;
+        let span = error.span;
+        quote::quote_spanned! {span=> compile_error!(#message) }
+    })
+}
+
+fn starts_template(input: &TokenStream) -> bool {
+    matches!(input.clone().into_iter().next(), Some(TokenTree::Punct(p)) if p.as_char() == '<')
+}
+
+/// Read complete Rust expressions before the template, including generic arguments.
+fn fields(input: TokenStream) -> ParseResult<(Vec<Expr>, TokenStream)> {
+    (|input: ParseStream<'_>| {
+        let mut fields = Vec::new();
+        while !input.is_empty() && !input.peek(Token![<]) {
+            fields.push(input.parse::<Expr>()?);
+            if input.is_empty() {
+                break;
+            }
+            input.parse::<Token![,]>()?;
         }
-    };
+        Ok((fields, input.parse::<TokenStream>()?))
+    })
+    .parse2(input)
+    .map_err(|error| ParseError::new(error.span(), error.to_string()))
+}
 
-    match result {
-        Ok(tokens) => tokens,
-        Err(err) => {
-            let message = err.message;
-            let span = err.span;
-            quote::quote_spanned! {span=> compile_error!(#message) }
-        }
+fn bare_none(expr: &Expr) -> bool {
+    matches!(expr, Expr::Path(path) if path.path.is_ident("None"))
+}
+
+fn state_expr(state: Option<&Expr>) -> TokenStream {
+    match state {
+        Some(expr) if !bare_none(expr) => quote!(#expr),
+        _ => quote!(::core::option::Option::None::<&()>),
     }
 }
 
-/// Split `ctx_expr, receiver_expr, <template…>` at the two top-level commas.
-fn split_reactive_header(
-    input: TokenStream,
-) -> Result<(TokenStream, TokenStream, TokenStream), parser::ParseError> {
-    let mut sections: Vec<TokenStream> = vec![TokenStream::new()];
-    let mut iter = input.into_iter();
-    for token in iter.by_ref() {
-        match &token {
-            TokenTree::Punct(p) if p.as_char() == ',' && sections.len() < 3 => {
-                sections.push(TokenStream::new());
-                // After the second comma the rest is the template.
-                if sections.len() == 3 {
-                    break;
-                }
-            }
-            _ => sections
-                .last_mut()
-                .expect("sections never empty")
-                .extend([token]),
+fn needs_view(node: &ParsedNode) -> bool {
+    match node {
+        ParsedNode::Either { left, right, .. } => left.iter().chain(right).any(needs_view),
+        ParsedNode::Element {
+            tag,
+            attrs,
+            children,
+            ..
+        } => {
+            parser::core_tag(tag)
+                || attrs.iter().any(|attr| {
+                    matches!(attr, ParsedAttr::StateMarker(_) | ParsedAttr::Action { .. })
+                })
+                || children.iter().any(needs_view)
+        }
+        _ => false,
+    }
+}
+
+fn state_marker(node: &ParsedNode) -> Option<proc_macro2::Span> {
+    if let ParsedNode::Either { left, right, .. } = node {
+        return left.iter().chain(right).find_map(state_marker);
+    }
+    let ParsedNode::Element {
+        attrs, children, ..
+    } = node
+    else {
+        return None;
+    };
+    attrs
+        .iter()
+        .find_map(|attr| match attr {
+            ParsedAttr::StateMarker(span) => Some(*span),
+            _ => None,
+        })
+        .or_else(|| children.iter().find_map(state_marker))
+}
+
+pub(crate) fn html(input: TokenStream, action_view: bool) -> TokenStream {
+    output(template(input, action_view))
+}
+
+fn template(input: TokenStream, action_view: bool) -> ParseResult<TokenStream> {
+    if input.is_empty() || starts_template(&input) {
+        let tree = parser::parse_template(input)?;
+        reject_unbound_marker(&tree)?;
+        return Ok(codegen::generate_pure(tree, action_view));
+    }
+    let (fields, input) = fields(input)?;
+    if let [Expr::Assign(binding)] = fields.as_slice() {
+        let state = &binding.right;
+        if action_view
+            && matches!(binding.left.as_ref(), Expr::Path(key) if key.path.is_ident("state"))
+            && !input.is_empty()
+        {
+            let html = codegen::generate_pure(parser::parse_template(input)?, true);
+            return Ok(quote! { (#html, #state) });
         }
     }
-    let template: TokenStream = iter.collect();
-
-    if sections.len() != 3 || sections[0].is_empty() || sections[1].is_empty() {
-        return Err(parser::ParseError {
-            span: proc_macro2::Span::call_site(),
-            message: String::from(
-                "html!: expected `html! { <template…> }` or `html! { ctx, receiver, <template…> }`",
-            ),
-        });
+    let [ctx, out, state @ ..] = fields.as_slice() else {
+        return Err(form_error());
+    };
+    if state.len() > 1 || input.is_empty() {
+        return Err(form_error());
     }
-    let ctx = sections.remove(0);
-    let receiver = sections.remove(0);
-    Ok((ctx, receiver, template))
+    let tree = parser::parse_template(input)?;
+    if state.first().is_none_or(bare_none) {
+        reject_unbound_marker(&tree)?;
+    }
+    let legacy_receiver = !action_view
+        && (proc_macro_crate::crate_name("foundation_wasm_ui").is_ok()
+            || proc_macro_crate::crate_name("foundation_ui_runtime").is_err());
+    if legacy_receiver && !needs_view(&tree) && state.first().is_none_or(bare_none) {
+        return Ok(codegen::generate_reactive(
+            &ctx.to_token_stream(),
+            &out.to_token_stream(),
+            tree,
+        ));
+    }
+    let runtime = foundation_ui_runtime_path();
+    let html = codegen::generate_pure(tree, true);
+    let state = state_expr(state.first());
+    Ok(quote! { #runtime::view::render(&(#ctx), &(#out), #html, #state)? })
+}
+
+fn reject_unbound_marker(tree: &ParsedNode) -> ParseResult<()> {
+    if let Some(span) = state_marker(tree) {
+        Err(ParseError::new(
+            span,
+            "html!: primal::state requires component state",
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+fn form_error() -> ParseError {
+    ParseError::new(
+        proc_macro2::Span::call_site(),
+        "html!: expected `ctx, receiver, <template>` or `ctx, receiver, Some(&state), <template>`",
+    )
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum Placement {
+    Append,
+    Before,
+    After,
+    Swap,
+    Remove,
+}
+
+pub(crate) fn targeted(input: TokenStream, kind: Placement) -> TokenStream {
+    output(placement(input, kind))
+}
+
+fn placement(input: TokenStream, kind: Placement) -> ParseResult<TokenStream> {
+    let (fields, template) = fields(input)?;
+    let runtime = foundation_ui_runtime_path();
+    let receiving: Expr = syn::parse_quote!(#runtime::view::Target::Receiving);
+    let (target, child, ctx, out, state) = match (&kind, fields.as_slice()) {
+        (Placement::Before | Placement::After, [target, anchor, ctx, out, rest @ ..])
+            if rest.len() <= 1 =>
+        {
+            let child = if bare_none(anchor) {
+                quote!(None)
+            } else {
+                quote!((#anchor).map(#runtime::view::Target::from))
+            };
+            (target, child, ctx, out, rest.first())
+        }
+        (Placement::Append, [ctx, out]) => (&receiving, quote!(None), ctx, out, None),
+        (Placement::Append, [ctx, out, state])
+            if bare_none(state)
+                || matches!(state, Expr::Call(call) if matches!(call.func.as_ref(), Expr::Path(path) if path.path.is_ident("Some"))) =>
+        {
+            (&receiving, quote!(None), ctx, out, Some(state))
+        }
+        (Placement::Remove, [target, ctx, out]) if template.is_empty() => {
+            (target, quote!(None), ctx, out, None)
+        }
+        (Placement::Append | Placement::Swap, [target, ctx, out, rest @ ..]) if rest.len() <= 1 => {
+            (target, quote!(None), ctx, out, rest.first())
+        }
+        _ => {
+            return Err(ParseError::new(
+                proc_macro2::Span::call_site(),
+                "invalid arguments for targeted html macro",
+            ))
+        }
+    };
+    let tree = if matches!(kind, Placement::Remove) {
+        quote!(None)
+    } else {
+        let tree = parser::parse_template(template)?;
+        if state.is_none_or(bare_none) {
+            reject_unbound_marker(&tree)?;
+        }
+        let tree = codegen::generate_pure(tree, true);
+        quote!(Some(#tree))
+    };
+    let variant = match kind {
+        Placement::Append => quote!(Append),
+        Placement::Before => quote!(Before),
+        Placement::After => quote!(After),
+        Placement::Swap => quote!(Swap),
+        Placement::Remove => quote!(Remove),
+    };
+    let state = state_expr(state);
+    Ok(
+        quote!(#runtime::view::place(&(#ctx), &(#out), #runtime::view::PlacementKind::#variant,
+        #runtime::view::Target::from(#target), #child, #tree, #state)),
+    )
 }

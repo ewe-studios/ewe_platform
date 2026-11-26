@@ -171,3 +171,16 @@ fn blocking_wrapper_matches_decode() {
 
     assert_eq!(frame.payload, b"Hello");
 }
+
+#[test]
+fn configured_limit_checks_the_declared_length_before_the_payload() {
+    for header in [
+        vec![0x82, 9],
+        vec![0x82, 126, 1, 0],
+        vec![0x82, 127, 0, 0, 0, 0, 0, 1, 0, 0],
+    ] {
+        let mut decoder = WebSocketFrameDecoder::with_limit(8);
+        assert!(decoder.step(&mut header.as_slice()).is_err());
+        assert_eq!(decoder.payload_got(), 0);
+    }
+}

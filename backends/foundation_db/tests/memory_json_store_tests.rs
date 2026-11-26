@@ -2,6 +2,9 @@
 //! traits. Its futures are ready at once, so the tests drive them with
 //! `futures_lite`'s `block_on`.
 
+// Turso futures need more steps during trait resolution.
+#![recursion_limit = "256"]
+
 use std::time::Duration;
 
 use std::sync::Arc;

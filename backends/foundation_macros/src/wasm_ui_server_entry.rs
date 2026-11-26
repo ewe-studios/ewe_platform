@@ -14,7 +14,7 @@
 //!
 //! Attribute args (all optional): `port = N`, `host = "..."`, `headless = bool`,
 //! `headful = bool`, `html = "..."`, `file = "..."`, `static_dir = "..."`,
-//! `static_mount = "..."`, `encoding = "json|columnar"`, `headers = [(..)]`,
+//! `static_mount = "..."`, `encoding = "frame"`, `headers = [(..)]`,
 //! `window_size = (800, 800)`, `https = true`.
 
 use proc_macro2::TokenStream;
@@ -62,7 +62,7 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                 "https" => field_inits.push(quote! { https: #value }),
                 "encoding" => field_inits.push(quote! {
                     encoding: ::core::str::FromStr::from_str(#value)
-                        .expect("wasm_ui_server: invalid encoding (json|columnar)")
+                        .expect("wasm_ui_server: invalid encoding (frame)")
                 }),
                 "headers" => field_inits.push(quote! {
                     headers: ::core::iter::IntoIterator::into_iter(#value)

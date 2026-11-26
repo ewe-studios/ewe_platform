@@ -1,20 +1,20 @@
-"""Tests for scripts/ci/check_executor_wake.py (run: python3 -m unittest discover -s scripts/ci/tests)."""
+"""Tests for the executor-wake Rust task (run: python3 -m unittest discover -s scripts/ci/tests)."""
 
 import subprocess
-import sys
+from task_command import binary
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "check_executor_wake.py"
+TASK = "check-executor-wake"
 REPO = Path(__file__).resolve().parents[3]
 
 
 def run(root: Path, allowlist: Path | None = None) -> subprocess.CompletedProcess:
-    cmd = [sys.executable, str(SCRIPT), "--root", str(root)]
+    cmd = [binary(), TASK, "--root", str(root)]
     if allowlist is not None:
         cmd += ["--allowlist", str(allowlist)]
-    return subprocess.run(cmd, capture_output=True, text=True)
+    return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 
 def write(root: Path, rel: str, text: str) -> None:
@@ -26,7 +26,7 @@ def write(root: Path, rel: str, text: str) -> None:
 class CheckExecutorWake(unittest.TestCase):
     def test_the_repository_is_clean(self):
         result = run(REPO)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_a_planted_outside_call_fails(self):
         with tempfile.TemporaryDirectory() as tmp:

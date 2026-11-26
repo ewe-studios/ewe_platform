@@ -13,6 +13,7 @@ use std::time::Duration;
 use foundation_agent_rpc::proto::v1::agent_service::AgentServiceClient;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest, HealthRequest};
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_connectrpc::{ClientOptions, Code, H1Transport, Request, RpcCtx, Transport};
 use foundation_core::valtron::valtron_test;
@@ -21,7 +22,13 @@ use foundation_netio::http::NativeHttpClient;
 fn mock_model(reply: &str) -> ModelHandle {
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text(reply)]);
-    ModelHandle::from_router("mock", "mock", mock.into_router())
+    ModelHandle::from_router(
+        "mock",
+        ModelKind::Api,
+        Device::Remote,
+        "mock",
+        mock.into_router(),
+    )
 }
 
 fn client(base_url: &str) -> AgentServiceClient {

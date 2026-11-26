@@ -177,7 +177,7 @@ fn a_width_of_zero_still_produces_a_renderable_row() {
     let view = view("abc", 3);
     let layout = layout_input(&view, 0);
 
-    assert!(!layout.rows.is_empty());
+    assert!(layout.cursor_row < layout.rows.len());
     assert!(layout.cursor_col <= 1);
 }
 

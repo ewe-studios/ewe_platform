@@ -1,0 +1,15 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace = 'org.eweplatform.toolchain'
+    compileSdk = $ANDROID_COMPILE_SDK
+    buildToolsVersion = '$ANDROID_BUILD_TOOLS'
+
+    defaultConfig {
+        applicationId = 'org.eweplatform.toolchain'
+        minSdk = 26
+        targetSdk = $ANDROID_COMPILE_SDK
+    }
+}

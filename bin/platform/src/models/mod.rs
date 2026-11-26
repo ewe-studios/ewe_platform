@@ -20,7 +20,7 @@ pub fn register(command: clap::Command) -> clap::Command {
     )
 }
 
-pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
+pub fn run(args: &clap::ArgMatches, ctx: &foundation_context::Ctx) -> Result<(), BoxedError> {
     let logging_level = if args.get_flag("debug") {
         Level::DEBUG
     } else {
@@ -32,8 +32,7 @@ pub fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let ctx = foundation_context::Ctx::try_host()?;
-    let result = foundation_ai::models::generator::generate_model_descriptors(&ctx)?;
+    let result = foundation_ai::models::generator::generate_model_descriptors(ctx)?;
 
     let providers_dir = PathBuf::from("backends/foundation_ai/src/models/providers");
     std::fs::create_dir_all(&providers_dir)?;

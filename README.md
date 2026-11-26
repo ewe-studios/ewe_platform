@@ -2,6 +2,11 @@
 
 A series of crates providing different functionality and binaries for projects.
 
+## Native mobile libraries
+
+Applications use the [Swift package](mobile/ios/README.md) or [Kotlin library](mobile/android/README.md) to render controls and deliver events to Rust.
+Each platform has a [Todo Server and Todo On Device example](examples/ui_todo/README.md#native-screens).
+Todo On Device runs its first render and every action inside the app process.
 
 ## License
 

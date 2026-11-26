@@ -535,14 +535,17 @@ impl RawStream {
         if let Some(source) = self.read_wake.get() {
             return Some(source.clone());
         }
-        let source = self.build_read_wake_source()?;
+        let source = self.open_read_wake_source()?;
         // `RawStream` is moved between threads but never shared as `&`, so no
         // two calls build a source at the same time.
         Some(self.read_wake.get_or_init(|| source).clone())
     }
 
-    /// Build the read wake source for this transport, or `None` when it has no
-    /// readiness wait. Called once by [`Self::read_wake_source`].
+    /// Opens a readiness registration for one body reader.
+    ///
+    /// Accepting servers release this registration before the next keep-alive request.
+    /// A transport without socket readiness returns `None`.
+    #[must_use]
     // Without a TLS feature `Plain` is the only variant, so the pattern below is
     // irrefutable. Keep one code path for every feature set.
     #[cfg_attr(
@@ -556,7 +559,7 @@ impl RawStream {
             reason = "Plain is the only variant without TLS"
         )
     )]
-    fn build_read_wake_source(&self) -> Option<ReadWakeSource> {
+    pub fn open_read_wake_source(&self) -> Option<ReadWakeSource> {
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.
         if let RawStreamInner::Plain(inner, _) = &self.inner {
             if let Connection::Overlay(o) = inner.get_core_ref() {

@@ -1,0 +1,5 @@
+error: html!: `axis` needs vertical or horizontal
+ --> tests/trybuild/view/fail_bad_axis.rs:4:37
+  |
+4 |     let _view = html! { <Stack axis="row"/> };
+  |                                     ^^^^^

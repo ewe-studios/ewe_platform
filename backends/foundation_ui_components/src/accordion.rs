@@ -26,6 +26,7 @@ use crate::machinery::measure::panel_size_behavior;
 use crate::machinery::transition::transition_behavior;
 
 /// Static config for an accordion.
+#[derive(Default)]
 pub struct AccordionConfig {
     /// Allow multiple items open at once (default: single).
     pub multiple: bool,
@@ -33,16 +34,6 @@ pub struct AccordionConfig {
     pub disabled: bool,
     /// Class override for the root (default: `"accordion"`).
     pub class: Option<Cow<'static, str>>,
-}
-
-impl Default for AccordionConfig {
-    fn default() -> Self {
-        Self {
-            multiple: false,
-            disabled: false,
-            class: None,
-        }
-    }
 }
 
 /// One accordion item.
@@ -157,3 +148,9 @@ pub fn accordion(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Measure,
+    crate::behaviour::Behaviour::Transition,
+];

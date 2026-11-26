@@ -1,0 +1,1 @@
+\b(?:SystemTime|Utc|Local|OffsetDateTime|Instant)::now\b

@@ -10,8 +10,8 @@
 //!
 //! HOW: Each child slot is rendered, then tagged `data-composite-item` on its
 //! root (so callers don't wire ARIA), and the container carries `data-composite`
-//! + `data-orientation`/`data-loop`. Tab reaches the toolbar once; arrows rove,
-//! Home/End jump.
+//! with `data-orientation` and `data-loop`. Arrow keys move focus.
+//! Home and End move focus to the first and last items.
 
 use alloc::borrow::Cow;
 use alloc::vec::Vec;
@@ -87,3 +87,6 @@ pub fn toolbar(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[crate::behaviour::Behaviour::Composite];

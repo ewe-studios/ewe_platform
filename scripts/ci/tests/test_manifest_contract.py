@@ -12,7 +12,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
 MODULE = REPO / "scripts" / "ci" / "manifest_contract.py"
-CI = REPO / "scripts" / "ci" / "ci.py"
+CI = Path(__file__).with_name("planner_reference.py")
 SPEC = REPO / "specifications" / "completed" / "78-manifest-contract"
 
 

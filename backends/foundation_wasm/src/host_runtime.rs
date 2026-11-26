@@ -1205,6 +1205,10 @@ pub mod abi {
 
         /// [`batch`] sends a [`CompletedInstructions`] batch over to the host runtime
         /// to be applied and expects no responses/returned values to be provided.
+        #[expect(
+            clippy::needless_pass_by_value,
+            reason = "Submitting the batch transfers its allocation handles to the host."
+        )]
         pub fn batch(instruction: CompletedInstructions) {
             let operations_memory = internal_api::get_memory(instruction.ops_id);
             let text_memory = internal_api::get_memory(instruction.text_id);
@@ -1231,6 +1235,10 @@ pub mod abi {
         ///
         /// We ensure to keep the order of instructions to returned values through
         /// group returns.
+        #[expect(
+            clippy::needless_pass_by_value,
+            reason = "Submitting the batch transfers its allocation handles to the host."
+        )]
         pub fn batch_response(
             instruction: CompletedInstructions,
         ) -> BinaryReaderResult<Vec<Returns>> {
@@ -1266,7 +1274,7 @@ pub mod abi {
             let memory = memory_result.unwrap();
 
             let result = match memory.into_with(|item| {
-                let group: GroupReturnTypeHints = Default::default();
+                let group = GroupReturnTypeHints;
                 group.from_binary(item.as_ref())
             }) {
                 Some(value) => value,
@@ -1766,6 +1774,7 @@ pub mod abi {
             returns: ReturnTypeHints,
         ) {
             let return_hints_bytes = returns.to_binary();
+            drop(returns);
             let return_raw = RawParts::from_vec(return_hints_bytes);
 
             let param_bytes = params.to_binary();
@@ -1809,6 +1818,7 @@ pub mod abi {
         /// which match the return hints [`ReturnTypeHints`].
         pub fn invoke(handler: u64, params: &[Params], returns: ReturnTypeHints) -> u64 {
             let return_hints_bytes = returns.to_binary();
+            drop(returns);
             let return_raw = RawParts::from_vec(return_hints_bytes);
 
             let param_bytes = params.to_binary();
@@ -1836,39 +1846,22 @@ pub mod abi {
         ) -> WasmRequestResult<Vec<ReturnValues>> {
             let value = abi::web::invoke(handler, params, returns.clone());
             let memory_id = MemoryId::from_u64(value);
-
             let memory = internal_api::get_memory(memory_id);
-            let result_container =
-                memory.into_with(|mem| returns.clone().from_binary(mem.as_ref()));
+            let expect_one = matches!(returns, ReturnTypeHints::One(_));
+            let missing_hint = matches!(returns, ReturnTypeHints::None);
+            let replies = memory
+                .into_with(|mem| returns.from_binary(mem.as_ref()))
+                .ok_or(MemoryAllocationError::FailedAllocationReading(memory_id))?
+                .map_err(MemoryReaderError::NotValidReplyBinary)?;
 
-            if result_container.is_none() {
-                return Err(MemoryAllocationError::FailedAllocationReading(memory_id).into());
+            assert!(!missing_hint, "invoke_for_replies requires a return hint");
+            if expect_one && replies.len() != 1 {
+                return Err(MemoryReaderError::ReturnValueError(
+                    crate::ReturnValueError::ExpectedOne(replies),
+                )
+                .into());
             }
-
-            let result = result_container.unwrap();
-            if let Err(err) = result {
-                return Err(MemoryReaderError::NotValidReplyBinary(err).into());
-            }
-
-            let replies = result.unwrap();
-
-            match &returns {
-                ReturnTypeHints::One(_) => {
-                    if replies.len() != 1 {
-                        return Err(MemoryReaderError::ReturnValueError(
-                            crate::ReturnValueError::ExpectedOne(replies),
-                        )
-                        .into());
-                    }
-
-                    Ok(replies)
-                }
-                ReturnTypeHints::List(_) => Ok(replies),
-                ReturnTypeHints::Multi(_) => Ok(replies),
-                ReturnTypeHints::None => unreachable!(
-                    "a reply is always expected you cant use this in situation where None is given"
-                ),
-            }
+            Ok(replies)
         }
 
         // --- Browser / WASM ABI

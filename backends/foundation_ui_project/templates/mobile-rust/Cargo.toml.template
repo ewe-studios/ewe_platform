@@ -1,0 +1,31 @@
+[package]
+name = "counter_app"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[dependencies]
+{% if COMPOSED %}app_identity = { path = "../application" }
+{% endif %}
+foundation_errstacks = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
+foundation_ui_wire = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
+foundation_context = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
+foundation_ui_native = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
+foundation_ui_runtime = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}" }
+uniffi = { version = "=0.32.2", default-features = false }
+
+[features]
+bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["bindgen"]
+
+{% if COMPOSED == false %}[build-dependencies]
+foundation_resources = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}", default-features = false, features = ["build"] }
+
+{% endif %}[workspace]

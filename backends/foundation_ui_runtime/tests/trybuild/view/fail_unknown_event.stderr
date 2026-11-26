@@ -1,0 +1,5 @@
+error: html!: unknown event `hold`; use tap, change, submit, focus or blur
+ --> tests/trybuild/view/fail_unknown_event.rs:4:32
+  |
+4 |     let _view = html! { <Stack on:hold="host:confirm" /> };
+  |                                ^^

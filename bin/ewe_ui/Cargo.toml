@@ -1,0 +1,22 @@
+[package]
+name = "ewe_ui"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Create and manage Ewe user interface applications"
+
+[dependencies]
+clap.workspace = true
+foundation_tasks.workspace = true
+foundation_ui_project.workspace = true
+foundation_ui_native = { path="../../backends/foundation_ui_native", version="0.1.1", features=["tasks"] }
+foundation_repl = { path = "../../backends/foundation_repl", version = "0.2.5", features = ["native"] }
+foundation_wasm_ui = { path="../../backends/foundation_wasm_ui", version="0.1.13", features=["tasks"] }
+blocking.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

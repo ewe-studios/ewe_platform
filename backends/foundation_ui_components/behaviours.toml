@@ -1,0 +1,109 @@
+# Platform forms of the component behaviours.
+
+[behaviours.composite]
+web = "machinery/composite.rs"
+custom = "composite"
+
+[behaviours.dialog]
+web = "machinery/dialog.rs"
+id = 1
+shared = "DIALOG"
+ios = "DialogBinding"
+android = "DialogBinding"
+
+[behaviours.dismiss]
+web = "machinery/dismiss.rs"
+id = 2
+shared = "DISMISS"
+ios = "DismissBinding"
+android = "DismissBinding"
+
+[behaviours.focus_trap]
+web = "machinery/focus_trap.rs"
+custom = "focus_trap"
+
+[behaviours.gestures]
+web = "machinery/gestures.rs"
+custom = "gestures"
+
+[behaviours.hover]
+web = "machinery/hover.rs"
+custom = "hover"
+
+[behaviours.listbox]
+web = "machinery/listbox.rs"
+custom = "listbox"
+
+[behaviours.measure]
+web = "machinery/measure.rs"
+custom = "measure"
+
+[behaviours.position]
+web = "machinery/position.rs"
+custom = "position"
+
+[behaviours.scroll_lock]
+web = "machinery/scroll_lock.rs"
+id = 3
+shared = "SCROLL_LOCK"
+ios = "ScrollLockBinding"
+android = "ScrollLockBinding"
+
+[behaviours.transition]
+web = "machinery/transition.rs"
+id = 4
+shared = "TRANSITION"
+ios = "TransitionBinding"
+android = "TransitionBinding"
+
+[components.accordion]
+behaviours = ["measure", "transition"]
+native = false
+
+[components.collapsible]
+behaviours = ["measure", "transition"]
+native = false
+
+[components.dialog]
+behaviours = ["dialog", "gestures", "transition"]
+native = false
+
+[components.menu]
+behaviours = ["composite", "dismiss", "hover", "listbox", "position", "scroll_lock", "transition"]
+native = false
+
+[components.nav_menu]
+behaviours = ["composite", "position", "transition"]
+native = false
+
+[components.pickers]
+behaviours = ["dismiss", "listbox", "position", "scroll_lock", "transition"]
+native = false
+
+[components.popover]
+behaviours = ["dismiss", "focus_trap", "hover", "position", "scroll_lock", "transition"]
+native = false
+
+[components.radio]
+behaviours = ["composite"]
+native = false
+
+[components.slider]
+behaviours = ["gestures"]
+native = false
+
+[components.tabs]
+behaviours = ["composite", "measure", "transition"]
+native = false
+
+[components.toast]
+behaviours = ["gestures"]
+native = false
+
+[components.toggle_group]
+behaviours = ["composite"]
+native = false
+
+[components.toolbar]
+behaviours = ["composite"]
+native = false

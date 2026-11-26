@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::PathBuf;
 
 use clap::{ArgMatches, Command};
 
@@ -15,6 +15,7 @@ pub fn command() -> Command {
             clap::Arg::new("crate")
                 .long("crate")
                 .required(true)
+                .value_parser(clap::value_parser!(PathBuf))
                 .help("Path to the crate directory to scan"),
         )
         .arg(
@@ -36,17 +37,15 @@ pub fn command() -> Command {
 /// Returns errors from `SchemaGenerator` or I/O operations.
 #[allow(clippy::missing_panics_doc)]
 pub fn run(args: &ArgMatches) -> Result<(), BoxedError> {
-    let crate_dir = args
-        .get_one::<String>("crate")
+    let crate_path = args
+        .get_one::<PathBuf>("crate")
         .expect("--crate is required");
-    let crate_path = Path::new(crate_dir);
 
     let emit_json = args.get_flag("jsonschema");
     let emit_arrow = args.get_flag("arrow-schema");
 
     if !emit_json && !emit_arrow {
-        eprintln!("Error: specify at least one of --jsonschema or --arrow-schema");
-        std::process::exit(1);
+        return Err("Specify at least one of --jsonschema or --arrow-schema".into());
     }
 
     let generator = SchemaGenerator::new(crate_path)?;

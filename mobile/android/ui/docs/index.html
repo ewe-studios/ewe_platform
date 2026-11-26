@@ -1,0 +1,5 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Ewe UI Compose renderer</title><h1>Ewe UI Compose renderer</h1>
+<p>Call <code>EweScreen(store, bridge)</code> in your Compose content. It reads the root record and observes the state of each displayed child.</p>
+<p>Supply <code>imageLoader</code> for images and <code>webView</code> for a mounted web surface. Applications can also supply color and font token resolvers.</p>
+<p><code>BehaviourRegistry.standard</code> supplies dialog, dismiss, transition and scroll lock bindings. Register application behaviours by name. Pass the same registry to the screen and use its <code>supports</code> method when building the store.</p>
+<p><code>OkHttpChannelFactory</code> reads HTTP frames from a size-prefixed stream, receives socket binary messages and decodes base64 event-stream messages. The maximum frame size defaults to four mebibytes.</p>

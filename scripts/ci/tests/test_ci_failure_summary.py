@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest import mock
 
 REPO = Path(__file__).resolve().parents[3]
-CI = REPO / "scripts" / "ci" / "ci.py"
+CI = Path(__file__).with_name("planner_reference.py")
 
 FAKE_TEST_RUN = """
 print("running 2 tests")

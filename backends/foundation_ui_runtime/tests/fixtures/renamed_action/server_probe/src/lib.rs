@@ -1,0 +1,1 @@
+pub const MESSAGE: &[u8] = b"EWE_ACTION_ARTIFACT_SERVER";

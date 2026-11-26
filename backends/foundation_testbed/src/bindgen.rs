@@ -15,4 +15,4 @@ pub use wasm_bindgen;
 pub use wasm_bindgen_futures;
 pub use web_sys;
 
-pub const WASM_BINDGEN_VERSION: &str = "0.2.126";
+pub const WASM_BINDGEN_VERSION: &str = "0.2.130";

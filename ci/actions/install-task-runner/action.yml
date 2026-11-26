@@ -1,0 +1,11 @@
+name: Install the workspace task runner
+description: Build the independent task runner from the checked-out lockfile.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        set -euo pipefail
+        root="$RUNNER_TEMP/foundation-ci"
+        cargo install --locked --profile uat --path "$GITHUB_ACTION_PATH/../../../backends/foundation_ci" --root "$root"
+        echo "$root/bin" >> "$GITHUB_PATH"

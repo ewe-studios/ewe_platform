@@ -1,5 +1,5 @@
 //! WHY: Feature 13 — a fully owned wasm test-execution model (no wasm-bindgen).
-//! `#[wasm_test]` (foundation_macros) compiles cases into `__fwt_*` exports; the
+//! `#[wasm_test]` (`foundation_macros`) compiles cases into `__fwt_*` exports; the
 //! outcome must flow back to the JS runner over OUR ABI.
 //!
 //! WHAT: The `no_std` support half of the model: case bookkeeping
@@ -15,7 +15,7 @@
 //! inverts the verdict. Statuses: 0 = pass, 1 = fail, 2 = ignored.
 
 use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 
 use foundation_nostd::comp::basic::Mutex;
 
@@ -118,7 +118,7 @@ where
 
     type CaseFuture = Rc<RefCell<Pin<Box<dyn core::future::Future<Output = ()>>>>>;
 
-    fn drive(name: String, future: CaseFuture) -> Poll<()> {
+    fn drive(name: &str, future: &CaseFuture) -> Poll<()> {
         let result = {
             let mut slot = future.borrow_mut();
             let waker = Waker::noop();
@@ -127,7 +127,7 @@ where
         };
         match result {
             Poll::Ready(()) => {
-                pass(&name);
+                pass(name);
                 Poll::Ready(())
             }
             Poll::Pending => {
@@ -135,10 +135,10 @@ where
                 // schedule registry takes `Fn`, so the closure re-arms by cloning.
                 #[cfg(target_family = "wasm")]
                 {
-                    let again = future.clone();
-                    let case = name.clone();
+                    let again = Rc::clone(future);
+                    let case = String::from(name);
                     abi::web::register_schedule(0.0, move || {
-                        let _ = drive(case.clone(), again.clone());
+                        let _ = drive(&case, &again);
                     });
                 }
                 Poll::Pending
@@ -147,7 +147,7 @@ where
     }
 
     let future: CaseFuture = Rc::new(RefCell::new(Box::pin(future)));
-    match drive(name.to_string(), future) {
+    match drive(name, &future) {
         Poll::Ready(()) => 0,
         Poll::Pending => 1,
     }

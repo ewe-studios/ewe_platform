@@ -159,7 +159,7 @@ impl Context {
     /// ```ignore
     /// let (pressed, set_pressed) = ctx.signal(false);
     /// let toggle = ctx.callback(move |_| set_pressed.set(!pressed.get()));
-    /// html! { ctx, rcv, <button primal:onclick={toggle}>…</button> }
+    /// html! { ctx, rcv, <button primal:onclick={toggle}>"Toggle"</button> }
     /// ```
     pub fn callback(&self, mut f: impl FnMut(&EventData) + 'static) -> Callback {
         let id = self.runtime.next_callback_id();
@@ -245,6 +245,29 @@ impl Context {
         if let Some(f) = self.runtime.on_cleanup_active(Box::new(f)) {
             // Not inside an effect evaluation — context-level disposal hook.
             self.inner.borrow_mut().cleanups.push(f);
+        }
+    }
+
+    /// Return a callback that disposes this scope and its children once.
+    /// The callback does not keep the scope or its runtime alive.
+    pub fn disposer(&self) -> impl FnOnce() + 'static {
+        let runtime = Rc::downgrade(&self.runtime);
+        let inner = Rc::downgrade(&self.inner);
+        move || {
+            if let (Some(runtime), Some(inner)) = (runtime.upgrade(), inner.upgrade()) {
+                dispose_inner(&runtime, &inner);
+            }
+        }
+    }
+
+    /// Run a callback when this scope ends, including during an effect evaluation.
+    pub fn on_dispose(&self, cleanup: impl FnOnce() + 'static) {
+        let mut inner = self.inner.borrow_mut();
+        if inner.disposed {
+            drop(inner);
+            cleanup();
+        } else {
+            inner.cleanups.push(Box::new(cleanup));
         }
     }
 

@@ -1,0 +1,33 @@
+[package]
+name = "foundation_ui_wire"
+version = "0.0.7"
+autotests = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Verified FlatBuffers readers and writers for the user interface wire format."
+
+[features]
+default = ["std"]
+std = ["flatbuffers/std", "dep:futures-util"]
+reference = ["std", "dep:serde", "dep:serde_json"]
+
+[dependencies]
+futures-util = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+flatbuffers = { workspace = true }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
+
+[dev-dependencies]
+futures-lite = { workspace = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

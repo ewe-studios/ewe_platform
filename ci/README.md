@@ -6,14 +6,14 @@ can't hold up your PR.
 
 ## How a run works
 
-1. **Plan.** `scripts/ci/ci.py plan` reads `cargo metadata` and picks the
+1. **Plan.** `foundation-ci plan` reads `cargo metadata` and picks the
    packages to test:
    - **Pull requests:** the packages whose files changed, plus every
      workspace package that depends on them. Markdown-only changes select
      nothing. A change to a workspace-wide file (`Cargo.toml`, `Cargo.lock`,
      `rust-toolchain.toml`, `.cargo/`, `ci/`, `scripts/ci/`, the workflow
      itself) selects everything.
-   - **Push to `master`, the nightly schedule:** every package.
+   - **Push to `master`:** the affected packages. The nightly schedule checks every package.
    - **Manual run** (Actions → Audit: Checks & Tests → Run workflow): `all`, or the packages
      you name.
 2. **Package jobs.** Each selected package runs `rustfmt`, `cargo build`
@@ -70,8 +70,8 @@ To run exactly what CI runs, in the same environment, use the image:
 
 ```sh
 docker run --rm -it -v "$PWD:/w" -w /w ewestudios/ewe-platform-ci:latest bash
-nu ci/platform-images/scripts/link-submodules.nu   # inside the container
-python3 scripts/ci/ci.py run foundation_ai
+cargo run --locked --profile uat -p foundation_ci -- link-submodules   # inside the container
+cargo run --locked --profile uat -p foundation_ci -- run foundation_ai
 ```
 
 ## Other workflows

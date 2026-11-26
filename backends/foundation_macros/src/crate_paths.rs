@@ -32,6 +32,17 @@ pub fn foundation_core_path() -> proc_macro2::TokenStream {
 }
 
 pub fn foundation_ui_traits_path() -> proc_macro2::TokenStream {
+    if crate_name("foundation_ui_traits").is_ok() {
+        return resolve_crate("foundation_ui_traits");
+    }
+    if crate_name("foundation_ui_runtime").is_ok() {
+        let runtime = foundation_ui_runtime_path();
+        return quote!(#runtime::view::template_types);
+    }
+    if crate_name("foundation_wasm_ui").is_ok() {
+        let browser = foundation_wasm_ui_path();
+        return quote!(#browser::template_types);
+    }
     resolve_crate("foundation_ui_traits")
 }
 
@@ -57,4 +68,13 @@ pub fn foundation_theme_path() -> proc_macro2::TokenStream {
 
 pub fn foundation_deployment_platform_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_deployment_platform")
+}
+
+pub fn foundation_ui_runtime_path() -> proc_macro2::TokenStream {
+    let name = match crate_name("foundation_ui_runtime") {
+        Ok(FoundCrate::Name(name)) => name,
+        _ => "foundation_ui_runtime".to_owned(),
+    };
+    let ident = syn::Ident::new(&name, proc_macro2::Span::call_site());
+    quote! { ::#ident }
 }

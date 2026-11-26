@@ -1,0 +1,3 @@
+# Preserve generated app bindings for byte-for-byte drift checks.
+android/generated/** -whitespace linguist-generated
+ios/Bridge/** -whitespace linguist-generated

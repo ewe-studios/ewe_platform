@@ -15,6 +15,7 @@
 //! reactor, or the overlay's wake callback) and never sleeps a thread. A reset,
 //! aborted or broken connection ends the future at once.
 
+pub use super::packaged::{PackagedFile, PackagedResourceSet, ResourceFileHandler};
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
@@ -120,10 +121,17 @@ impl StaticFileConfig {
 /// Handler that serves static files from a root directory.
 pub struct StaticFileHandler {
     root: PathBuf,
+    single_file: bool,
     config: StaticFileConfig,
 }
 
 impl StaticFileHandler {
+    /// Serve declared resources through one fallback route.
+    #[must_use]
+    pub fn from_resources<R: PackagedResourceSet>(resources: R) -> ResourceFileHandler<R> {
+        ResourceFileHandler { resources, directory: None }
+    }
+
     /// Create a new `StaticFileHandler` serving from the given root directory,
     /// with the default [`StaticFileConfig`].
     #[must_use]
@@ -136,6 +144,17 @@ impl StaticFileHandler {
     pub fn with_config(root: impl Into<PathBuf>, config: StaticFileConfig) -> Self {
         Self {
             root: root.into(),
+            single_file: false,
+            config,
+        }
+    }
+
+    /// Serves one host-selected file at the route where this handler is registered.
+    #[must_use]
+    pub fn file(path: impl Into<PathBuf>, config: StaticFileConfig) -> Self {
+        Self {
+            root: path.into(),
+            single_file: true,
             config,
         }
     }
@@ -240,7 +259,11 @@ impl Serve for StaticFileHandler {
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or(full_url);
         let head_only = matches!(req.method, SimpleMethod::HEAD);
-        self.serve_file(path, head_only, conn, &ctx)
+        if self.single_file {
+            self.serve_file_path(&self.root, head_only, conn, &ctx)
+        } else {
+            self.serve_file(path, head_only, conn, &ctx)
+        }
     }
 }
 

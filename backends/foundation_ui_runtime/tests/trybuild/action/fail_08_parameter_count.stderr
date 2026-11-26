@@ -1,0 +1,5 @@
+error: an action takes two parameters: a context reference and an Interaction<T>
+ --> tests/trybuild/action/fail_08_parameter_count.rs:4:16
+  |
+4 | async fn submit(_ctx: &Context) -> ActionResult {
+  |                ^^^^^^^^^^^^^^^^

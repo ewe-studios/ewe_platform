@@ -1,0 +1,135 @@
+[package]
+name = "ui_todo"
+default-run = "ui_todo"
+version = "0.0.3"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+autotests = false
+autobins = false
+
+[lib]
+crate-type = ["rlib", "staticlib", "cdylib"]
+
+[dependencies]
+async-channel = { workspace = true, optional = true }
+foundation_ui_gpu = { path = "../../backends/foundation_ui_gpu", optional = true }
+bytemuck = { version = "1.25.2", features = ["derive"] }
+font8x8 = "0.3.1"
+foundation_db = { workspace = true }
+foundation_resources = { path = "../../backends/foundation_resources", default-features = false, features = ["server"], optional = true }
+foundation_macros = { workspace = true, optional = true }
+foundation_nostd = { path = "../../backends/foundation_nostd", optional = true }
+foundation_compact = { path = "../../backends/foundation_compact", version = "0.2.7", default-features = false, features = ["serde"] }
+foundation_wasm_ui = { path = "../../backends/foundation_wasm_ui", optional = true }
+foundation_theme = { path = "../../backends/foundation_theme", features = ["native-manifest"] }
+foundation_context = { path = "../../backends/foundation_context" }
+foundation_errstacks = { path = "../../backends/foundation_errstacks" }
+foundation_ui_runtime = { path = "../../backends/foundation_ui_runtime" }
+foundation_ui_wire = { path = "../../backends/foundation_ui_wire" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+futures-util = { workspace = true }
+async-trait = { workspace = true }
+rmp-serde = { workspace = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_codegen = { path = "../../backends/foundation_codegen", default-features = false, features = ["javascript"], optional = true }
+foundation_core = { path = "../../backends/foundation_core", optional = true }
+foundation_http = { path = "../../backends/foundation_http", optional = true }
+buffa = { workspace = true, features = ["json"], optional = true }
+foundation_ui_connectrpc = { path = "../../backends/foundation_ui_connectrpc", optional = true }
+foundation_connectrpc = { path = "../../backends/foundation_connectrpc", default-features = false, optional = true }
+foundation_ui_http = { workspace = true, optional = true }
+futures-lite = { workspace = true, optional = true }
+tempfile = { workspace = true, optional = true }
+
+foundation_browser = { path = "../../backends/foundation_browser", optional = true }
+
+foundation_ui_native = { path = "../../backends/foundation_ui_native", version = "0.1.1", optional = true }
+uniffi = { workspace = true, optional = true }
+thiserror = { workspace = true, optional = true }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+wasm-bindgen = {workspace = true, optional = true}
+js-sys = {workspace = true, optional = true}
+wasm-bindgen-futures = {workspace = true, optional = true}
+foundation_core = { path = "../../backends/foundation_core", optional = true, features = ["js-foundation-wasm"] }
+
+[target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
+tempfile.workspace = true
+foundation_ui_runtime = { path = "../../backends/foundation_ui_runtime", features = ["action-browser", "action-mobile", "action-server"] }
+async-trait = { workspace = true }
+foundation_core = { path = "../../backends/foundation_core" }
+
+
+[build-dependencies]
+foundation_theme = { path = "../../backends/foundation_theme" }
+foundation_resources = { path = "../../backends/foundation_resources", default-features = false, features = ["build"] }
+foundation_connectrpc_codegen = { path = "../../backends/foundation_connectrpc_codegen", optional = true }
+
+[lints]
+workspace = true
+
+[features]
+mathalley-web = ["dep:foundation_ui_gpu", "dep:wasm-bindgen", "dep:js-sys", "dep:wasm-bindgen-futures","foundation_context/wasm-bindgen"]
+default = ["server"]
+server = ["dep:async-channel", "foundation_db/libsql", "dep:tempfile", "dep:foundation_resources", "dep:foundation_macros", "dep:foundation_nostd", "foundation_ui_runtime/action-server", "foundation_resources/browser-package", "dep:foundation_wasm_ui", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_connectrpc", "dep:foundation_ui_connectrpc", "foundation_ui_http/live-stream", "foundation_core/multi", "dep:foundation_core", "dep:foundation_ui_http", "dep:foundation_http", "dep:futures-lite"]
+web = ["dep:wasm-bindgen", "foundation_wasm_ui/browser-storage", "foundation_ui_runtime/action-browser", "dep:foundation_core", "dep:foundation_wasm_ui", "foundation_context/host-abi"]
+mobile = ["dep:foundation_ui_gpu", "foundation_ui_runtime/action-mobile", "foundation_ui_runtime/action-server", "dep:foundation_core", "dep:thiserror", "dep:buffa", "dep:foundation_connectrpc_codegen", "dep:foundation_ui_connectrpc", "dep:foundation_connectrpc", "foundation_ui_native/storage", "dep:uniffi"]
+browser-tests = ["server", "dep:foundation_browser", "dep:foundation_codegen", "foundation_wasm_ui/build-hook"]
+
+[[bin]]
+name = "todo-maintenance"
+path = "src/bin/maintenance.rs"
+required-features = ["server"]
+
+[[bin]]
+name = "ui_todo"
+path = "src/bin/server.rs"
+required-features = ["server"]
+
+[[test]]
+name = "browser_pending"
+path = "tests/browser_pending.rs"
+required-features = ["browser-tests"]
+
+[[test]]
+name = "todo_browser_tests"
+path = "tests/todo_browser_tests.rs"
+required-features = ["browser-tests"]
+
+[[test]]
+name = "actions"
+path = "tests/mod.rs"
+required-features = ["server"]
+
+[[test]]
+name = "mobile"
+path = "tests/mobile.rs"
+required-features = ["mobile"]
+
+[[test]]
+name = "browser_resources"
+path = "tests/browser_resources.rs"
+required-features = ["browser-tests"]
+
+[[test]]
+name = "backup_cli"
+path = "tests/backup_cli.rs"
+required-features = ["server"]
+
+[[test]]
+name = "mathalley"
+path = "tests/mathalley/mod.rs"
+
+[[example]]
+name = "todo_data_fixture"
+path = "tests/fixtures/data_server.rs"
+required-features = ["server"]
+
+[[example]]
+name = "todo_replay_fixture"
+path = "tests/fixtures/replay_server.rs"
+required-features = ["server"]

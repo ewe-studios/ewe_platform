@@ -14,6 +14,8 @@
 use foundation_connectrpc::{Code, ConnectError};
 use foundation_errstacks::ErrorTrace;
 
+use crate::core::model::SelectionError;
+
 /// Every way an agent-rpc operation can fail.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::Display, derive_more::Error)]
 pub enum AgentRpcError {
@@ -23,6 +25,23 @@ pub enum AgentRpcError {
     /// A request named a model the server does not host.
     #[display("unknown model: {_0}")]
     ModelNotFound(#[error(not(source))] String),
+    /// The model selection rules of proto.md section 5 refused the request.
+    #[display("model selection failed: {detail}")]
+    ModelSelection {
+        /// The rule that refused the request.
+        code: SelectionError,
+        /// A short sentence with the facts of this request.
+        detail: String,
+    },
+    /// The host does not implement this operation.
+    #[display("not implemented: {_0}")]
+    Unsupported(#[error(not(source))] String),
+    /// The request is not well formed.
+    #[display("invalid argument: {_0}")]
+    InvalidArgument(#[error(not(source))] String),
+    /// The unary reply is longer than the configured limit.
+    #[display("the reply is longer than {_0} bytes; use ChatStream")]
+    ReplyTooLarge(#[error(not(source))] usize),
     /// Missing, invalid, replayed or expired client credentials.
     #[display("authentication failed: {_0}")]
     Auth(#[error(not(source))] String),
@@ -41,6 +60,9 @@ pub enum AgentRpcError {
     /// The configured instance limit is reached.
     #[display("instance limit reached ({_0} instances)")]
     InstanceLimit(#[error(not(source))] usize),
+    /// One peer sent too many requests too fast.
+    #[display("too many {_0} requests from this peer")]
+    RateLimited(#[error(not(source))] String),
     /// The agent turn failed.
     #[display("inference failed: {_0}")]
     Inference(#[error(not(source))] String),
@@ -73,11 +95,18 @@ impl AgentRpcError {
             | AgentRpcError::Inference(_)
             | AgentRpcError::Storage(_) => Code::Internal,
             AgentRpcError::ModelNotFound(_) | AgentRpcError::InstanceNotFound(_) => Code::NotFound,
+            AgentRpcError::ModelSelection { code, .. } => code.to_connect(),
+            AgentRpcError::Unsupported(_) => Code::Unimplemented,
+            AgentRpcError::ReplyTooLarge(_) => Code::ResourceExhausted,
             AgentRpcError::Auth(_) => Code::Unauthenticated,
             AgentRpcError::InstanceExists(_) => Code::AlreadyExists,
-            AgentRpcError::InvalidName(_) | AgentRpcError::Codec(_) => Code::InvalidArgument,
+            AgentRpcError::InvalidArgument(_)
+            | AgentRpcError::InvalidName(_)
+            | AgentRpcError::Codec(_) => Code::InvalidArgument,
             AgentRpcError::InstanceBusy(_) => Code::Aborted,
-            AgentRpcError::InstanceLimit(_) => Code::ResourceExhausted,
+            AgentRpcError::InstanceLimit(_) | AgentRpcError::RateLimited(_) => {
+                Code::ResourceExhausted
+            }
             AgentRpcError::Config(_) => Code::FailedPrecondition,
             AgentRpcError::Transport(_) | AgentRpcError::Shutdown => Code::Unavailable,
         }

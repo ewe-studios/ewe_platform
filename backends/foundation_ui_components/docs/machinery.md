@@ -1,27 +1,35 @@
-# Machinery — JS behaviors as scoped scripts
+# Component behaviours
 
-Some behavior is genuinely the browser's job: anchored positioning, light dismiss,
-focus trapping, enter/leave transitions, roving focus, pointer gestures. Rather
-than a monolithic runtime, each behavior's JS is a `function(scope){…}` colocated
-beside its Rust contract and delivered as a `<script scoped primal:script>` node
-the component embeds in its root (`machinery::scoped_script`).
+A behaviour installs an interaction on the element that owns it.
+Use a helper inside the component root.
 
-## How a scoped behavior runs
+```rust
+use foundation_ui_components::machinery::dismiss::dismiss_behavior;
+let popup = html! { ctx, receiver,
+    <div data-dismiss="true">
+        <button data-dismiss-action="true">"Close"</button>
+        <Fragment>{dismiss_behavior()}</Fragment>
+    </div>
+};
+```
 
-The existing scoped-script hydrator runs it once with `scope`:
+## How a behaviour runs
 
-- `scope.parent()` = the component root,
-- `scope.addEvent(...)` auto-cleans on disconnect,
+A pure template writes an empty span with the `data-ewe-behaviour` attribute.
+The first-page browser reader finds the marker and installs the binding on its parent.
+The reader removes the marker after installation.
+A reactive template or action render sends a typed operation that names the same parent.
+The browser installs bindings after it creates all children in the frame.
 
-then removes the script — idempotent across morph/re-insert, no `register_function`,
-no `cfg(wasm32)` gating. **Options** ride the component's own `data-*` attributes;
-**outputs** WRITE the documented `data-*`/CSS-var contract, so CSS + morph see the
-same thing regardless of delivery. Embed with `<Fragment>{behavior()}</Fragment>`
-(it's element content — see [conventions](./conventions.md)).
+Dialog, dismiss, scroll lock and transition have shared identifiers.
+Web, iOS and Android each provide their own implementation for the shared identifier.
+The remaining seven behaviours have web bindings.
+Gesture and measurement helpers send a text argument named `mode`.
+A drawer can attach both swipe and snap to one element. Each mode installs once.
 
-A recurring pattern: when JS must change Rust state, it `.click()`s a hidden
-element whose `primal:onclick` the component already wired (e.g.
-`set_open(false)`) — the same mechanism roving-select uses. No JS→signal bridge.
+Use `scoped_script(body)` for application-specific browser code.
+Its scope supplies `parent()`, `addEvent(target, event, handler)` and `onDispose(cleanup)`.
+Removing the owning component releases its event handlers and cleanup callbacks.
 
 ## The behaviors
 

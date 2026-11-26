@@ -1,4 +1,7 @@
-//! Wasm module — optional wasm-bindgen bridge for Cloudflare Workers.
+//! Browser and Cloudflare storage bindings.
+
+#[cfg(feature = "browser-storage")]
+pub mod browser;
 
 #[cfg(feature = "wasm-bindgen-bindings")]
 pub mod bindgen;

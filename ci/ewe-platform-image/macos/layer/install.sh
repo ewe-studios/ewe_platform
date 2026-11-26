@@ -6,7 +6,7 @@
 #   - the toolchain rust-toolchain.toml pins (+ clippy), set as the default
 #   - the tools in the repository's mise.toml, from its lock
 #   - the submodules at their gitlink SHAs under /usr/local/ewe/submodules,
-#     and PLATFORM_IMAGES_SUBMODULES_LOCK for link-submodules.nu
+#     and PLATFORM_IMAGES_SUBMODULES_LOCK for the link-submodules task
 set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)

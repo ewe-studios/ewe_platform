@@ -22,7 +22,7 @@ mod memory;
 mod sql;
 
 pub use client::{
-    SecretUse, TrustError, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
+    ClientKeyRecord, SecretUse, TrustError, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
     TrustedClientStream, UseOutcome,
 };
 pub use clients::{TrustIndex, TrustedClients};

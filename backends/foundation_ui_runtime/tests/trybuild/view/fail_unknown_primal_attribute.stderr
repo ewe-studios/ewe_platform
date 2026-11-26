@@ -1,0 +1,5 @@
+error: html!: unknown primal attribute 'primal:bogus'
+ --> tests/trybuild/view/fail_unknown_primal_attribute.rs:4:30
+  |
+4 |     let _view = html! { <div primal:bogus="x"></div> };
+  |                              ^^^^^^

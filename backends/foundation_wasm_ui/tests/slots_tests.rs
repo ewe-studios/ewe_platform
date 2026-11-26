@@ -8,26 +8,29 @@
 //! wire, `runtime_id`, `mount_fragment`'s registry semantics, and
 //! `to_markup` parity.
 
+use foundation_ui_wire::{OperationT, UiOperationT as Ui, WebOperationT as Web};
+#[path = "support/names.rs"]
+mod names;
+use names::wire_name;
+
 use std::rc::Rc;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
-use foundation_ui_traits::{DomOp, Html, HtmlTag};
+use foundation_ui_traits::{Html, HtmlTag};
 use foundation_wasm::MemoryAllocations;
-use foundation_wasm_ui::{
-    html, mount_fragment, MockProtocol, Render, Runtime, SharedInstructionReceiver, Slot,
-};
+use foundation_wasm_ui::{html, mount_fragment, Render, Runtime, SharedInstructionReceiver, Slot};
 
 struct Harness {
     signals: Rc<SignalsRuntime>,
     ctx: Context,
-    sent: Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>,
+    sent: Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>,
     receiver: SharedInstructionReceiver,
 }
 
 fn setup() -> Harness {
     let signals = Rc::new(SignalsRuntime::new());
     let ctx = Context::new(Rc::clone(&signals));
-    let mock = MockProtocol::new();
+    let mock = foundation_wasm_ui::MockProtocol::new();
     let sent = mock.sent_batches();
     let runtime = Runtime::builder()
         .protocol(mock)
@@ -43,14 +46,24 @@ fn setup() -> Harness {
     }
 }
 
-fn all_ops(sent: &Rc<std::cell::RefCell<Vec<Vec<DomOp>>>>) -> Vec<DomOp> {
+fn all_ops(
+    sent: &Rc<std::cell::RefCell<Vec<Vec<foundation_ui_wire::OperationT>>>>,
+) -> Vec<OperationT> {
     sent.borrow().iter().flatten().cloned().collect()
 }
 
-fn created_tags(ops: &[DomOp]) -> Vec<String> {
+fn created_tags(ops: &[OperationT]) -> Vec<String> {
     ops.iter()
         .filter_map(|op| match op {
-            DomOp::CreateElement { tag, .. } => tag.name().map(String::from),
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } => wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            )
+            .map(String::from),
             _ => None,
         })
         .collect()
@@ -88,39 +101,54 @@ fn pure_fragment_splices_with_fresh_ids() {
     let span_id = ops
         .iter()
         .find_map(|op| match op {
-            DomOp::CreateElement {
-                node_id,
-                tag,
-                class,
-            } if tag.name() == Some("span") && class == "badge" => Some(*node_id),
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } if wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            ) == Some("span")
+                && row.class_name.as_deref().unwrap_or_default() == "badge" =>
+            {
+                Some(row.node_id)
+            }
             _ => None,
         })
         .expect("badge span created");
     assert!(ops
         .iter()
-        .any(|op| matches!(op, DomOp::RegisterNode { node_id } if *node_id == span_id)));
+        .any(|op| matches!(op, OperationT { web: Web::WebRegisterNode(ref row), .. } if row.node_id == span_id)));
     // Re-stamped primal-id matches the RUNTIME id, not the compile-time one.
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetAttribute { node_id, name, value }
-            if *node_id == span_id
-                && name.name() == Some("primal-id")
-                && *value == span_id.to_string()
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if row.node_id == span_id
+                && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("primal-id")
+                && row.value.as_deref().unwrap_or_default() == span_id.to_string()
     )));
     // Appended under the card div (the parent), text under the span.
     let div_id = ops
         .iter()
         .find_map(|op| match op {
-            DomOp::CreateElement { node_id, tag, .. } if tag.name() == Some("div") => {
-                Some(*node_id)
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } if wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            ) == Some("div") =>
+            {
+                Some(row.node_id)
             }
             _ => None,
         })
         .expect("parent div");
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::AppendChild { parent_id, child_id }
-            if *parent_id == div_id && *child_id == span_id
+        OperationT { ui: Ui::AppendChild(ref row), .. }
+            if row.parent_id == div_id && row.child_id == span_id
     )));
 }
 
@@ -146,8 +174,16 @@ fn mounted_fragment_splices_by_reference() {
     let section_id = ops
         .iter()
         .find_map(|op| match op {
-            DomOp::CreateElement { node_id, tag, .. } if tag.name() == Some("section") => {
-                Some(*node_id)
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } if wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            ) == Some("section") =>
+            {
+                Some(row.node_id)
             }
             _ => None,
         })
@@ -155,8 +191,8 @@ fn mounted_fragment_splices_by_reference() {
     assert!(
         ops.iter().any(|op| matches!(
             op,
-            DomOp::AppendChild { parent_id, child_id }
-                if *parent_id == section_id && *child_id == child_root
+            OperationT { ui: Ui::AppendChild(ref row), .. }
+                if row.parent_id == section_id && row.child_id == child_root
         )),
         "child not orphaned — AppendChild(section, child_root) present"
     );
@@ -179,7 +215,10 @@ fn spliced_fragment_interior_stays_reactive() {
         .iter()
         .rev()
         .find_map(|op| match op {
-            DomOp::SetText { text, .. } => Some(text.to_string()),
+            OperationT {
+                ui: Ui::SetText(ref row),
+                ..
+            } => Some(row.text.as_deref().unwrap_or_default().to_string()),
             _ => None,
         })
         .expect("slot SetText");
@@ -203,20 +242,28 @@ fn reactive_text_slot_is_an_id_bearing_span() {
     let span_id = ops
         .iter()
         .find_map(|op| match op {
-            DomOp::CreateElement { node_id, tag, .. } if tag.name() == Some("span") => {
-                Some(*node_id)
+            OperationT {
+                web: Web::WebElement(ref row),
+                ..
+            } if wire_name(
+                row.tag_id,
+                row.custom_tag.as_deref(),
+                foundation_ui_traits::TAG_NAMES,
+            ) == Some("span") =>
+            {
+                Some(row.node_id)
             }
             _ => None,
         })
         .expect("slot renders as a span ELEMENT, not a bare text node");
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetAttribute { node_id, name, .. }
-            if *node_id == span_id && name.name() == Some("primal-id")
+        OperationT { web: Web::WebSetAttribute(ref row), .. }
+            if row.node_id == span_id && wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("primal-id")
     )));
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetText { node_id, text } if *node_id == span_id && text == "7"
+        OperationT { ui: Ui::SetText(ref row), .. } if row.node_id == span_id && row.text.as_deref().unwrap_or_default() == "7"
     )));
 }
 
@@ -233,8 +280,7 @@ fn card(ctx: &Context, rcv: &SharedInstructionReceiver, slots: &CardSlots) -> Ht
     let badge = slots
         .badge
         .as_ref()
-        .map(|b| b.render(ctx, rcv))
-        .unwrap_or_default();
+        .map_or_else(Html::default, |b| b.render(ctx, rcv));
     let children: Vec<Html> = slots.children.iter().map(|s| s.render(ctx, rcv)).collect();
     html! { ctx, rcv,
         <div class="card">
@@ -295,7 +341,7 @@ fn slots_are_reusable_recipes() {
     let ops = all_ops(&h.sent);
     let renders = ops
         .iter()
-        .filter(|op| matches!(op, DomOp::SetText { text, .. } if text == "5"))
+        .filter(|op| matches!(op, OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default() == "5"))
         .count();
     assert_eq!(renders, 2, "both instances updated after the recipe died");
 }
@@ -322,7 +368,7 @@ fn struct_components_implement_render() {
     let ops = all_ops(&h.sent);
     assert!(ops
         .iter()
-        .any(|op| matches!(op, DomOp::SetText { text, .. } if text == "rust")));
+        .any(|op| matches!(op, OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default() == "rust")));
 }
 
 // ─── mount_fragment directly ──────────────────────────────────────────────────
