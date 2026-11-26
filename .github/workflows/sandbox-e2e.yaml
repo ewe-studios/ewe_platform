@@ -19,6 +19,8 @@ on:
       - 'backends/foundation_netio/**'
       - 'backends/foundation_http/**'
       - 'backends/foundation_connectrpc/**'
+      - 'backends/foundation_deployment_cloudflare/**'
+      - 'infrastructure/sandbox_worker/**'
       - 'ci/sandbox.toml'
       - 'mise.toml'
       - '.github/workflows/sandbox-e2e.yaml'
@@ -28,6 +30,8 @@ on:
     paths:
       - 'backends/foundation_sandbox/**'
       - 'backends/foundation_netio/**'
+      - 'backends/foundation_deployment_cloudflare/**'
+      - 'infrastructure/sandbox_worker/**'
       - 'ci/sandbox.toml'
       - 'mise.toml'
       - '.github/workflows/sandbox-e2e.yaml'
@@ -102,3 +106,57 @@ jobs:
           EWE_FIRECRACKER: /usr/local/bin/firecracker
         run: |
           cargo test -p foundation_sandbox --features "cli testing slave" --profile uat -- --nocapture
+
+  # The Cloudflare path (spec 77 feature 08). `wrangler dev` runs the Worker,
+  # its three Durable Objects and the Docker container on the runner. The job
+  # is green only when the real end-to-end tests run and pass.
+  sandbox-cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          submodules: false
+
+      - name: Install the pinned toolchain and the wasm and musl targets
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          # rustfmt is required: the build script of foundation_sandbox runs it.
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          rustup target add --toolchain "$toolchain" \
+            x86_64-unknown-linux-musl aarch64-unknown-linux-musl wasm32-unknown-unknown
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: sandbox-cloudflare
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install the pinned wrangler and worker-build
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['wrangler_version'])")
+          npm install -g "wrangler@${version}"
+          build=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['worker_build_version'])")
+          cargo install worker-build --version "${build}"
+          wrangler --version
+          worker-build --version
+
+      - name: Install mise
+        uses: jdx/mise-action@v5.2.10
+        with:
+          install: false
+
+      - name: Build the image context
+        run: |
+          mise trust --yes mise.toml
+          mise run sandbox:worker-image
+
+      - name: Run the Cloudflare end-to-end tests
+        env:
+          EWE_SANDBOX_E2E_REQUIRED: "1"
+        run: infrastructure/sandbox_worker/test/run.sh

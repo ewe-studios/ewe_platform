@@ -13,3 +13,9 @@ min_firecracker_version = "1.15.0"
 # `firecracker-v1.15.0-x86_64.tgz.sha256.txt` value.
 firecracker_version = "1.15.0"
 firecracker_x86_64_sha256 = "00cadf7f21e709e939dc0c8d16e2d2ce7b975a62bec6c50f74b421cc8ab3cab4"
+
+# The `sandbox-cloudflare` workflow pins the two Worker tools (spec 77 feature
+# 08). `worker_build_version` is the version that builds the Worker module;
+# `wrangler_version` starts `wrangler dev` and deploys the Worker.
+worker_build_version = "0.8.7"
+wrangler_version = "4.144.0"
