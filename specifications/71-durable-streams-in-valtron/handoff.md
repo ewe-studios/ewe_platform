@@ -55,9 +55,8 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
 
 ## 4. Next features
 
-1. Feature 05: the file VFS in `foundation_nativeapis`. The feature names Lightweight Memory-Mapped
-   Database (LMDB) metadata. The workspace has no LMDB dependency, so the owner must confirm either
-   LMDB or an atomically replaced metadata file.
+1. Feature 05: the file VFS in `foundation_nativeapis`. The owner chose an atomically replaced
+   metadata file on 2026-11-27 (no LMDB dependency). The design and task T4 are updated.
 2. Feature 09: the S3/R2 VFS. The design is in the feature file.
 3. Feature 06: the ConnectRPC surface.
 4. Feature 07: the valtron client wrapper. The design puts it in `foundation_core`, which cannot

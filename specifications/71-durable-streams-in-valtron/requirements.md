@@ -37,7 +37,7 @@ deterministic simulation testing (DST); application programming interface (API);
 call (RPC); Structured Query Language (SQL); Durable Object (DO); Amazon Simple Storage Service
 (S3); pull request (PR); AeroSpace and Defence Industries Association of Europe (ASD), the owner
 of the STE standard ASD-STE100. Durable Streams, Caddy, Electric Cloud and ConnectRPC are product
-names. R2 and D1 are names of Cloudflare products, not abbreviations. LMDB is a name, not an
+names. R2 and D1 are names of Cloudflare products, not abbreviations.
 abbreviation. RFC 3339 is an Internet date format.
 
 **Glossary.**
@@ -550,7 +550,7 @@ are paged.
 
 Each VFS lives in the crate that owns its environment. It can use the full native capability of
 that environment. The memory VFS uses `foundation_core`. The file VFS uses
-`foundation_nativeapis` for file I/O and LMDB. R2/S3 uses `foundation_nativeapis`. DO SQLite and
+`foundation_nativeapis` for file I/O and durable metadata files. R2/S3 uses `foundation_nativeapis`. DO SQLite and
 D1 use their spec 83 crates.
 
 The VFS layout is configuration. The default is segmented objects. An append-only file layout is
@@ -710,7 +710,7 @@ disabled.
 | 02 | [Reader](./features/02-resumable-reader/feature.md) | Core page reader and the required valtron `DurableStreamReader` | 01 | M |
 | 03 | [Writer, producer and `Stream-Seq`](./features/03-idempotent-producer/feature.md) | `DurableStreamWriter`, the producer task and `Stream-Seq` | 01 | M |
 | 04 | [Fork, TTL and retention](./features/04-fork-and-retention/feature.md) | Fork, sub-offset, TTL table, soft-delete and trim | 02, 03 | M |
-| 05 | [Storage backends](./features/05-storage-backends/feature.md) | In-memory, file+LMDB, R2/S3, DO SQLite, D1 | 01 | L |
+| 05 | [Storage backends](./features/05-storage-backends/feature.md) | In-memory, file, R2/S3, DO SQLite, D1 | 01 | L |
 | 06 | [HTTP and ConnectRPC adapters](./features/06-http-rpc-surface/feature.md) | The full wire surface on `foundation_http` and `foundation_connectrpc` | 02, 03 | L |
 | 07 | [Client core](./features/07-durable-streams-client/feature.md) | The Rust client, the valtron client wrapper and the conformance adapter | 01 | L |
 | 08 | [Conformance](./features/08-conformance/feature.md) | Server and client suites, cross-runs and CI gates | 02–07, 09 | M |
@@ -851,7 +851,7 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 | Crate | Conformance | Coverage |
 |---|---|---|
 | `foundation_core` | memory VFS scenarios | memory map, notifier, bounded read |
-| `foundation_nativeapis` | file VFS scenarios | restart, LMDB metadata, group commit |
+| `foundation_nativeapis` | file VFS scenarios | restart, metadata file, group commit |
 | `foundation_db` | R2/S3 scenarios | segments, range read, fencing |
 | DO and D1 crates | DO and D1 scenarios | SQL sequence, atomic producer state |
 

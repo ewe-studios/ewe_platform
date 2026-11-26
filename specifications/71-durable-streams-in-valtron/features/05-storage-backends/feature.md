@@ -12,7 +12,7 @@ _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers 
 are._
 
 **Abbreviations in this file.** deterministic simulation testing (DST); Lightning Memory-Mapped
-Database (LMDB, a name); Durable Object (DO); Structured Query Language (SQL); Amazon Simple
+Durable Object (DO); Structured Query Language (SQL); Amazon Simple
 Storage Service (S3); JavaScript Object Notation (JSON); AeroSpace and Defence Industries
 Association of Europe (ASD), the owner of the STE standard ASD-STE100. R2 and D1 are names of
 Cloudflare products, not abbreviations.
@@ -40,7 +40,9 @@ protocol core runs on memory, a file, R2/S3, DO SQLite or D1.
    implements `DurableStreamStore` by delegation.
 3. **Memory VFS.** In `foundation_core`. It uses a `BTreeMap` and a notifier. It serves DST and
    tests.
-4. **File VFS.** In `foundation_nativeapis`. It uses a log file and LMDB metadata. Blocking file
+4. **File VFS.** In `foundation_nativeapis`. It uses an append-only log file and one metadata file
+   per stream, replaced by write-then-rename after the data log is flushed. The owner chose the atomic
+   metadata file on 2026-11-27: the workspace has no LMDB dependency. Blocking file
    I/O stays at `blocking_boundary!`.
 5. **Protocol state.** `DurableStream` owns producer state, `Stream-Seq`, TTL access time, fork
    edges, reference counts and soft-delete. It stores that state through VFS metadata records.
@@ -98,8 +100,9 @@ follows the repository layout.
       `durable_stream_delegates_to_vfs`.
 - [ ] **T3 — memory VFS.** In `foundation_core`. `BTreeMap` and a notifier. Tests: shared
       conformance scenarios, `memory_vfs_notifies_on_append`, bounded read coverage.
-- [ ] **T4 — file VFS.** In `foundation_nativeapis`. A log file and LMDB metadata. Tests: shared
-      conformance scenarios, `file_vfs_persists_across_restart`, LMDB and group-commit coverage.
+- [ ] **T4 — file VFS.** In `foundation_nativeapis`. An append-only log file and an atomically
+      replaced metadata file. Tests: shared conformance scenarios, `file_vfs_persists_across_restart`,
+      metadata and group-commit coverage.
 - [ ] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS
       metadata. Tests: `producer_state_survives_restart`, `stream_seq_state_survives_restart`.
 - [ ] **T6 — DO SQLite and D1 VFS.** Atomic producer state. Tests:
