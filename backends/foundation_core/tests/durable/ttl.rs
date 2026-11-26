@@ -141,3 +141,73 @@ fn given_an_expired_ttl_stream_when_it_is_used_then_it_reports_not_found() {
         ));
     });
 }
+
+#[test]
+fn given_a_ttl_source_when_it_expires_then_a_living_fork_keeps_its_own_window() {
+    let clock = TestClock::new();
+    let streams = DurableStreams::new(DurableStream::with_clock(
+        Arc::new(MemoryVfs::new()),
+        Arc::new(clock.clone()),
+    ));
+    let source = StreamName::parse("ttl/fork-src").expect("name");
+    let fork = StreamName::parse("ttl/fork-child").expect("name");
+
+    smol::block_on(async {
+        streams
+            .stream(source.clone())
+            .create(CreateSpec {
+                expires: Some(Expiry::Ttl(Duration::from_secs(10))),
+                initial: Some(Chunk::new(b"data".to_vec())),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("create source");
+        streams
+            .stream(fork.clone())
+            .create(CreateSpec {
+                fork: Some(foundation_core::durable::ForkSpec {
+                    source: source.clone(),
+                    at: None,
+                    sub_offset: 0,
+                }),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("fork");
+    });
+
+    clock.set(9_000);
+    smol::block_on(async {
+        // A fork read slides the fork window only.
+        streams
+            .stream(fork.clone())
+            .read(ReadRequest {
+                from: ReadFrom::Start,
+                limit: ReadLimit::default(),
+            })
+            .await
+            .expect("fork read");
+    });
+
+    clock.set(11_000);
+    smol::block_on(async {
+        assert!(matches!(
+            streams.stream(source.clone()).head().await,
+            Err(StoreError::NotFound)
+        ));
+        let page = streams
+            .stream(fork.clone())
+            .read(ReadRequest {
+                from: ReadFrom::Start,
+                limit: ReadLimit::default(),
+            })
+            .await
+            .expect("fork survives");
+        let bytes: Vec<u8> = page
+            .chunks
+            .into_iter()
+            .flat_map(|chunk| chunk.as_bytes().to_vec())
+            .collect();
+        assert_eq!(bytes, b"data");
+    });
+}
