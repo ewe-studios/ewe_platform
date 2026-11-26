@@ -322,7 +322,7 @@ The `e2e_nested` tests run in the CI job `sandbox-e2e` (it has KVM and Docker).
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "docker firecracker slave testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_api_common -p foundation_deployment -p foundation_deployment_docker --profile uat
-cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat control_sim docker_sim slave_ contract boundary_scan
+cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat
 cargo build -p foundation_sandbox --no-default-features --features "slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl --profile uat
 mise run sandbox:nested-image
 cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat e2e_nested -- --nocapture

@@ -463,7 +463,7 @@ The real-daemon tests run in the existing Docker CI workflow
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "docker testing" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "docker testing" --profile uat docker_sim native_host contract
+cargo test -p foundation_sandbox --features "docker testing" --profile uat
 mise run sandbox:slave
 EWE_SANDBOX_SLAVE=<slave path> cargo test -p foundation_sandbox --features "docker testing" --profile uat e2e_docker -- --nocapture
 infrastructure/sandbox_control_image/test/run.sh

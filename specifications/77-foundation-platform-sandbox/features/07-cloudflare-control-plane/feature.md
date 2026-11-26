@@ -800,7 +800,8 @@ one test.
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "testing cloudflare" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "testing slave cloudflare" --profile uat cloudflare control_sim
+cargo test -p foundation_sandbox --features "testing slave cloudflare" --profile uat cloudflare
+cargo test -p foundation_sandbox --features "testing slave cloudflare" --profile uat control_sim
 cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --profile uat
 cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
 ```
