@@ -75,6 +75,9 @@ pub fn parse_stream_seq(value: &str) -> StreamSeq {
 
 /// Parse a read offset. `-1` means the start. `now` means the tail.
 ///
+/// Any other value is the wire form of an internal offset, which
+/// [`encode_offset`] produces.
+///
 /// # Errors
 ///
 /// Returns [`StoreError::BadRequest`] with [`BadRequestKind::Offset`] for an empty or malformed
@@ -84,16 +87,52 @@ pub fn parse_offset(value: &str) -> Result<ReadFrom, StoreError> {
         "-1" => Ok(ReadFrom::Start),
         "now" => Ok(ReadFrom::Tail),
         "" => Err(StoreError::BadRequest(BadRequestKind::Offset)),
-        other => {
-            if other
-                .bytes()
-                .any(|byte| matches!(byte, b',' | b'&' | b'=' | b'?' | b'/'))
-            {
-                return Err(StoreError::BadRequest(BadRequestKind::Offset));
-            }
-            Ok(ReadFrom::Offset(StreamOffset::from_bytes(
-                other.as_bytes().to_vec(),
-            )))
-        }
+        other => Ok(ReadFrom::Offset(decode_offset(other)?)),
+    }
+}
+
+/// Encode an internal offset as wire text.
+///
+/// The wire form is lowercase hexadecimal, two characters per byte. The
+/// encoding is fixed width, so wire text sorts in the same order as the raw
+/// bytes. A client passes the text back unchanged.
+#[must_use]
+pub fn encode_offset(offset: &StreamOffset) -> String {
+    let mut text = String::with_capacity(offset.as_bytes().len() * 2);
+    for byte in offset.as_bytes() {
+        text.push(char::from_digit(u32::from(byte >> 4), 16).unwrap_or('0'));
+        text.push(char::from_digit(u32::from(byte & 0x0f), 16).unwrap_or('0'));
+    }
+    text
+}
+
+/// Decode wire text into the internal offset bytes.
+///
+/// # Errors
+///
+/// Returns [`StoreError::BadRequest`] with [`BadRequestKind::Offset`] when the
+/// text is not an even-length, lowercase hexadecimal string.
+pub fn decode_offset(value: &str) -> Result<StreamOffset, StoreError> {
+    if value.is_empty() || value.len() % 2 != 0 {
+        return Err(StoreError::BadRequest(BadRequestKind::Offset));
+    }
+    let mut bytes = Vec::with_capacity(value.len() / 2);
+    let mut chunks = value.as_bytes().chunks_exact(2);
+    for chunk in &mut chunks {
+        let high = hex_digit(chunk[0])?;
+        let low = hex_digit(chunk[1])?;
+        bytes.push((high << 4) | low);
+    }
+    if !chunks.remainder().is_empty() {
+        return Err(StoreError::BadRequest(BadRequestKind::Offset));
+    }
+    Ok(StreamOffset::from_bytes(bytes))
+}
+
+fn hex_digit(byte: u8) -> Result<u8, StoreError> {
+    match byte {
+        b'0'..=b'9' => Ok(byte - b'0'),
+        b'a'..=b'f' => Ok(byte - b'a' + 10),
+        _ => Err(StoreError::BadRequest(BadRequestKind::Offset)),
     }
 }

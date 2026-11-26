@@ -1,9 +1,9 @@
 //! Tests for the Durable Streams HTTP parsers.
 
 use core::time::Duration;
-use foundation_core::durable::{BadRequestKind, ReadFrom, StoreError};
+use foundation_core::durable::{BadRequestKind, ReadFrom, StoreError, StreamOffset};
 use foundation_http::shared::durable::{
-    parse_offset, parse_producer, parse_stream_closed, parse_ttl,
+    decode_offset, encode_offset, parse_offset, parse_producer, parse_stream_closed, parse_ttl,
 };
 
 #[test]
@@ -52,10 +52,30 @@ fn given_offset_values_when_parsed_then_sentinels_are_recognised() {
     assert_eq!(parse_offset("-1").expect("start"), ReadFrom::Start);
     assert_eq!(parse_offset("now").expect("tail"), ReadFrom::Tail);
     assert!(matches!(
-        parse_offset("abc").expect("offset"),
+        parse_offset("00ff").expect("offset"),
         ReadFrom::Offset(_)
     ));
     assert!(parse_offset("").is_err());
     assert!(parse_offset("a,b").is_err());
-    assert!(parse_offset("a/b").is_err());
+    assert!(parse_offset("abc").is_err());
+    assert!(parse_offset("00FF").is_err());
+}
+
+#[test]
+fn given_an_offset_when_encoded_then_the_text_decodes_back_to_the_same_bytes() {
+    let offset = StreamOffset::from_bytes(vec![0x00, 0x01, 0xfe, 0xff]);
+    let text = encode_offset(&offset);
+    assert_eq!(text, "0001feff");
+    assert_eq!(decode_offset(&text).expect("decode").as_bytes(), offset.as_bytes());
+}
+
+#[test]
+fn given_offsets_when_encoded_then_the_text_sorts_with_the_bytes() {
+    let low = encode_offset(&StreamOffset::from_bytes(vec![0x00, 0x00, 0x00, 0x01]));
+    let high = encode_offset(&StreamOffset::from_bytes(vec![0x00, 0x00, 0x00, 0x02]));
+    assert!(low < high);
+
+    let short = encode_offset(&StreamOffset::from_bytes(vec![0x01]));
+    let long = encode_offset(&StreamOffset::from_bytes(vec![0x01, 0x00]));
+    assert!(short < long);
 }

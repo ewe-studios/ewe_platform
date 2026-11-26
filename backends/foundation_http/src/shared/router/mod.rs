@@ -24,6 +24,7 @@ pub trait Route {
 /// Router with a root route segment tree, generic over handler type `S`.
 pub struct Router<S> {
     root: RouteSegment<S>,
+    fallback: Option<S>,
 }
 
 impl<S> Router<S> {
@@ -32,7 +33,16 @@ impl<S> Router<S> {
     pub fn new() -> Self {
         Router {
             root: RouteSegment::root(),
+            fallback: None,
         }
+    }
+
+    /// Set the handler for every path that no route matches.
+    ///
+    /// A catch-all server (for example a Durable Streams adapter, where every path is a stream)
+    /// registers one fallback.
+    pub fn set_fallback(&mut self, handler: S) {
+        self.fallback = Some(handler);
     }
 
     /// Register a handler for a specific HTTP method and path.
@@ -193,7 +203,13 @@ impl<S> Router<S> {
         S: Clone,
     {
         let path_without_query = path.split('?').next().unwrap_or(path);
-        self.root.match_route(method, path_without_query)
+        match self.root.match_route(method, path_without_query) {
+            Ok(handler) => Ok(handler),
+            Err(_) => self
+                .fallback
+                .clone()
+                .ok_or_else(|| RouteOp::NoMatchingRoute(path_without_query.to_string())),
+        }
     }
 
     /// The methods that `path` supports, for the `Allow` header of a 405.

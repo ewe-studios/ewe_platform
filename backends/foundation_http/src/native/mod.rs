@@ -3,6 +3,8 @@
 #[cfg(unix)]
 pub mod app;
 #[cfg(unix)]
+pub mod durable;
+#[cfg(unix)]
 pub mod handlers;
 pub mod reader;
 pub mod serve;
