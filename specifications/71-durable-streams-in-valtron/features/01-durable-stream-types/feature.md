@@ -85,7 +85,7 @@ pub struct ReadLimit { pub max_bytes: Option<usize>, pub max_chunks: Option<usiz
 pub struct ReadPage { pub chunks: Vec<Chunk>, pub cursor: ResumeCursor }
 pub struct ResumeCursor { pub next: StreamOffset, pub up_to_date: bool, pub closed: bool }
 
-pub enum Expiry { Ttl(core::time::Duration), Absolute(/* RFC 3339 */) }
+pub enum Expiry { Ttl(core::time::Duration), Absolute(/* UNIX millis; RFC 3339 at the adapter */) }
 pub struct StreamHead { pub content_type: ContentType, pub tail: StreamOffset,
                         pub closed: bool, pub expires: Option<Expiry> }
 pub struct CreateSpec { pub content_type: Option<ContentType>, pub expires: Option<Expiry>,

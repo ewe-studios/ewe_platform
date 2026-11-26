@@ -91,17 +91,18 @@ fn expiry_accepts_one_form() {
     let ttl = Expiry::from_headers(Some(Duration::from_secs(30)), None).expect("valid");
     assert!(matches!(ttl, Some(Expiry::Ttl(duration)) if duration == Duration::from_secs(30)));
 
-    let absolute = Expiry::from_headers(None, Some("2027-01-01T00:00:00Z")).expect("valid");
-    assert!(
-        matches!(absolute, Some(Expiry::Absolute(value)) if value.as_ref() == "2027-01-01T00:00:00Z")
-    );
+    let absolute = Expiry::from_headers(None, Some(1_800_000_000_000)).expect("valid");
+    assert!(matches!(
+        absolute,
+        Some(Expiry::Absolute(value)) if value == 1_800_000_000_000
+    ));
 
     assert!(Expiry::from_headers(None, None).expect("valid").is_none());
 }
 
 #[test]
 fn expiry_rejects_both_forms() {
-    let error = Expiry::from_headers(Some(Duration::from_secs(30)), Some("2027-01-01T00:00:00Z"))
+    let error = Expiry::from_headers(Some(Duration::from_secs(30)), Some(1_800_000_000_000))
         .expect_err("must reject");
 
     assert!(matches!(

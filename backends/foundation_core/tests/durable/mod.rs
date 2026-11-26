@@ -12,6 +12,8 @@ mod reader;
 mod scenarios;
 mod store_contract;
 mod support;
+#[cfg(not(target_arch = "wasm32"))]
+mod ttl;
 mod types;
 #[cfg(not(target_arch = "wasm32"))]
 mod valtron_reader;

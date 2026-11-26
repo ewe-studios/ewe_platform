@@ -218,7 +218,7 @@ pub struct ReadPage { pub chunks: Vec<Chunk>, pub cursor: ResumeCursor }
 
 pub enum Expiry {
     Ttl(core::time::Duration),               // sliding window
-    Absolute(/* RFC 3339 timestamp */),
+    Absolute(/* UNIX milliseconds, parsed from RFC 3339 by the adapter */),
 }
 
 pub struct StreamHead {

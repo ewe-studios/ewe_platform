@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 04 TTL sliding landed. The core takes an injected clock, stores
+  `last_access_ms` in VFS metadata, and expires on read, append, fork and head. A read slides the
+  window; `HEAD` does not. 39 tests pass.
 - 2026-11-27: feature 04 fork and soft-delete landed. Fork reads span the boundary, source
   appends stay invisible, soft-delete keeps forks readable, cascade cleans up, and fork
   creation is idempotent. 38 tests pass.
@@ -59,8 +62,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `Stream-Seq` and versioned atomic append landed. The valtron producer task, DST and oracles
   remain.
 - **04-fork-and-retention** — 🟡 in progress (3/9). Fork read stitching, idempotent creation,
-  soft-delete and cascading cleanup landed. Fork creation edge cases, sub-offset, TTL, retention,
-  valtron boundary and oracles remain.
+  soft-delete, cascading cleanup and sliding TTL landed. Fork creation edge cases, sub-offset,
+  the full TTL table, retention, valtron boundary and oracles remain.
 - **05-storage-backends** — ⏳ not started (0/6)
 - **06-http-rpc-surface** — ⏳ not started (0/10)
 - **07-durable-streams-client** — ⏳ not started (0/10)

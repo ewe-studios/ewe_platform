@@ -275,6 +275,19 @@ impl DurableStreamVfs for MemoryVfs {
         Box::pin(async move { result })
     }
 
+    fn touch(&self, name: &StreamName, now_ms: i64) -> VfsFuture<'_, ()> {
+        let mut entries = self.lock();
+        let result = match entries.get_mut(name) {
+            Some(entry) if entry.soft_deleted => Err(VfsError::Gone),
+            Some(entry) => {
+                entry.meta.last_access_ms = now_ms;
+                Ok(())
+            }
+            None => Err(VfsError::NotFound),
+        };
+        Box::pin(async move { result })
+    }
+
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()> {
         let (result, notifier) = {
             let mut entries = self.lock();

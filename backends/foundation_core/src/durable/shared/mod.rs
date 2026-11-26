@@ -15,6 +15,8 @@ pub use memory::MemoryVfs;
 use core::fmt;
 use core::future::Future;
 use core::pin::Pin;
+use foundation_compact::time::unix_millis;
+use foundation_context::{Clock, MonotonicClock};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -306,8 +308,8 @@ pub struct ReadPage {
 pub enum Expiry {
     /// A sliding time window. Each read and write resets it.
     Ttl(core::time::Duration),
-    /// An absolute RFC 3339 deadline.
-    Absolute(Box<str>),
+    /// An absolute deadline in UNIX milliseconds. The adapter parses RFC 3339.
+    Absolute(i64),
 }
 
 impl Expiry {
@@ -319,14 +321,12 @@ impl Expiry {
     /// present, or when the expiry string is empty.
     pub fn from_headers(
         ttl: Option<core::time::Duration>,
-        expires_at: Option<&str>,
+        expires_at: Option<i64>,
     ) -> Result<Option<Self>, StoreError> {
         match (ttl, expires_at) {
-            (Some(_), Some(_)) | (None, Some("")) => {
-                Err(StoreError::BadRequest(BadRequestKind::Header))
-            }
+            (Some(_), Some(_)) => Err(StoreError::BadRequest(BadRequestKind::Header)),
             (Some(ttl), None) => Ok(Some(Self::Ttl(ttl))),
-            (None, Some(at)) => Ok(Some(Self::Absolute(at.into()))),
+            (None, Some(at)) => Ok(Some(Self::Absolute(at))),
             (None, None) => Ok(None),
         }
     }
@@ -645,6 +645,8 @@ pub struct VfsMeta {
     pub writer: WriterState,
     /// The fork source, when this stream is a fork.
     pub fork: Option<ForkInfo>,
+    /// The last read or write time in UNIX milliseconds. `HEAD` does not update it.
+    pub last_access_ms: i64,
     /// The metadata version. It increments on every append and close.
     pub version: u64,
 }
@@ -781,6 +783,9 @@ pub trait DurableStreamVfs: Send + Sync {
     /// Return the entry metadata.
     fn meta(&self, name: &StreamName) -> VfsFuture<'_, VfsMeta>;
 
+    /// Refresh the sliding TTL clock.
+    fn touch(&self, name: &StreamName, now_ms: i64) -> VfsFuture<'_, ()>;
+
     /// Mark the entry closed.
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()>;
 
@@ -884,19 +889,53 @@ pub trait DurableStreamStore {
 #[derive(Clone)]
 pub struct DurableStream {
     vfs: Arc<dyn DurableStreamVfs>,
+    clock: Arc<dyn Clock>,
 }
 
 impl DurableStream {
-    /// Build a stream store over a VFS.
+    /// Build a stream store over a VFS with the real clock.
     #[must_use]
     pub fn new(vfs: Arc<dyn DurableStreamVfs>) -> Self {
-        Self { vfs }
+        Self {
+            vfs,
+            clock: Arc::new(MonotonicClock::new()),
+        }
+    }
+
+    /// Build a stream store over a VFS with an injected clock.
+    #[must_use]
+    pub fn with_clock(vfs: Arc<dyn DurableStreamVfs>, clock: Arc<dyn Clock>) -> Self {
+        Self { vfs, clock }
     }
 
     /// Return the VFS.
     #[must_use]
     pub fn vfs(&self) -> &Arc<dyn DurableStreamVfs> {
         &self.vfs
+    }
+
+    fn now_ms(&self) -> i64 {
+        unix_millis(self.clock.wall_now())
+    }
+
+    fn is_expired(meta: &VfsMeta, now: i64) -> bool {
+        match &meta.expires {
+            None => false,
+            Some(Expiry::Ttl(ttl)) => {
+                let ttl_ms = i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX);
+                now >= meta.last_access_ms.saturating_add(ttl_ms)
+            }
+            Some(Expiry::Absolute(at)) => now >= *at,
+        }
+    }
+
+    async fn expire(&self, name: &StreamName) -> StoreError {
+        match self.vfs.remove(name).await {
+            Ok(true) => StoreError::Gone,
+            Ok(false) | Err(VfsError::NotFound) => StoreError::NotFound,
+            Err(VfsError::Gone) => StoreError::Gone,
+            Err(error) => StoreError::from(error),
+        }
     }
 }
 
@@ -996,6 +1035,9 @@ impl DurableStreamStore for DurableStream {
                 return Err(StoreError::Unsupported);
             }
             let source = self.vfs.meta(&fork.source).await?;
+            if Self::is_expired(&source, self.now_ms()) {
+                return Err(self.expire(&fork.source).await);
+            }
             let at = match fork.at {
                 Some(at) => VfsOffset::from(&at).0,
                 None => source.len,
@@ -1023,6 +1065,7 @@ impl DurableStreamStore for DurableStream {
             expires,
             writer: WriterState::default(),
             fork: fork_info,
+            last_access_ms: self.now_ms(),
             version: 0,
         };
         let created = self.vfs.create(&name, meta).await?;
@@ -1040,11 +1083,11 @@ impl DurableStreamStore for DurableStream {
     }
 
     async fn head(&self, name: &StreamName) -> Result<StreamHead, StoreError> {
-        self.vfs
-            .meta(name)
-            .await
-            .map(StreamHead::from)
-            .map_err(StoreError::from)
+        let meta = self.vfs.meta(name).await?;
+        if Self::is_expired(&meta, self.now_ms()) {
+            return Err(self.expire(name).await);
+        }
+        Ok(StreamHead::from(meta))
     }
 
     async fn append(
@@ -1064,6 +1107,11 @@ impl DurableStreamStore for DurableStream {
 
         for _ in 0..MAX_APPEND_ATTEMPTS {
             let mut meta = self.vfs.meta(name).await?;
+            let now = self.now_ms();
+            if Self::is_expired(&meta, now) {
+                return Err(self.expire(name).await);
+            }
+            meta.last_access_ms = now;
             if meta.closed {
                 return Err(StoreError::Closed {
                     tail: StreamOffset::from(VfsOffset(meta.len)),
@@ -1142,6 +1190,11 @@ impl DurableStreamStore for DurableStream {
 
     async fn read(&self, name: &StreamName, req: ReadRequest) -> Result<ReadPage, StoreError> {
         let meta = self.vfs.meta(name).await?;
+        let now = self.now_ms();
+        if Self::is_expired(&meta, now) {
+            return Err(self.expire(name).await);
+        }
+        self.vfs.touch(name, now).await?;
         let start = match req.from {
             ReadFrom::Start => VfsOffset(0),
             ReadFrom::Offset(ref offset) => VfsOffset::from(offset),
@@ -1171,6 +1224,9 @@ impl DurableStreamStore for DurableStream {
         req: CloseRequest,
     ) -> Result<AppendOutcome, StoreError> {
         let before = self.vfs.meta(name).await?;
+        if Self::is_expired(&before, self.now_ms()) {
+            return Err(self.expire(name).await);
+        }
         if let Some(chunk) = req.final_chunk {
             self.vfs.append(name, chunk.as_bytes()).await?;
         }
