@@ -232,3 +232,57 @@ proptest! {
         prop_assert_eq!(read_back, expected);
     }
 }
+
+proptest! {
+    #[test]
+    fn stream_seq_accepts_increasing_values_only(
+        values in prop::collection::vec(1_u64..1_000, 1..10),
+    ) {
+        smol::block_on(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new())),
+            );
+            let stream = streams.stream(StreamName::parse("seq/property").expect("name"));
+            stream.create(CreateSpec::default()).await.expect("create");
+
+            // `StreamSeq` orders by bytes, so the values are zero padded.
+            let mut increasing: Vec<String> =
+                values.iter().map(|value| format!("{value:04}")).collect();
+            increasing.sort_unstable();
+            increasing.dedup();
+            for value in &increasing {
+                stream
+                    .append(AppendRequest {
+                        chunk: Chunk::new(b"x".to_vec()),
+                        content_type: None,
+                        stream_seq: Some(foundation_core::durable::StreamSeq::from_bytes(
+                            value.clone().into_bytes(),
+                        )),
+                        producer: None,
+                        close: false,
+                    })
+                    .await
+                    .expect("increasing sequence");
+            }
+
+            if let Some(last) = increasing.last() {
+                let error = stream
+                    .append(AppendRequest {
+                        chunk: Chunk::new(b"x".to_vec()),
+                        content_type: None,
+                        stream_seq: Some(foundation_core::durable::StreamSeq::from_bytes(
+                            last.clone().into_bytes(),
+                        )),
+                        producer: None,
+                        close: false,
+                    })
+                    .await
+                    .expect_err("regression");
+                assert!(matches!(
+                    error,
+                    foundation_core::durable::StoreError::StreamSeqConflict { .. }
+                ));
+            }
+        });
+    }
+}

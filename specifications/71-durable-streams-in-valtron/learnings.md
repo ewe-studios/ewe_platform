@@ -278,3 +278,9 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **A text stream read returns one chunk.** The byte log does not keep per-append boundaries.
   Only a JSON stream returns one chunk per message. An oracle that counts chunks on a text
   stream is wrong.
+
+## Stream-Seq ordering (2026-11-27)
+
+- **`StreamSeq` compares bytes.** A producer that uses decimal numbers must zero-pad them
+  (`0009` before `0010`). Plain `9` sorts after `10`, so the store refuses `10`. The property
+  test uses four-digit values and pins the rule.
