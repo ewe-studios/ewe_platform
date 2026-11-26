@@ -66,8 +66,22 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   VFS changes. `Ctx` holds `Arc<DurableStream>`.
 - **Each VFS lives in its native crate.** The memory VFS uses `foundation_core`. The file VFS
   uses `foundation_nativeapis`, so it can use native file I/O and LMDB. R2/S3 uses
-  `foundation_db`. DO SQLite and D1 use their spec 83 crates. The VFS uses the full capability
-  of its environment.
+  `foundation_nativeapis` too. DO SQLite and D1 use their spec 83 crates. The VFS uses the full
+  capability of its environment.
+
+## Rivet object storage (2026-11-27)
+
+- **Current Rivet open source has no S3/R2 cold tier.** It moved to Enterprise. The last
+  open-source implementation is commit `d51993c0`.
+- **Rivet's cold tier is an archive, not a VFS.** It writes one about 256 KiB object per shard.
+  Keys are deterministic. It sends one PUT per activity. It reads the full object. A
+  transactional database (FoundationDB) is the publication and fencing authority.
+- **Rivet has no S3 CAS, multipart, range GET or local spool.** Our VFS adds them because it has
+  no database authority in the publication path.
+- **Borrow:** deterministic keys, publish-after-PUT, post-read revalidation, hot-first read,
+  background cache fill, object lifecycle with a grace window and about 256 KiB objects.
+- **Avoid:** unchecked per-key `DeleteObjects` errors, no fsync in the filesystem tier, and
+  implicit R2 configuration. Configure R2 region `auto`, path-style and CRC32.
 - **HTTP is one surface, not the server.** The core is runtime-neutral. The same core runs in a
   local embedded process, a DO, a Worker, a WebSocket server and the `foundation_ai` Session.
   Tests prove each target. A socket, a global runtime or an HTTP type in the core is a defect.

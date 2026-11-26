@@ -68,8 +68,37 @@ durable and safe for several writers.
 15. **Tests.** Each VFS runs the shared conformance scenarios and its own coverage tests. S3 and
     R2 run the same scenarios. Crash, CAS race, orphan and compaction tests are required.
 16. **No runtime leak.** The VFS has no HTTP server, valtron or global runtime.
+17. **Publish after PUT.** The head manifest is the authority. A reader revalidates the head
+    after a GET. A missing object for a live head is an error, never zero bytes.
+18. **Object lifecycle.** Each object is `Live`, `Retired`, `DeleteIssued` or `Deleted`. A grace
+    window separates retire from delete. Never delete a live or retired object.
+19. **Provider specifics.** R2 uses region `auto`, path-style addressing when needed and CRC32
+    checksums. The provider capability record states conditional write support. Check every
+    `DeleteObjects` per-key result.
 
-## 3. Design
+## 3. Lessons from Rivet
+
+Rivet's last open-source S3 cold tier (commit `d51993c0`) is the reference. Current Rivet removed
+it from open source. These are the lessons for feature 09:
+
+| Lesson | Rivet | Feature 09 |
+|---|---|---|
+| Object identity | Immutable key with shard, version and content hash | Immutable segment key with stream, generation, sequence and content hash |
+| Publication | Head/CAS record is the authority; publish after PUT | Head CAS is the authority; publish after PUT |
+| Object size | About 256 KiB per shard object | Target 256 KiB per segment; one PUT per batch |
+| Read path | Hot first, cold fallback; revalidate the ref; missing object is an error | Head first, range GET; revalidate the head; missing object is an error |
+| Cache | Background shard cache fill, deduplicated | Background segment cache fill, deduplicated |
+| Lifecycle | Live, retired, delete-issued, deleted; grace window | Same state machine and grace window |
+| Delete errors | Per-key `DeleteObjects` errors are not checked | Check every per-key error |
+| Multi-writer | Serializable database transaction; no S3 CAS | No database in the VFS, so use S3/R2 conditional writes and a lease fallback |
+| Local spool | None; Rivet forbids local SQLite files | Add a local spool for immediate writes and batching |
+| Multipart and range | None; full-object PUT and GET | Add multipart PUT and range GET |
+| R2 | S3-compatible endpoint only | Explicit region `auto`, path-style, CRC32 and capability probe |
+
+The key difference: Rivet has a transactional database in the publication path. We do not. We
+must add the CAS and lease that Rivet does not need.
+
+## 4. Design
 
 ```rust
 pub trait ObjectStore: Send + Sync {
@@ -103,7 +132,7 @@ The read path:
 4. Cache the head and hot segments.
 5. Return a bounded page.
 
-## 4. Tasks
+## 5. Tasks
 
 - [ ] **T1 — `ObjectStore` trait.** S3 and R2 clients. Capability record. Tests:
       `s3_and_r2_share_the_contract`.
@@ -129,8 +158,17 @@ The read path:
       Test: `s3_and_r2_agree`.
 - [ ] **T12 — performance.** Measure batch latency, PUT count and throughput. Record the
       defaults and the result.
+- [ ] **T13 — publish revalidation and cache fill.** Revalidate the head after a GET. Fill the
+      segment cache in the background and deduplicate fills. Tests:
+      `missing_object_is_an_error`, `cache_fill_is_deduplicated`.
+- [ ] **T14 — object lifecycle.** Live, retired, delete-issued and deleted. Grace window. Tests:
+      `never_delete_a_live_object`, `retired_object_waits_for_grace`.
+- [ ] **T15 — R2 provider.** Region `auto`, path-style, CRC32 and capability probe. Tests:
+      `r2_uses_auto_region`, `r2_reports_conditional_write_support`.
+- [ ] **T16 — delete results.** Check every `DeleteObjects` per-key error. Test:
+      `partial_delete_error_is_reported`.
 
-## 5. Success criteria
+## 6. Success criteria
 
 - [ ] `cargo test -p foundation_nativeapis` green.
 - [ ] The S3 and R2 VFS pass the shared conformance and coverage suites.
@@ -138,4 +176,7 @@ The read path:
 - [ ] Two writers never lose a batch; one CAS wins and one retries.
 - [ ] One batch sends one object PUT (or one multipart upload).
 - [ ] Reads use range GETs and never materialise a whole stream.
+- [ ] A reader revalidates the head after a GET; a missing object is an error.
+- [ ] The object lifecycle never deletes a live or retired object.
+- [ ] R2 uses region `auto`, path-style and CRC32; every delete error is checked.
 - [ ] The VFS has no HTTP server, valtron or global runtime.

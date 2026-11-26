@@ -2,6 +2,10 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 09 designed from the Rivet study. The S3/R2 VFS uses immutable segment
+  keys, a local spool, one PUT per batch, conditional-write CAS, publish-after-PUT, read
+  revalidation, a lifecycle with a grace window, and explicit R2 settings. No feature started
+  yet (0/16).
 - 2026-11-27: storage design settled. `DurableStream` is a struct over a boxed
   `DurableStreamVfs`. The memory VFS lives in `foundation_core`. The file VFS lives in
   `foundation_nativeapis`. `Ctx` holds `Arc<DurableStream>`; swapping storage changes one
@@ -38,7 +42,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **06-http-rpc-surface** — ⏳ not started (0/10)
 - **07-durable-streams-client** — ⏳ not started (0/10)
 - **08-conformance** — ⏳ not started (0/7)
-- **09-s3-r2-vfs** — ⏳ not started (0/N)
+- **09-s3-r2-vfs** — ⏳ not started (0/16)
 
 ## Next steps
 
