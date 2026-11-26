@@ -650,10 +650,12 @@ impl DoControlPlane {
    `alarm.set(deadline)`. A streaming response holds a guard; while a guard exists, a timer
    task calls `touch()` every `idle_timeout / 2`.
 3. Route the request to `ControlService` (feature 06) through a
-   `foundation_connectrpc` `Router`. `HttpRequestParts` and `HttpResponseParts` are the
-   request and response types that `foundation_http::wasm` uses for a Worker
-   (`examples/cf-agent-loop/src/lib.rs` shows the wiring); on a native host the tests call
-   the router through the pipe connection types.
+   `foundation_connectrpc` `Router`. The request type is `SimpleIncomingRequest`. The
+   handler writes through `ConnectRpcHandler::dispatch_to` to a `ResponseSink`, never
+   through `dispatch`: `dispatch` collects a stream, so an `Exec` would answer only at its
+   end. For a Worker the sink is the `ConnectSink` of `foundation_connectrpc::wasm`, whose
+   frames become the `ReadableStream` of the response. The native tests use a sink that
+   counts frames, so a test asserts that the first frame arrives before the producer ends.
 
 The manager's `boot_timeout` is `CloudflareConfig.boot_timeout`, not the value of
 `SandboxLimits`.
@@ -758,6 +760,7 @@ one test.
 | I3, "The slave is reached with port fetches" | `calls_are_port_fetches`; the shared acceptance scenarios with a real slave process behind the fake container's port (`FakeContainer` forwards `fetch` to a UDS HTTP client; Linux only) | example, identity |
 | I4, the two readiness scenarios | `not_listening_retries`, `other_error_times_out`, `not_listening_text_match` | expected outcome |
 | I5, the fault table of section 6.9 | `create_fault_matrix` | fault |
+| sections 6.6 and 6.9, streaming | `exec_streams_in_do` (a sink counts frames; the first frame arrives while the command still runs) | bound |
 | I1, "One DO holds one sandbox" | `one_sandbox_per_do` | expected outcome |
 | I10, "A wrong image name ..." | `driver_rejects` (image name, mounts, `ReadOnly`), `driver_ignores_cpu_and_memory` | expected outcome |
 | I7, the two restart scenarios | `restore_live`, `restore_dead_container`, `restore_unprepared_slave`, `restore_creating_record` | expected outcome |
@@ -788,8 +791,8 @@ one test.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "testing slave" --profile uat cloudflare control_sim
+cargo clippy -p foundation_sandbox --features "testing cloudflare" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "testing slave cloudflare" --profile uat cloudflare control_sim
 cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --profile uat
 cargo check -p foundation_sandbox --no-default-features --features "control cloudflare" --target wasm32-unknown-unknown --profile uat
 ```
@@ -800,6 +803,7 @@ cargo check -p foundation_sandbox --no-default-features --features "control clou
 - The `cloudflare` feature compiles for native and for wasm32. The shared part runs on both,
   so the same API serves both targets.
 - Only `src/cloudflare/` names a `worker` type.
+- An `Exec` through the DO sends its first frame before the command ends (issue #885).
 - A restarted DO control plane finds its sandbox again (invariant I7).
 - A `ContainerHandle` starts, talks to, runs commands in, and stops a container with no
   sandbox record.
