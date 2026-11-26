@@ -10,33 +10,29 @@ description = "Per-machine agent RPC model server: load a model once, serve name
 keywords = ["agent", "rpc", "connectrpc", "grpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.
-foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, optional = true }
 # Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
 # SQLite default (`TrustedClientStore::open_sqlite`).
-foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, optional = true }
 # The side-effect bundle (`Ctx`) the trusted-client store needs: clocks, entropy
 # and the connection gate. The host builds it; callers pass it in.
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19" }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["rpc"] }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
-foundation_http = { path = "../foundation_http", version = "0.0.17", features = ["multi", "ssl"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.19", features = ["ssl", "multi"] }
+foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, optional = true }
 # Entropy for bootstrap secrets (the cross-platform substrate).
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # Client auth: the certificate authority, the trust store and the mutual-TLS
 # (mTLS) verifier and configuration builders (spec 87).
-foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
-# Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
-ring = "0.17"
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["secret"] }
 base64 = "0.22"
 zeroize = { workspace = true }
-# Bootstrap payload as a QR code (terminal + SVG renderers; no image codecs).
-qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 derive_more = { version = "2.1", features = ["display", "error"] }
 # Runtime for the buffa-generated message types (same version connectrpc uses).
 buffa = { version = "0.9.2", features = ["json"] }
@@ -54,6 +50,24 @@ sha2 = { workspace = true }
 async-trait = { workspace = true }
 # Bootstrap payload URL checks (spec 83 feature 03).
 url = { workspace = true }
+
+# Native-only: the operator key signatures (ring) and the QR payload.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+# Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
+ring = "0.17"
+# Bootstrap payload as a QR code (terminal + SVG renderers; no image codecs).
+qrcode = { version = "0.14", default-features = false, features = ["svg"] }
+
+# The Worker and the browser. Both are wasm32 only.
+[target.'cfg(target_family = "wasm")'.dependencies]
+worker = { version = "0.8.3", optional = true, default-features = false }
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+js-sys = { workspace = true }
+web-sys = { workspace = true, features = [
+    "Headers", "MessageEvent", "Request", "RequestInit", "Response", "ResponseInit",
+    "ReadableStream", "ReadableStreamDefaultReader", "Window",
+] }
 
 [build-dependencies]
 # Message types from proto/ (buffa-build, needs `protoc`) + ConnectRPC service
@@ -78,70 +92,170 @@ tempfile = "3"
 ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"] }
 
 [features]
-default = ["candle"]
+default = ["candle", "multi"]
+# The thread pool and the native host: the valtron multi-threaded executor,
+# the SQLite trust store, and the threaded RPC transport. A deterministic
+# simulation build leaves this off (hosts.md section 3).
+multi = [
+  "foundation_core/multi",
+  "dep:foundation_ai",
+  "foundation_ai/multi",
+  "dep:foundation_db",
+  "foundation_db/turso",
+  "foundation_connectrpc/rpc_multi",
+  "dep:foundation_http",
+  "foundation_http/netio-defaults",
+  "foundation_http/ssl",
+  "dep:foundation_netio",
+  "foundation_netio/multi",
+  "foundation_netio/standard",
+  "foundation_netio/std",
+  "foundation_netio/compression",
+  "foundation_netio/wire-native",
+  "foundation_netio/ssl",
+  "foundation_auth/mtls",
+  "foundation_auth/turso",
+]
 # Candle (pure-Rust) local inference backend.
-candle = ["foundation_ai/candle"]
+candle = ["multi", "foundation_ai/candle"]
 # GGUF via llama.cpp (needs the vendored llama.cpp sources to build).
-gguf = ["foundation_ai/llamacpp"]
+gguf = ["multi", "foundation_ai/llamacpp"]
+# The Cloudflare Worker host and the instance Durable Object. wasm32 only.
+# It never enables `multi`: a wasm target has no threads (hosts.md section 3).
+worker = [
+  "dep:worker",
+  "dep:foundation_ai",
+  "dep:foundation_db",
+  "dep:foundation_netio",
+  "dep:foundation_http",
+  "foundation_core/js-wasmbindgen",
+  "foundation_connectrpc/wasm-fetch",
+  "foundation_netio/wasm-fetch",
+  "foundation_netio/cloudflare",
+  "foundation_http/wasm-bindgen-http",
+  "foundation_db/wasm-bindgen-storage",
+  "foundation_db/workers-rs",
+  "foundation_auth/wasm",
+]
+# The browser client. wasm32 only.
+web-client = [
+  "dep:foundation_ai",
+  "foundation_core/js-wasmbindgen",
+  "foundation_netio/wasm-fetch",
+  "foundation_auth/wasm",
+]
 # Fakes for tests. Never in a release build.
-testing = ["foundation_ai/testing"]
+testing = ["multi", "foundation_ai/testing"]
 
 [[test]]
 name = "model_share_tests"
 path = "tests/model_share_tests.rs"
-required-features = ["candle"]
+required-features = ["candle", "multi"]
 
 [[test]]
 name = "gguf_share_tests"
 path = "tests/gguf_share_tests.rs"
-required-features = ["gguf"]
+required-features = ["gguf", "multi"]
 
 [[test]]
 name = "instance_tests"
 path = "tests/instance_tests.rs"
-required-features = ["candle"]
+required-features = ["candle", "multi"]
 
 [[test]]
 name = "service_tests"
 path = "tests/service_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "connect_unary_tests"
 path = "tests/connect_unary_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "connect_stream_tests"
 path = "tests/connect_stream_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "auth_tests"
 path = "tests/auth_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "auth_log_tests"
 path = "tests/auth_log_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "secret_tests"
 path = "tests/secret_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "trust_tests"
 path = "tests/trust_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "bootstrap_tests"
 path = "tests/bootstrap_tests.rs"
+required-features = ["multi"]
 
 [[test]]
 name = "rpc_e2e_tests"
 path = "tests/rpc_e2e_tests.rs"
-required-features = ["candle"]
+required-features = ["candle", "multi"]
 
 [[test]]
 name = "model_handle_tests"
 path = "tests/model_handle_tests.rs"
-required-features = ["candle"]
+required-features = ["candle", "multi"]
+
+[[test]]
+name = "native_config_tests"
+path = "tests/native_config_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "native_e2e_tests"
+path = "tests/native_e2e_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "native_revocation_tests"
+path = "tests/native_revocation_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "native_shutdown_tests"
+path = "tests/native_shutdown_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "native_catalog_tests"
+path = "tests/native_catalog_tests.rs"
+required-features = ["candle", "multi"]
+
+[[test]]
+name = "native_access_secret_tests"
+path = "tests/native_access_secret_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "handler_tests"
+path = "tests/handler_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "model_catalog_tests"
+path = "tests/model_catalog_tests.rs"
+required-features = ["multi"]
+
+[[test]]
+name = "registry_contract_tests"
+path = "tests/registry_contract_tests.rs"
+required-features = ["multi"]
 
 # The history archive (spec 83 feature 05, T26).
 [[test]]

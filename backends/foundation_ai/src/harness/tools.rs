@@ -26,6 +26,7 @@ use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
 use crate::agentic::memory::MemoryHierarchy;
 use crate::agentic::memory_store::MemoryStore;
 use crate::agentic::tool_impl::{ToolCallManager, ToolImpl};
+#[cfg(feature = "multi")]
 use crate::agentic::tools::agent::{AgentTool, SessionStoreFactory};
 use crate::agentic::tools::files::{BashTool, EditTool, ReadTool, WriteTool};
 use crate::agentic::tools::memory::MemoryTool;
@@ -187,6 +188,7 @@ impl ToolPreset {
     /// output. `D` / `M` are the sub-agents' store types, default-constructed
     /// for each sub-agent; for stores that open a database use
     /// [`agent_with_stores`](Self::agent_with_stores).
+    #[cfg(feature = "multi")]
     #[must_use]
     pub fn agent<D, M>(
         router: ProviderRouter,
@@ -216,6 +218,7 @@ impl ToolPreset {
 
     /// Agent tool whose sub-agents get their stores from `stores` (see
     /// [`SessionStoreFactory`]): the form for stores that open a database.
+    #[cfg(feature = "multi")]
     #[must_use]
     #[allow(clippy::too_many_arguments)]
     pub fn agent_with_stores<D, M>(

@@ -22,4 +22,5 @@ pub mod enroll;
 pub mod model;
 pub mod registry;
 pub mod service;
+#[cfg(feature = "multi")]
 pub mod turn;

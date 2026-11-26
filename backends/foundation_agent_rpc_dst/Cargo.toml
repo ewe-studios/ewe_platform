@@ -1,0 +1,39 @@
+[package]
+name = "foundation_agent_rpc_dst"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+# `tests/mod.rs` is the only test target; do not also build each test file.
+autotests = false
+description = "Deterministic simulation tests for the agent RPC proof of concept"
+
+[dependencies]
+# The core only: no thread pool, no TLS, no SQLite.
+foundation_agent_rpc = { path = "../foundation_agent_rpc", version = "0.0.4", default-features = false }
+# The simulation runtime (`SimRuntime`) and the single-threaded engine.
+foundation_core = { path = "../foundation_core", version = "0.0.23", default-features = false, features = ["testing"] }
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+# In-memory network and transport.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["rpc", "testing"] }
+# Fault-injecting storage wrappers and the in-memory stores.
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["testing"] }
+# Signed secrets, the trust store and the bearer-secret provider.
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["secret", "mtls"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "compression", "wire-native"] }
+# A deterministic Ed25519 client key for the enrollment test.
+ed25519-compact = { version = "2.3", default-features = false, features = ["std"] }
+futures = "0.3"
+
+
+[[test]]
+name = "dst"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

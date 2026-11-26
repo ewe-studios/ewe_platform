@@ -79,6 +79,8 @@ futures-lite = "2"
 
 [features]
 default = ["rpc_multi"]
+# The in-memory network and transport for deterministic simulation tests.
+testing = []
 # `rpc` is the full single-threaded library surface: every codec, auth, and all
 # compressors. Consumers pick `rpc` (single-threaded) or `rpc_multi` (adds the
 # multi-threaded valtron executor); `default-features = false` + `rpc` keeps a
