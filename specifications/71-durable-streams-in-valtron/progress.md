@@ -2,23 +2,39 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: spec restructured to version 2.0. The protocol core moves to
+  `foundation_core::durable` and has no valtron dependency. The HTTP and ConnectRPC adapters
+  call `DurableService`. The valtron reader, writer and producer task move to
+  `foundation_core::valtron::durable` as an optional wrapper. Added feature 07 (Rust client) and
+  feature 08 (conformance). Server and client conformance are a hard gate. No feature started
+  yet (0/8).
+- 2026-11-27: spec amended after the protocol review. Added `Stream-Seq` to the contract, the
+  core types, the producer, the HTTP surface and the tests. Recorded the async store trait and
+  `DurableStream` enum injection decision. Added the structured `StoreError` and the HTTP status
+  mapping. Recorded conformance as a hard gate for both server and client.
 - 2026-10-30: spec written. The Durable Streams research note
-  (`specifications/research/edge-data/durable-streams.md`) is the input; the six features turn it
-  into `foundation_core::valtron::durable`. No feature started yet (0/6).
+  (`specifications/research/edge-data/durable-streams.md`) is the input; the features turn it into
+  `foundation_core::durable` and the optional valtron layer. No feature started yet.
 
 ## Feature status
 
-- **01-durable-stream-types** — ⏳ not started (0/N)
-- **02-resumable-reader** — ⏳ not started (0/N)
-- **03-idempotent-producer** — ⏳ not started (0/N)
-- **04-fork-and-retention** — ⏳ not started (0/N)
-- **05-storage-backends** — ⏳ not started (0/N)
-- **06-http-rpc-surface** — ⏳ not started (0/N)
+- **01-durable-stream-types** — ⏳ not started (0/5)
+- **02-resumable-reader** — ⏳ not started (0/9)
+- **03-idempotent-producer** — ⏳ not started (0/7)
+- **04-fork-and-retention** — ⏳ not started (0/8)
+- **05-storage-backends** — ⏳ not started (0/6)
+- **06-http-rpc-surface** — ⏳ not started (0/10)
+- **07-durable-streams-client** — ⏳ not started (0/10)
+- **08-conformance** — ⏳ not started (0/7)
 
 ## Next steps
 
-1. Feature 01 (durable stream types) first, then 02 and 03 in parallel, then 04, then 05 and 06.
-2. Wire `foundation_log` (issue #155) and spec 83 `01-agent-rpc` / `05-cloudflare` to consume the
-   primitive once 01–03 land.
+1. Feature 01 (core types and store trait) first.
+2. Then 02 and 03 in parallel. Add 04, 05 and 06.
+3. Run the conformance spike after 01 and the first HTTP adapter slice.
+4. Add feature 07 (client). Then feature 08 (conformance gate).
+5. Add the valtron wrapper tests after the core passes conformance.
+6. Wire `foundation_log` (issue #155) and spec 83 `01-agent-rpc` / `05-cloudflare` to consume the
+   core once 01–03 land.
 
 _Created: 2026-10-30_
