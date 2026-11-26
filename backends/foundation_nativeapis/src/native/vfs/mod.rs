@@ -10,6 +10,8 @@ pub mod search;
 #[cfg(feature = "vfs-native")]
 pub mod dir_delta;
 #[cfg(feature = "vfs-native")]
+pub mod durable_file;
+#[cfg(feature = "vfs-native")]
 pub mod native_fs;
 
 #[cfg(all(feature = "vfs-native", target_os = "linux", feature = "vfs-fuse"))]

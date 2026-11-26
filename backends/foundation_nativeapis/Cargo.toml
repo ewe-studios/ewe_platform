@@ -189,6 +189,11 @@ path = "tests/dir_delta_vfs/mod.rs"
 required-features = ["vfs-native"]
 
 [[test]]
+name = "durable_file_vfs"
+path = "tests/durable_file_vfs/mod.rs"
+required-features = ["vfs-native"]
+
+[[test]]
 name = "observable_vfs"
 path = "tests/observable_vfs/mod.rs"
 required-features = ["vfs"]
