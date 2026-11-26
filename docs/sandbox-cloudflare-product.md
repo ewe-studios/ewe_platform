@@ -129,9 +129,9 @@ The answer is a stream of envelopes. This example shows the payload of each enve
 order. The first byte is the flag, and the next four bytes are the length:
 
 ```text
-flags 00  length 0000001e  {"seq":0,"event":{"Started":{"pid":7}}}
-flags 00  length 00000021  {"seq":1,"event":{"Stdout":{"data":"aGVsbG8K"}}}
-flags 00  length 00000021  {"seq":2,"event":{"Exit":{"code":0,"signal":null}}}
+flags 00  length 00000027  {"seq":0,"event":{"Started":{"pid":7}}}
+flags 00  length 00000030  {"seq":1,"event":{"Stdout":{"data":"aGVsbG8K"}}}
+flags 00  length 00000033  {"seq":2,"event":{"Exit":{"code":0,"signal":null}}}
 flags 02  length 00000002  {}
 ```
 
