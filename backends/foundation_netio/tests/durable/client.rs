@@ -354,3 +354,42 @@ fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes(
         assert!(result.closed);
     });
 }
+
+#[test]
+fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_read() {
+    smol::block_on(async {
+        let transport = MockTransport::with(Vec::new());
+        transport.events.lock().expect("events").push(Ok(SseEvent {
+            event_type: None,
+            data: r#"{"streamNextOffset":"00aa","upToDate":true}"#.to_string(),
+        }));
+        let result = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .send()
+            .await
+            .expect("sse");
+
+        assert!(result.chunks.is_empty());
+        assert_eq!(result.next_offset.as_deref(), Some("00aa"));
+    });
+}
+
+#[test]
+fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
+    smol::block_on(async {
+        let transport = MockTransport::with(Vec::new());
+        transport.events.lock().expect("events").extend([
+            sse("data", ""),
+            sse("control", r#"{"streamNextOffset":"00bb","upToDate":true}"#),
+        ]);
+        let result = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .send()
+            .await
+            .expect("sse");
+
+        assert!(result.chunks.is_empty());
+    });
+}

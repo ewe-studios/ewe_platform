@@ -546,6 +546,10 @@ impl ReadBuilder {
             let event = item?;
             match event.event_type.as_deref() {
                 Some("data") => {
+                    // An empty data event carries no message.
+                    if event.data.is_empty() {
+                        continue;
+                    }
                     let data = if self.sse_binary {
                         base64::Engine::decode(
                             &base64::engine::general_purpose::STANDARD,
@@ -557,7 +561,7 @@ impl ReadBuilder {
                     };
                     result.chunks.push(ReadChunk { data });
                 }
-                Some("control") => {
+                Some("control") | None => {
                     if let Ok(value) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         result.next_offset =
                             value["streamNextOffset"].as_str().map(str::to_string);
