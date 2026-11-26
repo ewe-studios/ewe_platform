@@ -442,7 +442,8 @@ long-poll fallback.
   `Producer-Seq`.
 - Same epoch, `seq == last_seq + 1` returns `AppendKind::Created`.
 - `seq > last_seq + 1` returns `SequenceGap { expected, received }`.
-- Validate and append under one lock per `(stream, producer_id)`.
+- Validate and append atomically. Use a per-`(stream, producer_id)` lock or a versioned
+  compare-and-swap. A stale version retries.
 - Commit producer state with the append where the backend can. Otherwise document the false
   `SequenceGap` recovery.
 - Producer state TTL is 7 days in memory. Persistent stores retain it with the data.
@@ -530,6 +531,9 @@ pub trait DurableStreamVfs: Send + Sync {
 
 pub type VfsFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, VfsError>> + Send + 'a>>;
 ```
+
+`VfsMeta` has content type, length, closed, expiry, writer state and a version. The version
+guards atomic append. A stale version retries.
 
 The VFS owns bytes, metadata and the append notifier. `DurableStream` owns the protocol state:
 producer, `Stream-Seq`, TTL access time, fork edges and soft-delete. It stores that state through

@@ -34,10 +34,12 @@ writer and producer `#[task]`.
    highest accepted `Producer-Seq`. A retry writes nothing.
 7. **Next sequence.** Same epoch and `seq == last_seq + 1` returns `AppendKind::Created`.
 8. **Gap.** `seq > last_seq + 1` returns `SequenceGap { expected, received }`.
-9. **Serialization.** Validate and append under one lock per `(stream, producer_id)`.
-10. **Atomicity.** Commit producer state with the append where the backend can. Otherwise the
-    failure mode is a false `SequenceGap`, not a duplicate. A failed append does not advance
-    producer state. A gap can be filled after the earlier sequence arrives.
+9. **Serialization.** Validate and append atomically. Use a per-`(stream, producer_id)` lock or a
+   versioned compare-and-swap. A stale version retries.
+10. **Atomicity.** Commit producer state with the append where the backend can. The VFS
+    `append_with_meta` commits the writer state and the bytes together. Otherwise the failure
+    mode is a false `SequenceGap`, not a duplicate. A failed append does not advance producer
+    state. A gap can be filled after the earlier sequence arrives.
 11. **State lifetime.** Producer state TTL is 7 days in memory. Persistent stores retain it with
     the data. A fork does not inherit producer state.
 12. **Close.** A duplicate of the closing tuple returns `Duplicate` with `closed`. A close-only
@@ -88,15 +90,15 @@ fn producer_step(ctx: Ctx, state: ProducerState)
 
 ## 4. Tasks
 
-- [ ] **T1 — core writer.** `append`, `append_as` and `close`. Test: append returns a cursor and
+- [x] **T1 — core writer.** `append`, `append_as` and `close`. Test: append returns a cursor and
       a closed stream rejects an append with `Closed { tail }`.
-- [ ] **T2 — producer ladder.** Header validation, epoch fencing, epoch change, dedup, next
+- [x] **T2 — producer ladder.** Header validation, epoch fencing, epoch change, dedup, next
       sequence and gap. Tests: `retried_seq_is_deduplicated`, `stale_epoch_is_fenced`,
       `new_epoch_requires_seq_zero`, `sequence_gap_is_typed`.
-- [ ] **T3 — serialization and atomicity.** Per-producer lock and commit order. Tests:
+- [x] **T3 — serialization and atomicity.** Versioned append and commit order. Tests:
       `concurrent_batches_are_ordered`, `failed_append_does_not_advance_state`,
       `gap_can_be_filled`.
-- [ ] **T4 — `Stream-Seq`.** Lexicographic comparison, per-stream state and producer-first order.
+- [x] **T4 — `Stream-Seq`.** Lexicographic comparison, per-stream state and producer-first order.
       Tests: `stream_seq_regression_is_conflict`, `stream_seq_skips_are_accepted`,
       `producer_retry_precedes_stream_seq`, `fork_does_not_inherit_stream_seq`.
 - [ ] **T5 — valtron producer.** The `#[task]` state machine. Test:

@@ -15,6 +15,7 @@ pub use memory::MemoryVfs;
 use core::fmt;
 use core::future::Future;
 use core::pin::Pin;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 /// An opaque, byte-lexicographically ordered position in a stream.
@@ -602,6 +603,24 @@ pub type NotifierRef = Arc<dyn Notifier>;
 /// A boxed VFS operation.
 pub type VfsFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, VfsError>> + Send + 'a>>;
 
+/// The producer position for one epoch.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ProducerEpochState {
+    /// The accepted epoch.
+    pub epoch: u64,
+    /// The highest accepted sequence in that epoch.
+    pub last_seq: u64,
+}
+
+/// The writer state that must persist with a stream.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct WriterState {
+    /// The last accepted `Stream-Seq`.
+    pub stream_seq: Option<StreamSeq>,
+    /// The producer state per producer identifier.
+    pub producers: BTreeMap<ProducerId, ProducerEpochState>,
+}
+
 /// The metadata the VFS stores for one stream.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VfsMeta {
@@ -613,6 +632,10 @@ pub struct VfsMeta {
     pub closed: bool,
     /// The stream expiry.
     pub expires: Option<Expiry>,
+    /// The producer and `Stream-Seq` state.
+    pub writer: WriterState,
+    /// The metadata version. It increments on every append and close.
+    pub version: u64,
 }
 
 /// A byte position in the VFS.
@@ -724,6 +747,18 @@ pub trait DurableStreamVfs: Send + Sync {
 
     /// Append bytes and return the new length.
     fn append(&self, name: &StreamName, bytes: &[u8]) -> VfsFuture<'_, VfsOffset>;
+
+    /// Append bytes and store the new metadata in one step.
+    ///
+    /// The VFS updates `meta.len` to the new length. The writer state in `meta` is committed
+    /// with the bytes.
+    fn append_with_meta(
+        &self,
+        name: &StreamName,
+        bytes: &[u8],
+        meta: VfsMeta,
+        expected_version: u64,
+    ) -> VfsFuture<'_, VfsOffset>;
 
     /// Read up to `limit` bytes at an offset.
     fn read_at(&self, name: &StreamName, at: &VfsOffset, limit: usize) -> VfsFuture<'_, Vec<u8>>;
@@ -862,6 +897,71 @@ impl DurableDriver for DurableStream {
     }
 }
 
+#[derive(Debug)]
+struct ContentionError;
+
+impl fmt::Display for ContentionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("append contention retry limit reached")
+    }
+}
+
+impl core::error::Error for ContentionError {}
+
+enum ProducerDecision {
+    Accept(ProducerEpochState),
+    Duplicate(u64),
+}
+
+fn validate_producer(
+    writer: &WriterState,
+    producer: &Producer,
+) -> Result<ProducerDecision, StoreError> {
+    match writer.producers.get(&producer.id) {
+        None => {
+            if producer.seq != 0 {
+                return Err(StoreError::SequenceGap {
+                    expected: 0,
+                    received: producer.seq,
+                });
+            }
+            Ok(ProducerDecision::Accept(ProducerEpochState {
+                epoch: producer.epoch,
+                last_seq: 0,
+            }))
+        }
+        Some(state) => {
+            if producer.epoch < state.epoch {
+                return Err(StoreError::Fenced {
+                    current_epoch: state.epoch,
+                });
+            }
+            if producer.epoch > state.epoch {
+                if producer.seq != 0 {
+                    return Err(StoreError::InvalidEpochSeq { seq: producer.seq });
+                }
+                return Ok(ProducerDecision::Accept(ProducerEpochState {
+                    epoch: producer.epoch,
+                    last_seq: 0,
+                }));
+            }
+            if producer.seq <= state.last_seq {
+                return Ok(ProducerDecision::Duplicate(state.last_seq));
+            }
+            if producer.seq == state.last_seq + 1 {
+                return Ok(ProducerDecision::Accept(ProducerEpochState {
+                    epoch: producer.epoch,
+                    last_seq: producer.seq,
+                }));
+            }
+            Err(StoreError::SequenceGap {
+                expected: state.last_seq + 1,
+                received: producer.seq,
+            })
+        }
+    }
+}
+
 impl DurableStreamStore for DurableStream {
     async fn create(
         &self,
@@ -884,6 +984,8 @@ impl DurableStreamStore for DurableStream {
             len: 0,
             closed,
             expires,
+            writer: WriterState::default(),
+            version: 0,
         };
         let created = self.vfs.create(&name, meta).await?;
         if let Some(initial) = initial {
@@ -912,44 +1014,92 @@ impl DurableStreamStore for DurableStream {
         name: &StreamName,
         req: AppendRequest,
     ) -> Result<AppendOutcome, StoreError> {
+        const MAX_APPEND_ATTEMPTS: usize = 8;
+
         let AppendRequest {
             chunk,
             content_type,
+            stream_seq,
             producer,
             close,
-            ..
         } = req;
 
-        let before = self.vfs.meta(name).await?;
-        if before.closed {
-            return Err(StoreError::Closed {
-                tail: StreamOffset::from(VfsOffset(before.len)),
-            });
-        }
-        if let Some(content_type) = &content_type {
-            if content_type != &before.content_type {
-                return Err(StoreError::ContentTypeMismatch {
-                    expected: before.content_type,
-                    got: content_type.clone(),
+        for _ in 0..MAX_APPEND_ATTEMPTS {
+            let mut meta = self.vfs.meta(name).await?;
+            if meta.closed {
+                return Err(StoreError::Closed {
+                    tail: StreamOffset::from(VfsOffset(meta.len)),
                 });
+            }
+            if let Some(content_type) = &content_type {
+                if content_type != &meta.content_type {
+                    return Err(StoreError::ContentTypeMismatch {
+                        expected: meta.content_type.clone(),
+                        got: content_type.clone(),
+                    });
+                }
+            }
+
+            if let Some(producer) = &producer {
+                match validate_producer(&meta.writer, producer)? {
+                    ProducerDecision::Duplicate(last_seq) => {
+                        return Ok(AppendOutcome {
+                            kind: AppendKind::Duplicate,
+                            cursor: ResumeCursor {
+                                next: StreamOffset::from(VfsOffset(meta.len)),
+                                up_to_date: true,
+                                closed: meta.closed,
+                            },
+                            producer_seq: Some(last_seq),
+                            closed: meta.closed,
+                        });
+                    }
+                    ProducerDecision::Accept(state) => {
+                        meta.writer.producers.insert(producer.id.clone(), state);
+                    }
+                }
+            }
+
+            if let Some(stream_seq) = &stream_seq {
+                if let Some(last) = &meta.writer.stream_seq {
+                    if stream_seq <= last {
+                        return Err(StoreError::StreamSeqConflict {
+                            last: Some(last.clone()),
+                        });
+                    }
+                }
+                meta.writer.stream_seq = Some(stream_seq.clone());
+            }
+
+            if close {
+                meta.closed = true;
+            }
+
+            let expected_version = meta.version;
+            match self
+                .vfs
+                .append_with_meta(name, chunk.as_bytes(), meta, expected_version)
+                .await
+            {
+                Ok(_) => {
+                    let after = self.vfs.meta(name).await?;
+                    return Ok(AppendOutcome {
+                        kind: AppendKind::Created,
+                        cursor: ResumeCursor {
+                            next: StreamOffset::from(VfsOffset(after.len)),
+                            up_to_date: true,
+                            closed: after.closed,
+                        },
+                        producer_seq: producer.as_ref().map(|producer| producer.seq),
+                        closed: after.closed,
+                    });
+                }
+                Err(VfsError::Conflict) => continue,
+                Err(error) => return Err(StoreError::from(error)),
             }
         }
 
-        self.vfs.append(name, chunk.as_bytes()).await?;
-        if close {
-            self.vfs.close(name).await?;
-        }
-        let after = self.vfs.meta(name).await?;
-        Ok(AppendOutcome {
-            kind: AppendKind::Created,
-            cursor: ResumeCursor {
-                next: StreamOffset::from(VfsOffset(after.len)),
-                up_to_date: true,
-                closed: after.closed,
-            },
-            producer_seq: producer.as_ref().map(|producer| producer.seq),
-            closed: after.closed,
-        })
+        Err(StoreError::Storage(Box::new(ContentionError)))
     }
 
     async fn read(&self, name: &StreamName, req: ReadRequest) -> Result<ReadPage, StoreError> {

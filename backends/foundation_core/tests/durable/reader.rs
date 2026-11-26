@@ -3,6 +3,7 @@
 use foundation_core::durable::{
     AppendRequest, Chunk, CloseRequest, ContentType, CreateSpec, DurableStream, DurableStreamVfs,
     DurableStreams, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName, StreamOffset, VfsMeta,
+    WriterState,
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -137,6 +138,8 @@ fn given_a_stream_when_it_appends_then_the_notifier_fires() {
         len: 0,
         closed: false,
         expires: None,
+        writer: WriterState::default(),
+        version: 0,
     };
     smol::block_on(async { vfs.create(&name, meta).await.expect("create") });
 

@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 03 core landed. Producer state and `Stream-Seq` persist in VFS metadata.
+  Epoch fencing, sequence gaps, dedup, `Stream-Seq` ordering and versioned atomic append are
+  tested, including two concurrent producers. 33 tests pass.
 - 2026-11-27: feature 02 live tail landed. The memory VFS notifier fires on append and close.
   The valtron reader waits at an open tail and yields data after an append. 24 tests pass.
 - 2026-11-27: feature 02 started. Core page reader state rules and the valtron catch-up reader
@@ -49,7 +52,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **02-resumable-reader** — 🟡 in progress (4/10). Core page reader, state rules, closure
   discovery, the valtron catch-up reader and the live tail wait/notifier landed. Wake forwarding
   under `multi`, bridges, trim and the oracle matrix remain.
-- **03-idempotent-producer** — ⏳ not started (0/7)
+- **03-idempotent-producer** — 🟡 in progress (4/8). Core writer, producer ladder, dedup/fencing,
+  `Stream-Seq` and versioned atomic append landed. The valtron producer task, DST and oracles
+  remain.
 - **04-fork-and-retention** — ⏳ not started (0/8)
 - **05-storage-backends** — ⏳ not started (0/6)
 - **06-http-rpc-surface** — ⏳ not started (0/10)

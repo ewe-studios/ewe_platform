@@ -85,6 +85,8 @@ impl DurableStreamVfs for MemoryVfs {
                 Ok(false)
             }
         } else {
+            let mut meta = meta;
+            meta.version = 0;
             entries.insert(
                 name.clone(),
                 MemoryEntry {
@@ -105,6 +107,38 @@ impl DurableStreamVfs for MemoryVfs {
                 Some(entry) => {
                     entry.data.extend_from_slice(bytes);
                     entry.meta.len = entry.data.len() as u64;
+                    entry.meta.version = entry.meta.version.saturating_add(1);
+                    Ok(VfsOffset(entry.meta.len))
+                }
+                None => Err(VfsError::NotFound),
+            };
+            let notifier = result.is_ok().then(|| self.notifier_for(name));
+            (result, notifier)
+        };
+        if let Some(notifier) = notifier {
+            notifier.notify();
+        }
+        Box::pin(async move { result })
+    }
+
+    fn append_with_meta(
+        &self,
+        name: &StreamName,
+        bytes: &[u8],
+        meta: VfsMeta,
+        expected_version: u64,
+    ) -> VfsFuture<'_, VfsOffset> {
+        let (result, notifier) = {
+            let mut entries = self.lock();
+            let result = match entries.get_mut(name) {
+                Some(entry) if entry.meta.version != expected_version => Err(VfsError::Conflict),
+                Some(entry) if entry.meta.closed => Err(VfsError::Conflict),
+                Some(entry) => {
+                    entry.data.extend_from_slice(bytes);
+                    let mut next = meta;
+                    next.len = entry.data.len() as u64;
+                    next.version = expected_version.saturating_add(1);
+                    entry.meta = next;
                     Ok(VfsOffset(entry.meta.len))
                 }
                 None => Err(VfsError::NotFound),
@@ -148,6 +182,7 @@ impl DurableStreamVfs for MemoryVfs {
             let result = match entries.get_mut(name) {
                 Some(entry) => {
                     entry.meta.closed = true;
+                    entry.meta.version = entry.meta.version.saturating_add(1);
                     Ok(())
                 }
                 None => Err(VfsError::NotFound),
