@@ -220,8 +220,8 @@ impl Serve for DurableHandler {
 
             // A short body leaves its tail on the connection. That tail then
             // corrupts the next request line, so close the connection.
-            if let Some(expected) = declared_body_len {
-                if body.len() != expected {
+            if short_body(declared_body_len, body.len()) {
+                if let Some(expected) = declared_body_len {
                     tracing::warn!(
                         expected,
                         read = body.len(),
@@ -282,6 +282,12 @@ impl Serve for DurableHandler {
             }
         }))
     }
+}
+
+/// True when the read body is shorter or longer than its declared length.
+#[must_use]
+pub fn short_body(declared: Option<usize>, read: usize) -> bool {
+    declared.is_some_and(|declared| declared != read)
 }
 
 /// True when the raw query string names `offset` with an empty value.
