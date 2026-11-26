@@ -47,3 +47,15 @@ mod boundary;
 /// simulation helpers and a Unix host for the fake process spawner.
 #[cfg(all(feature = "docker", feature = "testing", unix))]
 mod docker;
+
+/// The nested sandbox end-to-end tests (feature 11). They need Linux, Docker,
+/// Kernel-based Virtual Machine (KVM) and the nested host image; a host
+/// without them prints the probe report and returns.
+#[cfg(all(
+    target_os = "linux",
+    feature = "control",
+    feature = "docker",
+    feature = "firecracker",
+    feature = "testing"
+))]
+mod nested;

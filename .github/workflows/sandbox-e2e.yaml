@@ -1,11 +1,12 @@
-# Sandbox end-to-end tests (spec 77 feature 06)
+# Sandbox end-to-end tests (spec 77 features 06 and 11)
 #
 # Runs the real Firecracker tests on a GitHub-hosted `ubuntu-latest` runner.
 # That runner has `/dev/kvm` (`.github/workflows/platform-images-vm.yaml` uses
 # it for QEMU). The job builds the static `agent-slave` program for the target
-# architecture, downloads the pinned Firecracker release, and runs the
-# `foundation_sandbox` tests. `EWE_SANDBOX_E2E_REQUIRED=1` turns a skipped
-# microVM test into a failure, so CI cannot pass by skipping.
+# architecture, downloads the pinned Firecracker release, builds the nested
+# host image (feature 11), and runs the `foundation_sandbox` tests.
+# `EWE_SANDBOX_E2E_REQUIRED=1` turns a skipped microVM test into a failure, so
+# CI cannot pass by skipping.
 #
 # Triggers: a pull request that changes the sandbox crates, a push to master,
 # the nightly schedule and a manual run.
@@ -16,6 +17,7 @@ on:
   pull_request:
     paths:
       - 'backends/foundation_sandbox/**'
+      - 'backends/foundation_api_common/**'
       - 'backends/foundation_netio/**'
       - 'backends/foundation_http/**'
       - 'backends/foundation_connectrpc/**'
@@ -27,6 +29,7 @@ on:
       - master
     paths:
       - 'backends/foundation_sandbox/**'
+      - 'backends/foundation_api_common/**'
       - 'backends/foundation_netio/**'
       - 'ci/sandbox.toml'
       - 'mise.toml'
@@ -95,10 +98,19 @@ jobs:
           mise trust --yes mise.toml
           mise run sandbox:slave
 
+      - name: Build the nested host image
+        # Feature 11: one container that holds many micro virtual machines
+        # (VMs). The image pins Firecracker, the kernel and the CI root image.
+        run: |
+          mise trust --yes mise.toml
+          mise run sandbox:nested-image
+
       - name: Run the sandbox tests
         env:
           EWE_SANDBOX_E2E_REQUIRED: "1"
           EWE_SANDBOX_SLAVE: ${{ github.workspace }}/target/sandbox/agent-slave-x86_64
           EWE_FIRECRACKER: /usr/local/bin/firecracker
         run: |
-          cargo test -p foundation_sandbox --features "cli testing slave" --profile uat -- --nocapture
+          cargo test -p foundation_sandbox \
+            --features "cli testing slave docker firecracker" \
+            --profile uat -- --nocapture
