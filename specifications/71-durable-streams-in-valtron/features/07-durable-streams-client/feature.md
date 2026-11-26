@@ -109,7 +109,7 @@ impl StreamHandle {
       `retries_transient_errors`, `does_not_retry_404`, `retry_exhaustion_is_an_error`.
 - [ ] **T6 — producer.** Batching, epoch, sequence, auto-claim, dedup, close and detach. Tests:
       `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`.
-- [ ] **T7 — dynamic headers and validation.** Per-request headers and config validation. Tests:
+- [x] **T7 — dynamic headers and validation.** Per-request headers and config validation. Tests:
       `dynamic_header_counter`, `invalid_epoch_is_rejected`.
 - [x] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
       `adapter_reports_200_for_append`.

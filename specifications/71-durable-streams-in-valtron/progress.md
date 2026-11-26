@@ -120,9 +120,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full
   server conformance run landed. ConnectRPC and `429` remain.
-- **07-durable-streams-client** — 🟡 in progress (5/11). The client core, transport injection,
-  catch-up/long-poll reads, the native transport, the adapter and the client conformance run
-  landed. SSE, auto mode, retry policy, batching and dynamic headers remain.
+- **07-durable-streams-client** — 🟡 in progress (7/11). The client core, transport injection,
+  catch-up, long-poll and auto reads, the native transport, the adapter, the client conformance
+  run, batching, dynamic headers and validation landed. The adapter-level SSE path and the
+  valtron wrapper remain.
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 
