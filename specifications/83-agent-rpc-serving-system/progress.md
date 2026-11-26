@@ -15,8 +15,8 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 01 — agent RPC model server | ✅ 10/10 + GGUF, landed as #126 | `bfff3326d` on master |
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
-| 04 — native host and DST | ⏳ 0/2, design complete | — |
-| 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete | — |
+| 04 — native host and DST | ⏳ 0/2, design complete; the plan names files, tests and verify (2026-11-27) | — |
+| 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete; the plan adds rules, tests and verify (2026-11-27) | — |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
 | 08 — key protection at rest | 📝 0/6, todo (last) | — |
