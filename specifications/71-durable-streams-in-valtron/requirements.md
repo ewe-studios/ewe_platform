@@ -117,7 +117,7 @@ flowchart TB
   C[Protocol core: DurableService]
   S[Store: DurableStreamStore]
   F[VFS: DurableStreamVfs]
-  CL[Client core: foundation_netio::durable]
+  CL[Client core: foundation_core::durable::client]
   CV[Valtron client layer]
   V --> C
   A --> C
@@ -131,8 +131,9 @@ _Caption: The core serves every runtime and transport, so it works without valtr
 
 The core is `foundation_core::durable::shared`. The valtron wrapper is
 `foundation_core::valtron::durable`. The client core is
-`foundation_netio::durable::shared`. Platform code follows the repository layout: `shared/`,
-`wasm/`, `cf/` and `native/`.
+`foundation_core::durable::client`. The client defines the transport trait it expects.
+`foundation_netio` implements it for the native and web hosts, above the core. Platform code
+follows the repository layout: `shared/`, `wasm/`, `cf/` and `native/`.
 
 Rules:
 
@@ -658,9 +659,9 @@ status that mirrors `ResumeCursor`. It does not use SSE frames, ETags or `Stream
 ### 3.10 Client core (feature 07)
 
 The client core is a plain async library. It has no valtron dependency. It uses the shared
-types from `foundation_core::durable::shared`. It lives in `foundation_netio::durable::shared`
-and uses the
-injected HTTP transport.
+types from `foundation_core::durable::shared`. It lives in `foundation_core::durable::client`
+and takes an injected `ClientTransport`. The native host implements the trait in
+`foundation_netio`.
 
 API:
 

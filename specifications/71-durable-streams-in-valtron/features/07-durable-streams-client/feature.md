@@ -17,8 +17,8 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 ## 1. Goal
 
-Add the Rust client core in `foundation_netio::durable`. It is plain async and has no valtron
-dependency. Then add the required valtron client wrapper. The client core must pass the
+Add the Rust client core in `foundation_core::durable::client`. It is plain async. It defines
+the transport trait it expects, and a host implements it above the core. Then add the required valtron client wrapper. The client core must pass the
 reference client conformance suite with its adapter.
 
 ## 2. Requirements
@@ -72,9 +72,10 @@ Paths follow the repository layout:
 
 | Item | Path |
 |---|---|
-| Client core | `foundation_netio/src/shared/durable/` |
-| wasm client | `foundation_netio/src/wasm/durable/` |
-| Valtron client wrapper | `foundation_core/src/valtron/durable/` |
+| Client core and transport trait | `foundation_core/src/durable/shared/client/` |
+| Native transport | `foundation_netio/src/native/durable.rs` |
+| wasm transport | `foundation_netio/src/wasm/durable/` |
+| Valtron client wrapper | `foundation_core/src/durable/shared/client/valtron.rs` |
 
 ```rust
 pub struct DurableClient { /* transport, base URL, headers, retry, clock */ }
