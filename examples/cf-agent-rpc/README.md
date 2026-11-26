@@ -41,7 +41,7 @@ A model provider key is a Worker secret, never a var:
 
 ## Routes
 
-The Worker serves the Connect path `/ewe.agent.v1.AgentService/<Method>` and
+The Worker serves the Connect path `/ewe.agent_rpc.v1.AgentService/<Method>` and
 answers a Cross-Origin Resource Sharing (CORS) preflight for a configured
 origin. It removes every incoming `ewe-forwarded-*` header before it checks the
 caller, so a forged header has no effect.

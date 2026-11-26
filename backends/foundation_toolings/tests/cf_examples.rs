@@ -292,7 +292,7 @@ fn cf_agent_rpc_answers_cors_and_refuses_a_forged_principal() {
     let (status, head, _body) = worker
         .request(
             "OPTIONS",
-            "/ewe.agent.v1.AgentService/Health",
+            "/ewe.agent_rpc.v1.AgentService/Health",
             &[
                 ("Origin", "https://app.example.com"),
                 ("Access-Control-Request-Method", "POST"),
@@ -320,7 +320,7 @@ fn cf_agent_rpc_answers_cors_and_refuses_a_forged_principal() {
     let (status, _head, body) = worker
         .request(
             "POST",
-            "/ewe.agent.v1.AgentService/Health",
+            "/ewe.agent_rpc.v1.AgentService/Health",
             &[
                 ("Origin", "https://app.example.com"),
                 ("Content-Type", "application/json"),
