@@ -553,33 +553,6 @@ body), #911 (no generated container-application operation) and #912 (no containe
 The agent fixes them on the branch. #913 is fixed here: the specification named the
 `ewe_deployables::cloudflare` module that spec 70 feature 22 removed.
 
-## Feature 11: nested sandboxes (2026-11-27)
-
-Feature 11 is on branch `spec77/f11-nested-sandboxes`, from feature 10.
-
-- The slave control role: `--control`, the `ewe.control=1` kernel key,
-  `SlaveInfo.can_control`, the inner `SandboxManager` with the Firecracker driver, both
-  services on one listener, and the children first at shutdown.
-- The contract: `SandboxSpec.parent` and `nested_host`, `DriverId::Nested`,
-  `SlaveEndpoint::Parent`, the optional `Substrate.calls` and `Substrate.slave`, and the
-  `NestedDriver`. The manager stops and kills the children of a parent first.
-- `foundation_api_common` holds the common API types; `foundation_sandbox` no longer depends
-  on `foundation_deployment`. The `artifacts-remote` feature keeps the TLS provider and its
-  C code out of the static slave.
-- Docker: a nested host gets `/dev/kvm`, `--control`, the artifact paths and the
-  `kvm_for_nested` probe check. `infrastructure/sandbox_nested_image` and
-  `mise run sandbox:nested-image` build the image.
-- Tests: the nested contract and control tests, the boundary scan and the Docker body test.
-  `tests/nested/e2e.rs` holds the end-to-end tests.
-
-Local checks: 174 sandbox tests, the deployment and Docker client tests, clippy clean on
-macOS and on the Linux target, the static musl build, and the Linux cross-check.
-
-Not run here: the inner micro virtual machine. This host has no `/dev/kvm`, so the
-end-to-end tests need the Linux CI host. The no-KVM end-to-end test also needs a Docker
-daemon without `/dev/kvm`; the `sandbox-e2e` runner has Kernel-based Virtual Machine (KVM),
-so that test skips there.
-
 ## In progress
 
 Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for
@@ -598,7 +571,7 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 4. Feature 18 (the lifetime deadline and the stream bound), after 08.
 5. Spec 83 feature 04: pull request #909, in review.
 6. Phase 2: features 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox product).
-   Feature 11 is on branch `spec77/f11-nested-sandboxes`, in review. Feature 17 needs 08.
+   Feature 17 needs 08.
 7. Phase 3: features 12 to 15 (images).
 
 ## Milestones

@@ -1735,27 +1735,3 @@ is a test or an in-process caller that needs the whole answer.
 The response of the DO handler is `HttpResponseParts`: a status, flat headers and a
 `BoxByteStream`. A Worker maps it to the wasm response and holds the stream for the life of
 the response. The request body is bounded by `max_message_bytes`; the response streams.
-
-## 23. The artifact TLS feature put `ring` into the static slave (2026-11-27)
-
-Feature 11 needed the static musl build of `agent-slave` with the `control` and
-`firecracker` features. It failed in the build script of `ring`, which wants a C compiler.
-The `firecracker` feature enables `artifacts`, and `artifacts` enabled
-`foundation_netio/ssl`, which links `ring` and its C code.
-
-**Rule.** The artifact store does not need TLS to read its cache. The feature split is:
-`artifacts` has no TLS, and `artifacts-remote` adds it. The default feature set has
-`artifacts-remote`; the static slave build has `artifacts` only.
-
-**What it proves.** `cargo build -p foundation_sandbox --no-default-features --features
-"slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl`
-gives a static-pie program.
-
-**Finding.** `ContainerHostConfig` flattens a `HostConfig` and a `Resources` that both name
-`Devices`. A `Devices` value on the `HostConfig` alone is written as null, because the later
-flattened `Resources` field wins. The Docker driver sets both fields. The wrapper is a
-finding for a GitHub issue.
-
-**Finding.** The Firecracker probe of the nested host reports `kvm` false, and
-`SlaveInfo.can_control` is then false. A child create fails with `DriverUnavailable`, as
-invariant I2 says. No second code path is needed.
