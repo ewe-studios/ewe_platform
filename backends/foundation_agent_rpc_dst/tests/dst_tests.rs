@@ -16,6 +16,9 @@ const START: Duration = Duration::from_secs(1_700_000_000);
 /// words the scripted turn said.
 fn trace(seed: u64) -> String {
     SimRuntime::run(seed, START, |sim| {
+        // The world uses the scripted registry, not LocalInstanceRegistry: the
+        // real AgentSession turn stream parks on the single-threaded engine
+        // (#908; the cooperative stream lands as its own task).
         let world = TestWorld::in_memory(&sim);
         let enrolled = world.enroll("laptop").expect("the client enrolls");
         let client = world.client_with(&enrolled.access_secret);
