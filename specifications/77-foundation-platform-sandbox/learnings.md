@@ -1675,3 +1675,32 @@ A hibernatable WebSocket lets a DO sleep between writes. `SandboxService` is RPC
 HTTP. An open response stream is an open request, and the DO stays awake for it. We bound
 the wake time with `stream_max_duration` instead of changing the protocol. A later feature
 may move large output to R2 behind a signed URL, which removes the long stream.
+
+## 20. A Linux compile check on the macOS host (2026-11-27)
+
+A `cfg(target_os = "linux")` function is not compiled on the macOS host. Feature 06 had two
+Linux-only compile errors that macOS could not see, and each one cost a full continuous
+integration (CI) round.
+
+**The tool.** Zig supplies a C compiler and a linker for a Linux target, with no virtual
+machine. The CC environment variable of the C compiler wrapper crate needs the target name
+`x86_64-unknown-linux-gnu`, and Zig accepts only `x86_64-linux-gnu`. A three-line wrapper
+maps the name (it replaces `--target=x86_64-unknown-linux-gnu` with
+`--target=x86_64-linux-gnu` before it calls `zig cc`).
+
+**The command.**
+
+```bash
+export CC_x86_64_unknown_linux_gnu=/tmp/zigcc
+export AR_x86_64_unknown_linux_gnu="/tmp/zig/zig ar"
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/tmp/zigcc
+cargo check -p foundation_sandbox --target x86_64-unknown-linux-gnu \
+  --features "cli testing slave" --profile uat
+```
+
+**What it proves.** Every Linux-only path in the crate compiles: the Firecracker driver, the
+slave engine, the CLI's Linux blocks and their tests.
+
+**What it does not prove.** Linking, the run of a test, the Kernel-based Virtual Machine
+(KVM), real sockets and the generated code at run time. The `sandbox-e2e` job proves those.
+Run this check before a push that changes a Linux-gated file.
