@@ -104,6 +104,37 @@ fn client(token: Option<&str>) -> SandboxRpcClient {
     }
 }
 
+/// The layer that one sandbox error names, for a one-line failure message.
+fn error_layer(error: &ErrorTrace<SandboxError>) -> &'static str {
+    match error.current_context() {
+        SandboxError::Unauthorized => "the Worker token check",
+        SandboxError::InvalidSpec { .. } => "the Worker route or the request body",
+        SandboxError::NotFound { .. } => "the Durable Object (no record)",
+        SandboxError::Rpc { code, .. } if code == "not_found" => {
+            "the Durable Object router (an empty 404 means the path or method did not match)"
+        }
+        SandboxError::Rpc { code, .. } if code == "unavailable" => {
+            "the Durable Object or the container runtime"
+        }
+        SandboxError::SubstrateApi { .. } => "the container runtime",
+        SandboxError::BootTimeout { .. } => "the container slave",
+        SandboxError::HostNotConfigured => "the Worker host bundle",
+        _ => "the Worker or the Durable Object",
+    }
+}
+
+/// Creates one sandbox and names the failing layer in the panic message.
+async fn create(control: &SandboxRpcClient, spec: SandboxSpec, what: &str) -> SandboxHandle {
+    match SandboxProvider::create(control, spec).await {
+        Ok(sandbox) => sandbox,
+        Err(error) => panic!(
+            "{what}: {} [layer: {}]",
+            error.current_context(),
+            error_layer(&error)
+        ),
+    }
+}
+
 /// A Cloudflare container sandbox spec.
 fn container_spec() -> SandboxSpec {
     SandboxSpec::new(RootFs::ContainerImage("sandbox".to_string()))
@@ -246,9 +277,7 @@ fn e2e_cloudflare_container_route() {
     }
     run(async {
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         let response = container_get(sandbox.id().to_string()).await;
         assert!(
             response.container.is_some(),
@@ -266,9 +295,7 @@ fn e2e_cloudflare_acceptance() {
     }
     run(async {
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         let hello = sandbox
             .run(SandboxCommand::new(["echo", "hello"]))
             .await
@@ -322,13 +349,18 @@ fn e2e_cloudflare_not_found() {
         let control = client(Some(&token()));
         let id = SandboxId::generate(&Ctx::host());
         let result = SandboxProvider::get(&control, id.clone()).await;
-        assert!(
-            result.is_err_and(|error| is(&error, |error| matches!(
-                error,
-                SandboxError::NotFound { .. }
-            ))),
-            "a scoped call for an unknown sandbox is NotFound"
-        );
+        match &result {
+            Err(error)
+                if is(error, |error| {
+                    matches!(error, SandboxError::NotFound { .. })
+                }) => {}
+            Err(error) => panic!(
+                "a scoped call for an unknown sandbox must be NotFound, got {} [layer: {}]",
+                error.current_context(),
+                error_layer(error)
+            ),
+            Ok(_) => panic!("a scoped call for an unknown sandbox returned a live sandbox"),
+        }
         let sandboxes = list(&control).await;
         assert!(!sandboxes.iter().any(|info| info.id == id.to_string()));
     });
@@ -362,12 +394,8 @@ fn e2e_cloudflare_list() {
     }
     run(async {
         let control = client(Some(&token()));
-        let first = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the first create");
-        let second = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the second create");
+        let first = create(&control, container_spec(), "the first create").await;
+        let second = create(&control, container_spec(), "the second create").await;
         let first_id = first.id().to_string();
         let second_id = second.id().to_string();
         first.stop().await.expect("the first stop");
@@ -386,9 +414,7 @@ fn e2e_cloudflare_stale_index() {
     }
     run(async {
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         let id = sandbox.id().to_string();
         let Some(container) = docker_containers().first().cloned() else {
             println!(
@@ -436,9 +462,7 @@ fn index_put_delete_list() {
     run(async {
         // The effect of the internal paths through the public calls.
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         let id = sandbox.id().to_string();
         assert!(list(&control).await.iter().any(|info| info.id == id));
         sandbox.stop().await.expect("the stop");
@@ -454,12 +478,8 @@ fn e2e_cloudflare_two_sandboxes() {
     }
     run(async {
         let control = client(Some(&token()));
-        let first = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the first create");
-        let second = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the second create");
+        let first = create(&control, container_spec(), "the first create").await;
+        let second = create(&control, container_spec(), "the second create").await;
         write_file(&first, "tmp/a", b"first").await;
         let result = second.read_file("tmp/a").await;
         assert!(
@@ -486,9 +506,7 @@ fn e2e_cloudflare_no_internet() {
         let control = client(Some(&token()));
         let mut spec = container_spec();
         spec.network = NetworkMode::None;
-        let sandbox = SandboxProvider::create(&control, spec)
-            .await
-            .expect("the create");
+        let sandbox = create(&control, spec, "the create").await;
         let output = sandbox
             .run(SandboxCommand::new([
                 "sh",
@@ -510,9 +528,7 @@ fn e2e_cloudflare_large_stream() {
     }
     run(async {
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         let mut handle = sandbox
             .exec(SandboxCommand::new([
                 "sh",
@@ -549,9 +565,7 @@ fn e2e_cloudflare_stop() {
     }
     run(async {
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         sandbox.stop().await.expect("the stop");
         let result = SandboxProvider::get(&control, sandbox.id().clone()).await;
         assert!(
@@ -618,9 +632,7 @@ fn e2e_cloudflare_model_sandbox() {
     run(async {
         let before = docker_containers().len();
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, model_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, model_spec(), "the create").await;
         let after = docker_containers().len();
         assert_eq!(before, after, "a model sandbox starts no container");
         let turn = sandbox
@@ -670,9 +682,7 @@ fn e2e_cloudflare_restart_create() {
         std::env::var("EWE_SANDBOX_RESTART_ID_FILE").expect("EWE_SANDBOX_RESTART_ID_FILE is set");
     run(async move {
         let control = client(Some(&token()));
-        let sandbox = SandboxProvider::create(&control, container_spec())
-            .await
-            .expect("the create");
+        let sandbox = create(&control, container_spec(), "the create").await;
         std::fs::write(&path, sandbox.id().as_str()).expect("the identifier file");
     });
 }

@@ -242,8 +242,11 @@ pub(crate) fn simple_request(
             .or_default()
             .push(value);
     }
+    // The router looks up `request_url.url` as a path, not as an absolute URL.
+    // An absolute URL here makes every call miss the route table and answer an
+    // empty 404 (issue #988).
     SimpleIncomingRequest::builder()
-        .with_plain_url(format!("http://worker.local{}", request.path()))
+        .with_plain_url(request.path())
         .with_method(SimpleMethod::from(request.method().to_string().as_str()))
         .with_headers(headers)
         .with_body_bytes(body.to_vec())

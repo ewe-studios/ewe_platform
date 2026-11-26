@@ -64,6 +64,13 @@ WRANGLER_PID=""
 MODEL_PID=""
 
 cleanup() {
+    local status=$?
+    if [ "${status}" -ne 0 ] && [ -f "${WORKER_DIR}/wrangler-dev.log" ]; then
+        # The Worker and Durable Object console output lives here, not in the
+        # test log. Print it so one CI failure shows the failing layer.
+        echo "--- wrangler dev log (tail) ---" >&2
+        tail -200 "${WORKER_DIR}/wrangler-dev.log" >&2 || true
+    fi
     if [ -n "${WRANGLER_PID}" ]; then
         kill "${WRANGLER_PID}" 2>/dev/null || true
         wait "${WRANGLER_PID}" 2>/dev/null || true

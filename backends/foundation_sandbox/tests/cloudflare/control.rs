@@ -2,6 +2,7 @@
 
 use std::time::Duration;
 
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 use foundation_sandbox::shared::cloudflare::testing::{
     control_exec_request, control_get_request, response_body, response_status,
 };
@@ -11,7 +12,7 @@ use foundation_sandbox::shared::command::Command;
 use foundation_sandbox::shared::control::SandboxState;
 use foundation_sandbox::shared::driver::SlaveEndpoint;
 use foundation_sandbox::shared::error::SandboxError;
-use foundation_sandbox::shared::rpc::messages::{ExecEventKind, SandboxInfo};
+use foundation_sandbox::shared::rpc::messages::{ExecEventKind, SandboxInfo, SandboxRef};
 
 use super::support::{self, block_on, spec, Harness};
 
@@ -361,4 +362,42 @@ fn handle_streams_exec() {
         frames += 1;
     }
     assert!(frames > 1, "the stream has the later frames");
+}
+
+/// The Connect router looks up the request URL as a path.
+///
+/// The Worker entry must pass the path alone. An absolute URL misses every
+/// route and answers an empty 404 (#988).
+#[test]
+fn router_matches_the_path_not_an_absolute_url() {
+    let h = Harness::new(31, true, false);
+    let planner = support::planner(&h, Some(h.id()));
+    block_on(planner.sandboxes().create(spec())).expect("create");
+    let path = "/ewe.sandbox.control.v1.SandboxService/Get";
+    let body = serde_json::to_vec(&SandboxRef {
+        sandbox_id: h.id().to_string(),
+    })
+    .expect("the request body");
+    let request = |url: String| {
+        SimpleIncomingRequest::builder()
+            .with_plain_url(url)
+            .with_method(SimpleMethod::POST)
+            .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .with_body_bytes(body.clone())
+            .build()
+            .expect("the request")
+    };
+
+    let absolute = block_on(planner.handle(request(format!("http://worker.local{path}"))));
+    assert_eq!(
+        response_status(&absolute),
+        404,
+        "an absolute URL is not a router path"
+    );
+    let relative = block_on(planner.handle(request(path.to_string())));
+    assert_eq!(
+        response_status(&relative),
+        200,
+        "the path alone reaches the router"
+    );
 }
