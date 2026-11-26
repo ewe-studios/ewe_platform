@@ -54,21 +54,24 @@ const AGENT_PROCEDURES: [&str; 7] = [
     agent_procedure::CHAT_STREAM,
 ];
 
+/// The operator key material of a secure host.
+pub(crate) struct MtlsKeys {
+    /// The bootstrap signing key.
+    pub(crate) signing: foundation_auth::secret::SigningKey,
+    /// The certificate authority.
+    pub(crate) ca: Arc<foundation_auth::pki::CertificateAuthority>,
+    /// The server certificate.
+    pub(crate) identity: foundation_auth::pki::ServerIdentity,
+    /// The trusted clients.
+    pub(crate) trust: Arc<foundation_auth::trust::TrustedClients>,
+}
+
 /// The operator key material of a secure host, or the development mode.
 pub(crate) enum HostKeys {
     /// No TLS and no auth.
     Insecure,
     /// Mutual TLS (mTLS), with enrollment.
-    Mtls {
-        /// The bootstrap signing key.
-        signing: foundation_auth::secret::SigningKey,
-        /// The certificate authority.
-        ca: Arc<foundation_auth::pki::CertificateAuthority>,
-        /// The server certificate.
-        identity: foundation_auth::pki::ServerIdentity,
-        /// The trusted clients.
-        trust: Arc<foundation_auth::trust::TrustedClients>,
-    },
+    Mtls(Box<MtlsKeys>),
 }
 
 /// Bind the listeners, build the authentication parts and serve.
@@ -80,11 +83,14 @@ pub(crate) enum HostKeys {
 /// [`AgentRpcError::Transport`] when an address cannot be bound;
 /// [`AgentRpcError::Config`] when the TLS material or the enrollment service
 /// cannot be built.
+// A host start is one readable sequence: bind, build the auth parts, build the
+// core, then spawn the two listeners. Splitting it would hide that order.
+#[allow(clippy::too_many_lines)]
 pub(crate) fn serve(
     config: &NativeHostConfig,
     service: Arc<AgentRpcService>,
     keys: HostKeys,
-    ctx: Ctx,
+    ctx: &Ctx,
     registry: Arc<LocalInstanceRegistry>,
 ) -> AgentRpcResult<RunningServer> {
     let shutdown = Arc::new(ShutdownSignal::new());
@@ -94,20 +100,23 @@ pub(crate) fn serve(
 
     let security = match keys {
         HostKeys::Insecure => NativeSecurityParts::Insecure,
-        HostKeys::Mtls {
-            signing,
-            ca,
-            identity,
-            trust,
-        } => crate::host::native::security::build_mtls(
-            config,
-            signing,
-            Arc::clone(&ca),
-            identity,
-            Arc::clone(&trust),
-            &ctx,
-            &agent_url,
-        )?,
+        HostKeys::Mtls(parts) => {
+            let MtlsKeys {
+                signing,
+                ca,
+                identity,
+                trust,
+            } = *parts;
+            crate::host::native::security::build_mtls(
+                config,
+                signing,
+                Arc::clone(&ca),
+                identity,
+                Arc::clone(&trust),
+                ctx,
+                &agent_url,
+            )?
+        }
     };
 
     let models: Vec<String> = service
@@ -159,12 +168,12 @@ pub(crate) fn serve(
                     &parts.identity,
                     &parts.ca,
                     parts.trust.index(),
-                    &ctx,
+                    ctx,
                 ),
-                _ => server_config_mutual(&parts.identity, &parts.ca, parts.trust.index(), &ctx),
+                _ => server_config_mutual(&parts.identity, &parts.ca, parts.trust.index(), ctx),
             }
             .map_err(|error| pki_error(&error))?;
-            let bootstrap_tls = server_config_server_auth(&parts.identity, &ctx)
+            let bootstrap_tls = server_config_server_auth(&parts.identity, ctx)
                 .map_err(|error| pki_error(&error))?;
 
             let agent_auth = Arc::clone(&parts.client_auth);
@@ -449,7 +458,7 @@ fn spawn_plain(
     auth: Arc<dyn foundation_auth::client_auth::ClientAuth>,
     shutdown: &Arc<ShutdownSignal>,
 ) -> AgentRpcResult<JoinHandle<()>> {
-    let app = routed_app(&AGENT_PROCEDURES, || {
+    let app = routed_app(&AGENT_PROCEDURES, move || {
         let interceptor: Arc<dyn Interceptor> =
             Arc::new(ClientAuthInterceptor::new(Arc::clone(&auth)));
         let mut router = Router::new().with_global_interceptors(vec![interceptor]);

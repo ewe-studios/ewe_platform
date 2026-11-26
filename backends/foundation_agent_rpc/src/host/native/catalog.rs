@@ -251,7 +251,7 @@ impl ModelCatalog for LocalCatalog {
                 .collect();
             let chosen = select(&entries, &self.kinds, request).map_err(|code| {
                 ErrorTrace::new(AgentRpcError::ModelSelection {
-                    code: code.clone(),
+                    code,
                     detail: code.message().to_string(),
                 })
             })?;

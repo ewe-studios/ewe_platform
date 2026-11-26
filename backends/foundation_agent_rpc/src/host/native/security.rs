@@ -202,12 +202,12 @@ pub fn certificate_authority(
 pub fn server_identity(
     config: &NativeHostConfig,
     ca: &CertificateAuthority,
-    key: CaKey,
+    key: &CaKey,
     _ctx: &Ctx,
 ) -> AgentRpcResult<ServerIdentity> {
     let identity = ca
         .issue_server_identity(
-            &key,
+            key,
             &config.server_identity.names,
             config.server_identity.lifetime,
         )
