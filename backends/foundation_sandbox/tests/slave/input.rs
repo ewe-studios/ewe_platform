@@ -1,17 +1,17 @@
 //! The input scenarios: order, repeats, gaps, the end of the input and the
 //! full queue.
 
-use std::time::Duration;
-
 use proptest::prelude::*;
 use proptest::test_runner::RngSeed;
 
 use foundation_sandbox::shared::error::{SandboxError, SlaveErrorCode};
-use foundation_sandbox::shared::rpc::messages::{ExecInputRequest, ExecInputResponse};
+use foundation_sandbox::shared::rpc::messages::{
+    ExecInputRequest, ExecInputResponse, ExecSignalRequest,
+};
 
 use super::support::{
-    drain, exec_request_stdin, exit_of, hex, plain_prepare, slave_code, stdout_of, Caller,
-    SlaveProcess,
+    drain, exec_request_stdin, exit_of, hex, plain_prepare, slave_code, stderr_of, stdout_of,
+    Caller, SlaveProcess,
 };
 
 /// Input reaches the program in order, one time.
@@ -61,6 +61,30 @@ fn input_duplicate() {
     assert_eq!(stdout_of(&events), b"x");
 }
 
+/// A repeat of a number that was never applied is the first chunk.
+///
+/// With no accepted chunk yet, the expected number is 0, so `seq 0` applies.
+/// This is the minimal counterexample of the `input_model` property: a repeat
+/// request (`next - 1`) before the first chunk.
+#[test]
+fn input_repeat_before_the_first_chunk() {
+    let slave = SlaveProcess::start("input-first-repeat", None, 4);
+    slave.prepare(&plain_prepare("/tmp"));
+    let exec_id = hex(305);
+    let stream = slave
+        .caller
+        .exec(exec_request_stdin(&exec_id, &["cat"]))
+        .expect("the program starts");
+    let answer = feed(&slave.caller, &exec_id, 0, b"", false).expect("the first number applies");
+    assert_eq!(answer.next_seq, 1);
+    let answer = feed(&slave.caller, &exec_id, 0, b"x", false).expect("the number is a repeat now");
+    assert_eq!(answer.next_seq, 1);
+    feed(&slave.caller, &exec_id, 1, b"", true).expect("the end");
+    let events = drain(stream);
+    assert_eq!(stdout_of(&events), b"");
+    assert_eq!(exit_of(&events), (Some(0), None));
+}
+
 /// A gap is refused.
 #[test]
 fn input_gap() {
@@ -101,25 +125,41 @@ fn input_after_eof() {
 }
 
 /// A full input queue pushes back, and the same number succeeds later.
+///
+/// The test has no timing assumption. The program is stopped before the first
+/// chunk, so the pipe fills and then the queue fills. A `SIGCONT` lets it read,
+/// and each `Stdout` event proves that the program consumed more bytes, so the
+/// queue has room for the refused chunk. `cat` echoes its input, so the events
+/// are the progress signal.
 #[test]
 fn input_queue_full_then_retry() {
     let slave = SlaveProcess::start("input-queue-full", None, 4);
     let mut prepare = plain_prepare("/tmp");
-    prepare.limits.input_queue_bytes = 8 * 1024;
+    // The input holds four chunks in all: one in the pipe (one page), two in
+    // the queue, and one that the input pump popped and holds while the pipe
+    // is full. The fifth chunk must fail.
     prepare.limits.chunk_bytes = 4 * 1024;
+    prepare.limits.input_pipe_bytes = 4 * 1024;
+    prepare.limits.input_queue_bytes = 8 * 1024;
     slave.prepare(&prepare);
+    let exec_id = hex(304);
     let stream = slave
         .caller
-        .exec(exec_request_stdin(
-            &hex(304),
-            &["sh", "-c", "sleep 1; cat >/dev/null"],
-        ))
+        .exec(exec_request_stdin(&exec_id, &["cat"]))
         .expect("the program starts");
+    // Stop the reader before the first chunk. No data is sent yet, so the
+    // program has nothing to read and the stop takes effect before any byte
+    // moves.
+    signal(&slave.caller, &exec_id, libc::SIGSTOP);
     let chunk = vec![b'z'; 4096];
+    let mut accepted = 0_usize;
     let mut full_at: Option<u64> = None;
-    for seq in 0..64 {
-        match feed(&slave.caller, &hex(304), seq, &chunk, false) {
-            Ok(_) => {}
+    // The reader cannot run, so the pipe and then the queue fill. Five chunks
+    // are one more than the pipe, the queue and the held chunk hold together,
+    // so the fifth must fail even if the pump moved nothing before it.
+    for seq in 0..5 {
+        match feed(&slave.caller, &exec_id, seq, &chunk, false) {
+            Ok(_) => accepted += 1,
             Err(error) => {
                 assert_eq!(
                     sandbox_error_code(&error),
@@ -132,15 +172,45 @@ fn input_queue_full_then_retry() {
         }
     }
     let full_at = full_at.expect("the queue became full");
-    // The same number succeeds after the queue has room.
+    // Let the program read again. The same number succeeds once the queue has
+    // room; a refusal means that no queued chunk moved yet, so the next
+    // `Stdout` event is the wake that proves more input was consumed.
+    signal(&slave.caller, &exec_id, libc::SIGCONT);
+    let mut echoed = Vec::new();
+    let mut stream = stream;
     let mut attempts = 0_usize;
-    while feed(&slave.caller, &hex(304), full_at, &chunk, false).is_err() {
-        attempts += 1;
-        assert!(attempts < 500, "the same number did not succeed");
-        std::thread::sleep(Duration::from_millis(20));
+    loop {
+        match feed(&slave.caller, &exec_id, full_at, &chunk, false) {
+            Ok(_) => {
+                accepted += 1;
+                break;
+            }
+            Err(error) => {
+                assert_eq!(
+                    sandbox_error_code(&error),
+                    Some("input_queue_full".to_string()),
+                    "the retry fails only for the full queue"
+                );
+                let (events, rest) = super::support::take_events(stream, 1);
+                assert!(
+                    !events.is_empty(),
+                    "the program must echo the input that it read"
+                );
+                assert!(
+                    stderr_of(&events).is_empty(),
+                    "the program writes only to its standard output"
+                );
+                echoed.extend_from_slice(&stdout_of(&events));
+                stream = rest;
+                attempts += 1;
+                assert!(attempts < 64, "the same number never had room");
+            }
+        }
     }
-    feed(&slave.caller, &hex(304), full_at + 1, b"", true).expect("the end");
-    let _ = drain(stream);
+    feed(&slave.caller, &exec_id, full_at + 1, b"", true).expect("the end");
+    let events = drain(stream);
+    echoed.extend_from_slice(&stdout_of(&events));
+    assert_eq!(echoed, vec![b'z'; chunk.len() * accepted]);
 }
 
 proptest! {
@@ -188,6 +258,18 @@ proptest! {
                             ended = true;
                         }
                     }
+                    // With no accepted chunk yet, there is nothing to repeat:
+                    // `seq` is 0, the expected number, so the slave applies it
+                    // as the first chunk. This mirrors `Sequence::accept`.
+                    1 if next == 0 => {
+                        let answer = result.expect("the first number is accepted");
+                        model.extend_from_slice(&data);
+                        next += 1;
+                        prop_assert_eq!(answer.next_seq, next);
+                        if eof {
+                            ended = true;
+                        }
+                    }
                     1 => {
                         let answer = result.expect("the old number is accepted");
                         prop_assert_eq!(answer.next_seq, next);
@@ -225,6 +307,16 @@ fn feed(
         data: data.to_vec(),
         eof,
     })
+}
+
+/// Sends one signal to a session and expects the call to be accepted.
+fn signal(caller: &Caller, exec_id: &str, signal: i32) {
+    caller
+        .exec_signal(ExecSignalRequest {
+            exec_id: exec_id.to_string(),
+            signal,
+        })
+        .expect("the signal is accepted");
 }
 
 /// The `SandboxError` variant name of a Connect failure, for a shared failure.

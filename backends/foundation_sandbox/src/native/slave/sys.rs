@@ -83,6 +83,23 @@ pub fn set_nonblocking(fd: RawFd) -> io::Result<()> {
     set_nonblocking_mode(fd, true)
 }
 
+/// Sets the capacity of the pipe that `fd` belongs to.
+///
+/// The kernel rounds `bytes` up to a page multiple. A smaller size always
+/// works. A larger one needs a size at or below `/proc/sys/fs/pipe-max-size`.
+///
+/// # Errors
+/// The operating system error of `fcntl`.
+pub fn set_pipe_size(fd: RawFd, bytes: u32) -> io::Result<()> {
+    // SAFETY: `fd` is an open pipe descriptor of this process, and
+    // `F_SETPIPE_SZ` reads only the integer argument.
+    let result = unsafe { libc::fcntl(fd, libc::F_SETPIPE_SZ, bytes) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
 /// Sets (`true`) or clears (`false`) the non-blocking flag of `fd`.
 ///
 /// # Errors

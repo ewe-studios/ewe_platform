@@ -832,6 +832,9 @@ pub fn slave_limits(limits: &SandboxLimits) -> SlaveLimits {
         upload_idle_timeout_ms: u32::try_from(limits.upload_idle_timeout.as_millis())
             .unwrap_or(u32::MAX),
         input_queue_bytes: chunk.saturating_mul(4),
+        // The input pipe keeps the Linux default; the queue adds the back
+        // pressure on top of it.
+        input_pipe_bytes: 64 * 1024,
         max_message_bytes: u32::try_from(limits.max_message_bytes).unwrap_or(u32::MAX),
         event_queue_len: 4,
     }

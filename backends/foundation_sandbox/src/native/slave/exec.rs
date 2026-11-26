@@ -728,13 +728,7 @@ async fn spawn_process(
     let limits = prepare.limits();
     let (stdout_read, stdout_write) = sys::pipe().map_err(|error| spawn_io(&error))?;
     let (stderr_read, stderr_write) = sys::pipe().map_err(|error| spawn_io(&error))?;
-    let (stdin_read, stdin_write) = if request.stdin {
-        let (read, write) = sys::pipe().map_err(|error| spawn_io(&error))?;
-        (Some(read), Some(write))
-    } else {
-        let null = sys::open_null().map_err(|error| spawn_io(&error))?;
-        (Some(null), None)
-    };
+    let (stdin_read, stdin_write) = make_stdin(&limits, request.stdin)?;
     let (status_read, status_write) = sys::pipe().map_err(|error| spawn_io(&error))?;
 
     let argv = strings_to_c(request.argv.iter().map(String::as_str))?;
@@ -970,6 +964,32 @@ fn start_failure(step: u8, errno: i32) -> ErrorTrace<SandboxError> {
         Some(errno),
         format!("start step {step} failed: {}", sys::error_of(errno)),
     )
+}
+
+/// Makes the standard-input descriptors of the child.
+///
+/// A session with input gets a pipe whose capacity is
+/// [`SlaveLimits::input_pipe_bytes`], set before the fork so back pressure
+/// applies the caller's limit and not the system default. A session without
+/// input reads `/dev/null`. The parent keeps the read end; the write end goes
+/// to the child and is closed in the parent after the fork.
+///
+/// # Errors
+/// The operating system error of `pipe2`, `open` or `F_SETPIPE_SZ`.
+fn make_stdin(
+    limits: &SlaveLimits,
+    stdin: bool,
+) -> SandboxResult<(Option<OwnedFd>, Option<OwnedFd>)> {
+    if !stdin {
+        let null = sys::open_null().map_err(|error| spawn_io(&error))?;
+        return Ok((Some(null), None));
+    }
+    let (read, write) = sys::pipe().map_err(|error| spawn_io(&error))?;
+    if limits.input_pipe_bytes > 0 {
+        sys::set_pipe_size(write.as_raw_fd(), limits.input_pipe_bytes)
+            .map_err(|error| spawn_io(&error))?;
+    }
+    Ok((Some(read), Some(write)))
 }
 
 /// The start error of one operating system error.

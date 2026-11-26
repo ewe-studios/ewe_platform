@@ -285,6 +285,19 @@ Residual pass on 2026-11-26:
   now `Files::read_file`. Issue #868 (severity: high) records it, and this change
   closes it.
 
+- The real Linux job (run 45676172618) failed on two input tests:
+  - `input_model` compared a repeat before the first chunk with an idempotent
+    repeat. The slave applies `seq 0` there, as `Sequence::accept` says. The model
+    now follows it, the case has its own test, and the seed is committed in
+    `tests/slave/input.proptest-regressions`.
+  - `input_queue_full_then_retry` depended on a one-second sleep in the child.
+    `SlaveLimits::input_pipe_bytes` (default 64 KiB) now bounds the input pipe
+    with `F_SETPIPE_SZ`, and the test stops the reader, fills the bounded storage
+    by one chunk, and retries on a `Stdout` event, with no sleep.
+
+  In the Linux container: the seven input tests pass; the queue test passes five
+  times in a row (0.78 to 0.84 s each), and `input_model` passes three times.
+
 Open: the lost wake of #866 stays intermittent; it is a wake race in the shared
 HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and every
 typed-error check pass.

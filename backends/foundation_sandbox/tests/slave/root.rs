@@ -93,6 +93,7 @@ fn limits() -> SlaveLimits {
         output_drain_timeout_ms: 2_000,
         upload_idle_timeout_ms: 60_000,
         input_queue_bytes: 4 * 64 * 1024,
+        input_pipe_bytes: 64 * 1024,
         max_message_bytes: 4 * 1024 * 1024,
         event_queue_len: 4,
     }

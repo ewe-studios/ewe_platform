@@ -1155,4 +1155,39 @@ write it. The scan keeps its meaning: a blocking call with the `read` or `write`
 name in the slave sources is still rejected. Issue #868 (severity: high) records
 it.
 
+### 13.12 The two input failures of the real CI runner
+
+The Linux job (`cargo test --profile uat -p foundation_sandbox --no-fail-fast
+--features slave -- --nocapture`, run 45676172618) failed on two input tests that
+pass on this host.
+
+**`input_model`.** The smallest counterexample was `ops = [(1, [], false)]`, seed
+`b1264a50226f1c7b2d9f66fee316ce396e7f3056f652576ef9e08fb7bb94e125`, with
+`next_seq` 1 against the model's 0. The model built a repeat as
+`next.saturating_sub(1)`. Before the first chunk `next` is 0, so the request was
+`seq 0`, which is the expected number and not a repeat: the slave applies it and
+answers 1, exactly as `Sequence::accept` says (`seq < next` is a repeat,
+`seq == next` applies). The slave was right and the model was wrong. The model now
+treats that one case as the first chunk, and the root case has its own test,
+`input_repeat_before_the_first_chunk`. The seed is committed in
+`tests/slave/input.proptest-regressions`; with the old model the file reproduces
+the exact failure (left 1, right 0) and the new model passes.
+
+**`input_queue_full_then_retry`.** The test ran `sh -c "sleep 1; cat >/dev/null"`
+and sent chunks until the queue refused one. On the runner the program started to
+read before the queue filled, so no call was refused. The test depended on the
+race between a one-second sleep and the send loop.
+
+The fix adds `SlaveLimits::input_pipe_bytes` (default 64 KiB, the Linux default of
+16 pages) and applies it with `F_SETPIPE_SZ` before the fork, so the pipe bound is
+configuration. The test then stops the reader with `SIGSTOP` and sends five 4 KiB
+chunks against a 4 KiB pipe and an 8 KiB queue. Five chunks are exactly one more
+than the storage holds: one chunk in the pipe, two in the queue, and one that the
+input pump popped and holds while the pipe is full. The fifth call must fail. The
+test continues the program with `SIGCONT` and retries; every refusal is followed by
+one `Stdout` event of `cat`, which proves that the program consumed bytes and the
+queue has room. No sleep and no timing assumption remains. Five runs pass in 0.78
+to 0.84 s each.
+
+
 
