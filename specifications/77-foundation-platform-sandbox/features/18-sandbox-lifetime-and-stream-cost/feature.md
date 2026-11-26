@@ -123,7 +123,7 @@ still runs is treated as idle: the next request touches it; an alarm stops it.
 
 | Field | Meaning | Default |
 |---|---|---|
-| `stream_max_duration` | The longest time that one `Exec`, `FileWrite` or `FileRead` stream stays open. | 1 hour |
+| `stream_max_duration` | The longest time that one server stream (`Exec`, `Create` progress or `FileRead`) stays open. A `FileWrite` is a series of unary chunk calls, so it has no long stream. | 1 hour |
 
 The `DoControlPlane` wraps the streaming responses of `ControlService` in a deadline guard on
 the `Ctx` clock. At the deadline the stream sends no more events and ends with `Rpc { code:
