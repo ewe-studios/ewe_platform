@@ -1350,17 +1350,27 @@ impl DurableStreamStore for DurableStream {
         let max_chunks = req.limit.max_chunks.unwrap_or(usize::MAX);
         let (chunks, consumed) = if is_json {
             let mut messages = decode_json(&bytes)?;
-            if messages.len() > max_chunks {
-                messages.truncate(max_chunks);
-                let consumed = messages
-                    .iter()
-                    .map(|message| message.as_bytes().len() as u64 + 1)
-                    .sum::<u64>();
-                (messages, consumed)
-            } else {
-                let consumed = bytes.len() as u64;
-                (messages, consumed)
+            let max_bytes = req.limit.max_bytes.map_or(u64::MAX, |value| value as u64);
+            let mut count = 0usize;
+            let mut consumed = 0u64;
+            for message in &messages {
+                if count >= max_chunks {
+                    break;
+                }
+                let length = message.as_bytes().len() as u64 + 1;
+                // Always return one message, so a read makes progress.
+                if count > 0 && consumed.saturating_add(length) > max_bytes {
+                    break;
+                }
+                consumed = consumed.saturating_add(length);
+                count += 1;
             }
+            if count < messages.len() {
+                messages.truncate(count);
+            } else {
+                consumed = bytes.len() as u64;
+            }
+            (messages, consumed.min(bytes.len() as u64))
         } else if bytes.is_empty() {
             (Vec::new(), 0)
         } else {

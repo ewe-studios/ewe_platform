@@ -183,3 +183,59 @@ fn given_a_chunk_limit_when_a_json_read_runs_then_no_page_exceeds_it() {
         assert!(second.cursor.up_to_date);
     });
 }
+
+#[test]
+fn given_a_byte_limit_when_a_json_read_runs_then_the_page_respects_it() {
+    smol::block_on(async {
+        use foundation_core::durable::{
+            AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
+            DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
+        };
+        use std::sync::Arc;
+
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let service = DurableService::with_limits(
+            stream,
+            DurableLimits::default().with_page_bytes(4),
+        );
+        let name = StreamName::parse("bounded/json-bytes").expect("name");
+        service
+            .create(
+                name.clone(),
+                CreateSpec {
+                    content_type: Some(ContentType::parse("application/json").expect("type")),
+                    ..CreateSpec::default()
+                },
+            )
+            .await
+            .expect("create");
+        for value in ["1", "2", "3"] {
+            service
+                .append(
+                    &name,
+                    AppendRequest {
+                        chunk: Chunk::new(value.as_bytes().to_vec()),
+                        content_type: None,
+                        stream_seq: None,
+                        producer: None,
+                        close: false,
+                    },
+                )
+                .await
+                .expect("append");
+        }
+
+        let first = service
+            .read(
+                &name,
+                ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                },
+            )
+            .await
+            .expect("read");
+        assert_eq!(first.chunks.len(), 2);
+        assert!(!first.cursor.up_to_date);
+    });
+}
