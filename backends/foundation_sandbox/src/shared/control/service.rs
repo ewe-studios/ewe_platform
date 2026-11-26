@@ -339,6 +339,7 @@ pub struct SandboxRpcClient {
     transport: Arc<dyn Transport>,
     client: Arc<SandboxServiceClient>,
     limits: crate::shared::limits::SandboxLimits,
+    authority: String,
 }
 
 impl SandboxRpcClient {
@@ -353,9 +354,29 @@ impl SandboxRpcClient {
         transport: Arc<dyn Transport>,
         limits: crate::shared::limits::SandboxLimits,
     ) -> Self {
+        Self::with_authority(ctx, transport, limits, CONTROL_AUTHORITY)
+    }
+
+    /// A client over a transport, with the authority that the request line
+    /// carries.
+    ///
+    /// A Unix domain socket and a resolved TCP address ignore the authority; a
+    /// base `http://` or `https://` address needs it (`SandboxRpcClient::
+    /// connect` on an [`ConnectAddr::Url`](crate::native::connect::ConnectAddr)).
+    ///
+    /// # Panics
+    /// When the JSON client cannot be built. The options are fixed and valid,
+    /// so this is a programming error and not a run-time failure.
+    #[must_use]
+    pub fn with_authority(
+        ctx: Ctx,
+        transport: Arc<dyn Transport>,
+        limits: crate::shared::limits::SandboxLimits,
+        authority: &str,
+    ) -> Self {
         let client = SandboxServiceClient::new(
             Arc::clone(&transport),
-            CONTROL_AUTHORITY,
+            authority,
             ClientOptions::new().with_codec("json"),
         )
         .expect("the JSON SandboxService client builds");
@@ -364,6 +385,7 @@ impl SandboxRpcClient {
             transport,
             client: Arc::new(client),
             limits,
+            authority: authority.to_string(),
         }
     }
 
@@ -381,7 +403,7 @@ impl SandboxRpcClient {
         let header = foundation_auth::server_credential::bearer_header(&token);
         let client = SandboxServiceClient::new(
             Arc::clone(&self.transport),
-            CONTROL_AUTHORITY,
+            &self.authority,
             ClientOptions::new()
                 .with_codec("json")
                 .with_header("AUTHORIZATION".to_string(), header),
@@ -392,6 +414,7 @@ impl SandboxRpcClient {
             transport: self.transport,
             client: Arc::new(client),
             limits: self.limits,
+            authority: self.authority,
         }
     }
 

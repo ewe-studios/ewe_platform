@@ -1,6 +1,6 @@
 [package]
 name = "foundation_deployment_platform"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 rust-version.workspace = true
 license.workspace = true
@@ -98,8 +98,18 @@ buildkit = ["foundation_deployment_docker/buildkit"]
 # All providers
 all-providers = ["vms", "docker"]
 
+# The `foundation_sandbox` provider tests (spec 77 feature 06). The facade and
+# its tests live in `foundation_sandbox`; this feature gates the integration
+# test file that proves the `Provider` trait sees the same outcomes as the
+# control plane. It adds no code to the library build.
+sandbox = []
+
 [dev-dependencies]
 tracing-subscriber = "0.3"
+# The `Provider` facade tests of spec 77 feature 06. The facade is in
+# `foundation_sandbox::providers`; this crate keeps the trait. The dev cycle is
+# allowed: a dev-dependency does not enter the normal build of either crate.
+foundation_sandbox = { path = "../foundation_sandbox", version = "0.0.8", features = ["provider", "cli", "testing"] }
 # `SimulatedClock` for the clock-injection tests. The feature is additive, so
 # the normal dependency above stays as it is.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
