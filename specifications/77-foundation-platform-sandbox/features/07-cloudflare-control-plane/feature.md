@@ -661,6 +661,9 @@ impl DoControlPlane {
    The handler returns the response as `HttpResponseParts`: a status, flat headers and a
    `BoxByteStream` body. Feature 08 maps that value onto the wasm response of the Worker and
    holds the body stream for the life of the response.
+   The DO reads the request body into memory first, with the cap `max_message_bytes`. A
+   unary message is small, and a file write arrives as unary chunks. The response, which can
+   be long, streams.
 
 The manager's `boot_timeout` is `CloudflareConfig.boot_timeout`, not the value of
 `SandboxLimits`.
