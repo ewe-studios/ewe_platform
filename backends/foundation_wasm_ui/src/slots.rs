@@ -16,10 +16,11 @@
 //! E0119). `mount_fragment` walks pure trees in document order with ids from
 //! `Context::allocate_id_block`, mirroring the macro's own build ops.
 
+use crate::ops;
 use alloc::boxed::Box;
 
 use foundation_signals::Context;
-use foundation_ui_traits::{AttrName, DomOp, Html, IntoHtml};
+use foundation_ui_traits::{AttrName, Html, IntoHtml};
 
 use crate::runtime::SharedInstructionReceiver;
 
@@ -131,24 +132,21 @@ pub fn mount_fragment(
     parent_id: u32,
 ) -> u32 {
     if let Some(root) = fragment.runtime_id {
-        rcv.queue(DomOp::AppendChild {
-            parent_id,
-            child_id: root,
-        });
+        rcv.queue(ops::append_child(parent_id, root));
         return root;
     }
 
     let count = count_nodes(&fragment);
-    if count == 0 {
-        return parent_id;
-    }
     let base = ctx.allocate_id_block(count);
     let mut next = base;
     build_subtree(&fragment, parent_id, Attach::Append, rcv, &mut next, None);
 
     // A single-root fragment's root got the first id; tagless multi-child
     // wrappers have no single root.
-    if fragment.tag.is_some() || fragment.is_text() {
+    if count > 0
+        && marker_attribute(&fragment, "primal:script").is_none()
+        && (fragment.tag.is_some() || fragment.is_text())
+    {
         base
     } else {
         parent_id
@@ -171,9 +169,6 @@ pub fn mount_before(
     let mut top_level = alloc::vec::Vec::new();
     if fragment.runtime_id.is_none() {
         let count = count_nodes(&fragment);
-        if count == 0 {
-            return top_level;
-        }
         let base = ctx.allocate_id_block(count);
         let mut next = base;
         build_subtree(
@@ -205,25 +200,27 @@ enum Attach {
     Before(u32),
 }
 
-fn attach_op(parent_id: u32, child_id: u32, attach: Attach) -> DomOp {
+fn attach_op(parent_id: u32, child_id: u32, attach: Attach) -> foundation_ui_wire::OperationT {
     match attach {
-        Attach::Append => DomOp::AppendChild {
-            parent_id,
-            child_id,
-        },
-        Attach::Before(ref_id) => DomOp::InsertBefore {
-            parent_id,
-            child_id,
-            ref_id,
-        },
+        Attach::Append => ops::append_child(parent_id, child_id),
+        Attach::Before(ref_id) => ops::insert_before(parent_id, child_id, ref_id),
     }
 }
 
 /// Ids needed to build `node` (elements + text nodes; grouping nodes are
 /// transparent).
+fn marker_attribute<'a>(node: &'a Html, key: &str) -> Option<&'a str> {
+    node.attributes
+        .iter()
+        .find_map(|(name, value)| (name.name() == Some(key)).then_some(value.as_ref()))
+}
+
 fn count_nodes(node: &Html) -> u32 {
-    if node.runtime_id.is_some() {
+    if node.runtime_id.is_some() || marker_attribute(node, "data-ewe-behaviour").is_some() {
         return 0; // splices by reference — builds nothing
+    }
+    if marker_attribute(node, "primal:script").is_some() {
+        return 1;
     }
     let own = u32::from(node.tag.is_some() || node.is_text());
     node.children.iter().map(count_nodes).sum::<u32>() + own
@@ -248,6 +245,25 @@ fn build_subtree(
         return;
     }
 
+    if let Some(name) = marker_attribute(node, "data-ewe-behaviour") {
+        rcv.queue(ops::behaviour(
+            parent_id,
+            name,
+            marker_attribute(node, "data-ewe-mode"),
+        ));
+        return;
+    }
+    if marker_attribute(node, "primal:script").is_some() {
+        let id = *next;
+        *next += 1;
+        let body = node
+            .children
+            .iter()
+            .filter_map(|child| child.text.as_deref())
+            .collect();
+        rcv.queue(ops::scoped_script(id, parent_id, body));
+        return;
+    }
     if let Some(tag) = &node.tag {
         let id = *next;
         *next += 1;
@@ -258,34 +274,22 @@ fn build_subtree(
             .attributes
             .iter()
             .find(|(name, _)| name.name() == Some("class"))
-            .map(|(_, value)| value.clone())
-            .unwrap_or_default();
-        rcv.queue(DomOp::CreateElement {
-            node_id: id,
-            tag: tag.clone(),
-            class,
-        });
-        rcv.queue(DomOp::RegisterNode { node_id: id });
-        rcv.queue(DomOp::SetAttribute {
-            node_id: id,
-            name: AttrName::from_static("primal-id"),
-            value: alloc::string::ToString::to_string(&id).into(),
-        });
+            .map_or_else(Default::default, |(_, value)| value.clone());
+        rcv.queue(ops::create_element(id, tag, &class));
+        rcv.queue(ops::register_node(id));
+        rcv.queue(ops::set_attribute(
+            id,
+            &AttrName::from_static("primal-id"),
+            &alloc::string::ToString::to_string(&id),
+        ));
         for (name, value) in &node.attributes {
             if matches!(name.name(), Some("class" | "primal-id")) {
                 continue;
             }
-            rcv.queue(DomOp::SetAttribute {
-                node_id: id,
-                name: name.clone(),
-                value: value.clone(),
-            });
+            rcv.queue(ops::set_attribute(id, name, value));
         }
         if let Some(text) = &node.text {
-            rcv.queue(DomOp::SetText {
-                node_id: id,
-                text: text.clone(),
-            });
+            rcv.queue(ops::set_text(id, text));
         }
         for child in &node.children {
             build_subtree(child, id, Attach::Append, rcv, next, None);
@@ -300,11 +304,8 @@ fn build_subtree(
     if let Some(text) = &node.text {
         let id = *next;
         *next += 1;
-        rcv.queue(DomOp::CreateTextNode {
-            node_id: id,
-            content: text.clone(),
-        });
-        rcv.queue(DomOp::RegisterNode { node_id: id });
+        rcv.queue(ops::create_text_node(id, text));
+        rcv.queue(ops::register_node(id));
         rcv.queue(attach_op(parent_id, id, attach));
         if let Some(ids) = top_level.as_deref_mut() {
             ids.push(id);

@@ -1,0 +1,5 @@
+use foundation_ui_runtime::html;
+
+fn main() {
+    let _view = html! { <div primal:bogus="x"></div> };
+}

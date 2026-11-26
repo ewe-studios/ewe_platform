@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 
+mod action;
 mod arrow_json_schema;
 mod arrow_schema;
 mod bindgen_test;
@@ -10,6 +11,8 @@ mod embed_migrations;
 mod embedders;
 mod from_arrow;
 mod html_macro;
+mod http_route;
+
 mod include_data;
 mod json_hash;
 mod json_schema;
@@ -25,6 +28,7 @@ mod theme_tokens;
 mod to_arrow;
 mod type_uuid;
 mod valtron_entry;
+mod task_entry;
 mod wasm_entrypoint;
 mod wasm_logs;
 mod wasm_modes;
@@ -36,6 +40,15 @@ mod wireguard;
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
 // Import from foundation_nostd::macros.
+
+/// Marks an asynchronous function as a user interface action.
+/// The host registers the generated value by its function name.
+/// Use `#[action(server)]` or `#[action(host)]` to select an origin.
+/// Add `web` or `mobile` after the origin to select a surface.
+#[proc_macro_attribute]
+pub fn action(attr: TokenStream, item: TokenStream) -> TokenStream {
+    action::expand(attr.into(), item.into()).into()
+}
 
 // ── Migration macros ──
 
@@ -156,9 +169,10 @@ pub fn include_yaml(input: TokenStream) -> TokenStream {
 ///
 /// ```
 ///
+/// Add `#[always_embed]` to keep the file bytes in debug and release binaries.
 #[proc_macro_derive(
     EmbedDirectoryAs,
-    attributes(source, gzip_compression, brottli_compression, with_utf16)
+    attributes(source, gzip_compression, brottli_compression, with_utf16, always_embed)
 )]
 pub fn embed_directory_as(item: TokenStream) -> TokenStream {
     embedders::embed_directory_on_struct(item)
@@ -747,6 +761,18 @@ pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
 }
 
+/// Build the entry point of a repository task executable.
+#[proc_macro_attribute]
+pub fn task_entry(attr: TokenStream, item: TokenStream) -> TokenStream {
+    task_entry::expand(attr.into(), item.into(), false).into()
+}
+
+/// Include a build-script index and register the discovered task files.
+#[proc_macro_attribute]
+pub fn tasks(attr: TokenStream, item: TokenStream) -> TokenStream {
+    task_entry::expand(attr.into(), item.into(), true).into()
+}
+
 /// `#[valtron::task]` — wrap a transition function into a state-machine task.
 ///
 /// Applied to a transition `fn` or `async fn` of the shape
@@ -1016,13 +1042,50 @@ pub fn proxy(input: TokenStream) -> TokenStream {
 /// Two forms:
 /// - `html! { <div>..</div> }` — a pure `Html` value.
 /// - `html! { ctx, receiver, <div>..</div> }` — additionally queues the DOM
-///   build as `DomOp`s on `receiver` and creates one effect per dynamic
+///   build as generated operations on `receiver` and creates one effect per dynamic
 ///   slot/attribute (effects run immediately).
 ///
 /// See `foundation_macros::html_macro` module docs for the full walkthrough.
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
-    html_macro::html(input.into()).into()
+    html_macro::html(input.into(), false).into()
+}
+
+/// Builds a template for the action receiver.
+#[doc(hidden)]
+#[proc_macro]
+pub fn html_view(input: TokenStream) -> TokenStream {
+    html_macro::html(input.into(), true).into()
+}
+
+/// Appends template content to the selected parent.
+#[proc_macro]
+pub fn html_add(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Append).into()
+}
+
+/// Inserts template content before a direct child.
+#[proc_macro]
+pub fn html_add_before(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Before).into()
+}
+
+/// Inserts template content after a direct child.
+#[proc_macro]
+pub fn html_add_after(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::After).into()
+}
+
+/// Replaces the selected node with template content.
+#[proc_macro]
+pub fn html_swap(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Swap).into()
+}
+
+/// Removes the selected node and its descendants.
+#[proc_macro]
+pub fn html_remove(input: TokenStream) -> TokenStream {
+    html_macro::targeted(input.into(), html_macro::Placement::Remove).into()
 }
 
 /// `#[derive(ThemeTokens)]` — compile-time theme CSS from `#[token(...)]`
@@ -1120,4 +1183,28 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn generate(input: TokenStream) -> TokenStream {
     connectrpc_service::expand_generate(input.into()).into()
+}
+
+macro_rules! http_attributes {
+    ($($name:ident => $method:literal),* $(,)?) => {$(
+        #[doc = concat!("Define a native ", $method, " route.")]
+        #[proc_macro_attribute]
+        pub fn $name(attr: TokenStream, item: TokenStream) -> TokenStream {
+            http_route::expand($method, attr.into(), item.into())
+                .unwrap_or_else(syn::Error::into_compile_error)
+                .into()
+        }
+    )*};
+}
+http_attributes!(http_get => "GET", http_post => "POST", http_put => "PUT", http_patch => "PATCH",
+    http_delete => "DELETE", http_head => "HEAD", http_options => "OPTIONS");
+
+mod view_http;
+
+/// Registers a native view handler for GET requests.
+#[proc_macro_attribute]
+pub fn ui_http_get(attr: TokenStream, item: TokenStream) -> TokenStream {
+    view_http::expand(attr.into(), item.into())
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }

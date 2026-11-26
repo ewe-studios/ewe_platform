@@ -1,0 +1,16 @@
+# Local candidate. Publication uses exact source revisions in the release record.
+version = "0.1.1"
+repository = "ewe-studios/ewe_platform"
+maven_group = "io.github.ewe-studios"
+swift_product = "EweUI"
+apple_archive = "EweCoreFFI.xcframework.zip"
+maven_modules = ["ewe-ui-core", "ewe-ui-binding", "ewe-ui"]
+apple_targets = ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios", "aarch64-apple-darwin", "x86_64-apple-darwin"]
+android_targets = ["arm64-v8a", "x86_64"]
+
+[consumers]
+apple_directory = "examples/mobile_starter/ios"
+apple_project = "Starter.xcodeproj"
+apple_scheme = "Starter"
+android_directory = "examples/mobile_starter/android"
+android_task = ":app:assembleDebug"

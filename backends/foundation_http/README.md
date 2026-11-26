@@ -333,3 +333,34 @@ cargo test --package foundation_http --features wasm-test
 # Verify wasm32 compilation
 cargo check --package foundation_http --target wasm32-unknown-unknown --features wasm-bindgen-http
 ```
+
+## Register native function routes
+
+A native handler receives the context, incoming request, and connection. A synchronous handler returns a connection result.
+An asynchronous handler returns a connection outcome. The server awaits that outcome.
+
+```rust
+use foundation_http::{
+    shared::router::Router, ConnectionResult, Ctx, RawStream, Serve,
+    SharedByteBufferStream, SimpleIncomingRequest,
+};
+use std::sync::Arc;
+
+#[foundation_http::get("/about")]
+fn about(ctx: Ctx, _request: SimpleIncomingRequest, conn: SharedByteBufferStream<RawStream>) -> ConnectionResult {
+    foundation_http::native::writer::send_html(conn, 200, "<main>About</main>", &ctx)
+}
+
+let mut router = Router::<Arc<dyn Serve>>::new();
+router.mount(about)?;
+# Ok::<(), foundation_http::shared::router::RouteOp>(())
+```
+
+Implement Route and Serve on a struct to declare a primary path and optional aliases. Each path shares the same instance.
+Use router.at with a method wrapper for paths supplied during setup. Both registration methods return path errors.
+The application also exposes mount as a direct call to its router. Routing chooses a handler for the exact method.
+A HEAD handler must emit response headers without a body.
+
+The method wrappers and route declarations also work with `Router<Arc<dyn ServeWriter>>` on WebAssembly.
+Each adapter converts its handler to the type the router stores.
+Use `StaticFileHandler::file(path, config)` when a public route serves one file selected by the host.

@@ -20,6 +20,7 @@
 extern crate alloc;
 
 // Machinery modules
+pub mod behaviour;
 pub mod field_state;
 pub mod machinery;
 pub mod positioning;

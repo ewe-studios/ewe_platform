@@ -44,5 +44,5 @@ impl OAuthClient {
 pub(crate) fn hex_sha256(input: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(input.as_bytes());
-    format!("{:x}", hasher.finalize())
+    hex::encode(hasher.finalize())
 }

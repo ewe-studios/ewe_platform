@@ -49,7 +49,7 @@ binaries and attaches them to that GitHub release.
 - `semver_check` is off: most crates are 0.0.x, where every bump is already
   breaking.
 - The **Publish dry-run** job in `check.yaml` runs
-  `scripts/ci/package_workspace.py` on every push to `master`. It packages
+  `cargo run --locked --profile uat -p foundation_ci -- package-workspace` on every push to `master`. It packages
   each publishable crate against a local `[patch.crates-io]` table. Keep it
   green, because the release job publishes the same packages.
 - A dev-dependency on a workspace crate must not have a `version` when that
@@ -58,7 +58,7 @@ binaries and attaches them to that GitHub release.
   dev-dependency of `foundation_nostd` is path-only. Cargo removes a
   path-only dev-dependency from the published manifest. With a `version`,
   `cargo package` must find the dependent on crates.io first, and the
-  publish fails. The patch table hides this, so `package_workspace.py`
+  publish fails. The patch table hides this, so the package task
   checks for these cycles before it packages.
 - Running release-plz locally inside a `git worktree` is not supported: it
   copies the repository to a temp dir whose `.git` still points at the

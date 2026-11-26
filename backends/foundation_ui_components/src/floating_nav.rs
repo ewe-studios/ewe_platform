@@ -52,7 +52,7 @@ impl Default for FloatingNavConfig {
 /// Render a floating navigation toolbar with scoped JS behavior.
 #[must_use]
 pub fn floating_nav(config: FloatingNavConfig) -> Html {
-    let hidden_attr = if !config.visible { "true" } else { "" };
+    let hidden_attr = if config.visible { "" } else { "true" };
 
     html! {
         <div class="floating-nav-wrapper" data-fn-wrapper="true">

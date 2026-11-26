@@ -1,0 +1,8 @@
+{
+  "name": "foundation-ui-wire-bindings",
+  "private": true,
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "flatbuffers": "25.9.23"
+  }
+}

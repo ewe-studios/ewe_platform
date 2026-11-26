@@ -130,19 +130,11 @@ impl Default for StreamRegistry {
     }
 }
 
-// ── WASM exports (F28) ──────────────────────────────────────────────────
+/// WebAssembly stream functions for the JavaScript host.
 ///
-/// Four functions, two on each side:
-///
-///   WASM exports (JS calls these):
-///     stream_create() -> u64          — create a stream, return its ID
-///     stream_send(id, ptr, len, seq) — push a chunk to a stream by ID
-///     stream_close(id)               — close a stream by ID
-///
-///   JS provides to WASM (WASM calls via FFI):
-///     host_stream_send(id, ptr, len, seq) — WASM pushes chunk to JS
-///     host_stream_end(id)                 — WASM signals end to JS
-
+/// Call `stream_create` to get a stream identifier. Call `stream_send` to add a chunk.
+/// Call `stream_close` after the last chunk.
+/// The module sends chunks to JavaScript with `host_stream_send` and signals completion with `host_stream_end`.
 #[cfg(feature = "web")]
 pub mod wasm_exports {
     use super::{StreamChunk, StreamId, StreamRegistry};

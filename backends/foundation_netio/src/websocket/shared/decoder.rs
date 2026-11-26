@@ -55,6 +55,7 @@ pub struct WebSocketFrameDecoder {
     mask_key: [u8; 4],
     /// Determined payload length in bytes.
     payload_len: usize,
+    max_payload: usize,
     /// Accumulated payload bytes (unmasked once complete).
     payload: Vec<u8>,
 }
@@ -63,7 +64,14 @@ impl WebSocketFrameDecoder {
     /// Create a fresh decoder ready for the next frame.
     #[must_use]
     pub fn new() -> Self {
+        Self::with_limit(usize::MAX)
+    }
+
+    /// Rejects a frame that exceeds the byte limit before reading its payload.
+    #[must_use]
+    pub fn with_limit(max_payload: usize) -> Self {
         Self {
+            max_payload,
             buffer: AccumulatingBuffer::new(),
             phase: HeaderPhase::Base { pos: 0 },
             base_hdr: [0u8; 2],
@@ -72,6 +80,15 @@ impl WebSocketFrameDecoder {
             payload_len: 0,
             payload: Vec::new(),
         }
+    }
+
+    fn check_length(&self) -> Result<(), DecodeError> {
+        if self.payload_len > self.max_payload {
+            return Err(DecodeError::protocol(
+                "WebSocket frame exceeds the configured limit",
+            ));
+        }
+        Ok(())
     }
 
     /// How many payload bytes have been accumulated so far.
@@ -168,7 +185,8 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                             pos: 0,
                         },
                         n => {
-                            self.payload_len = n as usize;
+                            self.payload_len = usize::from(n);
+                            self.check_length()?;
                             if self.masked {
                                 HeaderPhase::Mask {
                                     buf: [0u8; 4],
@@ -199,11 +217,11 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                     self.payload_len = if need == 2 {
                         u16::from_be_bytes([buf[0], buf[1]]) as usize
                     } else {
-                        #[allow(clippy::cast_possible_truncation)]
-                        {
-                            u64::from_be_bytes(buf) as usize
-                        }
+                        usize::try_from(u64::from_be_bytes(buf)).map_err(|_| {
+                            DecodeError::protocol("WebSocket frame length exceeds address space")
+                        })?
                     };
+                    self.check_length()?;
                     self.phase = if self.masked {
                         HeaderPhase::Mask {
                             buf: [0u8; 4],

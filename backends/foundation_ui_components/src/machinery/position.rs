@@ -7,7 +7,7 @@
 //! `--anchor-*`/`--available-*`/`--positioner-*`/`--popup-*`/`--transform-origin`
 //! CSS vars (machinery.md §M1, F4 Positioner table).
 //!
-//! WHAT: [`POSITION_JS`] (the behavior) + [`position_behavior`] (the `<script>`
+//! WHAT: [`POSITION_JS`] (the behavior) + [`position_behavior`] (the marker
 //! a positioner embeds) + the data-attribute contract constants. The
 //! [`crate::positioning`] config types ([`PlacementSide`]/[`PlacementAlign`]/
 //! [`CollisionBehavior`]) describe the same contract on the Rust side.
@@ -28,7 +28,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{behaviour_script, Behaviour};
 
 /// Positioner attribute: the trigger/anchor element id (`data-anchor`).
 /// Absent → the positioner's previous element sibling is the anchor.
@@ -47,7 +47,7 @@ pub const DATA_ANCHOR_HIDDEN: &str = "data-anchor-hidden";
 /// The M1 anchored-positioning behavior. Places the positioner against its
 /// anchor with side flip + align flip/shift, and emits the `data-side`/
 /// `data-align` + CSS-var styling contract; re-runs on scroll/resize.
-pub const POSITION_JS: &str = r#"function(scope){
+pub const POSITION_JS: &str = r"function(scope){
   var pos = scope.parent();
   if (!pos) return;
   var doc = pos.ownerDocument || document;
@@ -165,14 +165,14 @@ pub const POSITION_JS: &str = r#"function(scope){
     scope.addEvent(doc, 'scroll', place, true);
     scope.addEvent(win, 'resize', place);
   }
-}"#;
+}";
 
-/// The `<script>` node a positioner embeds to get M1 anchored positioning.
+/// The marker node a positioner embeds to get M1 anchored positioning.
 /// The positioner root must carry [`DATA_ANCHOR`] (or sit immediately after
 /// its anchor) plus the optional `data-prefer-side`/`data-prefer-align`/
 /// `data-offset`/`data-collision-*` config; the body writes [`DATA_SIDE`]/
 /// [`DATA_ALIGN`] + the CSS-var contract.
 #[must_use]
 pub fn position_behavior() -> Html {
-    scoped_script(POSITION_JS)
+    behaviour_script(Behaviour::Position, POSITION_JS)
 }

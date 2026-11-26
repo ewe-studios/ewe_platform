@@ -163,7 +163,7 @@ _The diagram shows a native live mount. The channel and the host differ from the
 frames and the region semantics are the same._
 
 - A `stream` mount keeps frames in `sequence_id` order and resumes from the last applied id.
-- A `data` mount keeps the latest value and drops older values.
+- A `data` mount applies one complete reply per request (D61).
 - A local transport connects a signal graph in `foundation_signals` to the region. No network
   is involved.
 - The payload is the same `Frame` schema as the web path (D29). The native reader applies the

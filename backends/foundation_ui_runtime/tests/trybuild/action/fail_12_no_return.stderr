@@ -1,0 +1,5 @@
+error: an action must return `Result<(), ErrorTrace<ActionError>>`
+ --> tests/trybuild/action/fail_12_no_return.rs:4:1
+  |
+4 | async fn submit(_ctx: &Context, _event: Interaction<()>) {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

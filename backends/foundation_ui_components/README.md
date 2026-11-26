@@ -64,3 +64,19 @@ foundation_ui_components = { workspace = true }
 
 Catalog spec + build notes:
 [`specifications/42-ui-component/`](../../specifications/42-ui-component/).
+
+## Behaviour bindings
+
+A named behaviour attaches an interaction to a component root.
+For example, `machinery::dismiss::dismiss_behavior()` emits the shared `DISMISS` binding.
+The browser, iOS and Android receive the same identifier. Each renderer implements the interaction with its platform controls.
+A component can also require web-only behaviours. The matrix records each component's complete list and native support.
+
+See the [behaviour matrix](behaviours.toml) and the [component marker example](docs/machinery.md).
+
+```sh
+cargo test -p foundation_ui_components --test behaviour_matrix_tests --profile uat
+python3 scripts/ui/check_behaviours.py ios
+python3 scripts/ui/check_behaviours.py android
+mise run ui-web:test
+```

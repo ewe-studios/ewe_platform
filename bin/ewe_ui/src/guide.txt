@@ -1,0 +1,28 @@
+Generate an application with one of these commands.
+
+    ewe_ui new --name FieldNotes --target web
+    ewe_ui new --name FieldNotes --target android --app-id com.example.fieldnotes
+    ewe_ui new --name FieldNotes --target ios --app-id com.example.fieldnotes
+    ewe_ui new --name FieldNotes --target web --target android --target ios --app-id com.example.fieldnotes
+
+Generation writes one new directory. An existing destination causes an error.
+In a terminal, run ewe_ui new to open the wizard. Escape cancels with status 130.
+
+Run build and task commands from the generated application directory.
+
+    cd FieldNotes
+    ewe_ui task list
+    ewe_ui task help app:build
+    ewe_ui build --target web --release
+    ewe_ui build --target android
+    ewe_ui devices list --target ios
+
+Web builds need Rust, its WebAssembly target, and npm.
+Android builds need the Android development tools. iOS builds need Xcode on macOS.
+Copy a device identifier from the list for the target. Replace DEVICE_ID in these commands.
+
+    ewe_ui devices start --target ios --device DEVICE_ID
+    ewe_ui run --target ios --device DEVICE_ID
+
+Project task names, flags, and required arguments appear in the command descriptions below.
+Publication requires a release tag, an integrity digest, and NPM_TOKEN.

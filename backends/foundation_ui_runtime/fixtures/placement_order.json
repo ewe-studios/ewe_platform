@@ -1,0 +1,11 @@
+[
+  {"kind":"Before", "target":10, "root":12, "order":[12]},
+  {"kind":"After",  "target":10, "root":13, "order":[12,13]},
+  {"kind":"Append", "target":10, "root":14, "order":[12,13,14]},
+  {"kind":"Before", "target":10, "child":13, "root":15, "order":[12,15,13,14]},
+  {"kind":"After",  "target":10, "child":13, "root":16, "order":[12,15,13,16,14]},
+  {"kind":"Swap",   "target":13, "root":17, "order":[12,15,17,16,14]},
+  {"kind":"Remove", "target":12, "order":[15,17,16,14]},
+  {"kind":"Append", "target":99, "root":18, "error":true, "order":[15,17,16,14]},
+  {"kind":"Before", "target":10, "child":21, "root":19, "error":true, "order":[15,17,16,14]}
+]

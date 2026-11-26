@@ -1,3 +1,5 @@
+#[cfg(feature = "javascript")]
+pub mod javascript;
 pub mod cargo_toml;
 pub mod crate_scanner;
 pub mod error;

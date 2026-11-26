@@ -1371,8 +1371,14 @@ export class ProtocolDispatcher {
     return this;
   }
 
+  /** Install a reader for a self-identifying binary format. Other messages use the envelope. */
+  setRawHandler(matches, apply) {
+    this.rawHandler = { matches, apply };
+  }
+
   /** @param {ArrayBuffer|Uint8Array} buffer */
   dispatch(buffer) {
+    if (this.rawHandler?.matches(buffer)) return this.rawHandler.apply(buffer);
     const { protocol, memoryId, payload } = WasmEnvelope.parse(buffer);
     const handler = this.handlers[protocol];
     if (!handler) {
@@ -2263,6 +2269,16 @@ export class FoundationWasm {
 
 // ─── WasmLoader / WasmWebScripts (megatron WASMLoader parity) ──────────────────────
 
+/** Reports the stage and address of a module load failure. */
+export class WasmLoadError extends Error {
+  constructor(code, url, detail, options) {
+    super(`Cannot load WebAssembly from ${url}: ${detail}`, options);
+    this.name = "WasmLoadError";
+    this.code = code;
+    this.url = String(url);
+  }
+}
+
 /**
  * Convenience loader: owns a FoundationWasm runtime, instantiates a module from a
  * URL (streaming) or raw bytes with the `abi` imports + a `js.mem` memory, and binds
@@ -2270,19 +2286,29 @@ export class FoundationWasm {
  * options (`builtins: ["js-strings"]`, `importedStringConstants`).
  */
 export class WasmLoader {
+  #options;
+
   /**
    * @param {{initialMemory?:number, maximumMemory?:number, environment?:object,
    *          compileOptions?:object}} [opts] memory sizes are in WASM pages
    */
   constructor(opts = {}) {
-    this.runtime = new FoundationWasm(opts);
+    this.#options = {...opts};
     this.environment = opts.environment ?? {};
     this.compileOptions = WasmLoader.compileOptionsOf(opts.compileOptions);
-    this.memory = new WebAssembly.Memory({
-      initial: opts.initialMemory ?? 10,
-      maximum: opts.maximumMemory ?? 200,
-    });
-    this.module = null;
+    this.#prepareRuntime();
+  }
+
+  /** Allocate a new host after disposal. Old callbacks keep their disabled registry. */
+  #prepareRuntime() {
+    if (!this.runtime || this.runtime.timers.disposed) {
+      this.runtime = new FoundationWasm(this.#options);
+      this.memory = new WebAssembly.Memory({
+        initial: this.#options.initialMemory ?? 10,
+        maximum: this.#options.maximumMemory ?? 200,
+      });
+      this.module = null;
+    }
   }
 
   static compileOptionsOf(compileOptions) {
@@ -2297,17 +2323,34 @@ export class WasmLoader {
     return { abi: this.runtime.web_abi, js: { mem: this.memory }, ...this.environment };
   }
 
-  /** Instantiate from a URL via instantiateStreaming. */
-  async loadURL(url) {
-    const module = await WebAssembly.instantiateStreaming(
-      fetch(url), this.imports, this.compileOptions,
-    );
-    this.#bind(module);
+  /** Check the response before streaming the module into the compiler. */
+  async loadURL(url, fetchModule = globalThis.fetch) {
+    this.#prepareRuntime();
+    let response;
+    try {
+      response = await fetchModule(url);
+    } catch (cause) {
+      throw new WasmLoadError("Network", url, cause.message, { cause });
+    }
+    if (!response.ok) {
+      const error = new WasmLoadError("HttpStatus", url, `HTTP ${response.status}`);
+      error.status = response.status;
+      await response.body?.cancel().catch(() => {});
+      throw error;
+    }
+    try {
+      this.#bind(await WebAssembly.instantiateStreaming(response, this.imports, this.compileOptions));
+    } catch (cause) {
+      const code = cause instanceof WebAssembly.LinkError ? "Imports"
+        : cause instanceof WebAssembly.CompileError ? "Compile" : "Instantiate";
+      throw new WasmLoadError(code, url, cause.message, { cause });
+    }
     return this;
   }
 
   /** Instantiate from raw bytes (ArrayBuffer/TypedArray). */
   async loadBytes(bytes) {
+    this.#prepareRuntime();
     const module = await WebAssembly.instantiate(bytes, this.imports, this.compileOptions);
     this.#bind(module);
     return this;
@@ -2367,6 +2410,7 @@ globalThis.FoundationWasmRuntime = Object.freeze({
   FoundationWasm,
   batchProtocolHandler,
   WasmLoader,
+  WasmLoadError,
   WasmWebScripts,
   AsyncTaskCollector,
   TestReports,

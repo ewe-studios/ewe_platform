@@ -1,0 +1,5 @@
+error: html!: use on:<event> on a core element, not primal:on<event>
+ --> tests/trybuild/view/fail_primal_on_core.rs:4:31
+  |
+4 |     let _view = html! { <Text primal:onclick={callback}/> };
+  |                               ^^^^^^

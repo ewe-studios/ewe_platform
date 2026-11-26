@@ -143,6 +143,14 @@ impl StorageProvider {
     /// # Errors
     ///
     /// Returns an error if the backend initialization fails.
+    #[cfg_attr(
+        target_family = "wasm",
+        expect(
+            clippy::unused_async,
+            clippy::unused_async_trait_impl,
+            reason = "Native database initialization waits for storage. All targets share the constructor."
+        )
+    )]
     pub async fn new(backend: StorageBackend) -> StorageResult<Self> {
         match backend {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]

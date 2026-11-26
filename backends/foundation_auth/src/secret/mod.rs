@@ -17,12 +17,16 @@
 //! secret from that code still verifies unchanged. Version 2 adds the purpose,
 //! the audience, the key ID, the use limit and the subject.
 
+#[cfg(feature = "secret")]
+pub mod client_key;
 pub mod codec;
 pub mod enroll_proof;
 pub mod issuer;
 pub mod keys;
 pub mod verifier;
 
+#[cfg(feature = "secret")]
+pub use client_key::{ClientKeyAlgorithm, ClientPublicKey};
 pub use enroll_proof::{enroll_proof_message, ENROLL_PROOF_DOMAIN};
 pub use issuer::{SecretIssuer, SecretRequest};
 pub use keys::{SigningKey, VerifyingKey};

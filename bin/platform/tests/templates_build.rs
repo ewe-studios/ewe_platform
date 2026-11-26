@@ -10,13 +10,8 @@ use std::fmt::Write as _;
 use std::path::Path;
 use std::process::Command;
 
-use foundation_macros::EmbedDirectoryAs;
 use foundation_packager::{Directorate, PackageConfig, PackageGenerator};
-
-/// The staged templates from `build.rs` (with `Cargo.toml` restored).
-#[derive(EmbedDirectoryAs, Default)]
-#[source = "$OUT_DIR/templates/"]
-struct ProjectTemplates;
+use foundation_ui_project::ProjectTemplates;
 
 /// `(template name, generated directory name)`.
 const TEMPLATES: &[(&str, &str)] = &[
@@ -31,6 +26,9 @@ const PLATFORM_CRATES: &[&str] = &[
     "foundation_http",
     "foundation_toolings",
     "foundation_config",
+    "foundation_resources",
+    "foundation_macros",
+    "foundation_nostd",
 ];
 
 #[test]
@@ -81,12 +79,12 @@ fn templates_generate_projects_that_build() {
         let source = project_sources(&generated_dir);
         if matches!(*template_name, "web-app" | "static-html-app") {
             assert!(
-                source.contains("send_html"),
-                "template {template_name} must answer with `send_html`"
+                source.contains("StaticFileHandler::from_resources(PackagedResources)"),
+                "template {template_name} must use the streamed resource handler"
             );
             assert!(
-                source.contains("send_not_found"),
-                "template {template_name} must answer a miss with `send_not_found`"
+                generated_dir.join("public/index.html").is_file(),
+                "template {template_name} must include its root document"
             );
         }
         assert!(

@@ -8,10 +8,14 @@
 //! reactive), the theme derive's custom properties / dark handling / utility
 //! classes, and the first-batch injection helper.
 
+use foundation_ui_wire::{OperationT, UiOperationT as Ui, WebOperationT as Web};
+#[path = "support/names.rs"]
+mod names;
+use names::wire_name;
+
 use std::rc::Rc;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
-use foundation_ui_traits::DomOp;
 use foundation_wasm::MemoryAllocations;
 use foundation_wasm_ui::{
     html, inject_theme_css, theme, App, MockProtocol, Runtime, ThemeTokens, HEAD_NODE_ID,
@@ -84,21 +88,31 @@ fn reactive_form_ships_scoped_styles_to_head() {
     };
     signals.stabilize();
 
-    let ops: Vec<DomOp> = sent.borrow().iter().flatten().cloned().collect();
+    let ops: Vec<OperationT> = sent.borrow().iter().flatten().cloned().collect();
     let style_create = ops.iter().find_map(|op| match op {
-        DomOp::CreateElement { node_id, tag, .. } if tag.name() == Some("style") => Some(*node_id),
+        OperationT {
+            web: Web::WebElement(ref row),
+            ..
+        } if wire_name(
+            row.tag_id,
+            row.custom_tag.as_deref(),
+            foundation_ui_traits::TAG_NAMES,
+        ) == Some("style") =>
+        {
+            Some(row.node_id)
+        }
         _ => None,
     });
     let style_id = style_create.expect("style element created");
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetText { node_id, text } if *node_id == style_id
-            && text.contains("#panel:hover { opacity: 0.8; }")
+        OperationT { ui: Ui::SetText(ref row), .. } if row.node_id == style_id
+            && row.text.as_deref().unwrap_or_default().contains("#panel:hover { opacity: 0.8; }")
     )));
     assert!(
         ops.iter().any(|op| matches!(
             op,
-            DomOp::AppendChild { parent_id: 0, child_id } if *child_id == style_id
+            OperationT { ui: Ui::AppendChild(ref row), .. } if row.parent_id == 0 && row.child_id == style_id
         )),
         "appended to the reserved <head> ambient id"
     );
@@ -178,25 +192,27 @@ fn inject_theme_css_queues_the_head_sequence() {
     inject_theme_css(&receiver, AppTheme::CSS);
     receiver.flush().expect("theme batch ships");
 
-    let batch = &sent.borrow()[0];
+    let batch: Vec<_> = sent.borrow()[0].clone();
     assert!(matches!(
         batch[0],
-        DomOp::CreateElement { node_id, ref tag, .. }
-            if node_id == THEME_STYLE_NODE_ID && tag.name() == Some("style")
+        OperationT { web: Web::WebElement(ref row), .. }
+            if row.node_id == THEME_STYLE_NODE_ID && wire_name(row.tag_id, row.custom_tag.as_deref(), foundation_ui_traits::TAG_NAMES) == Some("style")
     ));
-    assert!(matches!(batch[1], DomOp::RegisterNode { node_id } if node_id == THEME_STYLE_NODE_ID));
+    assert!(
+        matches!(batch[1], OperationT { web: Web::WebRegisterNode(ref row), .. } if row.node_id == THEME_STYLE_NODE_ID)
+    );
     assert!(matches!(
         &batch[2],
-        DomOp::SetAttribute { value, .. } if value == "primal-theme"
+        OperationT { web: Web::WebSetAttribute(ref row), .. } if row.value.as_deref().unwrap_or_default() == "primal-theme"
     ));
     assert!(matches!(
         &batch[3],
-        DomOp::SetText { text, .. } if text.contains("--color-primary")
+        OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default().contains("--color-primary")
     ));
     assert!(matches!(
         batch[4],
-        DomOp::AppendChild { parent_id, child_id }
-            if parent_id == HEAD_NODE_ID && child_id == THEME_STYLE_NODE_ID
+        OperationT { ui: Ui::AppendChild(ref row), .. }
+            if row.parent_id == HEAD_NODE_ID && row.child_id == THEME_STYLE_NODE_ID
     ));
 }
 
@@ -233,9 +249,9 @@ fn theme_macro_builds_app_injects_and_reads_back() {
 
     // The CSS was queued toward <head> on install.
     app.receiver().flush().expect("theme batch ships");
-    let batch = &sent.borrow()[0];
+    let batch: Vec<_> = sent.borrow()[0].clone();
     assert!(matches!(
         &batch[3],
-        DomOp::SetText { text, .. } if text.contains("--color-primary")
+        OperationT { ui: Ui::SetText(ref row), .. } if row.text.as_deref().unwrap_or_default().contains("--color-primary")
     ));
 }

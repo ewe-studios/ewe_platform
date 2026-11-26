@@ -1,0 +1,5 @@
+error: #[action] takes at most an origin and a scope
+ --> tests/trybuild/action/fail_02_extra_limit.rs:3:21
+  |
+3 | #[action(host, web, mobile)]
+  |                     ^^^^^^

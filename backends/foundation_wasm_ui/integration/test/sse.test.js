@@ -166,6 +166,7 @@ test("any-method SSE: POST body + headers reach the fetch", async () => {
   assert.equal(captured[0].init.method, "POST", "EventSource could never do this");
   assert.equal(captured[0].init.body, '{"q":1}');
   assert.equal(captured[0].init.headers.accept, "text/event-stream");
+  assert.equal(captured[0].init.cache, "no-store");
   assert.equal(events[0].event, "json");
 });
 

@@ -183,6 +183,6 @@ fn streaming_survives_newlines_mid_stream() {
 fn a_zero_width_output_area_does_not_hang_or_panic() {
     let (committed, tail) = split_committed("some text here", 0);
 
-    assert!(!committed.is_empty());
+    assert_eq!(committed.first().map(String::as_str), Some("s"));
     assert!(tail.chars().count() <= 1);
 }

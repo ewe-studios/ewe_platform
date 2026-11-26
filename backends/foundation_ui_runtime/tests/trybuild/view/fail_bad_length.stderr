@@ -1,0 +1,5 @@
+error: html!: `padding` needs a number, a percent such as "50%" or "auto"
+ --> tests/trybuild/view/fail_bad_length.rs:4:40
+  |
+4 |     let _view = html! { <Stack padding="8px"/> };
+  |                                        ^^^^^

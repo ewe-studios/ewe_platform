@@ -1514,9 +1514,12 @@ fn the_traced_child_dup2_closes_the_real_destination() {
         + 1;
 
     // The shell runs each redirection as `dup2(2)`: the virtual file lands on
-    // `slot`, then on `dest`, which is the real destination.
+    // `slot`, then on `dest`, which is the real destination. The first
+    // redirection sends the child's errors to a file, so a failure says why the
+    // child stopped (issue #829).
+    let err_path = format!("/tmp/pe-fd-dup2-child-{}.log", std::process::id());
     let script = format!(
-        "exec {slot}</virtual/vfile.txt; exec {dest}<&{slot}; \
+        "exec 2>{err_path}; exec {slot}</virtual/vfile.txt; exec {dest}<&{slot}; \
          printf x >&{note_write}; read _ctrl <&{ctrl_read}"
     );
     let h = i
@@ -1531,11 +1534,18 @@ fn the_traced_child_dup2_closes_the_real_destination() {
     close_raw(note_write);
     close_raw(ctrl_read);
 
-    assert_eq!(
-        read_one_byte(note_read),
-        1,
-        "the traced child did not reach the dup2"
-    );
+    let reached = read_one_byte(note_read);
+    if reached != 1 {
+        // The pipe is closed: the child is gone. Report its status and the
+        // errors it wrote, so a failure names its cause (issue #829).
+        let status = h.wait();
+        let stderr = std::fs::read_to_string(&err_path).unwrap_or_default();
+        let _ = std::fs::remove_file(&err_path);
+        panic!(
+            "the traced child did not reach the dup2 (read {reached} byte(s)); \
+             status: {status:?}; child stderr: {stderr:?}"
+        );
+    }
 
     // The child is still alive and blocked on the control read. Its real
     // destination fd must already be gone: `dup2(2)` closes it before it

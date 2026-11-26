@@ -1,0 +1,5 @@
+error: the second parameter must be `Interaction<State>` or `Interaction<State, Input>`
+ --> tests/trybuild/action/fail_11_event_type.rs:4:41
+  |
+4 | async fn submit(_ctx: &Context, _event: String) -> ActionResult {
+  |                                         ^^^^^^

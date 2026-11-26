@@ -185,3 +185,26 @@ let css = cubic_bezier_css(0.42, 0.0, 0.58, 1.0); // "cubic-bezier(…)" timing 
 ```
 
 `no_std`-safe: cubic Béziers are pure polynomials (no `sqrt`/`powf`/trig).
+
+## Shared control utilities
+
+One theme produces the web stylesheet and the optional native theme manifest.
+Enable the crate feature `native-manifest` to call `GeneratedTheme::native_manifest()`.
+Pass that text to the Swift or Kotlin host. Utility names travel in the frame. They need no numeric registration.
+
+| Class | Theme token | Web | SwiftUI | Android |
+|---|---|---|---|---|
+| `text-primary` | color `primary` | Text color | Foreground color | Text or button label color |
+| `bg-panel` | color `panel` | Background | Background | Background |
+| `p-md` | spacing or padding `md` | Padding | Padding in logical points | Density-independent padding |
+| `text-body` | font-size `body` | Font size | Scaled font size | Scaled text size |
+
+Use `ios-`, `android-`, or `web-` before a utility name for an override.
+A matching prefix wins over shared classes. The last matching class at the same level wins.
+An explicit node property wins over a class. Ordinary browser classes remain available for application stylesheets.
+
+Native renderers accept hexadecimal colors with three, four, six, or eight digits.
+Native lengths accept a nonnegative number with an optional `px` or `pt` suffix.
+Each numeric unit maps to one logical platform unit. Font sizes follow system text scaling.
+Percentages, viewport units, and relative font units require layout or font context.
+The native renderer skips unsupported values and keeps other styles and children.

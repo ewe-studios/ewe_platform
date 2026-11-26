@@ -20,37 +20,43 @@
 use alloc::rc::Rc;
 use alloc::string::String;
 
-use foundation_nostd::comp::basic::Mutex;
+extern crate std;
+use core::cell::RefCell;
 use foundation_signals::Runtime as SignalsRuntime;
 use foundation_wasm::{internal_api, MemoryId};
 
-/// The installed signals runtime. `Rc` is not `Send`/`Sync`, but WASM is
-/// single-threaded and native tests are single-threaded per process slot —
-/// the same stance as `foundation_wasm`'s registries (G15).
-struct Bridge(Rc<SignalsRuntime>);
+#[derive(Clone)]
+struct Bridge(Rc<SignalsRuntime>, Option<crate::SharedInstructionReceiver>);
 
-// SAFETY: single-threaded contexts only (wasm32, or one test thread touching
-// the bridge) — mirrors the FnCallback precedent in foundation_wasm::registry.
-unsafe impl Send for Bridge {}
-unsafe impl Sync for Bridge {}
-
-static EVENT_BRIDGE: Mutex<Option<Bridge>> = Mutex::new(None);
+std::thread_local! {
+    static EVENT_BRIDGE: RefCell<Option<Bridge>> = const { RefCell::new(None) };
+}
 
 /// Install the signals runtime that [`invoke_signal_callback`] dispatches
 /// into. Call once at app init (alongside `Runtime::attach`); installing
 /// again replaces the previous runtime.
 pub fn install_event_bridge(runtime: Rc<SignalsRuntime>) {
-    *EVENT_BRIDGE
-        .lock()
-        .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner) =
-        Some(Bridge(runtime));
+    EVENT_BRIDGE.replace(Some(Bridge(runtime, None)));
+}
+
+/// Install one local app as the owner of signal events and mounted scopes.
+pub fn install_app_bridge(app: &crate::App) {
+    EVENT_BRIDGE.replace(Some(Bridge(Rc::clone(app.signals()), Some(app.receiver()))));
+}
+
+/// Dispose the scopes that the local app registered for this node.
+#[no_mangle]
+pub extern "C" fn ewe_ui_dispose_mount(node_id: u32) {
+    let receiver =
+        EVENT_BRIDGE.with_borrow(|slot| slot.as_ref().and_then(|bridge| bridge.1.clone()));
+    if let Some(receiver) = receiver {
+        receiver.dispose_mount(node_id);
+    }
 }
 
 /// Remove the installed runtime (teardown / tests).
 pub fn uninstall_event_bridge() {
-    *EVENT_BRIDGE
-        .lock()
-        .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner) = None;
+    EVENT_BRIDGE.take();
 }
 
 /// WASM export: deliver a serialized `EventData` to signal callback
@@ -79,10 +85,7 @@ pub extern "C" fn invoke_signal_callback(callback_id: u64, allocation_id: u64) {
         bytes.and_then(|b| String::from_utf8(b).ok())
     };
 
-    let guard = EVENT_BRIDGE
-        .lock()
-        .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
-    let Some(bridge) = guard.as_ref() else {
+    let Some(bridge) = EVENT_BRIDGE.with_borrow(Clone::clone) else {
         tracing::warn!(
             callback_id,
             "invoke_signal_callback: no event bridge installed"

@@ -16,8 +16,6 @@
 # happen. SSH goes to 127.0.0.1:<port>, which `up` maps to the VM's port 22.
 
 const SSH_PORT = 2222
-const STATUS_WINDOWS = "C:/OEM/status"
-const STATUS_MACOS = "/usr/local/platform-images/status"
 
 def fail [msg: string] {
     error make --unspanned {msg: $msg}
@@ -41,11 +39,6 @@ def ssh-args [key: path, port: int]: nothing -> list<string> {
     ]
 }
 
-# scp spells the port option -P.
-def scp-args [key: path, port: int]: nothing -> list<string> {
-    ssh-args $key $port | each {|a| if $a == "-p" { "-P" } else { $a } }
-}
-
 # Run a command in the VM. Returns {exit_code, stdout, stderr}; callers decide.
 def ssh-run [os: string, key: path, port: int, command: string, --stdin: string = ""]: nothing -> record {
     let target = $"(default-user $os)@127.0.0.1"
@@ -62,9 +55,17 @@ def ssh-stream [os: string, key: path, port: int, command: string] {
     ^ssh ...(ssh-args $key $port) $target $command
 }
 
-def container-running [name: string]: nothing -> bool {
-    let r = ^docker inspect --format '{{.State.Running}}' $name | complete
-    $r.exit_code == 0 and ($r.stdout | str trim) == "true"
+# Use the checkout's independent task runner for host container operations.
+def host-task [operation: string, arguments: list<string>, --value] {
+    let manifest = $env.FILE_PWD | path join .. .. .. backends foundation_ci Cargo.toml | path expand
+    let args = [run --locked --quiet --profile uat --manifest-path $manifest -- task run $operation ...$arguments]
+    if $value {
+        let result = (^cargo ...$args)
+        if $env.LAST_EXIT_CODE != 0 { exit $env.LAST_EXIT_CODE }
+        return ($result | str trim)
+    }
+    ^cargo ...$args
+    if $env.LAST_EXIT_CODE != 0 { exit $env.LAST_EXIT_CODE }
 }
 
 # Start the VM container. A fresh /storage installs the OS (Windows:
@@ -82,28 +83,11 @@ def "main up" [
     --cpus: string = ""             # CPU_CORES
     --disk: string = ""             # DISK_SIZE
 ] {
-    check-os $os
-    if ($image | is-empty) or ($storage | is-empty) or ($key | is-empty) { fail "--image, --storage and --key are required" }
-    if not ("/dev/kvm" | path exists) { fail "/dev/kvm does not exist: this host cannot run the VM (see the README on KVM)" }
-    let pub = $"($key).pub"
-    if not ($pub | path exists) { fail $"no public key at ($pub)" }
-    mkdir $storage
-    if (container-running $name) { fail $"a container named ($name) is already running" }
-    ^docker rm -f $name | complete | ignore
-
-    mut args = [
-        run --detach --name $name
-        --device /dev/kvm --device /dev/net/tun --cap-add NET_ADMIN
-        --stop-timeout 120
-        --publish $"127.0.0.1:($port):22"
-        --publish $"127.0.0.1:($web_port):8006"
-        --volume $"($storage | path expand):/storage"
-        --env $"PI_SSH_AUTHORIZED_KEY=(open --raw $pub | str trim)"
+    host-task images:vm-up [
+        --os $os --image $image --name $name --storage ($storage | into string) --key ($key | into string)
+        --port ($port | into string) --web-port ($web_port | into string)
+        --version $version --ram $ram --cpus $cpus --disk $disk
     ]
-    for kv in [[VERSION $version] [RAM_SIZE $ram] [CPU_CORES $cpus] [DISK_SIZE $disk]] {
-        if ($kv.1 | is-not-empty) { $args = ($args | append [--env $"($kv.0)=($kv.1)"]) }
-    }
-    ^docker ...$args $image
     print $"started ($name) from ($image): web viewer on http://127.0.0.1:($web_port), SSH on 127.0.0.1:($port)"
 }
 
@@ -118,32 +102,12 @@ def "main wait" [
     --timeout: duration = 120min
     --ssh-only                      # only wait for SSH, not for provisioning
 ] {
-    check-os $os
-    let deadline = (date now) + $timeout
-    let probe = if $ssh_only {
-        if $os == "windows" { "exit 0" } else { "true" }
-    } else if $os == "windows" {
-        $"if \(Test-Path '($STATUS_WINDOWS)/provisioned.ok') { exit 0 } elseif \(Test-Path '($STATUS_WINDOWS)/provision.failed') { exit 3 } else { exit 2 }"
-    } else {
-        $"if [ -f ($STATUS_MACOS)/provisioned.ok ]; then exit 0; elif [ -f ($STATUS_MACOS)/provision.failed ]; then exit 3; else exit 2; fi"
-    }
-    mut last_log = (date now)
-    loop {
-        if not (container-running $name) {
-            ^docker logs --tail 50 $name
-            fail $"the VM container ($name) stopped"
-        }
-        let r = ssh-run $os $key $port $probe
-        if $r.exit_code == 0 { print $"($name) is ready"; return }
-        if $r.exit_code == 3 { fail $"provisioning failed in ($name); `vm.nu logs` fetches provision.log" }
-        if (date now) > $deadline { fail $"($name) was not ready after ($timeout)" }
-        if ((date now) - $last_log) > 5min {
-            print $"still waiting for ($name) \(ssh: ($r.exit_code)\); container log:"
-            ^docker logs --tail 5 $name
-            $last_log = (date now)
-        }
-        sleep 30sec
-    }
+    mut args = [
+        --os $os --name $name --key ($key | into string) --port ($port | into string)
+        --timeout-ms (($timeout / 1ms) | math ceil | into int | into string)
+    ]
+    if $ssh_only { $args = ($args | append "--ssh-only") }
+    host-task images:vm-wait $args
 }
 
 # macOS only: copy the guest provisioning (layer 1 + repository layers) out
@@ -154,18 +118,9 @@ def "main provision" [
     --key: path
     --port: int = $SSH_PORT
 ] {
-    if $os != "macos" { fail "only macOS is provisioned over SSH; Windows provisions itself during the install" }
-    let tmp = mktemp -d
-    ^docker cp $"($name):/opt/platform-images/guest" $"($tmp)/guest"
-    let layers = ^docker exec $name sh -c 'test -d /opt/platform-images/layers && echo yes || echo no' | str trim
-    if $layers == "yes" { ^docker cp $"($name):/opt/platform-images/layers" $"($tmp)/guest/layers" }
-    let tarball = $"($tmp)/guest.tar.gz"
-    ^tar -czf $tarball -C $tmp guest
-    let dest = "/tmp/platform-images-guest"
-    let r = ssh-run $os $key $port $"rm -rf ($dest) && mkdir -p ($dest) && tar -xzf - -C ($dest)" --stdin (open --raw $tarball)
-    if $r.exit_code != 0 { fail $"copying the provisioning into the VM failed: ($r.stderr)" }
-    rm -r $tmp
-    ssh-stream $os $key $port $"bash ($dest)/guest/provision.sh 2>&1 | tee /tmp/platform-images-provision.log; exit \${PIPESTATUS[0]}"
+    host-task images:vm-provision [
+        --os $os --name $name --key ($key | into string) --port ($port | into string)
+    ]
 }
 
 # Copy a directory into the VM (as a tarball over SSH; Windows has tar.exe).
@@ -177,23 +132,12 @@ def "main push" [
     --dest: string                  # e.g. C:/work/repo or /Users/ci/work/repo
     --exclude: list<string> = [target]
 ] {
-    check-os $os
-    let tarball = mktemp --suffix .tar.gz
-    let excludes = $exclude | each {|e| $"--exclude=./($e)" }
-    ^tar -czf $tarball ...$excludes -C $src .
-    if $os == "windows" {
-        # PowerShell does not read binary stdin reliably; copy with scp, then
-        # unpack with Windows' own tar.exe.
-        let target = $"(default-user $os)@127.0.0.1"
-        ^scp ...(scp-args $key $port) $tarball $"($target):($dest).tar.gz"
-        let r = ssh-run $os $key $port $"New-Item -ItemType Directory -Force -Path '($dest)' | Out-Null; tar -xzf '($dest).tar.gz' -C '($dest)'; if \($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; Remove-Item '($dest).tar.gz'"
-        if $r.exit_code != 0 { fail $"unpacking in the VM failed: ($r.stderr)" }
-    } else {
-        let r = ssh-run $os $key $port $"mkdir -p '($dest)' && tar -xzf - -C '($dest)'" --stdin (open --raw $tarball)
-        if $r.exit_code != 0 { fail $"copying into the VM failed: ($r.stderr)" }
-    }
-    rm $tarball
-    print $"pushed ($src) to ($dest)"
+    mut args = [
+        --os $os --key ($key | into string) --port ($port | into string)
+        --src ($src | into string) --dest $dest --explicit-excludes
+    ]
+    for pattern in $exclude { $args = ($args | append ["--exclude" $pattern]) }
+    host-task images:vm-push $args
 }
 
 # Copy a file or directory out of the VM.
@@ -204,10 +148,10 @@ def "main pull" [
     --src: string                   # path in the VM
     --dest: path
 ] {
-    check-os $os
-    mkdir $dest
-    let target = $"(default-user $os)@127.0.0.1"
-    ^scp -r ...(scp-args $key $port) $"($target):($src)" $dest
+    host-task images:vm-pull [
+        --os $os --key ($key | into string) --port ($port | into string)
+        --src $src --dest ($dest | into string)
+    ]
 }
 
 # Run a script in the VM, in --cwd, streaming its output. Windows: a
@@ -288,13 +232,7 @@ def "main runner" [
 }
 
 def "main runner-alive" [--os: string, --key: path, --port: int = $SSH_PORT]: nothing -> bool {
-    let probe = if $os == "windows" {
-        "if (Get-Process -Name Runner.Listener -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
-    } else {
-        # [R]: keep pgrep from matching the shell that runs this command.
-        "pgrep -f '[R]unner.Listener' >/dev/null"
-    }
-    (ssh-run $os $key $port $probe).exit_code == 0
+    host-task --value images:vm-runner-alive [--os $os --key ($key | into string) --port ($port | into string)] | into bool
 }
 
 # Wait for the ephemeral runner to finish its job (it exits afterwards).
@@ -304,13 +242,10 @@ def "main wait-runner" [
     --port: int = $SSH_PORT
     --timeout: duration = 6hr
 ] {
-    check-os $os
-    let deadline = (date now) + $timeout
-    while (main runner-alive --os $os --key $key --port $port) {
-        if (date now) > $deadline { fail $"the runner was still busy after ($timeout)" }
-        sleep 30sec
-    }
-    print "runner finished"
+    host-task images:vm-wait-runner [
+        --os $os --key ($key | into string) --port ($port | into string)
+        --timeout-ms (($timeout / 1ms) | math ceil | into int | into string)
+    ]
 }
 
 # Collect the provisioning log, the runner log and the container log.
@@ -321,27 +256,15 @@ def "main logs" [
     --port: int = $SSH_PORT
     --out: path
 ] {
-    check-os $os
-    mkdir $out
-    ^docker logs $name o+e> ($out | path join container.log)
-    let files = if $os == "windows" {
-        [[$"($STATUS_WINDOWS)/provision.log" provision.log] [$"($STATUS_WINDOWS)/versions.txt" versions.txt] ["C:/actions-runner/runner.log" runner.log]]
-    } else {
-        [["/tmp/platform-images-provision.log" provision.log] [$"($STATUS_MACOS)/versions.txt" versions.txt] ["/usr/local/actions-runner/runner.log" runner.log]]
-    }
-    for f in $files {
-        let r = ssh-run $os $key $port (if $os == "windows" { $"Get-Content -Raw '($f.0)'" } else { $"cat '($f.0)'" })
-        if $r.exit_code == 0 { $r.stdout | save --force ($out | path join $f.1) } else { print $"\(no ($f.0) in the VM\)" }
-    }
+    host-task images:vm-logs [
+        --os $os --name $name --key ($key | into string) --port ($port | into string) --out ($out | into string)
+    ]
 }
 
 # Stop the VM (an orderly shutdown via dockurr, up to 2 minutes) and remove
 # the container. The disk in --storage stays.
 def "main down" [--name: string = "pi-vm"] {
-    let r = ^docker inspect $name | complete
-    if $r.exit_code != 0 { print $"no container ($name)"; return }
-    ^docker stop --time 120 $name
-    ^docker rm $name
+    host-task images:vm-down [--name $name]
 }
 
 def main [] {

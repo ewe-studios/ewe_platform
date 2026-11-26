@@ -46,3 +46,12 @@ stub only when no local form exists, and say so in the test.
 When the owner drops a feature, mark it `status: "dropped"` with a dated note, remove it from
 the lane order, and delete its backlog entries (do not keep them as paused) unless the owner
 keeps a part of it, which then becomes its own scheduled feature.
+
+
+## Keep feature specifications short
+
+A specification of 700 lines or more requires a scope review before approval.
+Start with one caller, one concrete example and the result the caller receives.
+For each stage, name the owner, the rule that must hold and the test that proves it.
+Remove repeated history. Split independent work into separately verifiable stages or features.
+Count the complete Markdown file, including code and diagrams, with `wc -l`.

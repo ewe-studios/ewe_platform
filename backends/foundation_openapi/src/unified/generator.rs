@@ -1250,7 +1250,6 @@ pub fn group_crate_manifest(
 
     let types = sibling_version(siblings, "foundation_cloudflare_types")?;
     let deployment = sibling_version(siblings, "foundation_deployment")?;
-    let macros_crate = sibling_version(siblings, "foundation_macros")?;
     let netio = sibling_version(siblings, "foundation_netio")?;
     // The group crate keeps its own committed version, so a release bump
     // survives a regeneration. A group crate that does not exist yet starts at
@@ -1291,11 +1290,7 @@ pub fn group_crate_manifest(
         "foundation_deployment = {{ path = \"../foundation_deployment\", version = \"{deployment}\" }}"
     )
     .unwrap();
-    writeln!(
-        manifest,
-        "foundation_macros = {{ path = \"../foundation_macros\", version = \"{macros_crate}\" }}"
-    )
-    .unwrap();
+    writeln!(manifest, "foundation_macros = {{ workspace = true }}").unwrap();
     writeln!(
         manifest,
         "foundation_netio = {{ path = \"../foundation_netio\", version = \"{netio}\", default-features = false, features = [\"ssl\", \"multi\"] }}"
@@ -1306,7 +1301,7 @@ pub fn group_crate_manifest(
     // The generated module derives `foundation_macros::JsonHash`, whose
     // expansion uses `sha2` for the digest and `base85rs` for the encoding.
     writeln!(manifest, "base85rs = \"0.1\"").unwrap();
-    writeln!(manifest, "sha2 = \"0.10\"").unwrap();
+    writeln!(manifest, "sha2 = {{ workspace = true }}").unwrap();
     writeln!(manifest).unwrap();
     writeln!(manifest, "[lints]").unwrap();
     writeln!(manifest, "workspace = true").unwrap();

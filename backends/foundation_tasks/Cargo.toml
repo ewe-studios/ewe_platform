@@ -1,0 +1,74 @@
+[package]
+name = "foundation_tasks"
+version = "0.1.1"
+description = "A task registry and command runner for repository tools"
+autotests = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_macros = { workspace = true }
+clap = { workspace = true }
+futures-util.workspace = true
+async-channel.workspace = true
+derive_more.workspace = true
+tracing.workspace = true
+foundation_nativeapis = { workspace = true, features = ["signal"] }
+syn = { version = "2", features = ["full"] }
+
+[dependencies.foundation_nostd]
+path = "../foundation_nostd"
+version = "0.0.10"
+optional = true
+
+[features]
+scripts = ["dep:blocking", "dep:tempfile", "dep:foundation_nostd"]
+install = ["dep:blocking", "dep:pathdiff", "dep:proc-macro2", "dep:semver", "dep:tempfile", "dep:toml_edit"]
+
+[dependencies.blocking]
+workspace = true
+optional = true
+
+[dependencies.pathdiff]
+version = "0.2"
+optional = true
+
+[dependencies.proc-macro2]
+version = "1"
+features = ["span-locations"]
+optional = true
+
+[dependencies.semver]
+version = "1"
+optional = true
+
+[dependencies.tempfile]
+workspace = true
+optional = true
+
+[dependencies.toml_edit]
+workspace = true
+optional = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_Diagnostics_ToolHelp"] }
+
+[dev-dependencies]
+futures-lite.workspace = true
+tempfile.workspace = true
+
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

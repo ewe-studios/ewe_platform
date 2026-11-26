@@ -14,7 +14,7 @@
 # below: Windows Server 2022 Standard evaluation, 180 days). See the README
 # for licensing.
 #
-# Context staged by `nu scripts/images.nu prepare --layer vm-base --os windows`.
+# Context staged by `foundation-ci image-prepare --layer vm-base --os windows`.
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}

@@ -1,47 +1,9 @@
 # foundation_ui_traits
 
-The shared vocabulary of the Ewe UI stack: the `Html` tree, the conversion
-traits the `html!` macro lowers into, the compact wire identities for known tag
-and attribute names, the 19-variant `DomOp` enum, the reactive `Part`
-descriptors, and the protocol encoders that turn `DomOp` batches into bytes.
-
-**`no_std + alloc`, zero dependencies, compiles for any Rust target.** It is the
-middle layer that lets `foundation_signals` implement `IntoHtml` and
-`foundation_wasm_ui` speak `DomOp` without either depending on the other
-(decision 012). Pure types and pure codecs — nothing else.
-
-> Spec: `specifications/39-foundation-wasm-ui/features/01-shared-traits/`
-> (decisions 007/010/012/014/022).
-
-## Contents
-- [Why this crate](#why-this-crate)
-- [`Html` + `IntoHtml`](#html--intohtml)
-- [`IntoAttrValue` — the `{}`/`[]` attribute trait](#intoattrvalue--the---attribute-trait)
-- [`HtmlTag` / `AttrName` — known-id wire tables](#htmltag--attrname--known-id-wire-tables)
-- [`DomOp` — the wire op set](#domop--the-wire-op-set)
-- [`Part` descriptors](#part-descriptors)
-- [Encoders & the envelope](#encoders--the-envelope)
-- [The `__macro` re-export module](#the-__macro-re-export-module)
-- [What this crate is NOT for](#what-this-crate-is-not-for)
-
----
-
-## Why this crate
-
-Three layers of the stack need to agree on the same types, but none may depend
-on the others:
-
-- `foundation_signals` needs `IntoHtml` to implement on its getters;
-- the `html!` macro (in `foundation_macros`) needs `Html`, `Part`,
-  `IntoAttrValue`, and the wire-id tables to generate code against;
-- `foundation_wasm_ui` and every server transport need the `DomOp` vocabulary
-  and the encoders.
-
-This crate is that single shared middle. It is `no_std`, zero-dependency, and
-compiles everywhere — so the same `DomOp` and the same wire format are used by
-the WASM runtime, an HTTP/SSE/WS server, a CLI, and the test suite alike.
-
----
+This crate defines the markup tree, names and reactive parts for the Ewe user interface (UI).
+It uses Rust allocation types and works without the standard library.
+The template macro creates these values. The renderer lowers them to generated wire operations.
+The wire package guide explains the binary format, action messages, signed fixtures and hand-written frames. [Wire package guide](../foundation_ui_wire/README.md)
 
 ## `Html` + `IntoHtml`
 
@@ -150,7 +112,7 @@ assert_eq!(div.name(), Some("div"));
 let custom = HtmlTag::from_name("my-widget"); // unknown -> owned Name
 let cls = AttrName::from_static("class");    // -> AttrName::Id(ATTR_CLASS)
 
-// The decision-010 string-column form used by the columnar/JSON wires:
+// Convert a compact name to its string representation:
 assert_eq!(cls.to_wire_string(), "id:1");    // known ids as "id:<n>"
 let back = AttrName::from_wire_str("id:1");   // parses back to Id
 ```
@@ -167,48 +129,6 @@ are pinned by spec: `TAG_DIV`/`TAG_SPAN`/`TAG_INPUT`/`TAG_BUTTON` (1–4) and
 > **ABI rule:** the JS runtime mirrors these tables. **Order is ABI — append
 > only, never reorder.** Inserting or moving an entry silently corrupts every
 > already-shipped client.
-
----
-
-## `DomOp` — the wire op set
-
-`DomOp` is the one canonical vocabulary of DOM mutations — 19 variants, ops
-0–18 — that every transport (columnar, Arrow, JSON, the byte-0 batch stream) and
-every consumer (WASM runtime, servers, tests) shares. The variants map 1:1 to the
-decision-010 `u8` operation codes the JS applicator switches on.
-
-```rust
-use std::borrow::Cow;
-use foundation_ui_traits::{DomOp, HtmlTag, AttrName};
-
-let create = DomOp::CreateElement {
-    node_id: 16,
-    tag: HtmlTag::from_static("div"),
-    class: Cow::from("card"),
-};
-let set = DomOp::SetAttribute {
-    node_id: 16,
-    name: AttrName::from_static("title"),
-    value: Cow::from("hi"),
-};
-let append = DomOp::AppendChild { parent_id: 1, child_id: 16 };
-```
-
-The variants (op code in parentheses): `CreateElement` (0), `CreateTextNode` (1),
-`SetText` (2), `SetAttribute` (3), `RemoveAttribute` (4), `SetProperty` (5),
-`AddEventListener` (6), `RemoveEventListener` (7), `AppendChild` (8),
-`RemoveChild` (9), `RemoveNode` (10), `InsertBefore` (11), `ReplaceNode` (12),
-`SetStyle` (13), `AddClass` (14), `RemoveClass` (15), `MorphNode` (16, decision
-027), `RegisterNode` (17), `UnregisterNode` (18).
-
-`MorphNode` carries a `TargetSelector` (`NodeId` / `Id` / `Class` / `Query`) and a
-`MorphAction` (`ReplaceChildren` / `ReplaceElement` / `InsertBefore` /
-`InsertAfter` / `AppendSibling`, with `as_u8`/`from_u8` wire discriminants).
-
-Tag/attribute names ride as compact ids via `HtmlTag`/`AttrName`; free-form values
-are `Cow<'static, str>` so static templates encode without allocation. The
-`NodeRegistry` ops (17/18) are an explicit `node_id -> element` mapping — creates
-do **not** auto-register; `ReplaceNode`/`RemoveNode` implicitly unregister.
 
 ---
 
@@ -236,62 +156,6 @@ at runtime through `IntoHtml`.
 
 ---
 
-## Encoders & the envelope
-
-A `ProtocolEncoder<T>` is a bidirectional, stateless codec for a payload type:
-
-```rust
-pub trait ProtocolEncoder<T> {
-    fn protocol_byte(&self) -> u8;
-    fn version(&self) -> u8;
-    fn encode(&self, data: T) -> Vec<u8>;                 // payload bytes, no envelope
-    fn decode(&self, payload: &[u8]) -> DecodeResult<T>;  // typed DecodeError on failure
-}
-```
-
-```rust
-use foundation_ui_traits::{ColumnarEncoder, JsonEncoder, ProtocolEncoder, DomOp};
-
-let ops: Vec<DomOp> = vec![/* … */];
-let bytes = ColumnarEncoder.encode(ops.clone());     // compact columnar (protocol byte 1, v1)
-let back  = ColumnarEncoder.decode(&bytes).unwrap();
-let json  = JsonEncoder.encode(ops);                 // readable JSON (protocol byte 2)
-```
-
-This crate ships two encoders:
-
-- **`ColumnarEncoder`** / `ColumnarBatch` — the compact-columnar wire v1.1:
-  fixed-width `op_id`/`node_id` columns plus three string columns, 8-byte aligned
-  so the JS runtime can build zero-copy `TypedArray` views over the buffer.
-- **`JsonEncoder`** — readable JSON `DomOp`s, for debugging the loop.
-
-Every encoder serialises a `DomOp` through one shared mapping — `row_view` (a
-borrowing visitor) and `Row` (its owned form) — keeping all formats bug-for-bug
-consistent with each other and with JS. The decision-010 protocol bytes
-(`PROTOCOL_CUSTOM_BINARY` = 0, `PROTOCOL_ARROW` = 1, `PROTOCOL_JSON` = 2),
-`PROTOCOL_VERSION`, `OP_COUNT`, and `DecodeError`/`DecodeResult` are all exported
-here.
-
-The **`Envelope`** is the tiny 6-byte self-describing header
-`[protocol:1][version:1][length:4 LE]` that precedes a payload so a receiver
-(HTTP/SSE/WS) can demux the format without out-of-band metadata.
-`encode_with_envelope` encodes-and-wraps in one step; `ENVELOPE_SIZE` is the
-header length.
-
-```rust
-use foundation_ui_traits::{Envelope, encode_with_envelope, ColumnarEncoder, DomOp};
-
-let framed = encode_with_envelope(&ColumnarEncoder, Vec::<DomOp>::new());
-let (env, payload) = Envelope::parse(&framed).unwrap();  // (Envelope { protocol, version, length }, &[u8])
-```
-
-> Protocol byte 0 (Custom Binary) is the `foundation_wasm` batch-instructions
-> stream (decision 022); its `ProtocolHandler` lives in `foundation_wasm_ui`,
-> **not** here. The real Apache Arrow IPC encoder (wire v2) lives in
-> `foundation_arrow`.
-
----
-
 ## The `__macro` re-export module
 
 ```rust
@@ -314,16 +178,12 @@ it exists only for codegen, not for hand-written use.
 
 ---
 
-## What this crate is NOT for
+## Verify the public types
 
-- **No runtime, no DOM, no signals.** There is no reactive graph, no effect
-  scheduler, no `host_apply`, no FFI here — only types and codecs. The graph is
-  `foundation_signals`; the DOM application is JS; the WASM transport is
-  `foundation_wasm`.
-- **Not the HTML parser.** `html!` parsing/codegen lives in `foundation_macros`;
-  this crate only defines the types that codegen targets.
-- **Not where you add wire ids freely.** `TAG_NAMES`/`ATTR_NAMES` are ABI —
-  append only, never reorder, because the JS runtime mirrors them.
-- **Not the Custom-Binary or Arrow encoders.** Byte-0 batch instructions live in
-  `foundation_wasm_ui`; real Arrow IPC lives in `foundation_arrow`. This crate
-  ships only the compact-columnar and JSON encoders.
+```sh
+cargo test -p foundation_ui_traits --profile uat
+cargo run -p foundation_wasm_ui --profile uat --example protocol_migration
+```
+
+The first command checks markup, names and the removal of the old operation type.
+The second shows a host that writes and reads a frame through the current protocol.

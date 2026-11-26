@@ -479,6 +479,16 @@ impl IntoHtml for Vec<Html> {
     }
 }
 
+impl<I, F> IntoHtml for core::iter::Map<I, F>
+where
+    I: Iterator,
+    F: FnMut(I::Item) -> Html,
+{
+    fn into_html(self) -> Html {
+        self.collect::<Vec<Html>>().into_html()
+    }
+}
+
 impl IntoHtml for Option<Html> {
     fn into_html(self) -> Html {
         self.unwrap_or_default()

@@ -99,8 +99,8 @@ jobs:
           fetch-depth: 1
           submodules: false
 
-      - name: Install nushell
-        uses: ./ci/platform-images/actions/setup-nu
+      - name: Install the image task runner
+        uses: ./ci/actions/install-task-runner
 
       - name: Registry settings
         id: registry
@@ -111,20 +111,11 @@ jobs:
           PLATFORM_IMAGES_REGISTRY_USERNAME: ${{ vars.PLATFORM_IMAGES_REGISTRY_USERNAME }}
         run: |
           set -euo pipefail
-          username=$(nu -c "let o = (\$env.PLATFORM_IMAGES_REGISTRY_USERNAME? | default ''); if (\$o | is-empty) { open '$CONFIG' | get registry.username } else { \$o }")
-          host=$(nu -c "open '$CONFIG' | get -o registry.host | default 'docker.io'")
-          pull_username=""
+          args=()
           if [ "$HAS_PASSWORD" = "true" ]; then
-            pull_username=$username
-          else
-            echo "::notice::No registry credentials (fork or Dependabot pull request): images are pulled anonymously and, if missing, built without pushing."
+            args+=(--credentials)
           fi
-          {
-            echo "username=$username"
-            echo "host=$host"
-            echo "push=$HAS_PASSWORD"
-            echo "pull-username=$pull_username"
-          } >> "$GITHUB_OUTPUT"
+          foundation-ci image-settings --config "$CONFIG" "${args[@]}" --github-output
 
       - name: Log in to ${{ steps.registry.outputs.host }}
         if: steps.registry.outputs.push == 'true'

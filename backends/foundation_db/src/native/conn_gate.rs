@@ -82,6 +82,13 @@ impl ConnGate {
         }
     }
 
+    /// Read record timestamps from the connection's clock.
+    #[cfg(feature = "libsql")]
+    pub(crate) fn now_millis(&self) -> StorageResult<i64> {
+        let value = crate::core::backends::unix_now_millis(&self.ctx)?;
+        i64::try_from(value).map_err(|error| StorageError::SqlConversion(error.to_string()))
+    }
+
     /// The same lock and flags, with a different wait limit.
     pub(crate) fn with_timeout(mut self, timeout: Duration) -> Self {
         self.timeout = timeout;

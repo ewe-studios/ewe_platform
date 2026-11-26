@@ -70,6 +70,7 @@ impl Default for FieldConfig {
 
 /// Slots for the field shell (the control is built by the closure passed to
 /// [`field`], not a slot — it needs the [`FieldBinding`]).
+#[derive(Default)]
 pub struct FieldSlots {
     /// Label content.
     pub label: Option<Slot>,
@@ -77,16 +78,6 @@ pub struct FieldSlots {
     pub description: Option<Slot>,
     /// Error message content (shown by CSS under `[data-invalid]`).
     pub errors: Vec<Slot>,
-}
-
-impl Default for FieldSlots {
-    fn default() -> Self {
-        Self {
-            label: None,
-            description: None,
-            errors: Vec::new(),
-        }
-    }
 }
 
 /// The six signal getters that form the field state bundle (M6 core). The
@@ -137,6 +128,10 @@ pub struct FieldBinding {
 /// The field owns all validity/lifecycle signals and reflects them as
 /// data-attributes on the field root.
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 pub fn field<F>(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
