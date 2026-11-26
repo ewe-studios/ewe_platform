@@ -16,8 +16,8 @@ use std::time::Duration;
 use foundation_core::valtron::{execute, StreamIteratorExt as _};
 use foundation_deployment_docker::generated::json::ImageConfig;
 use foundation_sandbox::native::images::import::{
-    config_to_manifest as manifest_from_config, image_key, ImageImporter, ImageSource, ImportEvent,
-    ImportOptions, ImportProgress,
+    config_to_manifest as manifest_from_config, export_unpack_options, image_key, ImageImporter,
+    ImageSource, ImportEvent, ImportOptions, ImportProgress,
 };
 use foundation_sandbox::native::images::ImageStore;
 use foundation_sandbox::shared::control::testing::{
@@ -236,6 +236,18 @@ fn config_to_manifest() {
             ("C".to_string(), "3".to_string())
         ]
     );
+}
+
+// ── the export entries (section 6.4) ───────────────────────────────────────
+
+#[test]
+fn export_unpack_entries() {
+    let options = export_unpack_options();
+    // A container export is a flat tree, so it has no whiteouts.
+    assert!(!options.oci_whiteouts);
+    // `/.dockerenv` is the one entry that a sandbox root does not need. The
+    // `/etc` runtime files and `/dev` entries stay.
+    assert_eq!(options.skip, vec![".dockerenv".to_string()]);
 }
 
 // ── the image key (section 4.1) ────────────────────────────────────────────
