@@ -46,7 +46,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4.4.0
         with:
-          submodules: recursive
+          # The job builds only the sandbox crates. They use no submodule.
+          # A recursive checkout of tools/dawn failed with
+          # "fatal: Failed to recurse into submodule path 'tools/dawn'"
+          # and stopped the job (run 45859043290).
+          submodules: false
 
       - name: Enable KVM access for the runner user
         run: |
