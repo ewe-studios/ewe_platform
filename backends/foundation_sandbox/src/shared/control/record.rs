@@ -82,6 +82,18 @@ impl RecordStore for MemoryRecordStore {
     }
 }
 
+/// The lifetime deadline of one sandbox, as Unix milliseconds.
+///
+/// The create calls this one time and stores the result in the record. A
+/// restart reads the stored value, so it never moves the deadline.
+#[must_use]
+pub fn lifetime_deadline(created_unix_ms: u64, ttl: Option<std::time::Duration>) -> Option<u64> {
+    ttl.map(|ttl| {
+        let millis = u64::try_from(ttl.as_millis()).unwrap_or(u64::MAX);
+        created_unix_ms.saturating_add(millis)
+    })
+}
+
 /// The changing part of one sandbox record.
 pub struct RecordState {
     /// The state of the sandbox.
@@ -108,6 +120,8 @@ pub struct SandboxRecord {
     pub spec: SandboxSpec,
     /// The creation time as Unix milliseconds.
     pub created_unix_ms: u64,
+    /// The lifetime deadline as Unix milliseconds, or `None` for no limit.
+    pub expires_at_unix_ms: Option<u64>,
     /// The changing part.
     pub state: Mutex<RecordState>,
     /// The signal that a stop or kill finished.
@@ -117,12 +131,19 @@ pub struct SandboxRecord {
 impl SandboxRecord {
     /// A record in the `Creating` state.
     #[must_use]
-    pub fn new(id: SandboxId, driver: DriverId, spec: SandboxSpec, created_unix_ms: u64) -> Self {
+    pub fn new(
+        id: SandboxId,
+        driver: DriverId,
+        spec: SandboxSpec,
+        created_unix_ms: u64,
+        expires_at_unix_ms: Option<u64>,
+    ) -> Self {
         Self {
             id,
             driver,
             spec,
             created_unix_ms,
+            expires_at_unix_ms,
             state: Mutex::new(RecordState {
                 state: SandboxState::Creating,
                 endpoint: None,
@@ -147,6 +168,7 @@ impl SandboxRecord {
             driver: self.driver,
             state: state.state,
             created_unix_ms: self.created_unix_ms,
+            expires_at_unix_ms: self.expires_at_unix_ms,
             slave: state.slave.clone(),
         }
     }
@@ -164,6 +186,7 @@ impl SandboxRecord {
             spec: self.spec.clone(),
             state: state.state,
             created_unix_ms: self.created_unix_ms,
+            expires_at_unix_ms: self.expires_at_unix_ms,
             endpoint: state.endpoint.clone(),
         }
     }

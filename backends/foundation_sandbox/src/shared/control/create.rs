@@ -15,7 +15,7 @@ use futures::future::{select, select_all, Either};
 
 use crate::shared::control::handle::{LocalSandboxOps, SendIterator};
 use crate::shared::control::manager::{apply_default_limits, choose_driver, Inner};
-use crate::shared::control::record::{created_unix_ms, SandboxRecord};
+use crate::shared::control::record::{created_unix_ms, lifetime_deadline, SandboxRecord};
 use crate::shared::control::slave_client::SlaveClient;
 use crate::shared::control::stop::{kill_record, spawn_detached, start_watcher};
 use crate::shared::control::{wait_until, SandboxState};
@@ -406,11 +406,13 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
         }
     };
     let created = created_unix_ms(&ctx);
+    let expires_at_unix_ms = lifetime_deadline(created, spec.ttl);
     let record = Arc::new(SandboxRecord::new(
         id.clone(),
         driver.id(),
         spec.clone(),
         created,
+        expires_at_unix_ms,
     ));
     task.inner.insert(Arc::clone(&record));
     task.record = Some(Arc::clone(&record));

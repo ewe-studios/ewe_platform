@@ -289,6 +289,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         driver: DriverId::Firecracker,
         state: SandboxState::Ready,
         created_unix_ms: number,
+        expires_at_unix_ms: Some(number),
         slave: Some(SlaveInfo {
             slave_version: text.to_string(),
             arch: "x86_64".to_string(),

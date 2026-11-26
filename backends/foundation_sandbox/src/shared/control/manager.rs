@@ -349,6 +349,7 @@ impl SandboxManager {
                     stored.driver,
                     stored.spec.clone(),
                     stored.created_unix_ms,
+                    stored.expires_at_unix_ms,
                 ));
                 {
                     let mut state = record

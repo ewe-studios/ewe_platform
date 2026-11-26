@@ -151,6 +151,9 @@ pub struct SandboxInfo {
     pub state: SandboxState,
     /// The creation time as Unix milliseconds.
     pub created_unix_ms: u64,
+    /// The lifetime deadline as Unix milliseconds, or `None` for no limit.
+    #[serde(default)]
+    pub expires_at_unix_ms: Option<u64>,
     /// What the slave reports, when the control plane reached it.
     pub slave: Option<SlaveInfo>,
 }

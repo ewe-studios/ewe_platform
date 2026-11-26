@@ -1,12 +1,14 @@
 //! `SandboxSpec`: what a caller wants, and its validation rules.
 
 use std::path::{Component, Path, PathBuf};
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
 use crate::shared::driver::Capabilities;
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::limits::SandboxLimits;
+use crate::shared::serde_helpers::duration_millis_option;
 
 /// The root file system of a sandbox.
 ///
@@ -105,6 +107,13 @@ pub struct SandboxSpec {
     pub kernel: Option<KernelSource>,
     /// Every size and time limit.
     pub limits: SandboxLimits,
+    /// The time after which the sandbox stops, whatever it does.
+    ///
+    /// `None` (the default) gives no lifetime limit, so an older client that
+    /// sends no `ttl` gets today's behaviour. The control plane computes the
+    /// deadline once at create and stores it, so a restart does not move it.
+    #[serde(default, with = "duration_millis_option")]
+    pub ttl: Option<Duration>,
 }
 
 impl SandboxSpec {
@@ -124,6 +133,7 @@ impl SandboxSpec {
             mounts: Vec::new(),
             kernel: None,
             limits: SandboxLimits::default(),
+            ttl: None,
         }
     }
 

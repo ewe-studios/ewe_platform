@@ -604,6 +604,7 @@ fn attach_returns_none_and_removes_run_dir() {
         spec: sim_spec(),
         state: foundation_sandbox::shared::control::SandboxState::Ready,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
         endpoint: None,
     };
     let attached =
