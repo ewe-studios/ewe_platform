@@ -220,14 +220,32 @@ fn client_error(command_type: &str, error: &foundation_netio::shared::durable::C
 
 #[cfg(not(target_arch = "wasm32"))]
 #[cfg(not(target_arch = "wasm32"))]
-fn is_retryable(error: &foundation_netio::shared::durable::ClientError) -> bool {
+fn retry_delay(
+    error: &foundation_netio::shared::durable::ClientError,
+) -> Option<std::time::Duration> {
     use foundation_netio::shared::durable::ClientError;
     match error {
-        ClientError::Transport(_) => true,
-        ClientError::UnexpectedStatus { status, .. } => {
-            matches!(status, 429 | 500 | 502 | 503 | 504)
+        ClientError::Transport(_) => Some(std::time::Duration::from_millis(50)),
+        ClientError::UnexpectedStatus {
+            status: 429,
+            headers,
+            ..
+        } => {
+            // Honour Retry-After, bounded so a test cannot hang.
+            let seconds = headers
+                .iter()
+                .find(|(key, _)| key.eq_ignore_ascii_case("retry-after"))
+                .and_then(|(_, value)| value.parse::<u64>().ok())
+                .unwrap_or(1)
+                .min(2);
+            Some(std::time::Duration::from_secs(seconds))
         }
-        _ => false,
+        ClientError::UnexpectedStatus { status, .. }
+            if matches!(status, 500 | 502 | 503 | 504) =>
+        {
+            Some(std::time::Duration::from_millis(50))
+        }
+        _ => None,
     }
 }
 
@@ -402,9 +420,10 @@ async fn handle(
                     break outcome;
                 }
                 match &outcome {
-                    Err(error) if producer.is_none() && is_retryable(error) => {
-                        std::thread::sleep(std::time::Duration::from_millis(50));
-                    }
+                    Err(error) if producer.is_none() => match retry_delay(error) {
+                        Some(delay) => std::thread::sleep(delay),
+                        None => break outcome,
+                    },
                     _ => break outcome,
                 }
             };
@@ -464,8 +483,10 @@ async fn handle(
                 let outcome = builder.clone().send().await;
                 attempt += 1;
                 match outcome {
-                    Err(error) if attempt < 3 && is_retryable(&error) => {
-                        std::thread::sleep(std::time::Duration::from_millis(50));
+                    Err(error) if attempt < 3 && retry_delay(&error).is_some() => {
+                        if let Some(delay) = retry_delay(&error) {
+                            std::thread::sleep(delay);
+                        }
                     }
                     other => break match other {
                         Ok(result) => result,
@@ -851,8 +872,10 @@ async fn handle_read(
         let outcome = builder.clone().send().await;
         attempt += 1;
         match outcome {
-            Err(error) if attempt < 3 && is_retryable(&error) => {
-                std::thread::sleep(std::time::Duration::from_millis(50));
+            Err(error) if attempt < 3 && retry_delay(&error).is_some() => {
+                if let Some(delay) = retry_delay(&error) {
+                    std::thread::sleep(delay);
+                }
             }
             other => {
                 break match other {
