@@ -27,8 +27,11 @@ foundation_nativeapis = { workspace = true, optional = true }
 # reads OpenSSH private key files, and `p256` reads the P-256 PKCS#8 and SEC1
 # forms. All three are pure Rust, so the key module builds on every target.
 ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"], optional = true }
-ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
+ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256", "encryption"], optional = true }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"], optional = true }
+# Encrypted PKCS#8 (`-----BEGIN ENCRYPTED PRIVATE KEY-----`). The `encryption`
+# feature adds PBES2 and PBKDF2, so a passphrase-protected key file loads.
+pkcs8 = { version = "0.10", default-features = false, features = ["alloc", "encryption", "pem"], optional = true }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -161,7 +164,7 @@ default = ["turso", "secret", "jwt", "mtls", "netio-ssl"]
 turso = ["foundation_db/turso"]
 # Signed secrets (spec 81) and the operator key module. Ed25519, OpenSSH key
 # parsing and P-256 key parsing are pure Rust, so this builds for wasm.
-secret = ["dep:foundation_nativeapis", "dep:ed25519-compact", "dep:ssh-key", "dep:p256"]
+secret = ["dep:foundation_nativeapis", "dep:ed25519-compact", "dep:ssh-key", "dep:p256", "dep:pkcs8"]
 # Mutual TLS (spec 87): the certificate authority, the trust verifier and the
 # TLS providers. They link `ring`, which has C code; a consumer that must stay
 # free of C code, such as the static musl slave, leaves this off.

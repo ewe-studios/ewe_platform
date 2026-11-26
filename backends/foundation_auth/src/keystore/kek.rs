@@ -367,3 +367,43 @@ impl KekSource for EnvironmentVariableKek {
         })
     }
 }
+
+/// The prompt source also gives the passphrase of an encrypted key file.
+#[cfg(not(target_family = "wasm"))]
+impl crate::keys::PassphraseSource for PassphrasePromptKek {
+    fn passphrase(&self) -> Result<Zeroizing<String>, crate::keys::KeyLoadError> {
+        use crate::keys::KeyLoadError;
+        use std::io::IsTerminal as _;
+        if !std::io::stdin().is_terminal() {
+            return Err(KeyLoadError::PassphraseUnavailable(
+                "standard input is not a terminal".to_string(),
+            ));
+        }
+        rpassword::prompt_password("agent-rpc key passphrase: ")
+            .map(Zeroizing::new)
+            .map_err(|e| {
+                KeyLoadError::PassphraseUnavailable(format!("reading the passphrase: {e}"))
+            })
+    }
+}
+
+/// The environment variable source also gives the passphrase of an encrypted
+/// key file. It does not remove the variable: the host reads it one time.
+#[cfg(not(target_family = "wasm"))]
+impl crate::keys::PassphraseSource for EnvironmentVariableKek {
+    fn passphrase(&self) -> Result<Zeroizing<String>, crate::keys::KeyLoadError> {
+        use crate::keys::KeyLoadError;
+        if !self.allow_environment_variable {
+            return Err(KeyLoadError::PassphraseUnavailable(format!(
+                "environment variable {} needs allow_environment_variable = true",
+                self.name
+            )));
+        }
+        std::env::var(&self.name).map(Zeroizing::new).map_err(|_| {
+            KeyLoadError::PassphraseUnavailable(format!(
+                "environment variable {} is not set",
+                self.name
+            ))
+        })
+    }
+}
