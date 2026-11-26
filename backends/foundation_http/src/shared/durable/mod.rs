@@ -2,6 +2,8 @@
 //!
 //! The adapter owns the wire rules. The core stays transport-neutral.
 
+pub mod parse;
 pub mod status;
 
+pub use parse::{parse_offset, parse_producer, parse_stream_closed, parse_stream_seq, parse_ttl};
 pub use status::{header, status_for};
