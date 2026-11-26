@@ -223,3 +223,4 @@ __pycache__/
 
 # Local Swift package binary input
 /.build-inputs/
+codex-session-*
