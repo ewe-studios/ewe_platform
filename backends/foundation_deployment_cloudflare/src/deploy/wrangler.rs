@@ -20,14 +20,28 @@ use crate::deploy::plan::{
 use crate::deploy::{deployed_unix_ms, host_from, CloudflareDeployer, DeployError, DeployFuture};
 
 /// The supported fallback deploy adapter.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct WranglerCloudflareDeployer;
+///
+/// `worker_name` goes to the `--name` flag of `status` and `rollback`. When it
+/// is absent, `wrangler` reads the `wrangler.toml` of the working directory.
+#[derive(Clone, Debug, Default)]
+pub struct WranglerCloudflareDeployer {
+    /// The Worker name of the status and rollback commands.
+    pub worker_name: Option<String>,
+}
 
 impl WranglerCloudflareDeployer {
     /// The adapter.
     #[must_use]
     pub fn new() -> Self {
-        Self
+        Self::default()
+    }
+
+    /// The adapter for one named Worker.
+    #[must_use]
+    pub fn for_worker(name: impl Into<String>) -> Self {
+        Self {
+            worker_name: Some(name.into()),
+        }
     }
 
     /// Steps 1 to 5 of feature 08, section 6.8.
@@ -151,23 +165,93 @@ impl CloudflareDeployer for WranglerCloudflareDeployer {
 
     fn status(
         &self,
-        _ctx: Ctx,
+        ctx: Ctx,
         _id: &DeploymentId,
     ) -> DeployFuture<'_, Result<DeploymentStatus, DeployError>> {
-        Box::pin(async {
-            Err(DeployError::Unsupported {
-                what: "status through the wrangler adapter; use the foundation adapter".to_string(),
-            })
+        let worker_name = self.worker_name.clone();
+        Box::pin(async move {
+            let host = host_from(&ctx)?;
+            let commands = require(host.commands.clone(), "commands")?;
+            let mut args = vec![
+                "wrangler".to_string(),
+                "deployments".to_string(),
+                "status".to_string(),
+                "--json".to_string(),
+            ];
+            if let Some(name) = &worker_name {
+                args.push("--name".to_string());
+                args.push(name.clone());
+            }
+            let output = commands
+                .run(CommandSpec {
+                    program: "npx".to_string(),
+                    args,
+                    cwd: None,
+                    stdin: None,
+                })
+                .await?;
+            if output.code != 0 {
+                return Err(DeployError::Api {
+                    status: 0,
+                    message: bounded(&output.stderr, &output.stdout),
+                });
+            }
+            Ok(status_from_output(&output.stdout))
         })
     }
 
-    fn rollback(&self, _ctx: Ctx, _id: &DeploymentId) -> DeployFuture<'_, Result<(), DeployError>> {
-        Box::pin(async {
-            Err(DeployError::Unsupported {
-                what: "rollback through the wrangler adapter; run `npx wrangler rollback`"
-                    .to_string(),
-            })
+    fn rollback(&self, ctx: Ctx, id: &DeploymentId) -> DeployFuture<'_, Result<(), DeployError>> {
+        let worker_name = self.worker_name.clone();
+        let version = id.as_str().to_string();
+        Box::pin(async move {
+            let host = host_from(&ctx)?;
+            let commands = require(host.commands.clone(), "commands")?;
+            let mut args = vec![
+                "wrangler".to_string(),
+                "rollback".to_string(),
+                version,
+                "--yes".to_string(),
+            ];
+            if let Some(name) = &worker_name {
+                args.push("--name".to_string());
+                args.push(name.clone());
+            }
+            let output = commands
+                .run(CommandSpec {
+                    program: "npx".to_string(),
+                    args,
+                    cwd: None,
+                    stdin: None,
+                })
+                .await?;
+            if output.code != 0 {
+                return Err(DeployError::Api {
+                    status: 0,
+                    message: bounded(&output.stderr, &output.stdout),
+                });
+            }
+            Ok(())
         })
+    }
+}
+
+/// The deployment state of the text of `wrangler deployments status --json`.
+///
+/// A successful status with no state word means that the Worker is live.
+fn status_from_output(output: &str) -> DeploymentStatus {
+    let lower = output.to_lowercase();
+    if lower.contains("rolled") {
+        DeploymentStatus::RolledBack
+    } else if lower.contains("failed") {
+        DeploymentStatus::Failed
+    } else if lower.contains("queued") {
+        DeploymentStatus::Queued
+    } else if lower.contains("building") {
+        DeploymentStatus::Building
+    } else if lower.contains("uploading") {
+        DeploymentStatus::Uploading
+    } else {
+        DeploymentStatus::Live
     }
 }
 

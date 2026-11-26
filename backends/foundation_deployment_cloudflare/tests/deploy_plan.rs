@@ -303,6 +303,7 @@ struct CommandRecord {
 struct FakeCommands {
     calls: Arc<Mutex<Vec<CommandRecord>>>,
     stdout: Arc<Mutex<String>>,
+    status_stdout: Arc<Mutex<String>>,
 }
 
 impl FakeCommands {
@@ -310,6 +311,11 @@ impl FakeCommands {
         let commands = Self::default();
         *commands.stdout.lock().expect("the stdout cell") = stdout.to_string();
         commands
+    }
+
+    fn with_status_stdout(self, stdout: &str) -> Self {
+        *self.status_stdout.lock().expect("the status stdout cell") = stdout.to_string();
+        self
     }
 
     fn calls(&self) -> Vec<CommandRecord> {
@@ -329,6 +335,7 @@ impl CommandRunner for FakeCommands {
             .cwd
             .as_ref()
             .and_then(|cwd| fs::read_to_string(cwd.join("wrangler.toml")).ok());
+        let is_status = spec.args.iter().any(|arg| arg == "status");
         self.calls
             .lock()
             .expect("the command log")
@@ -339,7 +346,14 @@ impl CommandRunner for FakeCommands {
                 stdin: spec.stdin.as_ref().map(|value| value.expose().to_string()),
                 toml,
             });
-        let stdout = self.stdout.lock().expect("the stdout cell").clone();
+        let stdout = if is_status {
+            self.status_stdout
+                .lock()
+                .expect("the status stdout cell")
+                .clone()
+        } else {
+            self.stdout.lock().expect("the stdout cell").clone()
+        };
         Box::pin(async move {
             Ok(CommandOutput {
                 code: 0,
@@ -728,6 +742,74 @@ fn wrangler_deploy_command_lines() {
     assert_eq!(
         outcome.worker_url,
         "https://ewe-sandbox.example.workers.dev"
+    );
+}
+
+/// The `wrangler` adapter reads the status and rolls back with the CLI.
+#[test]
+fn wrangler_status_and_rollback() {
+    let fakes = Fakes::with_stdout("");
+    let commands = fakes
+        .commands
+        .clone()
+        .with_status_stdout(r#"{"id":"version-42","status":"active"}"#);
+    let host = CloudflareDeployHost::new().with_commands(Arc::new(commands));
+    let ctx = context(host);
+    let id = DeploymentId::new("version-42");
+
+    let status = run({
+        let ctx = ctx.clone();
+        let id = id.clone();
+        async move {
+            let deployer = WranglerCloudflareDeployer::for_worker("ewe-sandbox");
+            deployer.status(ctx, &id).await
+        }
+    })
+    .expect("the status");
+    assert_eq!(status, DeploymentStatus::Live);
+
+    run({
+        let ctx = ctx.clone();
+        let id = id.clone();
+        async move {
+            let deployer = WranglerCloudflareDeployer::for_worker("ewe-sandbox");
+            deployer.rollback(ctx.clone(), &id).await?;
+            deployer.rollback(ctx, &id).await
+        }
+    })
+    .expect("both rollbacks succeed");
+
+    let calls = fakes.commands.calls();
+    let status = calls
+        .iter()
+        .find(|call| call.args.iter().any(|arg| arg == "status"))
+        .expect("the status command");
+    assert_eq!(
+        status.args,
+        [
+            "wrangler",
+            "deployments",
+            "status",
+            "--json",
+            "--name",
+            "ewe-sandbox"
+        ]
+    );
+    let rollbacks: Vec<&CommandRecord> = calls
+        .iter()
+        .filter(|call| call.args.get(1).is_some_and(|arg| arg == "rollback"))
+        .collect();
+    assert_eq!(rollbacks.len(), 2, "rollback is idempotent");
+    assert_eq!(
+        rollbacks[0].args,
+        [
+            "wrangler",
+            "rollback",
+            "version-42",
+            "--yes",
+            "--name",
+            "ewe-sandbox"
+        ]
     );
 }
 
