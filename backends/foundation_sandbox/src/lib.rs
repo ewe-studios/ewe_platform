@@ -18,6 +18,13 @@
 
 pub mod shared;
 
+/// The version of this crate.
+///
+/// The slave and the Cloudflare Worker report this value, so a caller can see
+/// that the image and the Worker come from the same build (spec 77 invariant
+/// I9).
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Native adapters. Features 01, 03, 04, 05, 09 and 10 fill this module.
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
@@ -29,3 +36,8 @@ pub mod cloudflare;
 /// The command-line structures. Feature 06 fills this module.
 #[cfg(all(not(target_family = "wasm"), feature = "cli"))]
 pub mod cli;
+
+/// The `Provider` facades over a control plane (feature 06). The `Provider`
+/// trait itself stays in `foundation_deployment_platform` (decision D1).
+#[cfg(all(not(target_family = "wasm"), feature = "provider"))]
+pub mod providers;

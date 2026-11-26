@@ -10363,6 +10363,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -10376,6 +10377,7 @@ pub async fn workers_ai_upload_finetune_asset_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkersAiUploadFinetuneAssetArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersAiUploadFinetuneAssetResponse>, super::shared::ApiError>
 where
@@ -10389,6 +10391,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -16525,6 +16532,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -16538,6 +16546,7 @@ pub async fn workers_ai_post_to_markdown_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkersAiPostToMarkdownArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersAiPostToMarkdownResponse>, super::shared::ApiError>
 where
@@ -16548,6 +16557,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);

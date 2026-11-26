@@ -88,6 +88,9 @@ fn store_concurrent_ensure() {
     let payload = body.clone();
     let server = TestServer::start(move |_| Reply::ok(payload.clone()));
     let (store, _directory) = default_store("concurrent");
+    // The two builder threads each take the test pool, so this thread lets it
+    // go first: it would otherwise wait for a pool that this thread holds.
+    crate::pool::release();
     let spec = file_spec(server.url("/race"), &sha256_hex(&body));
     let barrier = Arc::new(std::sync::Barrier::new(2));
     let mut handles = Vec::new();

@@ -20,6 +20,9 @@ exclude = [
   "artefacts/*",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
+  # infrastructure/sandbox_worker is its own workspace root: it builds for
+  # wasm32 only (spec 77 feature 08).
+  "infrastructure/sandbox_worker",
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
@@ -272,3 +275,13 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
+
+# The `agent-slave` guest program (spec 77 feature 06). Size and startup time
+# matter in a microVM, so it is small, fully linked and stripped.
+[profile.agent]
+inherits = "release"
+opt-level = "s"
+lto = true
+panic = "abort"
+strip = true
+codegen-units = 1

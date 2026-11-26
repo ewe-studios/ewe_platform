@@ -4072,6 +4072,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4085,6 +4086,7 @@ pub async fn ip_address_management_prefixes_upload_loa_document_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &IpAddressManagementPrefixesUploadLoaDocumentArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<AddressingLoaUploadResponse>, super::shared::ApiError>
 where
@@ -4095,6 +4097,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);

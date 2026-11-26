@@ -1,0 +1,10 @@
+# The static slave that `mise run sandbox:worker-image` copies here.
+agent-slave
+# The local Worker secrets of `wrangler dev`.
+.dev.vars
+# The `worker-build` output and the Node package directory.
+build/
+node_modules/
+target/
+# The local Durable Object state of `wrangler dev --persist-to`.
+.wrangler/

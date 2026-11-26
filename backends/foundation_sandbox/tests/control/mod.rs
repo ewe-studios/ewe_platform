@@ -10,7 +10,7 @@
     reason = "the tests read clearer with these forms"
 )]
 
-mod support;
+pub mod support;
 
 mod create;
 mod drop;

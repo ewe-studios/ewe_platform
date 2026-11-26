@@ -94,6 +94,8 @@ pub struct RawRequestBody {
     pub media_type: String,
     /// Whether the operation requires a body.
     pub required: bool,
+    /// Whether the body is `multipart/form-data` and is built from named parts.
+    pub multipart: bool,
 }
 
 /// Media types whose body is a stream of JSON documents, one per line.

@@ -33,6 +33,12 @@ fn usable_host() -> Option<(Ctx, SandboxHost)> {
     ctx.store(host.clone());
     let report = crate::pool::block_on(FirecrackerDriver::new().probe(ctx.clone()));
     if !report.usable {
+        // In CI the environment variable turns a skip into a failure, so the
+        // job cannot pass by running no microVM (feature 06, section 6.8).
+        assert!(
+            std::env::var("EWE_SANDBOX_E2E_REQUIRED").as_deref() != Ok("1"),
+            "the CI runner cannot run Firecracker: {report:?}"
+        );
         eprintln!("skip: the host cannot run Firecracker: {report:?}");
         return None;
     }

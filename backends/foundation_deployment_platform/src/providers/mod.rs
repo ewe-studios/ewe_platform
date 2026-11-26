@@ -20,6 +20,11 @@ pub enum ProviderId {
     Qemu,
     Utm,
     Docker,
+    /// A sandbox on the `foundation_sandbox` control plane (spec 77).
+    Firecracker,
+    /// A sandbox in a Cloudflare container, through the sandbox Worker
+    /// (spec 77 feature 08).
+    CloudflareContainer,
 }
 
 impl std::fmt::Display for ProviderId {
@@ -28,6 +33,8 @@ impl std::fmt::Display for ProviderId {
             ProviderId::Qemu => write!(f, "qemu"),
             ProviderId::Utm => write!(f, "utm"),
             ProviderId::Docker => write!(f, "docker"),
+            ProviderId::Firecracker => write!(f, "firecracker"),
+            ProviderId::CloudflareContainer => write!(f, "cloudflare-container"),
         }
     }
 }

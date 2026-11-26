@@ -109,6 +109,14 @@ directory = "backends/foundation_core/integration/wasm_tests"
 recipe = "wasm-runtime-tests"
 build-members = []
 
+# The sandbox Cloudflare Worker (spec 77 feature 08). It is a self-contained
+# wasm32 workspace, so cargo metadata never lists it; the recipe runs its
+# check, clippy and fmt with its own Cargo.toml.
+[groups.sandbox_worker]
+directory = "infrastructure/sandbox_worker"
+recipe = "sandbox-worker"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
@@ -135,6 +143,8 @@ timeout-minutes = 60
 #   vfs-fuse                      FUSE (needs /dev/fuse and libfuse)
 #   vfs-preload                   LD_PRELOAD shim (a Linux shared object)
 #   vms                           QEMU/KVM virtual machines
+#   slave                         the sandbox guest program (fork, signalfd,
+#                                 mount and the process identifier 1 duties)
 linux-only-features = [
   "uring",
   "native-linux",
@@ -144,6 +154,7 @@ linux-only-features = [
   "vfs-fuse",
   "vfs-preload",
   "vms",
+  "slave",
 ]
 # macOS and Windows jobs are shards: one job tests several packages in a row with
 # one target directory, so dependencies that packages share build once. More
@@ -401,12 +412,14 @@ windows-tests = "none"
 windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # VM orchestration (QEMU/UTM) is behind the non-default `vms` feature; its
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
-# compile with it, so test that configuration as well.
-runs = ["", "vms"]
+# compile with it, so test that configuration as well. The `sandbox` run proves
+# the `Provider` facade that spec 77 feature 06 adds over the trait in this
+# crate.
+runs = ["", "vms", "sandbox"]
 # The `vms` run is in `linux-only-features`: macOS and Windows run the default set.
 # Lint both feature trees: a warning in `vms` code must fail CI too
 # (spec 70 feature 79).
-clippy-runs = ["", "vms"]
+clippy-runs = ["", "vms", "sandbox"]
 # At zero clippy warnings in both feature trees: a new one fails CI.
 clippy-deny-warnings = true
 
@@ -721,6 +734,16 @@ macos-runs = ["", "device"]
 # ---------------------------------------------------------------------------
 # Example workspaces
 
+[packages.sandbox_worker]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The sandbox Worker is a wasm32-only workspace; its checks run on the Linux Cloudflare job."
+fmt = "enforce"
+build = "enforce"
+clippy = "enforce"
+test = "off"
+wasm = "off"
+
 [packages.examples]
 macos-tests = "none"
 windows-tests = "none"
@@ -823,12 +846,19 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # The contract compiles on every target. `control` and `firecracker` are the
 # default features. The control-plane tests need the `testing` helpers and run
 # on every operating system. The slave tests start the real slave process, so
-# they run on Linux with the `slave` feature.
+# they run on Linux with the `slave` feature. The `cli` run parses the two
+# programs and serves the control plane; the `provider` run proves the
+# `Provider` facade (spec 77 feature 06).
 wasm = "enforce"
-wasm-runs = ["", "--no-default-features"]
-runs = ["", "slave", "testing"]
+wasm-runs = ["", "--no-default-features", "--no-default-features --features control cloudflare"]
+runs = ["", "slave", "testing", "slave cli testing", "cli provider testing", "cloudflare testing"]
+# Lint each feature tree of this phase: a warning in the CLI, the slave, the
+# provider or the Cloudflare part must fail CI too.
+clippy-runs = ["", "slave cli testing", "cli provider testing", "cloudflare testing"]
+clippy-deny-warnings = true
 # The slave tests are Linux only: "the slave is a Linux guest program". It calls
 # fork, signalfd, mount and the process identifier 1 duties, which no other
-# operating system has. macOS and Windows run the contract and control tests.
-macos-runs = ["", "testing"]
-windows-runs = ["", "testing"]
+# operating system has. macOS and Windows run the contract, control, CLI,
+# provider and Cloudflare tests.
+macos-runs = ["", "testing", "cli testing", "cloudflare testing"]
+windows-runs = ["", "testing", "cli testing", "cloudflare testing"]

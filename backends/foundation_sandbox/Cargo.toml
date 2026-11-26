@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sandbox"
-version = "0.0.7"
+version = "0.0.8"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -27,11 +27,14 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.25" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
+async-trait = { workspace = true }
 base64 = "0.22"
 bytes = "1"
 derive_more = { workspace = true }
 futures = "0.3"
 tracing = { workspace = true }
+# The argument parser of the two programs (feature 06).
+clap = { workspace = true, optional = true }
 
 # The code-first service macro, `Request`/`Response`, `ConnectError` and the
 # context. The renderer's default features are not needed: this crate uses the
@@ -45,11 +48,13 @@ tracing = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["netio-core"] }
 # The platform HTTP client (`HttpClientBuilder`, `DynNetClient`) of the artifact
-# store, the in-memory transport of the simulation helpers and the client of the
-# slave tests. The base set has no TLS: the static musl slave enables only the
-# `slave` feature, which keeps this dependency below. The `artifacts` feature
-# adds the TLS provider with the weak feature `foundation_netio?/ssl`.
-foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "wire-native", "multi"], optional = true }
+# store, the control-plane client, the in-memory transport of the simulation
+# helpers and the client of the slave tests. The base set has no TLS: the
+# static musl slave enables only the `slave` feature and no TLS provider. The
+# `artifacts` feature adds the TLS provider with `foundation_netio/ssl`. The
+# value is not optional: `foundation_http` (the two servers) already depends on
+# it on every native target.
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "wire-native", "multi"] }
 # The gzip decoder and the tar reader of the artifact store.
 flate2 = { version = "1", optional = true }
 tar = { version = "0.4", optional = true }
@@ -62,9 +67,31 @@ base85rs = { version = "0.1", optional = true }
 # that the generated Firecracker client uses (feature 04). This is the same
 # dependency that `foundation_deployment_docker` takes for its generated client.
 foundation_deployment = { path = "../foundation_deployment", version = "0.0.7", optional = true }
+# The HTTP/1.1 server of the two listeners (features 01 and 06) and the client of
+# `SandboxRpcClient::connect`. `default-features = false` and `netio-core`: no
+# C TLS library, so the static musl slave links without a C compiler. The value
+# is not optional: the control-plane server (`native::serve`) is part of the
+# `control` feature, and the slave server is part of `slave`.
+foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, features = ["netio-core"] }
+# The signal support of `agent-sandbox run` (feature 06) and the fd readiness of
+# the slave (feature 01). The `signal` feature is also the platform handle that
+# `agent-sandbox` parks on; `fd` is added by the `slave` feature.
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", default-features = false, features = ["signal"], optional = true }
+# The `Provider` trait and its identifier types (feature 06). The trait stays in
+# the deployment crate; only the sandbox facade lives here (decision D1).
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.9", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false }
+# The Connect client transport (`H1Transport`) and the shared HTTP types.
+# `wasm-fetch` adds the browser/Worker fetch client that `H1Transport` needs on
+# wasm; the Cloudflare build is the only wasm consumer of this crate.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["wasm-fetch"] }
+# The `NetClient` seam that the container port and the Durable Object stub use.
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "wire-native"], optional = true }
+# The Rust Workers bindings (`worker::Container`, `worker::Storage`, ...).
+# Issue #880 tracks the workspace entry; this crate names the version alone
+# until then.
+worker = { version = "0.8.7", optional = true }
 
 # The generator that keeps `src/native/firecracker/generated/` honest against
 # the vendored API file (feature 04). Optional: only the `firecracker` feature
@@ -94,28 +121,28 @@ libc = "0.2"
 # The shared reactor and fd readiness: every pipe is non-blocking and parks an
 # async task until it is ready.
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.5", optional = true }
-# I/O readiness registration (`fd` only: no database, no io_uring).
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", default-features = false, features = ["fd"], optional = true }
-# The HTTP/1.1 server and the UDS/TCP client. `default-features = false`: no
-# TLS, so the static musl slave links without a C compiler.
-foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, features = ["netio-core"], optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, optional = true }
 # `fork`, `execve`, `mount`, `signalfd`, `openat2` and the other system calls.
 libc = { version = "0.2", optional = true }
 
 [features]
 # The guest-artifact store (feature 03) and its manifest.
 artifacts = [
-    "dep:foundation_netio",
     "dep:flate2",
     "dep:tar",
     "dep:sha2",
-    "foundation_netio?/ssl",
+    "foundation_netio/ssl",
 ]
-# The command structures (feature 06). Native only.
-cli = []
-# The Cloudflare part (feature 07).
-cloudflare = []
+# The command structures and the two programs (feature 06). Native only. The
+# feature pulls the signal handle of `agent-sandbox run` and the HTTP server of
+# `serve`; it pulls no C TLS library, so `agent-slave` stays a static musl
+# program (decision D11).
+cli = [
+    "dep:clap",
+    "dep:foundation_nativeapis",
+]
+# The Cloudflare part (feature 07). It needs the control plane (`SandboxManager`)
+# and the `NetClient` seam of the shared container transport.
+cloudflare = ["control", "dep:foundation_netio", "dep:worker"]
 # `SandboxManager` (feature 02).
 control = []
 default = ["control", "firecracker", "artifacts"]
@@ -131,7 +158,6 @@ firecracker = [
     "dep:base85rs",
     "dep:foundation_codegentools",
     "dep:foundation_deployment",
-    "dep:foundation_netio",
     "dep:sha2",
     "firecracker_actions",
     "firecracker_balloon",
@@ -216,16 +242,33 @@ firecracker_vm = []
 firecracker_vsock = []
 # The libkrun driver (feature 09).
 libkrun = []
+# The `Provider` facade over any control plane (feature 06). The `Provider`
+# trait itself stays in `foundation_deployment_platform` (decision D1).
+provider = ["dep:foundation_deployment_platform"]
 # The slave engine (feature 01). Native only.
 slave = [
     "dep:foundation_reactor",
     "dep:foundation_nativeapis",
-    "dep:foundation_http",
-    "dep:foundation_netio",
+    "foundation_nativeapis/fd",
     "foundation_core/multi",
 ]
 # The simulation helpers (feature 02).
-testing = ["dep:foundation_netio"]
+testing = []
+
+# The control-plane program (feature 06). `serve` needs the control plane; the
+# `run` path also needs a driver, which this build gives when a driver feature
+# is on. The static program of `agent-slave` needs `slave` and `cli` only.
+[[bin]]
+name = "agent-sandbox"
+path = "src/bin/agent_sandbox.rs"
+required-features = ["cli", "control"]
+
+# The guest program (feature 06). `default-features = false, features = ["slave",
+# "cli"]` builds it with no TLS library and no Docker client (decision D11).
+[[bin]]
+name = "agent-slave"
+path = "src/bin/agent_slave.rs"
+required-features = ["cli", "slave"]
 
 # The slave process of the tests. A libtest test cannot be that process: the
 # harness starts a thread before the test, and the process main thread keeps
