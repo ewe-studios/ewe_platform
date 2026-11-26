@@ -14,6 +14,13 @@ workspace = true
 [target.'cfg(not(target_family = "wasm"))'.dependencies.derive_more]
 workspace = true
 
+# Native only: the deploy adapters carry a secret value to the API without
+# printing it (`Secret` of spec 86).
+[target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_auth]
+path = "../foundation_auth"
+version = "0.0.16"
+default-features = false
+
 # Native only: used by `dns_ops.rs` and `types.rs`.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_core]
 path = "../foundation_core"

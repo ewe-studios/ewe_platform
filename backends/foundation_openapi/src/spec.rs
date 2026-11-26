@@ -197,6 +197,10 @@ pub struct RequestBody {
     pub content: Option<BTreeMap<String, MediaType>>,
     #[serde(default)]
     pub required: bool,
+    /// A `$ref` to `components/requestBodies/<name>`, as the Cloudflare spec
+    /// writes the Worker upload bodies.
+    #[serde(default, rename = "$ref")]
+    pub ref_path: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -214,6 +218,9 @@ pub struct MediaType {
 pub struct Components {
     #[serde(default)]
     pub schemas: BTreeMap<String, Schema>,
+    /// Shared request bodies, which an operation names with a `$ref`.
+    #[serde(default, rename = "requestBodies")]
+    pub request_bodies: BTreeMap<String, RequestBody>,
 }
 
 /// GCP Discovery Document resource with nested methods.

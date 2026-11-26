@@ -109,6 +109,14 @@ directory = "backends/foundation_core/integration/wasm_tests"
 recipe = "wasm-runtime-tests"
 build-members = []
 
+# The sandbox Cloudflare Worker (spec 77 feature 08). It is a self-contained
+# wasm32 workspace, so cargo metadata never lists it; the recipe runs its
+# check, clippy and fmt with its own Cargo.toml.
+[groups.sandbox_worker]
+directory = "infrastructure/sandbox_worker"
+recipe = "sandbox-worker"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
@@ -726,6 +734,16 @@ macos-runs = ["", "device"]
 # ---------------------------------------------------------------------------
 # Example workspaces
 
+[packages.sandbox_worker]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The sandbox Worker is a wasm32-only workspace; its checks run on the Linux Cloudflare job."
+fmt = "enforce"
+build = "enforce"
+clippy = "enforce"
+test = "off"
+wasm = "off"
+
 [packages.examples]
 macos-tests = "none"
 windows-tests = "none"
@@ -834,9 +852,9 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 wasm = "enforce"
 wasm-runs = ["", "--no-default-features", "--no-default-features --features control cloudflare"]
 runs = ["", "slave", "testing", "slave cli testing", "cli provider testing", "cloudflare testing"]
-# Lint each feature tree of this phase: a warning in the CLI, the slave or the
-# provider must fail CI too.
-clippy-runs = ["", "slave cli testing", "cli provider testing"]
+# Lint each feature tree of this phase: a warning in the CLI, the slave, the
+# provider or the Cloudflare part must fail CI too.
+clippy-runs = ["", "slave cli testing", "cli provider testing", "cloudflare testing"]
 clippy-deny-warnings = true
 # The slave tests are Linux only: "the slave is a Linux guest program". It calls
 # fork, signalfd, mount and the process identifier 1 duties, which no other

@@ -125,3 +125,25 @@ fn provider_host_health() {
         ]
     );
 }
+
+#[test]
+fn provider_cloudflare_launch_stop_sim() {
+    let ctx = ctx(123);
+    let driver = SimDriver::new(DriverId::CloudflareContainer);
+    let slave = Arc::new(ScriptedSlave::new());
+    slave.with_shutdown_exit(driver.substrate());
+    let control = manager(&ctx, driver, slave);
+    let provider = SandboxDeploymentProvider::cloudflare(control);
+    assert_eq!(provider.id(), ProviderId::CloudflareContainer);
+    assert_eq!(provider.name(), "cloudflare-container");
+    let handle = provider.launch(&spec()).expect("the launch succeeds");
+    assert_eq!(handle.provider_id, ProviderId::CloudflareContainer);
+    assert_eq!(
+        handle.sandbox.info().driver,
+        DriverId::CloudflareContainer,
+        "the spec reached the Cloudflare driver"
+    );
+    assert!(provider.is_running(&handle));
+    provider.stop(&handle).expect("the stop succeeds");
+    assert!(!provider.is_running(&handle));
+}

@@ -1,0 +1,51 @@
+[package]
+name = "sandbox_worker"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "The Cloudflare Worker of the foundation sandbox platform (spec 77 feature 08)"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# This crate is its own workspace root, like `examples/cf-agent-loop`. The root
+# workspace excludes `infrastructure/sandbox_worker`, because it builds for
+# wasm32 only.
+[workspace]
+
+[dependencies]
+worker = "0.8.7"
+# The control plane, the Cloudflare traits and the model slave.
+foundation_sandbox = { path = "../../backends/foundation_sandbox", default-features = false, features = ["control", "cloudflare"] }
+# The context that every side effect comes from, and `SendWrapper` for the
+# JavaScript values that cross into the `Send + Sync` traits.
+foundation_context = { path = "../../backends/foundation_context" }
+foundation_compact = { path = "../../backends/foundation_compact", default-features = false }
+# The single-threaded wasm executor and the entropy seed of spec 76.
+foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["js-wasmbindgen", "std"] }
+# The `NetClient` seam of the Durable Object stub (spec 85) and the shared
+# request and response types.
+foundation_netio = { path = "../../backends/foundation_netio", default-features = false, features = ["standard", "std", "wire-native", "wasm-fetch"] }
+# `ErrorWriter` for the Connect error responses of steps 1 to 3.
+foundation_connectrpc = { path = "../../backends/foundation_connectrpc", default-features = false }
+# The typed error trace that the error writer renders.
+foundation_errstacks = { path = "../../backends/foundation_errstacks" }
+# The same wasm HTTP features that `examples/cf-agent-loop` uses.
+foundation_http = { path = "../../backends/foundation_http", default-features = false, features = ["wasm-bindgen-http"] }
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# The index Durable Object reads the `SandboxInfo` values of its storage map.
+serde-wasm-bindgen = "0.6"
+console_error_panic_hook = "0.1"
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+# `getrandom` 0.2 (through `foundation_auth`) needs the `js` backend on
+# `wasm32-unknown-unknown`. This crate names it so the feature is on once for
+# the whole graph.
+getrandom = { version = "0.2", features = ["js"] }
+
+[profile.release]
+opt-level = "s"
+lto = true

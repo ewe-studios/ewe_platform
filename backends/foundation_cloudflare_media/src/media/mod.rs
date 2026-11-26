@@ -2281,6 +2281,19 @@ pub struct RealtimekitPoll {
     pub voted: Option<Vec<String>>,
 }
 
+/// `RealtimekitPreset` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RealtimekitPreset {
+    /// `config` property.
+    pub config: std::collections::HashMap<String, serde_json::Value>,
+    /// `name` property.
+    pub name: String,
+    /// `permissions` property.
+    pub permissions: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `ui` property.
+    pub ui: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `RealtimekitPresetListItem` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitPresetListItem {
@@ -2449,6 +2462,19 @@ pub struct RealtimekitTranscriptionConfig {
     pub language: Option<String>,
     /// `profanity_filter` property.
     pub profanity_filter: Option<bool>,
+}
+
+/// `RealtimekitUpdatePreset` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RealtimekitUpdatePreset {
+    /// `config` property.
+    pub config: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `name` property.
+    pub name: Option<String>,
+    /// `permissions` property.
+    pub permissions: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `ui` property.
+    pub ui: Option<std::collections::HashMap<String, serde_json::Value>>,
 }
 
 /// `RealtimekitVideoConfig` type.
@@ -3488,9 +3514,15 @@ pub struct GetPresetsArgs {
 }
 
 /// Arguments for [`post-presets_request`].
-///
-/// Same shape as `super::shared::AccountIdAppIdArgs`.
-pub type PostPresetsArgs = super::shared::AccountIdAppIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PostPresetsArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Request body.
+    pub body: RealtimekitPreset,
+}
 
 /// Arguments for [`get-presets-preset_id_request`].
 ///
@@ -3498,9 +3530,17 @@ pub type PostPresetsArgs = super::shared::AccountIdAppIdArgs;
 pub type GetPresetsPresetIdArgs = super::shared::AccountIdAppIdPresetIdArgs;
 
 /// Arguments for [`patch-presets-preset_id_request`].
-///
-/// Same shape as `super::shared::AccountIdAppIdPresetIdArgs`.
-pub type PatchPresetsPresetIdArgs = super::shared::AccountIdAppIdPresetIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PatchPresetsPresetIdArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `app_id`.
+    pub app_id: String,
+    /// Path parameter: `preset_id`.
+    pub preset_id: String,
+    /// Request body.
+    pub body: RealtimekitUpdatePreset,
+}
 
 /// Arguments for [`delete-presets-preset_id_request`].
 ///
@@ -4833,6 +4873,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4846,6 +4887,7 @@ pub async fn cloudflare_images_upload_an_image_via_url_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &CloudflareImagesUploadAnImageViaUrlArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ImagesImageResponseSingle>, super::shared::ApiError>
 where
@@ -4856,6 +4898,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -5584,6 +5631,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5597,6 +5645,7 @@ pub async fn cloudflare_images_create_authenticated_direct_upload_url_v_2_reques
     client: impl Into<super::shared::ApiClient>,
     args: &CloudflareImagesCreateAuthenticatedDirectUploadUrlV2Args,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<ImagesImageDirectUploadResponseV2>, super::shared::ApiError>
 where
@@ -5607,6 +5656,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -7101,6 +7155,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -7193,6 +7251,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

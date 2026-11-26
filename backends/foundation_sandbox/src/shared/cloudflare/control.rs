@@ -14,6 +14,7 @@ use foundation_connectrpc::{in_memory_body, CallHooks, ConnectRpcHandler, Respon
 use foundation_context::Ctx;
 use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeaders, SimpleOutgoingResponse, Status};
+use futures::StreamExt;
 
 use crate::shared::cloudflare::container_service::ContainerControlService;
 use crate::shared::cloudflare::driver::{CloudflareContainerDriver, CloudflareDoDriver};
@@ -205,6 +206,32 @@ fn body_stream(state: DispatchState, receiver: PipeReceiver<ResponseEvent>) -> B
         }
     });
     Box::pin(crate::shared::cloudflare::SendStream::new(inner))
+}
+
+/// The same body stream, with one index removal when the stream fails.
+///
+/// The removal runs once for the first error, and the error still reaches the
+/// caller. A failure of the removal is logged and does not change the stream.
+pub fn remove_index_on_stream_error(
+    body: BoxByteStream,
+    index: Arc<dyn crate::shared::cloudflare::SandboxIndex>,
+    id: SandboxId,
+) -> BoxByteStream {
+    let stream = futures::stream::unfold((body, false), move |(mut body, removed)| {
+        let index = Arc::clone(&index);
+        let id = id.clone();
+        async move {
+            let item = body.next().await?;
+            let failed = item.is_err();
+            if failed && !removed {
+                if let Err(error) = index.remove(&id).await {
+                    tracing::warn!(error = %error, %id, "the stream error left the index entry");
+                }
+            }
+            Some((item, (body, removed || failed)))
+        }
+    });
+    Box::pin(stream)
 }
 
 /// The status, headers and body bytes of a whole response.
@@ -401,13 +428,25 @@ impl DoControlPlane {
     pub async fn handle(&self, request: HttpRequestParts) -> HttpResponseParts {
         self.restore().await;
         self.touch().await;
-        dispatch_streaming(
+        let parts = dispatch_streaming(
             self.inner.ctx.clone(),
             &self.inner.handler,
             request,
             self.inner.host.config.stream_queue_len,
         )
-        .await
+        .await;
+        // A stream error after the head means that the sandbox is gone, so the
+        // entry of this Durable Object leaves the index (invariant I6).
+        let body = remove_index_on_stream_error(
+            parts.body,
+            Arc::clone(&self.inner.host.index),
+            self.inner.id.clone(),
+        );
+        HttpResponseParts {
+            status: parts.status,
+            headers: parts.headers,
+            body,
+        }
     }
 
     /// The one DO alarm.

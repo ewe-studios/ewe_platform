@@ -304,6 +304,7 @@ impl CloudflareHost {
 pub struct WorkerModelClient {
     env: SendWrapper<worker::Env>,
     ai_binding: String,
+    max_answer_bytes: usize,
 }
 
 impl WorkerModelClient {
@@ -313,6 +314,7 @@ impl WorkerModelClient {
         Self {
             env: SendWrapper::new(env),
             ai_binding: "AI".to_string(),
+            max_answer_bytes: crate::shared::cloudflare::ModelConfig::default().max_answer_bytes,
         }
     }
 
@@ -320,6 +322,13 @@ impl WorkerModelClient {
     #[must_use]
     pub fn with_ai_binding(mut self, binding: impl Into<String>) -> Self {
         self.ai_binding = binding.into();
+        self
+    }
+
+    /// The same client with the cap on one streamed answer.
+    #[must_use]
+    pub fn with_max_answer_bytes(mut self, max: usize) -> Self {
+        self.max_answer_bytes = max;
         self
     }
 }
@@ -355,6 +364,7 @@ impl ModelClient for WorkerModelClient {
                     let body = serde_json::json!({
                         "model": model,
                         "messages": [{ "role": "user", "content": request.prompt }],
+                        "stream": true,
                     });
                     let init = worker::RequestInit::new();
                     let mut init = init;
@@ -368,7 +378,53 @@ impl ModelClient for WorkerModelClient {
                         .send()
                         .await
                         .map_err(worker_error)?;
-                    let value: serde_json::Value = response.json().await.map_err(worker_error)?;
+                    let status = response.status_code();
+                    if !(200..300).contains(&status) {
+                        return Err(foundation_errstacks::ErrorTrace::new(SandboxError::Rpc {
+                            code: "unavailable".to_string(),
+                            message: format!("the model API answered status {status}"),
+                        }));
+                    }
+                    let mut stream = response.stream().map_err(worker_error)?;
+                    let mut buffer = Vec::new();
+                    let mut answer = Vec::new();
+                    let mut saw_event = false;
+                    while let Some(chunk) = stream.next().await {
+                        let chunk = chunk.map_err(worker_error)?;
+                        buffer.extend_from_slice(&chunk);
+                        while let Some(end) = buffer.iter().position(|byte| *byte == b'\n') {
+                            let line = String::from_utf8_lossy(&buffer[..end]).trim().to_string();
+                            buffer.drain(..=end);
+                            if !line.starts_with("data:") {
+                                continue;
+                            }
+                            saw_event = true;
+                            if let Some(delta) = crate::shared::cloudflare::open_router_delta(&line)
+                            {
+                                if !crate::shared::cloudflare::push_answer(
+                                    &mut answer,
+                                    delta.as_bytes(),
+                                    self.max_answer_bytes,
+                                ) {
+                                    return Err(foundation_errstacks::ErrorTrace::new(
+                                        SandboxError::Rpc {
+                                            code: "resource_exhausted".to_string(),
+                                            message: format!(
+                                                "the answer is larger than the cap of {} bytes",
+                                                self.max_answer_bytes
+                                            ),
+                                        },
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                    if saw_event {
+                        return Ok(answer);
+                    }
+                    // The provider ignored `stream`; read the one JSON message.
+                    let value: serde_json::Value = serde_json::from_slice(&buffer)
+                        .map_err(|error| worker_error(worker::Error::SerdeJsonError(error)))?;
                     let text = value
                         .get("choices")
                         .and_then(|choices| choices.get(0))
@@ -376,7 +432,20 @@ impl ModelClient for WorkerModelClient {
                         .and_then(|message| message.get("content"))
                         .and_then(serde_json::Value::as_str)
                         .unwrap_or_default();
-                    Ok(text.as_bytes().to_vec())
+                    if !crate::shared::cloudflare::push_answer(
+                        &mut answer,
+                        text.as_bytes(),
+                        self.max_answer_bytes,
+                    ) {
+                        return Err(foundation_errstacks::ErrorTrace::new(SandboxError::Rpc {
+                            code: "resource_exhausted".to_string(),
+                            message: format!(
+                                "the answer is larger than the cap of {} bytes",
+                                self.max_answer_bytes
+                            ),
+                        }));
+                    }
+                    Ok(answer)
                 }
             }
         }))

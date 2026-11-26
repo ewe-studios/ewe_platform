@@ -183,6 +183,39 @@ pub trait ModelClient: Send + Sync + 'static {
     fn complete(&self, ctx: Ctx, request: ModelRequest) -> BoxFuture<'_, SandboxResult<Vec<u8>>>;
 }
 
+/// The answer text of one `OpenRouter` server-sent event line.
+///
+/// The line is `data: <json>`, where the JavaScript Object Notation (JSON)
+/// holds `choices[0].delta.content`. A final `data: [DONE]` and every other
+/// line give `None`.
+#[must_use]
+pub fn open_router_delta(line: &str) -> Option<String> {
+    let data = line.strip_prefix("data:")?.trim();
+    if data == "[DONE]" {
+        return None;
+    }
+    let value: serde_json::Value = serde_json::from_str(data).ok()?;
+    value
+        .get("choices")?
+        .get(0)?
+        .get("delta")?
+        .get("content")?
+        .as_str()
+        .map(str::to_string)
+}
+
+/// Appends one streamed answer part.
+///
+/// It returns `false` and appends nothing when the answer would pass `max`
+/// bytes.
+pub fn push_answer(answer: &mut Vec<u8>, part: &[u8], max: usize) -> bool {
+    if answer.len().saturating_add(part.len()) > max {
+        return false;
+    }
+    answer.extend_from_slice(part);
+    true
+}
+
 /// The logic inside the model slave Durable Object.
 pub struct ModelSlave {
     ctx: Ctx,

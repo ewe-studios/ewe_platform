@@ -1762,7 +1762,7 @@ impl UnifiedGenerator {
         .unwrap();
         writeln!(
             lib,
-            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,"
+            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream, MultipartBody, MultipartPart,"
         )
         .unwrap();
         writeln!(lib, "    }};").unwrap();
@@ -1843,7 +1843,7 @@ impl UnifiedGenerator {
         .unwrap();
         writeln!(
             out,
-            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,"
+            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream, MultipartBody, MultipartPart,"
         )
         .unwrap();
         writeln!(out, "    }};").unwrap();
@@ -2757,16 +2757,24 @@ impl UnifiedGenerator {
             "/// * `args` - Request arguments (path params, query params, body)"
         )?;
         if let Some(raw) = &ep.raw_request_body {
-            writeln!(
-                out,
-                "/// * `body` - Request body, sent as-is as `{}`{}",
-                raw.media_type,
-                if raw.required {
-                    ""
-                } else {
-                    " (`None` sends none)"
-                }
-            )?;
+            if raw.multipart {
+                writeln!(
+                    out,
+                    "/// * `body` - Multipart body: the named parts of a `{}` request",
+                    raw.media_type
+                )?;
+            } else {
+                writeln!(
+                    out,
+                    "/// * `body` - Request body, sent as-is as `{}`{}",
+                    raw.media_type,
+                    if raw.required {
+                        ""
+                    } else {
+                        " (`None` sends none)"
+                    }
+                )?;
+            }
         }
         writeln!(out, "/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)")?;
         if let Some(rt) = streaming {
@@ -2815,7 +2823,9 @@ impl UnifiedGenerator {
         // DockerClient::base_url().
         writeln!(out, "    base_url: &str,")?;
         if let Some(raw) = &ep.raw_request_body {
-            if raw.required {
+            if raw.multipart {
+                writeln!(out, "    body: &super::shared::MultipartBody,")?;
+            } else if raw.required {
                 writeln!(
                     out,
                     "    body: foundation_netio::shared::http::SendSafeBody,"
@@ -2909,9 +2919,16 @@ impl UnifiedGenerator {
             writeln!(out)?;
         }
 
-        // A non-JSON body (tar archive, raw bytes) goes on as-is.
+        // A non-JSON body (tar archive, raw bytes) goes on as-is. A multipart
+        // body is framed from its named parts.
         if let Some(raw) = &ep.raw_request_body {
-            if raw.required {
+            if raw.multipart {
+                writeln!(out, "    let (content_type, encoded) = body.encode();")?;
+                writeln!(
+                    out,
+                    "    builder = builder.header(\"content-type\".to_string(), content_type).body_bytes(encoded);"
+                )?;
+            } else if raw.required {
                 writeln!(
                     out,
                     "    builder = super::shared::with_raw_body(builder, \"{}\", body);",

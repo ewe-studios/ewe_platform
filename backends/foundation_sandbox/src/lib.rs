@@ -18,6 +18,13 @@
 
 pub mod shared;
 
+/// The version of this crate.
+///
+/// The slave and the Cloudflare Worker report this value, so a caller can see
+/// that the image and the Worker come from the same build (spec 77 invariant
+/// I9).
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Native adapters. Features 01, 03, 04, 05, 09 and 10 fill this module.
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
