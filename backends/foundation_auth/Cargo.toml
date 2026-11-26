@@ -17,7 +17,8 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-f
 foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.17", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
+# `crypto-chacha` gives the key store its sealed-blob cipher.
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", features = ["crypto-chacha"] }
 # The VFS trait that the operator key files read through. It builds on wasm:
 # only `NativeFs` is native. Feature `secret`.
 foundation_nativeapis = { workspace = true, optional = true }
@@ -207,6 +208,10 @@ wasm-bindgen-session = [
 # Native server with WebAuthn (openssl dep, wasm-incompatible)
 server-native = ["server", "dep:webauthn-rs", "dep:openssl", "dep:url", "dep:serde_cbor"]
 
+# Test-only key-store helpers: the fixed KEK source and the fake KMS backend.
+# Off by default; the key-store tests turn it on.
+testing = []
+
 # Test module tree (units/ + integration/ via lib.rs)
 [[test]]
 name = "foundation_auth_tests"
@@ -230,6 +235,13 @@ required-features = ["secret"]
 name = "keys_tests"
 path = "tests/keys/mod.rs"
 required-features = ["secret"]
+
+# Spec 83 feature 08: the key store, sealing, the race, rotation and no
+# clear-text private key.
+[[test]]
+name = "keystore_tests"
+path = "tests/keystore/mod.rs"
+required-features = ["testing"]
 
 # Spec 81 feature 00: the signed-secret, JWT, plaintext and composite providers.
 [[test]]
