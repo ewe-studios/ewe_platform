@@ -912,6 +912,33 @@ async fn handle_read(
         }
     }
 
+    // `waitForUpToDate` keeps reading pages until the tail is reached.
+    if command["waitForUpToDate"].as_bool() == Some(true) {
+        let mut guard = 0;
+        while !result.up_to_date && !result.closed && guard < 10 {
+            guard += 1;
+            let next = result
+                .next_offset
+                .clone()
+                .unwrap_or_else(|| "-1".to_string());
+            match handle
+                .read()
+                .mode(ReadMode::CatchUp)
+                .offset(next)
+                .send()
+                .await
+            {
+                Ok(page) if !page.chunks.is_empty() => {
+                    result.chunks.extend(page.chunks);
+                    result.next_offset = page.next_offset.or(result.next_offset);
+                    result.up_to_date = page.up_to_date;
+                    result.closed = page.closed;
+                }
+                _ => break,
+            }
+        }
+    }
+
     let chunks: Vec<serde_json::Value> = result
         .chunks
         .iter()
