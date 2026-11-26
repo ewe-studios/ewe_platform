@@ -239,7 +239,18 @@ pub fn unpack<R: Read>(
             stats.bytes = total;
         }
         let destination = resolve_in_root(root, &relative)?;
-        apply_entry(&mut reader, &header, &pending, root, &destination, &path)?;
+        apply_entry(&mut reader, &header, &pending, root, &destination, &path).map_err(
+            |error| match error {
+                // The reader reports the entry path, not one host path of the
+                // entry, so a caller can name the tar entry that failed.
+                UnpackError::Entry { errno, message, .. } => UnpackError::Entry {
+                    path: path.clone(),
+                    errno,
+                    message,
+                },
+                other => other,
+            },
+        )?;
         mark_created(&mut created, &relative);
         pending.clear();
     }

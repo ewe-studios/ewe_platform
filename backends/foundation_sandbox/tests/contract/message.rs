@@ -360,11 +360,11 @@ proptest! {
 fn no_request_streaming() {
     let mut router = Router::new();
     register_slave_service(&mut router, Arc::new(UnimplementedSlaveServiceHandler));
-    assert_eq!(router.len(), 11);
+    assert_eq!(router.len(), 15);
 
     let mut router = Router::new();
     register_sandbox_service(&mut router, Arc::new(UnimplementedSandboxServiceHandler));
-    assert_eq!(router.len(), 14);
+    assert_eq!(router.len(), 18);
 }
 
 /// A host report survives RPC.

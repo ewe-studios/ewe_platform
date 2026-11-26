@@ -110,10 +110,13 @@ impl ImageStore {
 
     /// The configured or discovered `mkfs.ext4` program.
     fn mkfs_path(&self) -> SandboxResult<PathBuf> {
+        // An explicit path is the only choice: a caller that sets
+        // `EWE_MKFS_EXT4` gets that program or the error.
         if let Some(path) = &self.host.config.mkfs_ext4_path {
             if self.host.fs.exists(path) {
                 return Ok(path.clone());
             }
+            return Err(missing_mkfs());
         }
         for candidate in MKFS_CANDIDATES {
             let path = PathBuf::from(candidate);
