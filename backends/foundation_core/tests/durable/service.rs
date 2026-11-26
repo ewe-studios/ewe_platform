@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 #[test]
 fn given_a_service_when_the_business_api_runs_then_it_uses_the_driver() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let service = DurableService::with_limits(
             DurableStream::new(Arc::new(MemoryVfs::new())),
             DurableLimits::default(),
@@ -61,7 +61,7 @@ fn given_protocol_limits_when_built_then_each_value_is_configurable() {
 
 #[test]
 fn given_a_page_limit_when_a_read_runs_then_no_page_exceeds_it() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         use foundation_core::durable::{
             AppendRequest, Chunk, CreateSpec, DurableLimits, DurableService, DurableStream,
             MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
@@ -117,7 +117,7 @@ fn given_a_page_limit_when_a_read_runs_then_no_page_exceeds_it() {
 
 #[test]
 fn given_a_chunk_limit_when_a_json_read_runs_then_no_page_exceeds_it() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         use foundation_core::durable::{
             AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
             DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
@@ -186,7 +186,7 @@ fn given_a_chunk_limit_when_a_json_read_runs_then_no_page_exceeds_it() {
 
 #[test]
 fn given_a_byte_limit_when_a_json_read_runs_then_the_page_respects_it() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         use foundation_core::durable::{
             AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
             DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
@@ -242,7 +242,7 @@ fn given_a_byte_limit_when_a_json_read_runs_then_the_page_respects_it() {
 
 #[test]
 fn given_a_message_larger_than_the_page_when_it_is_read_then_it_arrives_whole() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         use foundation_core::durable::{
             AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
             DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
@@ -298,7 +298,7 @@ fn given_a_message_larger_than_the_page_when_it_is_read_then_it_arrives_whole() 
 
 #[test]
 fn given_a_byte_limit_when_reads_walk_the_stream_then_every_message_appears_once() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         use foundation_core::durable::{
             AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
             DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,

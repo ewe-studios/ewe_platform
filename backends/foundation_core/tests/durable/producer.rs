@@ -57,7 +57,7 @@ async fn read_all(streams: &DurableStreams<DurableStream>, name: &StreamName) ->
 
 #[test]
 fn given_a_producer_when_it_retries_a_sequence_then_the_data_is_not_duplicated() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/retry").expect("valid");
         create(&streams, &name).await;
@@ -82,7 +82,7 @@ fn given_a_producer_when_it_retries_a_sequence_then_the_data_is_not_duplicated()
 
 #[test]
 fn given_a_producer_when_a_sequence_gap_appears_then_it_is_a_typed_error() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/gap").expect("valid");
         create(&streams, &name).await;
@@ -105,7 +105,7 @@ fn given_a_producer_when_a_sequence_gap_appears_then_it_is_a_typed_error() {
 
 #[test]
 fn given_a_producer_when_an_old_epoch_writes_then_it_is_fenced() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/fenced").expect("valid");
         create(&streams, &name).await;
@@ -131,7 +131,7 @@ fn given_a_producer_when_an_old_epoch_writes_then_it_is_fenced() {
 
 #[test]
 fn given_a_new_epoch_when_seq_is_not_zero_then_it_is_invalid() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/epoch-seq").expect("valid");
         create(&streams, &name).await;
@@ -153,7 +153,7 @@ fn given_a_new_epoch_when_seq_is_not_zero_then_it_is_invalid() {
 
 #[test]
 fn given_stream_seq_when_it_regresses_then_it_is_a_conflict() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/stream-seq").expect("valid");
         create(&streams, &name).await;
@@ -175,7 +175,7 @@ fn given_stream_seq_when_it_regresses_then_it_is_a_conflict() {
 
 #[test]
 fn given_stream_seq_when_it_skips_forward_then_it_is_accepted() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/stream-seq-skip").expect("valid");
         create(&streams, &name).await;
@@ -194,7 +194,7 @@ fn given_stream_seq_when_it_skips_forward_then_it_is_accepted() {
 
 #[test]
 fn given_a_producer_retry_when_stream_seq_is_older_then_it_is_deduplicated() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/retry-seq").expect("valid");
         create(&streams, &name).await;
@@ -216,7 +216,7 @@ fn given_a_producer_retry_when_stream_seq_is_older_then_it_is_deduplicated() {
 
 #[test]
 fn given_a_producer_when_the_stream_restarts_then_a_retry_is_still_deduplicated() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let vfs = Arc::new(MemoryVfs::new());
         let name = StreamName::parse("producer/restart").expect("valid");
 
@@ -244,7 +244,7 @@ fn given_a_producer_when_the_stream_restarts_then_a_retry_is_still_deduplicated(
 
 #[test]
 fn given_two_concurrent_producers_when_they_append_then_both_are_accepted() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/concurrent").expect("valid");
         create(&streams, &name).await;
@@ -267,7 +267,7 @@ fn given_two_concurrent_producers_when_they_append_then_both_are_accepted() {
 
 #[test]
 fn given_two_producers_when_they_are_independent_then_each_keeps_its_state() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("producer/multi").expect("valid");
         create(&streams, &name).await;

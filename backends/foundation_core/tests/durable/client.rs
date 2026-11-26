@@ -91,7 +91,7 @@ fn handle(transport: Arc<MockTransport>) -> foundation_core::durable::client::St
 
 #[test]
 fn given_a_client_when_it_creates_a_stream_then_it_sends_a_put_with_the_configuration() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             201,
             &[("stream-next-offset", "0000000000000003")],
@@ -123,7 +123,7 @@ fn given_a_client_when_it_creates_a_stream_then_it_sends_a_put_with_the_configur
 
 #[test]
 fn given_a_duplicate_producer_write_when_the_server_answers_204_then_it_is_a_duplicate() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(204, &[], b"")]);
         let result = handle(transport.clone())
             .append(
@@ -149,7 +149,7 @@ fn given_a_duplicate_producer_write_when_the_server_answers_204_then_it_is_a_dup
 
 #[test]
 fn given_a_text_stream_when_a_catch_up_read_runs_then_it_returns_one_chunk() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[
@@ -179,7 +179,7 @@ fn given_a_text_stream_when_a_catch_up_read_runs_then_it_returns_one_chunk() {
 
 #[test]
 fn given_a_json_stream_when_a_read_runs_then_it_returns_one_chunk_per_message() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[("content-type", "application/json")],
@@ -198,7 +198,7 @@ fn given_a_json_stream_when_a_read_runs_then_it_returns_one_chunk_per_message() 
 
 #[test]
 fn given_a_long_poll_timeout_when_the_server_answers_204_then_the_client_is_up_to_date() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             204,
             &[
@@ -227,7 +227,7 @@ fn given_a_long_poll_timeout_when_the_server_answers_204_then_the_client_is_up_t
 
 #[test]
 fn given_a_head_response_when_head_runs_then_it_reports_the_tail_and_closure() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[
@@ -250,7 +250,7 @@ fn given_a_head_response_when_head_runs_then_it_reports_the_tail_and_closure() {
 
 #[test]
 fn given_a_missing_stream_when_delete_runs_then_the_error_names_the_path() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(404, &[], b"")]);
         let error = handle(transport).delete().await.expect_err("missing");
 
@@ -263,7 +263,7 @@ fn given_a_missing_stream_when_delete_runs_then_the_error_names_the_path() {
 
 #[test]
 fn given_a_closed_stream_when_append_runs_then_the_error_is_closed() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             409,
             &[("stream-closed", "true")],
@@ -280,7 +280,7 @@ fn given_a_closed_stream_when_append_runs_then_the_error_is_closed() {
 
 #[test]
 fn given_a_malformed_json_body_when_a_read_runs_then_the_error_is_a_parse_error() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[("content-type", "application/json")],
@@ -293,7 +293,7 @@ fn given_a_malformed_json_body_when_a_read_runs_then_the_error_is_a_parse_error(
 
 #[test]
 fn given_a_bad_status_when_a_read_runs_then_the_error_carries_the_status() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(503, &[], b"down")]);
         let error = handle(transport).read().send().await.expect_err("status");
         match error {
@@ -315,7 +315,7 @@ fn sse(event_type: &str, data: &str) -> Result<SseEvent, TransportError> {
 
 #[test]
 fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk_and_offset() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").extend([
             sse("data", "hello"),
@@ -336,7 +336,7 @@ fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk
 
 #[test]
 fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").extend([
             sse("data", "SGVsbG8="),
@@ -357,7 +357,7 @@ fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes(
 
 #[test]
 fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_read() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").push(Ok(SseEvent {
             event_type: None,
@@ -377,7 +377,7 @@ fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_re
 
 #[test]
 fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(200, &[], b"")]);
         transport.events.lock().expect("events").extend([
             sse("data", ""),
@@ -396,7 +396,7 @@ fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
 
 #[test]
 fn given_a_missing_stream_when_an_sse_read_runs_then_the_probe_answers_not_found() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(404, &[], b"")]);
         let error = handle(transport)
             .read()
@@ -410,7 +410,7 @@ fn given_a_missing_stream_when_an_sse_read_runs_then_the_probe_answers_not_found
 
 #[test]
 fn given_an_sse_encoding_header_when_a_text_read_runs_then_the_data_is_decoded() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[("stream-sse-data-encoding", "base64")],
@@ -433,7 +433,7 @@ fn given_an_sse_encoding_header_when_a_text_read_runs_then_the_data_is_decoded()
 
 #[test]
 fn given_a_closed_create_when_it_runs_then_the_closed_header_is_sent() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(201, &[], b"")]);
         handle(transport.clone())
             .create(Some("text/plain"), None, None, true, Vec::new())
@@ -449,7 +449,7 @@ fn given_a_closed_create_when_it_runs_then_the_closed_header_is_sent() {
 
 #[test]
 fn given_a_close_when_it_runs_then_it_sends_the_closed_header_and_returns_the_offset() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[("stream-next-offset", "0000000000000009")],
@@ -472,7 +472,7 @@ fn given_a_close_when_it_runs_then_it_sends_the_closed_header_and_returns_the_of
 
 #[test]
 fn given_a_stream_sequence_when_an_append_runs_then_the_header_is_sent() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(204, &[], b"")]);
         handle(transport.clone())
             .append(b"x".to_vec(), Some("text/plain"), Some("0007"), None, false)
@@ -488,7 +488,7 @@ fn given_a_stream_sequence_when_an_append_runs_then_the_header_is_sent() {
 
 #[test]
 fn given_an_absolute_deadline_when_head_runs_then_it_reports_the_timestamp() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[("stream-expires-at", "2030-01-01T00:00:00Z")],
@@ -501,7 +501,7 @@ fn given_an_absolute_deadline_when_head_runs_then_it_reports_the_timestamp() {
 
 #[test]
 fn given_a_cursor_when_a_read_runs_then_it_is_echoed_on_the_query() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(200, &[], b"")]);
         handle(transport.clone())
             .read()
@@ -515,7 +515,7 @@ fn given_a_cursor_when_a_read_runs_then_it_is_echoed_on_the_query() {
 
 #[test]
 fn given_a_matching_etag_when_a_read_runs_then_it_reports_not_modified() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(304, &[], b"")]);
         let result = handle(transport.clone())
             .read()
@@ -535,7 +535,7 @@ fn given_a_matching_etag_when_a_read_runs_then_it_reports_not_modified() {
 
 #[test]
 fn given_a_closed_stream_at_the_tail_when_a_read_runs_then_it_reports_the_end() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(
             200,
             &[
@@ -561,7 +561,7 @@ fn given_a_closed_stream_at_the_tail_when_a_read_runs_then_it_reports_the_end() 
 
 #[test]
 fn given_an_absolute_deadline_when_create_runs_then_the_header_is_sent() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(201, &[], b"")]);
         handle(transport.clone())
             .create(

@@ -49,7 +49,7 @@ fn offset(value: u64) -> StreamOffset {
 
 #[test]
 fn given_a_source_when_a_fork_reads_then_it_spans_the_boundary() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/source").expect("valid");
         let fork = StreamName::parse("fork/target").expect("valid");
@@ -76,7 +76,7 @@ fn given_a_source_when_a_fork_reads_then_it_spans_the_boundary() {
 
 #[test]
 fn given_a_source_when_it_appends_after_the_fork_then_the_fork_does_not_see_it() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/hidden-source").expect("valid");
         let fork = StreamName::parse("fork/hidden-target").expect("valid");
@@ -100,7 +100,7 @@ fn given_a_source_when_it_appends_after_the_fork_then_the_fork_does_not_see_it()
 
 #[test]
 fn given_a_fork_when_the_source_is_deleted_then_the_fork_still_reads() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/soft-source").expect("valid");
         let fork = StreamName::parse("fork/soft-target").expect("valid");
@@ -133,7 +133,7 @@ fn given_a_fork_when_the_source_is_deleted_then_the_fork_still_reads() {
 
 #[test]
 fn given_the_last_fork_when_it_is_deleted_then_the_source_is_cleaned_up() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/cascade-source").expect("valid");
         let fork = StreamName::parse("fork/cascade-target").expect("valid");
@@ -170,7 +170,7 @@ fn given_the_last_fork_when_it_is_deleted_then_the_source_is_cleaned_up() {
 
 #[test]
 fn given_a_source_when_forked_at_tail_then_it_reads_all() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/tail-source").expect("valid");
         let fork = StreamName::parse("fork/tail-target").expect("valid");
@@ -193,7 +193,7 @@ fn given_a_source_when_forked_at_tail_then_it_reads_all() {
 
 #[test]
 fn given_a_source_when_forked_at_zero_then_it_reads_empty() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/zero-source").expect("valid");
         let fork = StreamName::parse("fork/zero-target").expect("valid");
@@ -216,7 +216,7 @@ fn given_a_source_when_forked_at_zero_then_it_reads_empty() {
 
 #[test]
 fn given_a_closed_source_when_forked_then_the_fork_starts_open() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/closed-source").expect("valid");
         let fork = StreamName::parse("fork/closed-target").expect("valid");
@@ -251,7 +251,7 @@ fn given_a_closed_source_when_forked_then_the_fork_starts_open() {
 
 #[test]
 fn given_a_ttl_source_when_forked_without_expiry_then_the_fork_inherits_it() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/ttl-source").expect("valid");
         let fork = StreamName::parse("fork/ttl-target").expect("valid");
@@ -281,7 +281,7 @@ fn given_a_ttl_source_when_forked_without_expiry_then_the_fork_inherits_it() {
 
 #[test]
 fn given_a_binary_source_when_a_fork_uses_sub_offset_then_it_skips_bytes() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/binary-sub-source").expect("valid");
         let fork = StreamName::parse("fork/binary-sub-target").expect("valid");
@@ -305,7 +305,7 @@ fn given_a_binary_source_when_a_fork_uses_sub_offset_then_it_skips_bytes() {
 
 #[test]
 fn given_a_json_source_when_a_fork_uses_sub_offset_then_it_skips_messages() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/json-sub-source").expect("valid");
         let fork = StreamName::parse("fork/json-sub-target").expect("valid");
@@ -336,7 +336,7 @@ fn given_a_json_source_when_a_fork_uses_sub_offset_then_it_skips_messages() {
 
 #[test]
 fn given_a_sub_offset_past_the_end_then_it_is_refused() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/sub-overshoot-source").expect("valid");
         create(&streams, &source).await;
@@ -361,7 +361,7 @@ fn given_a_sub_offset_past_the_end_then_it_is_refused() {
 
 #[test]
 fn given_a_fork_when_it_is_created_twice_then_the_second_call_is_idempotent() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = StreamName::parse("fork/idempotent-source").expect("valid");
         let fork = StreamName::parse("fork/idempotent-target").expect("valid");

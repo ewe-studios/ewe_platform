@@ -48,7 +48,7 @@ fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_wind
     let name = StreamName::parse("ttl/sliding").expect("valid");
     let handle = streams.stream(name);
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         handle
             .create(CreateSpec {
                 expires: Some(Expiry::Ttl(Duration::from_secs(10))),
@@ -63,7 +63,7 @@ fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_wind
     });
 
     clock.set(5_000);
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         handle
             .read(ReadRequest {
                 from: ReadFrom::Start,
@@ -74,7 +74,7 @@ fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_wind
     });
 
     clock.set(12_000);
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         handle
             .read(ReadRequest {
                 from: ReadFrom::Start,
@@ -85,12 +85,12 @@ fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_wind
     });
 
     clock.set(16_000);
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         handle.head().await.expect("head at 16s does not expire");
     });
 
     clock.set(23_000);
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let error = handle.head().await.expect_err("ttl expired");
         assert!(matches!(error, StoreError::NotFound));
     });
@@ -105,7 +105,7 @@ fn given_an_expired_ttl_stream_when_it_is_used_then_it_reports_not_found() {
     ));
     let name = StreamName::parse("ttl/expired").expect("name");
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         streams
             .stream(name.clone())
             .create(CreateSpec {
@@ -119,7 +119,7 @@ fn given_an_expired_ttl_stream_when_it_is_used_then_it_reports_not_found() {
 
     clock.set(10_001);
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         assert!(matches!(
             streams.stream(name.clone()).head().await,
             Err(StoreError::NotFound)
@@ -152,7 +152,7 @@ fn given_a_ttl_source_when_it_expires_then_a_living_fork_keeps_its_own_window() 
     let source = StreamName::parse("ttl/fork-src").expect("name");
     let fork = StreamName::parse("ttl/fork-child").expect("name");
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         streams
             .stream(source.clone())
             .create(CreateSpec {
@@ -177,7 +177,7 @@ fn given_a_ttl_source_when_it_expires_then_a_living_fork_keeps_its_own_window() 
     });
 
     clock.set(9_000);
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         // A fork read slides the fork window only.
         streams
             .stream(fork.clone())
@@ -190,7 +190,7 @@ fn given_a_ttl_source_when_it_expires_then_a_living_fork_keeps_its_own_window() 
     });
 
     clock.set(11_000);
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         assert!(matches!(
             streams.stream(source.clone()).head().await,
             Err(StoreError::NotFound)

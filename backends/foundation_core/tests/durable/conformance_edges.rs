@@ -46,7 +46,7 @@ async fn read_all(streams: &DurableStreams<DurableStream>, stream: &StreamName) 
 
 #[test]
 fn given_a_create_with_a_body_and_closed_when_it_lands_then_the_body_is_readable_and_closed() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let stream = name("closed-with-body");
         let outcome = streams
@@ -68,7 +68,7 @@ fn given_a_create_with_a_body_and_closed_when_it_lands_then_the_body_is_readable
 
 #[test]
 fn given_a_fork_without_a_content_type_when_it_lands_then_it_inherits_the_source_type() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = name("fork-inherit-src");
         let fork = name("fork-inherit");
@@ -93,7 +93,7 @@ fn given_a_fork_without_a_content_type_when_it_lands_then_it_inherits_the_source
 
 #[test]
 fn given_a_fork_with_a_different_content_type_when_it_lands_then_it_is_a_mismatch() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = name("fork-mismatch-src");
         let fork = name("fork-mismatch");
@@ -119,7 +119,7 @@ fn given_a_fork_with_a_different_content_type_when_it_lands_then_it_is_a_mismatc
 
 #[test]
 fn given_a_soft_deleted_stream_when_it_is_re_created_or_forked_then_it_is_a_config_conflict() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let source = name("gone-src");
         let fork = name("gone-fork");
@@ -172,7 +172,7 @@ fn given_a_soft_deleted_stream_when_it_is_re_created_or_forked_then_it_is_a_conf
 
 #[test]
 fn given_a_producer_close_when_it_is_retried_then_only_the_same_tuple_is_a_duplicate() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let stream = name("producer-close");
         create_text(&streams, &stream).await;
@@ -221,7 +221,7 @@ fn given_a_producer_close_when_it_is_retried_then_only_the_same_tuple_is_a_dupli
 
 #[test]
 fn given_a_three_level_fork_chain_when_both_parents_are_deleted_then_the_chain_still_reads() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let level0 = name("chain-l0");
         let level1 = name("chain-l1");
@@ -305,7 +305,7 @@ fn given_a_three_level_fork_chain_when_both_parents_are_deleted_then_the_chain_s
 
 #[test]
 fn given_a_create_with_a_body_when_it_runs_twice_then_the_body_is_stored_once() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let stream = name("create-once");
         let spec = CreateSpec {

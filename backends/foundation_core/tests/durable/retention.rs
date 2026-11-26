@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 #[test]
 fn given_a_trimmed_stream_when_read_before_the_trim_then_it_is_refused() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let vfs = Arc::new(MemoryVfs::new());
         let streams = DurableStreams::new(DurableStream::new(vfs.clone()));
         let name = StreamName::parse("retention/trim").expect("valid");

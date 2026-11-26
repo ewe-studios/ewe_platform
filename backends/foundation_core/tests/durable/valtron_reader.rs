@@ -17,7 +17,7 @@ fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
     let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
     let name = StreamName::parse("reader/live").expect("valid name");
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = DurableStreams::new(stream.clone());
         streams
             .stream(name.clone())
@@ -41,7 +41,7 @@ fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
         }
     }
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = DurableStreams::new(stream.clone());
         streams
             .stream(name.clone())
@@ -86,7 +86,7 @@ fn given_a_reader_when_it_is_bridged_with_into_next_stream_then_it_yields_chunks
     let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
     let name = StreamName::parse("reader/bridge").expect("valid name");
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = DurableStreams::new(stream.clone());
         let handle = streams.stream(name.clone());
         handle.create(CreateSpec::default()).await.expect("create");
@@ -122,7 +122,7 @@ fn given_a_closed_stream_when_the_valtron_reader_catches_up_then_it_yields_the_c
     let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
     let name = StreamName::parse("reader/valtron").expect("valid name");
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = DurableStreams::new(stream.clone());
         let handle = streams.stream(name.clone());
         handle.create(CreateSpec::default()).await.expect("create");

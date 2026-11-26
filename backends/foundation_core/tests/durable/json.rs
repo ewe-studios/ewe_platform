@@ -46,7 +46,7 @@ async fn read_chunks(streams: &DurableStreams<DurableStream>, name: &StreamName)
 
 #[test]
 fn given_a_json_stream_when_an_array_appends_then_it_flattens_one_level() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("json/flatten").expect("valid");
         create(&streams, &name, json_spec()).await;
@@ -66,7 +66,7 @@ fn given_a_json_stream_when_an_array_appends_then_it_flattens_one_level() {
 
 #[test]
 fn given_a_json_stream_when_a_single_value_appends_then_it_is_one_message() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("json/single").expect("valid");
         create(&streams, &name, json_spec()).await;
@@ -83,7 +83,7 @@ fn given_a_json_stream_when_a_single_value_appends_then_it_is_one_message() {
 
 #[test]
 fn given_a_json_stream_when_nested_arrays_append_then_only_one_level_flattens() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("json/nested").expect("valid");
         create(&streams, &name, json_spec()).await;
@@ -109,7 +109,7 @@ fn given_a_json_stream_when_nested_arrays_append_then_only_one_level_flattens() 
 
 #[test]
 fn given_a_json_stream_when_the_append_is_an_empty_array_then_it_is_refused() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("json/empty-append").expect("valid");
         create(&streams, &name, json_spec()).await;
@@ -129,7 +129,7 @@ fn given_a_json_stream_when_the_append_is_an_empty_array_then_it_is_refused() {
 
 #[test]
 fn given_a_json_stream_when_it_is_created_with_an_empty_array_then_it_is_valid() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("json/empty-create").expect("valid");
         create(
@@ -148,7 +148,7 @@ fn given_a_json_stream_when_it_is_created_with_an_empty_array_then_it_is_valid()
 
 #[test]
 fn given_a_json_stream_when_the_append_is_invalid_then_it_is_refused() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("json/invalid").expect("valid");
         create(&streams, &name, json_spec()).await;
@@ -168,7 +168,7 @@ fn given_a_json_stream_when_the_append_is_invalid_then_it_is_refused() {
 
 #[test]
 fn given_an_offset_inside_a_json_message_when_a_read_runs_then_it_is_a_bad_request() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         use foundation_core::durable::{
             AppendRequest, Chunk, ContentType, CreateSpec, DurableStream, DurableStreams,
             MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamOffset,

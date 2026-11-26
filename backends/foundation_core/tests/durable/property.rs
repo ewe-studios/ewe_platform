@@ -12,7 +12,7 @@ proptest! {
     fn append_then_read_is_byte_exact(
         chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..64), 1..20),
     ) {
-        let (bytes, model) = smol::block_on(async {
+        let (bytes, model) = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
                 DurableStream::new(Arc::new(MemoryVfs::new())),
             );
@@ -55,7 +55,7 @@ proptest! {
     fn producer_retries_store_each_chunk_once(
         chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..24), 1..10),
     ) {
-        let bytes = smol::block_on(async {
+        let bytes = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
                 DurableStream::new(Arc::new(MemoryVfs::new())),
             );
@@ -105,7 +105,7 @@ proptest! {
         second in prop::collection::vec(any::<u8>(), 1..32),
         third in prop::collection::vec(any::<u8>(), 1..32),
     ) {
-        let (fork_bytes, source_bytes) = smol::block_on(async {
+        let (fork_bytes, source_bytes) = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
                 DurableStream::new(Arc::new(MemoryVfs::new())),
             );
@@ -182,7 +182,7 @@ proptest! {
     fn json_append_then_read_returns_each_message(
         messages in prop::collection::vec((any::<i64>(), "[a-z]{0,8}"), 1..12),
     ) {
-        let read_back = smol::block_on(async {
+        let read_back = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
                 DurableStream::new(Arc::new(MemoryVfs::new())),
             );
@@ -238,7 +238,7 @@ proptest! {
     fn stream_seq_accepts_increasing_values_only(
         values in prop::collection::vec(1_u64..1_000, 1..10),
     ) {
-        smol::block_on(async {
+        foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
                 DurableStream::new(Arc::new(MemoryVfs::new())),
             );

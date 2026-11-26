@@ -36,6 +36,9 @@ pub use sync::*;
 pub use task_iters::*;
 pub use wrappers::*;
 
+pub mod scoped;
+pub use scoped::*;
+
 pub mod single;
 
 #[cfg(not(feature = "multi"))]

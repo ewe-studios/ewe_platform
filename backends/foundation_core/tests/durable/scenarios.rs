@@ -12,7 +12,7 @@ fn streams() -> DurableStreams<DurableStream> {
 
 #[test]
 fn given_an_empty_driver_when_the_business_api_appends_then_a_reader_sees_the_bytes() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("events/abc").expect("valid name");
         let stream = streams.stream(name);
@@ -42,7 +42,7 @@ fn given_an_empty_driver_when_the_business_api_appends_then_a_reader_sees_the_by
 
 #[test]
 fn given_a_closed_stream_when_the_business_api_appends_then_it_is_refused() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("events/closed").expect("valid name");
         let stream = streams.stream(name);

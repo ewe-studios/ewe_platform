@@ -13,7 +13,7 @@ fn given_a_producer_task_when_it_runs_then_it_appends_in_order() {
     let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
     let name = StreamName::parse("producer/task").expect("valid name");
 
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         DurableStreams::new(stream.clone())
             .stream(name.clone())
             .create(CreateSpec::default())
@@ -42,7 +42,7 @@ fn given_a_producer_task_when_it_runs_then_it_appends_in_order() {
     assert_eq!(outcomes.len(), 2);
     assert!(outcomes.iter().all(Result::is_ok));
 
-    let bytes = smol::block_on(async {
+    let bytes = foundation_core::valtron::block_on_future_scoped(async {
         let page = DurableStreams::new(stream)
             .stream(name)
             .read(ReadRequest {

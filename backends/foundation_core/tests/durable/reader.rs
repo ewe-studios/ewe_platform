@@ -25,7 +25,7 @@ fn offset(value: u64) -> StreamOffset {
 
 #[test]
 fn given_a_stream_when_read_from_an_offset_then_the_suffix_is_returned() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("reader/suffix").expect("valid");
         let stream = streams.stream(name);
@@ -51,7 +51,7 @@ fn given_a_stream_when_read_from_an_offset_then_the_suffix_is_returned() {
 
 #[test]
 fn given_a_closed_stream_when_read_from_start_then_the_page_is_closed() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("reader/closed").expect("valid");
         let stream = streams.stream(name);
@@ -85,7 +85,7 @@ fn given_a_closed_stream_when_read_from_start_then_the_page_is_closed() {
 
 #[test]
 fn given_a_closed_stream_when_read_a_partial_page_then_it_is_not_closed() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("reader/partial").expect("valid");
         let stream = streams.stream(name);
@@ -144,21 +144,21 @@ fn given_a_stream_when_it_appends_then_the_notifier_fires() {
         trim_from: 0,
         version: 0,
     };
-    smol::block_on(async { vfs.create(&name, meta).await.expect("create") });
+    foundation_core::valtron::block_on_future_scoped(async { vfs.create(&name, meta).await.expect("create") });
 
     let fired = Arc::new(AtomicBool::new(false));
     let flag = Arc::clone(&fired);
     let notifier = vfs.notifier(&name).expect("notifier");
     notifier.register(Box::new(move || flag.store(true, Ordering::SeqCst)));
 
-    smol::block_on(async { vfs.append(&name, b"x").await.expect("append") });
+    foundation_core::valtron::block_on_future_scoped(async { vfs.append(&name, b"x").await.expect("append") });
 
     assert!(fired.load(Ordering::SeqCst));
 }
 
 #[test]
 fn given_a_stream_at_the_tail_when_read_from_tail_then_the_page_is_empty_and_up_to_date() {
-    smol::block_on(async {
+    foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("reader/tail").expect("valid");
         let stream = streams.stream(name);
