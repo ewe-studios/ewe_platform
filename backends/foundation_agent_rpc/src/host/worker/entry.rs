@@ -52,7 +52,6 @@ pub const DATABASE_BINDING: &str = "AGENT_RPC_DB";
 
 /// The Worker host: the isolate-wide parts of one Worker.
 pub struct WorkerHost {
-    env: worker::Env,
     ctx: Ctx,
     config: WorkerHostConfig,
     app: CfHttpApp,
@@ -152,7 +151,6 @@ impl WorkerHost {
             limits: limits.clone(),
         }));
         Ok(Self {
-            env,
             ctx,
             config,
             app: CfHttpApp::from_app(app),
