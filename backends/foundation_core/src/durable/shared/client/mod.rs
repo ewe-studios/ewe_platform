@@ -5,7 +5,6 @@
 
 mod client;
 mod transport;
-pub mod valtron;
 
 pub use client::{
     AppendResult, ClientConfig, ClientError, DurableClient, HeadResult, ReadBuilder, ReadChunk,

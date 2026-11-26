@@ -5,7 +5,7 @@ use foundation_core::durable::{
     AppendRequest, Chunk, CloseRequest, CreateSpec, DurableStream, DurableStreams, MemoryVfs,
     ReadFrom, StreamName,
 };
-use foundation_core::valtron::durable::DurableStreamReader;
+use foundation_core::durable::valtron::DurableStreamReader;
 use foundation_core::valtron::{
     block_on_future, valtron_test, Stream, StreamExt, StreamIteratorExt, StreamSpread,
 };

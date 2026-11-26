@@ -4,7 +4,7 @@ use foundation_core::durable::{
     Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs, ProducerId, ReadFrom, ReadLimit,
     ReadRequest, StreamName,
 };
-use foundation_core::valtron::durable::{producer_task, DurableStreamWriter};
+use foundation_core::durable::valtron::{producer_task, DurableStreamWriter};
 use foundation_core::valtron::{valtron_test, TaskStatus};
 use std::sync::Arc;
 

@@ -277,7 +277,7 @@ impl StreamHandle {
             .transport
             .send(self.request(HttpMethod::Put, "", &headers, data))
             .await?;
-        outcome(&self.path, response)
+        outcome(&self.path, &response)
     }
 
     /// Append a message.
@@ -311,7 +311,7 @@ impl StreamHandle {
             .transport
             .send(self.request(HttpMethod::Post, "", &headers, data))
             .await?;
-        outcome(&self.path, response)
+        outcome(&self.path, &response)
     }
 
     /// Read stream metadata.
@@ -384,7 +384,7 @@ impl StreamHandle {
             .transport
             .send(self.request(HttpMethod::Post, "", &headers, data))
             .await?;
-        outcome(&self.path, response)
+        outcome(&self.path, &response)
     }
 
     /// Start a read.
@@ -669,7 +669,7 @@ async fn next_sse(
     .await
 }
 
-fn outcome(path: &str, response: ClientResponse) -> Result<AppendResult, ClientError> {
+fn outcome(path: &str, response: &ClientResponse) -> Result<AppendResult, ClientError> {
     let mut headers = BTreeMap::new();
     for (key, values) in &response.headers {
         if let Some(value) = values.first() {

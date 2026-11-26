@@ -2,7 +2,7 @@
 //!
 //! The wrapper sits with the client core. A host supplies the transport.
 
-use super::{ReadMode, StreamHandle};
+use crate::durable::shared::client::{ReadMode, StreamHandle};
 use crate::valtron::{
     drive_iterator, task, Ctx, DrivenTaskIterator, Stream, TaskSpread, TaskStatus,
 };
@@ -20,7 +20,6 @@ struct ReaderState {
     from: Option<String>,
 }
 
-#[allow(clippy::needless_pass_by_value)] // The task macro takes the state by value.
 #[task]
 async fn read_step(
     ctx: Ctx,
@@ -34,7 +33,7 @@ async fn read_step(
     let page = builder.send().await.ok()?;
 
     let mut next = state;
-    next.from = page.next_offset.clone();
+    next.from.clone_from(&page.next_offset);
 
     if !page.chunks.is_empty() {
         let items = page

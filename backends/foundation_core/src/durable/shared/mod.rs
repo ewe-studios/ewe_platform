@@ -1,7 +1,8 @@
 //! The Durable Streams protocol core.
 //!
-//! This module is runtime-neutral and transport-neutral. It has no valtron, HTTP, socket or
-//! global-runtime dependency. The HTTP, ConnectRPC, WebSocket and embedded surfaces wrap it.
+//! The protocol core is runtime-neutral and transport-neutral. It has no valtron, HTTP, socket
+//! or global-runtime dependency. The optional valtron wrapper lives in the separate [`valtron`]
+//! module. The HTTP, ConnectRPC, WebSocket and embedded surfaces wrap the core.
 //!
 //! The types follow `specifications/71-durable-streams-in-valtron`. Do not add a transport
 //! status, header or ETag here. The adapters own the wire rules.
@@ -12,6 +13,7 @@ pub mod cache;
 pub mod client;
 mod memory;
 mod service;
+pub mod valtron;
 pub mod wire;
 
 pub use memory::MemoryVfs;

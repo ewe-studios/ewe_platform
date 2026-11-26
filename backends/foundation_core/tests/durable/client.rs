@@ -583,7 +583,7 @@ fn given_an_absolute_deadline_when_create_runs_then_the_header_is_sent() {
 
 #[foundation_core::valtron::valtron_test(timeout = 5000)]
 fn given_a_client_reader_when_pages_arrive_then_it_yields_them_in_order() {
-    use foundation_core::durable::client::valtron::ClientReader;
+    use foundation_core::durable::valtron::ClientReader;
     use foundation_core::valtron::{Stream, StreamSpread};
 
     let transport = MockTransport::with(vec![
