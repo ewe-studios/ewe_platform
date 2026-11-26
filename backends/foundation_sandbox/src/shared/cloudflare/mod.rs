@@ -259,6 +259,16 @@ pub struct CloudflareConfig {
     ///
     /// Default 4: [`foundation_core::valtron::Pipe::DEFAULT_DEPTH`].
     pub stream_queue_len: usize,
+    /// The longest time that one streaming response stays open.
+    ///
+    /// The limit applies to each `Exec`, `Create` and `FileRead` response, not
+    /// to the sandbox. A second command gets a new stream and a new deadline.
+    /// At the deadline the stream ends with `deadline_exceeded`, and the slave
+    /// kills its program when the stream ends. An open stream is an open
+    /// request, so it keeps the Durable Object (DO) awake and billed.
+    ///
+    /// Default 1 hour: the value of feature 18. An operator can raise it.
+    pub stream_max_duration: Duration,
 }
 
 impl Default for CloudflareConfig {
@@ -275,6 +285,7 @@ impl Default for CloudflareConfig {
             slave_binding: "SLAVE".to_string(),
             max_error_message: crate::shared::limits::SandboxLimits::default().max_error_message,
             stream_queue_len: foundation_core::valtron::Pipe::<()>::DEFAULT_DEPTH,
+            stream_max_duration: Duration::from_secs(3_600),
         }
     }
 }
@@ -359,6 +370,13 @@ impl CloudflareConfig {
     #[must_use]
     pub fn with_stream_queue_len(mut self, value: usize) -> Self {
         self.stream_queue_len = value;
+        self
+    }
+
+    /// Replaces [`Self::stream_max_duration`].
+    #[must_use]
+    pub fn with_stream_max_duration(mut self, value: Duration) -> Self {
+        self.stream_max_duration = value;
         self
     }
 

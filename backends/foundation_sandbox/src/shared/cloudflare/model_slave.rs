@@ -267,6 +267,9 @@ impl ModelSlave {
             &handler,
             request,
             foundation_core::valtron::Pipe::<()>::DEFAULT_DEPTH,
+            // One model turn already has `ModelConfig::turn_timeout`, so the
+            // slave object adds no second limit here.
+            None,
         )
         .await
     }

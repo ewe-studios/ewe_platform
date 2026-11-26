@@ -8,12 +8,18 @@
 use std::io;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_connectrpc::{in_memory_body, CallHooks, ConnectRpcHandler, ResponseSink};
+use foundation_compact::Instant;
+use foundation_connectrpc::{
+    in_memory_body, CallHooks, ConnectError, ConnectRpcHandler, EnvelopeWriter, ResponseSink,
+};
 use foundation_context::Ctx;
 use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
+use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeaders, SimpleOutgoingResponse, Status};
+use futures::future::{select, Either};
 use futures::StreamExt;
 
 use crate::shared::cloudflare::container_service::ContainerControlService;
@@ -123,13 +129,18 @@ impl ResponseSink for StreamSink {
 
 /// Runs one request through the router and streams its response.
 ///
-/// The head of the response returns before its stream ends.
+/// The head of the response returns before its stream ends. When
+/// `stream_max_duration` is `Some`, a streaming response ends at that limit
+/// with a Connect end-stream error.
 pub(crate) async fn dispatch_streaming(
     ctx: Ctx,
     handler: &ConnectRpcHandler,
     mut request: HttpRequestParts,
     queue_len: usize,
+    stream_max_duration: Option<Duration>,
 ) -> HttpResponseParts {
+    let deadline = stream_max_duration.map(|limit| ctx.clock().now() + limit);
+    let deadline_ctx = ctx.clone();
     let body = in_memory_body(request.body.take());
     let (sender, receiver) = Pipe::<ResponseEvent>::with_depth(queue_len);
     let sink: Box<dyn ResponseSink> = Box::new(StreamSink { sender });
@@ -140,12 +151,90 @@ pub(crate) async fn dispatch_streaming(
             let (status, headers, body) = split_whole(response);
             HttpResponseParts::whole(status, headers, body)
         }
-        Some(ResponseEvent::Head(head)) => HttpResponseParts {
-            status: status_u16(&head.status),
-            headers: flatten_headers(head.headers),
-            body: body_stream(state, receiver),
-        },
+        Some(ResponseEvent::Head(head)) => {
+            let body = body_stream(state, receiver);
+            let body = match deadline {
+                Some(deadline) => with_stream_deadline(body, deadline, deadline_ctx),
+                None => body,
+            };
+            HttpResponseParts {
+                status: status_u16(&head.status),
+                headers: flatten_headers(head.headers),
+                body,
+            }
+        }
         Some(ResponseEvent::Chunk(_) | ResponseEvent::End) | None => HttpResponseParts::empty(500),
+    }
+}
+
+/// Ends one response body at the stream deadline.
+///
+/// The body yields every frame until the deadline. At the deadline it yields
+/// one Connect end-stream error frame with the code `deadline_exceeded` and
+/// then ends. Dropping the body before the deadline ends the stream at once.
+fn with_stream_deadline(body: BoxByteStream, deadline: Instant, ctx: Ctx) -> BoxByteStream {
+    let stream = futures::stream::unfold(
+        (body, ctx, false),
+        move |(mut body, ctx, ended)| async move {
+            if ended {
+                return None;
+            }
+            let seen = select(
+                body.next(),
+                Box::pin(wait_for_deadline(deadline, ctx.clone())),
+            )
+            .await;
+            match seen {
+                Either::Left((Some(item), timer)) => {
+                    // Drop the timer future before the state moves on.
+                    drop(timer);
+                    Some((item, (body, ctx, false)))
+                }
+                Either::Left((None, timer)) => {
+                    drop(timer);
+                    None
+                }
+                Either::Right((waited, body_next)) => {
+                    // Drop the waiting body read before the body moves on.
+                    drop(body_next);
+                    if !waited {
+                        // Without a timer the limit cannot run. The helper
+                        // logged it; end the stream with a clean end.
+                        return None;
+                    }
+                    Some((Ok(deadline_end_frame()), (body, ctx, true)))
+                }
+            }
+        },
+    );
+    Box::pin(crate::shared::cloudflare::SendStream::new(stream))
+}
+
+/// Waits until `deadline` with its own copy of the context.
+///
+/// The stream guard keeps its `Ctx` in the stream state, so the wait future
+/// owns a copy and holds no borrow of that state. The result is `false` when
+/// the context has no timer, so the caller does not claim a deadline.
+async fn wait_for_deadline(deadline: Instant, ctx: Ctx) -> bool {
+    match wait_until(deadline, &ctx).await {
+        Ok(()) => true,
+        Err(error) => {
+            tracing::warn!(error = %error, "the stream deadline has no timer");
+            false
+        }
+    }
+}
+
+/// The Connect end-stream frame of a stream that passed its deadline.
+fn deadline_end_frame() -> Vec<u8> {
+    let error: ErrorTrace<ConnectError> =
+        ConnectError::deadline_exceeded("the stream passed its stream_max_duration limit").into();
+    match EnvelopeWriter::new(None, 0, 0).write_end_stream(Some(&error), &SimpleHeaders::new()) {
+        Ok(frame) => frame,
+        Err(error) => {
+            tracing::warn!(error = %error, "the deadline error frame was not written");
+            Vec::new()
+        }
     }
 }
 
@@ -447,6 +536,7 @@ impl DoControlPlane {
             &self.inner.handler,
             request,
             self.inner.host.config.stream_queue_len,
+            Some(self.inner.host.config.stream_max_duration),
         )
         .await;
         // The create writes its record during the call, so its lifetime deadline
@@ -498,21 +588,20 @@ impl DoControlPlane {
             }
             return;
         }
-        let next_idle = match idle {
-            Some(idle) => idle,
-            None => {
-                let next = now.saturating_add(millis(self.inner.host.config.idle_timeout));
-                if let Err(error) = self
-                    .inner
-                    .host
-                    .storage
-                    .put(IDLE_DEADLINE_KEY, next.to_string().into_bytes())
-                    .await
-                {
-                    tracing::warn!(error = %error, "the idle deadline was not stored");
-                }
-                next
+        let next_idle = if let Some(idle) = idle {
+            idle
+        } else {
+            let next = now.saturating_add(millis(self.inner.host.config.idle_timeout));
+            if let Err(error) = self
+                .inner
+                .host
+                .storage
+                .put(IDLE_DEADLINE_KEY, next.to_string().into_bytes())
+                .await
+            {
+                tracing::warn!(error = %error, "the idle deadline was not stored");
             }
+            next
         };
         arm(&self.inner, Some(next_idle), expires).await;
     }
