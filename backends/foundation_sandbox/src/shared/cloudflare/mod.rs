@@ -23,6 +23,7 @@ pub mod do_slave;
 pub mod driver;
 pub mod model_slave;
 pub mod platform;
+pub mod routing;
 pub mod store;
 pub mod transport;
 
@@ -38,6 +39,7 @@ pub use model_slave::{
     ModelBackend, ModelClient, ModelConfig, ModelRequest, ModelSecrets, ModelSlave,
 };
 pub use platform::{as_cloudflare, CloudflarePlatform};
+pub use routing::{route, RouteTarget};
 pub use store::DoRecordStore;
 pub use transport::{ContainerPortTransport, PortConnector, PortSource};
 
