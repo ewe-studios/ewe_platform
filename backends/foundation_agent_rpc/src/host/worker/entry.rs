@@ -39,6 +39,8 @@ use crate::core::registry::InstanceRegistry;
 use crate::core::service::AgentRpcService;
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::host::worker::config::{ServeLimits, WorkerHostConfig};
+use crate::host::worker::do_client::InstanceStub;
+use crate::host::worker::object::TEST_RESET_VAR;
 use crate::host::worker::registry::DurableObjectRegistry;
 use crate::host::worker::secrets::read_api_keys;
 use crate::host::worker::serve::{
@@ -54,10 +56,13 @@ pub const DATABASE_BINDING: &str = "AGENT_RPC_DB";
 
 /// The Worker host: the isolate-wide parts of one Worker.
 pub struct WorkerHost {
+    env: worker::Env,
     ctx: Ctx,
     config: WorkerHostConfig,
     app: CfHttpApp,
     limits: ServeLimits,
+    /// Whether the test-only reset endpoint is enabled.
+    test_reset: bool,
 }
 
 impl std::fmt::Debug for WorkerHost {
@@ -155,11 +160,17 @@ impl WorkerHost {
             handler: Arc::new(router.into_handler()),
             limits: limits.clone(),
         });
+        let test_reset = env
+            .var(TEST_RESET_VAR)
+            .map(|value| value.to_string() == "1")
+            .unwrap_or(false);
         Ok(Self {
+            env,
             ctx,
             config,
             app: CfHttpApp::from_app(app),
             limits,
+            test_reset,
         })
     }
 
@@ -168,6 +179,27 @@ impl WorkerHost {
     /// # Errors
     /// A JavaScript error while building the response.
     pub async fn fetch(&self, req: worker::Request) -> worker::Result<worker::Response> {
+        // Test hook: drop the in-memory parts of an instance object, as a new
+        // object starts. It is enabled only by the `AGENT_RPC_TEST_RESET` var.
+        if self.test_reset && req.path() == "/__test/reset" {
+            let name = req
+                .headers()
+                .get("x-ewe-instance")
+                .ok()
+                .flatten()
+                .unwrap_or_default();
+            if name.is_empty() {
+                return worker::Response::error("missing x-ewe-instance", 400)
+                    .map_err(|error| worker::Error::RustError(format!("the reply: {error}")));
+            }
+            InstanceStub::new(&self.env, &name, "reset")
+                .map_err(|error| worker::Error::RustError(error.to_string()))?
+                .reset()
+                .await
+                .map_err(|error| worker::Error::RustError(error.to_string()))?;
+            return worker::Response::ok("reset")
+                .map_err(|error| worker::Error::RustError(format!("the reply: {error}")));
+        }
         let origin = req
             .headers()
             .get("origin")

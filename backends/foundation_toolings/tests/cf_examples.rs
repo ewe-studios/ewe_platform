@@ -359,6 +359,7 @@ fn cf_agent_rpc_serves_connect() {
             format!("[{{\"kid\":\"k1\",\"alg\":\"ed25519\",\"public_key\":\"{public_key}\"}}]"),
         )
         .var("AGENT_RPC_CORS_ORIGINS", "https://app.example.com")
+        .var("AGENT_RPC_TEST_RESET", "1")
         .secret("WORKERS_AI_API_TOKEN", "mock")
         .secret("CLOUDFLARE_ACCOUNT_ID", "mock")
         .startup_timeout(Duration::from_secs(300))
@@ -455,47 +456,19 @@ fn cf_agent_rpc_serves_connect() {
         worker.stderr_tail()
     );
 
-    let destroy = proto_string(1, "case-one");
-    let (destroy_status, _head, destroy_body) = worker
-        .request_bytes(
+    let (reset_status, _head, _reset_body) = worker
+        .request(
             "POST",
-            "/ewe.agent_rpc.v1.AgentService/DestroyInstance",
-            &[
-                ("Content-Type", "application/proto"),
-                ("Accept-Encoding", "identity"),
-                ("Authorization", bearer.as_str()),
-            ],
-            &destroy,
-            Duration::from_secs(30),
+            "/__test/reset",
+            &[("x-ewe-instance", "case-one")],
+            "",
+            Duration::from_secs(20),
         )
-        .expect("DestroyInstance");
+        .expect("the object reset");
     assert_eq!(
-        destroy_status,
+        reset_status,
         200,
-        "the instance is destroyed; body: {destroy_body:?}\nworker stderr:\n{}",
-        worker.stderr_tail()
-    );
-    let mut create = proto_string(1, "case-two");
-    create.extend(proto_string(2, "mock"));
-
-    let (created_status, _head, created_body) = worker
-        .request_bytes(
-            "POST",
-            "/ewe.agent_rpc.v1.AgentService/CreateInstance",
-            &[
-                ("Content-Type", "application/proto"),
-                ("Accept-Encoding", "identity"),
-                ("Authorization", bearer.as_str()),
-            ],
-            &create,
-            Duration::from_secs(30),
-        )
-        .expect("CreateInstance");
-    assert_eq!(
-        created_status,
-        200,
-        "the instance is created; body: {created_body:?}\nworker stdout:\n{}\nworker stderr:\n{}",
-        worker.stdout_tail(),
+        "the instance object resets; stderr:\n{}",
         worker.stderr_tail()
     );
 
@@ -515,11 +488,11 @@ fn cf_agent_rpc_serves_connect() {
     assert_eq!(list_status, 200, "ListInstances succeeds");
     let list_body = decode_body(&list_body);
     assert!(
-        list_body.windows(8).any(|window| window == b"case-two"),
+        list_body.windows(8).any(|window| window == b"case-one"),
         "the list names the instance; body: {list_body:?}"
     );
 
-    let mut chat = proto_string(1, "case-two");
+    let mut chat = proto_string(1, "case-one");
     chat.extend(proto_string(2, "What is the capital of France?"));
     let envelope = connect_envelope(&chat);
     let (stream_status, _head, stream_body) = worker
@@ -544,6 +517,26 @@ fn cf_agent_rpc_serves_connect() {
     assert!(
         !stream_body.is_empty(),
         "the turn streamed events; stderr:\n{}",
+        worker.stderr_tail()
+    );
+    let destroy = proto_string(1, "case-one");
+    let (destroy_status, _head, destroy_body) = worker
+        .request_bytes(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/DestroyInstance",
+            &[
+                ("Content-Type", "application/proto"),
+                ("Accept-Encoding", "identity"),
+                ("Authorization", bearer.as_str()),
+            ],
+            &destroy,
+            Duration::from_secs(30),
+        )
+        .expect("DestroyInstance");
+    assert_eq!(
+        destroy_status,
+        200,
+        "the instance is destroyed; body: {destroy_body:?}\nworker stderr:\n{}",
         worker.stderr_tail()
     );
 }

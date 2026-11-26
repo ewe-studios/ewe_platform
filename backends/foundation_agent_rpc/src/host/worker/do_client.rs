@@ -181,6 +181,32 @@ impl InstanceStub {
         )))
     }
 
+    /// Drop the object's in-memory parts, as a new object starts (test hook).
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Transport`] when the reset request fails.
+    pub async fn reset(&self) -> AgentRpcResult<()> {
+        let headers =
+            web_sys::Headers::new().map_err(|error| config_error("the request headers", error))?;
+        headers
+            .set(crate::host::worker::object::TEST_RESET_HEADER, "1")
+            .map_err(|error| config_error("the reset header", error))?;
+        let init = web_sys::RequestInit::new();
+        init.set_method("GET");
+        init.set_headers(&headers);
+        let request =
+            web_sys::Request::new_with_str_and_init(&format!("{INSTANCE_BASE_URL}/healthz"), &init)
+                .map_err(|error| config_error("the reset request", error))?;
+        SendWrapper::new(self.stub.fetch_with_request(request.into()))
+            .await
+            .map(|_| ())
+            .map_err(|error| {
+                ErrorTrace::new(AgentRpcError::Transport(format!(
+                    "the reset call failed: {error}"
+                )))
+            })
+    }
+
     /// Send one request to the stub.
     async fn fetch(
         &self,
