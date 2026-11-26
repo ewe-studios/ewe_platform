@@ -1,8 +1,10 @@
 //! BDD scenarios for fork and soft-delete.
 
+use core::time::Duration;
 use foundation_core::durable::{
     AppendRequest, BadRequestKind, Chunk, ContentType, CreateSpec, DurableStream, DurableStreams,
-    ForkSpec, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamOffset,
+    Expiry, ForkSpec, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName,
+    StreamOffset,
 };
 use std::sync::Arc;
 
@@ -163,6 +165,117 @@ fn given_the_last_fork_when_it_is_deleted_then_the_source_is_cleaned_up() {
             streams.stream(source).head().await,
             Err(StoreError::NotFound)
         ));
+    });
+}
+
+#[test]
+fn given_a_source_when_forked_at_tail_then_it_reads_all() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/tail-source").expect("valid");
+        let fork = StreamName::parse("fork/tail-target").expect("valid");
+        create(&streams, &source).await;
+        append(&streams, &source, b"abc").await;
+
+        streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source,
+                at: None,
+                sub_offset: 0,
+            })
+            .await
+            .expect("fork");
+
+        assert_eq!(read_all(&streams, &fork).await, b"abc");
+    });
+}
+
+#[test]
+fn given_a_source_when_forked_at_zero_then_it_reads_empty() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/zero-source").expect("valid");
+        let fork = StreamName::parse("fork/zero-target").expect("valid");
+        create(&streams, &source).await;
+        append(&streams, &source, b"abc").await;
+
+        streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source,
+                at: Some(offset(0)),
+                sub_offset: 0,
+            })
+            .await
+            .expect("fork");
+
+        assert!(read_all(&streams, &fork).await.is_empty());
+    });
+}
+
+#[test]
+fn given_a_closed_source_when_forked_then_the_fork_starts_open() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/closed-source").expect("valid");
+        let fork = StreamName::parse("fork/closed-target").expect("valid");
+        create(&streams, &source).await;
+        append(&streams, &source, b"abc").await;
+        streams
+            .stream(source.clone())
+            .close(foundation_core::durable::CloseRequest {
+                final_chunk: None,
+                producer: None,
+            })
+            .await
+            .expect("close source");
+
+        streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source,
+                at: None,
+                sub_offset: 0,
+            })
+            .await
+            .expect("fork");
+
+        let head = streams.stream(fork.clone()).head().await.expect("head");
+        assert!(!head.closed);
+
+        append(&streams, &fork, b"X").await;
+        assert_eq!(read_all(&streams, &fork).await, b"abcX");
+    });
+}
+
+#[test]
+fn given_a_ttl_source_when_forked_without_expiry_then_the_fork_inherits_it() {
+    smol::block_on(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/ttl-source").expect("valid");
+        let fork = StreamName::parse("fork/ttl-target").expect("valid");
+        streams
+            .stream(source.clone())
+            .create(CreateSpec {
+                expires: Some(Expiry::Ttl(Duration::from_secs(10))),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("create");
+
+        streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source,
+                at: None,
+                sub_offset: 0,
+            })
+            .await
+            .expect("fork");
+
+        let head = streams.stream(fork).head().await.expect("head");
+        assert_eq!(head.expires, Some(Expiry::Ttl(Duration::from_secs(10))));
     });
 }
 

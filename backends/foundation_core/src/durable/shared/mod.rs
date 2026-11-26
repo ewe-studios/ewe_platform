@@ -1065,7 +1065,7 @@ impl DurableStreamStore for DurableStream {
             fork,
         } = spec;
 
-        let (content_type, fork_info, start_len) = if let Some(fork) = fork {
+        let (content_type, fork_info, start_len, expires) = if let Some(fork) = fork {
             let source = self.vfs.meta(&fork.source).await?;
             if Self::is_expired(&source, self.now_ms()) {
                 return Err(self.expire(&fork.source).await);
@@ -1111,9 +1111,10 @@ impl DurableStreamStore for DurableStream {
                     at,
                 }),
                 at,
+                expires.or_else(|| source.expires.clone()),
             )
         } else {
-            (content_type.unwrap_or_default(), None, 0)
+            (content_type.unwrap_or_default(), None, 0, expires)
         };
         let closed = fork_info.is_none() && closed;
 

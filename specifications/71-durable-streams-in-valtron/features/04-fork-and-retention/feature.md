@@ -82,7 +82,7 @@ pub struct ForkSpec {
 
 ## 4. Tasks
 
-- [ ] **T1 — fork creation.** Head, specific offset, zero offset, default offset, closed source
+- [x] **T1 — fork creation.** Head, specific offset, zero offset, default offset, closed source
       and empty source. Tests: `fork_at_tail`, `fork_at_offset`, `closed_source_fork_is_open`.
 - [x] **T2 — sub-offset.** JSON and binary counts, `0` equals absent and overshoot. The adapter
       enforces the missing `Forked-From` case. Tests: `json_sub_offset_counts_messages`,

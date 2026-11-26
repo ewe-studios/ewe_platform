@@ -64,9 +64,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **03-idempotent-producer** — 🟡 in progress (6/8). Core writer, producer ladder, dedup/fencing,
   `Stream-Seq`, versioned atomic append, the valtron producer task and restart dedup landed.
   Core-independence and the oracle matrix remain.
-- **04-fork-and-retention** — 🟡 in progress (4/9). Fork read stitching, idempotent creation,
-  soft-delete, cascading cleanup, sliding TTL and sub-offset resolution landed. Fork creation
-  edge cases, the full TTL table, retention, valtron boundary and oracles remain.
+- **04-fork-and-retention** — 🟡 in progress (5/9). Fork read stitching, creation edge cases,
+  idempotent creation, soft-delete, cascading cleanup, sliding TTL, TTL inheritance and
+  sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
+  remain.
 - **05-storage-backends** — ⏳ not started (0/6)
 - **06-http-rpc-surface** — 🟡 in progress (2/10). `DurableService`/`DurableLimits` and JSON mode
   validation, one-level flatten, empty array rules and message reads landed. The HTTP adapter,
