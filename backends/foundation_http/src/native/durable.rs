@@ -175,11 +175,14 @@ pub async fn dispatch(
             headers: cors_preflight_headers(),
             body: Vec::new(),
         }),
-        _ => Ok(DurableResponse {
-            status: 405,
-            headers: base_headers(),
-            body: b"method not allowed".to_vec(),
-        }),
+        other => {
+            tracing::warn!(method = ?other, "durable: unsupported request method");
+            Ok(DurableResponse {
+                status: 405,
+                headers: base_headers(),
+                body: b"method not allowed".to_vec(),
+            })
+        }
     }
 }
 
@@ -205,6 +208,8 @@ impl Serve for DurableHandler {
         let queries = req.request_url.queries.clone();
         let host = header_value(&req.headers, "host");
         let empty_offset = has_empty_offset(&req.request_uri.to_string());
+        let declared_body_len = header_value(&req.headers, "content-length")
+            .and_then(|value| value.parse::<usize>().ok());
         let body = req.take_async_body();
 
         crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
@@ -212,6 +217,31 @@ impl Serve for DurableHandler {
                 Some(body) => collect_bytes_bounded(body, MAX_BODY_BYTES).await,
                 None => Vec::new(),
             };
+
+            // A short body leaves its tail on the connection. That tail then
+            // corrupts the next request line, so close the connection.
+            if let Some(expected) = declared_body_len {
+                if body.len() != expected {
+                    tracing::warn!(
+                        expected,
+                        read = body.len(),
+                        "durable: short request body, closing the connection"
+                    );
+                    let message = "request body is shorter than its declared length";
+                    let headers = vec![(
+                        SimpleHeader::CONTENT_TYPE,
+                        "text/plain; charset=utf-8".to_string(),
+                    )];
+                    if let Ok(head) = render_head(400, &headers, message.len()) {
+                        let mut writer =
+                            ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
+                        let _ = writer.write_all(&head).await;
+                        let _ = writer.write_all(message.as_bytes()).await;
+                        let _ = writer.flush().await;
+                    }
+                    return ServeOutcome::Close(None);
+                }
+            }
 
             if empty_offset && method == SimpleMethod::GET {
                 let error = StoreError::BadRequest(
