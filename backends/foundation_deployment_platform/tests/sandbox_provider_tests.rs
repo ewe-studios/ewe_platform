@@ -15,7 +15,7 @@ use foundation_core::valtron::SimulatedClock;
 use foundation_deployment_platform::providers::{Provider, ProviderId};
 use foundation_sandbox::providers::SandboxDeploymentProvider;
 use foundation_sandbox::shared::control::testing::{
-    ScriptedSlave, SimDriver, full_capabilities, in_memory_connector, spec,
+    full_capabilities, in_memory_connector, spec, ScriptedSlave, SimDriver,
 };
 use foundation_sandbox::shared::control::{
     ManagerConfig, MemoryRecordStore, SandboxManager, SandboxState,
@@ -124,4 +124,26 @@ fn provider_host_health() {
             ("slave".to_string(), false, "missing".to_string()),
         ]
     );
+}
+
+#[test]
+fn provider_cloudflare_launch_stop_sim() {
+    let ctx = ctx(123);
+    let driver = SimDriver::new(DriverId::CloudflareContainer);
+    let slave = Arc::new(ScriptedSlave::new());
+    slave.with_shutdown_exit(driver.substrate());
+    let control = manager(&ctx, driver, slave);
+    let provider = SandboxDeploymentProvider::cloudflare(control);
+    assert_eq!(provider.id(), ProviderId::CloudflareContainer);
+    assert_eq!(provider.name(), "cloudflare-container");
+    let handle = provider.launch(&spec()).expect("the launch succeeds");
+    assert_eq!(handle.provider_id, ProviderId::CloudflareContainer);
+    assert_eq!(
+        handle.sandbox.info().driver,
+        DriverId::CloudflareContainer,
+        "the spec reached the Cloudflare driver"
+    );
+    assert!(provider.is_running(&handle));
+    provider.stop(&handle).expect("the stop succeeds");
+    assert!(!provider.is_running(&handle));
 }
