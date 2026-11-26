@@ -14,8 +14,8 @@ use foundation_core::durable::{
     DurableService, DurableStream, MemoryVfs, StoreError, StreamName, StreamOffset,
 };
 use foundation_http::native::durable::{
-    dispatch, live_mode, short_body, sse_control_event, sse_control_json, sse_data_event,
-    stream_name_from_path, DurableRequest, DurableResponse, LiveMode,
+    dispatch, error_headers, live_mode, short_body, sse_control_event, sse_control_json,
+    sse_data_event, stream_name_from_path, DurableRequest, DurableResponse, LiveMode,
 };
 use foundation_http::shared::durable::parse::encode_offset;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
@@ -614,4 +614,17 @@ fn given_a_declared_length_when_the_body_is_short_then_the_adapter_closes_the_co
     assert!(short_body(Some(3), 10));
     assert!(!short_body(Some(3), 3));
     assert!(!short_body(None, 0));
+}
+
+#[test]
+fn given_a_rate_limit_error_when_the_headers_are_built_then_retry_after_is_present() {
+    let headers = error_headers(&StoreError::RateLimited {
+        retry_after: Some(std::time::Duration::from_secs(5)),
+    });
+    assert!(headers
+        .iter()
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("retry-after") && value == "5"));
+
+    let none = error_headers(&StoreError::RateLimited { retry_after: None });
+    assert!(none.is_empty());
 }

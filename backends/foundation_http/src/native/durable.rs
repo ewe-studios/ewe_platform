@@ -356,7 +356,8 @@ async fn respond_error(
 }
 
 /// The protocol headers an error response must carry.
-fn error_headers(error: &StoreError) -> Vec<(SimpleHeader, String)> {
+#[must_use]
+pub fn error_headers(error: &StoreError) -> Vec<(SimpleHeader, String)> {
     match error {
         StoreError::Fenced { current_epoch } => vec![(
             SimpleHeader::custom(header::PRODUCER_EPOCH),
@@ -372,6 +373,12 @@ fn error_headers(error: &StoreError) -> Vec<(SimpleHeader, String)> {
                 received.to_string(),
             ),
         ],
+        StoreError::RateLimited { retry_after } => retry_after.map_or_else(Vec::new, |delay| {
+            vec![(
+                SimpleHeader::custom("retry-after"),
+                delay.as_secs().to_string(),
+            )]
+        }),
         StoreError::Closed { tail } => vec![
             (
                 SimpleHeader::custom(header::STREAM_CLOSED),
