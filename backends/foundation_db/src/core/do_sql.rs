@@ -28,9 +28,15 @@ use async_trait::async_trait;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
-    RateLimiterStore, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore, SqlRow,
 };
+#[cfg(any(
+    feature = "turso",
+    feature = "d1",
+    feature = "libsql",
+    all(target_family = "wasm", feature = "wasm-bindgen-storage")
+))]
+use crate::core::storage_provider::RateLimiterStore;
 
 /// One SQL engine that a [`DoSqlStore`] runs its statements on.
 ///

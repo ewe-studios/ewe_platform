@@ -52,6 +52,12 @@ fn frame_capacity() -> usize {
 struct SinkState {
     response: Option<SendWrapper<web_sys::Response>>,
     sender: Option<futures::channel::mpsc::Sender<Vec<u8>>>,
+    /// The caller waits for the response head while the handler keeps
+    /// producing frames. `start` wakes this waker once the head is ready.
+    response_waker: Option<std::task::Waker>,
+    /// Whether dispatch has ended. A waiter stops with `None` only after this
+    /// flag is set and no head was written.
+    finished: bool,
 }
 
 /// A [`ResponseSink`] that streams its reply to a JS `Response`.
@@ -89,6 +95,8 @@ impl ConnectSink {
             inner: Arc::new(Mutex::new(SinkState {
                 response: None,
                 sender: None,
+                response_waker: None,
+                finished: false,
             })),
             capacity: capacity.max(1),
         }
@@ -127,7 +135,22 @@ impl ConnectSink {
             .map_err(|_| io::Error::other("response sink lock poisoned"))?;
         state.response = Some(SendWrapper::new(response));
         state.sender = Some(sender);
+        if let Some(waker) = state.response_waker.take() {
+            waker.wake();
+        }
         Ok(())
+    }
+
+    /// A handle to the response this sink builds.
+    ///
+    /// The handle stays valid while the sink produces frames. A caller that
+    /// must return the response before the handler ends (a Worker or a page)
+    /// awaits [`ConnectSinkHandle::wait_response`].
+    #[must_use]
+    pub fn handle(&self) -> ConnectSinkHandle {
+        ConnectSinkHandle {
+            inner: Arc::clone(&self.inner),
+        }
     }
 
     /// The frame sender, cloned out of the lock so it can be used across an
@@ -240,6 +263,42 @@ impl ConnectSinkHandle {
             .ok()
             .and_then(|mut state| state.response.take())
             .map(SendWrapper::into_inner)
+    }
+
+    /// Wait for the response head and take it.
+    ///
+    /// The head is ready when the handler writes it. The handler then keeps
+    /// sending frames into the response body, so the caller can hand the
+    /// response to the runtime at once and the body keeps streaming. Returns
+    /// `None` when the sink is dropped before a head is written.
+    pub async fn wait_response(self) -> Option<web_sys::Response> {
+        std::future::poll_fn(|cx| {
+            let Ok(mut state) = self.inner.lock() else {
+                return std::task::Poll::Ready(None);
+            };
+            if let Some(response) = state.response.take() {
+                return std::task::Poll::Ready(Some(SendWrapper::into_inner(response)));
+            }
+            if state.finished {
+                // The handler ended before it opened a stream, and it wrote
+                // no whole response either.
+                return std::task::Poll::Ready(None);
+            }
+            state.response_waker = Some(cx.waker().clone());
+            std::task::Poll::Pending
+        })
+        .await
+    }
+}
+
+impl Drop for ConnectSink {
+    fn drop(&mut self) {
+        if let Ok(mut state) = self.inner.lock() {
+            state.finished = true;
+            if let Some(waker) = state.response_waker.take() {
+                waker.wake();
+            }
+        }
     }
 }
 

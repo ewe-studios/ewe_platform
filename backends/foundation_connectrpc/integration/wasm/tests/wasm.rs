@@ -33,6 +33,7 @@ use foundation_connectrpc::shared::transport::wasm::WASM_FETCH_CAPABILITIES;
 use foundation_connectrpc::{
     CallHooks, Code, ConnectError, ConnectResult, ConnectSink, HandlerOptions, Request,
     Response as RpcResponse, ResponseSink, Router, RpcCtx, Transport,
+    request_body_from_stream,
 };
 use foundation_connectrpc_wasm_tests::{
     Call, IdentityCodec, RecordingSink, SimulatedTimer, body, ctx, enveloped, host,
@@ -40,7 +41,9 @@ use foundation_connectrpc_wasm_tests::{
 };
 use foundation_core::valtron::Stream;
 use foundation_http::wasm::bridge::cf::request_from_cf;
+use foundation_http::wasm::cf_conn::CfConn;
 use foundation_netio::HttpClientBuilder;
+use futures::StreamExt;
 use foundation_netio::shared::client::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
@@ -50,7 +53,7 @@ use foundation_netio::shared::http::{
 };
 use wasm_bindgen::JsCast;
 use wasm_bindgen::{JsValue, closure::Closure};
-use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen_futures::{JsFuture, spawn_local};
 use wasm_bindgen_test::wasm_bindgen_test;
 use web_sys::{
     ReadableStream, ReadableStreamDefaultController, ReadableStreamDefaultReader, RequestInit,
@@ -1038,4 +1041,190 @@ fn wasm_fetch_capabilities_match_the_transport() {
         actual.multiplexed, WASM_FETCH_CAPABILITIES.multiplexed,
         "case 17: multiplexing"
     );
+}
+
+// ── CfConn streaming (#927) and the async request body (#928) ─────────────
+
+/// Read every chunk of a response body, with one reader for the whole body.
+async fn read_all_chunks(reader: &ReadableStreamDefaultReader) -> Vec<Vec<u8>> {
+    let mut chunks = Vec::new();
+    loop {
+        let result = JsFuture::from(reader.read()).await.expect("read");
+        let done = js_sys::Reflect::get(&result, &JsValue::from_str("done"))
+            .ok()
+            .and_then(|value| value.as_bool())
+            .unwrap_or(true);
+        if done {
+            break;
+        }
+        let value = js_sys::Reflect::get(&result, &JsValue::from_str("value")).expect("value");
+        chunks.push(js_sys::Uint8Array::new(&value).to_vec());
+    }
+    chunks
+}
+
+fn streaming_reader(response: &Response) -> ReadableStreamDefaultReader {
+    response
+        .body()
+        .expect("a streaming body")
+        .get_reader()
+        .unchecked_into::<ReadableStreamDefaultReader>()
+}
+
+/// #927: the first frame reaches the client while the producer still runs.
+///
+/// The handler writes frame one, then waits on a gate. The test reads frame
+/// one through a `CfConn`-carried response, asserts the producer has not
+/// finished, then releases the gate and reads the rest.
+#[wasm_bindgen_test]
+async fn cf_conn_streams_the_first_frame_while_the_producer_runs() {
+    let (release, gate) = futures::channel::oneshot::channel::<()>();
+    let gate = Arc::new(Mutex::new(Some(gate)));
+    let produced = Arc::new(AtomicUsize::new(0));
+
+    let mut router = Router::new();
+    let handler_produced = Arc::clone(&produced);
+    let handler_gate = Arc::clone(&gate);
+    router.server_stream(
+        STREAM,
+        ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
+        move |_ctx, _req: Request<Vec<u8>>| {
+            let produced = Arc::clone(&handler_produced);
+            let gate = Arc::clone(&handler_gate);
+            async move {
+                produced.fetch_add(1, Ordering::SeqCst);
+                let first: Vec<ConnectResult<Vec<u8>>> = vec![Ok(b"first".to_vec())];
+                let first = futures::stream::iter(first);
+                let second = futures::stream::once(async move {
+                    let receiver = gate.lock().unwrap().take().expect("the gate");
+                    let _ = receiver.await;
+                    produced.fetch_add(1, Ordering::SeqCst);
+                    Ok(b"second".to_vec())
+                });
+                Ok(first.chain(second))
+            }
+        },
+        HandlerOptions::new(),
+    );
+
+    let handler = Arc::new(router.into_handler());
+    let (sink, handle) = ConnectSink::new_pair_with_capacity(1);
+    spawn_local(async move {
+        let _ = handler
+            .dispatch_to(
+                ctx(),
+                stream_request(STREAM, enveloped(b"seed")),
+                body(enveloped(b"seed")),
+                Box::new(sink),
+                CallHooks::default(),
+            )
+            .await;
+    });
+
+    let response = handle.wait_response().await.expect("the response head");
+    let mut conn = CfConn::new();
+    conn.set_response(response);
+    let response = conn.into_response().expect("a streaming response");
+    let reader = streaming_reader(&response);
+
+    let first = JsFuture::from(reader.read()).await.expect("first read");
+    let value = js_sys::Reflect::get(&first, &JsValue::from_str("value")).expect("value");
+    let first = js_sys::Uint8Array::new(&value).to_vec();
+    assert_eq!(
+        parse_envelopes(&first),
+        vec![(0u8, b"first".to_vec())],
+        "#927: the first frame arrives before the producer ends"
+    );
+    assert_eq!(
+        produced.load(Ordering::SeqCst),
+        1,
+        "#927: the producer is still running after the first frame"
+    );
+
+    release.send(()).expect("release the gate");
+    let rest = read_all_chunks(&reader).await;
+    let mut all = first;
+    for chunk in rest {
+        all.extend_from_slice(&chunk);
+    }
+    let payloads: Vec<Vec<u8>> = parse_envelopes(&all)
+        .into_iter()
+        .filter(|(flag, _)| *flag == 0)
+        .map(|(_, payload)| payload)
+        .collect();
+    assert_eq!(
+        payloads,
+        vec![b"first".to_vec(), b"second".to_vec()],
+        "#927: both frames arrive in order"
+    );
+}
+
+/// #927: a 10 MiB stream arrives in many chunks, not one buffer.
+#[wasm_bindgen_test]
+async fn cf_conn_streams_ten_mib_in_chunks() {
+    const CHUNK: usize = 64 * 1024;
+    const COUNT: usize = 160; // 10 MiB
+
+    let mut router = Router::new();
+    router.server_stream(
+        STREAM,
+        ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
+        move |_ctx, _req: Request<Vec<u8>>| async move {
+            let frames: Vec<ConnectResult<Vec<u8>>> =
+                (0..COUNT).map(|_| Ok(vec![b'x'; CHUNK])).collect();
+            Ok(futures::stream::iter(frames))
+        },
+        HandlerOptions::new(),
+    );
+    let handler = router.into_handler();
+    let (sink, handle) = ConnectSink::new_pair_with_capacity(4);
+    spawn_local(async move {
+        let _ = handler
+            .dispatch_to(
+                ctx(),
+                stream_request(STREAM, enveloped(b"seed")),
+                body(enveloped(b"seed")),
+                Box::new(sink),
+                CallHooks::default(),
+            )
+            .await;
+    });
+
+    let response = handle.wait_response().await.expect("the response head");
+    let mut conn = CfConn::new();
+    conn.set_response(response);
+    let response = conn.into_response().expect("a streaming response");
+    let chunks = read_all_chunks(&streaming_reader(&response)).await;
+    let total: usize = chunks.iter().map(Vec::len).sum();
+    assert!(
+        chunks.len() > 1,
+        "#927: a 10 MiB body arrives in chunks, got {}",
+        chunks.len()
+    );
+    assert!(
+        total >= 10 * 1024 * 1024,
+        "#927: ten MiB arrive, got {total} bytes"
+    );
+}
+
+/// #928: a JS `ReadableStream` becomes an async request body.
+///
+/// The body parks on a retry and yields every chunk; a `WouldBlock` error
+/// would fail the test.
+#[wasm_bindgen_test]
+async fn a_js_stream_becomes_an_async_request_body() {
+    const CHUNK: usize = 32 * 1024;
+    const COUNT: u32 = 8;
+
+    let (stream, _pulls) = counting_stream(COUNT, CHUNK);
+    let mut body = request_body_from_stream(stream, 2, Some(COUNT as usize * CHUNK));
+    let mut chunks = 0usize;
+    let mut total = 0usize;
+    while let Some(item) = body.next().await {
+        let bytes = item.expect("#928: a retry parks, it is not a WouldBlock error");
+        chunks += 1;
+        total += bytes.len();
+    }
+    assert_eq!(total, COUNT as usize * CHUNK, "#928: every byte arrives");
+    assert!(chunks > 1, "#928: the body arrives in chunks");
 }

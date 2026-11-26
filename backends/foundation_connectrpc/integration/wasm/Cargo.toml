@@ -58,8 +58,12 @@ web-sys = { version = "=0.3.107", features = [
 [dev-dependencies]
 wasm-bindgen-test = "=0.3.80"
 futures-lite = "2"
+futures = "0.3"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [workspace]
+
+[profile.uat]
+inherits = "dev"

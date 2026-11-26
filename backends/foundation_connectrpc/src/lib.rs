@@ -25,6 +25,8 @@ pub mod native;
 pub mod wasm;
 
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use wasm::body::request_body_from_stream;
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use wasm::sink::{ConnectSink, ConnectSinkHandle};
 
 pub use shared::error_writer::ErrorWriter;
