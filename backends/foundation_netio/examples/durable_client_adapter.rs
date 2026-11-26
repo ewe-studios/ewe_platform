@@ -178,7 +178,7 @@ async fn handle(
                     "longPoll": true,
                     "auto": false,
                     "streaming": false,
-                    "batching": false,
+                    "batching": true,
                     "dynamicHeaders": false,
                 },
             }),

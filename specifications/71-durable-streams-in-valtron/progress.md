@@ -2,6 +2,10 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 batching is enabled. The adapter announces `batching: true`. The client
+  gate rises to 198 pass, 0 fail, 71 skip. The batch path sends one array append for a JSON
+  stream, concatenates bytes for a text stream, tracks the producer sequence and drops a
+  repeated batch.
 - 2026-11-27: feature 07 Server-Sent Events (SSE) core. `ClientTransport::open_sse` streams
   parsed events, the native transport maps the netio event stream, and the read builder turns an
   SSE response into chunks and a control result. Two mock-transport tests pass. The adapter still
