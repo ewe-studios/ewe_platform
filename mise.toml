@@ -1195,6 +1195,9 @@ run = "cargo run --profile dev --bin ewe_platform sandbox"
 
 [tasks."sandbox:slave"]
 description = "Build agent-slave as a static program for both musl targets"
+# The slave has the control and firecracker features, so a slave in a nested
+# host can also serve the control plane (spec 77 feature 11, section 6.1). The
+# build has no TLS provider: artifacts-remote is off.
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
@@ -1203,7 +1206,7 @@ mkdir -p target/sandbox
 for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
   RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
     cargo build -p foundation_sandbox --bin agent-slave --profile agent \
-      --no-default-features --features slave,cli --target "$target"
+      --no-default-features --features slave,cli,control,firecracker --target "$target"
 done
 cp target/x86_64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-x86_64
 cp target/aarch64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-aarch64
