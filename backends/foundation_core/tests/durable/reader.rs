@@ -1,9 +1,10 @@
 //! BDD scenarios for the core reader state rules.
 
 use foundation_core::durable::{
-    AppendRequest, Chunk, CloseRequest, CreateSpec, DurableStream, DurableStreams, MemoryVfs,
-    ReadFrom, ReadLimit, ReadRequest, StreamName, StreamOffset,
+    AppendRequest, Chunk, CloseRequest, ContentType, CreateSpec, DurableStream, DurableStreamVfs,
+    DurableStreams, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName, StreamOffset, VfsMeta,
 };
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
@@ -125,6 +126,28 @@ fn given_a_closed_stream_when_read_a_partial_page_then_it_is_not_closed() {
         assert!(next.cursor.up_to_date);
         assert!(next.cursor.closed);
     });
+}
+
+#[test]
+fn given_a_stream_when_it_appends_then_the_notifier_fires() {
+    let vfs = Arc::new(MemoryVfs::new());
+    let name = StreamName::parse("reader/notifier").expect("valid");
+    let meta = VfsMeta {
+        content_type: ContentType::default(),
+        len: 0,
+        closed: false,
+        expires: None,
+    };
+    smol::block_on(async { vfs.create(&name, meta).await.expect("create") });
+
+    let fired = Arc::new(AtomicBool::new(false));
+    let flag = Arc::clone(&fired);
+    let notifier = vfs.notifier(&name).expect("notifier");
+    notifier.register(Box::new(move || flag.store(true, Ordering::SeqCst)));
+
+    smol::block_on(async { vfs.append(&name, b"x").await.expect("append") });
+
+    assert!(fired.load(Ordering::SeqCst));
 }
 
 #[test]

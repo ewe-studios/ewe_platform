@@ -4,20 +4,49 @@
 //! deterministic simulation testing (DST) and small embedded runtimes.
 
 use super::{
-    DurableStreamVfs, NotifierRef, StreamName, VfsEntry, VfsError, VfsFuture, VfsMeta, VfsOffset,
+    DurableStreamVfs, Notifier, NotifierRef, StreamName, VfsEntry, VfsError, VfsFuture, VfsMeta,
+    VfsOffset,
 };
 use std::collections::BTreeMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 struct MemoryEntry {
     data: Vec<u8>,
     meta: VfsMeta,
 }
 
+/// A one-shot append notifier.
+#[derive(Default)]
+struct MemoryNotifier {
+    callbacks: Mutex<Vec<Box<dyn Fn() + Send + 'static>>>,
+}
+
+impl MemoryNotifier {
+    fn lock(&self) -> std::sync::MutexGuard<'_, Vec<Box<dyn Fn() + Send + 'static>>> {
+        self.callbacks
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
+impl Notifier for MemoryNotifier {
+    fn register(&self, cb: Box<dyn Fn() + Send + 'static>) {
+        self.lock().push(cb);
+    }
+
+    fn notify(&self) {
+        let callbacks = std::mem::take(&mut *self.lock());
+        for callback in callbacks {
+            callback();
+        }
+    }
+}
+
 /// A VFS that keeps every stream in memory.
 #[derive(Default)]
 pub struct MemoryVfs {
     entries: Mutex<BTreeMap<StreamName, MemoryEntry>>,
+    notifiers: Mutex<BTreeMap<StreamName, Arc<MemoryNotifier>>>,
 }
 
 impl MemoryVfs {
@@ -31,6 +60,15 @@ impl MemoryVfs {
         self.entries
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    fn notifier_for(&self, name: &StreamName) -> Arc<MemoryNotifier> {
+        self.notifiers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .entry(name.clone())
+            .or_default()
+            .clone()
     }
 }
 
@@ -60,16 +98,23 @@ impl DurableStreamVfs for MemoryVfs {
     }
 
     fn append(&self, name: &StreamName, bytes: &[u8]) -> VfsFuture<'_, VfsOffset> {
-        let mut entries = self.lock();
-        let result = match entries.get_mut(name) {
-            Some(entry) if entry.meta.closed => Err(VfsError::Conflict),
-            Some(entry) => {
-                entry.data.extend_from_slice(bytes);
-                entry.meta.len = entry.data.len() as u64;
-                Ok(VfsOffset(entry.meta.len))
-            }
-            None => Err(VfsError::NotFound),
+        let (result, notifier) = {
+            let mut entries = self.lock();
+            let result = match entries.get_mut(name) {
+                Some(entry) if entry.meta.closed => Err(VfsError::Conflict),
+                Some(entry) => {
+                    entry.data.extend_from_slice(bytes);
+                    entry.meta.len = entry.data.len() as u64;
+                    Ok(VfsOffset(entry.meta.len))
+                }
+                None => Err(VfsError::NotFound),
+            };
+            let notifier = result.is_ok().then(|| self.notifier_for(name));
+            (result, notifier)
         };
+        if let Some(notifier) = notifier {
+            notifier.notify();
+        }
         Box::pin(async move { result })
     }
 
@@ -98,20 +143,31 @@ impl DurableStreamVfs for MemoryVfs {
     }
 
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()> {
-        let mut entries = self.lock();
-        let result = match entries.get_mut(name) {
-            Some(entry) => {
-                entry.meta.closed = true;
-                Ok(())
-            }
-            None => Err(VfsError::NotFound),
+        let (result, notifier) = {
+            let mut entries = self.lock();
+            let result = match entries.get_mut(name) {
+                Some(entry) => {
+                    entry.meta.closed = true;
+                    Ok(())
+                }
+                None => Err(VfsError::NotFound),
+            };
+            let notifier = result.is_ok().then(|| self.notifier_for(name));
+            (result, notifier)
         };
+        if let Some(notifier) = notifier {
+            notifier.notify();
+        }
         Box::pin(async move { result })
     }
 
     fn remove(&self, name: &StreamName) -> VfsFuture<'_, ()> {
         let mut entries = self.lock();
         let result = entries.remove(name).map(|_| ()).ok_or(VfsError::NotFound);
+        self.notifiers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .remove(name);
         Box::pin(async move { result })
     }
 
@@ -128,7 +184,7 @@ impl DurableStreamVfs for MemoryVfs {
         Box::pin(async move { Ok(result) })
     }
 
-    fn notifier(&self, _name: &StreamName) -> Option<NotifierRef> {
-        None
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef> {
+        Some(self.notifier_for(name) as NotifierRef)
     }
 }

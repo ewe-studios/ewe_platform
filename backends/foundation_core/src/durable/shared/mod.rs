@@ -589,6 +589,9 @@ impl core::error::Error for StoreError {
 
 /// A readiness signal for a stream append.
 pub trait Notifier: Send + Sync {
+    /// Register a one-shot callback. The producer fires it on the next append or close.
+    fn register(&self, cb: Box<dyn Fn() + Send + 'static>);
+
     /// Signal that new data is available.
     fn notify(&self);
 }

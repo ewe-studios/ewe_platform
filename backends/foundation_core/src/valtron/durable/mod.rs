@@ -10,7 +10,8 @@ use crate::durable::{
     StreamName, StreamOffset,
 };
 use crate::valtron::{
-    drive_iterator, task, Ctx, DrivenTaskIterator, Stream, TaskSpread, TaskStatus, WakeableStream,
+    drive_iterator, task, Ctx, DrivenTaskIterator, Stream, TaskSpread, TaskStatus, WakeCallback,
+    WakeResult, WakeableStream,
 };
 
 /// The pending context a valtron reader reports.
@@ -69,12 +70,15 @@ async fn read_step(
         return Some((next, TaskStatus::Spread(items)));
     }
 
-    if page.cursor.closed || (page.cursor.up_to_date && !state.live) {
+    if page.cursor.closed {
         return None;
     }
 
-    // The live tail waits on the notifier in the next task. End here for now.
-    None
+    if page.cursor.up_to_date && !state.live {
+        return None;
+    }
+
+    Some((next, TaskStatus::Wait))
 }
 
 /// A valtron `StreamIterator` over the protocol core.
@@ -83,6 +87,8 @@ async fn read_step(
 /// the same feature before it closes.
 pub struct DurableStreamReader {
     inner: DrivenTaskIterator<read_step>,
+    stream: DurableStream,
+    name: StreamName,
 }
 
 impl DurableStreamReader {
@@ -96,8 +102,8 @@ impl DurableStreamReader {
         ctx: Ctx,
     ) -> Self {
         let state = ReaderState {
-            stream,
-            name,
+            stream: stream.clone(),
+            name: name.clone(),
             first: true,
             cursor: ResumeCursor {
                 next: StreamOffset::from_bytes(Vec::new()),
@@ -109,6 +115,8 @@ impl DurableStreamReader {
         };
         Self {
             inner: drive_iterator(read_step::new(state), ctx),
+            stream,
+            name,
         }
     }
 }
@@ -121,4 +129,20 @@ impl Iterator for DurableStreamReader {
     }
 }
 
-impl WakeableStream for DurableStreamReader {}
+impl WakeableStream for DurableStreamReader {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        #[cfg(feature = "multi")]
+        {
+            if let Some(notifier) = self.stream.notifier(&self.name) {
+                notifier.register(cb);
+                return WakeResult::Successful;
+            }
+        }
+        #[cfg(not(feature = "multi"))]
+        {
+            let _ = self.stream.notifier(&self.name);
+            let _ = cb;
+        }
+        WakeResult::NotSupported
+    }
+}
