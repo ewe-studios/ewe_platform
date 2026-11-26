@@ -326,7 +326,7 @@ windows-reason = "Known bug on Windows: #522: timing tests fail on the slower ru
 # to get `multi` anyway through a dev-dependency (foundation_testing ->
 # foundation_netio's default `multi`), which meant the single-threaded executor
 # was never tested.
-runs = ["", "multi", "test-clock"]
+runs = ["", "multi", "test-clock", "testing"]
 # The executors differ by feature, so lint both trees: the `multi` tree compiles
 # `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
 # the single-threaded executor. `test-clock` compiles `SimulatedClock`, which
@@ -502,8 +502,9 @@ wasm-runs = ["--no-default-features --features wasm"]
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123). Remove this opt-out when the issue is fixed."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
-runs = ["", "libsql"]
-clippy-runs = ["", "libsql"]
+# `testing` adds the fault-injecting storage wrappers (spec 83 feature 04).
+runs = ["", "libsql", "testing"]
+clippy-runs = ["", "libsql", "testing"]
 # At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
 clippy-deny-warnings = true
 wasm = "enforce"
@@ -695,7 +696,8 @@ macos-reason = "Known bug on macOS: #466: the blackhole dial test needs a full l
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `h3` adds the HTTP/3 suites (tests/h3_*), which no run compiled before.
-runs = ["", "h3"]
+# `testing` adds the in-memory network and transport (spec 83 feature 04).
+runs = ["", "h3", "testing"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
 # Spec 70 feature 128: the rpc wasm build is at zero warnings, and the gate

@@ -89,6 +89,9 @@ multi = ["std", "alloc"]  # Multi-threaded executor requires std
 # Test-only `SimulatedClock` for deterministic time control. It needs `std`
 # (the `Ctx` module is std-gated).
 test-clock = ["std"]
+# The deterministic simulation runtime (`valtron::sim`). It needs the
+# single-threaded engine, so it is absent when `multi` is on.
+testing = ["test-clock"]
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 # Each also picks foundation_compact's matching wasm32 time/entropy backend.

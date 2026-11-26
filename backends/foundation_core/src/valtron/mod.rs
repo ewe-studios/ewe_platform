@@ -11,6 +11,8 @@ mod notifiers;
 mod pipe;
 mod pipe_mapped;
 mod readiness_wake;
+#[cfg(all(feature = "testing", not(feature = "multi")))]
+pub mod sim;
 mod stream_future;
 mod streams;
 mod task;
