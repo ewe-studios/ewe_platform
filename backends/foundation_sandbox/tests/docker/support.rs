@@ -7,8 +7,10 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::{Arc, Mutex, PoisonError};
 
+use foundation_core::extensions::result_ext::BoxedError;
+use foundation_core::io::readers::Data;
 use foundation_deployment::providers::common::{ByteStream, JsonLinesStream};
-use foundation_deployment_docker::client::body::{LogStream, ProgressStream};
+use foundation_deployment_docker::client::body::{ByteBody, LogStream, ProgressStream};
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::client::{ContainerCreateBody, DockerClient};
 use foundation_deployment_docker::error::DockerError;
@@ -16,7 +18,7 @@ use foundation_deployment_docker::generated::create::{ContainerCreateResponse, C
 use foundation_deployment_docker::generated::info::SystemInfo;
 use foundation_deployment_docker::generated::json::{
     ContainerConfig, ContainerInspectResponse, ContainerState, ContainerSummary,
-    ExecInspectResponse, HostConfig, ImageInspect, NetworkSettings,
+    ExecInspectResponse, HostConfig, ImageConfig, ImageInspect, NetworkSettings,
 };
 use foundation_deployment_docker::generated::shared::IDResponse;
 use foundation_deployment_docker::generated::wait::ContainerWaitResponse;
@@ -63,6 +65,8 @@ pub enum Call {
     ImageInspect(String),
     /// `POST /images/create`.
     ImagePull(String),
+    /// `GET /containers/{id}/export`.
+    Export(String),
     /// `GET /info`.
     SystemInfo,
     /// `GET /_ping`.
@@ -76,6 +80,7 @@ pub enum Op {
     SystemPing,
     ImageInspect,
     ImagePull,
+    Export,
     Create,
     Start,
     Upload,
@@ -127,6 +132,28 @@ pub struct FakeContainer {
     pub host_port: Option<u16>,
 }
 
+/// The body that `container_export` answers with.
+#[derive(Clone, Debug)]
+pub enum ExportBody {
+    /// One fixed archive.
+    Bytes(Vec<u8>),
+    /// `count` chunks of `size` zero bytes, made as the stream is read.
+    ///
+    /// The feature 13 stream test uses 200 MiB and never holds it in memory.
+    Chunks {
+        /// The chunk count.
+        count: usize,
+        /// The bytes in each chunk.
+        size: usize,
+    },
+}
+
+impl Default for ExportBody {
+    fn default() -> Self {
+        Self::Bytes(Vec::new())
+    }
+}
+
 struct FakeState {
     calls: Vec<Call>,
     images: HashSet<String>,
@@ -140,6 +167,8 @@ struct FakeState {
     exec_exit: i32,
     arch: String,
     ncpu: i64,
+    export: ExportBody,
+    image_configs: HashMap<String, ImageConfig>,
 }
 
 /// A fake Docker Engine.
@@ -169,6 +198,8 @@ impl FakeDockerApi {
                 exec_exit: 0,
                 arch: "x86_64".to_string(),
                 ncpu: 8,
+                export: ExportBody::default(),
+                image_configs: HashMap::new(),
             })),
         }
     }
@@ -219,6 +250,18 @@ impl FakeDockerApi {
     /// Sets the daemon architecture.
     pub fn set_arch(&self, arch: &str) {
         self.with(|state| state.arch = arch.to_string());
+    }
+
+    /// Sets the archive that `container_export` answers with.
+    pub fn set_export(&self, export: ExportBody) {
+        self.with(|state| state.export = export);
+    }
+
+    /// Sets the container configuration that `image_inspect` answers.
+    pub fn set_image_config(&self, name: &str, config: ImageConfig) {
+        self.with(|state| {
+            state.image_configs.insert(name.to_string(), config);
+        });
     }
 
     /// The calls that the fake received.
@@ -628,6 +671,8 @@ impl DockerApi for FakeDockerApi {
                 Ok(ImageInspect {
                     architecture: Some(state.arch.clone()),
                     repo_tags: Some(vec![name.to_string()]),
+                    id: Some(format!("sha256:{}", name.replace(':', "-"))),
+                    config: state.image_configs.get(name).cloned(),
                     ..ImageInspect::default()
                 })
             } else {
@@ -660,6 +705,22 @@ impl DockerApi for FakeDockerApi {
         })
     }
 
+    fn container_export<'a>(&'a self, id: &'a str) -> BoxFuture<'a, Result<ByteBody, DockerError>> {
+        self.record(Call::Export(id.to_string()));
+        Box::pin(async move {
+            if let Some(error) = self.failure(Op::Export) {
+                return Err(error);
+            }
+            let export = self
+                .state
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .export
+                .clone();
+            Ok(export_body(&export))
+        })
+    }
+
     fn system_info(&self) -> BoxFuture<'_, Result<SystemInfo, DockerError>> {
         self.record(Call::SystemInfo);
         Box::pin(async move {
@@ -683,6 +744,39 @@ impl DockerApi for FakeDockerApi {
             }
             Ok(())
         })
+    }
+}
+
+/// The body that `container_export` answers with.
+fn export_body(export: &ExportBody) -> ByteBody {
+    match export {
+        ExportBody::Bytes(bytes) => {
+            ByteBody::new(ByteStream::new(SendSafeBody::Bytes(bytes.clone())))
+        }
+        ExportBody::Chunks { count, size } => ByteBody::new(ByteStream::new(SendSafeBody::Stream(
+            Some(Box::new(ChunkIterator {
+                remaining: *count,
+                size: *size,
+            })),
+        ))),
+    }
+}
+
+/// A lazy iterator of zero-filled export chunks.
+struct ChunkIterator {
+    remaining: usize,
+    size: usize,
+}
+
+impl Iterator for ChunkIterator {
+    type Item = Result<Data, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.remaining == 0 {
+            return None;
+        }
+        self.remaining -= 1;
+        Some(Ok(Data::Bytes(vec![0_u8; self.size])))
     }
 }
 
