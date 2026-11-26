@@ -86,7 +86,7 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 - [ ] **T4 — reads.** Catch-up, empty tail, partial page, long-poll `200`/`204`, `offset=now`.
       Tests: `partial_page_omits_up_to_date`, `closed_tail_returns_immediately`,
       `now_catchup_returns_empty`.
-- [ ] **T5 — JSON mode.** Validation, flatten, empty array and array reads. Tests:
+- [x] **T5 — JSON mode.** Validation, flatten, empty array and array reads. Tests:
       `json_array_flattens`, `post_empty_array_is_400`, `put_empty_array_is_valid`.
 - [ ] **T6 — SSE.** Event format, control fields, base64, close and reconnect. Tests:
       `sse_control_has_camel_case_fields`, `sse_binary_is_base64`, `sse_closes_after_closed`.

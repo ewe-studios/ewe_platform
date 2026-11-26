@@ -951,6 +951,39 @@ impl DurableDriver for DurableStream {
     }
 }
 
+fn encode_json(bytes: &[u8], allow_empty: bool) -> Result<Vec<u8>, StoreError> {
+    let value: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(|_| StoreError::BadRequest(BadRequestKind::Json))?;
+    let values = match value {
+        serde_json::Value::Array(items) => items,
+        other => vec![other],
+    };
+    if values.is_empty() && !allow_empty {
+        return Err(StoreError::BadRequest(BadRequestKind::Json));
+    }
+
+    let mut out = Vec::new();
+    for value in values {
+        serde_json::to_writer(&mut out, &value)
+            .map_err(|_| StoreError::BadRequest(BadRequestKind::Json))?;
+        out.push(b'\n');
+    }
+    Ok(out)
+}
+
+fn decode_json(bytes: &[u8]) -> Result<Vec<Chunk>, StoreError> {
+    let mut chunks = Vec::new();
+    for line in bytes
+        .split(|byte| *byte == b'\n')
+        .filter(|line| !line.is_empty())
+    {
+        let _: serde_json::Value = serde_json::from_slice(line)
+            .map_err(|_| StoreError::BadRequest(BadRequestKind::Json))?;
+        chunks.push(Chunk::new(line.to_vec()));
+    }
+    Ok(chunks)
+}
+
 #[derive(Debug)]
 struct ContentionError;
 
@@ -1058,6 +1091,7 @@ impl DurableStreamStore for DurableStream {
         };
         let closed = fork_info.is_none() && closed;
 
+        let is_json = content_type.is_json();
         let meta = VfsMeta {
             content_type,
             len: start_len,
@@ -1070,7 +1104,12 @@ impl DurableStreamStore for DurableStream {
         };
         let created = self.vfs.create(&name, meta).await?;
         if let Some(initial) = initial {
-            self.vfs.append(&name, initial.as_bytes()).await?;
+            let bytes = if is_json {
+                encode_json(initial.as_bytes(), true)?
+            } else {
+                initial.as_bytes().to_vec()
+            };
+            self.vfs.append(&name, &bytes).await?;
             if closed {
                 self.vfs.close(&name).await?;
             }
@@ -1161,10 +1200,15 @@ impl DurableStreamStore for DurableStream {
                 meta.closed = true;
             }
 
+            let bytes = if meta.content_type.is_json() {
+                encode_json(chunk.as_bytes(), false)?
+            } else {
+                chunk.as_bytes().to_vec()
+            };
             let expected_version = meta.version;
             match self
                 .vfs
-                .append_with_meta(name, chunk.as_bytes(), meta, expected_version)
+                .append_with_meta(name, &bytes, meta, expected_version)
                 .await
             {
                 Ok(_) => {
@@ -1200,10 +1244,17 @@ impl DurableStreamStore for DurableStream {
             ReadFrom::Offset(ref offset) => VfsOffset::from(offset),
             ReadFrom::Tail => VfsOffset(meta.len),
         };
-        let limit = req.limit.max_bytes.unwrap_or(usize::MAX);
+        let is_json = meta.content_type.is_json();
+        let limit = if is_json {
+            usize::MAX
+        } else {
+            req.limit.max_bytes.unwrap_or(usize::MAX)
+        };
         let bytes = self.vfs.read_at(name, &start, limit).await?;
         let end = start.0.saturating_add(bytes.len() as u64).min(meta.len);
-        let chunks = if bytes.is_empty() {
+        let chunks = if is_json {
+            decode_json(&bytes)?
+        } else if bytes.is_empty() {
             Vec::new()
         } else {
             vec![Chunk::new(bytes)]
@@ -1228,7 +1279,12 @@ impl DurableStreamStore for DurableStream {
             return Err(self.expire(name).await);
         }
         if let Some(chunk) = req.final_chunk {
-            self.vfs.append(name, chunk.as_bytes()).await?;
+            let bytes = if before.content_type.is_json() {
+                encode_json(chunk.as_bytes(), false)?
+            } else {
+                chunk.as_bytes().to_vec()
+            };
+            self.vfs.append(name, &bytes).await?;
         }
         self.vfs.close(name).await?;
         let after = self.vfs.meta(name).await?;

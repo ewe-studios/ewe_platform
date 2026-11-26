@@ -3,6 +3,8 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod fork;
 #[cfg(not(target_arch = "wasm32"))]
+mod json;
+#[cfg(not(target_arch = "wasm32"))]
 mod producer;
 #[cfg(not(target_arch = "wasm32"))]
 mod property;

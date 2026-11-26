@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 06 JSON mode landed in the core. Appends validate JSON, flatten one array
+  level and reject an empty append array. Creates accept an empty array. Reads return one chunk
+  per message. 45 tests pass.
 - 2026-11-27: feature 04 TTL sliding landed. The core takes an injected clock, stores
   `last_access_ms` in VFS metadata, and expires on read, append, fork and head. A read slides the
   window; `HEAD` does not. 39 tests pass.
@@ -65,7 +68,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   soft-delete, cascading cleanup and sliding TTL landed. Fork creation edge cases, sub-offset,
   the full TTL table, retention, valtron boundary and oracles remain.
 - **05-storage-backends** — ⏳ not started (0/6)
-- **06-http-rpc-surface** — ⏳ not started (0/10)
+- **06-http-rpc-surface** — 🟡 in progress (1/10). JSON mode validation, one-level flatten, empty
+  array rules and message reads landed. The service, HTTP adapter, SSE, caching, security,
+  ConnectRPC and conformance remain.
 - **07-durable-streams-client** — ⏳ not started (0/10)
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
