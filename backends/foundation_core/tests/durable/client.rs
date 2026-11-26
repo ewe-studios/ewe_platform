@@ -580,3 +580,35 @@ fn given_an_absolute_deadline_when_create_runs_then_the_header_is_sent() {
         )));
     });
 }
+
+#[foundation_core::valtron::valtron_test(timeout = 5000)]
+fn given_a_client_reader_when_pages_arrive_then_it_yields_them_in_order() {
+    use foundation_core::durable::client::valtron::ClientReader;
+    use foundation_core::valtron::{Stream, StreamSpread};
+
+    let transport = MockTransport::with(vec![
+        response(200, &[("stream-next-offset", "01")], b"ab"),
+        response(
+            200,
+            &[("stream-next-offset", "02"), ("stream-up-to-date", "true")],
+            b"cd",
+        ),
+    ]);
+    let mut reader = ClientReader::new(handle(transport), foundation_context::Ctx::host());
+
+    let mut bytes = Vec::new();
+    while let Some(item) = reader.next() {
+        match item {
+            Stream::Next(data) => bytes.extend_from_slice(&data),
+            Stream::Spread(items) => {
+                for item in items {
+                    if let StreamSpread::Done(data) = item {
+                        bytes.extend_from_slice(&data);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    assert_eq!(bytes, b"abcd");
+}

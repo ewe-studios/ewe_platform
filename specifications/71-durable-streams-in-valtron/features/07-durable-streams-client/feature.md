@@ -114,7 +114,7 @@ impl StreamHandle {
       `dynamic_header_counter`, `invalid_epoch_is_rejected`.
 - [x] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
       `adapter_reports_200_for_append`.
-- [ ] **T9 — valtron wrapper.** `StreamIterator` and `WakeableStream` over the client reader.
+- [x] **T9 — valtron wrapper.** `StreamIterator` and `WakeableStream` over the client reader.
       Test: `client_reader_parks_and_wakes`.
 - [x] **T10 — client conformance.** Run the reference client suite with the adapter. Record every
       failure and skip. Do not close the feature until it passes.
