@@ -50,6 +50,8 @@ Conformance tests the core and these adapters, with valtron disabled.
     `Fork`. A live read is a server stream. No SSE frames, ETags or CDN cursor.
 13. **Server conformance.** The HTTP adapter passes the reference server suite with valtron
     disabled.
+14. **Other surfaces.** HTTP is one adapter. WebSocket, DO RPC, Worker and embedded surfaces call
+    the same `DurableService`.
 
 ## 3. Design
 

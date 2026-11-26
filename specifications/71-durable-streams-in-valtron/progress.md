@@ -2,12 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 01 started. Added `foundation_core::durable` with the core types, the
+  store trait, `DurableDriver` and a Given/When/Then harness. 14 tests pass. The wasm32 check
+  passes. T4 (valtron-disabled build) remains.
 - 2026-11-27: spec restructured to version 2.0. The protocol core moves to
-  `foundation_core::durable` and has no valtron dependency. The HTTP and ConnectRPC adapters
-  call `DurableService`. The valtron reader, writer and producer task move to
+  `foundation_core::durable` and has no valtron, HTTP or socket dependency. The HTTP and
+  ConnectRPC adapters call `DurableService`. The valtron reader, writer and producer task move to
   `foundation_core::valtron::durable` as an optional wrapper. Added feature 07 (Rust client) and
-  feature 08 (conformance). Server and client conformance are a hard gate. No feature started
-  yet (0/8).
+  feature 08 (conformance). Server and client conformance are a hard gate. The runtime matrix
+  covers local embedded, DO, Worker, WebSocket and the `foundation_ai` Session. The owner
+  reviewed and approved the 716-line scope for `requirements.md` on 2026-11-27. No feature
+  started yet (0/8).
 - 2026-11-27: spec amended after the protocol review. Added `Stream-Seq` to the contract, the
   core types, the producer, the HTTP surface and the tests. Recorded the async store trait and
   `DurableStream` enum injection decision. Added the structured `StoreError` and the HTTP status
@@ -18,7 +23,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
 ## Feature status
 
-- **01-durable-stream-types** — ⏳ not started (0/5)
+- **01-durable-stream-types** — 🟡 in progress (5/6). Core types, store trait, `DurableDriver`
+  and BDD harness landed. 14 tests pass. The wasm32 check passes. T4 (valtron-disabled build)
+  remains.
 - **02-resumable-reader** — ⏳ not started (0/9)
 - **03-idempotent-producer** — ⏳ not started (0/7)
 - **04-fork-and-retention** — ⏳ not started (0/8)

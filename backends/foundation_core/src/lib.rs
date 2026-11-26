@@ -36,6 +36,8 @@ compile_error!(
 );
 
 pub mod compati;
+/// The Durable Streams protocol core. It has no valtron, HTTP or socket dependency.
+pub mod durable;
 /// The host builders for the effect environment (spec 84).
 #[cfg(feature = "std")]
 pub mod env;

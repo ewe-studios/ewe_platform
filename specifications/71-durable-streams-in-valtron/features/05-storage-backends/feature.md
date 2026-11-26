@@ -64,12 +64,16 @@ stores the full protocol state. The core and the backends have no valtron depend
       state. Test: `do_sqlite_passes_dst_scenario`, `d1_passes_dst_scenario`.
 - [ ] **T5 — fork and TTL state.** Every backend stores fork edges, refcounts, soft-delete and
       last-access time. Test: `backends_store_fork_and_ttl_state`.
-- [ ] **T6 — no valtron.** A test crate builds the backends with valtron disabled.
+- [ ] **T6 — no valtron or runtime.** A test crate builds the backends with valtron and sockets
+      disabled.
+- [ ] **T7 — `DurableStream` enum.** The concrete enum delegates to `FileStore`, `InMemoryStore`
+      and `DoSqlStore`. Test: `durable_stream_enum_delegates`.
 
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_core` and `cargo test -p foundation_db` green.
 - [ ] The same DST scenario passes on every backend CI can run.
 - [ ] No backend materialises a whole stream; reads are paged.
-- [ ] The backends have no valtron dependency.
+- [ ] The backends have no valtron or socket dependency.
+- [ ] `DurableStream` implements `DurableStreamStore` by delegation.
 - [ ] `cargo check --workspace --all-targets --profile dev` green.

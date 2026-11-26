@@ -125,7 +125,7 @@ flowchart TB
   CL -. shared types .-> C
 ```
 
-_Caption: The core serves transports and valtron, so it works without valtron._
+_Caption: The core serves every runtime and transport, so it works without valtron._
 
 The core is `foundation_core::durable`. The valtron wrapper is
 `foundation_core::valtron::durable`. The client core is `foundation_netio::durable`.
@@ -137,9 +137,39 @@ Rules:
 - The valtron layer wraps the core. It adds waits, signals, readiness and spreads.
 - Conformance tests the core and its transport adapters. It does not require the valtron layer.
 
+**Runtime-neutral (iron law).** The core is not an HTTP server. HTTP is one surface. The same core
+runs in a local embedded process, a Durable Object, a Worker, a WebSocket server, WebAssembly
+(wasm) and the `foundation_ai` Session. The core takes `Ctx` and a store. It has no global
+runtime, socket, HTTP type or executor of its own. Tests prove each target.
+
+| Runtime surface | How the core runs | Test |
+|---|---|---|
+| Local embedded | direct async calls | `embedded_core_roundtrip` |
+| Durable Object | DO storage and alarms | `do_core_roundtrip` |
+| Cloudflare Worker | DO RPC or D1 | `worker_core_roundtrip` |
+| WebSocket server | adapter events | `websocket_core_roundtrip` |
+| WebAssembly | wasm32 with in-memory or host storage | `wasm_core_roundtrip` |
+| `foundation_ai` Session | core as the session log | `session_uses_core` |
+
+**Drivers.** Every execution context supplies a driver. The server driver provides the store and
+notifier. The client driver provides the transport, clock and retry policy. The business API
+(`DurableService`, `DurableClient`) takes a driver. Embedded, HTTP, WebSocket, DO and Session are
+drivers, not forks of the core.
+
+**BDD scenarios.** Each behaviour is a Given/When/Then scenario. The scenario calls the business
+API, never a transport. The same scenario runs on every driver. Do not copy a scenario for each
+context.
+
+| Scenario group | Drivers |
+|---|---|
+| Create, append, read and close | embedded, HTTP, WebSocket, DO |
+| Producer and `Stream-Seq` | embedded, HTTP, DO |
+| Fork and TTL | embedded, HTTP |
+| Session replay | `foundation_ai` Session |
+
 ### 3.1 Core types (feature 01)
 
-All types are `no_std`-friendly. They live in `foundation_core::durable`.
+The types use `core` and `alloc`. They live in `foundation_core::durable`.
 
 ```rust
 // Opaque, lexicographically-ordered offset. Built only by the store.
@@ -644,6 +674,11 @@ Order: 01 → (02, 03) → 04, 05, 06 → 07 → 08. Run a conformance spike aft
     approval.
 12. **The core works without valtron.** Do not make the core depend on the valtron layer.
 13. **Write in STE.** Keep sentences short.
+14. **The core is runtime-neutral (iron law).** HTTP is one surface. The core must run in a local
+    embedded process, a DO, a Worker, a WebSocket server, wasm32 and the `foundation_ai` Session.
+    Tests prove each target. The client core follows the same rule.
+15. **BDD with drivers.** Behaviours are Given/When/Then scenarios. They call the business API
+    and run on every driver. Do not duplicate a scenario for each context.
 
 ## 6. Verification protocol
 
@@ -695,5 +730,8 @@ npx @durable-streams/client-conformance-tests --run ./target/release/conformance
 - [ ] The HTTP adapter passes the server conformance suite.
 - [ ] The client core passes the client conformance suite.
 - [ ] The cross-runs pass.
+- [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and `foundation_ai`
+      Session.
+- [ ] The BDD scenario suite passes on every driver.
 - [ ] The valtron layer passes its behaviour tests.
 - [ ] No `#[cfg(test)]` module in the changed source files. No ignored `Result`s.

@@ -26,12 +26,14 @@ You implement **one feature** of this spec. The main session gave you its number
 5. Your feature file: `features/NN-<slug>/feature.md`. Read all of it before you change code.
 6. [`progress.md`](./progress.md) and [`learnings.md`](./learnings.md).
 
-## The two rules that matter most
+## The three rules that matter most
 
 1. **Conformance first.** The protocol core must pass the reference server suite and the
    reference client suite without valtron. Do not hide a protocol rule in the valtron layer.
 2. **The core is portable.** The core has no valtron, HTTP, SSE, ETag or CDN type. The adapters
    own the wire. The valtron layer owns scheduling.
+3. **HTTP is one surface, not the server.** The core must run in a local embedded process, a DO,
+   a Worker, a WebSocket server and the `foundation_ai` Session. Tests prove each target.
 
 ## Workflow
 

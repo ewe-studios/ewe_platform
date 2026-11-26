@@ -37,6 +37,13 @@ merge.
    server suite to find real failures early.
 8. **No valtron in the gate.** The conformance jobs do not enable the valtron layer.
 9. **Valtron suite.** A separate job runs the valtron layer behaviour tests.
+10. **Runtime matrix.** The core and the client core run in a local embedded process, a DO, a
+    Worker, a WebSocket server, wasm32 and the `foundation_ai` Session. Each target has a test.
+11. **Surface neutrality.** A test calls `DurableService` with no HTTP adapter.
+12. **BDD scenarios.** The behaviour suite is Given/When/Then. It calls the business API and runs
+    on every driver.
+13. **Driver matrix.** The same scenario runs on the embedded, HTTP, WebSocket, DO and Session
+    drivers. Do not copy a scenario for each driver.
 
 ## 3. Design
 
@@ -69,6 +76,16 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] **T5 — skip register.** Record every skip and its reason. Get owner approval for each.
 - [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
 - [ ] **T7 — report.** Publish the counts and the reference commit with each run.
+- [ ] **T8 — runtime matrix.** Run the core in a local embedded process, a DO, a Worker, a
+      WebSocket server and wasm32. Tests: `embedded_core_roundtrip`, `do_core_roundtrip`,
+      `worker_core_roundtrip`, `websocket_core_roundtrip`, `wasm_core_roundtrip`.
+- [ ] **T9 — `foundation_ai` Session.** Back a Session with the core. Test: `session_uses_core`.
+- [ ] **T10 — surface neutrality.** Call `DurableService` with no HTTP adapter. Test:
+      `service_runs_without_http`.
+- [ ] **T11 — BDD suite.** Write the Given/When/Then scenarios for create, append, read, close,
+      producer, `Stream-Seq`, fork and TTL.
+- [ ] **T12 — driver matrix.** Run every scenario on the embedded, HTTP, WebSocket, DO and
+      Session drivers. Test: `same_scenario_every_driver`.
 
 ## 5. Success criteria
 
@@ -76,5 +93,6 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] The client suite passes with the Rust adapter.
 - [ ] Both cross-runs pass.
 - [ ] Every skip has a recorded reason and owner approval.
+- [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
 - [ ] The valtron layer tests pass separately.
 - [ ] CI fails on any non-skipped conformance failure.

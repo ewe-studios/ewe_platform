@@ -60,3 +60,6 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The valtron layer adds only scheduling.** `Stream::Wait`, `Stream::Spread`,
   `Stream::Pending`, `WakeableStream`, `#[task]` and the bridges sit above the core. They are
   the right tools for the job. They are not the contract.
+- **HTTP is one surface, not the server.** The core is runtime-neutral. The same core runs in a
+  local embedded process, a DO, a Worker, a WebSocket server and the `foundation_ai` Session.
+  Tests prove each target. A socket, a global runtime or an HTTP type in the core is a defect.

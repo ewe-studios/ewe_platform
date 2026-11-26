@@ -25,7 +25,9 @@ reference client conformance suite with its adapter.
 
 1. **Shared types.** The client uses `foundation_core::durable` types. It does not define a
    second offset, cursor or error model.
-2. **Transport.** The HTTP transport is injected. It uses `foundation_netio`. No Tokio.
+2. **Driver.** `ClientDriver` provides the transport, clock and retry policy. The client business
+   API takes a driver. Embedded, HTTP, WebSocket and DO are client drivers. The transport is
+   injected. It uses `foundation_netio`. No Tokio.
 3. **Client handle.** `DurableClient` has a base URL, default headers, a dynamic header provider,
    a retry policy and a clock.
 4. **Stream handle.** `StreamHandle` has create, connect, append, head, delete, close, read and
@@ -60,6 +62,9 @@ reference client conformance suite with its adapter.
     `Stream::Wait` and `WakeableStream`. It must not change client outcomes.
 19. **Client conformance.** The core and adapter pass the reference client suite with valtron
     disabled.
+20. **BDD scenarios.** Client behaviours are Given/When/Then scenarios. The same scenario runs
+    on every client driver.
+21. **wasm32.** The client core builds and runs on wasm32. The transport and clock are drivers.
 
 ## 3. Design
 
@@ -104,6 +109,8 @@ impl StreamHandle {
       Test: `client_reader_parks_and_wakes`.
 - [ ] **T10 — client conformance.** Run the reference client suite with the adapter. Record every
       failure and skip. Do not close the feature until it passes.
+- [ ] **T11 — wasm32.** Build the client core for wasm32 and run the BDD scenarios with a wasm
+      driver. Test: `wasm_client_roundtrip`.
 
 ## 5. Success criteria
 

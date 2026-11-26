@@ -50,7 +50,12 @@ later feature builds on these types and the store trait.
     delegation. `Ctx` holds `Arc<DurableStream>`, not `Arc<dyn DurableStreamStore>`.
 13. **No valtron.** This module has no valtron type, trait or executor. It compiles without
     valtron.
-14. **`no_std`-friendly.** The types use `alloc` and no `std`-only surface.
+14. **Portable types.** The types use `core` and `alloc` types. The crate requires `std` today,
+    so the core compiles on every target the crate supports.
+15. **Driver.** `DurableDriver` provides the store and the append notifier. The business API
+    takes a driver. Embedded, HTTP, WebSocket, DO and Session are drivers.
+16. **BDD tests.** Behaviour tests use a driver and the business API. Each test is a
+    Given/When/Then scenario. The same scenario runs on every driver.
 
 ## 3. Design
 
@@ -105,6 +110,12 @@ pub enum StoreError {
 
 pub enum BadRequestKind { Header, Body, Offset, Json, Producer, Fork }
 
+pub trait DurableDriver: Send + Sync {
+    type Store: DurableStreamStore;
+    fn store(&self) -> &Self::Store;
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef>;
+}
+
 pub trait DurableStreamStore {
     async fn create(&self, name: StreamName, spec: CreateSpec)
         -> Result<CreateOutcome, StoreError>;
@@ -118,7 +129,7 @@ pub trait DurableStreamStore {
     async fn delete(&self, name: &StreamName) -> Result<DeleteOutcome, StoreError>;
     async fn fork(&self, name: StreamName, spec: ForkSpec)
         -> Result<CreateOutcome, StoreError>;
-    fn notifier(&self, name: &StreamName) -> Option<Notifier>;
+    fn notifier(&self, name: &StreamName) -> Option<NotifierRef>;
 }
 ```
 
@@ -126,20 +137,24 @@ pub trait DurableStreamStore {
 
 ## 4. Tasks
 
-- [ ] **T1 — core types.** All types in section 3. Tests: offset and sequence order is
+- [x] **T1 — core types.** All types in section 3. Tests: offset and sequence order is
       byte-lexicographic; `ContentType` normalises case and parameters; `StreamName` rejects
       traversal; `Expiry` rejects both forms at once; `StoreError` carries its detail.
-- [ ] **T2 — the store trait.** The trait and its doc comments. Each method names its protocol
+- [x] **T2 — the store trait.** The trait and its doc comments. Each method names its protocol
       verb and its errors.
-- [ ] **T3 — `DurableStream` enum.** The enum delegates to `FileStore`, `InMemoryStore` and
-      `DoSqlStore`.
-- [ ] **T4 — module wiring.** `pub mod durable` in `foundation_core::lib.rs`. No valtron import.
-- [ ] **T5 — compile independence.** A test crate builds `foundation_core::durable` with valtron
-      disabled.
+- [x] **T3 — module wiring.** `pub mod durable` in `foundation_core::lib.rs`. No valtron, socket
+      or global runtime import.
+- [ ] **T4 — compile independence.** A test crate builds `foundation_core::durable` with valtron
+      disabled, for native and wasm32.
+- [x] **T5 — driver.** `DurableDriver` and a mock driver. Test:
+      `given_a_driver_when_the_store_is_used_then_the_business_api_sees_it`.
+- [x] **T6 — BDD harness.** A shared Given/When/Then helper. Test:
+      `given_a_scenario_when_it_runs_then_every_driver_runs_the_same_steps`.
 
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
 - [ ] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
-- [ ] `foundation_core::durable` has no valtron dependency.
+- [ ] `foundation_core::durable` has no valtron, socket or global runtime dependency.
+- [ ] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
 - [ ] No `#[cfg(test)]` module in source files.
