@@ -72,6 +72,14 @@ shape. The runtime substrate of each shape is a spec 77 surface.
   Cloudflare. Spec 77 feature 10 owns them on Docker. This feature uses the handle to start
   the agent-rpc server and to send it commands.
 
+### A Durable Object name includes the scope
+
+A Durable Object is addressed by instance name only (issue #987). Two owners that choose the
+same instance name would reach one object, and the object and its storage would be shared. The
+Worker therefore names each object `"<scope>/<name>"` with `id_from_name`, and the D1 index
+keys the same string. One test: two owners, one instance name, two objects, and neither sees
+the other's history.
+
 ## Dependency on spec 77
 
 ```mermaid
