@@ -817,9 +817,13 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # they run on Linux with the `slave` feature.
 wasm = "enforce"
 wasm-runs = ["", "--no-default-features"]
-runs = ["", "slave", "testing"]
+runs = ["", "slave", "testing", "libkrun libkrun-runner testing"]
 # The slave tests are Linux only: "the slave is a Linux guest program". It calls
 # fork, signalfd, mount and the process identifier 1 duties, which no other
 # operating system has. macOS and Windows run the contract and control tests.
-macos-runs = ["", "testing"]
+# The libkrun driver tests run on Linux and macOS. They start no virtual machine:
+# the real-machine tests return with a report when libkrun is absent. Windows
+# keeps the default runs: the driver is Unix only, so its tests do not compile
+# there.
+macos-runs = ["", "testing", "libkrun libkrun-runner testing"]
 windows-runs = ["", "testing"]

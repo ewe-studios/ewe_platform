@@ -1193,6 +1193,18 @@ run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:d
 description = "Run ewe_platform sandbox binary"
 run = "cargo run --profile dev --bin ewe_platform sandbox"
 
+[tasks."sandbox:krun"]
+description = "Build the libkrun runner and sign it on macOS"
+run = """
+set -euo pipefail
+cargo build -p foundation_sandbox --profile uat --features libkrun-runner --bin sandbox-krun
+mkdir -p target/sandbox
+cp target/uat/sandbox-krun target/sandbox/sandbox-krun
+if [ "$(uname -s)" = "Darwin" ]; then
+  codesign --entitlements backends/foundation_sandbox/hvf-entitlements.plist --force -s - target/sandbox/sandbox-krun
+fi
+"""
+
 [tasks.bacon]
 description = "Start bacon with bacon-ls job for IDE integration"
 run = "bacon -j bacon-ls"

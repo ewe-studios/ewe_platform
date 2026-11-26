@@ -17,7 +17,7 @@
 
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 use std::os::unix::process::CommandExt as _;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -309,8 +309,9 @@ fn spawn_process(mut spec: ProcessSpec) -> SandboxResult<NativeChild> {
         .stdout(std::process::Stdio::from(stdout))
         .stderr(std::process::Stdio::from(stderr));
 
-    #[cfg(target_os = "linux")]
-    if spec.kill_with_parent {
+    #[cfg(unix)]
+    if !extra_fds.is_empty() || (cfg!(target_os = "linux") && spec.kill_with_parent) {
+        let kill_with_parent = spec.kill_with_parent;
         // SAFETY: `pre_exec` runs in the child after `fork`, so the closure
         // must call only async-signal-safe system calls. It reads memory that
         // the parent owns and the child inherits.
@@ -322,21 +323,22 @@ fn spawn_process(mut spec: ProcessSpec) -> SandboxResult<NativeChild> {
                         return Err(std::io::Error::last_os_error());
                     }
                 }
-                if libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL, 0, 0, 0) != 0 {
-                    return Err(std::io::Error::last_os_error());
+                #[cfg(target_os = "linux")]
+                if kill_with_parent {
+                    if libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL, 0, 0, 0) != 0 {
+                        return Err(std::io::Error::last_os_error());
+                    }
+                    // The host process already died: no parent remains to
+                    // receive the death signal.
+                    if libc::getppid() == 1 {
+                        libc::_exit(1);
+                    }
                 }
-                // The host process already died: no parent remains to receive
-                // the death signal.
-                if libc::getppid() == 1 {
-                    libc::_exit(1);
-                }
+                #[cfg(not(target_os = "linux"))]
+                let _ = kill_with_parent;
                 Ok(())
             });
         }
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        let _ = extra_fds;
     }
 
     let child = command.spawn().map_err(|error| SandboxError::Io {

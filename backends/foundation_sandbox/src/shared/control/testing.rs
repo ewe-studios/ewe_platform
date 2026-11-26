@@ -2117,6 +2117,7 @@ struct SpawnerState {
     version_output: Option<String>,
     fs: Option<FakeHostFs>,
     exit_next_with: Option<NextExit>,
+    program_outputs: HashMap<String, (String, FakeHostFs)>,
 }
 
 /// How the next fake child ends at once.
@@ -2152,6 +2153,19 @@ impl FakeProcessSpawner {
         let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         state.version_output = Some(text.to_string());
         state.fs = Some(fs);
+    }
+
+    /// Makes a child of `program` write `text` and exit with code 0 at once.
+    ///
+    /// The host probe runs `codesign`, `sysctl` and `sandbox-krun --probe`.
+    /// The runner itself has a different argument list, so this rule does not
+    /// hide a scripted runner exit.
+    pub fn with_program_output(&self, fs: FakeHostFs, program: &str, text: &str) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .program_outputs
+            .insert(program.to_string(), (text.to_string(), fs));
     }
 
     /// Makes the next non-`--version` child exit at once with `code`.
@@ -2226,6 +2240,32 @@ impl crate::shared::host::ProcessSpawner for FakeProcessSpawner {
             if let (Some(text), Some(fs)) = (state.version_output.clone(), state.fs.clone()) {
                 let _ = fs.write(&spec.stdout, text.as_bytes());
             }
+            drop(state);
+            control.record(crate::shared::host::ProcessExit {
+                code: Some(0),
+                signal: None,
+            });
+            return Ok(Box::new(FakeChildProcess {
+                pid,
+                state: child_state,
+                live,
+            }));
+        }
+        // A scripted probe command exits at once with its output.
+        let program = spec
+            .program
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        let is_probe =
+            program == "sandbox-krun" && spec.args.first().is_some_and(|arg| arg == "--probe");
+        let scripted = state
+            .program_outputs
+            .get(program)
+            .filter(|_| is_probe || program != "sandbox-krun")
+            .cloned();
+        if let Some((text, fs)) = scripted {
+            let _ = fs.write(&spec.stdout, text.as_bytes());
             drop(state);
             control.record(crate::shared::host::ProcessExit {
                 code: Some(0),

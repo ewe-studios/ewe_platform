@@ -29,3 +29,16 @@ mod slave;
 /// dial real Unix sockets, with no virtual machine.
 #[cfg(all(unix, feature = "control"))]
 mod native_host;
+
+/// The libkrun driver tests (feature 09). They need the simulation helpers and
+/// a Unix host.
+#[cfg(all(unix, feature = "libkrun", feature = "testing"))]
+mod libkrun;
+
+/// The libkrun runner tests (feature 09). They run the real `sandbox-krun`
+/// program, which needs no libkrun for these two cases.
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos"),
+    feature = "libkrun-runner"
+))]
+mod libkrun_runner;
