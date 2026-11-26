@@ -703,6 +703,16 @@ The valtron layer is required. It wraps the core. It adds:
 It must not change protocol outcomes. A conformance test must pass with the valtron layer
 disabled.
 
+Two composition rules:
+
+- **Many values become a stream.** When a future produces more than one value (an SSE read, a
+  paged read), the API returns a `futures_core::Stream` or the valtron future-stream bridge. Do
+  not collect the values in a loop and return one batch.
+- **One sync boundary for tests.** A test that needs a synchronous call uses
+  `block_on_future` for a `Send + 'static` future, or `block_on_future_scoped` for a borrowed,
+  non-`Send` future. The scoped form parks the caller's thread. The tests add no second
+  executor: no `smol`, no `tokio`.
+
 ## 4. Features
 
 | # | Feature | Delivers | Depends on | Size |
@@ -776,14 +786,19 @@ cargo check --workspace --all-targets --profile dev
 ### 6.1 Conformance gate
 
 ```bash
-npx @durable-streams/server-conformance-tests --run http://127.0.0.1:4437
-npx @durable-streams/client-conformance-tests --run ./target/release/conformance-adapter
+ci/durable_conformance.sh
 ```
 
-- The server suite runs against `HttpAdapter`, with the valtron layer disabled.
-- The client suite runs with the Rust client adapter.
-- Record the pass count and every skipped test with its reason.
-- A failing or skipped test needs an owner decision before the feature closes.
+The script builds the server and client examples, starts the server, installs the reference
+suites in a temporary directory and fails on any test failure.
+
+- The server suite runs against `DurableHandler` over the memory VFS. The example sets the
+  long-poll timeout to 3 seconds, because the suite waits inside a 5-second test limit.
+- The client suite runs with `durable_client_adapter`.
+- Last measured: server 332 pass, 6 skip, 0 fail; client 208 pass, 0 fail, 61 skip.
+- Every skip names an open issue: the six server skips are issue #1000 (subscriptions), and the
+  61 client skips are issue #963 (the blocking Server-Sent Events poll). A skip without an open
+  issue is a defect, not a decision.
 
 ### 6.2 Test oracles
 

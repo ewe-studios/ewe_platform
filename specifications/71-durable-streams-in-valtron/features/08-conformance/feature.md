@@ -167,3 +167,7 @@ dynamic headers and streaming. The adapter announces each as unsupported.
 
 The harness must set the long-poll timeout to 3 s for the server example. The suite
 waits for a timeout inside a 5 s test limit.
+
+Every skip names an open issue. The six server skips are #1000 (subscriptions). The 61 client
+skips are #963 (the blocking Server-Sent Events poll). A skip without an open issue fails the
+review.

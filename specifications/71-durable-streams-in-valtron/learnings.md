@@ -233,6 +233,21 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   are the event stream's own progress under the blocking executor, and the runner's background
   read pattern. The client gate stays at 208 pass, 0 fail.
 
+## Layering correction (2026-11-27)
+
+- **The client defines its transport trait.** The owner corrected an inversion. The client core
+  and `ClientTransport` live in `foundation_core::durable::client`. `foundation_netio` implements
+  the trait above core. I had resolved a cycle by moving the wrapper down; the correct fix moves
+  the abstraction up.
+- **Do not add a second executor to the tests.** `smol` was a shortcut for borrowed futures.
+  `block_on_future_scoped` in `foundation_core::valtron::executors::scoped` drives a borrowed,
+  non-`Send` future on the caller's thread and parks it. The 13 durable test files use it.
+- **Many values become a stream.** A future that yields more than one value returns a
+  `futures_core::Stream` or the valtron bridge, not a collected batch.
+- **The owner never excluded subscriptions.** I wrote that exclusion into the requirements. It
+  was wrong. Feature 10 and issue #1000 put the six skipped subscription tests in scope. The
+  gate is not complete until it shows no skip.
+
 ## SSE status gap (2026-11-27)
 
 - **The SSE open hides the status.** `send_sse_async` returns only the event stream, so a client
