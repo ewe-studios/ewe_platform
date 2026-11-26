@@ -295,3 +295,69 @@ fn given_a_message_larger_than_the_page_when_it_is_read_then_it_arrives_whole() 
         assert!(page.cursor.up_to_date);
     });
 }
+
+#[test]
+fn given_a_byte_limit_when_reads_walk_the_stream_then_every_message_appears_once() {
+    smol::block_on(async {
+        use foundation_core::durable::{
+            AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
+            DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
+        };
+        use std::sync::Arc;
+
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let service = DurableService::with_limits(
+            stream,
+            DurableLimits::default().with_page_bytes(4),
+        );
+        let name = StreamName::parse("bounded/walk").expect("name");
+        service
+            .create(
+                name.clone(),
+                CreateSpec {
+                    content_type: Some(ContentType::parse("application/json").expect("type")),
+                    ..CreateSpec::default()
+                },
+            )
+            .await
+            .expect("create");
+        for value in ["1", "2", "3"] {
+            service
+                .append(
+                    &name,
+                    AppendRequest {
+                        chunk: Chunk::new(value.as_bytes().to_vec()),
+                        content_type: None,
+                        stream_seq: None,
+                        producer: None,
+                        close: false,
+                    },
+                )
+                .await
+                .expect("append");
+        }
+
+        let mut offset = ReadFrom::Start;
+        let mut seen = Vec::new();
+        loop {
+            let page = service
+                .read(
+                    &name,
+                    ReadRequest {
+                        from: offset.clone(),
+                        limit: ReadLimit::default(),
+                    },
+                )
+                .await
+                .expect("read");
+            for chunk in &page.chunks {
+                seen.push(String::from_utf8_lossy(chunk.as_bytes()).into_owned());
+            }
+            if page.cursor.up_to_date {
+                break;
+            }
+            offset = ReadFrom::Offset(page.cursor.next.clone());
+        }
+        assert_eq!(seen, ["1", "2", "3"]);
+    });
+}
