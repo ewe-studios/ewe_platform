@@ -1,0 +1,31 @@
+[package]
+name = "foundation_api_common"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "The common request, error and streamed-body types of the generated API clients"
+
+[dependencies]
+# `BoxedSendExecutionAction` in the sender types.
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
+# The `JsonHash` derive of `Empty` and `Operation`.
+foundation_macros = { workspace = true }
+# The HTTP transport, the prepared request and the streamed body.
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "wire-native", "multi"] }
+bytes = "1"
+# The `JsonHash` derive of `Empty` and `Operation` calls these two; a derive
+# expands in this crate, so this crate names them.
+base85rs = "0.1"
+sha2 = { workspace = true }
+futures-core = "0.3"
+# `StreamExt::next` on the streamed bodies.
+futures-lite = { version = "2", default-features = false, features = ["alloc"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+[lints]
+workspace = true

@@ -1218,6 +1218,13 @@ pub struct UnifiedGenerator {
     strict: StrictRules,
     /// Shared-types-only mode (see [`UnifiedGenerator::shared_types_only`]).
     shared_types_only: bool,
+    /// The import path of the common API types in the generated shared module.
+    ///
+    /// The default depends on the layout: `crate::providers::common` in the
+    /// single-crate layout and `foundation_deployment::providers::common` for a
+    /// split-out provider. A caller that wants a smaller crate names it here,
+    /// for example `foundation_api_common` (spec 77 feature 11).
+    common_import_path: Option<String>,
 }
 
 /// The `Cargo.toml` of one generated group crate.
@@ -1389,7 +1396,21 @@ impl UnifiedGenerator {
             typed_unions: std::collections::BTreeSet::new(),
             strict: StrictRules::default(),
             shared_types_only: false,
+            common_import_path: None,
         }
+    }
+
+    /// Names the import path of the common API types in the generated shared
+    /// module.
+    ///
+    /// The default is `crate::providers::common` in a single-crate layout and
+    /// `foundation_deployment::providers::common` for a split-out provider. Use
+    /// this method when the generated client imports the types from another
+    /// crate, for example `foundation_api_common`.
+    #[must_use]
+    pub fn with_common_import_path(mut self, path: impl Into<String>) -> Self {
+        self.common_import_path = Some(path.into());
+        self
     }
 
     /// Emit an inline string `enum` as a Rust enum.
@@ -3003,12 +3024,15 @@ impl UnifiedGenerator {
         if self.groups_dir.is_none() {
             // For split-out providers (provider_dir_override set), the shared
             // module lives in its own crate so it must import from
-            // foundation_deployment rather than crate::providers::common.
-            let common_path = if self.provider_dir_override.is_some() {
-                "foundation_deployment::providers::common"
-            } else {
-                "crate::providers::common"
-            };
+            // foundation_deployment rather than crate::providers::common. A
+            // caller can name another crate, such as foundation_api_common.
+            let common_path = self.common_import_path.clone().unwrap_or_else(|| {
+                if self.provider_dir_override.is_some() {
+                    "foundation_deployment::providers::common".to_string()
+                } else {
+                    "crate::providers::common".to_string()
+                }
+            });
             writeln!(
                 out,
                 "// Re-export common API types from foundation_deployment"

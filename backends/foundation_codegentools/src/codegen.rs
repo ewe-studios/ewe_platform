@@ -252,6 +252,8 @@ pub struct Codegen {
     skip_optional_none: bool,
     /// Generate the schemas that error responses name.
     error_types: bool,
+    /// The import path of the common API types in the generated shared module.
+    common_import_path: Option<String>,
 }
 
 impl Default for Codegen {
@@ -280,6 +282,7 @@ impl Default for Codegen {
             inline_enums: false,
             skip_optional_none: false,
             error_types: false,
+            common_import_path: None,
         }
     }
 }
@@ -483,6 +486,15 @@ impl Codegen {
     #[must_use]
     pub fn with_error_types(mut self, enabled: bool) -> Self {
         self.error_types = enabled;
+        self
+    }
+
+    /// Names the import path of the common API types in the generated shared
+    /// module. The default is `foundation_deployment::providers::common` for a
+    /// split-out provider and `crate::providers::common` otherwise.
+    #[must_use]
+    pub fn with_common_import_path(mut self, path: impl Into<String>) -> Self {
+        self.common_import_path = Some(path.into());
         self
     }
 
@@ -893,6 +905,9 @@ impl Codegen {
             .with_inline_enums(self.inline_enums)
             .with_skip_optional_none(self.skip_optional_none)
             .with_error_types(self.error_types);
+        if let Some(path) = &self.common_import_path {
+            generator = generator.with_common_import_path(path.clone());
+        }
         if let Some(dir) = &targets.provider_dir {
             generator = generator.with_provider_dir(dir.clone());
         }

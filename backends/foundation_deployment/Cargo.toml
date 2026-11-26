@@ -33,6 +33,7 @@ futures-lite = { version = "2", default-features = false, features = ["alloc"] }
 http = "1.4.0"
 regex = "1.10"
 sha2 = { workspace = true }
+foundation_api_common = { workspace = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }

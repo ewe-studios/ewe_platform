@@ -56,6 +56,7 @@ image = { version = "0.25.10", default-features = false }
 foundation_cloudflare_storage = { path = "backends/foundation_cloudflare_storage", version = "0.1.3" }
 foundation_netio = { path = "backends/foundation_netio", version = "0.0.19", default-features = false }
 foundation_core = { path = "backends/foundation_core", version = "0.0.23" }
+foundation_api_common = { path = "backends/foundation_api_common", version = "0.0.1" }
 rustix = "1.1.4"
 foundation_ui_project = { path = "backends/foundation_ui_project", version = "0.1.0" }
 # plist 1.7 requires quick-xml 0.38 for its property list parser.

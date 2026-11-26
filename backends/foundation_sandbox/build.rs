@@ -100,7 +100,11 @@ fn generate() {
         // providers keep their committed output.
         .with_inline_enums(true)
         .with_skip_optional_none(true)
-        .with_error_types(true);
+        .with_error_types(true)
+        // The generated client imports the common types from the small crate,
+        // so the static guest slave links no database and no C code
+        // (spec 77 feature 11, section 6.5).
+        .with_common_import_path("foundation_api_common");
 
     match codegen.check() {
         Ok(()) => {}
