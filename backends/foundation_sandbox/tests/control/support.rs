@@ -27,7 +27,12 @@ use foundation_sandbox::shared::ids::DriverId;
 static SERIAL: Mutex<()> = Mutex::new(());
 
 /// The one-at-a-time guard of the control tests.
+///
+/// It takes this thread's pool lease before it takes the test lock. The lease
+/// then always comes first, so two test threads cannot wait for each other: one
+/// on the lease and the other on this lock.
 pub fn serial() -> MutexGuard<'static, ()> {
+    pool();
     SERIAL
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner)
