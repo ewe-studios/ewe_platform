@@ -113,7 +113,9 @@ Test renamed groups, empty member lists, invalid references, platform opt-outs, 
 | Guest transfer | `images:vm-push` and `images:vm-pull` | OpenSSH transferred binary data in both directions. Tests check exclusions, retry errors, and existing local files. |
 | Guest provisioning | `images:vm-provision` | A loopback guest installed the selected image layer. Installer failure returned status 37 and kept its log. |
 | Guest diagnostics | `images:vm-logs` | A real loopback service returned a log. Disconnection preserved the previous file and returned status 255. |
-| Guest runner status | `images:vm-runner-alive` and `images:vm-wait-runner` | Both Nushell commands preserve connection failures. Tests check running, finished, and timeout cases. |
+| Guest runner status | `images:vm-runner-alive` and `images:vm-wait-runner` | Both tasks preserve connection failures. Tests check running, finished, and timeout cases. |
+| Guest command execution | `images:vm-exec` | The task writes the prologue and script to the guest and streams both output streams. Fixtures check the exit status and a write failure. |
+| Guest runner startup | `images:vm-runner` | The task starts the just-in-time runner and checks it after a wait. Fixtures check an empty config, a runner that exits at once, and an SSH failure. |
 | Container execution | `linux`, `link-submodules`, and virtual machine host checks | Local Linux containers exercise command failure, cleanup, and console access. Git fixtures verify baked source selection. |
 | Image planning | `image-prepare`, `image-settings`, `image-exists`, and `image-promote` | Seven plans match the previous hashes. A local Docker substitute checks missing images, retry, failure, and tags. |
 
@@ -125,7 +127,7 @@ Make and mise dispatch those operations to the same task set.
 1. Verify the CUDA archive and the complete release package selection. The default Linux image built a real plugin archive and verified it with protoc.
 2. Verify release installation on a clean hosted runner. Local tests cover cached release tools, new tags, and partial dispatch failures.
 3. Supply a verified first-stage tool for fresh guests. A new guest starts without Cargo or a repository checkout.
-4. Migrate guest command execution and runner startup. Verify the supported commands on native guests.
+4. Verify guest command execution and runner startup on native Windows and macOS guests. Local fixtures cover the task behavior.
 5. Migrate the remaining generators and supported legacy WebAssembly builds. Issue #792 tracks the fixture decision. Issue #794 tracks the Google Cloud input format.
 6. Select the supported manual publication packages. Issue #793 tracks the retired package names. Verify guest tests on supported hosts.
 

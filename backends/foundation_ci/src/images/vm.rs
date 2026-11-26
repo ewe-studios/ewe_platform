@@ -1,12 +1,13 @@
 //! Start and stop a local virtual machine host container by its exact identity.
 mod connection;
+mod exec;
 mod logs;
 mod provision;
 mod ready;
 mod runner;
 mod transfer;
 
-use crate::{workspace::capture, CiEnvironment};
+use crate::{CiEnvironment, workspace::capture};
 use clap::{Args, ValueEnum};
 use foundation_tasks::{
     OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskResult, TaskSet,
@@ -14,7 +15,7 @@ use foundation_tasks::{
 use std::{
     ffi::OsString,
     fs,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Read, Seek},
     path::PathBuf,
 };
 
@@ -212,12 +213,50 @@ async fn down(ctx: TaskContext, args: Container) -> TaskResult {
     Ok(())
 }
 
+/// Keep an SSH connection failure as its own status. Reuse the guest message for other failures.
+///
+/// The captured output holds the command's short diagnostic.
+pub(super) async fn failure(
+    ctx: &TaskContext,
+    action: &str,
+    error: TaskError,
+    mut capture: fs::File,
+) -> TaskError {
+    let mut text = String::new();
+    if capture.rewind().is_ok() {
+        let _ = capture.read_to_string(&mut text);
+    }
+    let text = text.trim();
+    if let TaskError::Exit { program, code: 255 } = error {
+        if !text.is_empty() {
+            if let Ok(env) = ctx.require::<TaskEnv>() {
+                let _ = env
+                    .output
+                    .write(OutputStream::Stderr, format!("{text}\n").as_bytes())
+                    .await;
+            }
+        }
+        return TaskError::Exit { program, code: 255 };
+    }
+    if text.is_empty() {
+        TaskError::operation(format!("{action}: {error}"))
+    } else {
+        TaskError::operation(format!("{action}: {text}"))
+    }
+}
+
 pub(super) fn register(set: &mut TaskSet) -> TaskResult {
     logs::register(set)?;
     provision::register(set)?;
     ready::register(set)?;
     runner::register(set)?;
     transfer::register(set)?;
+    set.add("vm-exec", "Run a script in the guest", exec::run)?;
+    set.add(
+        "vm-runner",
+        "Start the GitHub Actions runner in the guest",
+        runner::start,
+    )?;
     set.add("vm-up", "Start the virtual machine container", up)?;
     set.add(
         "vm-down",

@@ -409,3 +409,9 @@ This keeps the packaged file and the browser request in agreement when an applic
 
 During parallel native builds, one Chromium process exceeded the developer check's 60-second DOM dump timeout.
 A second run used the browser debugging protocol to read the page. All three script formats passed the same assertions.
+
+## Guest command execution and runner startup
+
+PowerShell escapes a single quote inside a single-quoted string by doubling it. A POSIX shell closes, escapes, and reopens the quote instead. One quoting rule would break one guest.
+An SSH client reports a connection failure as status 255. Map it back to 255 so the caller can separate a connection fault from a guest command fault.
+The scheduled caller needs the task runner on PATH. Install it once in the workflow job; the composite actions then use it.

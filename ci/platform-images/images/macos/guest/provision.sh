@@ -157,7 +157,7 @@ installer=$(find "$app/Contents/MacOS" -type f -perm -u+x | head -1)
 "$installer" --root "$ROOT/vulkan/$VULKAN_SDK_VERSION" --accept-licenses --default-answer --confirm-command install
 [ -x "$VULKAN_SDK/bin/glslc" ] || fail "the Vulkan SDK has no glslc under $VULKAN_SDK"
 
-# --- GitHub Actions runner (registered per job; see vm.nu runner) --------------
+# --- GitHub Actions runner (registered per job; see the images:vm-runner task) ---
 download "actions runner" "$RUNNER_URL" "$DOWNLOADS/actions-runner.tar.gz"
 check_sha256 "actions runner" "$DOWNLOADS/actions-runner.tar.gz" "$RUNNER_SHA256"
 sudo mkdir -p /usr/local/actions-runner && sudo chown "$(id -un)" /usr/local/actions-runner

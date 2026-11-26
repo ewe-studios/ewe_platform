@@ -729,3 +729,247 @@ exit "$INSTALL_STATUS"
     assert!(!run("macos", "exited", "0", "0").status.success());
     assert!(!run("windows", "running", "0", "0").status.success());
 }
+
+#[cfg(unix)]
+#[test]
+fn vm_exec_writes_the_prologue_and_script_and_streams_the_result() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let ssh = root.join("ssh");
+    fs::write(
+        &ssh,
+        r#"#!/bin/sh
+printf '<%s>' "$@" >> calls
+printf '\n' >> calls
+case "$*" in
+  *'Set-Content -Path'*|*"cat > '"*) cat > script; exit "$WRITE" ;;
+  *) exit "$RESULT" ;;
+esac
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(&ssh, fs::Permissions::from_mode(0o755)).unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    let body = "echo one\necho two\n";
+    fs::write(root.join("commands"), body).unwrap();
+    let invoke = |os: &str, write: &str, result: &str| {
+        Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .env("PATH", &path)
+            .env("WRITE", write)
+            .env("RESULT", result)
+            .args([
+                "task",
+                "run",
+                "images:vm-exec",
+                "--os",
+                os,
+                "--key",
+                "guest",
+                "--port",
+                "2345",
+                "--cwd",
+                "work dir",
+                "--script",
+                "commands",
+            ])
+            .output()
+            .unwrap()
+    };
+    for (os, remote, command, prologue) in [
+        (
+            "windows",
+            "C:/platform-images/exec.ps1",
+            "pwsh -NoProfile -File",
+            "$ErrorActionPreference = 'Stop'\n$PSNativeCommandUseErrorActionPreference = $true\nSet-Location -LiteralPath 'work dir'\n",
+        ),
+        (
+            "macos",
+            "/tmp/platform-images-exec.sh",
+            "bash -l",
+            "set -euo pipefail\ncd 'work dir'\n",
+        ),
+    ] {
+        let output = invoke(os, "0", "42");
+        assert_eq!(
+            output.status.code(),
+            Some(42),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("script")).unwrap(),
+            format!("{prologue}{body}")
+        );
+        let calls = fs::read_to_string(root.join("calls")).unwrap();
+        assert!(calls.contains(remote), "{calls}");
+        assert!(calls.contains(command), "{calls}");
+        fs::remove_file(root.join("script")).unwrap();
+        fs::remove_file(root.join("calls")).unwrap();
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn vm_exec_reports_a_write_failure() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let ssh = root.join("ssh");
+    fs::write(
+        &ssh,
+        r#"#!/bin/sh
+case "$*" in
+  *'Set-Content -Path'*|*"cat > '"*) echo 'write denied' >&2; exit 3 ;;
+  *) touch ran; exit 0 ;;
+esac
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(&ssh, fs::Permissions::from_mode(0o755)).unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    fs::write(root.join("commands"), "echo one\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+        .current_dir(root)
+        .env("PATH", &path)
+        .args([
+            "task",
+            "run",
+            "images:vm-exec",
+            "--os",
+            "macos",
+            "--key",
+            "guest",
+            "--cwd",
+            "/tmp",
+            "--script",
+            "commands",
+        ])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("write denied"));
+    assert!(!root.join("ran").exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn vm_runner_rejects_an_empty_jit_config() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    for content in ["", "  \n\t\n"] {
+        fs::write(root.join("jit"), content).unwrap();
+        let output = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+            .current_dir(root)
+            .args([
+                "task",
+                "run",
+                "images:vm-runner",
+                "--os",
+                "macos",
+                "--key",
+                "guest",
+                "--jitconfig-file",
+                "jit",
+            ])
+            .output()
+            .unwrap();
+        assert!(!output.status.success());
+        assert!(String::from_utf8_lossy(&output.stderr).contains("is empty"));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn vm_runner_reports_a_runner_that_exits_at_once() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let ssh = root.join("ssh");
+    fs::write(
+        &ssh,
+        r#"#!/bin/sh
+printf '<%s>' "$@" >> calls
+case "$*" in
+  *pgrep*) exit 44 ;;
+  *'tail -30'*) echo 'runner crashed at once' ;;
+  *) exit 0 ;;
+esac
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(&ssh, fs::Permissions::from_mode(0o755)).unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    fs::write(root.join("jit"), "encoded-config\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+        .current_dir(root)
+        .env("PATH", &path)
+        .args([
+            "task",
+            "run",
+            "images:vm-runner",
+            "--os",
+            "macos",
+            "--key",
+            "guest",
+            "--jitconfig-file",
+            "jit",
+            "--start-wait-ms",
+            "0",
+        ])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("runner crashed at once"));
+    let calls = fs::read_to_string(root.join("calls")).unwrap();
+    assert!(calls.contains("nohup"), "{calls}");
+    assert!(calls.contains("tail -30"), "{calls}");
+}
+
+#[cfg(unix)]
+#[test]
+fn vm_runner_distinguishes_an_ssh_failure() {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    let ssh = root.join("ssh");
+    fs::write(&ssh, "#!/bin/sh\nexit 255\n").unwrap();
+    fs::set_permissions(&ssh, fs::Permissions::from_mode(0o755)).unwrap();
+    let path = std::env::join_paths(
+        std::iter::once(root.to_owned())
+            .chain(std::env::split_paths(&std::env::var_os("PATH").unwrap())),
+    )
+    .unwrap();
+    fs::write(root.join("jit"), "encoded-config\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+        .current_dir(root)
+        .env("PATH", &path)
+        .args([
+            "task",
+            "run",
+            "images:vm-runner",
+            "--os",
+            "macos",
+            "--key",
+            "guest",
+            "--jitconfig-file",
+            "jit",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(255));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("exited with status 255"));
+}

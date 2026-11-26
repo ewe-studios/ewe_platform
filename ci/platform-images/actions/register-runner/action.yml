@@ -101,4 +101,4 @@ runs:
       run: |
         set -euo pipefail
         trap 'rm -f "$JIT"' EXIT
-        nu "$GITHUB_ACTION_PATH/../../scripts/vm.nu" runner --os "$OS" --key "$KEY" --port "$PORT" --jitconfig-file "$JIT"
+        foundation-ci task run images:vm-runner --os "$OS" --key "$KEY" --port "$PORT" --jitconfig-file "$JIT"

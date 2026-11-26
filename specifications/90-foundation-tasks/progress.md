@@ -598,3 +598,18 @@ Four compiler tests passed, including lazy module reuse and asset requests below
 The 0.1.13 runtime archive passed an independent browser check on 25 November 2026.
 The module import and both classic scripts each loaded one script, dispatched callback 7, and displayed “Updated”.
 A local registry checked credential selection, matching retries, and conflicting archive integrity with test credentials.
+
+## Guest command execution and runner startup
+
+Migration item 4 now has both tasks in Rust. `images:vm-exec` writes the prologue and the script to the guest and streams the result. `images:vm-runner` starts the just-in-time runner and checks it after a wait.
+Both tasks reuse the loopback SSH connection and keep status 255 for a connection failure.
+A shared `failure` helper puts the guest message in the error text.
+The workflow installs the task runner with `ci/actions/install-task-runner`.
+`register-runner` and the VM workflow now call the tasks instead of `vm.nu`.
+The Nushell `exec`, `runner`, and `runner-alive` commands are removed. The README and provisioner comments name the tasks.
+Five new fixture tests pass: the write and stream path, a write failure, an empty JIT config, a runner that exits at once, and an SSH failure.
+All 40 `foundation_ci` tests pass. Strict Clippy reports no warning.
+Native Windows and macOS guest runs remain open; the local fixtures use a fake SSH client.
+
+A stale path requirement blocked every locked Cargo command before this work.
+`foundation_sandbox` asked for `foundation_netio 0.0.18` while the crate was `0.0.19`. The requirement now matches.

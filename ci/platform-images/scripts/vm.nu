@@ -6,8 +6,6 @@
 #   nu vm.nu wait --os windows --name ci-win --key ~/.ssh/ci --timeout 90min
 #   nu vm.nu provision --os macos --name ci-mac --key ~/.ssh/ci       (macOS only)
 #   nu vm.nu push --os windows --key ~/.ssh/ci --src . --dest C:/work/repo
-#   nu vm.nu exec --os windows --key ~/.ssh/ci --cwd C:/work/repo --script build.ps1
-#   nu vm.nu runner --os windows --key ~/.ssh/ci --jitconfig-file jit.txt
 #   nu vm.nu wait-runner --os windows --key ~/.ssh/ci --timeout 6hr
 #   nu vm.nu logs --os windows --name ci-win --key ~/.ssh/ci --out logs/
 #   nu vm.nu down --name ci-win
@@ -154,87 +152,6 @@ def "main pull" [
     ]
 }
 
-# Run a script in the VM, in --cwd, streaming its output. Windows: a
-# PowerShell 7 script that stops at the first failing command (including
-# native commands); macOS: a bash script with `set -euo pipefail`.
-def "main exec" [
-    --os: string
-    --key: path
-    --port: int = $SSH_PORT
-    --cwd: string
-    --script: path                  # file with the commands
-] {
-    check-os $os
-    let body = open --raw $script
-    let remote = if $os == "windows" { "C:/platform-images/exec.ps1" } else { "/tmp/platform-images-exec.sh" }
-    let prologue = if $os == "windows" {
-        "$ErrorActionPreference = 'Stop'\n$PSNativeCommandUseErrorActionPreference = $true\nSet-Location -LiteralPath '" + $cwd + "'\n"
-    } else {
-        $"set -euo pipefail\ncd '($cwd)'\n"
-    }
-    let write = if $os == "windows" {
-        $"Set-Content -Path '($remote)' -Value \([Console]::In.ReadToEnd\(\)\)"
-    } else {
-        $"cat > '($remote)'"
-    }
-    let r = ssh-run $os $key $port $write --stdin ($prologue + $body)
-    if $r.exit_code != 0 { fail $"writing the script into the VM failed: ($r.stderr)" }
-    if $os == "windows" {
-        ssh-stream $os $key $port $"pwsh -NoProfile -File '($remote)'"
-    } else {
-        ssh-stream $os $key $port $"bash -l '($remote)'"
-    }
-}
-
-# Start the GitHub Actions runner in the VM with a just-in-time config: an
-# ephemeral runner that takes one job and unregisters itself. It runs
-# detached (Windows: a scheduled task as SYSTEM; macOS: nohup), so this
-# returns once it is up; `wait-runner` waits for it to finish.
-def "main runner" [
-    --os: string
-    --key: path
-    --port: int = $SSH_PORT
-    --jitconfig-file: path          # the encoded_jit_config from the GitHub API
-] {
-    check-os $os
-    let jit = open --raw $jitconfig_file | str trim
-    if ($jit | is-empty) { fail $"($jitconfig_file) is empty" }
-    let start = if $os == "windows" {
-        # The JIT config (a few KB) goes into a file only SYSTEM/Administrators
-        # can read; a small launcher passes it to run.cmd. (cmd's `set /p`
-        # would truncate it at 1021 characters.)
-        [
-            "$jit = [Console]::In.ReadToEnd().Trim()"
-            "Set-Content -Path C:/actions-runner/.jitconfig -Value $jit -NoNewline"
-            "icacls C:/actions-runner/.jitconfig /inheritance:r /grant 'SYSTEM:F' /grant 'Administrators:F' | Out-Null"
-            "Set-Content -Path C:/actions-runner/run-jit.ps1 -Value '$jit = (Get-Content -Raw C:/actions-runner/.jitconfig).Trim(); & C:/actions-runner/run.cmd --jitconfig $jit *> C:/actions-runner/runner.log; exit $LASTEXITCODE'"
-            "$action = New-ScheduledTaskAction -Execute 'C:\\Program Files\\PowerShell\\7\\pwsh.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File C:\\actions-runner\\run-jit.ps1' -WorkingDirectory 'C:\\actions-runner'"
-            "$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest"
-            "$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit ([TimeSpan]::Zero)"
-            "Register-ScheduledTask -TaskName platform-images-runner -Action $action -Principal $principal -Settings $settings -Force | Out-Null"
-            "Start-ScheduledTask -TaskName platform-images-runner"
-        ] | str join "; "
-    } else {
-        # `;`, not `&&`, before the `&`: a trailing `&` backgrounds the whole
-        # && chain, and a background job reads stdin from /dev/null.
-        "umask 077; cd /usr/local/actions-runner || exit 1; cat > .jitconfig || exit 1; [ -s .jitconfig ] || { echo 'empty JIT config' >&2; exit 1; }; nohup bash -lc './run.sh --jitconfig \"$(cat .jitconfig)\"' > runner.log 2>&1 < /dev/null & echo started"
-    }
-    let r = ssh-run $os $key $port $start --stdin $jit
-    if $r.exit_code != 0 { fail $"starting the runner failed: ($r.stderr)" }
-    # Give it a moment and make sure it did not exit straight away.
-    sleep 20sec
-    let alive = main runner-alive --os $os --key $key --port $port
-    if not $alive {
-        let log = ssh-run $os $key $port (if $os == "windows" { "Get-Content C:/actions-runner/runner.log -Tail 30" } else { "tail -30 /usr/local/actions-runner/runner.log" })
-        fail $"the runner exited right after starting:\n($log.stdout)"
-    }
-    print "runner started"
-}
-
-def "main runner-alive" [--os: string, --key: path, --port: int = $SSH_PORT]: nothing -> bool {
-    host-task --value images:vm-runner-alive [--os $os --key ($key | into string) --port ($port | into string)] | into bool
-}
-
 # Wait for the ephemeral runner to finish its job (it exits afterwards).
 def "main wait-runner" [
     --os: string
@@ -268,5 +185,5 @@ def "main down" [--name: string = "pi-vm"] {
 }
 
 def main [] {
-    print "usage: nu vm.nu <up|wait|provision|push|pull|exec|runner|wait-runner|logs|down> ... (see the header of this file)"
+    print "usage: nu vm.nu <up|wait|provision|push|pull|wait-runner|logs|down> ... (see the header of this file)"
 }

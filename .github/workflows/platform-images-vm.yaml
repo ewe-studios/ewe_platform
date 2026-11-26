@@ -147,6 +147,9 @@ jobs:
       - name: Install nushell
         uses: ./ci/platform-images/actions/setup-nu
 
+      - name: Install the task runner
+        uses: ./ci/actions/install-task-runner
+
       - name: Log in to the registry
         if: needs.images.outputs.registry-username != ''
         uses: docker/login-action@v4.8.0
@@ -195,7 +198,7 @@ jobs:
           set -euo pipefail
           script="$RUNNER_TEMP/platform-images-run"
           printf '%s\n' "$RUN" > "$script"
-          nu ci/platform-images/scripts/vm.nu exec --os "$OS" --key "$KEY" --port "$PORT" --cwd "$DEST" --script "$script"
+          foundation-ci task run images:vm-exec --os "$OS" --key "$KEY" --port "$PORT" --cwd "$DEST" --script "$script"
 
       - name: Register the VM as a just-in-time runner
         if: inputs.mode == 'runner'

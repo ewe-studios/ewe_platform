@@ -122,7 +122,7 @@ $f = Get-VerifiedDownload -Name 'rustup' -Component $C.rustup -FileName 'rustup-
 Invoke-Native -FilePath $f -ArgumentList @('-y', '--no-modify-path', '--profile', 'minimal', '--default-toolchain', 'none') | Out-Null
 Add-MachinePath 'C:\rust\cargo\bin'
 
-# --- GitHub Actions runner (registered per job; see vm.nu runner) -----------
+# --- GitHub Actions runner (registered per job; see the images:vm-runner task) ---
 $f = Get-VerifiedDownload -Name 'actions runner' -Component $C.actions_runner -FileName 'actions-runner.zip'
 Expand-Archive -Path $f -DestinationPath 'C:\actions-runner' -Force
 if (-not (Test-Path 'C:\actions-runner\run.cmd')) { throw 'the actions runner has no run.cmd' }

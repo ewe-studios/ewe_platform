@@ -397,9 +397,9 @@ Windows, or a self-hosted Linux host (required for macOS, see licensing).
 
 1. **SSH mode** (`platform-images-vm.yaml` with `mode: ssh`): the host job
    copies the checkout into the VM (`vm.nu push`) and runs a script there
-   (`vm.nu exec`: PowerShell 7 on Windows, bash on macOS; stops at the first
-   failure). It's simple, needs no extra secrets, and works for anything
-   that is just commands. Use it for builds and tests.
+   (the `images:vm-exec` task: PowerShell 7 on Windows, bash on macOS; stops
+   at the first failure). It's simple, needs no extra secrets, and works for
+   anything that is just commands. Use it for builds and tests.
 2. **Runner mode** (`mode: runner`): the host job registers the VM as an
    **ephemeral just-in-time runner** of the repository with a unique label
    (`register-runner`). A separate job in the caller,
@@ -543,7 +543,8 @@ nu ci/platform-images/scripts/vm.nu up --os windows --image docker.io/ewestudios
 nu ci/platform-images/scripts/vm.nu wait --os windows --name win --key ~/.ssh/ci
 nu ci/platform-images/scripts/vm.nu push --os windows --key ~/.ssh/ci --src . --dest C:/work/repo
 echo 'cargo build -p foundation_core' > /tmp/run.ps1
-nu ci/platform-images/scripts/vm.nu exec --os windows --key ~/.ssh/ci --cwd C:/work/repo --script /tmp/run.ps1
+cargo run --locked --quiet --profile uat --manifest-path backends/foundation_ci/Cargo.toml -- \
+   task run images:vm-exec --os windows --key ~/.ssh/ci --cwd C:/work/repo --script /tmp/run.ps1
 nu ci/platform-images/scripts/vm.nu down --name win
 ```
 
