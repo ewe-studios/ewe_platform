@@ -338,7 +338,40 @@ impl<'a> TestWorld<'a> {
             "dst",
         ));
 
-        let signing = SigningKey::generate_ed25519(&ctx, None).expect("the simulated signing key");
+        let (enrollment, client_auth, trust) = Self::auth(sim, &ctx, &url);
+
+        let interceptor: Arc<dyn Interceptor> =
+            Arc::new(ClientAuthInterceptor::new(Arc::clone(&client_auth)));
+        let mut router = Router::new().with_global_interceptors(vec![interceptor]);
+        register_agent_service(&mut router, Arc::clone(&service));
+        let network = Arc::new(MemNetwork::new(router, ctx));
+        let transport: Arc<dyn Transport> = Arc::new(MemTransport::new(network));
+
+        let default = Self::default_enrollment(sim, &enrollment);
+
+        Self {
+            sim,
+            enrollment,
+            transport,
+            url,
+            default_access: default.access_secret,
+            trust,
+            service,
+        }
+    }
+
+    /// The enrollment service, the bearer-secret provider and the trust store
+    /// of one run.
+    fn auth(
+        sim: &SimRuntime,
+        ctx: &Ctx,
+        url: &str,
+    ) -> (
+        Arc<EnrollmentService>,
+        Arc<dyn ClientAuth>,
+        Arc<TrustedClients>,
+    ) {
+        let signing = SigningKey::generate_ed25519(ctx, None).expect("the simulated signing key");
         let verifying = signing.verifying_key().clone();
         let store: Arc<dyn TrustStore> = Arc::new(MemoryTrustStore::new());
         let trust = {
@@ -353,7 +386,7 @@ impl<'a> TestWorld<'a> {
             SecretDomain::AGENT_RPC,
             vec![verifying.clone()],
             ctx.clone(),
-            VerifyPolicy::access(url.clone()),
+            VerifyPolicy::access(url.to_string()),
         );
         let client_auth: Arc<dyn ClientAuth> = Arc::new(SignedSecretAuth::new(
             access_verifier,
@@ -362,7 +395,7 @@ impl<'a> TestWorld<'a> {
         ));
 
         let mut enroll_policy = VerifyPolicy::enroll();
-        enroll_policy.audience = Some(url.clone());
+        enroll_policy.audience = Some(url.to_string());
         let enroll_verifier = SecretVerifier::new(
             SecretDomain::AGENT_RPC,
             vec![verifying],
@@ -386,51 +419,36 @@ impl<'a> TestWorld<'a> {
             )
             .expect("the simulated enrollment service"),
         );
+        (enrollment, client_auth, trust)
+    }
 
-        let interceptor: Arc<dyn Interceptor> =
-            Arc::new(ClientAuthInterceptor::new(Arc::clone(&client_auth)));
-        let mut router = Router::new().with_global_interceptors(vec![interceptor]);
-        register_agent_service(&mut router, Arc::clone(&service));
-        let network = Arc::new(MemNetwork::new(router, ctx));
-        let transport: Arc<dyn Transport> = Arc::new(MemTransport::new(network));
-
-        let default = {
-            let enrollment = Arc::clone(&enrollment);
-            let env = sim.ctx().require_env().expect("the simulated Env");
-            let mut seed = [0_u8; 32];
-            env.entropy().fill(&mut seed).expect("seeded entropy");
-            let key = KeyPair::from_seed(Seed::new(seed));
-            let token = enrollment
-                .issue_enroll_secret(Duration::from_secs(600))
-                .expect("the default enrollment secret");
-            let request = EnrollRequest {
-                token: token.encode().as_str().to_string(),
-                client_name: "dst-default".into(),
-                credential: Some(
-                    foundation_agent_rpc::proto::v1::__buffa::oneof::enroll_request::Credential::ClientKey(
-                        Box::new(foundation_agent_rpc::proto::v1::ClientKey {
-                            alg: "ed25519".into(),
-                            public_key: key.pk[..].to_vec(),
-                            ..Default::default()
-                        }),
-                    ),
+    /// The client that the default calls use, enrolled in memory.
+    fn default_enrollment(sim: &SimRuntime, enrollment: &Arc<EnrollmentService>) -> EnrollResponse {
+        let enrollment = Arc::clone(enrollment);
+        let env = sim.ctx().require_env().expect("the simulated Env");
+        let mut seed = [0_u8; 32];
+        env.entropy().fill(&mut seed).expect("seeded entropy");
+        let key = KeyPair::from_seed(Seed::new(seed));
+        let token = enrollment
+            .issue_enroll_secret(Duration::from_secs(600))
+            .expect("the default enrollment secret");
+        let request = EnrollRequest {
+            token: token.encode().as_str().to_string(),
+            client_name: "dst-default".into(),
+            credential: Some(
+                foundation_agent_rpc::proto::v1::__buffa::oneof::enroll_request::Credential::ClientKey(
+                    Box::new(foundation_agent_rpc::proto::v1::ClientKey {
+                        alg: "ed25519".into(),
+                        public_key: key.pk[..].to_vec(),
+                        ..Default::default()
+                    }),
                 ),
-                nonce: seed.to_vec(),
-                ..Default::default()
-            };
-            sim.block_on(async move { enrollment.enroll_client(&request).await })
-                .expect("the default client enrolls")
+            ),
+            nonce: seed.to_vec(),
+            ..Default::default()
         };
-
-        Self {
-            sim,
-            enrollment,
-            transport,
-            url,
-            default_access: default.access_secret,
-            trust,
-            service,
-        }
+        sim.block_on(async move { enrollment.enroll_client(&request).await })
+            .expect("the default client enrolls")
     }
 
     /// The seed of the run.
@@ -466,6 +484,10 @@ impl<'a> TestWorld<'a> {
     ///
     /// # Errors
     /// The enrollment error (a spent secret, a bad key, a store failure).
+    ///
+    /// # Panics
+    /// Panics when the simulated context holds no effect bundle, or when its
+    /// seeded entropy source fails.
     pub fn enroll(&self, name: &str) -> AgentRpcResult<EnrollResponse> {
         let env = self.sim.ctx().require_env().expect("the simulated Env");
         let mut seed = [0_u8; 32];
@@ -630,7 +652,7 @@ pub fn text_of(events: &[TurnEvent]) -> String {
     events
         .iter()
         .filter_map(|event| match &event.event {
-            Some(Event::Text(text)) | Some(Event::Thinking(text)) => Some(text.as_str()),
+            Some(Event::Text(text) | Event::Thinking(text)) => Some(text.as_str()),
             _ => None,
         })
         .collect()
