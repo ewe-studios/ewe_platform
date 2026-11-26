@@ -603,6 +603,7 @@ graph LR
   F07 --> F08[08 Cloudflare Worker and end to end]
   F06 --> F08
   F08 --> MB((MVP-B: Cloudflare))
+  F08 --> F18[18 lifetime and stream cost]
   MB --> F09[09 libkrun]
   MB --> F10[10 Docker]
   F10 --> F11[11 nested sandboxes]
@@ -630,6 +631,7 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 | 11 | [Nested sandboxes](features/11-nested-sandboxes/feature.md) | sonnet | 2 | A slave in a container starts Firecracker microVMs in it. |
 | 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | sonnet | draft, not scheduled | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
 | 17 | [Cloudflare Sandbox product support](features/17-cloudflare-sandbox-product/feature.md) | sonnet | 2 | An image made for the Cloudflare Sandbox product runs under the control plane; a plain HTTP caller uses `SandboxService`. |
+| 18 | [Sandbox lifetime and stream cost](features/18-sandbox-lifetime-and-stream-cost/feature.md) | sonnet | 2 | A sandbox has a lifetime limit that shares the one DO alarm with the idle deadline; an `Exec` stream stops at `stream_max_duration`. Feature 18 follows the study in `research.md`. |
 | 12 | [Sandbox images](features/12-sandbox-images/feature.md) | sonnet | 3 | An image with a manifest boots on Firecracker and libkrun; the slave can unpack a tree into a writable root. |
 | 13 | [Container image source](features/13-container-image-source/feature.md) | sonnet | 3 | A Docker image becomes a sandbox image. |
 | 14 | [Sandboxfile builder](features/14-sandboxfile-builder/feature.md) | sonnet | 3 | A build file with `FROM`, `ADD`, `FETCH`, `RUN`, `CMD` gives a sandbox image, with a step cache. |
@@ -648,6 +650,10 @@ DO's container. Feature 07 needs only features 01 and 02. Feature 08 also needs 
 06, for the native client (`SandboxRpcClient::connect`), the `Provider` facade and the CI
 workflow; so MVP-B comes after MVP-A. Feature 08 also owns the two deployment paths: the
 Rust deployer is the primary path, and the `wrangler` adapter is the fallback.
+
+**After MVP-B:** feature 18 adds a lifetime deadline and a bound on the time an `Exec` stream
+keeps a DO awake. It reads the study in `research.md`. The Durable Streams project does not
+measure its dollar savings; the techniques themselves are tested.
 
 Features 00 to 04 have no dependency on each other after 00, so 01, 02, 03 and 04 run in
 parallel. Feature 07 starts as soon as 01 and 02 are done, in parallel with 05 and 06.

@@ -1649,3 +1649,29 @@ binary for the whole crate.
 The static-link check, the real Unix domain socket cases of the create and input paths, and
 every microVM case need Linux. The macOS run proves the types, the parsing and the wasm and
 musl checks. The pull request's CI job is the proof for the rest.
+
+## 19. The Durable Streams study (2026-11-27)
+
+### 19.1 A Durable Object has one alarm
+
+The study project sets one alarm for each DO, at an absolute time. A new `setAlarm` replaces
+the pending one. Our idle deadline already uses that single slot. A lifetime limit therefore
+cannot have its own timer. The control plane computes the earlier of the two deadlines and
+sets one alarm. Feature 18 records the rule.
+
+### 19.2 A model is not a measurement
+
+The study project publishes large savings: about 100 times less for hibernation, and a
+total in the tens of thousands for each month. Every figure is an arithmetic model of
+assumed counts and list prices. The measured inputs are hit rates only. A reader must not
+treat a percentage in a README as a bill.
+
+We record our own limits as configuration with a default (root rule 8), and we say in
+`research.md` which number is measured and which is a model.
+
+### 19.3 Hibernation needs a different protocol
+
+A hibernatable WebSocket lets a DO sleep between writes. `SandboxService` is RPC over
+HTTP. An open response stream is an open request, and the DO stays awake for it. We bound
+the wake time with `stream_max_duration` instead of changing the protocol. A later feature
+may move large output to R2 behind a signed URL, which removes the long stream.

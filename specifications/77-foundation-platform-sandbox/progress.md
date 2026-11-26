@@ -516,6 +516,21 @@ The source scan of invariant I12 treats `src/cli/` as a boundary, because
 `cli::sandbox::run` is the body of the `agent-sandbox` main function. The test documents
 this.
 
+## The Durable Streams study and feature 18 (2026-11-27)
+
+`research.md` records how `durable-streams-cloudflare` keeps its Cloudflare bill low. Two
+findings shape our design:
+
+1. A DO has one alarm. The project sets it to an absolute time for the expiry of a session.
+   Our idle deadline uses the only alarm, so a second deadline must share it.
+2. Every dollar figure in that project is an arithmetic model. The hit rates are measured;
+   the totals are not. The techniques are tested; the saving is an estimate.
+
+Feature 18 adopts two techniques: a lifetime limit that shares the alarm, and a
+`stream_max_duration` bound on an open `Exec` stream. Hibernation behind a WebSocket is not
+adopted, because `SandboxService` is RPC over HTTP. The edge cache of `Probe` and `List`, the
+Analytics Engine view and in-isolate coalescing wait for a later feature.
+
 ## In progress
 
 Feature 06 is in pull request #881. Its review and merge are next.
@@ -526,10 +541,11 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 
 1. Feature 07 (the Cloudflare control plane, library), on a branch from the merged tree.
 2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B.
-3. Spec 83 feature 04 (the native host and the deterministic simulation tests).
-4. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
+3. Feature 18 (the lifetime deadline and the stream bound), after 08.
+4. Spec 83 feature 04 (the native host and the deterministic simulation tests).
+5. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
    product). Feature 17 needs 08.
-5. Phase 3: features 12 to 15 (images).
+6. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 
@@ -537,7 +553,7 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 |---|---|---|---|
 | MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 4 (00, then one of 01 to 04, then 05, then 06) | not started |
 | MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02; 08 also needs 06) | not started |
-| Phase 2: libkrun, Docker, nested sandboxes, Cloudflare Sandbox product | 09, 10, 11, 17 | 1 to 2 more each | not started |
+| Phase 2: libkrun, Docker, nested sandboxes, Cloudflare Sandbox product, lifetime and stream cost | 09, 10, 11, 17, 18 | 1 to 2 more each | not started |
 | Draft, not scheduled: Docker Sandboxes product | 16 | 1 more after 10 | draft |
 | Phase 3: sandbox images | 12, 13, 14, 15 | 4 more | not started |
 
