@@ -303,11 +303,24 @@ impl SandboxManager {
             self.remove_stored(&stored.id).await;
             return;
         };
+        // The lifetime deadline is fixed at create. A restore that finds it in
+        // the past destroys the sandbox, as a `Creating` record is today.
+        let now = created_unix_ms(&self.inner.ctx);
+        let expired = stored
+            .expires_at_unix_ms
+            .is_some_and(|expires| now >= expires);
         let attached = driver.attach(self.inner.ctx.clone(), &stored).await;
         let Ok(Some(substrate)) = attached else {
             self.remove_stored(&stored.id).await;
             return;
         };
+        if expired {
+            let handle: Arc<dyn SubstrateHandle> = Arc::from(substrate.handle);
+            let _ = handle.kill().await;
+            let _ = handle.cleanup().await;
+            self.remove_stored(&stored.id).await;
+            return;
+        }
         if stored.state != SandboxState::Ready {
             let handle: Arc<dyn SubstrateHandle> = Arc::from(substrate.handle);
             let _ = handle.kill().await;
@@ -349,6 +362,7 @@ impl SandboxManager {
                     stored.driver,
                     stored.spec.clone(),
                     stored.created_unix_ms,
+                    stored.expires_at_unix_ms,
                 ));
                 {
                     let mut state = record

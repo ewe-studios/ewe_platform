@@ -79,6 +79,20 @@ pub fn ctx(seed: u64, short: bool, long: bool) -> (Ctx, Arc<SimulatedClock>, Arc
     (ctx, clock, timer)
 }
 
+/// A context with a simulated clock and the timer of the simulated `Env`.
+///
+/// That timer wakes when the clock moves, so a test that steps the clock makes
+/// a stream deadline pass without a real wait.
+#[must_use]
+pub fn simulated_ctx(seed: u64) -> (Ctx, Arc<SimulatedClock>) {
+    crate::pool::pool();
+    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
+    let ctx = Ctx::with_seed(Arc::clone(&clock) as Arc<dyn Clock>, seed);
+    let env: Env = foundation_core::env::simulated(&ctx, seed).expect("the simulated Env builds");
+    ctx.store(env);
+    (ctx, clock)
+}
+
 /// The configuration of a test host.
 #[must_use]
 pub fn config() -> CloudflareConfig {
@@ -107,6 +121,25 @@ impl Harness {
     #[must_use]
     pub fn new(seed: u64, short: bool, long: bool) -> Self {
         let (ctx, clock, timer) = ctx(seed, short, long);
+        Self::build(ctx, clock, timer)
+    }
+
+    /// A harness whose timer wakes when the simulated clock moves.
+    ///
+    /// Use it for a stream deadline test. It starts no real or fake wait.
+    #[must_use]
+    pub fn new_simulated(seed: u64) -> Self {
+        let (ctx, clock) = simulated_ctx(seed);
+        let timer = Arc::new(TestTimer {
+            clock: Arc::clone(&clock),
+            short: false,
+            long: false,
+            waits: Mutex::new(Vec::new()),
+        });
+        Self::build(ctx, clock, timer)
+    }
+
+    fn build(ctx: Ctx, clock: Arc<SimulatedClock>, timer: Arc<TestTimer>) -> Self {
         let scripted = Arc::new(ScriptedSlave::new());
         let handler = slave_handler(Arc::clone(&scripted));
         let container = Arc::new(FakeContainer::new().with_slave(handler));

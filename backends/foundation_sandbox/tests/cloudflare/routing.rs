@@ -179,6 +179,7 @@ fn stream_error_removes_index_entry() {
         driver: DriverId::CloudflareContainer,
         state: SandboxState::Ready,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
         slave: None,
     };
     futures::executor::block_on(SandboxIndex::put(&*index, info)).expect("the entry");

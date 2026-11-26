@@ -3,7 +3,9 @@
 mod container;
 mod control;
 mod driver;
+mod lifetime;
 mod model_slave;
 mod routing;
+mod stream_cost;
 mod support;
 mod transport;

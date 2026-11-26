@@ -118,6 +118,11 @@ pub struct StoredRecord {
     pub state: SandboxState,
     /// The creation time as Unix milliseconds.
     pub created_unix_ms: u64,
+    /// The lifetime deadline as Unix milliseconds, or `None` for no limit.
+    ///
+    /// The create writes the value once. A restore reads it and never moves it.
+    #[serde(default)]
+    pub expires_at_unix_ms: Option<u64>,
     /// How to reach the slave, or `None` while the driver has not answered.
     pub endpoint: Option<SlaveEndpoint>,
 }

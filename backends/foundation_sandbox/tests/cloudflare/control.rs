@@ -74,6 +74,7 @@ fn restore_dead_container() {
         spec: spec(),
         state: SandboxState::Ready,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
         endpoint: Some(SlaveEndpoint::CloudflarePort { port: 1024 }),
     };
     h.storage.insert(
@@ -111,6 +112,7 @@ fn restore_unprepared_slave() {
         spec: spec(),
         state: SandboxState::Ready,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
         endpoint: Some(SlaveEndpoint::CloudflarePort { port: 1024 }),
     };
     h.storage.insert(
@@ -147,6 +149,7 @@ fn restore_creating_record() {
         spec: spec(),
         state: SandboxState::Creating,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
         endpoint: None,
     };
     h.storage.insert(
