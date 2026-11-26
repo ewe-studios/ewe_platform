@@ -70,9 +70,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
   remain.
 - **05-storage-backends** — ⏳ not started (0/6)
-- **06-http-rpc-surface** — 🟡 in progress (2/10). `DurableService`/`DurableLimits` and JSON mode
-  validation, one-level flatten, empty array rules and message reads landed. The HTTP adapter,
-  SSE, caching, security, ConnectRPC and conformance remain.
+- **06-http-rpc-surface** — 🟡 in progress (2/10). `DurableService`/`DurableLimits`, JSON mode
+  and the ETag/cache/cursor helpers landed. The HTTP adapter, `304` handling, SSE, security,
+  ConnectRPC and conformance remain.
 - **07-durable-streams-client** — ⏳ not started (0/10)
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)

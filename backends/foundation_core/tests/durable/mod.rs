@@ -1,6 +1,8 @@
 //! Tests for the Durable Streams protocol core.
 
 #[cfg(not(target_arch = "wasm32"))]
+mod cache;
+#[cfg(not(target_arch = "wasm32"))]
 mod fork;
 #[cfg(not(target_arch = "wasm32"))]
 mod json;
