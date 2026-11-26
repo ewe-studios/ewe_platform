@@ -546,9 +546,12 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
                 #[cfg(feature = "docker")]
                 drivers.push(Arc::new(crate::native::docker::driver::DockerDriver::new()));
             }
-            // Feature 09 adds the libkrun driver; the Cloudflare drivers are not
-            // part of a native local host.
-            DriverId::Libkrun | DriverId::CloudflareContainer | DriverId::CloudflareDo => {}
+            // Feature 09 adds the libkrun driver; a nested child and the
+            // Cloudflare drivers are not part of a native local host.
+            DriverId::Nested
+            | DriverId::Libkrun
+            | DriverId::CloudflareContainer
+            | DriverId::CloudflareDo => {}
         }
     }
     let store = FileRecordStore::new(Arc::clone(&host.fs), host.config.state_dir.clone())

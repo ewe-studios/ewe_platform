@@ -662,6 +662,11 @@ fn record_calls(record: &SandboxRecord) -> Arc<dyn ExecFileCalls> {
         .state
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
+    // A nested child carries its calls already: they go to the parent's inner
+    // control plane (feature 11).
+    if let Some(calls) = &state.calls {
+        return Arc::clone(calls);
+    }
     match &state.client {
         Some(client) => Arc::clone(client) as Arc<dyn ExecFileCalls>,
         None => Arc::new(MissingCalls),

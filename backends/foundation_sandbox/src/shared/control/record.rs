@@ -92,6 +92,11 @@ pub struct RecordState {
     pub substrate: Option<Arc<dyn SubstrateHandle>>,
     /// The typed client of the slave.
     pub client: Option<Arc<crate::shared::control::SlaveClient>>,
+    /// The low-level calls of the slave, when the driver already reached it.
+    ///
+    /// A nested child's calls go to the parent's inner control plane
+    /// (feature 11). They replace the slave client for the exec and file calls.
+    pub calls: Option<Arc<dyn crate::shared::handles::ExecFileCalls>>,
     /// What the slave reported in `Info`.
     pub slave: Option<SlaveInfo>,
     /// How the sandbox ended, frozen at the first stop, kill or exit.
@@ -128,6 +133,7 @@ impl SandboxRecord {
                 endpoint: None,
                 substrate: None,
                 client: None,
+                calls: None,
                 slave: None,
                 exit: None,
             }),

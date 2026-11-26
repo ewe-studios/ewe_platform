@@ -3,10 +3,12 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use foundation_context::Ctx;
+
+use crate::shared::drivers::nested::NestedDriver;
 
 use crate::shared::container::ContainerControl;
 use crate::shared::control::record::{created_unix_ms, RecordStore, SandboxRecord};
@@ -268,6 +270,35 @@ impl SandboxManager {
                 restored: AtomicBool::new(false),
             }),
         }
+    }
+
+    /// A manager with the nested driver over its own registry (feature 11).
+    ///
+    /// The nested driver finds the parent of a child in this manager. The
+    /// manager fills the driver's registry slot after it exists, because the
+    /// manager holds the driver.
+    #[must_use]
+    pub fn with_nested_driver(
+        ctx: Ctx,
+        mut drivers: Vec<Arc<dyn SandboxDriver>>,
+        connector: Arc<dyn SlaveConnector>,
+        store: Arc<dyn RecordStore>,
+        config: ManagerConfig,
+    ) -> Self {
+        let slot = Arc::new(OnceLock::new());
+        drivers.push(Arc::new(NestedDriver::with_slot(Arc::clone(&slot))));
+        let inner = Arc::new(Inner {
+            ctx,
+            drivers,
+            connector,
+            store,
+            config,
+            entries: Mutex::new(HashMap::new()),
+            stopped: Mutex::new(Vec::new()),
+            restored: AtomicBool::new(false),
+        });
+        let _ = slot.set(Arc::clone(&inner));
+        Self { inner }
     }
 
     /// The shared state, for the create task and the handles.

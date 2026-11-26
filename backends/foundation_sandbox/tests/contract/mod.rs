@@ -9,5 +9,6 @@ mod error;
 mod host;
 mod ids;
 mod message;
+mod nested;
 mod sequence;
 mod spec;

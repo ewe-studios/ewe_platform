@@ -8,6 +8,9 @@ pub mod command;
 pub mod container;
 pub mod control;
 pub mod driver;
+/// The drivers of the portable control plane (feature 11).
+#[cfg(feature = "control")]
+pub mod drivers;
 pub mod error;
 pub mod handles;
 pub mod host;
