@@ -120,6 +120,30 @@ fn wait_empty(outer: &SandboxManager) {
     panic!("the records did not leave the manager");
 }
 
+/// The automatic driver choice never picks the nested driver: a child names it.
+#[test]
+fn nested_driver_is_not_chosen_automatically() {
+    let _serial = support::serial();
+    let (ctx, _clock) = support::ctx(35);
+    let manager = SandboxManager::with_nested_driver(
+        ctx.clone(),
+        Vec::new(),
+        in_memory_connector(Arc::new(ScriptedSlave::new())),
+        Arc::new(CountingStore::new()),
+        ManagerConfig::default(),
+    );
+    let mut spec = SandboxSpec::new(RootFs::Ext4Image(PathBuf::from("/rootfs.ext4")));
+    spec.driver = None;
+    let error = support::expect_error(
+        support::block_on(foundation_sandbox::shared::control::manager::choose_driver(
+            &manager.inner(),
+            &spec,
+        )),
+        "the automatic choice",
+    );
+    assert!(matches!(error, SandboxError::NoDriver { .. }));
+}
+
 /// I2: a parent whose slave cannot control is refused.
 #[test]
 fn nested_parent_cannot_control() {

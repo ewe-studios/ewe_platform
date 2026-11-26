@@ -555,6 +555,12 @@ pub async fn choose_driver(
     let mut first_error = None;
     let mut chosen = None;
     for (driver, report) in inner.drivers.iter().zip(reports.iter()) {
+        // A nested child names its driver and its parent: the validate rule
+        // requires `driver: Nested` exactly when `parent` is set. So the
+        // automatic choice never picks the nested driver (feature 11).
+        if driver.id() == DriverId::Nested {
+            continue;
+        }
         if !report.usable {
             continue;
         }

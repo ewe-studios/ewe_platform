@@ -556,7 +556,10 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
     }
     let store = FileRecordStore::new(Arc::clone(&host.fs), host.config.state_dir.clone())
         .map_err(|error| failure(&error))?;
-    Ok(Arc::new(SandboxManager::new(
+    // The nested driver serves a child sandbox in a parent container
+    // (feature 11). It is in every local control plane; the automatic driver
+    // choice never picks it, because a child names it.
+    Ok(Arc::new(SandboxManager::with_nested_driver(
         ctx.clone(),
         drivers,
         host.connector.clone(),
