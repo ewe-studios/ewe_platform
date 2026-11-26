@@ -626,10 +626,15 @@ pub async fn docker_launch(
             container,
             substrate,
         } => sidecar(&state, &ctx, plan, container, substrate).await,
-        DockerLaunch::EmitReady { substrate } => (
-            DockerState::new(DockerLaunch::Done, &state.guard, &state),
-            TaskStatus::Ready(Ok(substrate)),
-        ),
+        DockerLaunch::EmitReady { substrate } => {
+            // The substrate handle owns the container from now on. Without
+            // this, the guard would remove a good container when the task ends.
+            state.guard.disarm();
+            (
+                DockerState::new(DockerLaunch::Done, &state.guard, &state),
+                TaskStatus::Ready(Ok(substrate)),
+            )
+        }
         DockerLaunch::Done => return None,
     };
     Some(next)
@@ -755,9 +760,11 @@ async fn pull(
                 return fail(state, timeout_error(plan.spec.limits.rpc_timeout)).await;
             }
         }
+        // The pull has its own deadline: the daemon keeps the request open
+        // while it downloads the layers (section 6.2).
         match call_with_timeout(
             ctx,
-            plan.spec.limits.rpc_timeout,
+            plan.config.pull_timeout,
             state.api.image_pull(&plan.image),
         )
         .await
@@ -870,7 +877,11 @@ async fn inject(
     plan: Box<DockerPlan>,
     container: String,
 ) -> (DockerState, Status) {
-    let tar = match slave_tar(&plan.slave_path) {
+    let host = match SandboxHost::from_ctx(ctx) {
+        Ok(host) => host,
+        Err(error) => return fail(state, error.current_context().clone()).await,
+    };
+    let tar = match slave_tar(&host.fs, &plan.slave_path) {
         Ok(tar) => tar,
         Err(error) => return fail(state, error.current_context().clone()).await,
     };

@@ -42,3 +42,8 @@ mod cli;
 /// The source scans of invariants I10 and I12 (feature 06).
 #[cfg(not(target_family = "wasm"))]
 mod boundary;
+
+/// The Docker driver and container-control tests (feature 10). They need the
+/// simulation helpers and a Unix host for the fake process spawner.
+#[cfg(all(feature = "docker", feature = "testing", unix))]
+mod docker;

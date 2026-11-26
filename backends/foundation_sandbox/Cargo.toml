@@ -98,6 +98,9 @@ optional = true
 [dev-dependencies]
 # The workspace holds one `proptest` version for every crate (spec 77 rule).
 proptest = { workspace = true }
+# The streamed bodies of the Docker driver tests (feature 10): the fake Engine
+# answer is a `ByteStream` or a `JsonLinesStream` over a fixed body.
+foundation_deployment = { path = "../foundation_deployment", version = "0.0.7" }
 # `SimulatedClock` for the deterministic identifier test. The feature is
 # test-only; it adds no code to the library build.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }

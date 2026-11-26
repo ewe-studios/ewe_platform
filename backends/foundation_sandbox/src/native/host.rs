@@ -129,6 +129,17 @@ impl HostFs for NativeFs {
         Ok(bytes)
     }
 
+    fn open_read(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send + Sync>> {
+        let file = File::open(path).map_err(|error| io_error("open_read", path, &error))?;
+        Ok(Box::new(file))
+    }
+
+    fn file_size(&self, path: &Path) -> SandboxResult<u64> {
+        std::fs::metadata(path)
+            .map(|metadata| metadata.len())
+            .map_err(|error| io_error("file_size", path, &error).into())
+    }
+
     fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {
         let mut file = File::open(path).map_err(|error| io_error("tail", path, &error))?;
         let length = file

@@ -9,8 +9,9 @@
 //! slave file in bounded chunks, so the driver never holds the whole archive.
 
 use std::collections::VecDeque;
-use std::io::Read as _;
+use std::io::Read;
 use std::path::Path;
+use std::sync::Arc;
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
@@ -33,6 +34,7 @@ use foundation_deployment_docker::generated::wait::ContainerWaitResponse;
 use foundation_netio::shared::http::SendSafeBody;
 
 use crate::shared::error::{SandboxError, SandboxResult};
+use crate::shared::host::HostFs;
 use crate::shared::BoxFuture;
 
 /// The label that names the sandbox of a container.
@@ -336,24 +338,22 @@ pub fn create_body(
 /// The tar stream of the slave file: the directory `.ewe/` and the file
 /// `.ewe/agent-slave`.
 ///
-/// The file contents are read in bounded chunks as the daemon reads the body,
-/// so the driver never holds the whole slave in memory.
+/// The file contents are read in bounded chunks through the injected host file
+/// system as the daemon reads the body, so the driver never holds the whole
+/// slave in memory and never touches the real file system directly.
 ///
 /// # Errors
 /// [`SandboxError::BinaryNotFound`] when the slave file does not exist, or
-/// [`SandboxError::Io`] when its metadata cannot be read.
-pub fn slave_tar(path: &Path) -> SandboxResult<SendSafeBody> {
-    let file = std::fs::File::open(path).map_err(|error| SandboxError::Io {
-        op: "open slave".to_string(),
-        message: format!("{}: {error}", path.display()),
-    })?;
-    let size = file
-        .metadata()
-        .map_err(|error| SandboxError::Io {
-            op: "stat slave".to_string(),
-            message: format!("{}: {error}", path.display()),
-        })?
-        .len();
+/// [`SandboxError::Io`] when it cannot be opened or its size cannot be read.
+pub fn slave_tar(fs: &Arc<dyn HostFs>, path: &Path) -> SandboxResult<SendSafeBody> {
+    if !fs.exists(path) {
+        return Err(SandboxError::BinaryNotFound {
+            name: path.display().to_string(),
+        }
+        .into());
+    }
+    let file = fs.open_read(path)?;
+    let size = fs.file_size(path)?;
     let directory = header(".ewe/", 0, 0o755, tar::EntryType::Directory);
     let slave = header(".ewe/agent-slave", size, 0o755, tar::EntryType::Regular);
     Ok(SendSafeBody::Stream(Some(Box::new(TarStream {
@@ -398,7 +398,7 @@ struct TarStream {
     /// The headers that come before the file contents.
     blocks: VecDeque<Vec<u8>>,
     /// The slave file, until its last byte is read.
-    file: Option<std::fs::File>,
+    file: Option<Box<dyn Read + Send + Sync>>,
     /// The bytes of the file not read yet.
     remaining: u64,
     /// The zero bytes that pad the file to a 512-byte boundary.
