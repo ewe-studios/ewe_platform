@@ -284,6 +284,28 @@ impl EnrollmentService {
         Ok(())
     }
 
+    /// The trusted-client store (list, revoke).
+    #[must_use]
+    pub fn trusted_clients(&self) -> &Arc<TrustedClients> {
+        &self.trust
+    }
+
+    /// Issue one enrollment secret, valid for `validity`.
+    /// The secret names this host's audience, so only this host accepts it.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Config`] when the issuer cannot make the secret.
+    pub fn issue_enroll_secret(
+        &self,
+        validity: foundation_compact::Duration,
+    ) -> AgentRpcResult<foundation_auth::secret::SignedSecret> {
+        let mut request = SecretRequest::enroll(validity);
+        request.audience = self.verifier.audience().map(str::to_string);
+        self.signer
+            .issue(&request)
+            .map_err(|error| secret_error(&error))
+    }
+
     /// A new access secret for an enrolled client-key client.
     ///
     /// # Errors

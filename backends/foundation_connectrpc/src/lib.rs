@@ -12,6 +12,10 @@
 // Cross-platform modules (native + wasm).
 pub mod shared;
 
+/// In-memory network and transport for deterministic simulation tests.
+#[cfg(feature = "testing")]
+pub mod testing;
+
 // Native-only modules (TCP server, h2/h3 transports).
 #[cfg(not(target_family = "wasm"))]
 pub mod native;

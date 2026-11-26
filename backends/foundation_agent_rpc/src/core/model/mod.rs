@@ -14,15 +14,26 @@
 //! in the same order as its diagram.
 
 pub mod catalog;
+#[cfg(feature = "multi")]
 pub mod handle;
+#[cfg(feature = "multi")]
 pub mod remote;
 
 pub use catalog::{
     select, AgentRpcFuture, CatalogEntry, KindSupport, LoadState, ModelCapabilities, ModelCatalog,
     ModelDescriptor, SelectionError,
 };
+#[cfg(feature = "multi")]
 pub use handle::ModelHandle;
+#[cfg(feature = "multi")]
 pub use remote::{ApiModelConfig, RemoteCatalog};
+
+/// A loaded model handle. The real handle needs the agent loop, which the
+/// `multi` build owns. A deterministic simulation harness supplies its own
+/// scripted registry, so it never constructs one.
+#[cfg(not(feature = "multi"))]
+#[derive(Debug, Clone)]
+pub struct ModelHandle;
 
 use buffa::EnumValue;
 use foundation_connectrpc::Code;

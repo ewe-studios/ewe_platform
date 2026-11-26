@@ -49,11 +49,11 @@ futures-lite = "2"
 
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", features = ["turso"], default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.19", features = ["multi"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", features = ["secret"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "compression", "wire-native"] }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", features = ["vfs", "vfs-search", "vfs-search-fff"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16", default-features = false, features = ["vfs", "vfs-search", "vfs-search-fff"] }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.6", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
@@ -158,7 +158,7 @@ name = "memory_tests"
 path = "tests/memory/mod.rs"
 
 [features]
-default = ["llamacpp", "candle"]
+default = ["llamacpp", "candle", "multi"]
 llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment_huggingface"]
 
 # Toolbox utilities to make testing and execution easier.
@@ -196,10 +196,10 @@ candle-cuda = [
 candle-gpu = ["candle-cuda"]
 
 # Multi-threaded executor
-multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
+multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi", "foundation_auth/turso", "foundation_netio/multi", "foundation_nativeapis/multi"]
 
 # Test substrate (F21): MockModelProvider, MockTool, message builders
-testing = ["toolbox"]
+testing = ["toolbox", "multi"]
 
 # live-model-tests: integration tests that need a LARGE or DOWNLOADED model
 # (SmolLM2, Gemma-4, the qwen GGUF the llama-server runs) or a live cloud API
