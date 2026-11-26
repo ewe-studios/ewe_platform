@@ -430,3 +430,58 @@ fn given_an_sse_encoding_header_when_a_text_read_runs_then_the_data_is_decoded()
         assert_eq!(result.chunks[0].data, b"Hello");
     });
 }
+
+#[test]
+fn given_a_closed_create_when_it_runs_then_the_closed_header_is_sent() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(201, &[], b"")]);
+        handle(transport.clone())
+            .create(Some("text/plain"), None, None, true, Vec::new())
+            .await
+            .expect("create");
+
+        assert!(transport
+            .last_request()
+            .headers
+            .contains(&("stream-closed".to_string(), "true".to_string())));
+    });
+}
+
+#[test]
+fn given_a_close_when_it_runs_then_it_sends_the_closed_header_and_returns_the_offset() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("stream-next-offset", "0000000000000009")],
+            b"",
+        )]);
+        let result = handle(transport.clone())
+            .close(b"final".to_vec(), Some("text/plain"))
+            .await
+            .expect("close");
+
+        assert_eq!(result.offset.as_deref(), Some("0000000000000009"));
+        let request = transport.last_request();
+        assert_eq!(request.method.as_str(), "POST");
+        assert!(request
+            .headers
+            .contains(&("stream-closed".to_string(), "true".to_string())));
+        assert_eq!(request.body, b"final");
+    });
+}
+
+#[test]
+fn given_a_stream_sequence_when_an_append_runs_then_the_header_is_sent() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(204, &[], b"")]);
+        handle(transport.clone())
+            .append(b"x".to_vec(), Some("text/plain"), Some("0007"), None, false)
+            .await
+            .expect("append");
+
+        assert!(transport
+            .last_request()
+            .headers
+            .contains(&("stream-seq".to_string(), "0007".to_string())));
+    });
+}
