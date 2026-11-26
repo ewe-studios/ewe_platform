@@ -247,6 +247,7 @@ fn given_a_stream_when_head_runs_then_it_reports_the_tail_without_a_body() {
             Some(offset(3).as_str())
         );
         assert_eq!(response.header("Cache-Control"), Some("no-store"));
+        assert_eq!(response.header("ETag"), Some("\"events:0:3\""));
     });
 }
 

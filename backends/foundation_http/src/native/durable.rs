@@ -804,6 +804,10 @@ async fn handle_head(
         SimpleHeader::CACHE_CONTROL,
         CachePolicy::NoStore.header_value().to_string(),
     ));
+    headers.push((
+        SimpleHeader::ETAG,
+        etag(name.as_str(), 0, offset_length(&head.tail), head.closed),
+    ));
     if head.closed {
         headers.push((
             SimpleHeader::custom(header::STREAM_CLOSED),
@@ -1024,6 +1028,15 @@ fn format_expires_at(millis: i64) -> Option<String> {
 
 fn offset_text(offset: &StreamOffset) -> String {
     encode_offset(offset)
+}
+
+/// The byte length an offset names.
+fn offset_length(offset: &StreamOffset) -> u64 {
+    let bytes = offset.as_bytes();
+    let take = bytes.len().min(8);
+    let mut buf = [0_u8; 8];
+    buf[8 - take..].copy_from_slice(&bytes[bytes.len() - take..]);
+    u64::from_be_bytes(buf)
 }
 
 /// The wire text of one Server-Sent Events (SSE) `data` event.
