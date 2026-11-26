@@ -365,8 +365,17 @@ impl ImageStore {
             self.host
                 .fs
                 .write(&temporary.join("manifest.json"), &json)?;
-            self.host.fs.rename(&temporary, &store)?;
-            Ok(())
+            // Two builders can commit the same key at the same time. The
+            // second rename finds the first image; its temporary directory
+            // goes, and the first image stays (invariant I11).
+            match self.host.fs.rename(&temporary, &store) {
+                Ok(()) => Ok(()),
+                Err(_) if self.host.fs.exists(&store) => {
+                    let _ = self.host.fs.remove_dir_all(&temporary);
+                    Ok(())
+                }
+                Err(error) => Err(error),
+            }
         })();
         if let Err(error) = prepared {
             let _ = self.host.fs.remove_dir_all(&temporary);

@@ -210,3 +210,87 @@ mod slave_program {
         assert_eq!(status.code(), Some(64));
     }
 }
+
+#[test]
+fn cli_image_build_parse() {
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "image",
+        "build",
+        "-f",
+        "/tmp/Sandboxfile",
+        "--tag",
+        "app",
+        "--size-mib",
+        "512",
+        "--no-cache",
+        "/tmp/context",
+    ])
+    .expect("the image build command parses");
+    let SandboxCommand::Image(image) = cli.command else {
+        panic!("the command is not image");
+    };
+    let foundation_sandbox::cli::sandbox::ImageCommand::Build(args) = image.command else {
+        panic!("the sub-command is not build");
+    };
+    assert_eq!(
+        args.file,
+        Some(std::path::PathBuf::from("/tmp/Sandboxfile"))
+    );
+    assert_eq!(args.tag.as_deref(), Some("app"));
+    assert_eq!(args.size_mib, Some(512));
+    assert!(args.no_cache);
+    assert_eq!(args.context, std::path::PathBuf::from("/tmp/context"));
+
+    // The defaults: the file beside the context, the current directory.
+    let cli = SandboxCli::try_parse_from(["agent-sandbox", "image", "build"])
+        .expect("the image build defaults parse");
+    let SandboxCommand::Image(image) = cli.command else {
+        panic!("the command is not image");
+    };
+    let foundation_sandbox::cli::sandbox::ImageCommand::Build(args) = image.command else {
+        panic!("the sub-command is not build");
+    };
+    assert_eq!(args.file, None);
+    assert_eq!(args.context, std::path::PathBuf::from("."));
+}
+
+#[test]
+fn cli_image_build_flow() {
+    use foundation_sandbox::cli::sandbox::{run, SandboxCli};
+
+    let directory = std::env::temp_dir().join(format!(
+        "ewe-f14-cli-{}-{}",
+        std::process::id(),
+        std::line!()
+    ));
+    let _ = std::fs::remove_dir_all(&directory);
+    std::fs::create_dir_all(&directory).expect("the test directory is made");
+
+    // A syntax error names its line and exits with 125.
+    let file = directory.join("Sandboxfile");
+    std::fs::write(&file, "FROM alpine:3.22\nADD onlyone\n").expect("the file is written");
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "image",
+        "build",
+        "-f",
+        file.to_str().expect("the file path is text"),
+        directory.to_str().expect("the directory path is text"),
+    ])
+    .expect("the command parses");
+    assert_eq!(run(foundation_context::Ctx::host(), cli), 125);
+
+    // A missing file exits with 125.
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "image",
+        "build",
+        "-f",
+        directory.join("absent").to_str().expect("the path is text"),
+        directory.to_str().expect("the directory path is text"),
+    ])
+    .expect("the command parses");
+    assert_eq!(run(foundation_context::Ctx::host(), cli), 125);
+    let _ = std::fs::remove_dir_all(&directory);
+}

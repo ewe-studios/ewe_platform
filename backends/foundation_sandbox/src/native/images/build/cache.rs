@@ -221,7 +221,7 @@ impl StepCache {
         if total <= self.limits.cache_max_bytes {
             return;
         }
-        entries.sort_by(|left, right| left.2.cmp(&right.2));
+        entries.sort_by_key(|entry| entry.2);
         for (key, size, _) in entries {
             if total <= self.limits.cache_max_bytes {
                 break;

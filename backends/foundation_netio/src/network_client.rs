@@ -220,6 +220,16 @@ impl HttpClientBuilder {
         self
     }
 
+    /// Refuse a redirect from `https` to another scheme (default `false`).
+    ///
+    /// A caller that downloads code sets this, so a server cannot move the
+    /// request to plain `http`.
+    #[must_use]
+    pub fn refuse_https_downgrade(mut self, refuse: bool) -> Self {
+        self.config.redirect.refuse_https_downgrade = refuse;
+        self
+    }
+
     /// Control whether the client follows non-standard redirect responses
     /// (i.e. not 301/302/303/307/308).
     #[must_use]

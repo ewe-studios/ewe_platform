@@ -499,7 +499,11 @@ impl TarStream {
                             Ok(reader) => {
                                 self.remaining = entry.size;
                                 self.reader = Some(reader);
-                                self.phase = TarPhase::Body;
+                                self.phase = if entry.size == 0 {
+                                    TarPhase::Entry
+                                } else {
+                                    TarPhase::Body
+                                };
                             }
                             Err(error) => {
                                 self.error = Some(error.current_context().clone());
@@ -711,10 +715,11 @@ pub async fn download(
     let mut limits = crate::shared::limits::ArtifactLimits::default();
     let client = foundation_netio::HttpClientBuilder::new()
         .connect_timeout(limits.connect_timeout)
-        .max_redirects(0)
+        .max_redirects(5)
+        .refuse_https_downgrade(true)
         .build();
     limits.max_download_bytes = context.limits.max_fetch_bytes;
-    let open = crate::native::artifacts::fetch::open_following(
+    let open = crate::native::artifacts::fetch::open(
         &client,
         context.ctx,
         timer,
@@ -722,7 +727,6 @@ pub async fn download(
         writer,
         sha256,
         &limits,
-        5,
     )
     .await;
     let mut download = match open {

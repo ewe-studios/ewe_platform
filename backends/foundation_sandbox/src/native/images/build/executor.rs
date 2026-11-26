@@ -107,6 +107,13 @@ pub enum BuildEvent {
 /// and their snapshots in a consistent state.
 pub struct BuildStream {
     events: futures::channel::mpsc::UnboundedReceiver<BuildEvent>,
+    cancel: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl Drop for BuildStream {
+    fn drop(&mut self) {
+        self.cancel.store(true, std::sync::atomic::Ordering::SeqCst);
+    }
 }
 
 impl std::fmt::Debug for BuildStream {
@@ -206,9 +213,13 @@ impl ImageBuilder {
         let (sender, events) = futures::channel::mpsc::unbounded();
         let on_failure = sender.clone();
         let builder = self.clone();
+        let cancel = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let task_cancel = Arc::clone(&cancel);
         let future = async move {
             let sink = ProgressSink(Some(sender.clone()));
-            let result = builder.build_inner(file, context, options, sink).await;
+            let result = builder
+                .build_inner(file, context, options, sink, task_cancel)
+                .await;
             let _ = sender.unbounded_send(BuildEvent::Done(Box::new(result)));
         };
         if let Err(error) =
@@ -221,7 +232,7 @@ impl ImageBuilder {
             .into();
             let _ = on_failure.unbounded_send(BuildEvent::Done(Box::new(Err(error))));
         }
-        BuildStream { events }
+        BuildStream { events, cancel }
     }
 
     /// The build story of section 6.6.
@@ -231,6 +242,7 @@ impl ImageBuilder {
         context: PathBuf,
         options: BuildOptions,
         progress: ProgressSink,
+        cancel: Arc<std::sync::atomic::AtomicBool>,
     ) -> SandboxResult<ImageRef> {
         let total = u32::try_from(file.steps.len()).unwrap_or(u32::MAX);
         let driver = self.choose_driver(&file).await?;
@@ -277,10 +289,16 @@ impl ImageBuilder {
         };
         // Steps 2 and later: metadata or a changing step.
         for (position, step) in file.steps.iter().enumerate().skip(1) {
+            if cancel.load(std::sync::atomic::Ordering::SeqCst) {
+                return Err(SandboxError::StreamLost.into());
+            }
             self.run_step(
                 &file, position, step, &context, &options, &cache, &driver, &progress, &mut state,
             )
             .await?;
+        }
+        if cancel.load(std::sync::atomic::Ordering::SeqCst) {
+            return Err(SandboxError::StreamLost.into());
         }
         self.commit(&file, &options, &cache, &progress, &mut state)
             .await

@@ -20,6 +20,11 @@ mod control;
 #[cfg(all(unix, feature = "control", feature = "testing"))]
 mod images;
 
+/// The `Sandboxfile` builder tests (feature 14). They need the control plane,
+/// its simulation helpers and the image store.
+#[cfg(all(unix, feature = "images", feature = "control", feature = "testing"))]
+mod sandboxfile;
+
 /// The image import end-to-end tests (feature 13). They need a Linux host with
 /// KVM, Firecracker and `mkfs.ext4`; each test prints a reason and returns when
 /// the host cannot run it, so the module compiles and passes on every Unix host.

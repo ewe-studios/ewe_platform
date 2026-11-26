@@ -317,6 +317,15 @@ fn redirect_decision(
             return RedirectDecision::Fail(HttpClientError::InvalidLocation(location.clone()));
         }
     };
+    if config.redirect.refuse_https_downgrade
+        && descriptor.request_uri.scheme().as_str() == "https"
+        && new_url.scheme().as_str() != "https"
+    {
+        tracing::error!("Refusing a redirect from https to {}", new_url.scheme());
+        return RedirectDecision::Fail(HttpClientError::InvalidLocation(
+            "a redirect from https to another scheme is refused".to_string(),
+        ));
+    }
     match redirects::build_followup_request_from_request_descriptor(
         descriptor,
         new_url,

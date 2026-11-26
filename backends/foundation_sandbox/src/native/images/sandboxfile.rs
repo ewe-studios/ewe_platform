@@ -647,31 +647,27 @@ fn parse_run(rest: &str, line: &LogicalLine, number: u32) -> SandboxResult<StepK
         }
     }
     let text = words.remaining().trim().to_string();
-    match &line.heredoc {
-        Some(script) => {
-            if !text.is_empty() {
-                return Err(invalid(
-                    number,
-                    "RUN has a here-document and text on the instruction line",
-                ));
-            }
-            Ok(StepKind::Run {
-                shell,
-                network,
-                script: script.clone(),
-            })
+    if let Some(script) = &line.heredoc {
+        if !text.is_empty() {
+            return Err(invalid(
+                number,
+                "RUN has a here-document and text on the instruction line",
+            ));
         }
-        None => {
-            if text.is_empty() {
-                return Err(invalid(number, "RUN needs a program or a here-document"));
-            }
-            Ok(StepKind::Run {
-                shell,
-                network,
-                script: text,
-            })
-        }
+        return Ok(StepKind::Run {
+            shell,
+            network,
+            script: script.clone(),
+        });
     }
+    if text.is_empty() {
+        return Err(invalid(number, "RUN needs a program or a here-document"));
+    }
+    Ok(StepKind::Run {
+        shell,
+        network,
+        script: text,
+    })
 }
 
 /// Parses one network mode.
