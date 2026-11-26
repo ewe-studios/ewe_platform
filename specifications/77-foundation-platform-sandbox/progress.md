@@ -586,7 +586,9 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 7. Feature 17 (the Cloudflare Sandbox product): pull request #962.
 8. Feature 11 (nested sandboxes): on branch `spec77/f11-nested-sandboxes`, from feature 10.
 9. Feature 12 (sandbox images): pull request #982.
-10. Phase 3: features 13 to 15 (image source, Sandboxfile, registry pull).
+10. Feature 13 (container image source): on branch `spec77/f13-container-image-source`, from
+    feature 12, with feature 10 merged.
+11. Phase 3: features 14 (Sandboxfile builder) and 15 (registry pull).
 
 ## Milestones
 
