@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["10-docker-driver"]
-crates: ["foundation_sandbox", "agent_slave", "foundation_deployment"]
+crates: ["foundation_sandbox", "foundation_deployment", "foundation_api_common"]
 ---
 
 # Feature 11: Nested sandboxes (a slave that is also a control plane)
