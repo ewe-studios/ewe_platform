@@ -38,8 +38,8 @@ pub use shared::error_writer::ErrorWriter;
 
 pub use shared::message::{Request, Response};
 pub use shared::router::{
-    in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, HandlerOptions,
-    RequestBody, RequestStream, ResponseSink, Router,
+    extract_path, in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer,
+    HandlerOptions, RequestBody, RequestStream, ResponseSink, Router,
 };
 
 /// Proc-macro for code-first `ConnectRPC` service generation (Feature 27,

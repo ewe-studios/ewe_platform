@@ -7009,8 +7009,10 @@ dependencies = [
 name = "foundation_toolings"
 version = "0.0.11"
 dependencies = [
+ "base64 0.22.1",
  "concurrent-queue",
  "derive_more",
+ "foundation_auth",
  "foundation_compact",
  "foundation_context",
  "foundation_core",

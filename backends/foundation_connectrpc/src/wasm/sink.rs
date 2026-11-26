@@ -216,16 +216,76 @@ impl Default for ConnectSink {
     }
 }
 
+/// The bytes of a whole response body.
+///
+/// A whole response is complete by definition, so it is read into memory once
+/// and carried in a buffered `web_sys::Response`. A unary reply is bounded by
+/// the host's `max_unary_reply_bytes`; a stream uses `open`/`chunk` instead.
+async fn whole_body_bytes(body: SendSafeBody) -> io::Result<Vec<u8>> {
+    use foundation_core::valtron::Stream;
+    let mut iter = SendSafeBodyBytesIterator::new(body);
+    let mut out = Vec::new();
+    loop {
+        match iter.next() {
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
+                out.extend_from_slice(&bytes);
+            }
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(error))) => {
+                return Err(io::Error::other(format!(
+                    "response body read failed: {error}"
+                )));
+            }
+            Some(Stream::Wait) => {
+                return Err(io::Error::other(
+                    "a whole response body must be ready; it streamed instead",
+                ));
+            }
+            Some(_) => {}
+            None => return Ok(out),
+        }
+    }
+}
+
+/// Build a buffered `web_sys::Response`.
+fn buffered_response(
+    status: u16,
+    headers: &SimpleHeaders,
+    body: Vec<u8>,
+) -> io::Result<web_sys::Response> {
+    let init = web_sys::ResponseInit::new();
+    init.set_status(status);
+    let web_headers = web_sys::Headers::new()
+        .map_err(|error| io::Error::other(format!("failed to create headers: {error:?}")))?;
+    for (name, values) in headers {
+        for value in values {
+            let _ = web_headers.append(&name.to_string(), value);
+        }
+    }
+    init.set_headers(&web_headers);
+    let mut body = body;
+    web_sys::Response::new_with_opt_u8_array_and_init(Some(&mut body), &init)
+        .map_err(|error| io::Error::other(format!("failed to build a response: {error:?}")))
+}
+
 impl ResponseSink for ConnectSink {
     fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
         Box::pin(async move {
             let status: usize = response.status.clone().into();
-            let body = response.body;
-            self.start(status, &response.headers)?;
-            if let Some(body) = body {
-                self.send_body(body).await?;
+            let status = u16::try_from(status).unwrap_or(500);
+            let body = match response.body {
+                Some(body) => whole_body_bytes(body).await?,
+                None => Vec::new(),
+            };
+            let web = buffered_response(status, &response.headers, body)?;
+            // Store the complete response last, so a waiter never sees a
+            // response whose body is still being written.
+            if let Ok(mut state) = self.inner.lock() {
+                state.response = Some(SendWrapper::new(web));
+                state.sender = None;
+                if let Some(waker) = state.response_waker.take() {
+                    waker.wake();
+                }
             }
-            self.close();
             Ok(())
         })
     }

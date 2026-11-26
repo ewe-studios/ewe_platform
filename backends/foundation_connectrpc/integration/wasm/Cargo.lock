@@ -1040,6 +1040,7 @@ dependencies = [
 name = "foundation_connectrpc_wasm_tests"
 version = "0.0.1"
 dependencies = [
+ "async-trait",
  "bytes",
  "foundation_compact",
  "foundation_connectrpc",

@@ -33,6 +33,7 @@ foundation_core = { path = "../../../foundation_core", default-features = false,
 foundation_context = { path = "../../../foundation_context" }
 foundation_compact = { path = "../../../foundation_compact", default-features = false }
 futures = "0.3"
+async-trait = "0.1"
 bytes = "1"
 serde_json = "1"
 # Pinned to the versions foundation_testbed pins and the testbed's CI installs:
