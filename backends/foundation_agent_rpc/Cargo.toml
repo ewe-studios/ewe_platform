@@ -148,5 +148,15 @@ required-features = ["candle"]
 name = "archive_tests"
 path = "tests/archive_tests.rs"
 
+# The CORS answer (spec 83 feature 05, section 6.5).
+[[test]]
+name = "cors_tests"
+path = "tests/cors_tests.rs"
+
+# The bootstrap payload rules of a browser (spec 83 feature 05, section 6.4).
+[[test]]
+name = "browser_rules_tests"
+path = "tests/browser_rules_tests.rs"
+
 [lints]
 workspace = true

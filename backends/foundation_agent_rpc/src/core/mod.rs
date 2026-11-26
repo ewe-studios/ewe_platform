@@ -15,7 +15,9 @@
 
 pub mod archive;
 pub mod bootstrap;
+pub mod browser;
 pub mod config;
+pub mod cors;
 pub mod enroll;
 pub mod model;
 pub mod registry;
