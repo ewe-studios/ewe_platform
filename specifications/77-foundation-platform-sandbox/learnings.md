@@ -1704,3 +1704,19 @@ slave engine, the CLI's Linux blocks and their tests.
 **What it does not prove.** Linking, the run of a test, the Kernel-based Virtual Machine
 (KVM), real sockets and the generated code at run time. The `sandbox-e2e` job proves those.
 Run this check before a push that changes a Linux-gated file.
+
+## 21. A blocked test thread cannot advance a simulated clock (2026-11-27)
+
+The port timeout test of feature 07 did not finish. The cause was not the transport: the test
+blocked on the future while the deadline lived on the simulated clock. A simulated clock moves
+only when the test moves it, and a blocked thread cannot. The deadline never fired, and the
+call waited for ever.
+
+**Rule for a test.** If a test blocks on a future whose deadline must fire, use the host clock
+(the real time source), or run the runtime in a loop that also advances the simulated clock.
+A test of a real-time limit uses real time. A deterministic simulation test (DST) advances the
+clock itself and never blocks on the future.
+
+**Rule for the code.** The transport was correct: the 50 ms deadline dropped the pending port
+exchange and returned `DeadlineExceeded`. The defect was in the test, and the fix stayed in the
+test.
