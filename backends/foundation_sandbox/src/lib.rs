@@ -29,3 +29,8 @@ pub mod cloudflare;
 /// The command-line structures. Feature 06 fills this module.
 #[cfg(all(not(target_family = "wasm"), feature = "cli"))]
 pub mod cli;
+
+/// The `Provider` facades over a control plane (feature 06). The `Provider`
+/// trait itself stays in `foundation_deployment_platform` (decision D1).
+#[cfg(all(not(target_family = "wasm"), feature = "provider"))]
+pub mod providers;
