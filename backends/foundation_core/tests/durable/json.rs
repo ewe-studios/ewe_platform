@@ -165,3 +165,41 @@ fn given_a_json_stream_when_the_append_is_invalid_then_it_is_refused() {
         ));
     });
 }
+
+#[test]
+fn given_an_offset_inside_a_json_message_when_a_read_runs_then_it_is_a_bad_request() {
+    smol::block_on(async {
+        use foundation_core::durable::{
+            AppendRequest, Chunk, ContentType, CreateSpec, DurableStream, DurableStreams,
+            MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamOffset,
+        };
+        use std::sync::Arc;
+
+        let streams = DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())));
+        let stream = streams.stream(StreamName::parse("json/mid-offset").expect("name"));
+        stream
+            .create(CreateSpec {
+                content_type: Some(ContentType::parse("application/json").expect("type")),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("create");
+        stream
+            .append(AppendRequest::new(Chunk::new(b"{\"a\":1}".to_vec())))
+            .await
+            .expect("append");
+
+        // Offset 4 lands inside the message. Only a cursor offset is valid.
+        let error = stream
+            .read(ReadRequest {
+                from: ReadFrom::Offset(StreamOffset::from_bytes(4_u64.to_be_bytes().to_vec())),
+                limit: ReadLimit::default(),
+            })
+            .await
+            .expect_err("mid-message offset");
+        assert!(matches!(
+            error,
+            StoreError::BadRequest(foundation_core::durable::BadRequestKind::Json)
+        ));
+    });
+}
