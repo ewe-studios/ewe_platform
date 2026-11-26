@@ -130,3 +130,35 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
 - [ ] The valtron layer tests pass separately.
 - [ ] CI fails on any non-skipped conformance failure.
+
+## 6. Verified commands (2026-11-27)
+
+These commands pass on the branch `spec-durable-streams`. The harness uses the same
+commands.
+
+```text
+cargo build -p foundation_http --features multi --example durable_server
+cargo build -p foundation_netio --features multi --example durable_client_adapter
+```
+
+Server suite, against the example server on `127.0.0.1:4437`:
+
+```text
+npx @durable-streams/server-conformance-tests@0.3.7 --run http://127.0.0.1:4437
+```
+
+The suite starts its own runner. Its default direct run fails to find the test file.
+Run it from a temporary project with a `vitest` file that calls `runConformanceTests`.
+Result: 332 pass, 6 skip, 0 fail.
+
+Client suite, against the adapter binary. The runner starts the reference server:
+
+```text
+npx @durable-streams/client-conformance-tests --run <adapter-path>
+```
+
+Result: 198 pass, 0 fail, 71 skip. The skips are Server-Sent Events (SSE), auto mode,
+dynamic headers and streaming. The adapter announces each as unsupported.
+
+The harness must set the long-poll timeout to 3 s for the server example. The suite
+waits for a timeout inside a 5 s test limit.

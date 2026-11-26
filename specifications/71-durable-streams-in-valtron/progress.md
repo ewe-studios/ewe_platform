@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 records the verified conformance commands and their results in its
+  feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
+  71 skip. The harness task remains.
 - 2026-11-27: feature 07 batching is enabled. The adapter announces `batching: true`. The client
   gate rises to 198 pass, 0 fail, 71 skip. The batch path sends one array append for a JSON
   stream, concatenates bytes for a text stream, tracks the producer sequence and drops a
