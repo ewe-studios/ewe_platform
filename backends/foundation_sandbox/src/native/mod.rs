@@ -16,6 +16,14 @@ pub mod firecracker;
 /// The real host file system behind `HostFs`.
 pub mod host;
 
+/// The libkrun driver and its runner (feature 09). The driver is native Unix
+/// only; the runner compiles where `libkrun-runner` selects it.
+#[cfg(all(
+    any(target_os = "linux", target_os = "macos"),
+    any(feature = "libkrun", feature = "libkrun-runner")
+))]
+pub mod libkrun;
+
 /// The native platform wrapper (feature 05).
 #[cfg(feature = "control")]
 pub mod platform;

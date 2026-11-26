@@ -532,7 +532,7 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
     let order = order.unwrap_or_else(|| host.config.driver_order.clone());
     #[allow(
         unused_mut,
-        reason = "the Firecracker driver is compiled only on Linux; another target has no push"
+        reason = "a build with no compiled driver leaves the list untouched"
     )]
     let mut drivers: Vec<Arc<dyn SandboxDriver>> = Vec::new();
     for id in order {
@@ -543,12 +543,15 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
                     crate::native::firecracker::driver::FirecrackerDriver::new(),
                 ));
             }
-            // Features 09 and 10 add the libkrun and Docker drivers; the
-            // Cloudflare drivers are not part of a native local host.
-            DriverId::Libkrun
-            | DriverId::Docker
-            | DriverId::CloudflareContainer
-            | DriverId::CloudflareDo => {}
+            DriverId::Libkrun => {
+                #[cfg(all(feature = "libkrun", any(target_os = "linux", target_os = "macos")))]
+                drivers.push(Arc::new(
+                    crate::native::libkrun::driver::LibkrunDriver::new(),
+                ));
+            }
+            // Feature 10 adds the Docker driver; the Cloudflare drivers are
+            // not part of a native local host.
+            DriverId::Docker | DriverId::CloudflareContainer | DriverId::CloudflareDo => {}
         }
     }
     Ok(Arc::new(SandboxManager::new(

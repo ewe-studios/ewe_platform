@@ -75,6 +75,39 @@ fn provider_launch_stop_sim() {
 }
 
 #[test]
+fn provider_launch_stop_libkrun_sim() {
+    let ctx = ctx(123);
+    let driver = Arc::new(SimDriver::new(DriverId::Libkrun));
+    let slave = Arc::new(ScriptedSlave::new());
+    // The stop reaches the shutdown grace, and the simulated clock does not
+    // move. The driver's substrate exits at once when the slave gets `Shutdown`.
+    slave.with_shutdown_exit(driver.substrate());
+    let control = Arc::new(SandboxManager::new(
+        ctx.clone(),
+        vec![Arc::clone(&driver) as Arc<dyn SandboxDriver>],
+        in_memory_connector(slave),
+        Arc::new(MemoryRecordStore::default()),
+        ManagerConfig::default(),
+    ));
+    let provider = SandboxDeploymentProvider::libkrun(control);
+    assert_eq!(provider.id(), ProviderId::Libkrun);
+    assert_eq!(provider.name(), "libkrun");
+    let handle = provider.launch(&spec()).expect("the launch succeeds");
+    assert_eq!(handle.provider_id, ProviderId::Libkrun);
+    assert_eq!(
+        driver.launch_spec().and_then(|spec| spec.driver),
+        Some(DriverId::Libkrun),
+        "the facade names the libkrun driver in the spec"
+    );
+    assert!(
+        provider.is_running(&handle),
+        "invariant I8: a ready sandbox runs"
+    );
+    provider.stop(&handle).expect("the stop succeeds");
+    assert!(!provider.is_running(&handle));
+}
+
+#[test]
 fn provider_error_is_typed() {
     let ctx = ctx(121);
     // The driver is usable, but it cannot use a directory root.

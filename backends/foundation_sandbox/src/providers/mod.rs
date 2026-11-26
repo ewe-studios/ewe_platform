@@ -61,6 +61,12 @@ impl SandboxDeploymentProvider {
         Self::new(control, DriverId::CloudflareContainer)
     }
 
+    /// A provider that launches libkrun sandboxes.
+    #[must_use]
+    pub fn libkrun(control: Arc<dyn SandboxProvider>) -> Self {
+        Self::new(control, DriverId::Libkrun)
+    }
+
     /// A provider that launches sandboxes with `driver`.
     #[must_use]
     pub fn new(control: Arc<dyn SandboxProvider>, driver: DriverId) -> Self {
@@ -137,13 +143,15 @@ impl Provider for SandboxDeploymentProvider {
 
 /// The provider of one driver.
 ///
-/// A Cloudflare Durable Object sandbox is not a container, so it keeps the
-/// Cloudflare provider identifier too: the caller reads the driver from the
-/// sandbox info.
+/// A libkrun sandbox has its own provider identifier. A driver without one
+/// keeps the Firecracker identifier: the caller reads the driver from the
+/// sandbox info. A Cloudflare Durable Object sandbox is not a container, so it
+/// keeps the Cloudflare provider identifier too.
 fn provider_id(driver: DriverId) -> ProviderId {
     match driver {
+        DriverId::Libkrun => ProviderId::Libkrun,
         DriverId::CloudflareContainer | DriverId::CloudflareDo => ProviderId::CloudflareContainer,
-        DriverId::Firecracker | DriverId::Libkrun | DriverId::Docker => ProviderId::Firecracker,
+        DriverId::Firecracker | DriverId::Docker => ProviderId::Firecracker,
     }
 }
 

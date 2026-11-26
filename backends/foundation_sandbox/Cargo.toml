@@ -33,6 +33,11 @@ bytes = "1"
 derive_more = { workspace = true }
 futures = "0.3"
 tracing = { workspace = true }
+# The run-time loader of libkrun (feature 09). Only the `sandbox-krun` runner
+# uses it: the library is not linked at build time. This crate takes the latest
+# stable version; two upstream crates in the workspace still pin 0.7 and 0.8, so
+# `Cargo.lock` holds those versions too.
+libloading = { version = "0.9", optional = true }
 # The argument parser of the two programs (feature 06).
 clap = { workspace = true, optional = true }
 
@@ -240,8 +245,10 @@ firecracker_stop = []
 firecracker_version = []
 firecracker_vm = []
 firecracker_vsock = []
-# The libkrun driver (feature 09).
+# The libkrun driver (feature 09). Native Unix only.
 libkrun = []
+# The runner program: it loads libkrun and becomes the virtual machine.
+libkrun-runner = ["dep:libloading"]
 # The `Provider` facade over any control plane (feature 06). The `Provider`
 # trait itself stays in `foundation_deployment_platform` (decision D1).
 provider = ["dep:foundation_deployment_platform"]
@@ -269,6 +276,12 @@ required-features = ["cli", "control"]
 name = "agent-slave"
 path = "src/bin/agent_slave.rs"
 required-features = ["cli", "slave"]
+
+# The libkrun runner: one process that becomes one virtual machine.
+[[bin]]
+name = "sandbox-krun"
+path = "src/bin/sandbox_krun.rs"
+required-features = ["libkrun-runner"]
 
 # The slave process of the tests. A libtest test cannot be that process: the
 # harness starts a thread before the test, and the process main thread keeps
