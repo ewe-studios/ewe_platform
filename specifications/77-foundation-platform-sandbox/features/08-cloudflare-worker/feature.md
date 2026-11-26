@@ -362,8 +362,11 @@ request it builds `CloudflareHost::from_state(&state, index)` (feature 07,
 `src/cloudflare/`), where `index` is a `SandboxIndex` that calls the index DO, and
 `DoControlPlane::open(ctx, host, Some(id), limits)` with `id` from the request header
 below. `fetch` converts
-the `worker::Request` to the request type of `foundation_http::wasm`, calls
-`control.handle(..)`, and converts the response back. `alarm` calls `DoControlPlane::open(ctx, host, None, limits)` when the cell is empty (the
+the `worker::Request` to `SimpleIncomingRequest`, calls `control.handle(..)`, and maps the
+`HttpResponseParts` back to a Worker response. The body is a `BoxByteStream`: the mapping
+builds the response `ReadableStream` from it and holds it for the life of the response, so an
+`Exec` frame reaches the client before the command ends. The pipe depth is
+`CloudflareConfig::stream_queue_len` (default 4). `alarm` calls `DoControlPlane::open(ctx, host, None, limits)` when the cell is empty (the
 ID comes from storage; feature 07, section 6.6), then `on_alarm()`.
 Nothing else.
 
