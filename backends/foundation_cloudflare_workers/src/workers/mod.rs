@@ -671,6 +671,25 @@ pub struct CcApplicationNetwork {
 /// `CcApplicationRolloutActiveGracePeriod` type.
 pub type CcApplicationRolloutActiveGracePeriod = i64;
 
+/// `CcCreateApplicationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CcCreateApplicationRequest {
+    /// `image` property.
+    pub image: String,
+    /// `instance_type` property.
+    pub instance_type: Option<String>,
+    /// `max_instances` property.
+    pub max_instances: Option<i64>,
+    /// `name` property.
+    pub name: String,
+    /// `network` property.
+    pub network: Option<CcApplicationNetwork>,
+    /// `observability` property.
+    pub observability: Option<CcObservability>,
+    /// `rollout_active_grace_period` property.
+    pub rollout_active_grace_period: Option<i64>,
+}
+
 /// `CcCustomResourceAllocation` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct CcCustomResourceAllocation {
@@ -762,6 +781,19 @@ pub struct CcPublicApplication {
     pub version: i64,
 }
 
+/// `CcPublicApplicationResult` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CcPublicApplicationResult {
+    /// `result` property.
+    pub result: Option<CcPublicApplication>,
+}
+
+/// `CcPublicCreateApplicationResponse200Response` type.
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CcPublicApplication>>`.
+pub type CcPublicCreateApplicationResponse200Response =
+    super::shared::ApiEnvelope<Option<CcPublicApplication>>;
+
 /// `CcPublicInstanceType` type.
 pub type CcPublicInstanceType = serde_json::Value;
 
@@ -776,6 +808,29 @@ pub type CcPublicListApplicationsResponse200Response =
 pub struct CcPublicListApplicationsResult {
     /// `result` property.
     pub result: Vec<CcPublicApplication>,
+}
+
+/// `CcPublicUpdateApplicationResponse200Response` type.
+///
+/// Same shape as `super::shared::ApiEnvelope<Option<CcPublicApplication>>`.
+pub type CcPublicUpdateApplicationResponse200Response =
+    super::shared::ApiEnvelope<Option<CcPublicApplication>>;
+
+/// `CcUpdateApplicationRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct CcUpdateApplicationRequest {
+    /// `image` property.
+    pub image: Option<String>,
+    /// `instance_type` property.
+    pub instance_type: Option<String>,
+    /// `max_instances` property.
+    pub max_instances: Option<i64>,
+    /// `network` property.
+    pub network: Option<CcApplicationNetwork>,
+    /// `observability` property.
+    pub observability: Option<CcObservability>,
+    /// `rollout_active_grace_period` property.
+    pub rollout_active_grace_period: Option<i64>,
 }
 
 /// `CcV4BaseResponse` type.
@@ -5189,6 +5244,26 @@ pub struct PublicListApplicationsArgs {
     pub image: Option<String>,
 }
 
+/// Arguments for [`publicCreateApplication_request`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PublicCreateApplicationArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Request body.
+    pub body: CcCreateApplicationRequest,
+}
+
+/// Arguments for [`publicUpdateApplication_request`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PublicUpdateApplicationArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `application_id`.
+    pub application_id: String,
+    /// Request body.
+    pub body: CcUpdateApplicationRequest,
+}
+
 /// Arguments for [`generateImageRegistryCredentials_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GenerateImageRegistryCredentialsArgs {
@@ -8513,6 +8588,105 @@ where
 }
 
 // -----------------------------------------------------------------------------
+// POST /accounts/{account_id}/containers/applications
+// -----------------------------------------------------------------------------
+
+/// POST /accounts/{account_id}/containers/applications.
+///
+/// Takes a client and args, builds the request, optionally applies
+/// modifications, then sends it via `send_async().await`.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let response = public_create_application_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {
+///     b.header("X-Custom-Header", "value");
+/// })).await?;
+/// ```
+pub async fn public_create_application_request<F>(
+    client: impl Into<super::shared::ApiClient>,
+    args: &PublicCreateApplicationArgs,
+    base_url: &str,
+    builder_mod: Option<F>,
+) -> Result<ApiResponse<CcPublicCreateApplicationResponse200Response>, super::shared::ApiError>
+where
+    F: FnOnce(&mut PreparedRequestBuilder),
+{
+    let path = format!("/accounts/{}/containers/applications", args.account_id);
+    let endpoint_url = format!("{base_url}{path}");
+
+    let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    super::shared::send_json(client.into(), builder.build()).await
+}
+
+// -----------------------------------------------------------------------------
+// PATCH /accounts/{account_id}/containers/applications/{application_id}
+// -----------------------------------------------------------------------------
+
+/// PATCH /accounts/{account_id}/containers/applications/{application_id}.
+///
+/// Takes a client and args, builds the request, optionally applies
+/// modifications, then sends it via `send_async().await`.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let response = public_update_application_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {
+///     b.header("X-Custom-Header", "value");
+/// })).await?;
+/// ```
+pub async fn public_update_application_request<F>(
+    client: impl Into<super::shared::ApiClient>,
+    args: &PublicUpdateApplicationArgs,
+    base_url: &str,
+    builder_mod: Option<F>,
+) -> Result<ApiResponse<CcPublicUpdateApplicationResponse200Response>, super::shared::ApiError>
+where
+    F: FnOnce(&mut PreparedRequestBuilder),
+{
+    let path = format!(
+        "/accounts/{}/containers/applications/{}",
+        args.account_id, args.application_id
+    );
+    let endpoint_url = format!("{base_url}{path}");
+
+    let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    super::shared::send_json(client.into(), builder.build()).await
+}
+
+// -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/containers/registries/{domain}/credentials
 // -----------------------------------------------------------------------------
 
@@ -9753,6 +9927,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -9766,6 +9941,7 @@ pub async fn pages_deployment_create_deployment_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &PagesDeploymentCreateDeploymentArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PagesDeploymentCreateDeploymentResponse>, super::shared::ApiError>
 where
@@ -9779,6 +9955,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -11112,6 +11293,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11125,6 +11307,7 @@ pub async fn worker_assets_upload_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkerAssetsUploadArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersCompletedUploadAssetsResponse>, super::shared::ApiError>
 where
@@ -11140,6 +11323,11 @@ where
         "base64",
         args.base64.map(|b| if b { "true" } else { "false" }),
     );
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -11595,6 +11783,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11608,6 +11797,7 @@ pub async fn namespace_worker_script_upload_worker_module_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &NamespaceWorkerScriptUploadWorkerModuleArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<Workers200Response>, super::shared::ApiError>
 where
@@ -11623,6 +11813,11 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("bindings_inherit", args.bindings_inherit.as_deref());
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -11846,6 +12041,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11859,6 +12055,7 @@ pub async fn namespace_worker_put_script_content_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &NamespaceWorkerPutScriptContentArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersScriptResponseSingle>, super::shared::ApiError>
 where
@@ -11872,6 +12069,11 @@ where
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -12136,6 +12338,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -12149,6 +12352,7 @@ pub async fn namespace_worker_patch_script_settings_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &NamespaceWorkerPatchScriptSettingsArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<NamespaceWorkerPatchScriptSettingsResponse>, super::shared::ApiError>
 where
@@ -12162,6 +12366,11 @@ where
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -13457,6 +13666,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13470,6 +13680,7 @@ pub async fn worker_script_upload_worker_module_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkerScriptUploadWorkerModuleArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkerScriptUploadWorkerModuleResponse>, super::shared::ApiError>
 where
@@ -13485,6 +13696,11 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("bindings_inherit", args.bindings_inherit.as_deref());
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -13609,6 +13825,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13622,6 +13839,7 @@ pub async fn worker_script_put_content_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkerScriptPutContentArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersScriptResponseSingle>, super::shared::ApiError>
 where
@@ -13635,6 +13853,11 @@ where
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -14344,6 +14567,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14357,6 +14581,7 @@ pub async fn worker_script_patch_settings_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkerScriptPatchSettingsArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersScriptAndVersionSettingsResponse>, super::shared::ApiError>
 where
@@ -14370,6 +14595,11 @@ where
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -14782,6 +15012,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14795,6 +15026,7 @@ pub async fn worker_versions_upload_version_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkerVersionsUploadVersionArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersVersionsUploadResponse>, super::shared::ApiError>
 where
@@ -14810,6 +15042,11 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("bindings_inherit", args.bindings_inherit.as_deref());
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -14930,6 +15167,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14943,6 +15181,7 @@ pub async fn worker_environment_put_script_content_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkerEnvironmentPutScriptContentArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersScriptResponseSingle>, super::shared::ApiError>
 where
@@ -14956,6 +15195,11 @@ where
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);

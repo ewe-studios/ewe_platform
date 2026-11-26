@@ -3954,7 +3954,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
-/// * `body` - Request body, sent as-is as `application/octet-stream`
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3968,7 +3968,7 @@ pub async fn workers_kv_namespace_write_key_value_pair_with_metadata_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &WorkersKvNamespaceWriteKeyValuePairWithMetadataArgs,
     base_url: &str,
-    body: foundation_netio::shared::http::SendSafeBody,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<WorkersKvApiResponseCommonNoResult>, super::shared::ApiError>
 where
@@ -3986,7 +3986,10 @@ where
     builder = builder.query("expiration", args.expiration.as_deref());
     builder = builder.query("expiration_ttl", args.expiration_ttl.as_deref());
 
-    builder = super::shared::with_raw_body(builder, "application/octet-stream", body);
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);

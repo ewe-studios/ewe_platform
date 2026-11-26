@@ -7,6 +7,7 @@
 //! spec 77 feature 08, section 6.8.
 
 pub mod foundation;
+pub mod generated_api;
 pub mod host;
 pub mod plan;
 pub mod wrangler;
@@ -16,6 +17,7 @@ use std::sync::Arc;
 use foundation_context::Ctx;
 
 pub use foundation::FoundationCloudflareDeployer;
+pub use generated_api::GeneratedCloudflareApi;
 pub use host::{
     CloudflareDeployHost, CommandOutput, CommandRunner, CommandSpec, DeployFuture, DeploymentApi,
     ImageBuilder, SecretStore,
