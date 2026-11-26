@@ -18,7 +18,7 @@ use std::sync::Arc;
 use crate::core::config::RegistryConfig;
 use crate::core::model::{AgentRpcFuture, Device, ModelKind};
 use crate::core::registry::{
-    Caller, InstanceInfo, InstanceRegistry, InstanceSpec, Page, TurnEventStream,
+    object_key, Caller, InstanceInfo, InstanceRegistry, InstanceSpec, Page, TurnEventStream,
 };
 use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::proto::v1 as pb;
@@ -69,12 +69,12 @@ impl DurableObjectRegistry {
         index
             .execute_batch(&format!(
                 "CREATE TABLE IF NOT EXISTS {INDEX_TABLE} (\
+                 object_key TEXT NOT NULL PRIMARY KEY, \
                  scope TEXT NOT NULL, \
                  name TEXT NOT NULL, \
                  model TEXT NOT NULL, \
                  created_ms INTEGER NOT NULL, \
-                 turns INTEGER NOT NULL DEFAULT 0, \
-                 PRIMARY KEY (scope, name))"
+                 turns INTEGER NOT NULL DEFAULT 0)"
             ))
             .await
             .map_err(|error| AgentRpcError::Storage(error.to_string()))?;
@@ -90,7 +90,38 @@ impl DurableObjectRegistry {
     /// The generated client for `name`, with the principal forwarded.
     fn stub(&self, caller: &Caller, name: &str) -> AgentRpcResult<InstanceStub> {
         let _ = &self.limits;
-        InstanceStub::new(&self.env, name, caller.principal.subject.as_str())
+        let object_name = object_key(&caller.scope, name);
+        InstanceStub::new(&self.env, &object_name, caller.principal.subject.as_str())
+    }
+
+    /// The Durable Object name and D1 key of one instance.
+    fn key(caller: &Caller, name: &str) -> String {
+        object_key(&caller.scope, name)
+    }
+
+    /// The Durable Object name of the one index row that holds `name`.
+    ///
+    /// This is the lookup of the test-only reset hook, which receives an
+    /// instance name and not a scope. It finds a row only when exactly one
+    /// owner holds the name. A production call names its caller and uses
+    /// [`Self::key`].
+    ///
+    /// # Errors
+    /// [`AgentRpcError::InstanceNotFound`] when no row or more than one row
+    /// holds the name, and [`AgentRpcError::Storage`] for a read failure.
+    pub async fn object_key_for_name(&self, name: &str) -> AgentRpcResult<String> {
+        let rows = self
+            .rows(
+                &format!("SELECT object_key FROM {INDEX_TABLE} WHERE name = ? LIMIT 2"),
+                &[DataValue::Text(name.to_string())],
+            )
+            .await?;
+        match rows.as_slice() {
+            [row] => row
+                .get_by_name::<String>("object_key")
+                .map_err(|_| AgentRpcError::Storage("the index row has no key".to_string()).into()),
+            _ => Err(AgentRpcError::InstanceNotFound(name.to_string()).into()),
+        }
     }
 
     /// Validate an instance name with the registry rules.
@@ -184,6 +215,7 @@ impl InstanceRegistry for DurableObjectRegistry {
         Box::pin(async move {
             self.validate_name(&spec.name)?;
             let scope = caller.scope.as_key().to_string();
+            let key = Self::key(caller, &spec.name);
             let count = self
                 .rows(
                     &format!("SELECT COUNT(*) AS n FROM {INDEX_TABLE} WHERE scope = ?"),
@@ -199,18 +231,16 @@ impl InstanceRegistry for DurableObjectRegistry {
                 return Err(AgentRpcError::InstanceLimit(self.config.max_instances).into());
             }
 
-            let now = i64::try_from(foundation_compact::time::unix_millis(
-                self.ctx.clock().wall_now(),
-            ))
-            .unwrap_or(0);
+            let now = foundation_compact::time::unix_millis(self.ctx.clock().wall_now());
             let model = spec.model.name.clone().unwrap_or_default();
             let reserved = self
                 .execute(
                     &format!(
-                        "INSERT INTO {INDEX_TABLE} (scope, name, model, created_ms, turns) \
-                         VALUES (?, ?, ?, ?, 0)"
+                        "INSERT INTO {INDEX_TABLE} (object_key, scope, name, model, created_ms, turns) \
+                         VALUES (?, ?, ?, ?, ?, 0)"
                     ),
                     &[
+                        DataValue::Text(key.clone()),
                         DataValue::Text(scope.clone()),
                         DataValue::Text(spec.name.clone()),
                         DataValue::Text(model),
@@ -235,8 +265,8 @@ impl InstanceRegistry for DurableObjectRegistry {
                     // The DO did not create the instance: release the name.
                     let _ = self
                         .execute(
-                            &format!("DELETE FROM {INDEX_TABLE} WHERE scope = ? AND name = ?"),
-                            &[DataValue::Text(scope), DataValue::Text(spec.name.clone())],
+                            &format!("DELETE FROM {INDEX_TABLE} WHERE object_key = ?"),
+                            &[DataValue::Text(key)],
                         )
                         .await;
                     return Err(error);
@@ -251,14 +281,13 @@ impl InstanceRegistry for DurableObjectRegistry {
                 .execute(
                     &format!(
                         "UPDATE {INDEX_TABLE} SET model = ?, created_ms = ?, turns = ? \
-                         WHERE scope = ? AND name = ?"
+                         WHERE object_key = ?"
                     ),
                     &[
                         DataValue::Text(info.model.clone()),
                         DataValue::Integer(i64::try_from(info.created_unix_ms).unwrap_or(now)),
                         DataValue::Integer(i64::try_from(info.turns).unwrap_or(0)),
-                        DataValue::Text(scope),
-                        DataValue::Text(spec.name.clone()),
+                        DataValue::Text(key),
                     ],
                 )
                 .await;
@@ -279,12 +308,9 @@ impl InstanceRegistry for DurableObjectRegistry {
                 .rows(
                     &format!(
                         "SELECT name, model, created_ms, turns FROM {INDEX_TABLE} \
-                         WHERE scope = ? AND name = ?"
+                         WHERE object_key = ?"
                     ),
-                    &[
-                        DataValue::Text(caller.scope.as_key().to_string()),
-                        DataValue::Text(name.to_string()),
-                    ],
+                    &[DataValue::Text(Self::key(caller, name))],
                 )
                 .await?;
             rows.first()
@@ -345,11 +371,8 @@ impl InstanceRegistry for DurableObjectRegistry {
             )
             .await?;
             self.execute(
-                &format!("DELETE FROM {INDEX_TABLE} WHERE scope = ? AND name = ?"),
-                &[
-                    DataValue::Text(caller.scope.as_key().to_string()),
-                    DataValue::Text(name.to_string()),
-                ],
+                &format!("DELETE FROM {INDEX_TABLE} WHERE object_key = ?"),
+                &[DataValue::Text(Self::key(caller, name))],
             )
             .await?;
             Ok(())

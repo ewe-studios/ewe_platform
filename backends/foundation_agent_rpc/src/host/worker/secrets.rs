@@ -17,53 +17,7 @@ use crate::core::model::ApiModelConfig;
 use crate::error::{AgentRpcError, AgentRpcResult};
 use zeroize::Zeroizing;
 
-/// Where one secret lives on the Worker.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
-pub enum SecretRef {
-    /// A per-Worker secret (`wrangler secret put <name>`).
-    WorkerSecret {
-        /// The binding name.
-        name: String,
-    },
-    /// An account-level Secrets Store binding. Read with `get()`.
-    SecretsStore {
-        /// The binding name.
-        binding: String,
-    },
-}
-
-impl SecretRef {
-    /// Read the reference from the `api_key_secret` text.
-    ///
-    /// A plain name is a Worker secret, as in the earlier configuration. A
-    /// text that starts with `{` is a JSON [`SecretRef`].
-    ///
-    /// # Errors
-    /// [`AgentRpcError::Config`] for JSON that is not a [`SecretRef`].
-    pub fn parse(text: &str) -> AgentRpcResult<Self> {
-        let text = text.trim();
-        if text.starts_with('{') {
-            serde_json::from_str(text).map_err(|error| {
-                AgentRpcError::Config(format!("api_key_secret is not a secret reference: {error}"))
-                    .into()
-            })
-        } else {
-            Ok(Self::WorkerSecret {
-                name: text.to_string(),
-            })
-        }
-    }
-
-    /// The binding name, for an error message that never shows the value.
-    #[must_use]
-    pub fn binding(&self) -> &str {
-        match self {
-            Self::WorkerSecret { name } => name,
-            Self::SecretsStore { binding } => binding,
-        }
-    }
-}
+pub use crate::core::config::SecretRef;
 
 /// Read every API key that the model list names.
 ///

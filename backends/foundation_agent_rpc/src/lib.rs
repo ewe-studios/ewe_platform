@@ -15,6 +15,7 @@
 //! | [`auth`] | CA, mTLS config, `BootstrapService` (enrollment) | `multi` |
 //! | [`bootstrap`] | the base64 / QR bootstrap payload | `multi` |
 //! | [`client`] | enroll with a signed secret, then a typed client over mutual TLS | `multi` |
+//! | `cloudflare` | the Cloudflare container and the agent-rpc deployment plan | `sandbox` / `deployment` |
 //! | [`host`] | the native host: config, listeners, catalog, client | `multi` |
 //! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle | `multi` |
 //! | [`secret`] | signing key + signed, expiring bootstrap secrets | `multi` |
@@ -37,6 +38,8 @@ pub mod auth;
 #[cfg(feature = "multi")]
 pub mod bootstrap;
 pub mod client;
+#[cfg(any(feature = "sandbox", feature = "deployment"))]
+pub mod cloudflare;
 #[cfg(any(feature = "multi", feature = "worker"))]
 pub mod host;
 #[cfg(feature = "multi")]
