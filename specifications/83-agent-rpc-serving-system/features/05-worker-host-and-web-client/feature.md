@@ -75,7 +75,7 @@ All tests are modules of each crate's `tests/` directory (root rule 7).
 |---|---|---|
 | `ConnectService` | `foundation_agent_rpc/tests/wasm/worker_serve_tests.rs` (`wasm-bindgen-test`, Node) | Unary, server stream, an error status, a deadline, a body over the limit and a cancel. |
 | Browser transport | `foundation_connectrpc/tests/wasm/h1_transport_tests.rs` | `H1Transport` over a test `NetClient`, against a `ConnectService` in the same test. |
-| Worker host | `foundation_toolings/tests/cf_examples.rs`, case `cf-agent-rpc` (Miniflare) | Bearer auth, a revoked secret, CORS preflight, create, stream, list, destroy; a forged header has no effect; a DO restart keeps the history. |
+| Worker host | `foundation_toolings/tests/cf_examples.rs`, the case `cf_agent_rpc` (Miniflare, feature `cf-worker-tests`) | Bearer auth, a revoked secret, CORS preflight, create, stream, list, destroy; a forged header has no effect; a DO restart keeps the history. |
 | Cloudflare mTLS | the same case, with a fake `request.cf.tlsClientAuth` | `CfMtlsAuth` accepts a registered fingerprint and refuses `FAILED:...`. |
 | Web client | `foundation_agent_rpc/tests/wasm/web_client_tests.rs` (headless browser) | The payload rules and a full turn against a Miniflare Worker. |
 | Archive | `foundation_agent_rpc/tests/archive_tests.rs` | Upload, then destroy; a failed upload deletes nothing (I5). |
@@ -86,7 +86,7 @@ All tests are modules of each crate's `tests/` directory (root rule 7).
 cargo fmt --all --check
 cargo clippy -p foundation_agent_rpc --target wasm32-unknown-unknown --no-default-features --features worker -- -D warnings
 cargo test -p foundation_agent_rpc --features testing --profile uat archive_
-cargo test -p foundation_toolings --profile uat cf-agent-rpc
+cargo test -p foundation_toolings --features cf-worker-tests --profile uat cf_agent_rpc
 ```
 
 The wasm tests run under `wasm-bindgen-test` in Node and in a headless browser, through the `mise` wasm tasks. The Miniflare case needs Node and the pinned `wrangler`.
