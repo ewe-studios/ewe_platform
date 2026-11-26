@@ -20,7 +20,7 @@ pub use foundation::FoundationCloudflareDeployer;
 pub use generated_api::GeneratedCloudflareApi;
 pub use host::{
     CloudflareDeployHost, CommandOutput, CommandRunner, CommandSpec, DeployFuture, DeploymentApi,
-    ImageBuilder, SecretStore,
+    ImageBuilder, Promotion, SecretStore,
 };
 pub use plan::{
     validate, validate_plans, Binding, ContainerDeployment, ContainerImage, DeploymentId,

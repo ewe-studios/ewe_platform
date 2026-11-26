@@ -8,8 +8,8 @@ use std::path::PathBuf;
 use foundation_auth::server_credential::Secret;
 use foundation_core::valtron::{block_on_future, initialize_pool};
 use foundation_deployment_cloudflare::{
-    Binding, ContainerDeployment, ContainerImage, DeploymentApi, GeneratedCloudflareApi,
-    WorkerDeployment,
+    Binding, ContainerDeployment, ContainerImage, DeploymentApi, DeploymentId, DeploymentStatus,
+    DoMigration, GeneratedCloudflareApi, Route, WorkerDeployment,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -46,16 +46,19 @@ fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
 }
 
 /// A server that answers `responses` in order and returns every request.
-fn mock_server(responses: Vec<String>) -> (SocketAddr, std::thread::JoinHandle<Vec<String>>) {
+fn mock_server(
+    responses: Vec<(u16, String)>,
+) -> (SocketAddr, std::thread::JoinHandle<Vec<String>>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("the test socket");
     let address = listener.local_addr().expect("the test address");
     let handle = std::thread::spawn(move || {
         let mut requests = Vec::new();
-        for body in responses {
+        for (status, body) in responses {
             let (mut stream, _) = listener.accept().expect("the test connection");
             requests.push(String::from_utf8_lossy(&read_request(&mut stream)).to_string());
+            let reason = if status == 200 { "OK" } else { "Not Found" };
             let response = format!(
-                "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\nconnection: close\r\ncontent-length: {}\r\n\r\n{}",
+                "HTTP/1.1 {status} {reason}\r\ncontent-type: application/json\r\nconnection: close\r\ncontent-length: {}\r\n\r\n{}",
                 body.len(),
                 body
             );
@@ -66,6 +69,11 @@ fn mock_server(responses: Vec<String>) -> (SocketAddr, std::thread::JoinHandle<V
         requests
     });
     (address, handle)
+}
+
+/// The envelope of one successful Cloudflare call.
+fn envelope(result: &str) -> String {
+    format!(r#"{{"success":true,"errors":[],"messages":[],"result":{result}}}"#)
 }
 
 /// The full JSON of one container application.
@@ -111,12 +119,13 @@ fn container() -> ContainerDeployment {
 #[test]
 fn ensure_container_creates_a_missing_application() {
     let (address, server) = mock_server(vec![
-        no_applications(),
-        one_application("ewe-sandbox", "tag-1"),
+        (200, no_applications()),
+        (200, one_application("ewe-sandbox", "tag-1")),
     ]);
     let api = GeneratedCloudflareApi::new(
         HttpClientBuilder::new().build(),
         "account",
+        "ewe-sandbox",
         format!("http://{address}"),
         Secret::new("token"),
     );
@@ -150,12 +159,13 @@ fn ensure_container_creates_a_missing_application() {
 #[test]
 fn ensure_container_updates_an_existing_application() {
     let (address, server) = mock_server(vec![
-        list_with_application("ewe-sandbox", "tag-1"),
-        one_application("ewe-sandbox", "tag-2"),
+        (200, list_with_application("ewe-sandbox", "tag-1")),
+        (200, one_application("ewe-sandbox", "tag-2")),
     ]);
     let api = GeneratedCloudflareApi::new(
         HttpClientBuilder::new().build(),
         "account",
+        "ewe-sandbox",
         format!("http://{address}"),
         Secret::new("token"),
     );
@@ -184,13 +194,11 @@ fn upload_version_carries_the_module() {
     std::fs::create_dir_all(&directory).expect("the test directory");
     let main = directory.join("index.js");
     std::fs::write(&main, b"export default {}").expect("the test module");
-    let (address, server) = mock_server(vec![
-        r#"{"success":true,"errors":[],"messages":[],"result":{"id":"v1","resources":{}}}"#
-            .to_string(),
-    ]);
+    let (address, server) = mock_server(vec![(200, envelope(r#"{"id":"v1","resources":{}}"#))]);
     let api = GeneratedCloudflareApi::new(
         HttpClientBuilder::new().build(),
         "account",
+        "ewe-sandbox",
         format!("http://{address}"),
         Secret::new("token"),
     );
@@ -202,15 +210,151 @@ fn upload_version_carries_the_module() {
     let bindings = vec![Binding::Ai {
         name: "AI".to_string(),
     }];
+    let migrations = vec![DoMigration {
+        tag: "v1".to_string(),
+        new_sqlite_classes: vec!["SandboxDo".to_string()],
+    }];
     let _pool = initialize_pool(19, Some(3));
-    let version = block_on_future(async move { api.upload_version(&worker, &bindings, &[]).await })
-        .expect("the upload");
+    let version =
+        block_on_future(async move { api.upload_version(&worker, &bindings, &migrations).await })
+            .expect("the upload");
     assert_eq!(version, "v1");
 
     let requests = server.join().expect("the server thread");
     assert!(requests[0].starts_with("POST /accounts/account/workers/scripts/ewe-sandbox/versions "));
     assert!(requests[0].contains("name=\"metadata\""));
     assert!(requests[0].contains(r#""main_module":"index.js""#));
+    assert!(
+        requests[0].contains(r#""migrations":[{"new_sqlite_classes":["SandboxDo"],"tag":"v1"}]"#),
+        "the metadata carries the migrations: {:?}",
+        requests[0]
+    );
     assert!(requests[0].contains("name=\"files\"; filename=\"index.js\""));
     assert!(requests[0].contains("export default {}"));
+}
+
+/// One route create call carries the pattern and the script.
+#[test]
+fn set_route_creates_the_route() {
+    let (address, server) = mock_server(vec![(
+        200,
+        envelope(r#"{"id":"route-1","pattern":"sandbox.example.com/*","script":"ewe-sandbox"}"#),
+    )]);
+    let api = GeneratedCloudflareApi::new(
+        HttpClientBuilder::new().build(),
+        "account",
+        "ewe-sandbox",
+        format!("http://{address}"),
+        Secret::new("token"),
+    );
+    let _pool = initialize_pool(20, Some(3));
+    let route = Route {
+        pattern: "sandbox.example.com/*".to_string(),
+        zone: Some("zone-1".to_string()),
+    };
+    block_on_future(async move { api.set_route("ewe-sandbox", &route).await }).expect("the route");
+
+    let requests = server.join().expect("the server thread");
+    assert!(requests[0].starts_with("POST /zones/zone-1/workers/routes "));
+    assert!(requests[0].contains(r#""pattern":"sandbox.example.com/*""#));
+    assert!(requests[0].contains(r#""script":"ewe-sandbox""#));
+}
+
+/// The traffic switch posts the version at 100 percent.
+#[test]
+fn promote_switches_traffic() {
+    let (address, server) = mock_server(vec![(
+        200,
+        envelope(
+            r#"{"id":"deployment-1","created_on":"2026-01-01T00:00:00Z","source":"api","strategy":"percentage","versions":[]}"#,
+        ),
+    )]);
+    let api = GeneratedCloudflareApi::new(
+        HttpClientBuilder::new().build(),
+        "account",
+        "ewe-sandbox",
+        format!("http://{address}"),
+        Secret::new("token"),
+    );
+    let _pool = initialize_pool(21, Some(3));
+    let promotion = block_on_future(async move { api.promote("ewe-sandbox", "v1").await })
+        .expect("the promote");
+    assert_eq!(promotion.deployment_id.as_str(), "deployment-1");
+    assert_eq!(promotion.worker_url, "https://ewe-sandbox.workers.dev");
+
+    let requests = server.join().expect("the server thread");
+    assert!(
+        requests[0].starts_with("POST /accounts/account/workers/scripts/ewe-sandbox/deployments ")
+    );
+    assert!(requests[0].contains(r#""strategy":"percentage""#));
+    assert!(requests[0].contains(r#""version_id":"v1""#));
+    assert!(requests[0].contains(r#""percentage":100"#));
+}
+
+/// A status read finds the live deployment, and a missing one is a rollback.
+#[test]
+fn status_reads_the_deployment() {
+    let (address, server) = mock_server(vec![
+        (
+            200,
+            envelope(
+                r#"{"id":"deployment-1","created_on":"2026-01-01T00:00:00Z","source":"api","strategy":"percentage","versions":[]}"#,
+            ),
+        ),
+        (404, "{}".to_string()),
+    ]);
+    let api = GeneratedCloudflareApi::new(
+        HttpClientBuilder::new().build(),
+        "account",
+        "ewe-sandbox",
+        format!("http://{address}"),
+        Secret::new("token"),
+    );
+    let _pool = initialize_pool(22, Some(3));
+    let id = DeploymentId::new("deployment-1");
+    let live = block_on_future({
+        let api = api.clone();
+        let id = id.clone();
+        async move { api.status(&id).await }
+    })
+    .expect("the status");
+    assert_eq!(live, DeploymentStatus::Live);
+    let gone = block_on_future(async move { api.status(&id).await }).expect("the missing status");
+    assert_eq!(gone, DeploymentStatus::RolledBack);
+
+    let requests = server.join().expect("the server thread");
+    assert!(requests[0].starts_with(
+        "GET /accounts/account/workers/scripts/ewe-sandbox/deployments/deployment-1 "
+    ));
+    assert!(requests[1].starts_with(
+        "GET /accounts/account/workers/scripts/ewe-sandbox/deployments/deployment-1 "
+    ));
+}
+
+/// A rollback deletes the deployment, and a second rollback is `Ok`.
+#[test]
+fn rollback_deletes_the_deployment() {
+    let (address, server) = mock_server(vec![(200, envelope("null")), (404, "{}".to_string())]);
+    let api = GeneratedCloudflareApi::new(
+        HttpClientBuilder::new().build(),
+        "account",
+        "ewe-sandbox",
+        format!("http://{address}"),
+        Secret::new("token"),
+    );
+    let _pool = initialize_pool(23, Some(3));
+    let id = DeploymentId::new("deployment-1");
+    block_on_future(async move {
+        api.rollback(&id).await?;
+        api.rollback(&id).await
+    })
+    .expect("both rollbacks succeed");
+
+    let requests = server.join().expect("the server thread");
+    assert!(requests[0].starts_with(
+        "DELETE /accounts/account/workers/scripts/ewe-sandbox/deployments/deployment-1 "
+    ));
+    assert!(requests[1].starts_with(
+        "DELETE /accounts/account/workers/scripts/ewe-sandbox/deployments/deployment-1 "
+    ));
 }

@@ -32,8 +32,8 @@ pub use deploy::{
     default_deployer, validate, validate_plans, Binding, CloudflareDeployHost, CloudflareDeployer,
     CommandOutput, CommandRunner, CommandSpec, ContainerDeployment, ContainerImage, DeployError,
     DeploymentApi, DeploymentId, DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration,
-    FoundationCloudflareDeployer, GeneratedCloudflareApi, ImageBuilder, Route, SecretRef,
-    SecretSource, SecretStore, WorkerDeployment, WranglerCloudflareDeployer,
+    FoundationCloudflareDeployer, GeneratedCloudflareApi, ImageBuilder, Promotion, Route,
+    SecretRef, SecretSource, SecretStore, WorkerDeployment, WranglerCloudflareDeployer,
 };
 #[cfg(not(target_family = "wasm"))]
 pub use types::{

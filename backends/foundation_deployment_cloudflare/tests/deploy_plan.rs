@@ -218,8 +218,10 @@ impl DeploymentApi for FakeApi {
         &self,
         worker_name: &str,
         version: &str,
-    ) -> foundation_deployment_cloudflare::deploy::DeployFuture<'_, Result<String, DeployError>>
-    {
+    ) -> foundation_deployment_cloudflare::deploy::DeployFuture<
+        '_,
+        Result<foundation_deployment_cloudflare::Promotion, DeployError>,
+    > {
         let call = ApiCall::Promote {
             worker: worker_name.to_string(),
             version: version.to_string(),
@@ -228,7 +230,10 @@ impl DeploymentApi for FakeApi {
         let failure = self.maybe_fail(Step::Promote);
         Box::pin(async move {
             failure?;
-            Ok("https://ewe-sandbox.example.workers.dev".to_string())
+            Ok(foundation_deployment_cloudflare::Promotion {
+                worker_url: "https://ewe-sandbox.example.workers.dev".to_string(),
+                deployment_id: DeploymentId::new("deployment-1"),
+            })
         })
     }
 

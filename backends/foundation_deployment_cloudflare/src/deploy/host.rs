@@ -13,9 +13,9 @@ use std::sync::Arc;
 use foundation_auth::server_credential::Secret;
 
 use crate::deploy::plan::{
-    Binding, ContainerDeployment, DoMigration, Route, SecretSource, WorkerDeployment,
+    Binding, ContainerDeployment, DeploymentId, DeploymentStatus, DoMigration, Route, SecretSource,
+    WorkerDeployment,
 };
-use crate::deploy::plan::{DeploymentId, DeploymentStatus};
 use crate::deploy::DeployError;
 
 /// A boxed future that is `Send`.
@@ -78,7 +78,7 @@ pub trait DeploymentApi: Send + Sync + 'static {
         &self,
         worker_name: &str,
         version: &str,
-    ) -> DeployFuture<'_, Result<String, DeployError>>;
+    ) -> DeployFuture<'_, Result<Promotion, DeployError>>;
 
     /// Reads the state of one deployment.
     ///
@@ -91,6 +91,15 @@ pub trait DeploymentApi: Send + Sync + 'static {
     /// # Errors
     /// [`DeployError::Api`] when the platform refuses the call.
     fn rollback(&self, id: &DeploymentId) -> DeployFuture<'_, Result<(), DeployError>>;
+}
+
+/// What one traffic switch left behind.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Promotion {
+    /// The Worker URL.
+    pub worker_url: String,
+    /// The deployment identifier that a status read or a rollback names.
+    pub deployment_id: DeploymentId,
 }
 
 /// Builds and pushes one container image.

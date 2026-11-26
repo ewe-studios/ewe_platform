@@ -113568,6 +113568,40 @@
         "example": "AAAAANuhDN7SjacTnSVsDu3WW1Lvst6dxJGTjRY5BhxPXdf6L6uTcpd_NVtjhn11OUYRsVEykxoUwF-JQU4dn6QylZSKTOJuG0indrdn_MlHpMRtsxgXjs-RPdHYIVm3odE_uvEQ_dTQGFm8oikZMohns34DLBgrQpc",
         "type": "string"
       },
+      "workers_deployment_request": {
+        "description": "One traffic switch of a Worker.",
+        "properties": {
+          "strategy": {
+            "description": "The rollout strategy.",
+            "type": "string"
+          },
+          "versions": {
+            "items": {
+              "properties": {
+                "percentage": {
+                  "description": "The traffic share of this version, from 0 to 100.",
+                  "type": "number"
+                },
+                "version_id": {
+                  "description": "The Worker version identifier.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "version_id",
+                "percentage"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "strategy",
+          "versions"
+        ],
+        "type": "object"
+      },
       "workers_deployment": {
         "properties": {
           "annotations": {
@@ -116719,6 +116753,23 @@
             ],
             "type": "object"
           }
+        ],
+        "type": "object"
+      },
+      "workers_route_request": {
+        "description": "The fields of a Worker route that a create or update sets.",
+        "properties": {
+          "pattern": {
+            "description": "The route pattern.",
+            "type": "string"
+          },
+          "script": {
+            "description": "The Worker script that the route reaches.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pattern"
         ],
         "type": "object"
       },
@@ -365116,7 +365167,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/workers_deployment"
+                "$ref": "#/components/schemas/workers_deployment_request"
               }
             }
           },
@@ -554587,7 +554638,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/workers_route"
+                "$ref": "#/components/schemas/workers_route_request"
               }
             }
           },
@@ -554833,7 +554884,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/workers_route"
+                "$ref": "#/components/schemas/workers_route_request"
               }
             }
           },

@@ -12,6 +12,7 @@ use crate::deploy::plan::{
     validate, Binding, ContainerDeployment, ContainerImage, DeploymentId, DeploymentOutcome,
     DeploymentPlan, DeploymentStatus, DoMigration, WorkerDeployment,
 };
+
 use crate::deploy::{deployed_unix_ms, host_from, CloudflareDeployer, DeployError, DeployFuture};
 
 /// The primary deploy adapter.
@@ -81,12 +82,12 @@ impl FoundationCloudflareDeployer {
         }
 
         // Step 8: promote the version. This is the traffic switch.
-        let worker_url = api.promote(&plan.worker.name, &version).await?;
+        let promotion = api.promote(&plan.worker.name, &version).await?;
 
         // Step 9: the outcome.
         Ok(DeploymentOutcome {
-            id: DeploymentId::generate(&ctx),
-            worker_url,
+            id: promotion.deployment_id,
+            worker_url: promotion.worker_url,
             container_tags,
             deployed_unix_ms: deployed_unix_ms(&ctx),
         })

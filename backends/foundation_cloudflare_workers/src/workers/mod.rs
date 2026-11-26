@@ -4180,6 +4180,15 @@ pub struct WorkersDeployment {
     pub versions: Vec<std::collections::HashMap<String, serde_json::Value>>,
 }
 
+/// `WorkersDeploymentRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersDeploymentRequest {
+    /// `strategy` property.
+    pub strategy: String,
+    /// `versions` property.
+    pub versions: Vec<std::collections::HashMap<String, serde_json::Value>>,
+}
+
 /// `WorkersDispatchNamespaceName` type.
 pub type WorkersDispatchNamespaceName = String;
 
@@ -4537,6 +4546,15 @@ pub type WorkersPlacementTarget = serde_json::Value;
 pub struct WorkersRoute {
     /// `id` property.
     pub id: serde_json::Value,
+    /// `pattern` property.
+    pub pattern: String,
+    /// `script` property.
+    pub script: Option<String>,
+}
+
+/// `WorkersRouteRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct WorkersRouteRequest {
     /// `pattern` property.
     pub pattern: String,
     /// `script` property.
@@ -6119,7 +6137,7 @@ pub struct WorkerDeploymentsCreateDeploymentArgs {
     /// Query parameter: `force` (true/false).
     pub force: Option<bool>,
     /// Request body.
-    pub body: WorkersDeployment,
+    pub body: WorkersDeploymentRequest,
 }
 
 /// Arguments for [`worker-deployments-get-deployment_request`].
@@ -6587,7 +6605,7 @@ pub struct WorkerRoutesCreateRouteArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
-    pub body: WorkersRoute,
+    pub body: WorkersRouteRequest,
 }
 
 /// Arguments for [`worker-routes-get-route_request`].
@@ -6603,7 +6621,7 @@ pub struct WorkerRoutesUpdateRouteArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
-    pub body: WorkersRoute,
+    pub body: WorkersRouteRequest,
 }
 
 /// Arguments for [`worker-routes-delete-route_request`].
