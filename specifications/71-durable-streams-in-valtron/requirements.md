@@ -716,6 +716,7 @@ disabled.
 | 07 | [Client core](./features/07-durable-streams-client/feature.md) | The Rust client, the valtron client wrapper and the conformance adapter | 01 | L |
 | 08 | [Conformance](./features/08-conformance/feature.md) | Server and client suites, cross-runs and CI gates | 02–07, 09 | M |
 | 09 | [S3 and R2 VFS](./features/09-s3-r2-vfs/feature.md) | High-performance S3/R2 object storage with local batching and CAS | 01, 05 | L |
+| 10 | [Subscriptions](./features/10-subscriptions/feature.md) | The `__ds` control APIs, webhook and pull-wake delivery, signing keys | 01, 06 | L |
 
 Order: 01 → (02, 03) → 04, 05, 06 → 07 → 08. Feature 09 runs in parallel with 05 and 06. Run a
 conformance spike after 01 and 06.
@@ -863,8 +864,6 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 - TanStack DB / StreamDB as a dependency.
 - Authentication. Reuse the existing auth seams.
 - A cross-stream total order. Offsets are per stream.
-- Subscriptions (`__ds`). The protocol defines them. The reference server implements them. Spec
-  71 leaves them out. Keep the `__ds` prefix reserved for a later spec.
 
 ## 8. Done for the whole spec
 
@@ -876,6 +875,7 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 - [ ] Fork, sub-offset, TTL and soft-delete follow the protocol.
 - [ ] The HTTP adapter passes the server conformance suite.
 - [ ] The client core passes the client conformance suite.
+- [ ] The server conformance suite has no skip. Subscriptions are in scope (owner correction 2026-11-27).
 - [ ] The cross-runs pass.
 - [ ] The S3 and R2 VFS passes the shared conformance and coverage suites.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and `foundation_ai`

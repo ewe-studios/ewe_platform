@@ -13,6 +13,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-27: feature 08 records the verified conformance commands and their results in its
   feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
   71 skip. The harness task remains.
+- 2026-11-27: the owner corrected two scope points. The client core and transport trait live in
+  core. The reserved subscription APIs are in scope; feature 10 records the work. The six server
+  skips are a gap, not an owner decision.
 - 2026-11-27: the client layering is corrected by the owner. The client core and the
   `ClientTransport` trait live in `foundation_core::durable::client`. `foundation_netio` holds only
   the native transport. The 24 mock tests move with the code. The valtron client reader lives in
@@ -144,6 +147,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   valtron wrapper remain.
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
+- **10-subscriptions** — ⏳ not started (0/7). The owner corrected the scope on 2026-11-27: the
+  reserved subscription APIs are in scope. The six skipped server tests wait for this feature.
 
 ## Next steps
 
