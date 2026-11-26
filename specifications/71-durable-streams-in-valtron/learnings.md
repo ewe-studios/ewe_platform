@@ -222,3 +222,12 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The worker path needs the same feature gate.** The worker read bypassed the adapter's
   "SSE is not enabled" answer and opened a stream, which stalled the command. The gate must sit
   in the shared read helper, not only in the serial path.
+
+## SSE open deadline, second attempt (2026-11-27)
+
+- **The self-waking poll deadline compiles and bounds the open future.** The native transport no
+  longer races a valtron timer. It polls the open future, wakes itself and stops at a wall-clock
+  deadline.
+- **SSE still stalls the suite when enabled.** The adapter keeps SSE off. The remaining suspects
+  are the event stream's own progress under the blocking executor, and the runner's background
+  read pattern. The client gate stays at 208 pass, 0 fail.

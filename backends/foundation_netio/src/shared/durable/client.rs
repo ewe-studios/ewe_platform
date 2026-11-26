@@ -527,6 +527,7 @@ impl ReadBuilder {
 
 impl ReadBuilder {
     async fn send_sse(self, request: ClientRequest) -> Result<ReadResult, ClientError> {
+        #[cfg(not(feature = "std"))]
         use futures_lite::StreamExt;
 
         let mut stream = self.handle.transport.open_sse(request).await?;

@@ -11,6 +11,7 @@ use crate::shared::durable::{
 };
 use crate::shared::http::SimpleHeader;
 use crate::{DynNetClient, HttpClientBuilder};
+use core::future::Future;
 use std::collections::BTreeMap;
 use std::time::Duration;
 
@@ -86,6 +87,7 @@ impl Default for NetioTransport {
 impl ClientTransport for NetioTransport {
     fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, ClientSseStream> {
         let client = self.client.clone();
+        let sse_open_timeout = self.sse_open_timeout;
         Box::pin(async move {
             let mut builder = PreparedRequestBuilder::get(&request.url)
                 .map_err(|error| TransportError::new(error.to_string()))?;
@@ -93,21 +95,25 @@ impl ClientTransport for NetioTransport {
             for (name, value) in request.headers {
                 builder = builder.header(known_header(&name), value);
             }
-            let timeout = self.sse_open_timeout;
-            let open = client.send_sse_async(builder.build());
-            let bounded = async {
-                let head = async { Some(open.await) };
-                let deadline = async {
-                    foundation_core::valtron::timer::sleep_for(
-                        timeout,
-                        &foundation_context::Ctx::host(),
-                    )
-                    .await;
-                    None
-                };
-                futures_lite::future::or(head, deadline).await
-            };
-            let inner = match bounded.await {
+            // The valtron timer does not always progress under a blocking
+            // executor, so the open future wakes itself and checks the clock.
+            let deadline = std::time::Instant::now() + sse_open_timeout;
+            let mut open = client.send_sse_async(builder.build());
+            let outcome = futures_lite::future::poll_fn(|cx| {
+                match open.as_mut().poll(cx) {
+                    std::task::Poll::Pending => {
+                        if std::time::Instant::now() >= deadline {
+                            std::task::Poll::Ready(None)
+                        } else {
+                            cx.waker().wake_by_ref();
+                            std::task::Poll::Pending
+                        }
+                    }
+                    std::task::Poll::Ready(value) => std::task::Poll::Ready(Some(value)),
+                }
+            })
+            .await;
+            let inner = match outcome {
                 Some(Ok(inner)) => inner,
                 Some(Err(error)) => return Err(TransportError::new(error.to_string())),
                 None => {
@@ -118,9 +124,8 @@ impl ClientTransport for NetioTransport {
             };
             let events = futures_lite::stream::unfold(inner, |mut inner| async move {
                 use foundation_core::valtron::Stream;
-                use futures_lite::StreamExt;
                 loop {
-                    match inner.next().await {
+                    match futures_lite::StreamExt::next(&mut inner).await {
                         None => return None,
                         Some(Stream::Next(parsed)) => {
                             let event = match parsed.event {
