@@ -1,0 +1,75 @@
+# Spec 71 handoff
+
+_Written in ASD-STE100 Simplified Technical English (STE)._
+
+**Abbreviations.** Hypertext Transfer Protocol (HTTP); Server-Sent Events (SSE); JavaScript Object
+Notation (JSON); time to live (TTL); Continuous Integration (CI); virtual file system (VFS);
+Representational State Transfer (REST); Amazon Simple Storage Service (S3).
+
+This file states the exact state of the work and the next steps. Read it before you change code.
+
+## 1. Verified gates
+
+| Gate | Result | Command |
+|---|---|---|
+| Server conformance | 332 pass, 6 skip, 0 fail | `ci/durable_conformance.sh` |
+| Client conformance | 208 pass, 0 fail, 61 skip | `ci/durable_conformance.sh` |
+| Core durable tests | 81 pass | `cargo test -p foundation_core --features multi,test-clock --test mod durable` |
+| HTTP adapter tests | 30 pass | `cargo test -p foundation_http --test durable_adapter` |
+| Client core tests | 24 pass | `cargo test -p foundation_netio --features multi --test foundation_netio_tests durable` |
+
+The 61 client skips are SSE only. The adapter announces `sse: false`.
+
+## 2. What works
+
+- The transport-neutral core in `foundation_core::durable::shared`: create, append, close, read,
+  head, delete, fork, `Stream-Seq`, producer fencing and dedup, TTL, JSON mode, soft-delete and
+  cascade, bounded pages, and the notifier. The architecture test proves it names no transport or
+  valtron code path.
+- The HTTP surface: request adapter, catch-up, long-poll, SSE, ETag and `304`, cursor, cross-origin
+  headers, forks, `Stream-Expires-At`, producer and closure error headers, a bounded body guard.
+- The client core with an injected transport, a native transport, and a JSON-line conformance
+  adapter. Batching, auto mode, dynamic headers, conditional reads and `Retry-After` work.
+
+## 3. Blockers
+
+### 3.1 Issue #963: the native SSE stream blocks in `poll_next`
+
+- Location: `foundation_netio/src/event_source/native/task.rs`, state
+  `EventSourceState::ReadingStream`.
+- Cause: the state calls `iterator.next()` on a blocking iterator. The future stream calls the
+  task from `poll_next`, so the poll parks in the socket read.
+- Measured: a probe printed a `data` and a `control` event, then the next poll never returned.
+  A self-waking deadline, a socket read timeout and a readiness check before the read all failed.
+- Fix: make the SSE body iterator incremental. Read the buffered bytes, return no event until the
+  buffer holds a complete event, and return `TaskStatus::Wait` with a wake from the connection.
+- Then set `sse: true` in the adapter and run `ci/durable_conformance.sh`.
+
+### 3.2 Issue #947: the SSE open hides the status and headers
+
+- Location: `foundation_netio/src/shared/client/http_client.rs`, `send_sse_async`.
+- Cause: the method returns only the event stream. The client cannot answer `404` or `410` and
+  cannot read `stream-sse-data-encoding` from the head.
+- Partial fix: the client sends one `HEAD` request first and uses its status and encoding header.
+- Full fix: return a head with the stream.
+
+## 4. Next features
+
+1. Feature 05: the file VFS in `foundation_nativeapis`. The feature names Lightweight Memory-Mapped
+   Database (LMDB) metadata. The workspace has no LMDB dependency, so the owner must confirm either
+   LMDB or an atomically replaced metadata file.
+2. Feature 09: the S3/R2 VFS. The design is in the feature file.
+3. Feature 06: the ConnectRPC surface.
+4. Feature 07: the valtron client wrapper. The design puts it in `foundation_core`, which cannot
+   depend on `foundation_netio`. The owner must confirm the home crate.
+5. Feature 08: the CI wiring. `ci/durable_conformance.sh` is the command to call.
+6. The wider oracle matrix: differential, crash and recovery, deterministic simulation testing
+   (DST) across VFS implementations.
+
+## 5. Rules that matter here
+
+- Run `ci/durable_conformance.sh` before you call a protocol change done.
+- Every skip needs a reason and an owner. Today the only reason is #963.
+- A server or client workaround for #963 is measured and rejected. Change the netio event task.
+
+_Created: 2026-11-27._
