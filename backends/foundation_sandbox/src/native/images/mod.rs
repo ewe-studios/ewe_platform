@@ -28,6 +28,10 @@ use crate::shared::BoxFuture;
 #[cfg(feature = "images")]
 pub mod import;
 
+/// The build file grammar and its executor (feature 14).
+#[cfg(feature = "images")]
+pub mod build;
+
 /// The build file grammar (feature 14).
 #[cfg(feature = "images")]
 pub mod sandboxfile;
