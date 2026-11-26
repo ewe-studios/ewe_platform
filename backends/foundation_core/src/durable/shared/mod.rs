@@ -828,6 +828,7 @@ pub trait DurableStreamStore {
 /// The default protocol store. It wraps a boxed VFS.
 ///
 /// Swap the VFS to change storage. The protocol core and `Ctx` do not change.
+#[derive(Clone)]
 pub struct DurableStream {
     vfs: Arc<dyn DurableStreamVfs>,
 }

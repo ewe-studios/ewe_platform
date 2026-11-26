@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 02 started. Core page reader state rules and the valtron catch-up reader
+  land as a `#[task]`. 22 durable tests pass; clippy and wasm32 are clean. Live tail, wake,
+  trim and the oracle matrix remain.
 - 2026-11-27: S3/R2 layout is configuration. Segmented objects are the default. An append-only
   file layout is supported. Batching is local: one batch becomes one object PUT. Segment size,
   batch size, linger, parallel PUTs and flush policy are configuration.
@@ -41,7 +44,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **01-durable-stream-types** — 🟡 in progress (6/7). Core types, store trait, `DurableDriver`,
   BDD harness, memory VFS, business API, property test and model comparison landed. 17 tests
   pass. The wasm32 check passes. T4 (valtron-disabled build) remains.
-- **02-resumable-reader** — ⏳ not started (0/9)
+- **02-resumable-reader** — 🟡 in progress (3/10). Core page reader, state rules, closure
+  discovery and a valtron catch-up reader landed. Live tail, wake, trim and the oracle matrix
+  remain.
 - **03-idempotent-producer** — ⏳ not started (0/7)
 - **04-fork-and-retention** — ⏳ not started (0/8)
 - **05-storage-backends** — ⏳ not started (0/6)

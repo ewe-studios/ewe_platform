@@ -55,35 +55,35 @@ Paths follow the repository layout:
 | Valtron reader | `foundation_core/src/valtron/durable/` |
 
 ```rust
-pub struct DurableStreamReader<Store> {
-    service: DurableService<Store>,
-    name: StreamName,
-    cursor: ResumeCursor,
-    live: bool,
+pub struct DurableStreamReader {
+    inner: DrivenTaskIterator<read_step>,
 }
 
-impl<Store: DurableStreamStore> StreamIterator for DurableStreamReader<Store> {
-    type D = Chunk;
-    type P = ReaderProgress;
+impl Iterator for DurableStreamReader {
+    type Item = Stream<Chunk, ReaderProgress>;
+    fn next(&mut self) -> Option<Self::Item> { self.inner.next().map(Stream::from) }
 }
 
-impl<Store: DurableStreamStore> WakeableStream for DurableStreamReader<Store> {
-    fn wake(&mut self, cb: WakeCallback) -> WakeResult { /* forward to the notifier */ }
-}
+impl WakeableStream for DurableStreamReader {}
 
 pub enum ReaderProgress { Connecting, Trimming, Live }
+
+#[task]
+async fn read_step(ctx: Ctx, state: ReaderState)
+    -> Option<(ReaderState, TaskStatus<Chunk, ReaderProgress>)> { /* read, spread, end */ }
 ```
 
-The core reader is `DurableService::read`. The valtron reader wraps it. The valtron reader must
-not change the core state rules.
+The core reader is `DurableStream::read`. The valtron reader wraps it in a `#[task]` and must
+not change the core state rules. The current slice covers catch-up. The live tail and wake
+forwarding land before the feature closes.
 
 ## 4. Tasks
 
-- [ ] **T1 — core catch-up.** Page reads and cursor threading. Test:
+- [x] **T1 — core catch-up.** Page reads and cursor threading. Test:
       `reads_resume_byte_exactly_across_page_boundaries`.
-- [ ] **T2 — core state rules.** `up_to_date`, `closed` and partial pages. Tests:
+- [x] **T2 — core state rules.** `up_to_date`, `closed` and partial pages. Tests:
       `partial_page_omits_up_to_date_and_closed`, `closed_tail_reports_both`.
-- [ ] **T3 — closure discovery.** Read the tail after closure. Test:
+- [x] **T3 — closure discovery.** Read the tail after closure. Test:
       `closure_discovered_by_next_read`.
 - [ ] **T4 — `offset=now`.** Catch-up, live and closed cases. Tests: `now_catchup_empty`,
       `now_live_waits`, `now_closed_returns_immediately`.
