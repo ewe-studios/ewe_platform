@@ -158,16 +158,48 @@ pub async fn fetch(
             if response.status_code() == 404 {
                 // A scoped call to a sandbox whose DO has no record removes the
                 // stale index entry (invariant I6).
-                let index = WorkerSandboxIndex::new(env.clone());
-                if let Err(error) =
-                    foundation_sandbox::shared::cloudflare::SandboxIndex::remove(&index, &id).await
-                {
-                    worker::console_warn!("the stale index entry was not removed: {error}");
-                }
+                remove_index_entry(&env, &id).await;
+                return Ok(response);
             }
-            Ok(response)
+            // A stream error after the head also means that the sandbox is
+            // gone, so the entry is removed then too.
+            stream_response(response, env, id)
         }
     }
+}
+
+/// Removes one index entry and logs a failure. A failure does not fail the call.
+async fn remove_index_entry(env: &Env, id: &SandboxId) {
+    let index = WorkerSandboxIndex::new(env.clone());
+    if let Err(error) = foundation_sandbox::shared::cloudflare::SandboxIndex::remove(&index, id).await
+    {
+        worker::console_warn!("the stale index entry was not removed: {error}");
+    }
+}
+
+/// Returns the Durable Object response with a body that removes the index
+/// entry when the stream fails after the head.
+fn stream_response(
+    mut response: Response,
+    env: Env,
+    id: SandboxId,
+) -> worker::Result<Response> {
+    let status = response.status_code();
+    let headers = response.headers().clone();
+    let body = response.stream()?;
+    let stream = body.then(move |item| {
+        let env = env.clone();
+        let id = id.clone();
+        async move {
+            if item.is_err() {
+                remove_index_entry(&env, &id).await;
+            }
+            item
+        }
+    });
+    Ok(Response::from_stream(stream)?
+        .with_status(status)
+        .with_headers(headers))
 }
 
 /// Reads the request body, at most `max` bytes.
@@ -282,11 +314,18 @@ fn probe_response() -> worker::Result<Response> {
     let report = HostReport {
         driver: DriverId::CloudflareContainer,
         usable: true,
-        checks: vec![HostCheck {
-            name: "container_binding".to_string(),
-            ok: true,
-            message: "the Durable Object has a container".to_string(),
-        }],
+        checks: vec![
+            HostCheck {
+                name: "container_binding".to_string(),
+                ok: true,
+                message: "the Durable Object has a container".to_string(),
+            },
+            HostCheck {
+                name: "worker_version".to_string(),
+                ok: true,
+                message: foundation_sandbox::VERSION.to_string(),
+            },
+        ],
         capabilities,
     };
     Response::from_json(&ProbeResponse {

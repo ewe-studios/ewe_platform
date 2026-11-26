@@ -1,14 +1,20 @@
 //! The routing rule and the bearer-token check of the Worker entry (feature 08,
 //! section 6.1 and invariant I1).
 
+use std::sync::Arc;
+
+use foundation_sandbox::shared::cloudflare::control::remove_index_on_stream_error;
 use foundation_sandbox::shared::cloudflare::routing::{
     route, RouteTarget, CONTAINER_SCOPED_METHODS, CONTAINER_SERVICE_PREFIX, SANDBOX_SERVICE_PREFIX,
     SCOPED_METHODS,
 };
-use foundation_sandbox::shared::control::authorize;
+use foundation_sandbox::shared::cloudflare::testing::MemoryIndex;
+use foundation_sandbox::shared::cloudflare::SandboxIndex;
+use foundation_sandbox::shared::control::{authorize, SandboxInfo, SandboxState};
 use foundation_sandbox::shared::error::{SandboxError, SandboxResult};
-use foundation_sandbox::shared::ids::SandboxId;
-use foundation_sandbox::shared::Secret;
+use foundation_sandbox::shared::ids::{DriverId, SandboxId};
+use foundation_sandbox::shared::{BoxByteStream, Secret};
+use futures::StreamExt;
 use proptest::prelude::*;
 use proptest::test_runner::RngSeed;
 
@@ -161,6 +167,38 @@ fn route_container_without_id() {
         SandboxError::InvalidSpec { field, .. } => assert_eq!(field, "container_id"),
         other => panic!("expected InvalidSpec, got {other:?}"),
     }
+}
+
+/// A stream error after the head removes the index entry (invariant I6).
+#[test]
+fn stream_error_removes_index_entry() {
+    let id = id("000000000003");
+    let index = Arc::new(MemoryIndex::new());
+    let info = SandboxInfo {
+        id: id.to_string(),
+        driver: DriverId::CloudflareContainer,
+        state: SandboxState::Ready,
+        created_unix_ms: 0,
+        slave: None,
+    };
+    futures::executor::block_on(SandboxIndex::put(&*index, info)).expect("the entry");
+    assert!(index.get(&id).is_some());
+
+    let body: BoxByteStream = Box::pin(futures::stream::once(async {
+        Err(SandboxError::StreamLost.into())
+    }));
+    let wrapped = remove_index_on_stream_error(
+        body,
+        Arc::clone(&index) as Arc<dyn SandboxIndex>,
+        id.clone(),
+    );
+    let items = futures::executor::block_on(wrapped.collect::<Vec<_>>());
+    assert_eq!(items.len(), 1);
+    assert!(items[0].is_err(), "the error still reaches the caller");
+    assert!(
+        index.get(&id).is_none(),
+        "the stream error removed the entry"
+    );
 }
 
 proptest! {

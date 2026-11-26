@@ -597,11 +597,23 @@ fn e2e_cloudflare_versions() {
         let second_info = second.info();
         let first_slave = first_info.slave.expect("the slave info");
         let second_slave = second_info.slave.expect("the slave info");
+        let reports = SandboxProvider::probe(&control).await.expect("the probe");
+        let worker_version = reports
+            .iter()
+            .find(|report| report.driver == DriverId::CloudflareContainer)
+            .and_then(|report| {
+                report
+                    .checks
+                    .iter()
+                    .find(|check| check.name == "worker_version")
+            })
+            .map(|check| check.message.clone())
+            .expect("the probe names the Worker version");
         assert_eq!(
-            first_slave.slave_version, second_slave.slave_version,
-            "two sandboxes from one image have one slave version"
+            first_slave.slave_version, worker_version,
+            "the slave and the Worker have one version"
         );
-        assert_ne!(first_slave.slave_version, "");
+        assert_eq!(second_slave.slave_version, worker_version);
         first.stop().await.expect("the first stop");
         second.stop().await.expect("the second stop");
     });
