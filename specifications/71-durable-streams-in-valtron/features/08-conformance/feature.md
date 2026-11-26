@@ -133,6 +133,11 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 
 ## 6. Verified commands (2026-11-27)
 
+`ci/durable_conformance.sh` runs both suites. It builds the examples, starts the server,
+installs the suites in a temporary directory and fails on any test failure. A clean run takes
+about 90 seconds.
+
+
 These commands pass on the branch `spec-durable-streams`. The harness uses the same
 commands.
 
