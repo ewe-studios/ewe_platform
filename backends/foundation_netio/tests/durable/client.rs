@@ -512,3 +512,23 @@ fn given_a_cursor_when_a_read_runs_then_it_is_echoed_on_the_query() {
         assert!(transport.last_request().url.ends_with("cursor=42"));
     });
 }
+
+#[test]
+fn given_a_matching_etag_when_a_read_runs_then_it_reports_not_modified() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(304, &[], b"")]);
+        let result = handle(transport.clone())
+            .read()
+            .if_none_match("\"tag\"")
+            .send()
+            .await
+            .expect("conditional read");
+        assert_eq!(result.status, 304);
+        assert!(result.chunks.is_empty());
+        assert!(result.up_to_date);
+        assert!(transport
+            .last_request()
+            .headers
+            .contains(&("if-none-match".to_string(), "\"tag\"".to_string())));
+    });
+}

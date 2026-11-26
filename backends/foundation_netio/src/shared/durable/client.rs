@@ -452,6 +452,14 @@ impl ReadBuilder {
         self
     }
 
+    /// Send a conditional read with this entity tag.
+    #[must_use]
+    pub fn if_none_match(mut self, tag: impl Into<String>) -> Self {
+        self.headers
+            .push(("if-none-match".to_string(), tag.into()));
+        self
+    }
+
     /// Echo a collapsing cursor from a previous response.
     #[must_use]
     pub fn cursor(mut self, cursor: impl Into<String>) -> Self {
@@ -512,6 +520,13 @@ impl ReadBuilder {
         let response = self.handle.transport.send(request).await?;
 
         match response.status {
+            304 => Ok(ReadResult {
+                status: 304,
+                next_offset: response.header("stream-next-offset").map(str::to_string),
+                up_to_date: true,
+                closed: response.header("stream-closed") == Some("true"),
+                ..ReadResult::default()
+            }),
             200 | 204 => {
                 let closed = response.header("stream-closed") == Some("true");
                 let up_to_date = response.header("stream-up-to-date") == Some("true");
