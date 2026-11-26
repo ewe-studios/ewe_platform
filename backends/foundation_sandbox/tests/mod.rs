@@ -42,3 +42,16 @@ mod libkrun;
     feature = "libkrun-runner"
 ))]
 mod libkrun_runner;
+
+/// The `SandboxService` server and client on a real socket (feature 06). They
+/// need the control plane and the simulation helpers; no virtual machine runs.
+#[cfg(all(unix, feature = "control", feature = "testing"))]
+mod serve;
+
+/// The command-line tests of feature 06.
+#[cfg(all(not(target_family = "wasm"), feature = "cli"))]
+mod cli;
+
+/// The source scans of invariants I10 and I12 (feature 06).
+#[cfg(not(target_family = "wasm"))]
+mod boundary;

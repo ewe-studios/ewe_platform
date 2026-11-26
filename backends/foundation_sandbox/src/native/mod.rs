@@ -28,6 +28,14 @@ pub mod libkrun;
 #[cfg(feature = "control")]
 pub mod platform;
 
+/// The client of a remote control plane (feature 06).
+#[cfg(feature = "control")]
+pub mod connect;
+
+/// The `SandboxService` server on a Unix domain socket or TCP (feature 06).
+#[cfg(feature = "control")]
+pub mod serve;
+
 /// The slave: the engine that serves `SlaveService` in the guest. It is a Linux
 /// program: process control, signals and the PID 1 duties have no meaning on
 /// another target.

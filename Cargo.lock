@@ -6232,7 +6232,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_platform"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -6248,6 +6248,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_macros",
  "foundation_netio",
+ "foundation_sandbox",
  "foundation_sshkit",
  "foundation_wireguard",
  "fs2",
@@ -6795,11 +6796,12 @@ dependencies = [
 
 [[package]]
 name = "foundation_sandbox"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "base64 0.22.1",
  "base85rs",
  "bytes",
+ "clap",
  "derive_more",
  "flate2",
  "foundation_auth",
@@ -6809,6 +6811,7 @@ dependencies = [
  "foundation_context",
  "foundation_core",
  "foundation_deployment",
+ "foundation_deployment_platform",
  "foundation_errstacks",
  "foundation_http",
  "foundation_macros",
