@@ -335,6 +335,31 @@ pub fn remove_index_on_stream_error(
     Box::pin(stream)
 }
 
+/// Whether one response head opens a Connect stream instead of one message.
+///
+/// A Connect streaming response carries `application/connect+<codec>`. A unary
+/// response carries `application/<codec>`.
+fn is_streaming_reply(headers: &[(String, String)]) -> bool {
+    headers.iter().any(|(name, value)| {
+        name.eq_ignore_ascii_case("content-type")
+            && value
+                .to_ascii_lowercase()
+                .starts_with("application/connect+")
+    })
+}
+
+/// Keeps a [`StreamGuard`] alive until the body ends.
+///
+/// The guard touches the sandbox while the stream runs, so the idle deadline
+/// does not pass under an active stream. Dropping the body drops the guard.
+fn with_stream_guard(body: BoxByteStream, guard: StreamGuard) -> BoxByteStream {
+    let stream = futures::stream::unfold((body, guard), |(mut body, guard)| async move {
+        let item = body.next().await?;
+        Some((item, (body, guard)))
+    });
+    Box::pin(crate::shared::cloudflare::SendStream::new(stream))
+}
+
 /// The status, headers and body bytes of a whole response.
 fn split_whole(response: SimpleOutgoingResponse) -> (u16, Vec<(String, String)>, Vec<u8>) {
     let status = status_u16(&response.status);
@@ -539,7 +564,9 @@ impl DoControlPlane {
     ///
     /// The head of the response returns before its stream ends. A streaming
     /// call keeps the sender alive on the pool, so a long `Exec` does not hold
-    /// the whole answer in memory.
+    /// the whole answer in memory. A streaming call also holds a
+    /// [`StreamGuard`], which touches the sandbox until the stream ends, so the
+    /// idle alarm does not stop a sandbox that a stream still uses.
     pub async fn handle(&self, request: HttpRequestParts) -> HttpResponseParts {
         self.restore().await;
         self.touch().await;
@@ -561,6 +588,11 @@ impl DoControlPlane {
             Arc::clone(&self.inner.host.index),
             self.inner.id.clone(),
         );
+        let body = if is_streaming_reply(&parts.headers) {
+            with_stream_guard(body, self.stream_guard())
+        } else {
+            body
+        };
         HttpResponseParts {
             status: parts.status,
             headers: parts.headers,
