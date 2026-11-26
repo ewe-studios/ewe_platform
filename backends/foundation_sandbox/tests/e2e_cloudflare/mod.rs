@@ -7,12 +7,11 @@
 
 use std::future::Future;
 use std::process::Command;
-use std::sync::OnceLock;
 use std::time::Duration;
 
 use foundation_connectrpc::{ClientOptions, H1Transport, Request, RpcCtx};
 use foundation_context::Ctx;
-use foundation_core::valtron::{block_on_future, execute, initialize_pool, StreamIteratorExt};
+use foundation_core::valtron::{execute, StreamIteratorExt};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::client::request_task::HttpExchange;
 use foundation_netio::shared::http::{SimpleHeader, SimpleMethod};
@@ -37,22 +36,12 @@ const DOCKER: &str = "docker";
 /// The container application name of the deployment plan.
 const CONTAINER_NAME: &str = "ewe-sandbox";
 
-/// Starts the one valtron pool of this test binary.
-fn pool() {
-    static POOL: OnceLock<()> = OnceLock::new();
-    POOL.get_or_init(|| {
-        std::mem::forget(initialize_pool(8, Some(8)));
-    });
-}
-
-/// Runs one future on the pool.
-fn run<F>(future: F) -> F::Output
-where
-    F: Future + Send + 'static,
-    F::Output: Send + 'static,
-{
-    pool();
-    block_on_future(future)
+/// Runs one future on the one pool of this test binary.
+///
+/// The pool is shared with the other Cloudflare tests: a second
+/// `initialize_pool` in one binary would block for ever.
+fn run<F: Future>(future: F) -> F::Output {
+    crate::pool::block_on(future)
 }
 
 /// Whether a missing service is a failure.
@@ -191,7 +180,7 @@ fn raw_request(
     token: Option<&str>,
     body: Option<Vec<u8>>,
 ) -> RawResponse {
-    pool();
+    crate::pool::pool();
     let url = format!(
         "{}{path}",
         worker_url().expect("the test skipped without a URL")
@@ -750,7 +739,7 @@ fn provider_e2e_cloudflare() {
     if skip("provider_e2e_cloudflare") {
         return;
     }
-    pool();
+    crate::pool::pool();
     let control: std::sync::Arc<dyn SandboxProvider> = std::sync::Arc::new(client(Some(&token())));
     let provider = SandboxDeploymentProvider::cloudflare(control);
     let handle = provider.launch(&container_spec()).expect("the launch");
