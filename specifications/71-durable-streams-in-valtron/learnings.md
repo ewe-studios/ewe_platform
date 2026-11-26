@@ -269,3 +269,12 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   return no event until the buffer holds a complete one. Issue #963.
 - **Every server-side and adapter-side workaround is now measured.** None delivers SSE data. The
   fix is in the netio SSE body iterator. The gate stays at 208 pass, 0 fail.
+
+## Producer property oracle (2026-11-27)
+
+- **A retried producer sequence stores one copy.** The new property test appends a random byte
+  vector per sequence and retries each sequence. The read equals the concatenation, for every
+  generated input.
+- **A text stream read returns one chunk.** The byte log does not keep per-append boundaries.
+  Only a JSON stream returns one chunk per message. An oracle that counts chunks on a text
+  stream is wrong.
