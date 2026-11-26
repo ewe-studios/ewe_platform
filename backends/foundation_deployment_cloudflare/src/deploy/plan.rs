@@ -314,6 +314,20 @@ impl DeploymentPlan {
         }
     }
 
+    /// The plan of the sandbox Worker with a product image.
+    ///
+    /// It is [`Self::sandbox_worker`] with one change: the container image is
+    /// `./Dockerfile.product`, the image that
+    /// `mise run sandbox:product-dockerfile` writes. The Worker, its bindings,
+    /// its migrations and its secret are the same.
+    #[must_use]
+    pub fn sandbox_worker_product() -> Self {
+        let mut plan = Self::sandbox_worker();
+        plan.containers[0].image =
+            ContainerImage::Dockerfile(PathBuf::from("./Dockerfile.product"));
+        plan
+    }
+
     /// The same plan with the `MODEL_API_KEY` secret, for the `OpenRouter`
     /// model backend.
     #[must_use]

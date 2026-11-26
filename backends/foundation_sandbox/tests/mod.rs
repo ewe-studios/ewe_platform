@@ -37,6 +37,13 @@ mod cloudflare;
     feature = "cloudflare"
 ))]
 mod e2e_cloudflare;
+
+/// The Cloudflare Sandbox product end-to-end tests (spec 77 feature 17). They
+/// need a running product Worker:
+/// `infrastructure/sandbox_worker/test/product.sh` starts it.
+#[cfg(all(not(target_family = "wasm"), feature = "control", feature = "testing"))]
+mod e2e_cf_product;
+
 /// The native side-effect tests of feature 05. They start real processes and
 /// dial real Unix sockets, with no virtual machine.
 #[cfg(all(unix, feature = "control"))]

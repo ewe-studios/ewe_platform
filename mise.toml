@@ -1219,6 +1219,54 @@ mise run sandbox:slave
 cp target/sandbox/agent-slave-x86_64 infrastructure/sandbox_worker/agent-slave
 """
 
+[tasks."sandbox:slave-image"]
+description = "Build the one-file donor image from the static amd64 slave"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+mise run sandbox:slave
+version=$(python3 -c "import tomllib; print(tomllib.load(open('backends/foundation_sandbox/Cargo.toml', 'rb'))['package']['version'])")
+build_dir=$(mktemp -d)
+trap 'rm -rf "${build_dir}"' EXIT
+cp target/sandbox/agent-slave-x86_64 "${build_dir}/agent-slave"
+docker build --platform linux/amd64 \
+  -f infrastructure/sandbox_worker/images/agent-slave/Dockerfile \
+  -t "ewe/agent-slave:${version}" \
+  "${build_dir}"
+docker image inspect "ewe/agent-slave:${version}" >/dev/null
+echo "ewe/agent-slave:${version}"
+"""
+
+[tasks."sandbox:product-dockerfile"]
+description = "Write Dockerfile.product from the template and the two pinned images"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+tools=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['cloudflare_sandbox_tools_image'])")
+base=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['product_base_image'])")
+version=$(python3 -c "import tomllib; print(tomllib.load(open('backends/foundation_sandbox/Cargo.toml', 'rb'))['package']['version'])")
+python3 - "${tools}" "${base}" <<'PY'
+import re
+import sys
+
+for name, value in zip(
+    ("cloudflare_sandbox_tools_image", "product_base_image"), sys.argv[1:]
+):
+    if not re.search(r"@sha256:[0-9a-f]{64}$", value):
+        sys.exit(
+            f"ci/sandbox.toml: {name} has no digest; resolve it with "
+            "`docker buildx imagetools inspect`"
+        )
+PY
+sed \
+  -e "s|@SANDBOX_TOOLS_IMAGE@|${tools}|g" \
+  -e "s|@SLAVE_IMAGE@|ewe/agent-slave:${version}|g" \
+  -e "s|@BASE_IMAGE@|${base}|g" \
+  infrastructure/sandbox_worker/Dockerfile.product.in \
+  > infrastructure/sandbox_worker/Dockerfile.product
+echo "infrastructure/sandbox_worker/Dockerfile.product"
+"""
+
 [tasks.bacon]
 description = "Start bacon with bacon-ls job for IDE integration"
 run = "bacon -j bacon-ls"

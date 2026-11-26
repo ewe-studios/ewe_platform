@@ -1,5 +1,14 @@
 # The static slave that `mise run sandbox:worker-image` copies here.
-agent-slave
+/agent-slave
+# The image files that `mise run sandbox:product-dockerfile` and the fault test
+# write from the templates.
+Dockerfile.product
+Dockerfile.product.noslave
+# The local Worker configuration of the fault test.
+wrangler.noslave.toml
+# The local Worker logs.
+product-dev.log
+product-noslave.log
 # The local Worker secrets of `wrangler dev`.
 .dev.vars
 # The `worker-build` output and the Node package directory.
