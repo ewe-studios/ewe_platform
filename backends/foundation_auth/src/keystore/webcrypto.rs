@@ -65,7 +65,7 @@ impl WebCryptoSealer {
             ));
         }
         let subtle = subtle()?;
-        let algorithm = aes_gcm_algorithm(None)?;
+        let algorithm = aes_gcm_algorithm(None, &[])?;
         let usages = js_sys::Array::new();
         usages.push(&wasm_bindgen::JsValue::from_str("encrypt"));
         usages.push(&wasm_bindgen::JsValue::from_str("decrypt"));
@@ -104,7 +104,7 @@ impl KeySealer for WebCryptoSealer {
         Box::pin(SendWrapper::new(async move {
             let nonce = self.nonce()?;
             let subtle = subtle()?;
-            let algorithm = aes_gcm_algorithm(Some(&nonce))?;
+            let algorithm = aes_gcm_algorithm(Some(&nonce), aad)?;
             let data = js_sys::Uint8Array::from(plaintext);
             let promise = subtle
                 .encrypt_with_object_and_buffer_source(&algorithm, &self.key, &data.buffer())
@@ -113,8 +113,6 @@ impl KeySealer for WebCryptoSealer {
                 .await
                 .map_err(|e| KeyStoreError::Seal(format!("encrypt: {e:?}")))?;
             let ciphertext = js_sys::Uint8Array::new(&ciphertext).to_vec();
-            // The Worker sets the aad as the AES-GCM additional data.
-            let _ = aad;
             Ok(SealedBlob {
                 v: 1,
                 alg: "aes256gcm".to_string(),
@@ -142,7 +140,7 @@ impl KeySealer for WebCryptoSealer {
                 .decode(sealed.ciphertext_b64url.trim())
                 .map_err(|e| KeyStoreError::Seal(format!("ciphertext: {e}")))?;
             let subtle = subtle()?;
-            let algorithm = aes_gcm_algorithm(Some(&nonce))?;
+            let algorithm = aes_gcm_algorithm(Some(&nonce), aad)?;
             let data = js_sys::Uint8Array::from(ciphertext.as_slice());
             let promise = subtle
                 .decrypt_with_object_and_buffer_source(&algorithm, &self.key, &data.buffer())
@@ -150,7 +148,6 @@ impl KeySealer for WebCryptoSealer {
             let plaintext = JsFuture::from(promise)
                 .await
                 .map_err(|e| KeyStoreError::Seal(format!("decrypt: {e:?}")))?;
-            let _ = aad;
             Ok(SecureBytes::new(
                 js_sys::Uint8Array::new(&plaintext).to_vec(),
             ))
@@ -158,8 +155,12 @@ impl KeySealer for WebCryptoSealer {
     }
 }
 
-/// The AES-256-GCM parameters, with the nonce as the initialization vector.
-fn aes_gcm_algorithm(nonce: Option<&[u8]>) -> Result<wasm_bindgen::JsValue, KeyStoreError> {
+/// The AES-256-GCM parameters, with the nonce as the initialization vector and
+/// the record bytes as the additional authenticated data.
+fn aes_gcm_algorithm(
+    nonce: Option<&[u8]>,
+    aad: &[u8],
+) -> Result<wasm_bindgen::JsValue, KeyStoreError> {
     let algorithm = js_sys::Object::new();
     js_sys::Reflect::set(
         &algorithm,
@@ -174,6 +175,12 @@ fn aes_gcm_algorithm(nonce: Option<&[u8]>) -> Result<wasm_bindgen::JsValue, KeyS
             &js_sys::Uint8Array::from(nonce),
         )
         .map_err(|e| KeyStoreError::Seal(format!("AES-GCM nonce: {e:?}")))?;
+        js_sys::Reflect::set(
+            &algorithm,
+            &wasm_bindgen::JsValue::from_str("additionalData"),
+            &js_sys::Uint8Array::from(aad),
+        )
+        .map_err(|e| KeyStoreError::Seal(format!("AES-GCM associated data: {e:?}")))?;
     }
     Ok(algorithm.into())
 }
