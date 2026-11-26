@@ -392,21 +392,21 @@ fn cf_agent_rpc_serves_connect() {
 
     let bearer = format!("Bearer {token}");
     let (status, _head, body) = worker
-        .request(
+        .request_bytes(
             "POST",
             "/ewe.agent_rpc.v1.AgentService/Health",
             &[
                 ("Content-Type", "application/proto"),
                 ("Authorization", bearer.as_str()),
             ],
-            "",
+            &[],
             Duration::from_secs(20),
         )
         .expect("Health with the access secret");
     assert_eq!(
         status,
         200,
-        "the bearer secret authenticates; body: {body}\nworker stderr:\n{}",
+        "the bearer secret authenticates; body: {body:?}\nworker stderr:\n{}",
         worker.stderr_tail()
     );
 

@@ -196,18 +196,33 @@ impl CfServe for ConnectService {
 
         let (sink, handle) = ConnectSink::new_pair_with_capacity(service.limits.response_queue);
         let handler = Arc::clone(&service.handler);
-        // The dispatch writes the head, then each frame. It runs as its own
-        // task, so the response head returns now and the body keeps streaming.
-        spawn_local(async move {
-            if let Err(error) = handler
-                .dispatch_to(ctx, req, body, Box::new(sink), CallHooks::default())
-                .await
-            {
-                tracing::debug!(%error, "the Connect sink closed the call");
-            }
-        });
+        // `ChatStream` streams its reply: run the dispatch as its own task and
+        // return the head at once, so each frame follows. A unary call runs
+        // inline; its whole response is ready before `serve_cf` returns, and a
+        // call that forwards to a Durable Object must not nest two tasks.
+        let streaming = req.request_uri.path().ends_with("/ChatStream");
+        if streaming {
+            spawn_local(async move {
+                if let Err(error) = handler
+                    .dispatch_to(ctx, req, body, Box::new(sink), CallHooks::default())
+                    .await
+                {
+                    tracing::debug!(%error, "the Connect sink closed the call");
+                }
+            });
+        } else if let Err(error) = handler
+            .dispatch_to(ctx, req, body, Box::new(sink), CallHooks::default())
+            .await
+        {
+            tracing::debug!(%error, "the Connect sink closed the call");
+        }
 
-        match handle.wait_response().await {
+        let response = if streaming {
+            handle.wait_response().await
+        } else {
+            handle.into_response()
+        };
+        match response {
             Some(response) => conn.set_response(response),
             None => {
                 // The handler ended before it opened a stream and wrote no

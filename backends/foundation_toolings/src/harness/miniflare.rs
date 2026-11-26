@@ -569,7 +569,10 @@ fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
     let clock = ctx.clock();
     let deadline = clock.now() + timeout;
     while clock.now() < deadline {
-        if http_get("127.0.0.1", port, "/").is_ok() {
+        // The first request of a Worker may build its stores (a D1 schema, a
+        // secret read), which can take longer than a bare health request. Give
+        // it ten seconds before the probe retries.
+        if http_request("127.0.0.1", port, "GET", "/", "", Duration::from_secs(10)).is_ok() {
             return true;
         }
         std::thread::sleep(Duration::from_millis(200));
