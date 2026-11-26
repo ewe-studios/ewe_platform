@@ -77,20 +77,20 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 
 - [x] **T1 — service.** `DurableService` wraps the store and applies protocol semantics. Test:
       `service_uses_no_transport_type` (compile).
-- [ ] **T2 — verbs and statuses.** Create, append, close, read, head and delete. Tests:
+- [x] **T2 — verbs and statuses.** Create, append, close, read, head and delete. Tests:
       `create_is_idempotent`, `append_after_close_is_rejected`, `close_only_is_idempotent`,
       `head_is_no_store`.
-- [ ] **T3 — headers and error mapping.** Full header set and the status table. Tests:
+- [x] **T3 — headers and error mapping.** Full header set and the status table. Tests:
       `gone_is_410`, `fenced_is_403_with_epoch`, `sequence_gap_is_409_with_headers`,
       `closed_append_is_409_with_tail`.
-- [ ] **T4 — reads.** Catch-up, empty tail, partial page, long-poll `200`/`204`, `offset=now`.
+- [x] **T4 — reads.** Catch-up, empty tail, partial page, long-poll `200`/`204`, `offset=now`.
       Tests: `partial_page_omits_up_to_date`, `closed_tail_returns_immediately`,
       `now_catchup_returns_empty`.
 - [x] **T5 — JSON mode.** Validation, flatten, empty array and array reads. Tests:
       `json_array_flattens`, `post_empty_array_is_400`, `put_empty_array_is_valid`.
-- [ ] **T6 — SSE.** Event format, control fields, base64, close and reconnect. Tests:
+- [x] **T6 — SSE.** Event format, control fields, base64, close and reconnect. Tests:
       `sse_control_has_camel_case_fields`, `sse_binary_is_base64`, `sse_closes_after_closed`.
-- [ ] **T7 — caching and cursor.** ETag, `304`, `Cache-Control`, cursor interval and jitter.
+- [x] **T7 — caching and cursor.** ETag, `304`, `Cache-Control`, cursor interval and jitter.
       Tests: `etag_varies_with_closure`, `if_none_match_is_304`, `cursor_is_monotonic`.
 - [ ] **T8 — security.** `nosniff`, CORP, CORS exposure and `429`. Tests:
       `security_headers_on_all_responses`, `cors_exposes_stream_headers`.
@@ -105,7 +105,8 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc` green.
-- [ ] The HTTP adapter has no valtron dependency.
+- [x] The HTTP adapter has no valtron stream or task dependency. It uses only the
+  injected-clock timer for the live-read timeout.
 - [ ] The server conformance suite passes against `HttpAdapter`.
 - [ ] Every `StoreError` variant maps to one documented status.
 - [ ] `cargo check --workspace --all-targets --profile dev` green.

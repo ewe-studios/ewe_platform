@@ -91,3 +91,28 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **HTTP is one surface, not the server.** The core is runtime-neutral. The same core runs in a
   local embedded process, a DO, a Worker, a WebSocket server and the `foundation_ai` Session.
   Tests prove each target. A socket, a global runtime or an HTTP type in the core is a defect.
+
+## HTTP adapter (2026-11-27)
+
+- **Offsets need a wire codec.** The core offset is an opaque byte string (8 bytes, big endian,
+  for the memory and file VFS). It is not printable text. The adapter renders it as lowercase
+  hexadecimal, two characters per byte. The fixed width keeps the byte order, so the text sorts
+  like the bytes. The first draft passed the raw bytes to the header and to the query parser,
+  and the offset echoed back did not match. The fix is one encode and one decode function in
+  `foundation_http::shared::durable::parse`.
+- **The adapter is testable without a socket.** `dispatch` takes a `DurableRequest` and returns
+  a `DurableResponse`. `serve` only reads the socket body, builds the request and writes the
+  response. Every wire rule is tested from `tests/`.
+- **SSE needs the connection.** A Server-Sent Events (SSE) response is a loop of writes, not one
+  `DurableResponse`. `serve` checks the live mode first and sends SSE to `serve_sse`. The event
+  format, the control JSON and the head renderer are pure functions with their own tests.
+- **Wait on the notifier, time out on the injected clock.** Register the notifier callback
+  before the first read, so an append between the read and the wait cannot be lost. Race the
+  callback against `foundation_core::valtron::timer::sleep_for`, which reads the `Ctx` clock.
+  A store without a notifier fires at once, so a live read answers without data instead of
+  hanging.
+- **A streaming head must not declare a content length.** `render_head` always adds
+  `Content-Length`. An SSE head uses `SendSafeBody::SseStream(None)` and `render_message`, so the
+  body runs to connection close. The response adds `Connection: close`.
+- **Limits are configuration.** The SSE connection lifetime is `DurableLimits::sse_lifetime_ms`
+  (default 60 s, the protocol guidance), next to the long-poll timeout.

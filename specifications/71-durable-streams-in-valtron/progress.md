@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 06 HTTP surface landed its live reads. A GET answers catch-up, long-poll
+  and Server-Sent Events (SSE). Long-poll and SSE wait on the stream notifier, and the injected
+  clock gives the timeout. SSE sends `data` and `control` events and base64-encodes a binary
+  stream. The adapter renders an internal offset as lowercase hexadecimal, so the wire text keeps
+  the byte order. 22 adapter and parser tests pass. ConnectRPC, `429`, CORS exposure and the
+  server conformance run remain.
+- 2026-11-27: feature 06 HTTP request adapter landed. The native `Serve` handler maps create,
+  append, close, read, head and delete to `DurableService`. A catch-all route sends every path to
+  the adapter. The adapter is tested from `tests/durable_adapter.rs` without a socket. 15 tests
+  pass.
 - 2026-11-27: feature 06 JSON mode landed in the core. Appends validate JSON, flatten one array
   level and reject an empty append array. Creates accept an empty array. Reads return one chunk
   per message. 45 tests pass.
@@ -70,10 +80,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
   remain.
 - **05-storage-backends** — ⏳ not started (0/6)
-- **06-http-rpc-surface** — 🟡 in progress (2/10). `DurableService`/`DurableLimits`, JSON mode,
-  the ETag/cache/cursor helpers, the error-status/header table and the header/offset parsers
-  landed. The HTTP request adapter, `304` handling, SSE, security, ConnectRPC and conformance
-  remain.
+- **06-http-rpc-surface** — 🟡 in progress (7/11). `DurableService`/`DurableLimits`, JSON mode,
+  the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
+  request adapter, `304`, long-poll, SSE, `nosniff` and CORS resource policy landed. ConnectRPC,
+  `429`, CORS exposure, the oracles and the conformance run remain.
 - **07-durable-streams-client** — ⏳ not started (0/10)
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
