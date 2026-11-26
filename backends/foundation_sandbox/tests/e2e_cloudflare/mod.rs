@@ -31,6 +31,9 @@ use futures::StreamExt;
 /// The tools that the container tests need.
 const DOCKER: &str = "docker";
 
+/// The container application name of the deployment plan.
+const CONTAINER_NAME: &str = "ewe-sandbox";
+
 /// Starts the one valtron pool of this test binary.
 fn pool() {
     static POOL: OnceLock<()> = OnceLock::new();
@@ -126,18 +129,22 @@ fn is(error: &ErrorTrace<SandboxError>, predicate: impl Fn(&SandboxError) -> boo
     predicate(error.current_context())
 }
 
-/// The number of Docker containers whose identifier or name holds `id`.
-fn docker_containers_for(id: &str) -> usize {
+/// The identifiers of the Docker containers of the sandbox application.
+///
+/// The test suite runs one test at a time (`--test-threads=1`), so every
+/// matching container belongs to the test that is running.
+fn docker_containers() -> Vec<String> {
     let output = Command::new(DOCKER)
         .args(["ps", "--format", "{{.ID}} {{.Names}}"])
         .output();
     let Ok(output) = output else {
-        return 0;
+        return Vec::new();
     };
     String::from_utf8_lossy(&output.stdout)
         .lines()
-        .filter(|line| line.contains(id))
-        .count()
+        .filter(|line| line.contains(CONTAINER_NAME))
+        .filter_map(|line| line.split_whitespace().next().map(str::to_string))
+        .collect()
 }
 
 /// Every byte of one file stream.
@@ -349,17 +356,10 @@ fn e2e_cloudflare_stale_index() {
             .await
             .expect("the create");
         let id = sandbox.id().to_string();
-        let output = Command::new(DOCKER)
-            .args(["ps", "--format", "{{.ID}} {{.Names}}"])
-            .output()
-            .expect("docker ps");
-        let container = String::from_utf8_lossy(&output.stdout)
-            .lines()
-            .find(|line| line.contains(&id))
-            .and_then(|line| line.split_whitespace().next().map(str::to_string));
-        let Some(container) = container else {
+        let Some(container) = docker_containers().first().cloned() else {
             println!(
-                "e2e_cloudflare_stale_index: no Docker container names {id}; this test returns"
+                "e2e_cloudflare_stale_index: no Docker container of {CONTAINER_NAME}; \
+                 this test returns"
             );
             sandbox.stop().await.expect("the stop");
             return;
@@ -518,7 +518,6 @@ fn e2e_cloudflare_stop() {
         let sandbox = SandboxProvider::create(&control, container_spec())
             .await
             .expect("the create");
-        let id = sandbox.id().to_string();
         sandbox.stop().await.expect("the stop");
         let result = SandboxProvider::get(&control, sandbox.id().clone()).await;
         assert!(
@@ -528,10 +527,9 @@ fn e2e_cloudflare_stop() {
             ))),
             "Get after a stop is NotFound"
         );
-        assert_eq!(
-            docker_containers_for(&id),
-            0,
-            "no Docker container is left for {id}"
+        assert!(
+            docker_containers().is_empty(),
+            "no Docker container of {CONTAINER_NAME} is left"
         );
     });
 }
@@ -572,18 +570,12 @@ fn e2e_cloudflare_model_sandbox() {
         return;
     }
     run(async {
-        let before = Command::new(DOCKER)
-            .args(["ps", "-q"])
-            .output()
-            .map_or(0, |output| output.stdout.len());
+        let before = docker_containers().len();
         let control = client(Some(&token()));
         let sandbox = SandboxProvider::create(&control, model_spec())
             .await
             .expect("the create");
-        let after = Command::new(DOCKER)
-            .args(["ps", "-q"])
-            .output()
-            .map_or(0, |output| output.stdout.len());
+        let after = docker_containers().len();
         assert_eq!(before, after, "a model sandbox starts no container");
         let turn = sandbox
             .run(SandboxCommand::new(["echo", "hello"]))

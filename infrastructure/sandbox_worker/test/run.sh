@@ -122,4 +122,4 @@ fi
 export EWE_SANDBOX_WORKER_URL="${DEPLOYED_URL}"
 cd "${REPO_ROOT}"
 cargo test -p foundation_sandbox --features "testing cloudflare" --profile uat \
-    e2e_cloudflare -- --nocapture
+    e2e_cloudflare -- --nocapture --test-threads=1
