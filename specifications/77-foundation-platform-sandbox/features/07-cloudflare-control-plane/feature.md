@@ -405,6 +405,8 @@ pub struct CloudflareConfig {
                                          // A container runs for hours; a boot deadline is wrong for it.
     pub model: Option<ModelConfig>,      // default None: the model slave (D16) needs this config.
     pub slave_binding: String,           // default "SLAVE": the binding of the model slave.
+    pub max_error_message: usize,        // default: SandboxLimits::max_error_message.
+    pub stream_queue_len: usize,         // default 4: the pipe depth of a streamed response (issue #889).
 }
 ```
 
@@ -568,8 +570,8 @@ starts the slave, so its handle has `exec: true`.
 **Remote handles.** A native caller and the agent-rpc Worker cannot reach `ContainerApi`
 directly: only the DO can. The DO therefore serves an internal Connect service,
 `ewe.sandbox.container.v1.ContainerService`, on the same DO and behind the same bearer
-token as `SandboxService`. Its calls are `Start`, `Get`, `List`, `Fetch`, `Exec`, `Signal`,
-`Wait`, `Stop`, `Destroy` and `LogTail`. `DoContainerOps` is the server side.
+token as `SandboxService`. Its calls are `Start`, `Get`, `List`, `Fetch`, `Exec`, `ExecInput`, `ExecSignal`,
+`Signal`, `Wait`, `Stop`, `Destroy` and `LogTail`. `DoContainerOps` is the server side.
 `DoContainerClient` implements `ContainerOps` over a `Transport` and is the client side.
 Its constructor is `DoContainerClient::new(ctx, transport, limits)`, and
 `with_token(self, token)` adds the bearer header. The request and response types are the
@@ -656,6 +658,9 @@ impl DoControlPlane {
    end. For a Worker the sink is the `ConnectSink` of `foundation_connectrpc::wasm`, whose
    frames become the `ReadableStream` of the response. The native tests use a sink that
    counts frames, so a test asserts that the first frame arrives before the producer ends.
+   The handler returns the response as `HttpResponseParts`: a status, flat headers and a
+   `BoxByteStream` body. Feature 08 maps that value onto the wasm response of the Worker and
+   holds the body stream for the life of the response.
 
 The manager's `boot_timeout` is `CloudflareConfig.boot_timeout`, not the value of
 `SandboxLimits`.
@@ -765,7 +770,7 @@ one test.
 | I10, "A wrong image name ..." | `driver_rejects` (image name, mounts, `ReadOnly`), `driver_ignores_cpu_and_memory` | expected outcome |
 | I7, the two restart scenarios | `restore_live`, `restore_dead_container`, `restore_unprepared_slave`, `restore_creating_record` | expected outcome |
 | I11, "An alarm on a fresh DO object ..." | `alarm_on_fresh_object_stops` | expected outcome |
-| transport time-out | `port_call_times_out` (a port that never answers a unary call: the call fails after `rpc_timeout` on the simulated clock) | expected outcome |
+| transport time-out | `port_call_times_out` (a port that never answers a unary call: the call fails after `rpc_timeout`; the test uses the host clock, because a blocked test thread cannot advance a simulated clock) | expected outcome |
 | touch guard | `stream_guard_touches` (a stream open for 3 half-periods makes 3 touches) | example |
 | index failure | `index_error_does_not_fail_create` (a failing `SandboxIndex`; the create succeeds; a warning is logged) | expected outcome |
 | `attach` | `attach_running`, `attach_not_running` | expected outcome |
