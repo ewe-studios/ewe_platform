@@ -6,7 +6,9 @@ use foundation_core::durable::{
     ReadFrom, StreamName,
 };
 use foundation_core::valtron::durable::DurableStreamReader;
-use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
+use foundation_core::valtron::{
+    block_on_future, valtron_test, Stream, StreamExt, StreamIteratorExt, StreamSpread,
+};
 use std::sync::Arc;
 
 #[valtron_test(timeout = 5000)]
@@ -76,6 +78,42 @@ fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
     }
 
     assert_eq!(bytes, b"live");
+}
+
+#[valtron_test(timeout = 5000)]
+fn given_a_reader_when_it_is_bridged_with_into_next_stream_then_it_yields_chunks() {
+    let ctx = Ctx::host();
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+    let name = StreamName::parse("reader/bridge").expect("valid name");
+
+    smol::block_on(async {
+        let streams = DurableStreams::new(stream.clone());
+        let handle = streams.stream(name.clone());
+        handle.create(CreateSpec::default()).await.expect("create");
+        handle
+            .append(AppendRequest::new(Chunk::new(b"bridge".to_vec())))
+            .await
+            .expect("append");
+        handle
+            .close(CloseRequest {
+                final_chunk: None,
+                producer: None,
+            })
+            .await
+            .expect("close");
+    });
+
+    let mut bridge =
+        DurableStreamReader::new(stream, name, ReadFrom::Start, false, ctx).into_next_stream();
+    let bytes = block_on_future(async move {
+        let mut bytes = Vec::new();
+        while let Some(chunk) = bridge.next().await {
+            bytes.extend_from_slice(chunk.as_bytes());
+        }
+        bytes
+    });
+
+    assert_eq!(bytes, b"bridge");
 }
 
 #[valtron_test(timeout = 5000)]

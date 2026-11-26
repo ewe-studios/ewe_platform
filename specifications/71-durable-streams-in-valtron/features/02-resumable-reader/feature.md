@@ -90,7 +90,7 @@ forwarding land before the feature closes.
 - [ ] **T5 — trim refusal.** Test: `trimmed_offset_is_a_refusal_not_a_gap`.
 - [x] **T6 — valtron tail.** `Stream::Wait`, wake on append and end on close. Tests:
       `live_tail_parks_then_wakes_on_append`, `closed_stream_ends_without_parking`.
-- [ ] **T7 — bridges.** `into_next_stream` and `into_future_stream`. Test with a hand-rolled
+- [x] **T7 — bridges.** `into_next_stream` and `into_future_stream`. Test with a hand-rolled
       waker.
 - [ ] **T8 — DST harness.** Seeded append and read replay. Test:
       `seeded_reader_replay_is_byte_exact`.
