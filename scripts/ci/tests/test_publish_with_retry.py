@@ -1,4 +1,4 @@
-"""Tests for scripts/ci/publish_with_retry.py.
+"""Tests for the Rust release retry task.
 
 Run: python3 -m unittest discover -s scripts/ci/tests
 
@@ -8,6 +8,7 @@ then fails) or "429 <seconds>" (fails with a crates.io retry time that many
 seconds from now). It appends one line to a progress file per published crate.
 """
 
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -15,7 +16,7 @@ import textwrap
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "publish_with_retry.py"
+from task_command import binary
 
 FAKE = textwrap.dedent(
     """
@@ -48,6 +49,10 @@ FAKE = textwrap.dedent(
 
 
 class PublishWithRetry(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.binary = binary()
+
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.dir = Path(self.tmp.name)
@@ -61,11 +66,11 @@ class PublishWithRetry(unittest.TestCase):
         (self.dir / "plan").write_text("\n".join(plan) + "\n")
         return subprocess.run(
             [
-                sys.executable,
-                str(SCRIPT),
+                self.binary,
+                "publish-with-retry",
                 "--dry-sleep",
                 "--progress-cmd",
-                f"cat {self.dir / 'progress'}",
+                shlex.join([sys.executable, "-c", "import sys; print(open(sys.argv[1]).read(),end='')", str(self.dir / "progress")]),
                 *extra,
                 "--",
                 sys.executable,
@@ -139,7 +144,7 @@ class PublishWithRetry(unittest.TestCase):
         self.assertIn("ends after the deadline", r.stdout)
 
     def test_a_command_is_required(self) -> None:
-        r = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True)
+        r = subprocess.run([self.binary, "publish-with-retry"], capture_output=True, text=True)
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("publish command", r.stderr)
 

@@ -1,0 +1,10 @@
+[package]
+name = "app_resources"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[build-dependencies]
+foundation_resources = { git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}", default-features = false, features = ["build"] }
+
+[workspace]

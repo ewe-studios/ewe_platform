@@ -26,6 +26,13 @@ You implement **one feature** of this spec. The main session gave you its number
    you change code.
 5. [`progress.md`](./progress.md) and [`learnings.md`](./learnings.md).
 
+## README and examples
+
+Write or update the README beside each delivered package or feature entry point.
+Show a concrete example for the feature. Include fixture and generation steps when they apply.
+Run the examples and validation commands before marking the README task complete.
+Record their results in the feature report.
+
 ## Rules
 
 - Do the features in the order of the Feature Index. Do not start a feature whose

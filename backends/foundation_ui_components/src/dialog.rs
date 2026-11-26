@@ -82,6 +82,7 @@ impl Default for DialogConfig {
 }
 
 /// Slots for a dialog.
+#[derive(Default)]
 pub struct DialogSlots {
     /// Title (→ `aria-labelledby`).
     pub title: Option<Slot>,
@@ -91,17 +92,6 @@ pub struct DialogSlots {
     pub children: Vec<Slot>,
     /// Optional close-button content (wired to `set_open(false)`).
     pub close_label: Option<Slot>,
-}
-
-impl Default for DialogSlots {
-    fn default() -> Self {
-        Self {
-            title: None,
-            description: None,
-            children: Vec::new(),
-            close_label: None,
-        }
-    }
 }
 
 /// Dialog component — a native `<dialog>` kept in sync with `open`.
@@ -193,6 +183,10 @@ pub fn drawer_with_snap(
     clippy::too_many_lines,
     clippy::too_many_arguments,
     clippy::type_complexity
+)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
 )]
 fn dialog_impl(
     ctx: &Context,
@@ -298,7 +292,7 @@ fn dialog_impl(
             })}</Fragment>
             <div class="dialog-body"><Fragment>{body_html.clone()}</Fragment></div>
             <Fragment>{close_label_html.clone().map(|c| html! { ctx, rcv,
-                <button type="button" class="dialog-close" primal:onclick={close.clone()}>
+                <button type="button" class="dialog-close" primal:onclick={close}>
                     <Fragment>{c.clone()}</Fragment>
                 </button>
             })}</Fragment>
@@ -313,3 +307,10 @@ fn dialog_impl(
         </dialog>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Dialog,
+    crate::behaviour::Behaviour::Gestures,
+    crate::behaviour::Behaviour::Transition,
+];

@@ -2,9 +2,9 @@
 
 use std::io::Write;
 
+use age::secrecy::SecretString;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use secrecy::SecretString;
 use ssh_key::{Algorithm, LineEnding, PrivateKey};
 
 use crate::core::error::{AppError, AppResult};

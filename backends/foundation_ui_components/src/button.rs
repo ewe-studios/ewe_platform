@@ -9,7 +9,7 @@
 //! in tab order (tooltip/AT discoverability).
 //!
 //! HOW: Pure `html!` reactive form — reactive + Option-valued attributes
-//! (features.md §8.2) carry state; no hand-built `Html` or manual DomOp
+//! (features.md §8.2) carry state; no hand-built `Html` or manual operation
 //! queueing. Data attributes: `data-disabled`, `data-loading` (ours, additive).
 
 use alloc::borrow::Cow;
@@ -22,6 +22,7 @@ use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 /// Static config for a button. Text fields are `Cow<'static, str>` so literals
 /// cost nothing and owned `String`s are accepted (features.md §8.1).
+#[derive(Default)]
 pub struct ButtonConfig {
     /// Whether the button is disabled (renders the `disabled` attribute).
     pub disabled: bool,
@@ -33,18 +34,6 @@ pub struct ButtonConfig {
     pub aria_label: Option<Cow<'static, str>>,
     /// `aria-describedby` (e.g. tooltip linking).
     pub aria_describedby: Option<Cow<'static, str>>,
-}
-
-impl Default for ButtonConfig {
-    fn default() -> Self {
-        Self {
-            disabled: false,
-            focusable_when_disabled: false,
-            class: None,
-            aria_label: None,
-            aria_describedby: None,
-        }
-    }
 }
 
 /// Slots for the button — its content (label, icon, …).
@@ -85,7 +74,7 @@ pub fn button(
                 aria-label=[config.aria_label]
                 aria-describedby=[config.aria_describedby]
                 data-disabled={is_disabled.then_some("")}
-                data-loading={load_data.as_ref().map_or(false, SignalGetter::get).then_some("")}
+                data-loading={load_data.as_ref().is_some_and(SignalGetter::get).then_some("")}
                 aria-busy={loading.as_ref().map(SignalGetter::get)}>
             <Fragment>{children.clone()}</Fragment>
         </button>
@@ -114,7 +103,7 @@ pub fn button_with_click(
                 aria-label=[config.aria_label]
                 aria-describedby=[config.aria_describedby]
                 data-disabled={is_disabled.then_some("")}
-                data-loading={load_data.as_ref().map_or(false, SignalGetter::get).then_some("")}
+                data-loading={load_data.as_ref().is_some_and(SignalGetter::get).then_some("")}
                 aria-busy={loading.as_ref().map(SignalGetter::get)}
                 primal:onclick={on_click}>
             <Fragment>{children.clone()}</Fragment>

@@ -129,28 +129,84 @@ url = "https://github.com/WebAssembly/binaryen/releases/download/version_133/bin
 checksum = "sha256:17a2cbeac6b5693c5fbafab3838d3c65fd9c1eb38b05f5baec6c657e8c84995b"
 url = "https://github.com/WebAssembly/binaryen/releases/download/version_133/binaryen-version_133-x86_64-windows.tar.gz"
 
+[[tools."github:bbqsrc/cargo-ndk"]]
+version = "4.1.2"
+backend = "github:bbqsrc/cargo-ndk"
+specifiers = ["4.1.2"]
+
+[tools."github:bbqsrc/cargo-ndk"."platforms.linux-x64"]
+checksum = "sha256:9451622c4567e8abb2c8005001855e32901c0b716ccdd3a173a4375fd03426e1"
+url = "https://github.com/bbqsrc/cargo-ndk/releases/download/v4.1.2/cargo-ndk-x86_64-unknown-linux-gnu-v4.1.2.tgz"
+url_api = "https://api.github.com/repos/bbqsrc/cargo-ndk/releases/assets/280972291"
+
+[tools."github:bbqsrc/cargo-ndk"."platforms.macos-arm64"]
+checksum = "sha256:76d87f5f1bbbbe3980b979f7d1bdef00849dde11c669be243223942b296f5006"
+url = "https://github.com/bbqsrc/cargo-ndk/releases/download/v4.1.2/cargo-ndk-aarch64-apple-darwin-v4.1.2.tgz"
+url_api = "https://api.github.com/repos/bbqsrc/cargo-ndk/releases/assets/280972298"
+
+[tools."github:bbqsrc/cargo-ndk"."platforms.macos-x64"]
+checksum = "sha256:ea30f5e7898ce0b1c7af89e0a2dd2db61c494d81ad1b36284f74f1ab5fd85956"
+url = "https://github.com/bbqsrc/cargo-ndk/releases/download/v4.1.2/cargo-ndk-x86_64-apple-darwin-v4.1.2.tgz"
+url_api = "https://api.github.com/repos/bbqsrc/cargo-ndk/releases/assets/280972294"
+
+[tools."github:bbqsrc/cargo-ndk"."platforms.windows-x64"]
+checksum = "sha256:e2687c647748a8fb1c06981a4fc39376a5b5f640474db3f73de7ae247b7c55e0"
+url = "https://github.com/bbqsrc/cargo-ndk/releases/download/v4.1.2/cargo-ndk-x86_64-pc-windows-msvc-v4.1.2.zip"
+url_api = "https://api.github.com/repos/bbqsrc/cargo-ndk/releases/assets/280972296"
+
+[[tools."github:google/flatbuffers"]]
+version = "25.9.23"
+backend = "github:google/flatbuffers"
+specifiers = ["25.9.23"]
+
+[tools."github:google/flatbuffers"."platforms.linux-x64"]
+checksum = "sha256:de0c6ad114a5a686ecf64322528c602c7d4512446a93f290f54f00ee5abea487"
+url = "https://github.com/google/flatbuffers/releases/download/v25.9.23/Linux.flatc.binary.g%2B%2B-13.zip"
+url_api = "https://api.github.com/repos/google/flatbuffers/releases/assets/296660860"
+
+[tools."github:google/flatbuffers"."platforms.macos-arm64"]
+checksum = "sha256:1e14d2feade6d109fa9c102e6e5ead68f325ed3da1d3022ce08d3222f828d983"
+url = "https://github.com/google/flatbuffers/releases/download/v25.9.23/Mac.flatc.binary.zip"
+url_api = "https://api.github.com/repos/google/flatbuffers/releases/assets/296660965"
+
+[tools."github:google/flatbuffers"."platforms.macos-x64"]
+checksum = "sha256:1e14d2feade6d109fa9c102e6e5ead68f325ed3da1d3022ce08d3222f828d983"
+url = "https://github.com/google/flatbuffers/releases/download/v25.9.23/Mac.flatc.binary.zip"
+url_api = "https://api.github.com/repos/google/flatbuffers/releases/assets/296660965"
+
+[tools."github:google/flatbuffers"."platforms.windows-x64"]
+checksum = "sha256:3d6383193ecd274f5de544a6e03464a87f581befb9fc1dda9cf508fa3cce3127"
+url = "https://github.com/google/flatbuffers/releases/download/v25.9.23/Windows.flatc.binary.zip"
+url_api = "https://api.github.com/repos/google/flatbuffers/releases/assets/296661602"
+
 [[tools."github:wasm-bindgen/wasm-bindgen"]]
-version = "0.2.126"
+version = "0.2.130"
 backend = "github:wasm-bindgen/wasm-bindgen"
-specifiers = ["0.2.126"]
+specifiers = ["0.2.130"]
 
 [tools."github:wasm-bindgen/wasm-bindgen"."platforms.linux-x64"]
-checksum = "sha256:064948d58e2d6c0a745216477a639ba696216d6309aaa902939d1b865b1d869d"
-url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.126/wasm-bindgen-0.2.126-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:9687f3bb551b9f66f37ed32a40d7913a00f7962db653054e56857bc306c3227f"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140647"
+provenance = "github-attestations"
 
 [tools."github:wasm-bindgen/wasm-bindgen"."platforms.macos-arm64"]
-checksum = "sha256:7df536babe345deb68828148dbdc71179118afdab42d83547c7cebfbf1426bd5"
-url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.126/wasm-bindgen-0.2.126-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/456882702"
+checksum = "sha256:b90ddb9357f584b1af897d58ad77e4cce2b48fc17e2a967bc249a87f72809444"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140655"
 provenance = "github-attestations"
 
 [tools."github:wasm-bindgen/wasm-bindgen"."platforms.macos-x64"]
-checksum = "sha256:6014dca993c8bf8a6ec10b6fccfbeabf599842d011f58a4abb7669afef784422"
-url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.126/wasm-bindgen-0.2.126-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:eb209c115b7cb95832423c1aa3f4d06d6c53f63ef74fc4b6fb79ef0b2eea5f10"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140663"
+provenance = "github-attestations"
 
 [tools."github:wasm-bindgen/wasm-bindgen"."platforms.windows-x64"]
-checksum = "sha256:5a3773c7e69cfb2d865e235e9210de184c8c3af1787720646ec1a8bbe09c6179"
-url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.126/wasm-bindgen-0.2.126-x86_64-pc-windows-msvc.tar.gz"
+checksum = "sha256:844d23f1b56097549b936dd2e0d561fadebc1e8c9e985d5068b6b919654104ad"
+url = "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/0.2.130/wasm-bindgen-0.2.130-x86_64-pc-windows-msvc.tar.gz"
+url_api = "https://api.github.com/repos/wasm-bindgen/wasm-bindgen/releases/assets/691140662"
+provenance = "github-attestations"
 
 [[tools."github:wasm-bindgen/wasm-pack"]]
 version = "0.15.0"
@@ -173,6 +229,104 @@ url = "https://github.com/wasm-bindgen/wasm-pack/releases/download/v0.15.0/wasm-
 [tools."github:wasm-bindgen/wasm-pack"."platforms.windows-x64"]
 checksum = "sha256:518dc51180c7bc864699c9279b3bc99025bc109123e0249a34ba34d130a509bf"
 url = "https://github.com/wasm-bindgen/wasm-pack/releases/download/v0.15.0/wasm-pack-v0.15.0-x86_64-pc-windows-msvc.tar.gz"
+
+[[tools.gradle]]
+version = "9.9.1"
+backend = "aqua:gradle/gradle-distributions"
+specifiers = ["9.9.1"]
+
+[tools.gradle."platforms.linux-x64"]
+checksum = "sha256:d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228"
+url = "https://github.com/gradle/gradle-distributions/releases/download/v9.9.1/gradle-9.9.1-bin.zip"
+url_api = "https://api.github.com/repos/gradle/gradle-distributions/releases/assets/732145113"
+
+[tools.gradle."platforms.macos-arm64"]
+checksum = "sha256:d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228"
+url = "https://github.com/gradle/gradle-distributions/releases/download/v9.9.1/gradle-9.9.1-bin.zip"
+url_api = "https://api.github.com/repos/gradle/gradle-distributions/releases/assets/732145113"
+
+[tools.gradle."platforms.macos-x64"]
+checksum = "sha256:d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228"
+url = "https://github.com/gradle/gradle-distributions/releases/download/v9.9.1/gradle-9.9.1-bin.zip"
+url_api = "https://api.github.com/repos/gradle/gradle-distributions/releases/assets/732145113"
+
+[tools.gradle."platforms.windows-x64"]
+checksum = "sha256:d8a18a7a841dd5df825d35a685fad6f2d7f12ac0c280e57b67c27b4a520ba228"
+url = "https://github.com/gradle/gradle-distributions/releases/download/v9.9.1/gradle-9.9.1-bin.zip"
+url_api = "https://api.github.com/repos/gradle/gradle-distributions/releases/assets/732145113"
+
+[[tools."http:android-sdk"]]
+version = "23.0"
+backend = "http:android-sdk"
+specifiers = ["23.0"]
+
+[tools."http:android-sdk".options]
+strip_components = "0"
+
+[tools."http:android-sdk"."platforms.linux-x64"]
+checksum = "sha256:0877a1d048fe4a24efe2eff536ca4223f7adeb58648bb81909d33c446918cfa8"
+url = "https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip"
+
+[tools."http:android-sdk"."platforms.macos-arm64"]
+checksum = "sha256:58da8f215781cc0208743e88b65ae259780c55e7eb40e50373d377cf369232d6"
+url = "https://dl.google.com/android/repository/commandlinetools-mac_arm64-16111833_latest.zip"
+
+[tools."http:android-sdk"."platforms.macos-x64"]
+checksum = "sha256:7e601c04e7173754b3d051a87bb4c3a8243c65a9d7bfa9356ed6499fb8953fa3"
+url = "https://dl.google.com/android/repository/commandlinetools-mac_x86_64-16111833_latest.zip"
+
+[tools."http:android-sdk"."platforms.windows-x64"]
+checksum = "sha256:e5885e2e59038c0778a85fc19f01de7ce7c567c105553f7617b936b1e0e87b2b"
+url = "https://dl.google.com/android/repository/commandlinetools-win-16111833_latest.zip"
+
+[[tools.java]]
+version = "temurin-25.0.5+8.0.LTS"
+backend = "core:java"
+specifiers = ["temurin-25.0.5+8.0.LTS"]
+
+[tools.java."platforms.linux-x64"]
+checksum = "sha256:68982529869257d0ee6b824ec5aa270ff8b118bb438670da0b97ebdab178d7fb"
+url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jdk_x64_linux_hotspot_25.0.5_8.tar.gz"
+
+[tools.java."platforms.macos-arm64"]
+checksum = "sha256:36dc14d797aaff6d89aab302cd053fdba6207dfdcf772052fa7b023a94b0e857"
+url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jdk_aarch64_mac_hotspot_25.0.5_8.tar.gz"
+
+[tools.java."platforms.macos-x64"]
+checksum = "sha256:32cd4d2151c91aa00d0fc911edfd05245ed40fa6b1aa894d5f35c928cd67a59d"
+url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jdk_x64_mac_hotspot_25.0.5_8.tar.gz"
+
+[tools.java."platforms.windows-x64"]
+checksum = "sha256:636bdc13dc649ddc7d5921c5c7d23cca6e44fd19d662b45cc9c02135a6c96c42"
+url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jdk_x64_windows_hotspot_25.0.5_8.zip"
+
+[[tools.kotlin]]
+version = "2.4.21"
+backend = "github:JetBrains/kotlin"
+specifiers = ["2.4.21"]
+
+[tools.kotlin.options]
+asset_pattern = "kotlin-compiler-*.zip"
+
+[tools.kotlin."platforms.linux-x64"]
+checksum = "sha256:7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd"
+url = "https://github.com/JetBrains/kotlin/releases/download/v2.4.21/kotlin-compiler-2.4.21.zip"
+url_api = "https://api.github.com/repos/JetBrains/kotlin/releases/assets/621287401"
+
+[tools.kotlin."platforms.macos-arm64"]
+checksum = "sha256:7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd"
+url = "https://github.com/JetBrains/kotlin/releases/download/v2.4.21/kotlin-compiler-2.4.21.zip"
+url_api = "https://api.github.com/repos/JetBrains/kotlin/releases/assets/621287401"
+
+[tools.kotlin."platforms.macos-x64"]
+checksum = "sha256:7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd"
+url = "https://github.com/JetBrains/kotlin/releases/download/v2.4.21/kotlin-compiler-2.4.21.zip"
+url_api = "https://api.github.com/repos/JetBrains/kotlin/releases/assets/621287401"
+
+[tools.kotlin."platforms.windows-x64"]
+checksum = "sha256:7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd"
+url = "https://github.com/JetBrains/kotlin/releases/download/v2.4.21/kotlin-compiler-2.4.21.zip"
+url_api = "https://api.github.com/repos/JetBrains/kotlin/releases/assets/621287401"
 
 [[tools.ninja]]
 version = "1.13.2"

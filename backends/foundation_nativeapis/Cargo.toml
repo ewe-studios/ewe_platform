@@ -17,15 +17,15 @@ foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", optional = true, default-features = false, features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", optional = true, default-features = false, features = ["std"] }
 foundation_db = { path = "../foundation_db", version = "0.0.11", optional = true, default-features = false }
 foundation_vfs = { workspace = true, optional = true }
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
 
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.23", optional = true }
+foundation_macros = { workspace = true, optional = true }
 cfg-if = "1"
 bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
@@ -35,7 +35,7 @@ serde_json = { version = "1", optional = true }
 libsql = { version = "0.9", optional = true }
 fjall = { version = "2", optional = true }
 nfsserve = { version = "0.11", optional = true }
-hex = { version = "0.4", optional = true }
+hex = { workspace = true, optional = true }
 blake3 = { version = "1", optional = true }
 async-trait = { version = "0.1", optional = true }
 futures-lite = { version = "2", optional = true }
@@ -100,9 +100,9 @@ foundation_core = { path = "../foundation_core", version = "0.0.23", features = 
 # The signal delivery tests measure elapsed time with the foundation_compact
 # instant type. The library dependency is optional (the `vfs` features), so the
 # test target needs its own entry.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false, features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false, features = ["std"] }
 foundation_arrow = { path = "../foundation_arrow" }
-foundation_macros = { path = "../foundation_macros" }
+foundation_macros = { workspace = true }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"

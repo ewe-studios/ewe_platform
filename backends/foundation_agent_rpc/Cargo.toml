@@ -27,14 +27,14 @@ foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19" 
 foundation_http = { path = "../foundation_http", version = "0.0.17", features = ["multi", "ssl"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 # Entropy for bootstrap secrets (the cross-platform substrate).
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # Client auth: the certificate authority, the trust store and the mutual-TLS
 # (mTLS) verifier and configuration builders (spec 87).
 foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
 # Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
 ring = "0.17"
 base64 = "0.22"
-zeroize = "1"
+zeroize = { workspace = true }
 # Bootstrap payload as a QR code (terminal + SVG renderers; no image codecs).
 qrcode = { version = "0.14", default-features = false, features = ["svg"] }
 derive_more = { version = "2.1", features = ["display", "error"] }

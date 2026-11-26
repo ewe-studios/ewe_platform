@@ -73,15 +73,10 @@ impl Default for CheckboxConfig {
 }
 
 /// Slots for the checkbox.
+#[derive(Default)]
 pub struct CheckboxSlots {
     /// Indicator content (tick/dash); visible via `[data-checked]` CSS.
     pub indicator: Option<Slot>,
-}
-
-impl Default for CheckboxSlots {
-    fn default() -> Self {
-        Self { indicator: None }
-    }
 }
 
 /// Checkbox component — hidden input + indicator, tri-state.
@@ -137,6 +132,7 @@ pub fn checkbox(
 }
 
 /// Static config for a checkbox group.
+#[derive(Default)]
 pub struct CheckboxGroupConfig {
     /// Whether the whole group is disabled.
     pub disabled: bool,
@@ -144,16 +140,6 @@ pub struct CheckboxGroupConfig {
     pub class: Option<Cow<'static, str>>,
     /// `aria-label` for the group.
     pub aria_label: Option<Cow<'static, str>>,
-}
-
-impl Default for CheckboxGroupConfig {
-    fn default() -> Self {
-        Self {
-            disabled: false,
-            class: None,
-            aria_label: None,
-        }
-    }
 }
 
 /// Checkbox group — a `role="group"` container over child checkboxes (passed as

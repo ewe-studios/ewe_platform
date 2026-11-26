@@ -15,8 +15,10 @@ keywords = ["connectrpc", "codegen", "protoc", "prost", "grpc"]
 # `foundation_connectrpc` dependency), so this crate has no dependency edge back
 # to the runtime crate. Consumers add it under `[build-dependencies]`.
 [dependencies]
-prost = "0.12"
-prost-types = "0.12"
+buffa-build = { workspace = true }
+tempfile.workspace = true
+prost = { workspace = true }
+prost-types = { workspace = true }
 prost-build = "0.14"
 
 # protoc plugin (Decision 10 Mode 2): follows the protoc-gen-* convention so

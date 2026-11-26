@@ -1,0 +1,4 @@
+[[resource]]
+name = "index.html"
+path = "public/index.html"
+targets = ["web"]

@@ -1,0 +1,5 @@
+error: html!: expected closing '</div>', found '</span>'
+ --> tests/trybuild/view/fail_mismatched_closing_tag.rs:4:32
+  |
+4 |     let _view = html! { <div></span> };
+  |                                ^^^^

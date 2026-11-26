@@ -1,0 +1,5 @@
+error: html!: unclosed tag '<div>'
+ --> tests/trybuild/view/fail_unclosed_tag.rs:4:26
+  |
+4 |     let _view = html! { <div> };
+  |                          ^^^

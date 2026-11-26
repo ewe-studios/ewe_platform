@@ -15,6 +15,8 @@
 //! traits, and the constructors are `async fn`s. Its `StateStore` impl is async too: queries
 //! stream their rows as they are pulled.
 
+mod records;
+
 use std::path::Path;
 use std::sync::Arc;
 
@@ -642,15 +644,14 @@ impl LibsqlStore {
         let serialized = serde_json::to_string(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let stored_value = self.maybe_encrypt(&serialized)?;
-        let key = key.to_string();
-        let conn = Arc::clone(&self.conn);
-
-        conn.execute(
-            "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
-            [key.clone(), stored_value.clone(), stored_value],
-        )
-        .await
-        .map_err(|e| StorageError::Backend(e.to_string()))?;
+        let now = self.gate.now_millis()?;
+        self.conn
+            .execute(
+                records::UPSERT_RECORD,
+                libsql::params![key, stored_value, now, now],
+            )
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
         Ok(())
     }
 

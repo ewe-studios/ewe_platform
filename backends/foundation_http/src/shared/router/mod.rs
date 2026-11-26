@@ -4,6 +4,8 @@
 //! The handler type `S` flows from `HttpApp<S>` through `Router<S>` down to
 //! `RouteSegment<S>` and `RouteMethod<S>`.
 
+mod declared;
+pub use declared::*;
 pub mod method;
 pub mod segments;
 
@@ -11,6 +13,13 @@ use foundation_netio::shared::http::SimpleMethod;
 
 pub use method::RouteMethod;
 pub use segments::{ParamStaticValidation, RouteOp, RouteResult, RouteSegment, SegmentType};
+
+/// Declares the method and paths of a handler.
+pub trait Route {
+    const METHOD: SimpleMethod;
+    const PATH: &'static str;
+    const ALIASES: &'static [&'static str] = &[];
+}
 
 /// Router with a root route segment tree, generic over handler type `S`.
 pub struct Router<S> {
@@ -37,6 +46,30 @@ impl<S> Router<S> {
     {
         let segment_tree = RouteSegment::parse_route(path).expect("valid route pattern");
         self.root.merge_route(segment_tree, method, handler);
+    }
+
+    fn insert_paths<'a>(
+        &mut self,
+        method: &SimpleMethod,
+        paths: impl Iterator<Item = &'a str>,
+        handler: S,
+    ) -> RouteResult<()>
+    where
+        S: Clone,
+    {
+        let segments: Vec<_> = paths
+            .map(|path| {
+                if !path.starts_with('/') {
+                    return Err(RouteOp::InvalidSegment);
+                }
+                RouteSegment::parse_route(path)
+            })
+            .collect::<RouteResult<_>>()?;
+        for segment in segments {
+            self.root
+                .merge_route(segment, method.clone(), handler.clone());
+        }
+        Ok(())
     }
 
     /// Register a handler for all HTTP methods on a path.

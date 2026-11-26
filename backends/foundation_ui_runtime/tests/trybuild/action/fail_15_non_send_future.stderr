@@ -1,0 +1,16 @@
+error: future cannot be sent between threads safely
+ --> tests/trybuild/action/fail_15_non_send_future.rs:5:1
+  |
+5 | #[action]
+  | ^^^^^^^^^ future created by async block is not `Send`
+  |
+  = help: within `{async block@$DIR/tests/trybuild/action/fail_15_non_send_future.rs:5:1: 5:10}`, the trait `Send` is not implemented for `Rc<i32>`
+note: future is not `Send` as this value is used across an await
+ --> tests/trybuild/action/fail_15_non_send_future.rs:8:28
+  |
+7 |     let local = Rc::new(42);
+  |         ----- has type `Rc<i32>` which is not `Send`
+8 |     std::future::ready(()).await;
+  |                            ^^^^^ await occurs here, with `local` maybe used later
+  = note: required for the cast from `Pin<Box<{async block@$DIR/tests/trybuild/action/fail_15_non_send_future.rs:5:1: 5:10}>>` to `Pin<Box<dyn Future<Output = Result<(), foundation_errstacks::error_trace::ErrorTrace<ActionError>>> + Send>>`
+  = note: this error originates in the attribute macro `action` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -9,7 +9,7 @@
 #   - a warm cargo registry for Cargo.lock
 #
 # The build context is staged by
-#   nu ci/platform-images/scripts/images.nu prepare --config ci/ewe-platform-image/config.toml --layer image ...
+#   foundation-ci image-prepare --config ci/ewe-platform-image/config.toml --layer image ...
 # (files/, mise/, submodules.lock.json, cargo-workspace/); see README.md.
 
 ARG BASE_IMAGE
@@ -37,7 +37,7 @@ RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN \
     pi-mise-install /opt/ewe/mise /opt/ewe/tools/bin \
  && rm -rf /var/cache/mise /opt/rust/cargo/registry/src
 
-# Submodules at the pinned SHAs, and the lock link-submodules.nu checks.
+# Submodules at the pinned SHAs, and the lock the link-submodules task checks.
 COPY submodules.lock.json /opt/ewe/submodules.lock.json
 RUN nu /opt/platform-images/scripts/bake-submodules.nu /opt/ewe/submodules.lock.json "${SUBMODULES_DIR}"
 ENV PLATFORM_IMAGES_SUBMODULES_LOCK=${SUBMODULES_DIR}/submodules.lock.json

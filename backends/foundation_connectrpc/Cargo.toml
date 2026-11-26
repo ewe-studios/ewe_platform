@@ -15,11 +15,11 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The instant type the injected clock returns. On every native target this is
 # `std::time::Instant`; on JS wasm it is the host-clock instant, so a call
 # deadline compiles and runs on both.
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", features = ["to_structured"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 tracing = "0.1"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", optional = true, default-features = false }
 buffa = { version = "0.9.2", features = ["json"] }
 bytes = "1.5"
@@ -28,7 +28,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
 concurrent-queue = "2.5"
-flate2 = "1.0"
+flate2.workspace = true
 zstd = { version = "0.14", optional = true }
 brotli = { version = "8", optional = true }
 
@@ -55,7 +55,7 @@ foundation_http = { path = "../foundation_http", version = "0.0.17", default-fea
 # off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
 foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false }
 # The streaming response sink holds a JS `Response` behind a `SendWrapper`.
-web-sys = { version = "0.3", features = ["Response"] }
+web-sys = { workspace = true, features = ["Response"] }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", optional = true, default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]

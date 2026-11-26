@@ -26,11 +26,11 @@ foundation_core = { path = "../../../foundation_core", default-features = false,
 # The Cloudflare D1 binding type the real-binding case asks for.
 foundation_db = { path = "../../../foundation_db", default-features = false, features = ["wasm", "wasm-bindgen-storage"] }
 # Pinned to the versions foundation_testbed pins and the testbed's CI installs:
-# the wasm-bindgen CLI must be >= the crate it processes (0.2.126 exactly here).
-wasm-bindgen = "=0.2.126"
-wasm-bindgen-futures = "=0.4.76"
-js-sys = "=0.3.103"
-web-sys = { version = "=0.3.103", features = [
+# the wasm-bindgen CLI must be >= the crate it processes (0.2.130 exactly here).
+wasm-bindgen = "=0.2.130"
+wasm-bindgen-futures = "=0.4.80"
+js-sys = "=0.3.107"
+web-sys = { version = "=0.3.107", features = [
   "Headers",
   "Request",
   "RequestInit",
@@ -43,7 +43,7 @@ web-sys = { version = "=0.3.103", features = [
 async-trait = "0.1"
 
 [dev-dependencies]
-wasm-bindgen-test = "=0.3.76"
+wasm-bindgen-test = "=0.3.80"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

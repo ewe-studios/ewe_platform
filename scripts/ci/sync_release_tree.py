@@ -7,8 +7,8 @@ fail:
 
 - path dependencies outside the root workspace (examples, integrations) name
   the old `version`, and a 0.0.x caret requirement excludes the next patch;
-- the `bin/platform/templates` pins name the old versions, so the template
-  build test fails;
+- the `backends/foundation_ui_project/templates` pins name the old versions,
+  so the template build test fails;
 - the nested lockfiles are stale, so the Plan job's `cargo metadata --locked`
   check fails.
 
@@ -39,7 +39,7 @@ import sys
 import tomllib
 
 SKIP_PARTS = {"target", "node_modules", ".git", ".worktrees", ".claude", "tools", "patches"}
-TEMPLATE_GLOB = "bin/platform/templates/*/Cargo.toml.template"
+TEMPLATE_GLOB = "backends/foundation_ui_project/templates/*/Cargo.toml.template"
 INLINE_DEP = re.compile(r"^([A-Za-z0-9_-]+)[ \t]*=[ \t]*\{([^}\n]*)\}[ \t]*$", re.M)
 TABLE_DEP = re.compile(r"^\[((?:dev-|build-)?dependencies)\.([A-Za-z0-9_-]+)\]\n((?:(?!\[).*\n?)*)", re.M)
 VERSION = re.compile(r'(version\s*=\s*)"[^"]+"')

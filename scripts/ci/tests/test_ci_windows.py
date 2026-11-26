@@ -8,9 +8,12 @@ import tempfile
 import tomllib
 import unittest
 from pathlib import Path
+from unittest import mock
+from task_command import binary
 
 REPO = Path(__file__).resolve().parents[3]
-CI = REPO / "scripts" / "ci" / "ci.py"
+
+CI = Path(__file__).with_name("planner_reference.py")
 CONFIG = REPO / "ci" / "packages.toml"
 
 # Feature names that build only on Unix. They must never run on Windows.
@@ -111,11 +114,31 @@ class PlanOutputs(unittest.TestCase):
             out = Path(tmp) / "out"
             env = {**os.environ, "GITHUB_OUTPUT": str(out)}
             proc = subprocess.run(
-                [sys.executable, str(CI), "plan", "--packages", packages],
+                [binary(), "plan", "--packages", packages],
                 cwd=REPO, env=env, capture_output=True, text=True,
             )
             self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
             return dict(l.split("=", 1) for l in out.read_text().splitlines())
+
+    def test_all_workflow_outputs_match_the_reference_planner(self):
+        import argparse
+        import contextlib
+        import io
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "reference"
+            env = {"GITHUB_OUTPUT": str(out), "GITHUB_STEP_SUMMARY": ""}
+            with mock.patch.dict(os.environ, env), contextlib.redirect_stdout(io.StringIO()):
+                reference = load_ci()
+                self.assertEqual(reference.cmd_plan(argparse.Namespace(packages="all", base=None, head=None)), 0)
+            expected = dict(line.split("=", 1) for line in out.read_text().splitlines())
+            actual = self.plan("all")
+            self.assertEqual(actual.keys(), expected.keys())
+            for name in actual:
+                if "matrix" in name:
+                    self.assertEqual(json.loads(actual[name]), json.loads(expected[name]), name)
+                else:
+                    self.assertEqual(actual[name], expected[name], name)
 
     def test_plan_selects_every_package_on_all_three_oses(self):
         lines = self.plan("foundation_reactor foundation_signals")

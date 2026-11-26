@@ -157,3 +157,21 @@ fn test_router_multiple_writers_same_path() {
     let _ = handler.serve_writer(&foundation_context::Ctx::host(), dummy_request(), &mut buf);
     assert_eq!(post_count.load(Ordering::SeqCst), 1);
 }
+
+impl foundation_http::Route for TestWriter {
+    const METHOD: SimpleMethod = SimpleMethod::GET;
+    const PATH: &'static str = "/writer";
+    const ALIASES: &'static [&'static str] = &["/other"];
+}
+
+#[test]
+fn shared_registration_uses_the_writer_handler_on_each_path() {
+    let mut router = Router::<Arc<dyn ServeWriter>>::new();
+    let handler = TestWriter::new(1, Arc::default());
+    router.mount(handler).unwrap();
+    let first = router.dispatch(&SimpleMethod::GET, "/writer").unwrap();
+    let second = router.dispatch(&SimpleMethod::GET, "/other").unwrap();
+    assert!(Arc::ptr_eq(&first, &second));
+    router.at("/explicit", foundation_http::put(second)).unwrap();
+    assert!(Arc::ptr_eq(&first, &router.dispatch(&SimpleMethod::PUT, "/explicit").unwrap()));
+}

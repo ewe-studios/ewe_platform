@@ -1,0 +1,12 @@
+syntax = "proto3";
+package ewe.ui.v1;
+
+message UiRequest {
+  bytes frame = 1;
+  optional bytes hello = 2;
+}
+message UiReply { optional bytes frame = 1; }
+
+service Actions {
+  rpc Exchange(UiRequest) returns (UiReply);
+}

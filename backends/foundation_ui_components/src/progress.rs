@@ -74,8 +74,8 @@ pub fn progress(
              aria-valuemax={max}
              aria-valuenow={v_now.get()}
              data-indeterminate={v_indet.get().is_none().then_some("")}
-             data-progressing={v_prog.get().map_or(false, |v| percent(v, min, max) < 100.0).then_some("")}
-             data-complete={v_complete.get().map_or(false, |v| percent(v, min, max) >= 100.0).then_some("")}
+             data-progressing={v_prog.get().is_some_and(|v| percent(v, min, max) < 100.0).then_some("")}
+             data-complete={v_complete.get().is_some_and(|v| percent(v, min, max) >= 100.0).then_some("")}
              style={v_style.get().map(|v| alloc::format!("--progress-value:{}", percent(v, min, max)))}>
             <div class="progress-track"><div class="progress-indicator"></div></div>
             <Fragment>{label_html.clone()}</Fragment>

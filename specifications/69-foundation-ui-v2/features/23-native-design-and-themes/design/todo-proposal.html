@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Todos · Native design preview</title>
+<style>
+* { box-sizing: border-box }
+:root { font: 16px/1.45 system-ui,sans-serif; color: #262b30; background: #eeefed }
+body { margin: 0 }
+main { max-width: 950px; margin: auto; padding: 36px 24px 50px }
+header, .controls, .platform, .title, .filters, footer, .actions { display: flex; align-items: center }
+header { justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid #c9cbca }
+h1 { font-size: 22px; font-weight: 650; letter-spacing: -.04em; margin: 0 }
+.controls { gap: 14px; flex-wrap: wrap }
+.controls label { font-size: 13px; font-weight: 600 }
+select { font: inherit; padding: 5px; background: white; border: 1px solid #a8adae; border-radius: 6px; color: #272a2b }
+.pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 30px }
+.platform { margin: 20px 0 10px; justify-content: space-between; gap: 5px }
+.platform h2 { font-size: 16px; font-weight: 620; margin: 0 }
+.platform span { color: #4a5154; font-size: 13px }
+.screen { position: relative; min-height: 530px; border-radius: 30px; box-shadow: 0 6px 20px #1d242012; border: 1px solid #8887; padding: 34px 20px 40px; background: var(--surface); color: var(--ink); overflow-wrap: anywhere; color-scheme: light }
+.ios { --surface:#f2f2f7; --group:white; --ink:#151517; --muted:#585860; --line:#c7c7cc; --track:#e3e3e8; --chosen:white; --accent:#005fc5; --danger:#ae2023; font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif }
+.android { --surface:#fdf8fd; --group:#f6f1f7; --ink:#1d1b20; --muted:#49454f; --line:#79747e; --chosen:#e8def8; --accent:#65558f; --danger:#ba1a1a; font-family:Roboto,"Arial",sans-serif }
+[data-mode="dark"] .screen { color-scheme: dark }
+[data-mode="dark"] .ios { --surface:#000; --group:#1c1c1e; --ink:#f5f5f7; --muted:#b6b6bd; --line:#424245; --track:#27272a; --chosen:#565659; --accent:#71b1ff; --danger:#ff837d }
+[data-mode="dark"] .android { --surface:#141218; --group:#211f26; --ink:#e8e1e8; --muted:#cbc4cf; --line:#948e99; --chosen:#4a4458; --accent:#cfbdfe; --danger:#ffb4ab }
+[data-accent="teal"] .ios { --accent:#006d62 }
+[data-accent="teal"] .android { --accent:#006b60; --chosen:#b7eee1; --surface:#f3fbf7; --group:#e8f3ee }
+[data-mode="dark"][data-accent="teal"] .ios { --accent:#6adbc7 }
+[data-mode="dark"][data-accent="teal"] .android { --accent:#81d6c6; --chosen:#184e47; --surface:#101614; --group:#1c2421 }
+button, input { font: inherit }
+button { color: inherit; cursor: pointer; border: 0; background: transparent }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid Highlight; outline-offset: 2px }
+button:disabled { opacity:.55; cursor:default }
+.title { justify-content:space-between; margin-bottom:20px }
+h3 { font-size:34px; letter-spacing:-.04em; line-height:1.2; margin:0 }
+.android h3 { font-size:28px; font-weight:400; letter-spacing:0 }
+.add { color:var(--accent); min-width:44px; min-height:44px; border-radius:100px; font-weight:600 }
+.ios .add { font-size:29px; background:var(--group); box-shadow:0 1px 4px #0002 }
+.android .add { min-height:48px; padding:0 18px; background:var(--accent); color:#fff }
+[data-mode="dark"] .android .add { color:#171123 }
+.filters { margin-bottom:24px }
+.filters button { flex:1; font-size:14px; font-weight:550; min-height:44px }
+.ios .filters { background:var(--track); border-radius:12px; padding:3px }
+.ios .filters button[aria-pressed="true"] { background:var(--chosen); border-radius:9px; box-shadow:0 1px 4px #0002 }
+.android .filters { border:1px solid var(--line); border-radius:28px; overflow:hidden }
+.android .filters button { min-height:48px }
+.android .filters button:focus-visible { outline-offset:-4px }
+.android .filters button + button { border-inline-start:1px solid var(--line) }
+.android .filters button[aria-pressed="true"] { background:var(--chosen) }
+.android .filters button[aria-pressed="true"]::before { content:"✓"; margin-right:4px }
+ul { list-style:none; padding:0; margin:0 }
+.ios ul { background:var(--group); border-radius:15px; padding:0 9px }
+li { display:flex; align-items:center; gap:7px }
+li + li { border-top:1px solid var(--line) }
+.android li + li { border-color:color-mix(in srgb,var(--line) 32%,transparent) }
+.row-toggle { display:flex; align-items:center; gap:14px; padding:12px 7px; flex:1; text-align:start; min-width:0; min-height:56px }
+.android .row-toggle { min-height:64px }
+.mark { flex:none; width:22px; height:22px; display:grid; place-content:center; border:2px solid var(--line); border-radius:50%; font-size:15px; font-weight:bold }
+.android .mark { border-radius:4px; width:20px; height:20px }
+.done .mark { background:var(--accent); color:var(--surface); border-color:var(--accent) }
+.done .task-title { text-decoration:line-through; color:var(--muted) }
+.more { min-height:44px; min-width:44px; color:var(--muted); font-weight:bold; font-size:19px }
+.android .more { min-height:48px; min-width:48px }
+.ios li { position:relative; touch-action:pan-y }
+.ios .more { position:absolute; inset-inline-end:0; clip-path:inset(50%); pointer-events:none }
+.ios li.revealed .more, .ios li:has(:focus-visible) .more { position:static; clip-path:none; pointer-events:auto; background:var(--danger); color:var(--surface); border-radius:8px; padding:0 12px; font-size:15px }
+.bin { display:inline-block; position:relative; width:12px; height:13px; vertical-align:middle; border:1.6px solid currentColor; border-top:0; border-radius:0 0 3px 3px }
+.bin::before,.bin::after { content:""; position:absolute; background:currentColor; border-radius:2px }
+.bin::before { width:16px; height:2px; top:-3px; left:-3.5px }
+.bin::after { width:6px; height:2px; top:-5px; left:1.5px }
+footer { padding:10px 8px; color:var(--muted); font-size:14px }
+dialog { width:min(340px,90vw); border:0; padding:24px; background:var(--group); color:var(--ink); border-radius:20px; box-shadow:0 10px 40px #0004 }
+dialog { position:fixed; margin:0; inset:auto; left:var(--dialog-x); top:var(--dialog-y); transform:translate(-50%, -100%); width:var(--dialog-width); max-height:var(--dialog-height); overflow:auto }
+dialog::backdrop { background:transparent }
+.screen:has(dialog[open])::after { content:""; position:absolute; inset:0; border-radius:inherit; background:#0006; pointer-events:none }
+dialog[data-kind="entry"] { border-radius:24px 24px 0 0; padding-bottom:30px }
+dialog[data-kind="entry"]::before { content:""; display:block; width:36px; height:4px; border-radius:8px; background:var(--line); margin:-10px auto 18px }
+.android dialog[data-kind="confirm"] { transform:translate(-50%,-50%); border-radius:28px }
+.ios dialog[data-kind="confirm"] { text-align:center; padding:0; border-radius:18px }
+.ios dialog[data-kind="confirm"] h4 { margin:16px; font-size:16px }
+.ios dialog[data-kind="confirm"] .actions { flex-direction:column-reverse; align-items:stretch; gap:0; margin:0 }
+.ios dialog[data-kind="confirm"] button { border-top:1px solid var(--line) }
+dialog h4 { font-size:22px; margin:0 0 18px }
+dialog input { color:var(--ink); background:var(--surface); border:1px solid var(--line); padding:12px; width:100%; border-radius:8px }
+.actions { justify-content:flex-end; gap:8px; margin-top:15px }
+dialog[data-kind="entry"] .actions { flex-flow:row wrap }
+dialog[data-kind="entry"] .actions button { flex:none }
+.actions button { min-height:48px; min-width:48px; padding:0 8px; color:var(--accent); font-weight:600 }
+.actions .destructive { color:var(--danger) }
+@media(max-width:720px) { .pair { grid-template-columns: minmax(0,1fr); gap:8px } main { max-width:450px; padding:18px 12px } .screen { min-height:370px } }
+</style>
+</head>
+<body><main data-mode="light" data-accent="default">
+<header><h1>Native todo preview</h1><div class="controls">
+<label>Appearance <select id="mode"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+<label>Accent <select id="accent"><option value="default">Platform</option><option value="teal">Teal</option></select></label>
+</div></header>
+<div class="pair"></div>
+</main>
+<template id="device"><section><div class="platform"><h2></h2><span></span></div><div class="screen">
+<div class="title"><h3>Todos</h3><button class="add" aria-label="Add todo"></button></div>
+<div class="filters" role="group" aria-label="Filter todos"></div><ul aria-label="Todos"></ul>
+<footer aria-live="polite"></footer>
+<dialog><form method="dialog"><h4></h4><input aria-label="Todo title" placeholder="Todo title" autocomplete="off" required>
+<div class="actions"><button type="button">Cancel</button><button type="submit"></button></div></form></dialog>
+</div></section></template>
+<script>
+const main = document.querySelector('main');
+for (const select of document.querySelectorAll('select')) {
+  select.onchange = () => { main.dataset[select.id] = select.value; };
+}
+function mount(platform) {
+  const fragment = document.querySelector('#device').content.cloneNode(true);
+  const screen = fragment.querySelector('.screen');
+  const android = platform === 'android';
+  screen.classList.add(platform);
+  fragment.querySelector('h2').textContent = android ? 'Android' : 'iOS';
+  fragment.querySelector('.platform span').textContent = android ? 'Material 3' : 'SwiftUI';
+  const list = screen.querySelector('ul');
+  const filters = screen.querySelector('.filters');
+  const dialog = screen.querySelector('dialog');
+  const heading = dialog.querySelector('h4');
+  heading.id = platform + '-dialog-title';
+  dialog.setAttribute('aria-labelledby', heading.id);
+  const input = dialog.querySelector('input');
+  const submit = dialog.querySelector('[type="submit"]');
+  let items = ['Buy milk','Pick up the library books','Water the plants'].map((title,i) => ({title,done:i===2}));
+  let filter = 'All';
+  let deletion;
+  function positionDialog() {
+    if (!dialog.open) return;
+    const rect = screen.getBoundingClientRect();
+    const top = Math.max(0,rect.top);
+    const bottom = Math.min(innerHeight,rect.bottom);
+    const confirm = Boolean(deletion);
+    const center = android && confirm;
+    const width = confirm ? Math.min(320,rect.width - 32) : rect.width - 2;
+    const y = center ? (top + bottom) / 2 : bottom - (confirm ? 12 : 1);
+    dialog.style.setProperty('--dialog-x', (rect.left + rect.width / 2) + 'px');
+    dialog.style.setProperty('--dialog-y', y + 'px');
+    dialog.style.setProperty('--dialog-width', width + 'px');
+    dialog.style.setProperty('--dialog-height', Math.max(160,bottom - top - 16) + 'px');
+  }
+  window.addEventListener('resize', positionDialog);
+  window.addEventListener('scroll', positionDialog);
+  function edit(item) {
+    deletion = item;
+    input.hidden = input.disabled = Boolean(item);
+    input.value = '';
+    heading.textContent = item ? 'Delete this todo?' : 'New todo';
+    submit.textContent = item ? 'Delete' : 'Add';
+    submit.classList.toggle('destructive',Boolean(item));
+    dialog.dataset.kind = item ? 'confirm' : 'entry';
+    dialog.showModal();
+    positionDialog();
+    (item ? dialog.querySelector('[type="button"]') : input).focus();
+  }
+  dialog.querySelector('[type="button"]').onclick = () => dialog.close();
+  dialog.querySelector('form').onsubmit = event => {
+    event.preventDefault();
+    if (deletion) items = items.filter(item => item !== deletion);
+    else if (input.value.trim()) items.push({title:input.value.trim(),done:false});
+    else { input.focus(); return; }
+    dialog.close();
+    draw();
+    screen.querySelector('.add').focus();
+  };
+  const add = screen.querySelector('.add');
+  add.textContent = android ? '+ Add' : '+';
+  add.onclick = () => edit();
+  for (const label of ['All','Open','Done']) {
+    const button = document.createElement('button');
+    button.textContent = label;
+    button.onclick = () => { filter = label; draw(); };
+    filters.append(button);
+  }
+  function draw() {
+    for (const button of filters.children) button.setAttribute('aria-pressed',String(button.textContent === filter));
+    list.replaceChildren();
+    for (const item of items.filter(item => filter === 'All' || item.done === (filter === 'Done'))) {
+      const row = document.createElement('li');
+      row.innerHTML = '<button class="row-toggle"><span class="mark" aria-hidden="true"></span><span class="task-title"></span></button><button class="more"></button>';
+      row.classList.toggle('done',item.done);
+      row.querySelector('.task-title').textContent = item.title;
+      const toggle = row.querySelector('.row-toggle');
+      let swiped = false;
+      if (!android) {
+        let start;
+        row.onpointerdown = event => { start = [event.clientX,event.clientY]; swiped = false; };
+        row.onpointercancel = () => { start = undefined; };
+        row.onpointerup = event => {
+          if (!start) return;
+          const dx = event.clientX - start[0];
+          const dy = event.clientY - start[1];
+          start = undefined;
+          if (Math.abs(dx) < 35 || Math.abs(dx) <= Math.abs(dy)) return;
+          swiped = true;
+          for (const other of list.children) other.classList.remove('revealed');
+          row.classList.toggle('revealed',dx < 0);
+        };
+      }
+      toggle.setAttribute('role','checkbox');
+      toggle.setAttribute('aria-checked',String(item.done));
+      toggle.onclick = event => {
+        if (swiped && event.detail) return;
+        const position = [...list.children].indexOf(row);
+        item.done = !item.done;
+        draw();
+        (list.children[position]?.querySelector('button') ?? filters.querySelector('[aria-pressed="true"]')).focus();
+      };
+      row.querySelector('.mark').textContent = item.done ? '✓' : '';
+      const remove = row.querySelector('.more');
+      if (android) remove.innerHTML = '<span class="bin" aria-hidden="true"></span>';
+      else remove.textContent = 'Delete';
+      remove.title = 'Delete ' + item.title;
+      remove.setAttribute('aria-label',remove.title);
+      remove.onclick = () => edit(item);
+      list.append(row);
+    }
+    const count = items.filter(item => !item.done).length;
+    screen.querySelector('footer').textContent = count + (count === 1 ? ' open todo' : ' open todos');
+  }
+  draw();
+  main.querySelector('.pair').append(fragment);
+}
+mount('android');
+mount('ios');
+</script>
+</body></html>

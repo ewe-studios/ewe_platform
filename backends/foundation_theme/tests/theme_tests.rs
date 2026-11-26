@@ -110,3 +110,16 @@ fn const_from_static_is_inspectable() {
     assert!(THEME.to_css().contains("--color-primary"));
     assert_eq!(THEME.tokens().len(), 1);
 }
+
+#[cfg(feature = "native-manifest")]
+#[test]
+fn native_manifest_uses_the_same_tokens_in_both_appearances() {
+    let theme = foundation_theme::Theme::new()
+        .color("primary", "#123456", Some("#abcdef"))
+        .spacing("md", "16px")
+        .build();
+    let manifest: serde_json::Value = serde_json::from_str(&theme.native_manifest()).unwrap();
+    assert_eq!(manifest["text-primary"]["color"][1], "#abcdef");
+    assert_eq!(manifest["p-md"]["padding"][0], "16px");
+    assert!(theme.to_css().contains(".text-primary"));
+}

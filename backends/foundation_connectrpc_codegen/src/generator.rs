@@ -456,7 +456,7 @@ fn generate_client_constructor(methods: &[MethodInfo], client_name: &str, out: &
         out.push_str("                transport.clone(),\n");
         writeln!(
             out,
-            "                &format!(\"{{}}{{}}\", base_url, procedure::{path_const}),"
+            "                &format!(\"{{}}{{}}\", base_url.trim_end_matches('/'), procedure::{path_const}),"
         )
         .expect(WRITE_ERR);
         writeln!(

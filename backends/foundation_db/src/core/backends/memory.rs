@@ -4,7 +4,7 @@
 //! `Async*` store traits, like every other store; its futures resolve at once
 //! (there is no I/O).
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, Mutex};
 
 use foundation_context::Ctx;
@@ -32,6 +32,43 @@ impl MemoryStorage {
         Self {
             data: Arc::new(Mutex::new(HashMap::new())),
         }
+    }
+    /// Apply independent inserts, updates, and removals together.
+    ///
+    /// # Errors
+    /// Return an encoding or lock error. The store keeps the previous records.
+    pub fn change_records<V: Serialize>(
+        &self,
+        prefix: &str,
+        inserts: &BTreeMap<&str, &V>,
+        updates: &BTreeMap<&str, &V>,
+        removals: &[&str],
+    ) -> StorageResult<()> {
+        let encode = |changes: &BTreeMap<&str, &V>| {
+            changes
+                .iter()
+                .map(|(id, value)| {
+                    let bytes = serde_json::to_vec(value).map_err(StorageError::Json)?;
+                    Ok((format!("{prefix}{id}"), Zeroizing::new(bytes)))
+                })
+                .collect::<StorageResult<Vec<_>>>()
+        };
+        let inserts = encode(inserts)?;
+        let updates = encode(updates)?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|cause| StorageError::Backend(cause.to_string()))?;
+        data.extend(inserts);
+        for (key, value) in updates {
+            if let Some(existing) = data.get_mut(&key) {
+                *existing = value;
+            }
+        }
+        for id in removals {
+            data.remove(&format!("{prefix}{id}"));
+        }
+        Ok(())
     }
 }
 

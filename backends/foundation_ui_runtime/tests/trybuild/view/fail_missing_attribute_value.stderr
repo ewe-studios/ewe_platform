@@ -1,0 +1,5 @@
+error: html!: attribute 'class' has '=' but no value
+ --> tests/trybuild/view/fail_missing_attribute_value.rs:4:30
+  |
+4 |     let _view = html! { <div class= ></div> };
+  |                              ^^^^^

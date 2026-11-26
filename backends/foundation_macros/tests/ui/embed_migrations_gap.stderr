@@ -1,5 +1,0 @@
-error: backends/foundation_macros/tests/ui/embed_migrations_gap_data: group is missing migration number 2
- --> tests/ui/embed_migrations_gap.rs:6:38
-  |
-6 |     foundation_db::embed_migrations!("backends/foundation_macros/tests/ui/embed_migrations_gap_data");
-  |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

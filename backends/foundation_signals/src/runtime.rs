@@ -2,10 +2,10 @@
 //! nodes, the dirty bookkeeping, and the flush. Everything else — getters,
 //! setters, contexts — is a thin handle over this.
 //!
-//! WHAT: [`Runtime`] — the R3-style graph: bucket-queue `dirty_heap` indexed by
+//! WHAT: [`SingleThreadedRuntime`] — the R3-style graph: bucket-queue `dirty_heap` indexed by
 //! height, global version counter, `active` node for dynamic dependency
 //! tracking, deferred removals, the JS-interop callback registry, and
-//! [`stabilize`](Runtime::stabilize) — the ONLY entry point that flushes dirty
+//! [`stabilize`](SingleThreadedRuntime::stabilize) — the ONLY entry point that flushes dirty
 //! nodes (`set()` never propagates inline).
 //!
 //! HOW: The graph lives in one `RefCell` (`single_threaded`, G15). The borrow
@@ -16,27 +16,26 @@
 //! borrow, runs the closure, re-borrows to commit tracking results.
 
 use alloc::boxed::Box;
-use alloc::collections::{BTreeMap, VecDeque};
+use alloc::collections::BTreeMap;
 use alloc::rc::Rc;
 use alloc::vec::Vec;
 use core::cell::RefCell;
 
 use crate::arena::{Arena, NodeId};
 use crate::callback::EventData;
+use crate::height_queue::HeightQueue;
 use crate::node::{Node, ThreeState};
 use crate::notification::NotificationManager;
 
-#[cfg(not(feature = "single_threaded"))]
-compile_error!(
-    "foundation_signals: only the `single_threaded` feature path is implemented \
-     (G15 — WASM is single-threaded; the Mutex-backed path awaits a real consumer)"
-);
-
-/// The unified reactive graph. Created once (wrap it in `Arc`/`Rc`), passed
-/// explicitly — never a thread-local singleton.
-pub struct Runtime {
+/// A reactive graph that runs on the thread that owns it.
+pub struct SingleThreadedRuntime {
     graph: RefCell<Graph>,
 }
+
+/// The original name for the single-thread runtime.
+pub type Runtime = SingleThreadedRuntime;
+
+type EventCallback = Box<dyn FnMut(EventData)>;
 
 /// All mutable graph state, behind the one cell.
 pub(crate) struct Graph {
@@ -45,7 +44,7 @@ pub(crate) struct Graph {
     /// demand; cheap level-by-level iteration without sorting. FIFO within a
     /// height: effects at the same height run in CREATION/marking order, so
     /// order-dependent op streams (DOM ops) stay deterministic.
-    dirty: Vec<VecDeque<NodeId>>,
+    dirty: HeightQueue<NodeId>,
     /// Global change counter. Bumped by every value-changing write and at the
     /// start of every stabilize — any increase means "something changed".
     version: u64,
@@ -58,26 +57,32 @@ pub(crate) struct Graph {
     /// True while stabilize's dirty loop runs (routes disposals to deferral).
     stabilizing: bool,
     /// JS-interop callback registry (G17). Ids are NEVER reused.
-    callbacks: BTreeMap<u64, Box<dyn FnMut(EventData)>>,
+    callbacks: BTreeMap<u64, EventCallback>,
     next_callback_id: u64,
     /// Monotonic instance-id allocator for `html!` mounts (G20).
     next_instance_id: u32,
     managers: Vec<Box<dyn NotificationManager>>,
 }
 
-impl Default for Runtime {
+impl Default for SingleThreadedRuntime {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Runtime {
+impl SingleThreadedRuntime {
+    /// Create a root scope in this graph.
+    #[must_use]
+    pub fn scope(self: &Rc<Self>) -> crate::Context {
+        crate::Context::new(Rc::clone(self))
+    }
+
     #[must_use]
     pub fn new() -> Self {
         Self {
             graph: RefCell::new(Graph {
                 nodes: Arena::default(),
-                dirty: Vec::new(),
+                dirty: HeightQueue::default(),
                 version: 0,
                 active: None,
                 trail: Vec::new(),
@@ -117,7 +122,7 @@ impl Runtime {
     /// for `id`. The `html!` macro's two-way-binding codegen calls this with
     /// the id it read from `SignalSetter::callback_id`.
     ///
-    /// [`invoke_callback`]: Runtime::invoke_callback
+    /// [`invoke_callback`]: SingleThreadedRuntime::invoke_callback
     pub fn register_callback(&self, id: u64, callback: impl FnMut(EventData) + 'static) {
         self.graph().callbacks.insert(id, Box::new(callback));
     }
@@ -128,7 +133,7 @@ impl Runtime {
     /// The callback typically calls a setter; call [`stabilize`] afterwards to
     /// flush the effects it dirtied.
     ///
-    /// [`stabilize`]: Runtime::stabilize
+    /// [`stabilize`]: SingleThreadedRuntime::stabilize
     pub fn invoke_callback(&self, id: u64, data: EventData) -> bool {
         // Take the callback OUT while it runs — it will re-enter the graph
         // through setters, and a fresh registration for the same id mid-call
@@ -146,7 +151,7 @@ impl Runtime {
         true
     }
 
-    /// JSON leg of [`invoke_callback`](Runtime::invoke_callback): deserialize
+    /// JSON leg of [`invoke_callback`](SingleThreadedRuntime::invoke_callback): deserialize
     /// `EventData` and dispatch. Undeserializable payloads are logged and
     /// dropped (the signal keeps its previous value).
     pub fn invoke_callback_json(&self, id: u64, json: &str) -> bool {
@@ -202,7 +207,7 @@ impl Runtime {
 
     /// A signal value changed: bump the global version, stamp the node, mark
     /// observers Dirty. Called by `SignalSetter::set` — never propagates inline;
-    /// the dirty nodes wait for [`stabilize`](Runtime::stabilize).
+    /// the dirty nodes wait for [`stabilize`](SingleThreadedRuntime::stabilize).
     pub(crate) fn signal_changed(&self, id: NodeId) {
         let mut graph = self.graph();
         graph.version += 1;
@@ -292,26 +297,24 @@ impl Runtime {
 
         let mut height = 0usize;
         loop {
-            // Pop one node at this height (heap may GROW during the pass).
-            let popped = {
+            let next = {
                 let mut graph = self.graph();
-                if height >= graph.dirty.len() {
+                let next = graph.dirty.pop_at_or_after(height);
+                if next.is_none() {
                     graph.stabilizing = false;
-                    break;
                 }
-                graph.dirty[height].pop_front()
+                next
             };
-            let Some(id) = popped else {
-                height += 1;
-                continue;
-            };
+            let Some((next_height, id)) = next else { break };
+            height = next_height;
             self.process(id);
         }
 
         // Deferred disposals (mid-stabilize context drops).
         let removals = core::mem::take(&mut self.graph().pending_removals);
         for id in removals {
-            self.graph().unlink_and_remove(id);
+            let retired = self.graph().unlink_and_remove(id);
+            drop(retired);
         }
 
         // Notification managers: after the loop, registration order, borrow
@@ -477,7 +480,9 @@ impl Runtime {
         if graph.stabilizing {
             graph.pending_removals.push(id);
         } else {
-            graph.unlink_and_remove(id);
+            let retired = graph.unlink_and_remove(id);
+            drop(graph);
+            drop(retired);
         }
     }
 }
@@ -499,10 +504,7 @@ impl Graph {
         node.set_state(next);
         if current == ThreeState::Clean {
             let height = node.height() as usize;
-            if self.dirty.len() <= height {
-                self.dirty.resize_with(height + 1, VecDeque::new);
-            }
-            self.dirty[height].push_back(id);
+            self.dirty.push(height, id);
         }
     }
 
@@ -556,14 +558,20 @@ impl Graph {
 
     /// Remove `id` from the graph: detach from deps' observer lists and
     /// observers' dep lists, drop its interop callback, free the slot.
-    pub(crate) fn unlink_and_remove(&mut self, id: NodeId) {
-        let Some(node) = self.nodes.remove(id) else {
-            return; // already gone (double dispose) — no-op
-        };
-        let (deps, observers, callback_id) = match node {
-            Node::Signal(n) => (Vec::new(), n.observers, Some(n.callback_id)),
-            Node::Computed(n) => (n.deps, n.observers, None),
-            Node::Effect(n) => (n.deps, Vec::new(), None),
+    fn unlink_and_remove(&mut self, id: NodeId) -> Option<(Node, Option<EventCallback>)> {
+        let mut node = self.nodes.remove(id)?;
+        let (deps, observers, callback_id) = match &mut node {
+            Node::Signal(n) => (
+                Vec::new(),
+                core::mem::take(&mut n.observers),
+                Some(n.callback_id),
+            ),
+            Node::Computed(n) => (
+                core::mem::take(&mut n.deps),
+                core::mem::take(&mut n.observers),
+                None,
+            ),
+            Node::Effect(n) => (core::mem::take(&mut n.deps), Vec::new(), None),
         };
         for dep in deps {
             if let Some(list) = self.nodes.get_mut(dep).and_then(Node::observers_mut) {
@@ -575,8 +583,7 @@ impl Graph {
                 list.retain(|d| *d != id);
             }
         }
-        if let Some(callback_id) = callback_id {
-            self.callbacks.remove(&callback_id);
-        }
+        let callback = callback_id.and_then(|key| self.callbacks.remove(&key));
+        Some((node, callback))
     }
 }

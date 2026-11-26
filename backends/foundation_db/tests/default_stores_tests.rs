@@ -3,6 +3,9 @@
 //! blocking `Default` impls), and `StorageProvider::default()` is the
 //! in-memory backend.
 
+// Turso futures need more steps during trait resolution.
+#![recursion_limit = "256"]
+
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::{DocumentStore, KeyValueStore};
 use foundation_db::{SqlDocumentStore, StorageProvider, TursoStorage};

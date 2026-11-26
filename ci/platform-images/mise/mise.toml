@@ -18,7 +18,7 @@ cmake = "3.31.12"
 ninja = "1.13.2"
 protoc = "36.2"
 
-# Python for CI scripts (scripts/ci/ci.py needs 3.11+), the same build on
+# Python for the CI test fixtures, the same build on
 # every platform (python-build-standalone).
 python = "3.12.15"
 

@@ -1,6 +1,6 @@
 //! WHY: One rendering contract, any target (spec-42 feature 00 §5): a server
 //! must be able to emit first-paint HTML from the SAME `Html` values that
-//! drive the `DomOp` channel — otherwise the morph contract (server markup vs
+//! drive the frame operation channel — otherwise the morph contract (server markup vs
 //! live DOM diffing cleanly) is unenforceable.
 //!
 //! WHAT: [`Html::to_markup`] — serialize an `Html` tree to an HTML string:
@@ -33,69 +33,79 @@ impl Html {
     #[must_use]
     pub fn to_markup(&self) -> String {
         let mut out = String::new();
-        write_node(self, &mut out);
+        let result = self.write_markup(|chunk| {
+            out.push_str(chunk);
+            Ok::<_, core::convert::Infallible>(())
+        });
+        let Ok(()) = result;
         out
     }
+
+    /// Writes markup in document order. The sink can stop the operation on any chunk.
+    ///
+    /// # Errors
+    /// Returns the first error from the sink.
+    pub fn write_markup<E>(&self, mut emit: impl FnMut(&str) -> Result<(), E>) -> Result<(), E> {
+        write_node(self, &mut emit)
+    }
 }
 
-fn write_node(node: &Html, out: &mut String) {
-    let Some(tag) = &node.tag else {
-        if let Some(text) = &node.text {
-            escape_text(text, out);
+fn write_node<E>(node: &Html, emit: &mut impl FnMut(&str) -> Result<(), E>) -> Result<(), E> {
+    let tag = node
+        .tag
+        .as_ref()
+        .map(|tag| tag.name().unwrap_or("unknown-tag"));
+    if let Some(name) = tag {
+        emit("<")?;
+        emit(name)?;
+        for (attr, value) in &node.attributes {
+            emit(" ")?;
+            emit(attr.name().unwrap_or("unknown-attr"))?;
+            emit("=\"")?;
+            escape(value, true, emit)?;
+            emit("\"")?;
         }
-        for child in &node.children {
-            write_node(child, out);
+        emit(">")?;
+        if VOID_ELEMENTS.contains(&name) {
+            return Ok(());
         }
-        return;
-    };
-
-    // An out-of-table id is wire corruption; serialize a visible marker
-    // rather than silently dropping the subtree.
-    let name = tag.name().unwrap_or("unknown-tag");
-    out.push('<');
-    out.push_str(name);
-    for (attr, value) in &node.attributes {
-        out.push(' ');
-        out.push_str(attr.name().unwrap_or("unknown-attr"));
-        out.push_str("=\"");
-        escape_attribute(value, out);
-        out.push('"');
     }
-    out.push('>');
-
-    if VOID_ELEMENTS.contains(&name) {
-        return;
-    }
-
     if let Some(text) = &node.text {
-        escape_text(text, out);
+        escape(text, false, emit)?;
     }
     for child in &node.children {
-        write_node(child, out);
+        write_node(child, emit)?;
     }
-
-    out.push_str("</");
-    out.push_str(name);
-    out.push('>');
+    if let Some(name) = tag {
+        emit("</")?;
+        emit(name)?;
+        emit(">")?;
+    }
+    Ok(())
 }
 
-fn escape_text(text: &str, out: &mut String) {
-    for ch in text.chars() {
-        match ch {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            other => out.push(other),
+fn escape<E>(
+    value: &str,
+    attribute: bool,
+    emit: &mut impl FnMut(&str) -> Result<(), E>,
+) -> Result<(), E> {
+    let mut start = 0;
+    for (index, byte) in value.bytes().enumerate() {
+        let entity = match byte {
+            b'&' => "&amp;",
+            b'"' if attribute => "&quot;",
+            b'<' if !attribute => "&lt;",
+            b'>' if !attribute => "&gt;",
+            _ => continue,
+        };
+        if start < index {
+            emit(&value[start..index])?;
         }
+        emit(entity)?;
+        start = index + 1;
     }
-}
-
-fn escape_attribute(value: &str, out: &mut String) {
-    for ch in value.chars() {
-        match ch {
-            '&' => out.push_str("&amp;"),
-            '"' => out.push_str("&quot;"),
-            other => out.push(other),
-        }
+    if start < value.len() {
+        emit(&value[start..])?;
     }
+    Ok(())
 }

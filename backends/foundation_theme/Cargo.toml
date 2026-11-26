@@ -10,3 +10,9 @@ description = "Design-token theme model + the single CSS generator shared by the
 
 [lints]
 workspace = true
+
+[dependencies]
+serde_json = { workspace = true, optional = true }
+
+[features]
+native-manifest = ["dep:serde_json"]

@@ -1,0 +1,3 @@
+Sources/EweCore/*.swift linguist-generated -whitespace
+Sources/EweWire/*.swift linguist-generated -whitespace
+Tests/EweUITests/Fixtures/*.bin binary
