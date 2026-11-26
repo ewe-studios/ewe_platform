@@ -58,13 +58,14 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - **01-durable-stream-types** — 🟡 in progress (6/7). Core types, store trait, `DurableDriver`,
   BDD harness, memory VFS, business API, property test and model comparison landed. 17 tests
   pass. The wasm32 check passes. T4 (valtron-disabled build) remains.
-- **02-resumable-reader** — 🟡 in progress (5/10). Core page reader, state rules, closure
-  discovery, the valtron catch-up reader, the live tail wait/notifier and the `into_next_stream`
-  bridge landed. Wake forwarding under `multi`, trim, DST and the oracle matrix remain.
+- **02-resumable-reader** — 🟡 in progress (6/10). Core page reader, state rules, closure
+  discovery, the valtron catch-up reader, the live tail wait/notifier, the `into_next_stream`
+  bridge and trim refusal landed. Wake forwarding under `multi`, DST and the oracle matrix
+  remain.
 - **03-idempotent-producer** — 🟡 in progress (6/8). Core writer, producer ladder, dedup/fencing,
   `Stream-Seq`, versioned atomic append, the valtron producer task and restart dedup landed.
   Core-independence and the oracle matrix remain.
-- **04-fork-and-retention** — 🟡 in progress (5/9). Fork read stitching, creation edge cases,
+- **04-fork-and-retention** — 🟡 in progress (6/9). Fork read stitching, creation edge cases,
   idempotent creation, soft-delete, cascading cleanup, sliding TTL, TTL inheritance and
   sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
   remain.

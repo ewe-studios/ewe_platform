@@ -649,6 +649,8 @@ pub struct VfsMeta {
     pub fork: Option<ForkInfo>,
     /// The last read or write time in UNIX milliseconds. `HEAD` does not update it.
     pub last_access_ms: i64,
+    /// The first readable byte after retention. `0` means no trim.
+    pub trim_from: u64,
     /// The metadata version. It increments on every append and close.
     pub version: u64,
 }
@@ -687,6 +689,8 @@ pub enum VfsError {
     NotFound,
     /// The entry is soft-deleted.
     Gone,
+    /// The offset was dropped by retention.
+    Trimmed,
     /// The entry exists with a different configuration.
     Conflict,
     /// The VFS does not support the operation.
@@ -700,6 +704,7 @@ impl fmt::Display for VfsError {
         match self {
             Self::NotFound => f.write_str("vfs entry not found"),
             Self::Gone => f.write_str("vfs entry is gone"),
+            Self::Trimmed => f.write_str("vfs offset was trimmed"),
             Self::Conflict => f.write_str("vfs entry conflict"),
             Self::Unsupported => f.write_str("vfs operation not supported"),
             Self::Io(error) => write!(f, "vfs io error: {error}"),
@@ -721,6 +726,7 @@ impl From<VfsError> for StoreError {
         match error {
             VfsError::NotFound => Self::NotFound,
             VfsError::Gone => Self::Gone,
+            VfsError::Trimmed => Self::Trimmed,
             VfsError::Conflict => Self::ConfigConflict,
             VfsError::Unsupported => Self::Unsupported,
             VfsError::Io(error) => Self::Storage(error),
@@ -787,6 +793,9 @@ pub trait DurableStreamVfs: Send + Sync {
 
     /// Refresh the sliding TTL clock.
     fn touch(&self, name: &StreamName, now_ms: i64) -> VfsFuture<'_, ()>;
+
+    /// Drop reads before `at`. A read before it returns [`VfsError::Trimmed`].
+    fn trim(&self, name: &StreamName, at: VfsOffset) -> VfsFuture<'_, ()>;
 
     /// Mark the entry closed.
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()>;
@@ -1127,6 +1136,7 @@ impl DurableStreamStore for DurableStream {
             writer: WriterState::default(),
             fork: fork_info,
             last_access_ms: self.now_ms(),
+            trim_from: 0,
             version: 0,
         };
         let created = self.vfs.create(&name, meta).await?;

@@ -131,6 +131,9 @@ fn read_chain(
     }
 
     let entry = entries.get(name).ok_or(VfsError::NotFound)?;
+    if at < entry.meta.trim_from {
+        return Err(VfsError::Trimmed);
+    }
     let base = entry.base_len();
     let mut out = Vec::new();
 
@@ -244,6 +247,7 @@ impl DurableStreamVfs for MemoryVfs {
                     let mut next = meta;
                     next.len = entry.base_len() + entry.data.len() as u64;
                     next.fork = entry.meta.fork.clone();
+                    next.trim_from = entry.meta.trim_from;
                     next.version = expected_version.saturating_add(1);
                     entry.meta = next;
                     Ok(VfsOffset(entry.meta.len))
@@ -270,6 +274,20 @@ impl DurableStreamVfs for MemoryVfs {
         let result = match entries.get(name) {
             Some(entry) if entry.soft_deleted => Err(VfsError::Gone),
             Some(entry) => Ok(entry.meta.clone()),
+            None => Err(VfsError::NotFound),
+        };
+        Box::pin(async move { result })
+    }
+
+    fn trim(&self, name: &StreamName, at: VfsOffset) -> VfsFuture<'_, ()> {
+        let mut entries = self.lock();
+        let result = match entries.get_mut(name) {
+            Some(entry) if entry.soft_deleted => Err(VfsError::Gone),
+            Some(entry) => {
+                entry.meta.trim_from = at.0.min(entry.meta.len).max(entry.meta.trim_from);
+                entry.meta.version = entry.meta.version.saturating_add(1);
+                Ok(())
+            }
             None => Err(VfsError::NotFound),
         };
         Box::pin(async move { result })

@@ -97,7 +97,7 @@ pub struct ForkSpec {
 - [ ] **T6 — TTL.** Sliding reset, `HEAD` no reset, both headers, fork table and expiry with
       forks. Tests: `ttl_slides_on_read_and_write`, `head_does_not_reset_ttl`,
       `fork_ttl_follows_table`, `expired_source_with_fork_is_soft_deleted`.
-- [ ] **T7 — retention.** A dropped offset returns `Trimmed`. Test:
+- [x] **T7 — retention.** A dropped offset returns `Trimmed`. Test:
       `retention_trims_by_refusing_not_gapping`.
 - [ ] **T8 — valtron boundary.** The valtron reader sees one stream across the fork. Test:
       `valtron_reader_spans_fork_boundary`.
