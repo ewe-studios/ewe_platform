@@ -15,11 +15,26 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 01 — agent RPC model server | ✅ 10/10 + GGUF, landed as #126 | `bfff3326d` on master |
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
-| 04 — native host and DST | ⏳ 0/2, design complete; the plan names files, tests and verify (2026-11-27) | — |
+| 04 — native host and DST | 🔧 T17 done; T18 partial (SimRuntime, MemNetwork, faulty stores) on branch `spec83/f04-native-host-and-dst` | `6eb49caa2`, `4198c445f`, `cbadec5a5` |
 | 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete; the plan adds rules, tests and verify (2026-11-27) | — |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
 | 08 — key protection at rest | 📝 0/6, todo (last) | — |
+
+## Feature 04 progress (2026-11-27)
+
+Task T17 is done on branch `spec83/f04-native-host-and-dst`: the native host modules
+(`host/native/{mod,config,security,listener,catalog,client}.rs`), two mTLS listeners, the
+operator keys with no key generation, and the tests `native_{config,e2e,revocation,shutdown}_tests.rs`.
+`foundation_http` `ServerConfig` derives `Clone`.
+
+Task T18 is partial: `foundation_core` `valtron::sim` (`SimRuntime`, 4 tests),
+`foundation_connectrpc` `MemNetwork`/`MemTransport` (1 test) and `foundation_db`
+`FaultyDocumentStore` (2 tests). The agent-rpc DST harness waits on issue #904: the crate
+enables `foundation_core/multi` unconditionally, so `SimRuntime` is compiled out. The design
+answer is a separate package, `foundation_agent_rpc_dst`.
+
+Findings: #903 (high, shutdown ends no turn), #904 (high, the multi feature), #905 to #907.
 
 ## Branches and PRs
 
