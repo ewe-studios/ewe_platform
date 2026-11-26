@@ -591,7 +591,6 @@ async fn next_sse(
     stream: &mut crate::shared::durable::ClientSseStream,
     deadline: std::time::Instant,
 ) -> Option<Result<crate::shared::durable::SseEvent, TransportError>> {
-    use futures_core::Stream as _;
     futures_lite::future::poll_fn(|cx| match stream.as_mut().poll_next(cx) {
         std::task::Poll::Pending => {
             if std::time::Instant::now() >= deadline {

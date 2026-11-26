@@ -16,13 +16,14 @@ fn main() {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
-    use std::io::{BufRead, Write};
+    use std::io::BufRead;
 
     // The netio client spawns valtron tasks, so the pool must be live.
     let _pool = foundation_core::valtron::initialize_pool(42, Some(4));
 
     let stdin = std::io::stdin();
-    let mut stdout = std::io::stdout();
+    let sink = std::sync::Arc::new(Sink::new());
+    let mut sequence = 0_u64;
     let mut client: Option<foundation_netio::shared::durable::DurableClient> = None;
     let mut types: std::collections::HashMap<String, String> = std::collections::HashMap::new();
     let mut seqs: std::collections::HashMap<(String, String), u64> = std::collections::HashMap::new();
@@ -38,12 +39,43 @@ fn main() {
             Ok(value) => value,
             Err(error) => {
                 let result = failure_result("", "INVALID_ARGUMENT", &error.to_string());
-                let _ = writeln!(stdout, "{result}");
-                let _ = stdout.flush();
+                sink.push(sequence, result.to_string());
+                sequence += 1;
                 continue;
             }
         };
         let kind = command["type"].as_str().unwrap_or("").to_string();
+        let mine = sequence;
+        sequence += 1;
+
+        if kind == "read" {
+            if let Some(client) = client.clone() {
+                let path = command["path"].as_str().unwrap_or("").to_string();
+                let binary = types.get(&path).is_some_and(|content_type| {
+                    !(content_type.starts_with("text/")
+                        || content_type.starts_with("application/json"))
+                });
+                let (dynamic_headers, headers_sent) = dynamic.headers_for_request();
+                let (dynamic_params, params_sent) = dynamic.params_for_request();
+                let command = command.clone();
+                let sink = sink.clone();
+                std::thread::spawn(move || {
+                    let result = smol::block_on(handle_read(
+                        &client,
+                        &command,
+                        &path,
+                        dynamic_headers,
+                        dynamic_params,
+                        headers_sent,
+                        params_sent,
+                        binary,
+                    ));
+                    sink.push(mine, result.to_string());
+                });
+                continue;
+            }
+        }
+
         let (result, stop) = smol::block_on(handle(
             &kind,
             &command,
@@ -53,8 +85,7 @@ fn main() {
             &mut sent,
             &mut dynamic,
         ));
-        let _ = writeln!(stdout, "{result}");
-        let _ = stdout.flush();
+        sink.push(mine, result.to_string());
         if stop {
             break;
         }
@@ -63,6 +94,43 @@ fn main() {
 
 #[cfg(not(target_arch = "wasm32"))]
 type Client = foundation_netio::shared::durable::DurableClient;
+
+/// Writes one result line per command, in command order.
+#[cfg(not(target_arch = "wasm32"))]
+struct Sink {
+    state: std::sync::Mutex<(u64, std::collections::BTreeMap<u64, String>)>,
+    out: std::sync::Mutex<std::io::Stdout>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl Sink {
+    fn new() -> Self {
+        Self {
+            state: std::sync::Mutex::new((0, std::collections::BTreeMap::new())),
+            out: std::sync::Mutex::new(std::io::stdout()),
+        }
+    }
+
+    fn push(&self, sequence: u64, line: String) {
+        use std::io::Write;
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        state.1.insert(sequence, line);
+        let mut out = self
+            .out
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        loop {
+            let next = state.0;
+            let Some(line) = state.1.remove(&next) else { break };
+            let _ = writeln!(out, "{line}");
+            let _ = out.flush();
+            state.0 += 1;
+        }
+    }
+}
 
 /// The dynamic header and query values, evaluated once per request.
 #[cfg(not(target_arch = "wasm32"))]
@@ -734,4 +802,130 @@ fn header_number(
         .iter()
         .find(|(key, _)| key.eq_ignore_ascii_case(name))
         .and_then(|(_, value)| value.parse().ok())
+}
+
+/// Answer one read on its own thread. The sink keeps the result in order.
+#[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::too_many_arguments)]
+async fn handle_read(
+    client: &Client,
+    command: &serde_json::Value,
+    path: &str,
+    dynamic_headers: Vec<(String, String)>,
+    dynamic_params: Vec<(String, String)>,
+    headers_sent: serde_json::Map<String, serde_json::Value>,
+    params_sent: serde_json::Map<String, serde_json::Value>,
+    binary: bool,
+) -> serde_json::Value {
+    use foundation_netio::shared::durable::ReadMode;
+
+    let mode = match command["live"].as_str() {
+        Some("long-poll") => ReadMode::LongPoll,
+        Some("sse") => {
+            return failure_result("read", "NOT_SUPPORTED", "sse is not enabled");
+        }
+        _ if command["live"].as_bool() == Some(true) => ReadMode::Auto,
+        _ => ReadMode::CatchUp,
+    };
+    let handle = client
+        .handle(path)
+        .with_headers(headers_of(command))
+        .with_headers(dynamic_headers)
+        .with_query(dynamic_params);
+    let sse_timeout = command["timeoutMs"].as_u64().unwrap_or(2000);
+    let mut builder = handle
+        .read()
+        .mode(mode)
+        .sse_binary(binary)
+        .sse_timeout(sse_timeout);
+    if let Some(offset) = command["offset"].as_str() {
+        builder = builder.offset(offset);
+    }
+    if let Some(limit) = command["maxChunks"].as_u64() {
+        builder = builder.max_chunks(usize::try_from(limit).unwrap_or(usize::MAX));
+    }
+
+    let mut attempt = 0;
+    let mut result = loop {
+        let outcome = builder.clone().send().await;
+        attempt += 1;
+        match outcome {
+            Err(error) if attempt < 3 && is_retryable(&error) => {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+            }
+            other => {
+                break match other {
+                    Ok(result) => result,
+                    Err(error) => return client_error("read", &error),
+                }
+            }
+        }
+    };
+
+    if mode == ReadMode::LongPoll {
+        let mut count = result.chunks.len();
+        let wanted = command["maxChunks"]
+            .as_u64()
+            .map_or(10, |value| usize::try_from(value).unwrap_or(10));
+        while !result.closed && count > 0 && count < wanted {
+            let next = result
+                .next_offset
+                .clone()
+                .unwrap_or_else(|| "-1".to_string());
+            let more = handle
+                .read()
+                .mode(ReadMode::CatchUp)
+                .offset(next)
+                .send()
+                .await;
+            match more {
+                Ok(page) if !page.chunks.is_empty() => {
+                    count += page.chunks.len();
+                    result.chunks.extend(page.chunks);
+                    result.next_offset = page.next_offset.or(result.next_offset);
+                    result.up_to_date = page.up_to_date;
+                    result.closed = page.closed;
+                }
+                _ => break,
+            }
+        }
+    }
+
+    if mode == ReadMode::Auto && !result.closed {
+        let next = result
+            .next_offset
+            .clone()
+            .unwrap_or_else(|| "-1".to_string());
+        let poll = handle
+            .read()
+            .mode(ReadMode::LongPoll)
+            .offset(next)
+            .send()
+            .await;
+        if let Ok(live) = poll {
+            result.chunks.extend(live.chunks);
+            result.next_offset = live.next_offset.or(result.next_offset);
+            result.up_to_date = live.up_to_date;
+            result.closed = live.closed;
+            result.cursor = live.cursor.or(result.cursor);
+        }
+    }
+
+    let chunks: Vec<serde_json::Value> = result
+        .chunks
+        .iter()
+        .map(|chunk| serde_json::json!({ "data": String::from_utf8_lossy(&chunk.data) }))
+        .collect();
+    serde_json::json!({
+        "type": "read",
+        "success": true,
+        "status": result.status,
+        "chunks": chunks,
+        "offset": result.next_offset,
+        "upToDate": result.up_to_date,
+        "streamClosed": result.closed,
+        "cursor": result.cursor,
+        "headersSent": headers_sent,
+        "paramsSent": params_sent,
+    })
 }

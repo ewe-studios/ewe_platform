@@ -213,3 +213,12 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   sequence order. A later result waits for an earlier one. The runner never sees an out-of-order
   line.
 - **The adapter stays serial until the queue exists.** The client gate stays at 208 pass, 0 fail.
+
+## Ordered adapter results (2026-11-27)
+
+- **The ordered result queue works.** The main thread numbers every command. A read runs on its
+  own thread. One sink writes results in command order and holds a later result until every
+  earlier one is out. The client gate stays at 208 pass, 0 fail.
+- **The worker path needs the same feature gate.** The worker read bypassed the adapter's
+  "SSE is not enabled" answer and opened a stream, which stalled the command. The gate must sit
+  in the shared read helper, not only in the serial path.
