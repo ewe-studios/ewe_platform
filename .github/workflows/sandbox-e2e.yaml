@@ -42,7 +42,10 @@ concurrency:
 jobs:
   sandbox-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # The first microVM run pulls an image and boots a real guest. Together
+    # with the static slave build it needs more than 60 minutes. A run that
+    # reached 60 minutes was cancelled, not failed (run 45867743472).
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4.4.0
         with:
@@ -71,7 +74,12 @@ jobs:
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
         with:
-          key: sandbox-e2e
+          # `mise run sandbox:slave` writes the two musl slave programs to
+          # target/<triple>/agent/ and copies them to target/sandbox/, so both
+          # live inside the cached `target` directory. The key names the runner
+          # OS and the `agent` Cargo profile, so a cache from another OS or
+          # profile never restores here.
+          key: sandbox-e2e-${{ runner.os }}-agent
 
       - name: Download the pinned Firecracker release
         run: |
