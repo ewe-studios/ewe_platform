@@ -2,6 +2,8 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 auto mode and streaming are enabled. The adapter catches up, then
+  waits once with a long-poll read. The client gate rises to 208 pass, 0 fail, 61 skip.
 - 2026-11-27: feature 07 dynamic headers and params are enabled. The adapter evaluates a
   counter, timestamp or token value on each request and reports `headersSent` and `paramsSent`.
   The client gate rises to 202 pass, 0 fail, 67 skip.

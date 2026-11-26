@@ -231,8 +231,8 @@ async fn handle(
                 "features": {
                     "sse": false,
                     "longPoll": true,
-                    "auto": false,
-                    "streaming": false,
+                    "auto": true,
+                    "streaming": true,
                     "batching": true,
                     "dynamicHeaders": true,
                 },
