@@ -1549,3 +1549,14 @@ An unsupported extent returns `ExtentUnsupported`, which carries the width, heig
 The surface owner stays available, and the next valid configuration presents.
 `GraphicsError` is unchanged; the new variant maps to `IncompatibleSurface`.
 Five new tests pass, including a Metal attach, a rejected oversized resize and a later presentation on this Mac.
+
+## On-device Apple module maps
+
+Issue [811](https://github.com/ewe-studios/ewe_platform/issues/811) is already fixed by commit `3881e0553`, which is on master.
+The application archive holds no `HeadersPath`, so `EweCoreFFI` supplies the only `include/module.modulemap`.
+The generated `CounterFFI/module.modulemap` stays in its own directory, where `SWIFT_INCLUDE_PATHS` finds it.
+A generated `CounterApp` built and launched on the iPhone 18 Pro simulator with Xcode 27.2 and the iOS 27.2 kit. It showed the counter and the Increment control.
+The regression assertion already exists in `bin/ewe_ui/tests/mobile.py`.
+
+Issues [719](https://github.com/ewe-studios/ewe_platform/issues/719) (native release versions) and [834](https://github.com/ewe-studios/ewe_platform/issues/834) (typed Mathalley command) were also fixed on master. All three issues are closed.
+Issue [714](https://github.com/ewe-studios/ewe_platform/issues/714) stays open until the native renderer checks run.
