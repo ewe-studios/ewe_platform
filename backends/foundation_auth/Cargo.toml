@@ -98,6 +98,7 @@ web-sys = { workspace = true, features = [
   "AbortController",
   "ServiceWorkerGlobalScope",
   "Window",
+  "WorkerGlobalScope",
   "Crypto",
   "SubtleCrypto",
   "CryptoKey",
@@ -118,6 +119,8 @@ rand_chacha = { version = "0.3", optional = true }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
 pbkdf2 = { workspace = true }
+# The passphrase prompt of the key encryption key (KEK) source, with no echo.
+rpassword = "7"
 # Certificate authority, trust verifier and TLS configuration (spec 87). The
 # `mtls` feature names them: they link `ring`, which has C code, so a consumer
 # that must stay free of C code, such as the static musl slave, leaves it off.
@@ -211,6 +214,16 @@ server-native = ["server", "dep:webauthn-rs", "dep:openssl", "dep:url", "dep:ser
 # Test-only key-store helpers: the fixed KEK source and the fake KMS backend.
 # Off by default; the key-store tests turn it on.
 testing = []
+
+# The Worker key encryption key: a non-extractable WebCrypto AES-GCM key and
+# the Secrets Store and Worker secret sources (wasm only).
+wasm-kek = [
+  "wasm",
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
+]
 
 # Test module tree (units/ + integration/ via lib.rs)
 [[test]]

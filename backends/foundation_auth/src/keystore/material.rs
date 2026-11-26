@@ -171,7 +171,11 @@ impl KeyMaterial {
     }
 
     /// Open the private part of `record`.
-    async fn open_private(&self, record: &KeyRecord) -> Result<SecureBytes, KeyStoreError> {
+    ///
+    /// # Errors
+    /// [`KeyStoreError::ReadOnly`], [`KeyStoreError::PlaintextRefused`],
+    /// [`KeyStoreError::KekUnavailable`] or [`KeyStoreError::Seal`].
+    pub async fn open_private(&self, record: &KeyRecord) -> Result<SecureBytes, KeyStoreError> {
         match &record.private {
             StoredPrivateKey::Sealed(sealed) => self.open(&record.aad(), sealed).await,
             StoredPrivateKey::Plaintext { .. } => Err(KeyStoreError::PlaintextRefused("key store")),
@@ -181,6 +185,61 @@ impl KeyMaterial {
             ))),
             StoredPrivateKey::Absent => Err(KeyStoreError::NotFound(record.id.to_string())),
         }
+    }
+
+    /// Seal `plaintext` under `aad` with the current KEK.
+    ///
+    /// The migration of the clear-text key files uses it.
+    ///
+    /// # Errors
+    /// [`KeyStoreError::ReadOnly`] or [`KeyStoreError::Seal`].
+    pub async fn seal_bytes(
+        &self,
+        aad: &[u8],
+        plaintext: &[u8],
+    ) -> Result<SealedBlob, KeyStoreError> {
+        self.seal(aad, plaintext).await
+    }
+
+    /// Reseal every sealed record with the current KEK.
+    ///
+    /// A record that already names the current KEK is skipped. Each record
+    /// moves to the next revision, and the record's current revision guards
+    /// the write, so a concurrent change is a conflict and is not lost.
+    ///
+    /// # Returns
+    /// The number of records that this call resealed.
+    ///
+    /// # Errors
+    /// [`KeyStoreError`] variants.
+    pub async fn rotate_kek(&self) -> Result<usize, KeyStoreError> {
+        let protection = self.protection.as_ref().ok_or(KeyStoreError::ReadOnly)?;
+        let current_id = protection.current().kek_id().to_string();
+        let mut rotated = 0;
+        for kind in [
+            KeyKind::CertificateAuthority,
+            KeyKind::SecretSigning,
+            KeyKind::ServerIdentity,
+        ] {
+            for record in self.store.list(kind).await? {
+                let StoredPrivateKey::Sealed(sealed) = &record.private else {
+                    continue;
+                };
+                if sealed.kek_id == current_id {
+                    continue;
+                }
+                let plaintext = self.open(&record.aad(), sealed).await?;
+                let revision = record.revision + 1;
+                let aad = record_aad(&record.id, record.kind, revision);
+                let resealed = protection.current().seal(&aad, &plaintext).await?;
+                let mut updated = record.clone();
+                updated.revision = revision;
+                updated.private = StoredPrivateKey::Sealed(resealed);
+                self.store.replace(&updated, record.revision).await?;
+                rotated += 1;
+            }
+        }
+        Ok(rotated)
     }
 
     /// Load a record, or make it with `make` and store it.

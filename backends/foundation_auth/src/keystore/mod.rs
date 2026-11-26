@@ -17,16 +17,29 @@ pub mod db;
 pub mod env;
 #[cfg(not(target_family = "wasm"))]
 pub mod fs;
+pub mod kek;
 pub mod material;
 pub mod memory;
+pub mod migrate;
 pub mod sealing;
+#[cfg(all(target_family = "wasm", feature = "wasm-kek"))]
+pub mod webcrypto;
 
 pub use db::DbKeyStore;
 pub use env::EnvKeyStore;
 #[cfg(not(target_family = "wasm"))]
 pub use fs::FsKeyStore;
+#[cfg(feature = "testing")]
+pub use kek::FixedKek;
+#[cfg(not(target_family = "wasm"))]
+pub use kek::{
+    take_kek_variable, EnvironmentVariableKek, PassphrasePromptKek, SecretFileKek,
+    SystemdCredentialKek,
+};
+pub use kek::{KekSource, KekSourceInfo};
 pub use material::{KeyMaterial, KeyProtection};
 pub use memory::MemoryKeyStore;
+pub use migrate::{migrate_legacy_keys, MigrationReport};
 #[cfg(not(target_family = "wasm"))]
 pub use sealing::PassphraseSealer;
 pub use sealing::{record_aad, Argon2Params, KekSealer, KeySealer, SealFuture, SealedBlob};

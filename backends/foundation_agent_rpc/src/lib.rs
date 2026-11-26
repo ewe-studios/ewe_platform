@@ -31,6 +31,10 @@ pub mod client;
 pub mod core;
 pub mod error;
 pub mod instance;
+/// The `agent-rpc keys` commands and the native key encryption key (KEK)
+/// selection (spec 83 feature 08).
+#[cfg(not(target_family = "wasm"))]
+pub mod keys;
 pub mod model;
 pub mod proto;
 pub mod secret;

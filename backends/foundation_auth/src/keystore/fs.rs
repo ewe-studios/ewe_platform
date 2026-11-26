@@ -72,6 +72,38 @@ impl FsKeyStore {
         self.base.join(name)
     }
 
+    /// The legacy private-key file of `id`, when the record has one.
+    #[must_use]
+    pub fn legacy_key_file(id: &KeyId) -> Option<&'static str> {
+        match id.as_str() {
+            KeyId::CA => Some(LEGACY_CA_KEY),
+            KeyId::SECRET_SIGNING => Some(LEGACY_SIGNING_KEY),
+            KeyId::SERVER_IDENTITY => Some(LEGACY_SERVER_KEY),
+            _ => None,
+        }
+    }
+
+    /// Remove the legacy clear-text key file of `id`, when it exists.
+    ///
+    /// The migration calls this only after the sealed record opens.
+    ///
+    /// # Errors
+    /// [`KeyStoreError::Storage`] when a file that exists cannot be removed.
+    pub fn remove_legacy(&self, id: &KeyId) -> Result<bool, KeyStoreError> {
+        let Some(name) = Self::legacy_key_file(id) else {
+            return Ok(false);
+        };
+        let path = self.legacy_path(name);
+        match std::fs::remove_file(&path) {
+            Ok(()) => Ok(true),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+            Err(error) => Err(KeyStoreError::Storage(format!(
+                "removing {}: {error}",
+                path.display()
+            ))),
+        }
+    }
+
     /// Make the record directory, readable only by its owner.
     fn make_dir(&self) -> Result<(), KeyStoreError> {
         let dir = self.records_dir();

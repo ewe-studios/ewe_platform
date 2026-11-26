@@ -75,6 +75,13 @@ default = ["candle"]
 candle = ["foundation_ai/candle"]
 # GGUF via llama.cpp (needs the vendored llama.cpp sources to build).
 gguf = ["foundation_ai/llamacpp"]
+# Test-only helpers of the key-store commands (spec 83 feature 08).
+testing = []
+
+[[test]]
+name = "kek_selection_tests"
+path = "tests/kek_selection_tests.rs"
+required-features = ["testing"]
 
 [[test]]
 name = "model_share_tests"
