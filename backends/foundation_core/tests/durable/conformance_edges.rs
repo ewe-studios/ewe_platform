@@ -302,3 +302,31 @@ fn given_a_three_level_fork_chain_when_both_parents_are_deleted_then_the_chain_s
         ));
     });
 }
+
+#[test]
+fn given_a_create_with_a_body_when_it_runs_twice_then_the_body_is_stored_once() {
+    smol::block_on(async {
+        let streams = streams();
+        let stream = name("create-once");
+        let spec = CreateSpec {
+            content_type: Some(ContentType::parse("text/plain").expect("type")),
+            initial: Some(Chunk::new(b"abc".to_vec())),
+            ..CreateSpec::default()
+        };
+        let first = streams
+            .stream(stream.clone())
+            .create(spec.clone())
+            .await
+            .expect("create");
+        assert!(first.created);
+
+        let second = streams
+            .stream(stream.clone())
+            .create(spec)
+            .await
+            .expect("repeat");
+        assert!(!second.created);
+
+        assert_eq!(read_all(&streams, &stream).await, b"abc");
+    });
+}
