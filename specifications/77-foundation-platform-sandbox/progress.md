@@ -548,10 +548,14 @@ merged in. Commit `02fb725e4` is the first complete state.
 Local checks: 69 sandbox tests, 12 deployment tests, 4 provider tests, clippy clean, the wasm
 check clean.
 
-The review found three high gaps, filed as #910 (the generator drops a multipart upload
-body), #911 (no generated container-application operation) and #912 (no container route).
-The agent fixes them on the branch. #913 is fixed here: the specification named the
-`ewe_deployables::cloudflare` module that spec 70 feature 22 removed.
+The review and two fix rounds closed thirteen issues: #910 (the multipart upload body),
+#911 (the container-application operations), #912 (the container route), #914 to #921, #933
+(the parallel test hang) and #934 (the route and deployment request shapes). The change is
+pull request #936.
+
+#913 is fixed here: the specification named the `ewe_deployables::cloudflare` module that
+spec 70 feature 22 removed. #935 records that a promoted Worker URL needs the account
+subdomain.
 
 ## In progress
 
@@ -565,8 +569,8 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 ## Next
 
 1. Feature 07 (the Cloudflare control plane, library): pull request #901, in review.
-2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, on branch
-   `spec77/f08-cloudflare-worker`. It started from feature 07 and merges feature 06.
+2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, pull request
+   #936.
 3. Feature 09 (the libkrun driver): pull request #925, in review.
 4. Feature 18 (the lifetime deadline and the stream bound), after 08.
 5. Spec 83 feature 04: pull request #909, in review.

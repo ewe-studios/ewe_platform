@@ -1735,3 +1735,23 @@ is a test or an in-process caller that needs the whole answer.
 The response of the DO handler is `HttpResponseParts`: a status, flat headers and a
 `BoxByteStream`. A Worker maps it to the wasm response and holds the stream for the life of
 the response. The request body is bounded by `max_message_bytes`; the response streams.
+
+## 23. Parallel tests cannot share one valtron pool with a simulated clock (2026-11-27)
+
+`cargo test -p foundation_sandbox --features "testing cloudflare"` hung with the default
+thread count and passed with `--test-threads=1`. The cause was the test harness: it created
+one process-wide valtron pool that every test shared. A test that parked a worker on a
+simulated clock held the pool, and the next test waited for a worker that never came free.
+The same suite then timed out in continuous integration.
+
+**The fix.** Each test thread takes its own pool lease. A global gate serializes the creation
+and the drop of the pool, so only one pool exists at a time, and a test that starts its own
+threads releases the lease before it joins them (`pool::release()`).
+
+**The rules.**
+
+1. A test that advances a simulated clock owns its pool.
+2. A test that runs on the host clock still takes a lease; the gate keeps one pool.
+3. A test that spawns threads which drive their own futures releases the lease first.
+4. The acceptance for a suite is the plain command, with no thread flag. A suite that needs
+   `--test-threads=1` hides a shared-state defect.
