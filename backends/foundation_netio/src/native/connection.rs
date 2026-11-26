@@ -927,6 +927,66 @@ impl Connection {
         Ok(Self::Unix(stream))
     }
 
+    /// Sends `preamble` and reads one reply line of at most `max_reply` bytes.
+    ///
+    /// The line must start with `expect` and end with a line feed. End of
+    /// stream before the line, a longer line, or a different prefix is an
+    /// error. The read uses the connection's read timeout.
+    ///
+    /// # Errors
+    ///
+    /// The write or read error, `UnexpectedEof` for a peer that closes before
+    /// the line, and `InvalidData` for a long line or a wrong prefix.
+    #[cfg(unix)]
+    pub fn apply_unix_preamble(
+        &mut self,
+        preamble: &[u8],
+        expect: &[u8],
+        max_reply: usize,
+    ) -> std::io::Result<()> {
+        if max_reply == 0 {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "the preamble reply limit is zero",
+            ));
+        }
+        self.write_all(preamble)?;
+        self.flush()?;
+        let mut line = Vec::with_capacity(max_reply.min(64));
+        let mut byte = [0_u8; 1];
+        loop {
+            match self.read(&mut byte) {
+                Ok(0) => {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::UnexpectedEof,
+                        "the peer closed the socket before the preamble reply",
+                    ));
+                }
+                Ok(_) => {
+                    line.push(byte[0]);
+                    if byte[0] == b'\n' {
+                        break;
+                    }
+                    if line.len() >= max_reply {
+                        return Err(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("the preamble reply is longer than {max_reply} bytes"),
+                        ));
+                    }
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+                Err(error) => return Err(error),
+            }
+        }
+        if !line.starts_with(expect) {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "the preamble reply does not start with the expected text",
+            ));
+        }
+        Ok(())
+    }
+
     /// Whether this connection is a Unix-domain socket (never reusable after
     /// a single HTTP exchange — Docker/BuildKitd close after each response).
     #[must_use]

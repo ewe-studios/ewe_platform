@@ -31,8 +31,36 @@
 //! ```
 
 fn main() {
+    read_min_firecracker_version();
     #[cfg(feature = "firecracker")]
     generate();
+}
+
+/// Reads the lowest accepted Firecracker version from `ci/sandbox.toml`.
+///
+/// The probe compares the version of the real program with this value. The file
+/// is not published to crates.io, so a packaged build has no value and accepts
+/// every version; the API fields that the driver sends are old and stable.
+fn read_min_firecracker_version() {
+    use std::path::Path;
+
+    let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
+    let path = Path::new(&manifest).join("../../ci/sandbox.toml");
+    println!("cargo:rerun-if-changed={}", path.display());
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return;
+    };
+    for line in text.lines() {
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        if key.trim() != "min_firecracker_version" {
+            continue;
+        }
+        let value = value.trim().trim_matches('"');
+        println!("cargo:rustc-env=FOUNDATION_SANDBOX_MIN_FIRECRACKER_VERSION={value}");
+        return;
+    }
 }
 
 #[cfg(feature = "firecracker")]

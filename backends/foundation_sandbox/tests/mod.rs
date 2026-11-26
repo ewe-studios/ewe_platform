@@ -24,3 +24,8 @@ mod firecracker;
 /// program, and it controls processes, signals and mounts.
 #[cfg(all(target_os = "linux", feature = "slave"))]
 mod slave;
+
+/// The native side-effect tests of feature 05. They start real processes and
+/// dial real Unix sockets, with no virtual machine.
+#[cfg(all(unix, feature = "control"))]
+mod native_host;

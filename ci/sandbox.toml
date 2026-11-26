@@ -1,0 +1,9 @@
+# Pinned sandbox tool versions (spec 77).
+#
+# `min_firecracker_version` is the lowest Firecracker program version that the
+# driver accepts. The build script of `foundation_sandbox` reads it and the
+# probe compares the installed program with it. Raise or lower it only with a
+# continuous integration (CI) run that proves the change. The CI job of feature
+# 06 pins the release that it downloads to the same value or a newer one.
+
+min_firecracker_version = "1.15.0"

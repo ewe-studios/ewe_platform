@@ -94,6 +94,30 @@ pub struct ClientConfig {
     /// ends the read; raise this for a server with longer pauses.
     #[cfg(unix)]
     pub unix_read_timeout: Duration,
+    /// A line to write after each new Unix-domain socket connection, and the
+    /// reply line that the peer must send first.
+    ///
+    /// Firecracker forwards a host connection to a guest port only after the
+    /// host writes `CONNECT <port>\n` and reads `OK <number>\n`. `None`
+    /// (default) sends no preamble.
+    #[cfg(unix)]
+    pub unix_preamble: Option<UnixSocketPreamble>,
+}
+
+/// A Unix-domain socket preamble: the bytes to write first and the reply to
+/// expect.
+///
+/// The driver of a split socket, such as the Firecracker host-to-guest
+/// forwarder, needs this line before the first HTTP byte.
+#[cfg(unix)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct UnixSocketPreamble {
+    /// The bytes to write after the connection opens.
+    pub preamble: Vec<u8>,
+    /// The prefix that the reply line must start with.
+    pub expect: Vec<u8>,
+    /// The most reply bytes to read, including the line end.
+    pub max_reply: usize,
 }
 
 impl ClientConfig {
@@ -379,6 +403,8 @@ impl Default for ClientConfig {
             unix_socket: None,
             #[cfg(unix)]
             unix_read_timeout: Duration::from_secs(5),
+            #[cfg(unix)]
+            unix_preamble: None,
         }
     }
 }

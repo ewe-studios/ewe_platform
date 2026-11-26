@@ -473,10 +473,11 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         if let Some(socket_path) = unix_socket {
             #[cfg(unix)]
             {
-                let connection = match pool.create_connection_unix(
+                let connection = match pool.create_connection_unix_with_preamble(
                     &descriptor.request_uri,
                     &socket_path,
                     config.unix_read_timeout,
+                    config.unix_preamble.as_ref(),
                     &self.engine_ctx(),
                 ) {
                     Ok(c) => c,

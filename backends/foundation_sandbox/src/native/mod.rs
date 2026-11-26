@@ -16,6 +16,10 @@ pub mod firecracker;
 /// The real host file system behind `HostFs`.
 pub mod host;
 
+/// The native platform wrapper (feature 05).
+#[cfg(feature = "control")]
+pub mod platform;
+
 /// The slave: the engine that serves `SlaveService` in the guest. It is a Linux
 /// program: process control, signals and the PID 1 duties have no meaning on
 /// another target.

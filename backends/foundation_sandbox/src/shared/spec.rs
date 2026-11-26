@@ -319,4 +319,13 @@ impl GuestArch {
             Self::X86_64
         }
     }
+
+    /// The architecture name, as a host program file uses it.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::X86_64 => "x86_64",
+            Self::Aarch64 => "aarch64",
+        }
+    }
 }

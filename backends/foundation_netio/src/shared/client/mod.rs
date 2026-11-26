@@ -16,6 +16,8 @@ pub use request_task::HttpExchangeClientTask;
 
 pub use body_reader::*;
 pub use compression::*;
+#[cfg(unix)]
+pub use config::UnixSocketPreamble;
 pub use config::{ClientConfig, RedirectConfig};
 pub use control::*;
 pub use cookie::*;
