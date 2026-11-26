@@ -224,7 +224,3 @@ __pycache__/
 codex-session-*
 # Local Swift package binary input
 /.build-inputs/
-<<<<<<< HEAD
-codex-session-*
-=======
->>>>>>> origin/spec77/f05-firecracker-driver
