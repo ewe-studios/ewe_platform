@@ -621,6 +621,15 @@ pub struct WriterState {
     pub producers: BTreeMap<ProducerId, ProducerEpochState>,
 }
 
+/// A fork source and the inherited prefix length.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ForkInfo {
+    /// The source stream.
+    pub source: StreamName,
+    /// The number of inherited bytes.
+    pub at: u64,
+}
+
 /// The metadata the VFS stores for one stream.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct VfsMeta {
@@ -634,6 +643,8 @@ pub struct VfsMeta {
     pub expires: Option<Expiry>,
     /// The producer and `Stream-Seq` state.
     pub writer: WriterState,
+    /// The fork source, when this stream is a fork.
+    pub fork: Option<ForkInfo>,
     /// The metadata version. It increments on every append and close.
     pub version: u64,
 }
@@ -670,6 +681,8 @@ pub struct VfsEntry {
 pub enum VfsError {
     /// The entry does not exist.
     NotFound,
+    /// The entry is soft-deleted.
+    Gone,
     /// The entry exists with a different configuration.
     Conflict,
     /// The VFS does not support the operation.
@@ -682,6 +695,7 @@ impl fmt::Display for VfsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NotFound => f.write_str("vfs entry not found"),
+            Self::Gone => f.write_str("vfs entry is gone"),
             Self::Conflict => f.write_str("vfs entry conflict"),
             Self::Unsupported => f.write_str("vfs operation not supported"),
             Self::Io(error) => write!(f, "vfs io error: {error}"),
@@ -702,6 +716,7 @@ impl From<VfsError> for StoreError {
     fn from(error: VfsError) -> Self {
         match error {
             VfsError::NotFound => Self::NotFound,
+            VfsError::Gone => Self::Gone,
             VfsError::Conflict => Self::ConfigConflict,
             VfsError::Unsupported => Self::Unsupported,
             VfsError::Io(error) => Self::Storage(error),
@@ -769,8 +784,8 @@ pub trait DurableStreamVfs: Send + Sync {
     /// Mark the entry closed.
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()>;
 
-    /// Remove the entry.
-    fn remove(&self, name: &StreamName) -> VfsFuture<'_, ()>;
+    /// Remove the entry. Returns true when the entry was soft-deleted.
+    fn remove(&self, name: &StreamName) -> VfsFuture<'_, bool>;
 
     /// List entries under a prefix.
     fn list(&self, prefix: &StreamName) -> VfsFuture<'_, Vec<VfsEntry>>;
@@ -975,16 +990,39 @@ impl DurableStreamStore for DurableStream {
             initial,
             fork,
         } = spec;
-        if fork.is_some() {
-            return Err(StoreError::Unsupported);
-        }
+
+        let (content_type, fork_info, start_len) = if let Some(fork) = fork {
+            if fork.sub_offset != 0 {
+                return Err(StoreError::Unsupported);
+            }
+            let source = self.vfs.meta(&fork.source).await?;
+            let at = match fork.at {
+                Some(at) => VfsOffset::from(&at).0,
+                None => source.len,
+            };
+            if at > source.len {
+                return Err(StoreError::BadRequest(BadRequestKind::Fork));
+            }
+            (
+                content_type.unwrap_or(source.content_type),
+                Some(ForkInfo {
+                    source: fork.source,
+                    at,
+                }),
+                at,
+            )
+        } else {
+            (content_type.unwrap_or_default(), None, 0)
+        };
+        let closed = fork_info.is_none() && closed;
 
         let meta = VfsMeta {
-            content_type: content_type.unwrap_or_default(),
-            len: 0,
+            content_type,
+            len: start_len,
             closed,
             expires,
             writer: WriterState::default(),
+            fork: fork_info,
             version: 0,
         };
         let created = self.vfs.create(&name, meta).await?;
@@ -1155,15 +1193,22 @@ impl DurableStreamStore for DurableStream {
     }
 
     async fn delete(&self, name: &StreamName) -> Result<DeleteOutcome, StoreError> {
-        self.vfs.remove(name).await?;
-        Ok(DeleteOutcome {
-            soft_deleted: false,
-        })
+        let soft_deleted = self.vfs.remove(name).await?;
+        Ok(DeleteOutcome { soft_deleted })
     }
 
-    #[allow(clippy::unused_async)] // Matches the trait; the VFS fork lands in feature 04.
-    async fn fork(&self, _name: StreamName, _spec: ForkSpec) -> Result<CreateOutcome, StoreError> {
-        Err(StoreError::Unsupported)
+    async fn fork(&self, name: StreamName, spec: ForkSpec) -> Result<CreateOutcome, StoreError> {
+        self.create(
+            name,
+            CreateSpec {
+                content_type: None,
+                expires: None,
+                closed: false,
+                initial: None,
+                fork: Some(spec),
+            },
+        )
+        .await
     }
 
     fn notifier(&self, name: &StreamName) -> Option<NotifierRef> {

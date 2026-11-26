@@ -139,6 +139,7 @@ fn given_a_stream_when_it_appends_then_the_notifier_fires() {
         closed: false,
         expires: None,
         writer: WriterState::default(),
+        fork: None,
         version: 0,
     };
     smol::block_on(async { vfs.create(&name, meta).await.expect("create") });

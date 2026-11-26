@@ -87,11 +87,11 @@ pub struct ForkSpec {
 - [ ] **T2 — sub-offset.** JSON and binary counts, `0` equals absent, overshoot, malformed and
       missing `Forked-From`. Tests: `json_sub_offset_counts_messages`,
       `binary_sub_offset_counts_bytes`, `sub_offset_requires_source`.
-- [ ] **T3 — read stitching.** Read across the boundary. Test:
+- [x] **T3 — read stitching.** Read across the boundary. Test:
       `fork_reads_span_the_boundary_transparently`.
-- [ ] **T4 — idempotent fork.** Matching and mismatching config. Test:
+- [x] **T4 — idempotent fork.** Matching and mismatching config. Test:
       `fork_create_is_idempotent`.
-- [ ] **T5 — soft-delete and cascade.** Source stays readable through the fork, direct access is
+- [x] **T5 — soft-delete and cascade.** Source stays readable through the fork, direct access is
       `Gone`, re-create is `ConfigConflict`, last fork delete cascades. Tests:
       `soft_deleted_source_is_gone`, `deleting_last_fork_cascades_to_source`.
 - [ ] **T6 — TTL.** Sliding reset, `HEAD` no reset, both headers, fork table and expiry with
