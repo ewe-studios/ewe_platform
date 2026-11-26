@@ -272,3 +272,13 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
+
+# The `agent-slave` guest program (spec 77 feature 06). Size and startup time
+# matter in a microVM, so it is small, fully linked and stripped.
+[profile.agent]
+inherits = "release"
+opt-level = "s"
+lto = true
+panic = "abort"
+strip = true
+codegen-units = 1

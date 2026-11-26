@@ -10,7 +10,7 @@
 
 pub mod messages;
 
-mod sandbox;
+pub mod sandbox;
 /// The slave service. The module is public so the server reads the generated
 /// procedure paths of [`slave::procedure`].
 pub mod slave;
