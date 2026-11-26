@@ -4,7 +4,7 @@
 //! panel's natural size or a tab's box and publish it as CSS vars the
 //! stylesheet transitions against (F3: `--collapsible-panel-height`,
 //! `--accordion-panel-height`, the tabs `--active-tab-*` set). That measurement
-//! is genuinely JS — delivered here as scoped scripts.
+//! is genuinely JS — installed by the browser registry.
 //!
 //! WHAT: [`panel_size_behavior`] (publishes `<prefix>-height/-width` from a
 //! panel's scroll size) + [`tab_indicator_behavior`] (publishes the active
@@ -18,7 +18,7 @@
 
 use foundation_ui_traits::Html;
 
-use super::scoped_script;
+use crate::behaviour::{marker, Behaviour};
 
 /// Panel marker: the CSS-var prefix to publish (`data-size-var`, e.g.
 /// `--collapsible-panel`). The behavior emits `<prefix>-height`/`<prefix>-width`.
@@ -26,7 +26,7 @@ pub const DATA_SIZE_VAR: &str = "data-size-var";
 
 /// Measures a panel's natural scroll size and publishes `<prefix>-height` /
 /// `<prefix>-width` (prefix from `data-size-var`); re-measures on resize.
-pub const PANEL_SIZE_JS: &str = r#"function(scope){
+pub const PANEL_SIZE_JS: &str = r"function(scope){
   var el = scope.parent();
   if (!el || el.__panelSize) return; el.__panelSize = true;
   var win = (el.ownerDocument && el.ownerDocument.defaultView) || window;
@@ -38,7 +38,7 @@ pub const PANEL_SIZE_JS: &str = r#"function(scope){
   measure();
   if (win.ResizeObserver) { var ro = new win.ResizeObserver(measure); ro.observe(el); }
   scope.addEvent(win, 'resize', measure);
-}"#;
+}";
 
 /// Publishes the active tab's box (relative to the tablist) as
 /// `--active-tab-left/right/top/bottom/width/height` for the animated
@@ -66,16 +66,16 @@ pub const TAB_INDICATOR_JS: &str = r#"function(scope){
   scope.addEvent(win, 'resize', measure);
 }"#;
 
-/// The `<script>` a collapsible/accordion panel embeds to publish its measured
+/// The marker a collapsible/accordion panel embeds to publish its measured
 /// size vars. The panel must carry [`DATA_SIZE_VAR`].
 #[must_use]
 pub fn panel_size_behavior() -> Html {
-    scoped_script(PANEL_SIZE_JS)
+    marker(Behaviour::Measure, Some("panel_size"))
 }
 
-/// The `<script>` a tablist embeds to publish the active tab's box as the
+/// The marker a tablist embeds to publish the active tab's box as the
 /// `--active-tab-*` indicator vars.
 #[must_use]
 pub fn tab_indicator_behavior() -> Html {
-    scoped_script(TAB_INDICATOR_JS)
+    marker(Behaviour::Measure, Some("tab_indicator"))
 }

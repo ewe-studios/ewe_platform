@@ -1,0 +1,5 @@
+error: an action is a free function; it cannot take self
+ --> tests/trybuild/action/fail_07_self_receiver.rs:4:17
+  |
+4 | async fn submit(&self, _event: Interaction<()>) -> ActionResult {
+  |                 ^^^^^

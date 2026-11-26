@@ -1,0 +1,86 @@
+[package]
+name = "foundation_ui_native"
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+description = "Native UI actions, local frames, and mobile commands."
+autotests = false
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[features]
+storage = ["dep:foundation_db", "dep:serde", "dep:serde_json"]
+tasks = ["dep:foundation_ui_project", "dep:foundation_tasks", "dep:clap", "dep:tempfile", "dep:serde_json", "dep:sha2", "dep:hex", "dep:zip", "dep:plist", "dep:regex", "dep:serde", "dep:toml", "dep:quick-xml", "dep:sha1", "dep:base64", "dep:uuid"]
+bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
+app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
+
+[dependencies]
+foundation_db = { workspace = true, features = ["libsql"], optional = true }
+futures-lite.workspace = true
+async-channel.workspace = true
+foundation_ui_gpu.workspace = true
+foundation_ui_project = { workspace = true, optional = true }
+foundation_tasks = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+blocking.workspace = true
+tracing.workspace = true
+foundation_resources = { path = "../foundation_resources", version = "0.1.1" }
+tempfile = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
+zip = { version = "9.4.1", default-features = false, features = ["deflate-flate2-zlib"], optional = true }
+base64 = { workspace = true, optional = true }
+uuid = { version = "1", optional = true }
+sha1 = { workspace = true, optional = true }
+quick-xml = { workspace = true, features = ["serialize"], optional = true }
+plist = { version = "1.7", optional = true }
+regex = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+toml = { workspace = true, optional = true }
+foundation_ui_connectrpc = { path = "../foundation_ui_connectrpc" }
+foundation_connectrpc = { path = "../foundation_connectrpc", default-features = false }
+foundation_netio = { path = "../foundation_netio", default-features = false }
+futures-util = { workspace = true }
+async-trait = { workspace = true }
+uniffi = { workspace = true }
+derive_more.workspace = true
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", optional = true, version = "0.1.13" }
+foundation_wasm = { path = "../foundation_wasm", optional = true, version = "0.0.11" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+ash.workspace = true
+ndk = { version = "0.9", default-features = false, features = ["rwh_06", "nativewindow"] }
+
+[target.'cfg(target_vendor = "apple")'.dependencies]
+objc2.workspace = true
+objc2-metal = { workspace = true, features = ["MTLCommandQueue", "MTLDevice", "MTLTexture"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+futures-lite.workspace = true
+foundation_core = { path = "../foundation_core", features = ["test-clock"] }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi_bindgen.rs"
+required-features = ["bindgen"]
+
+[[bin]]
+name = "native-task"
+path = "src/bin/native_task.rs"
+required-features = ["tasks"]
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

@@ -100,22 +100,22 @@ pub fn radio_group(
         };
 
         let checked_root = value_for_render.clone();
-        let cr_value = item.value.clone();
+        let root_item_value = item.value.clone();
         let checked_input = value_for_render.clone();
-        let ci_value = item.value.clone();
+        let checked_item_value = item.value.clone();
         let active_input = value_for_render.clone();
-        let ai_value = item.value.clone();
+        let active_item_value = item.value.clone();
         html! { c, r,
             <span class="radio"
                   data-value=[item_value.clone()]
-                  data-checked={(checked_root.get().as_deref() == Some(cr_value.as_str())).then_some("")}
+                  data-checked={(checked_root.get().as_deref() == Some(root_item_value.as_str())).then_some("")}
                   data-disabled=[disabled.then_some("")]>
                 <input type="radio" class="radio-input"
                        name=[name]
                        value=[item_value]
                        data-composite-item="true"
-                       data-composite-active={(active_input.get().as_deref() == Some(ai_value.as_str())).then_some("")}
-                       checked={(checked_input.get().as_deref() == Some(ci_value.as_str())).then_some("")}
+                       data-composite-active={(active_input.get().as_deref() == Some(active_item_value.as_str())).then_some("")}
+                       checked={(checked_input.get().as_deref() == Some(checked_item_value.as_str())).then_some("")}
                        disabled=[disabled.then_some("")]
                        primal:onchange={select} />
                 <span class="radio-indicator"></span>
@@ -137,3 +137,6 @@ pub fn radio_group(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[crate::behaviour::Behaviour::Composite];

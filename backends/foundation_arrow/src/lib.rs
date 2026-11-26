@@ -10,7 +10,6 @@
 //! - [`FromArrow`] — convert an Arrow `RecordBatch` back to a type
 //! - [`ArrowSchema`] — generate an Arrow `Schema` for a type
 
-pub mod dom_ops;
 pub mod ipc;
 pub mod traits;
 
@@ -20,7 +19,6 @@ pub use arrow_data;
 pub use arrow_ipc;
 pub use arrow_schema;
 
-pub use dom_ops::{ArrowIpcEncoder, ARROW_IPC_VERSION};
 pub use ipc::{
     arrow_err, decode_ipc, decode_ipc_batches, decode_ipc_schema, encode_ipc, encode_ipc_batches,
     ArrowIpcError, IpcResult,

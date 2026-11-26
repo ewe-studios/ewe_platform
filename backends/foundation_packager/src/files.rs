@@ -37,6 +37,7 @@ fn render_err(e: impl std::fmt::Display) -> ErrorTrace<PackagingError> {
 }
 
 pub enum FileContent<'a> {
+    Bytes(Vec<u8>),
     Text(String),
     Tiny(String, TinyTemplate<'a>),
     Jinja(String, Arc<minijinja::Environment<'a>>),
@@ -57,6 +58,7 @@ impl FileContent<'_> {
     /// Panics when the Jinja template registry has no template with the given name.
     pub fn run<S: Serialize>(&self, dest: &path::Path, value: Option<S>) -> FileResult<()> {
         match self {
+            FileContent::Bytes(bytes) => fs::write(dest, bytes).map_err(io_err),
             FileContent::Text(content) => {
                 let mut file = fs::File::create(dest).map_err(io_err)?;
                 let written = file.write(content.as_bytes()).map_err(io_err)?;

@@ -15,7 +15,7 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # foundation_netio is target-gated below (native vs wasm): native needs the
@@ -25,12 +25,12 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # pulled in by llamacpp/candle features via the native target gate below
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", features = ["to_structured"] }
 foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.4" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6", features = ["serde"] }
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.5" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7", features = ["serde"] }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.6" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
 # VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
 foundation_vectors = { path = "../foundation_vectors", version = "0.0.7" }
 concurrent-queue = "2.5.0"

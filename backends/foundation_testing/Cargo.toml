@@ -25,11 +25,11 @@ criterion = { version = "0.5", features = ["html_reports"] }
 
 # WebSocket test server dependencies
 base64 = "0.22"
-sha1 = { version = "0.10", features = ["std"] }
+sha1 = { workspace = true }
 
 # TLS test server dependencies
 rustls = { version = "0.23", default-features = false, features = ["std", "tls12", "logging", "ring"] }
-zeroize = "1"
+zeroize = { workspace = true }
 
 # SSE test server dependencies (for TCP RST in abrupt drop tests)
 socket2 = "0.6"

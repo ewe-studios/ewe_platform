@@ -1,0 +1,18 @@
+error[E0271]: expected `{async block@fail_13_wrong_result.rs:4:1}` to be a future that resolves to `Result<(), ErrorTrace<ActionError>>`, but it resolves to `Result<(), String>`
+ --> tests/trybuild/action/fail_13_wrong_result.rs:4:1
+  |
+4 | #[action]
+  | ^^^^^^^^^ expected `Result<(), ErrorTrace<ActionError>>`, found `Result<(), String>`
+  |
+  = note: expected enum `Result<(), foundation_errstacks::error_trace::ErrorTrace<ActionError>>`
+             found enum `Result<(), String>`
+note: required because it's used within this `async` block
+ --> tests/trybuild/action/fail_13_wrong_result.rs:4:1
+  |
+4 | #[action]
+  | ^^^^^^^^^
+  = note: required for `Box<{async block@$DIR/tests/trybuild/action/fail_13_wrong_result.rs:4:1: 4:10}>` to implement `CoerceUnsized<Box<dyn Future<Output = Result<(), foundation_errstacks::error_trace::ErrorTrace<ActionError>>> + Send>>`
+  = note: 1 redundant requirement hidden
+  = note: required for `Pin<Box<{async block@$DIR/tests/trybuild/action/fail_13_wrong_result.rs:4:1: 4:10}>>` to implement `CoerceUnsized<Pin<Box<dyn Future<Output = Result<(), foundation_errstacks::error_trace::ErrorTrace<ActionError>>> + Send>>>`
+  = note: required for the cast from `Pin<Box<{async block@$DIR/tests/trybuild/action/fail_13_wrong_result.rs:4:1: 4:10}>>` to `Pin<Box<(dyn Future<Output = Result<(), foundation_errstacks::error_trace::ErrorTrace<ActionError>>> + Send + '__action)>>`
+  = note: this error originates in the attribute macro `action` (in Nightly builds, run with -Z macro-backtrace for more info)

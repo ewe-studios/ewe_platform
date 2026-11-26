@@ -1,0 +1,38 @@
+[package]
+name = "foundation_ui_http"
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Serve Foundation view trees through native HTTP routes."
+autotests = false
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.13", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
+foundation_http = { path = "../foundation_http", version = "0.0.16" }
+foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
+foundation_macros = { workspace = true }
+async-channel = { workspace = true }
+blocking = { workspace = true }
+base64 = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+foundation_signals = { path = "../foundation_signals", version = "0.0.7", features = ["thread_safe"] }
+
+futures-lite = { workspace = true }
+
+[features]
+live-stream = ["dep:foundation_wasm_ui"]
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[lints]
+workspace = true

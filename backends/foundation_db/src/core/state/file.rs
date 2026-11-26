@@ -95,13 +95,14 @@ impl FileStateStore {
         ));
 
         let written = (|| -> std::io::Result<()> {
-            let mut file = std::fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(&temp)?;
-            file.write_all(content)?;
-            file.sync_all()?;
-            drop(file);
+            {
+                let mut file = std::fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(&temp)?;
+                file.write_all(content)?;
+                file.sync_all()?;
+            }
             std::fs::rename(&temp, path)
         })();
         if let Err(e) = written {

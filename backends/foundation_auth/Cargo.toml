@@ -10,13 +10,14 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
+hex = { workspace = true, optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.15", optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
+foundation_http = { path = "../foundation_http", version = "0.0.16", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # The VFS trait that the operator key files read through. It builds on wasm:
 # only `NativeFs` is native. Feature `secret`.
 foundation_nativeapis = { workspace = true, optional = true }
@@ -32,11 +33,11 @@ p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
 # Cryptography
-zeroize = { version = "1" }
+zeroize = { workspace = true }
 chacha20poly1305 = "0.10" # Encrypted session data
-sha1 = "0.10"             # SHA-1 for TOTP (RFC 6238 default)
-sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
-hmac = "0.12"             # TOTP, HMAC, PBKDF2
+sha1 = { workspace = true }             # SHA-1 for TOTP (RFC 6238 default)
+sha2 = { workspace = true }             # SHA256 for PKCE, PBKDF2 HMAC
+hmac = { workspace = true }             # TOTP, HMAC, PBKDF2
 getrandom = { version = "0.2", optional = true }
 
 # Token formats. The pure-Rust backend: the default `boring` backend links
@@ -84,10 +85,10 @@ openssl = { version = "0.10", features = ["vendored"], optional = true }
 url = { workspace = true, optional = true }
 
 # Wasm-bindgen OAuth support (gated behind wasm-bindgen-oauth feature)
-wasm-bindgen = { version = "0.2", optional = true }
-wasm-bindgen-futures = { version = "0.4", optional = true }
-js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", features = [
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+web-sys = { workspace = true, features = [
   "Request",
   "RequestInit",
   "RequestMode",
@@ -112,7 +113,7 @@ rsa = { version = "0.9", optional = true }
 rand_chacha = { version = "0.3", optional = true }
 # Password hashing (native only — the wasm build uses Web Crypto instead).
 argon2 = "0.5"
-pbkdf2 = "0.12"
+pbkdf2 = { workspace = true }
 # Certificate authority, trust verifier and TLS configuration (spec 87).
 rcgen = { workspace = true }
 rustls = { workspace = true }
@@ -135,7 +136,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.23", features = 
 foundation_testing = { path = "../foundation_testing" }
 # The in-memory file system for the key-loading tests.
 foundation_nativeapis = { workspace = true, features = ["vfs"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 base64 = "0.22"
 serde_json = "1.0"
 serial_test = { workspace = true }
@@ -159,7 +160,7 @@ secret-rsa = ["secret", "dep:rsa", "dep:rand_chacha"]
 # dependency for the application modules; this flag gates the server provider.
 jwt = []
 # IdP server module (pulls in foundation_http + foundation_db for storage)
-server = ["dep:foundation_http", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
+server = ["dep:hex", "dep:foundation_http", "dep:futures-lite", "dep:foundation_errstacks", "dep:uuid"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
 # Social login end-to-end tests against a local provider simulator (spec 57,

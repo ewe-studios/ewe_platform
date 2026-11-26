@@ -1,3 +1,6 @@
+packages:
+  - backends/foundation_ui_wire/ts
+
 allowBuilds:
   esbuild: true
   sharp: true

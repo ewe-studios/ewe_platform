@@ -1,0 +1,222 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Foundation GPU rendering check</title>
+<style>* { margin: 0 } canvas { position: absolute; width: 64px; height: 64px; top: 0 } #second { left: 64px }</style>
+<canvas id="first" width="64" height="64"></canvas>
+<canvas id="second" width="64" height="64"></canvas>
+<script type="module">
+import init, {BrowserGraphics, BrowserDeviceExchange} from "/target/ui-gpu-web/foundation_ui_gpu.js";
+window.verifyGraphics = async () => {
+  await init();
+  const service = new BrowserGraphics();
+  const backend = await service.adapter();
+  const shader = await (await fetch("../shaders/double.wgsl")).text();
+  const calculate = async () => [...await service.compute(shader, new Uint32Array([0, 2, 7]), 3)].join(",");
+  if (await calculate() !== "1,5,15") throw Error("Incorrect compute result");
+  const first = document.querySelector("#first");
+  const a = await service.attach("first", first);
+  const b = await service.attach("second", document.querySelector("#second"));
+  await a.resize(0, 0);
+  async function rejects(call, reason) {
+    try { await call() } catch (error) { if (String(error).includes(reason)) return; throw error }
+    throw Error("Expected error containing " + reason);
+  }
+  await rejects(() => a.clear(1, 0, 0, 1), "current size");
+  await a.resize(64, 64);
+  await a.clear(0, 1, 0, 1);
+  await a.remove();
+  await rejects(() => a.clear(1, 0, 0, 1), "removed");
+  const c = await service.attach("first", first);
+  await c.clear(1, 0, 0, 1);
+  await b.clear(0, 0, 1, 1);
+  if (await calculate() !== "1,5,15") throw Error("Compute stopped after surface removal");
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const {vendor, architecture, device, description} = (await navigator.gpu.requestAdapter()).info;
+  return backend + " " + JSON.stringify({vendor, architecture, device, description});
+
+};
+window.verifyHostLease = async () => {
+  const device = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const texture = device.createTexture({size:[1,1],format:"rgba8unorm",
+    usage:GPUTextureUsage.COPY_SRC|GPUTextureUsage.COPY_DST|GPUTextureUsage.TEXTURE_BINDING});
+  device.queue.writeTexture({texture},new Uint8Array([255,0,0,255]),{},[1,1]);
+  const host = [];
+  const exchange = new BrowserDeviceExchange(request => host.shift()(request));
+  function begin(surface) {
+    let notify;
+    const next = new Promise(resolve => {notify = resolve;});
+    host.push(notify);
+    const ticket = exchange.request("editor",surface);
+    return [ticket,next];
+  }
+  const [ticket,request] = begin("preview");
+  let completed;
+  const returned = new Promise(resolve => { completed=resolve; });
+  const pending = ticket.wait();
+  const grant = await (await request).ready(device,texture,1n,completed);
+  const lease = await pending;
+  const shader = await (await fetch("../shaders/red_to_blue.wgsl")).text();
+  await lease.process_texture(shader,1,1,1);
+  lease.release();
+  if (await returned) throw Error("Host device was lost");
+  const out = device.createBuffer({size:4,usage:GPUBufferUsage.MAP_READ|GPUBufferUsage.COPY_DST});
+  const encoder = device.createCommandEncoder();
+  encoder.copyTextureToBuffer({texture},{buffer:out},[1,1]);
+  device.queue.submit([encoder.finish()]);
+  await out.mapAsync(GPUMapMode.READ);
+  const pixel = [...new Uint8Array(out.getMappedRange())];
+  out.destroy();
+  if (String(pixel)!=="0,0,255,255") throw Error("Host texture differs: "+pixel);
+  const [computeTicket,computeReq] = begin(undefined);
+  const computeReturned = Promise.withResolvers();
+  await (await computeReq).ready(device,undefined,1n,computeReturned.resolve);
+  const compute = await computeTicket.wait();
+  const double = await (await fetch("../shaders/double.wgsl")).text();
+  const words = await compute.compute(double,new Uint32Array([0,2,7]),3);
+  if (String(words)!=="1,5,15") throw Error("Incorrect host compute");
+  compute.release();
+  await computeReturned.promise;
+  const node = document.createElement("canvas");
+  node.width = node.height = 1;
+  node.style.left = "128px";
+  document.body.appendChild(node);
+  const context = node.getContext("webgpu");
+  context.configure({device,format:"rgba8unorm",usage:GPUTextureUsage.COPY_DST});
+  const present = device.createCommandEncoder();
+  present.copyTextureToTexture({texture},{texture:context.getCurrentTexture()},[1,1]);
+  device.queue.submit([present.finish()]);
+  await device.queue.onSubmittedWorkDone();
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  exchange.close();
+  return pixel;
+};
+window.verifyConnectedHost = async () => {
+  const fixture = await import("/target/ui-gpu-web/browser_handoff_test.js");
+  await fixture.default();
+  await fixture.verify_shared_shutdown(document.createElement("canvas"));
+  const device = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const returned = Promise.withResolvers();
+  const completion = Promise.withResolvers();
+  const resume = Promise.withResolvers();
+  const queue = device.queue;
+  const finish = queue.onSubmittedWorkDone.bind(queue);
+  let fences = 0;
+  let released = false;
+  queue.onSubmittedWorkDone = async () => {
+    if (++fences === 2) {
+      completion.resolve();
+      await resume.promise;
+    }
+    await finish();
+  };
+  try {
+    const shader = await (await fetch("../shaders/double.wgsl")).text();
+    const words = await fixture.compute_with_server(request => {
+      if (request.device !== "editor" || request.surface !== undefined) throw Error("Incorrect host selection");
+      request.ready(device, undefined, 1n, lost => {
+        released = true;
+        returned.resolve(lost);
+      }).catch(returned.reject);
+    }, shader);
+    await completion.promise;
+    if (released) throw Error("The host reused the device before the completion fence");
+    resume.resolve();
+    if (String(words) !== "1,5,15" || await returned.promise) throw Error("Incorrect connected compute result");
+  } finally { resume.resolve(); }
+};
+window.verifyCancelledImport = async () => {
+  const device = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const entered = Promise.withResolvers();
+  const resume = Promise.withResolvers();
+  const returned = Promise.withResolvers();
+  const queue = device.queue;
+  const finish = queue.onSubmittedWorkDone.bind(queue);
+  queue.onSubmittedWorkDone = async () => {
+    entered.resolve();
+    await resume.promise;
+    await finish();
+  };
+  const offered = Promise.withResolvers();
+  let returns = 0;
+  const exchange = new BrowserDeviceExchange(request => {
+    offered.resolve(request.ready(device, undefined, 1n, lost => {
+      returns++;
+      returned.resolve(lost);
+    }).catch(error => error));
+  });
+  try {
+    const ticket = exchange.request("editor");
+    const pending = ticket.wait().catch(error => error);
+    await entered.promise;
+    ticket.cancel();
+    if (!String(await pending).includes("cancelled")) throw Error("Cancellation did not reach Rust");
+    if (returns !== 0) throw Error("Host reused resources before its prior work finished");
+    resume.resolve();
+    if (!String(await offered.promise).includes("cancelled")) throw Error("Cancellation did not reach the host");
+    if (await returned.promise || returns !== 1) throw Error("Incorrect resource return");
+  } finally {
+    resume.resolve();
+    exchange.close();
+  }
+};
+window.verifyDeviceIdentity = async () => {
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+  const otherAdapter = await navigator.gpu.requestAdapter();
+  const otherDevice = await otherAdapter.requestDevice();
+  const texture = otherDevice.createTexture({size: [1, 1], format: "rgba8unorm",
+    usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING});
+  const offered = Promise.withResolvers();
+  const returned = Promise.withResolvers();
+  const exchange = new BrowserDeviceExchange(request => {
+    offered.resolve(request.ready(device, texture, 1n, returned.resolve).catch(error => error));
+  });
+  try {
+    const ticket = exchange.request("editor", "preview");
+    const result = await ticket.wait().catch(error => error);
+    if (!String(result).includes("incompatible") || !String(await offered.promise).includes("incompatible")) {
+      throw Error("The bridge accepted a texture from a different device");
+    }
+    if (await returned.promise) throw Error("The incompatible grant reported a device loss");
+  } finally {
+    exchange.close();
+    texture.destroy();
+    otherDevice.destroy();
+    device.destroy();
+  }
+};
+window.verifyHostLoss = async () => {
+  const device = await (await navigator.gpu.requestAdapter()).requestDevice();
+  const returned = Promise.withResolvers();
+  const exchange = new BrowserDeviceExchange(request => {
+    request.ready(device, undefined, 1n, returned.resolve).catch(returned.reject);
+  });
+  try {
+    const lease = await exchange.request("editor").wait();
+    device.destroy();
+    await device.lost;
+    const lost = await Promise.race([
+      returned.promise,
+      new Promise((_, reject) => setTimeout(() => reject(Error("The lost lease was retained")), 2000)),
+    ]);
+    if (!lost) throw Error("The returned lease must report device loss");
+    try {
+      await lease.compute("", new Uint32Array([1]), 1);
+    } catch (error) {
+      if (String(error).includes("device was lost")) return;
+      throw error;
+    }
+    throw Error("A lost device accepted work");
+  } finally { exchange.close(); }
+};
+window.verifyUnavailable = () => {
+  Object.defineProperty(navigator, "gpu", {configurable:true, value:undefined});
+  try {
+    try { new BrowserGraphics() } catch (error) {
+      if (String(error).includes("secure context")) return;
+      throw error;
+    }
+    throw Error("Expected an unavailable device");
+  } finally { delete navigator.gpu; }
+};
+</script>

@@ -1,4 +1,4 @@
-# Per-package CI settings, read by scripts/ci/ci.py.
+# Per-package CI settings, read by foundation_ci.
 #
 # Every workspace package runs in CI by default. A section here only says how a
 # package differs from [defaults].
@@ -92,6 +92,22 @@
 #
 # Run what CI runs, locally:   make ci-package PACKAGE=foundation_ai
 # See every package's settings: make ci-list
+
+# Build groups own checks outside individual Cargo workspace packages.
+[groups.examples]
+directory = "examples"
+recipe = "example-applications"
+build-members = ["answerme-agent"]
+
+[groups.manifest-contract]
+directory = "specifications/completed/78-manifest-contract"
+recipe = "manifest-contract"
+build-members = []
+
+[groups.wasm-tests]
+directory = "backends/foundation_core/integration/wasm_tests"
+recipe = "wasm-runtime-tests"
+build-members = []
 
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
@@ -210,9 +226,46 @@ reason = "6 pedantic warnings; clear them and delete this override (#441)"
 clippy-deny-warnings = false
 reason = "4 pedantic warnings; clear them and delete this override (#441)"
 
-[packages.foundation_ui_components]
-clippy-deny-warnings = false
-reason = "68 pedantic warnings; clear them and delete this override (#441)"
+[packages.foundation_theme]
+runs = ["", "native-manifest"]
+
+[packages.foundation_ui_gpu]
+wasm = "enforce"
+
+[packages.foundation_resources]
+runs = ["mobile-launch,server", "browser-package,server"]
+clippy-runs = ["mobile-launch,server", "browser-package,server"]
+wasm = "enforce"
+wasm-runs = ["browser-bindings"]
+
+[packages.foundation_ci]
+runs = ["", "cloudflare-objects"]
+clippy-runs = ["", "cloudflare-objects"]
+
+[packages.foundation_tasks]
+runs = ["", "install,scripts"]
+clippy-runs = ["", "install,scripts"]
+
+[packages.foundation_ui_native]
+runs = ["", "app", "tasks"]
+wasm = "off"
+reason = "Swift and Kotlin use this crate on native devices."
+
+[packages.foundation_ui_connectrpc]
+wasm = "enforce"
+wasm-runs = ["browser"]
+
+[packages.foundation_ui_http]
+wasm = "off"
+reason = "The view handler implements the native HTTP Serve trait."
+
+[packages.foundation_ui_runtime]
+wasm = "enforce"
+
+[packages.foundation_ui_wire]
+runs = ["", "reference"]
+wasm = "enforce"
+fmt = "enforce"
 
 [packages.foundation_sshkit]
 clippy-deny-warnings = false
@@ -222,14 +275,6 @@ reason = "17 pedantic warnings; clear them and delete this override (#441)"
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
-clippy-deny-warnings = false
-reason = "2 pedantic warnings; clear them and delete this override (#441)"
-
-[packages.foundation_wasm_ui]
-clippy-deny-warnings = false
-reason = "20 pedantic warnings; clear them and delete this override (#441)"
-
-[packages.foundation_ui_traits]
 clippy-deny-warnings = false
 reason = "2 pedantic warnings; clear them and delete this override (#441)"
 
@@ -337,7 +382,12 @@ runs = ["", "--no-default-features"]
 [packages.foundation_signals]
 # The reactive graph is `no_std + alloc` (the wasm UI crates use it that way);
 # test that configuration too (ewe-studios/ewe_platform#51, #52).
-runs = ["", "--no-default-features --features single_threaded"]
+runs = [
+    "",
+    "--no-default-features --features single_threaded",
+    "--no-default-features --features thread_safe",
+    "--features thread_safe,valtron",
+]
 
 [packages.foundation_deployment_platform]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
@@ -462,6 +512,7 @@ wasm = "enforce"
 wasm-runs = [
   "--no-default-features --features wasm",
   "--no-default-features --features wasm-bindgen-storage",
+  "--no-default-features --features browser-storage",
 ]
 
 [packages.foundation_netio]
@@ -542,7 +593,7 @@ wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a
 # child, not pass as an empty or skipping binary.
-# `container-options` is read by `scripts/ci/ci.py` and added to this job's
+# `container-options` is read by the Rust CI planner and added to this job's
 # container, because Docker's default seccomp profile blocks `io_uring_setup`
 # and `ptrace`.
 env = { EWE_REQUIRE_IO_URING = "1", EWE_REQUIRE_PTRACE = "1" }
@@ -600,6 +651,7 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_compact]
+runs = ["", "crypto-chacha"]
 # The default run covers the macOS entropy and errno backends and the Windows
 # entropy backend (`BCryptGenRandom`).
 wasm = "enforce"
@@ -666,7 +718,7 @@ windows-tests = "none"
 reason = "The wasm32 example workspaces need the wasm32-unknown-unknown target and wrangler, which only the Linux CI image has."
 # The `examples/cf-*` directories are self-contained wasm32 workspaces excluded
 # from the main workspace, so cargo metadata never lists them. The synthetic
-# `examples` package (see `examples_commands` in scripts/ci/ci.py) compiles each
+# `examples` package (see the Rust example recipe) compiles each
 # of them for wasm32-unknown-unknown and builds the native `answerme-agent` app.
 fmt = "off"
 build = "enforce"
@@ -677,17 +729,22 @@ wasm = "off"
 # ---------------------------------------------------------------------------
 # Wasm runtime test suites (feature 22 E4).
 
+# The web feature enables the host calls used by both WebAssembly fixtures.
+[packages.foundation_wasm]
+clippy-runs = ["", "web"]
+clippy-deny-warnings = true
+
 [packages.wasm-tests]
 # Spec 88 T8: the macOS job runs the owned browser suite (Chrome is in
 # /Applications). The value only selects the package for the macOS matrix;
-# `commands` in scripts/ci/ci.py maps it to the two browser runs.
+# The Rust test recipe maps it to the two browser runs.
 macos-runs = ["wasm"]
 windows-tests = "none"
 windows-reason = "The suites need Deno 2.9.7, wasm-bindgen and wrangler, which the Windows runner does not provide."
 # The wasm `wasm_bindgen_test` / `#[wasm_test]` suites are wasm32-only test
 # targets, and the standalone wasm test crates sit outside the root workspace,
 # so cargo metadata's library-only wasm gate never compiled them. This synthetic
-# package (see `wasm_tests_commands` in scripts/ci/ci.py) compile-checks those
+# package (see the Rust WebAssembly recipe) compile-checks those
 # tests with `--tests --target wasm32-unknown-unknown` and then runs the five
 # executors. The env selects mise.wasm.toml, which pins only deno +
 # wasm-bindgen and turns off auto_install (E6).
@@ -705,7 +762,7 @@ env = { MISE_ENV = "wasm" }
 
 [packages.manifest-contract]
 # The contract is JSON and Python, not a crate. The synthetic package
-# (`manifest_contract_commands` in scripts/ci/ci.py) validates the schema and
+# (the Rust manifest contract recipe) validates the schema and
 # every fixture, then compares each reader's copy with the canonical file by
 # SHA-256.
 fmt = "off"
@@ -717,6 +774,14 @@ wasm = "off"
 # At zero clippy warnings (spec 70 feature 55): a new one fails CI.
 [packages.foundation_openapi]
 clippy-deny-warnings = true
+
+[packages.foundation_codegen]
+runs = ["", "javascript"]
+clippy-runs = ["", "javascript"]
+
+[packages.foundation_wasm_ui]
+runs = ["", "tasks,build-hook"]
+clippy-runs = ["", "tasks,build-hook"]
 
 [packages.foundation_codegentools]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.

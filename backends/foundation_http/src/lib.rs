@@ -29,7 +29,7 @@ pub mod wasm;
 // Re-exported from foundation_core for convenience
 pub use foundation_core::io::ioutils::SharedByteBufferStream;
 pub use foundation_netio::shared::http::{
-    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    Http11Chunk, Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, SimpleUrl, Status,
 };
 
@@ -37,3 +37,15 @@ pub use foundation_netio::shared::http::{
 pub use foundation_iogate::ShutdownSignal;
 #[cfg(not(target_family = "wasm"))]
 pub use foundation_netio::netcap::RawStream;
+
+pub use foundation_context::Ctx;
+#[cfg(not(target_family = "wasm"))]
+pub use foundation_macros::{
+    http_delete as delete, http_get as get, http_head as head, http_options as options,
+    http_patch as patch, http_post as post, http_put as put,
+};
+pub use shared::router::{delete, get, head, options, patch, post, put};
+#[cfg(not(target_family = "wasm"))]
+pub use native::serve::Serve;
+pub use shared::router::Route;
+pub use shared::serve::{ConnectionResult, ServeOutcome};

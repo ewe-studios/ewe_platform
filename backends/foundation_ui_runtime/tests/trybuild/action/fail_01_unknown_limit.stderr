@@ -1,0 +1,5 @@
+error: unknown action limit `desktop`; use `server` or `host`, then `web` or `mobile`
+ --> tests/trybuild/action/fail_01_unknown_limit.rs:3:10
+  |
+3 | #[action(desktop)]
+  |          ^^^^^^^

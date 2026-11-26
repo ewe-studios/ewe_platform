@@ -111,7 +111,7 @@ fn route_through_handler_chain_with_protocol_selection() {
     let protocol = select_protocol(&decision.protocol, None, b"hello world");
     let (encoded, ct) = encode_protocol(&protocol, b"hello world");
     assert_eq!(encoded, b"hello world");
-    assert_eq!(ct, "application/primal-columnar"); // default
+    assert_eq!(ct, "application/primal-binary"); // default
 }
 
 // ── Cache integration ───────────────────────────────────────────────

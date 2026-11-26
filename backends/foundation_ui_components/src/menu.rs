@@ -163,6 +163,10 @@ impl Default for MenuConfig {
 
 /// Menu component — a trigger that opens a command popup.
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 pub fn menu(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -523,19 +527,23 @@ fn render_entry(
     }
 }
 /// Right-click handler: prevent the native menu, open ours.
-pub const CONTEXT_MENU_JS: &str = r#"function(scope){
+pub const CONTEXT_MENU_JS: &str = r"function(scope){
   var root = scope.parent();
   if (!root || root.__cm) return; root.__cm = true;
   var surface = root.querySelector('[data-cm-surface]');
   var openBtn = root.querySelector('[data-cm-open]');
   if (!surface) return;
   scope.addEvent(surface, 'contextmenu', function(e){ e.preventDefault(); if (openBtn) openBtn.click(); });
-}"#;
+}";
 
 /// Context-menu — a right-clickable surface opening a menu anchored to it.
 /// (Exact-pointer placement + touch long-press are documented M1/M3 follow-ups;
 /// v1 anchors to the surface.)
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 pub fn context_menu(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -614,3 +622,14 @@ pub fn menubar(
         </div>
     }
 }
+
+/// Named behaviours used by this component.
+pub const BEHAVIOURS: &[crate::behaviour::Behaviour] = &[
+    crate::behaviour::Behaviour::Composite,
+    crate::behaviour::Behaviour::Dismiss,
+    crate::behaviour::Behaviour::Hover,
+    crate::behaviour::Behaviour::Listbox,
+    crate::behaviour::Behaviour::Position,
+    crate::behaviour::Behaviour::ScrollLock,
+    crate::behaviour::Behaviour::Transition,
+];

@@ -11,13 +11,13 @@ keywords = ["runtimes", "embedded_runtimes"]
 
 [dependencies]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 
 # brotli 
 brotli = "8.0.2"
 
 # gzip, zlib compression
-flate2 = "1.1.5"
+flate2.workspace = true
 
 
 [lints]

@@ -134,7 +134,7 @@ Add to your crate's `Cargo.toml`:
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
 # wasm-bindgen-test must be a direct dev-dep (proc-macro attributes cannot be
 # re-exported across crate boundaries).
-wasm-bindgen-test = "=0.3.76"
+wasm-bindgen-test = "=0.3.80"
 # For #[valtron_bindgen] — the one-step macro with pool init.
 foundation_macros = { path = "../foundation_macros" }
 
@@ -242,7 +242,7 @@ cargo run -p foundation_testbed --no-default-features --features wasm,wasm-bindg
 
 **Prerequisites:**
 - **Chromium** on PATH
-- **wasm-bindgen CLI** installed: `cargo install wasm-bindgen-cli --version 0.2.126`
+- **wasm-bindgen CLI** installed: `cargo install wasm-bindgen-cli --version 0.2.130`
 - Version checked at startup (CLI `>=` crate version required)
 
 ### How it works
@@ -269,13 +269,13 @@ in the DOM — the template provides it.
 
 | Crate | Version |
 |---|---|
-| `wasm-bindgen` | `=0.2.126` |
-| `wasm-bindgen-test` | `=0.3.76` |
-| `wasm-bindgen-futures` | `=0.4.76` |
-| `js-sys` | `=0.3.103` |
-| `web-sys` | `=0.3.103` |
+| `wasm-bindgen` | `=0.2.130` |
+| `wasm-bindgen-test` | `=0.3.80` |
+| `wasm-bindgen-futures` | `=0.4.80` |
+| `js-sys` | `=0.3.107` |
+| `web-sys` | `=0.3.107` |
 
-The `wasm-bindgen-cli` on PATH must be `>= 0.2.126`. To update, change the pins
+The `wasm-bindgen-cli` on PATH must be `>= 0.2.130`. To update, change the pins
 in `Cargo.toml` + the constant in `src/bindgen.rs` + reinstall the CLI.
 
 ---

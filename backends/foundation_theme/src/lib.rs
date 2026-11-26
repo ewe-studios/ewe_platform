@@ -21,11 +21,13 @@ extern crate alloc;
 
 pub mod curve;
 pub mod palette;
+mod utilities;
 
 use alloc::borrow::Cow;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Write as _;
+use utilities::shared_utilities;
 
 /// One design token: a `name` within a `category`, a `light` value, and an
 /// optional explicit `dark` value (auto-derived for colors when absent).
@@ -469,6 +471,9 @@ pub fn theme_css(tokens: &[ThemeToken]) -> String {
     for token in tokens {
         let var = var_name(token);
         let name = &token.name;
+        for (prefix, property) in shared_utilities(&token.category) {
+            let _ = writeln!(css, "[data-ewe-themed].{prefix}-{name} {{ {property}: var(--ewe-utility-{property},var({var})); }}");
+        }
         match token.category.as_ref() {
             "color" => {
                 let _ = writeln!(css, ".bg-{name} {{ background-color: var({var}); }}");

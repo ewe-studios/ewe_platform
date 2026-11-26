@@ -1,0 +1,5 @@
+error: the first parameter of an action must be a shared reference, for example &Context
+ --> tests/trybuild/action/fail_10_mutable_context.rs:4:23
+  |
+4 | async fn submit(_ctx: &mut Context, _event: Interaction<()>) -> ActionResult {
+  |                       ^^^^^^^^^^^^

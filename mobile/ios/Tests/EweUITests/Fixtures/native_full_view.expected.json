@@ -1,0 +1,34 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "kind": "STACK",
+      "text": null,
+      "props": {},
+      "children": [
+        70
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 70,
+      "kind": "TEXT",
+      "text": "Next view",
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    }
+  ],
+  "reports": [],
+  "commands": [],
+  "errors": [],
+  "data": []
+}

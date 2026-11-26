@@ -23,6 +23,7 @@ pub mod frame;
 // built without `wasm-fetch` leaves them out (spec 88 feature 03, T7).
 #[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub mod h1;
+pub mod platform;
 pub mod wasm;
 #[cfg(any(not(target_family = "wasm"), feature = "wasm-fetch"))]
 pub mod ws;

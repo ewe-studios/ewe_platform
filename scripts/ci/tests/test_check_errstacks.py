@@ -1,22 +1,22 @@
-"""Tests for scripts/ci/check_errstacks.py.
+"""Tests for the errstacks Rust task.
 
 Run: python3 -m unittest discover -s scripts/ci/tests
 """
 
 import subprocess
-import sys
+from task_command import binary
 import tempfile
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parents[1] / "check_errstacks.py"
+TASK = "check-errstacks"
 REPO = Path(__file__).resolve().parents[3]
 
 
 def run(root: Path) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(SCRIPT), "--root", str(root)],
-        capture_output=True,
+        [binary(), TASK, "--root", str(root)],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True,
     )
 
@@ -30,7 +30,7 @@ def write(root: Path, rel: str, text: str) -> None:
 class CheckErrStacks(unittest.TestCase):
     def test_the_repository_is_clean(self):
         result = run(REPO)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout)
 
     def test_a_planted_thiserror_dependency_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -69,6 +69,18 @@ class CheckErrStacks(unittest.TestCase):
             result = run(root)
             self.assertEqual(result.returncode, 1, result.stdout)
             self.assertIn("never uses ErrorTrace", result.stdout)
+
+    def test_test_sources_can_use_a_development_dependency(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = "backends/demo/Cargo.toml"
+            dependency = 'foundation_errstacks = "0.0.4"\n'
+            write(root, manifest, "[dev-dependencies]\n" + dependency)
+            self.assertEqual(run(root).returncode, 1)
+            write(root, "backends/demo/tests/error.rs", "use foundation_errstacks::ErrorTrace;")
+            self.assertEqual(run(root).returncode, 0)
+            write(root, manifest, "[dependencies]\n" + dependency)
+            self.assertEqual(run(root).returncode, 1)
 
     def test_used_errstacks_passes(self):
         with tempfile.TemporaryDirectory() as tmp:

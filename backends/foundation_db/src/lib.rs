@@ -36,7 +36,10 @@ pub mod storage_provider;
 pub mod native;
 
 // Wasm — optional wasm-bindgen bridge for Cloudflare Workers (D1/R2/KV)
-#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-bindings"))]
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "wasm-bindgen-bindings", feature = "browser-storage")
+))]
 pub mod wasm;
 
 // A file system with no files, for a runner whose groups are all in code or

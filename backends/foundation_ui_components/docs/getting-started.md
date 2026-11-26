@@ -83,8 +83,7 @@ dive: **[forms & fields](./forms-and-fields.md)**.
 
 The catalog has eight families — dialogs, drawers, popovers, tooltips, toasts,
 menus, comboboxes, sliders, and more. Overlays compose with **machinery**
-behaviors (positioning, dismiss, focus trap, transitions) delivered as scoped
-scripts:
+behaviors (positioning, dismiss, focus trap, transitions) attached by named frame operations.
 
 ```rust
 use foundation_ui_components::{dialog, DialogConfig, DialogSlots};

@@ -12,6 +12,14 @@
 
 [env]
 CARGO_TERM_COLOR = "always"
+ANDROID_HOME = { value = '{% if tools["http:android-sdk"] is defined %}{{ tools["http:android-sdk"].path }}{% else %}{{ env.ANDROID_HOME | default(value="") }}{% endif %}', tools = true }
+ANDROID_COMPILE_SDK = "36"
+ANDROID_UI_COMPILE_SDK = "37.2"
+ANDROID_BUILD_TOOLS = "36.0.0"
+ANDROID_GRADLE_PLUGIN = "9.5.1"
+ANDROID_KOTLIN_VERSION = { value = '{% if tools.kotlin is defined %}{{ tools.kotlin.version }}{% endif %}', tools = true }
+ANDROID_NDK = "27.0.12077973"
+XCODE_MIN = "26.2"
 # The wrangler the Cloudflare integration tests run. Pinned: they use its local
 # explorer REST API (/cdn-cgi/local/explorer/api), which is beta and may change.
 # `package.json` carries an older wrangler for other uses.
@@ -59,7 +67,9 @@ LLAMA_TEST_MODEL_DESC = "Qwen2.5-0.5B-Instruct q4_k_m, ~370MB"
 # the Windows/macOS images installs exactly the same versions. Only [tools]
 # (and [settings]) feed the CI image, so editing tasks or env doesn't rebuild
 # it. After changing a version, refresh the lock (needs GitHub API access):
-#   mise lock --platform linux-x64,windows-x64,macos-x64
+#   mise lock --platform linux-x64,macos-arm64,macos-x64,windows-x64
+#   cargo run --locked --profile uat -p foundation_ci -- toolchain-android-lock
+#   bash scripts/toolchain/lock_test.sh
 # The shared versions match ci/platform-images/images/linux/mise/mise.toml.
 
 [tools]
@@ -77,7 +87,7 @@ cargo-binstall = "1.25.2"
 # version_checks reads this [tools] table and drifts-check it against
 # Cargo.lock). The wasm runtime tasks themselves live in mise.wasm.toml, which
 # pins only deno + wasm-bindgen, so a wasm task never installs every tool here.
-"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
+"github:wasm-bindgen/wasm-bindgen" = "0.2.130"
 "github:WebAssembly/binaryen" = "version_133"
 wasmtime = "49.0.2"
 actionlint = "1.7.12"
@@ -91,9 +101,70 @@ pitchfork = { version = "2.30.1", os = ["linux", "windows"] }
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.
 
+# User interface schema and native build tools (feature 17).
+"github:google/flatbuffers" = "25.9.23"
+java = "temurin-25.0.5+8.0.LTS"
+gradle = "9.9.1"
+kotlin = "2.4.21"
+# Use the upstream binaries so the lock records each download and checksum.
+"github:bbqsrc/cargo-ndk" = "4.1.2"
+
+# Use direct downloads so mise verifies the lock checksum on installation.
+[tools."http:android-sdk"]
+version = "23.0"
+strip_components = 0
+bin_path = "cmdline-tools/bin"
+
+[tools."http:android-sdk".platforms]
+linux-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip" }
+macos-arm64 = { url = "https://dl.google.com/android/repository/commandlinetools-mac_arm64-16111833_latest.zip" }
+macos-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-mac_x86_64-16111833_latest.zip" }
+windows-x64 = { url = "https://dl.google.com/android/repository/commandlinetools-win-16111833_latest.zip" }
+
 # =============================================================================
 # Tasks - Setup
 # =============================================================================
+
+[tasks."toolchain:check"]
+description = "Check installed tools against the workspace versions"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-check"
+
+[tasks."toolchain:android"]
+description = "Install the Android Software Development Kit packages"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-android"
+
+[tasks."toolchain:android-build"]
+description = "Build and verify a sample Android application"
+depends = ["toolchain:android"]
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-android-build"
+
+[tasks."toolchain:wire"]
+description = "Verify the FlatBuffers schema compiler"
+run = "cargo run --locked --profile uat -p foundation_ci -- toolchain-wire"
+
+[tasks."toolchain:apple"]
+description = "Check Xcode and compile the UniFFI Swift binding for the iOS simulator"
+run = ["cargo run --locked --profile uat -p foundation_ci -- toolchain-check --scope apple", "cargo run --locked --profile uat -p foundation_ci -- toolchain-proof --scope apple"]
+
+[tasks."ui-web:bundle"]
+description = "Build the self-contained browser runtime"
+run = "cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime"
+
+[tasks."ui-web:test"]
+description = "Test the browser runtime and compare both instruction encoders"
+run = "node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js"
+
+[tasks."ui-wire:generate"]
+description = "Generate and bundle the user interface wire bindings"
+run = "cargo run --locked --profile uat -p foundation_ci -- wire-generate"
+
+[tasks."ui-wire:check"]
+description = "Check the user interface wire bindings for drift"
+run = "cargo run --locked --profile uat -p foundation_ci -- wire-check"
+
+[tasks."ui-wire:test-ts"]
+description = "Read the Rust wire fixtures with the TypeScript bindings"
+run = "node --test backends/foundation_ui_wire/tests/ts/fixtures.test.mjs"
 
 [tasks.setup]
 description = "Install all dev tools and WASM targets for this OS"
@@ -239,8 +310,16 @@ echo "✓ firefox installed"
 alias = "test-browser"
 description = "Run the pure-Rust browser test suite against a real Chromium (spec-43)"
 run = """
-echo "Running foundation_browser suite (needs chromium — run 'mise run test:browsers')..."
-cargo test -p foundation_browser --features browser-tests --test smoke
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$(uname -s)" == Darwin && -z "${PRIMAL_TEST_CHROMIUM_BIN:-}" ]]; then
+  for app in "/Applications/Chromium.app/Contents/MacOS/Chromium" "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"; do
+    if [[ -x "$app" ]]; then export PRIMAL_TEST_CHROMIUM_BIN="$app"; break; fi
+  done
+fi
+echo "Running the Chromium browser tests..."
+cargo test -p foundation_browser --profile uat --features browser-tests --test smoke
+cargo test -p ui_todo --profile uat --features browser-tests --test todo_browser_tests
 echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
 """
 
@@ -375,9 +454,7 @@ echo "  mise run test:cf    - Run R2/D1 integration tests"
 
 [tasks."install:cloudflare"]
 description = "Install wrangler (Cloudflare CLI) via pnpm"
-run = """
-pnpm install
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:install"
 
 [tasks."setup:check"]
 alias = "check-tools"
@@ -418,35 +495,17 @@ git submodule update --remote {{env.LLAMA_SUBMODULE_PATH}}
 [tasks."build:all"]
 alias = "build-all"
 description = "Build all packages (debug)"
-run = """
-echo "Building all packages (debug)..."
-cargo build --all
-echo "✓ Build complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:build"
 
 [tasks."build:release"]
 alias = "build-release"
 description = "Build all packages (release)"
-run = """
-echo "Building all packages (release)..."
-cargo build --all --release
-echo "✓ Release build complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:build-release"
 
 [tasks."build:wasm"]
 alias = "build-wasm"
 description = "Build foundation_nostd across the full wasm target matrix"
-run = """
-#!/usr/bin/env bash
-set -euo pipefail
-echo "Building for WASM target matrix..."
-export CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm
-for target in wasm32-unknown-unknown wasm32-unknown-emscripten wasm32-wasip1 wasm32-wasip2; do
-  echo "  → $target"
-  cargo build --package foundation_nostd --target "$target"
-done
-echo "✓ WASM matrix build complete (4 targets)"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:build-wasm-matrix"
 
 [tasks."build:demos"]
 alias = "build-demos"
@@ -495,7 +554,7 @@ mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST
 [tasks."ci:linux"]
 description = "Run the full CI pipeline (fmt, build, clippy, test, wasm) inside the Linux CI image, mounting the repo so it uses the latest code. Usage: mise run ci:linux -- <package> (default: all packages)."
 run = """
-bash "${PROJECT_ROOT}/scripts/ci/linux.sh" "${1:-${PACKAGE:-all}}"
+cargo run --locked --profile uat -p foundation_ci -- linux "${1:-${PACKAGE:-all}}"
 """
 
 [tasks.clean]
@@ -568,258 +627,71 @@ run = "bacon -j test_foundation_core"
 
 [tasks."cf:login"]
 description = "Authenticate with Cloudflare"
-run = "wrangler login"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:login"
 
 [tasks."cf:whoami"]
 description = "Check Cloudflare authentication status"
-run = "wrangler whoami"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:whoami"
 
 [tasks."cf:list"]
 description = "List D1 databases and R2 buckets"
-run = """
-echo "=== D1 Databases ==="
-wrangler d1 list
-echo ""
-echo "=== R2 Buckets ==="
-wrangler r2 bucket list
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:list"
 
 [tasks."cf:start"]
 description = "Start wrangler dev for local testing (background)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-# Stop the wrangler this task started earlier (by its saved PID only).
-if [ -f /tmp/wrangler-test.pid ]; then
-    OLD_PID=$(cat /tmp/wrangler-test.pid)
-    kill "$OLD_PID" 2>/dev/null || true
-    rm -f /tmp/wrangler-test.pid
-    sleep 1
-fi
-
-echo "Starting wrangler dev for local testing..."
-
-# Use project root wrangler.toml
-cd "$PROJECT_ROOT"
-
-# Start wrangler dev in background with --local flag
-npx --yes "wrangler@${WRANGLER_VERSION}" dev --local > "$PROJECT_ROOT/wrangler.log" 2>&1 &
-WRANGLER_PID=$!
-echo $WRANGLER_PID > /tmp/wrangler-test.pid
-
-# Wait for wrangler to be ready
-echo "Waiting for wrangler to start..."
-for i in {1..30}; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8789/cdn-cgi/local/explorer/api/d1/database 2>/dev/null || echo "000")
-    if [ "$STATUS" = "200" ]; then
-        echo "Wrangler is ready (PID: $WRANGLER_PID)!"
-        exit 0
-    fi
-    sleep 1
-done
-
-echo "ERROR: Wrangler failed to start. Check wrangler.log"
-cat "$PROJECT_ROOT/wrangler.log"
-exit 1
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:start"
 
 [tasks."cf:stop"]
 description = "Stop wrangler background process"
-run = """
-#!/usr/bin/env bash
-if [ -f /tmp/wrangler-test.pid ]; then
-    PID=$(cat /tmp/wrangler-test.pid)
-    if kill -0 $PID 2>/dev/null; then
-        echo "Stopping wrangler (PID: $PID)..."
-        kill $PID
-        echo "Wrangler stopped"
-    fi
-    rm /tmp/wrangler-test.pid
-fi
-echo "Wrangler cleanup complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:stop"
 
 [tasks."test:cf"]
 description = "Run all Cloudflare integration tests (auto-starts wrangler)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-echo "=== Cloudflare Integration Tests ==="
-echo ""
-
-# Start wrangler
-mise run cf:start
-
-# Ensure cleanup on exit
-trap 'mise run cf:stop' EXIT
-
-# Run R2 tests
-echo ""
-echo "=== Running R2 Tests ==="
-export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
-export LOCAL_R2_BUCKET="test-bucket-preview"
-cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
-
-# Run D1 tests
-echo ""
-echo "=== Running D1 Tests ==="
-export LOCAL_D1_DATABASE_ID="test-db-preview"
-cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
-
-echo ""
-echo "✓ All Cloudflare tests passed"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test"
 
 [tasks."test:cf:r2"]
 description = "Run R2 blobstore tests (auto-starts wrangler)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-mise run cf:start
-trap 'mise run cf:stop' EXIT
-
-export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
-export LOCAL_R2_BUCKET="test-bucket-preview"
-cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test:r2"
 
 [tasks."test:cf:d1"]
 description = "Run D1 kvstore tests (auto-starts wrangler)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-mise run cf:start
-trap 'mise run cf:stop' EXIT
-
-export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
-export LOCAL_D1_DATABASE_ID="test-db-preview"
-cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test:d1"
 
 [tasks."test:vfs:nfs"]
 description = "Run VFS NFS adapter tests via valtron"
-run = """
-#!/usr/bin/env bash
-set -e
-
-CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-nfs" --test nfs_vfs 2>&1 | tee /tmp/vfs-nfs-test.log
-test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-nfs-test.log) -gt 0
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:test-nfs"
 
 [tasks."test:vfs:cf:r2"]
 description = "Run VFS R2Delta integration tests via valtron (auto-starts wrangler)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-mise run cf:start
-trap 'mise run cf:stop' EXIT
-
-export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
-export LOCAL_R2_BUCKET="test-bucket-preview"
-CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-r2" --test r2_delta_vfs 2>&1 | tee /tmp/vfs-r2-test.log
-test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-r2-test.log) -gt 0
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test:vfs:r2"
 
 [tasks."test:vfs:cf:d1"]
 description = "Run VFS D1Delta integration tests via valtron (auto-starts wrangler)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-mise run cf:start
-trap 'mise run cf:stop' EXIT
-
-export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
-export LOCAL_D1_DATABASE_ID="test-db-preview"
-CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-d1" --test d1_delta_vfs 2>&1 | tee /tmp/vfs-d1-test.log
-test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-d1-test.log) -gt 0
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test:vfs:d1"
 
 [tasks."test:vfs:cf"]
 description = "Run all VFS Cloudflare integration tests (D1 + R2 via valtron)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-mise run cf:start
-trap 'mise run cf:stop' EXIT
-
-export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
-
-echo "=== Running VFS R2Delta Tests ==="
-export LOCAL_R2_BUCKET="test-bucket-preview"
-CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-r2" --test r2_delta_vfs 2>&1 | tee /tmp/vfs-r2-test.log
-
-echo ""
-echo "=== Running VFS D1Delta Tests ==="
-export LOCAL_D1_DATABASE_ID="test-db-preview"
-CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-d1" --test d1_delta_vfs 2>&1 | tee /tmp/vfs-d1-test.log
-
-echo ""
-echo "✓ All VFS Cloudflare tests passed"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:test:vfs"
 
 [tasks."cf:d1:create"]
 description = "Create a new D1 database"
-run = """
-#!/usr/bin/env bash
-DB_NAME="${1:-foundation-db}"
-echo "Creating D1 database: $DB_NAME"
-wrangler d1 create "$DB_NAME"
-echo "✓ D1 database created"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:d1:create"
 
 [tasks."cf:d1:migrate"]
 description = "Run D1 migrations"
-run = """
-#!/usr/bin/env bash
-DB_NAME="${1:-foundation-db}"
-echo "Running D1 migrations for: $DB_NAME"
-wrangler d1 migrations execute "$DB_NAME" --local
-echo "✓ D1 migrations complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:d1:migrate"
 
 [tasks."cf:r2:create"]
 description = "Create a new R2 bucket"
-run = """
-#!/usr/bin/env bash
-BUCKET_NAME="${1:-foundation-bucket}"
-echo "Creating R2 bucket: $BUCKET_NAME"
-wrangler r2 bucket create "$BUCKET_NAME"
-echo "✓ R2 bucket created"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:r2:create"
 
 [tasks."cf:r2:ls"]
 description = "List objects in an R2 bucket"
-run = """
-#!/usr/bin/env bash
-BUCKET_NAME="${1:-foundation-bucket}"
-echo "Listing objects in R2 bucket: $BUCKET_NAME"
-wrangler r2 object list "$BUCKET_NAME"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci --features cloudflare-objects -- task run cf:r2:ls"
 
 [tasks."cf:env"]
 description = "Show Cloudflare environment configuration"
-run = """
-echo "=== Cloudflare Environment ==="
-echo "DEPLOYMENT_D1_DATABASE_ID: ${DEPLOYMENT_D1_DATABASE_ID:-not set}"
-echo "DEPLOYMENT_R2_BUCKET: ${DEPLOYMENT_R2_BUCKET:-not set}"
-echo "CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:+set (hidden)}"
-echo "CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-not set}"
-echo "D1_INTEGRATION_TEST: ${D1_INTEGRATION_TEST:-not set}"
-echo "R2_INTEGRATION_TEST: ${R2_INTEGRATION_TEST:-not set}"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:env"
 
 # --- llama-server Testing Infrastructure ---
 
@@ -1234,45 +1106,25 @@ echo "✓ Wasm target matrix verified (4 targets)"
 
 [tasks.check]
 description = "Check code compiles"
-run = """
-echo "Checking compilation..."
-cargo check --all
-echo "✓ Compilation check passed"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:check"
 
 [tasks.clippy]
 description = "Run clippy with strict lints (zero warnings)"
-run = """
-echo "Running clippy..."
-cargo clippy --all-targets --all-features -- -D warnings
-echo "✓ Clippy passed (zero warnings)"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:clippy"
 
 [tasks.fmt]
 alias = "lint"
 description = "Format all code with rustfmt"
-run = """
-echo "Formatting code..."
-cargo fmt --all
-echo "✓ Code formatted"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:fmt"
 
 [tasks."fmt:check"]
 alias = "fmt-check"
 description = "Check if code is properly formatted"
-run = """
-echo "Checking code formatting..."
-cargo fmt --all -- --check
-echo "✓ Code is properly formatted"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:fmt-check"
 
 [tasks.audit]
 description = "Run cargo security audit"
-run = """
-echo "Running security audit..."
-cargo audit
-echo "✓ Security audit complete"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:audit"
 
 [tasks.quality]
 description = "Run all quality checks (fmt + clippy + unit tests)"
@@ -1321,22 +1173,17 @@ cargo bench --package foundation_testing
 
 [tasks.doc]
 description = "Generate Rust documentation"
-run = """
-echo "Generating documentation..."
-cargo doc --no-deps --all-features
-echo "✓ Documentation generated"
-echo "Open: target/doc/index.html"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc"
 
 [tasks."doc:open"]
 alias = "doc-open"
 description = "Generate and open documentation in browser"
-run = "cargo doc --no-deps --all-features --open"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc-open"
 
 [tasks."doc:nostd"]
 alias = "doc-nostd"
 description = "Generate and open foundation_nostd documentation"
-run = "cargo doc --package foundation_nostd --no-deps --all-features --open"
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:doc-nostd"
 
 # =============================================================================
 # Tasks - Development Helpers
@@ -1352,13 +1199,7 @@ run = "bacon -j bacon-ls"
 
 [tasks.publish]
 description = "Publish all packages to crates.io"
-run = """
-#!/usr/bin/env bash
-PACKAGES="ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web"
-for pkg in $PACKAGES; do
-    cargo publish --package "$pkg"
-done
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:publish ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web"
 
 # =============================================================================
 # Tasks - Assets (from assets/public/Makefile)
@@ -1440,257 +1281,31 @@ run = 'echo "✓ All quality checks passed"'
 
 [tasks."sys:install-testbed"]
 description = "Install testbed dependencies (auto-detects Debian / Ubuntu / Arch Linux)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-# Detect distro from /etc/os-release
-if [ -f /etc/os-release ]; then
-    ID=$(. /etc/os-release && echo "$ID" | tr -d '"')
-    ID_LIKE=$(. /etc/os-release && echo "${ID_LIKE:-}" | tr -d '"')
-else
-    ID=""
-    ID_LIKE=""
-fi
-
-echo "=== Testbed Dependencies Installer ==="
-echo "Detected distro: ${ID:-unknown} (ID_LIKE: ${ID_LIKE:-none})"
-echo ""
-
-install_debian() {
-    echo "Using apt (Debian/Ubuntu)..."
-    sudo apt-get update
-    sudo apt-get install -y --no-install-recommends \\
-        qemu-system-x86 \\
-        qemu-system-gui \\
-        qemu-utils \\
-        ovmf \\
-        gvncviewer \\
-        openssh-client \\
-        curl \\
-        spice-client-gtk \\
-        virt-viewer
-    echo ""
-    echo "✓ QEMU with SPICE/UI + OVMF installed"
-    echo "  OVMF firmware: /usr/share/OVMF/"
-}
-
-install_ubuntu() {
-    echo "Using apt (Ubuntu)..."
-    sudo apt-get update
-    sudo apt-get install -y --no-install-recommends \\
-        qemu-system-x86 \\
-        qemu-system-gui \\
-        qemu-utils \\
-        ovmf \\
-        gvncviewer \\
-        openssh-client \\
-        curl \\
-        spice-client-gtk \\
-        virt-viewer
-    echo ""
-    echo "✓ QEMU with SPICE/UI + OVMF installed"
-    echo "  OVMF firmware: /usr/share/OVMF/"
-}
-
-install_arch() {
-    PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf gvncviewer openssh curl)
-
-    echo "Packages: ${PKGS[*]}"
-    echo ""
-
-    if command -v yay &>/dev/null; then
-        echo "Using yay (AUR helper)..."
-        yay -Syu --needed --noconfirm "${PKGS[@]}"
-    elif command -v pacman &>/dev/null; then
-        echo "Using pacman (requires sudo)..."
-        sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
-    else
-        echo "ERROR: Neither yay nor pacman found."
-        exit 1
-    fi
-
-    echo ""
-    echo "✓ QEMU with SPICE/UI + OVMF installed"
-    echo "  OVMF firmware: /usr/share/edk2/x64/"
-}
-
-case "$ID" in
-    debian|debian-like)
-        install_debian
-        ;;
-    ubuntu)
-        install_ubuntu
-        ;;
-    arch)
-        install_arch
-        ;;
-    *)
-        # Fallback: try ID_LIKE for derivatives
-        case "$ID_LIKE" in
-            *debian*) install_debian ;;
-            *ubuntu*) install_ubuntu ;;
-            *arch*)   install_arch ;;
-            *)
-                echo "ERROR: Unsupported distro '$ID'."
-                echo "Install QEMU + OVMF + a VNC/SPICE viewer manually, then retry."
-                exit 1
-                ;;
-        esac
-        ;;
-esac
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run toolchain:install-testbed"
 
 [tasks."sys:arch:testbed"]
 description = "Install testbed dependencies on Arch Linux (yay or sudo pacman)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-PKGS=(qemu-base qemu-system-x86 qemu-ui-spice-app qemu-ui-spice-core qemu-chardev-spice qemu-ui-gtk qemu-ui-opengl edk2-ovmf gvncviewer openssh curl)
-
-echo "Installing testbed dependencies on Arch Linux..."
-echo "Packages: ${PKGS[*]}"
-echo ""
-
-if command -v yay &>/dev/null; then
-    echo "Using yay (AUR helper)..."
-    yay -Syu --needed --noconfirm "${PKGS[@]}"
-elif command -v pacman &>/dev/null; then
-    echo "Using pacman (requires sudo)..."
-    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
-else
-    echo "ERROR: Neither yay nor pacman found."
-    exit 1
-fi
-
-echo ""
-echo "✓ All testbed dependencies installed"
-echo "  OVMF firmware: /usr/share/edk2/x64/"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run toolchain:install-testbed --distribution arch"
 
 [tasks."sys:debian:testbed"]
 description = "Install testbed dependencies on Debian (apt)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-echo "Installing testbed dependencies on Debian..."
-
-sudo apt-get update
-sudo apt-get install -y --no-install-recommends \\
-    qemu-system-x86 \\
-    qemu-system-gui \\
-    qemu-utils \\
-    ovmf \\
-    gvncviewer \\
-    openssh-client \\
-    curl \\
-    spice-client-gtk \\
-    virt-viewer
-
-echo ""
-echo "✓ All testbed dependencies installed"
-echo "  OVMF firmware: /usr/share/OVMF/"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run toolchain:install-testbed --distribution debian"
 
 [tasks."sys:ubuntu:testbed"]
 description = "Install testbed dependencies on Ubuntu (apt)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-echo "Installing testbed dependencies on Ubuntu..."
-
-sudo apt-get update
-sudo apt-get install -y --no-install-recommends \\
-    qemu-system-x86 \\
-    qemu-system-gui \\
-    qemu-utils \\
-    ovmf \\
-    gvncviewer \\
-    openssh-client \\
-    curl \\
-    spice-client-gtk \\
-    virt-viewer
-
-echo ""
-echo "✓ All testbed dependencies installed"
-echo "  OVMF firmware: /usr/share/OVMF/"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run toolchain:install-testbed --distribution ubuntu"
 
 [tasks."sys:arch:quickemu"]
 description = "Install quickemu (for macOS VM image creation) on Arch Linux"
-run = """
-#!/usr/bin/env bash
-set -e
-
-echo "Installing quickemu on Arch Linux..."
-echo "quickemu automates macOS download, OpenCore setup, and QEMU config generation"
-
-PKGS=(quickemu jq python3)
-
-if command -v yay &>/dev/null; then
-    echo "Using yay (AUR helper)..."
-    yay -Syu --needed --noconfirm "${PKGS[@]}"
-elif command -v pacman &>/dev/null; then
-    echo "Using pacman (requires sudo)..."
-    sudo pacman -Syu --needed --noconfirm "${PKGS[@]}"
-else
-    echo "ERROR: Neither yay nor pacman found."
-    exit 1
-fi
-
-echo ""
-echo "✓ quickemu installed"
-echo "  Usage: quickget macos sonoma   # Download macOS + create VM config"
-echo "  Configs are stored in: ./macos-sonoma/"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run toolchain:install-quickemu --distribution arch"
 
 [tasks."sys:debian:quickemu"]
 description = "Install quickemu on Debian/Ubuntu (for macOS VM image creation)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-echo "Installing quickemu on Debian/Ubuntu..."
-
-sudo apt-get update
-sudo apt-get install -y --no-install-recommends quickemu jq python3
-
-echo ""
-echo "✓ quickemu installed"
-echo "  Usage: quickget macos sonoma   # Download macOS + create VM config"
-echo "  Configs are stored in: ./macos-sonoma/"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run toolchain:install-quickemu --distribution debian"
 
 [tasks."macos:create-image"]
 description = "Create a macOS VM image using quickget (downloads from Apple CDN)"
-run = """
-#!/usr/bin/env bash
-set -e
-
-VERSION="${1:-sonoma}"
-echo "Creating macOS ${VERSION} VM image..."
-echo ""
-
-if ! command -v quickget &>/dev/null; then
-    echo "ERROR: quickget not installed."
-    echo "Run: mise run sys:install-testbed  (then install quickemu)"
-    exit 1
-fi
-
-# quickget downloads the installer and creates the VM config
-# Output directory: macos-<version>/
-quickget macos "$VERSION"
-
-echo ""
-echo "✓ macOS ${VERSION} image created in ./macos-${VERSION}/"
-echo "  Disk image: macos-${VERSION}/macOS.qcow2"
-echo "  EFI disk:   macos-${VERSION}/OpenCore/OpenCore.qcow2"
-echo ""
-echo "Next: cargo run -p ewe_platform -- testbed import macos-build"
-"""
+run = "cargo run --locked --profile uat -p foundation_ci -- task run images:download-macos"
 
 [tasks.help]
 description = "Show help message with all available tasks"

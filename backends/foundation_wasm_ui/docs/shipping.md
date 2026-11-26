@@ -4,8 +4,7 @@
 
 | feature | default | effect |
 |---------|---------|--------|
-| `arrow` | **on** | `ArrowIpcV2` / `App::arrow()` — real Apache Arrow IPC (wire v2) |
-| `embedded-js` | off | `embedded` module: runtime JS (+ `apache-arrow.js`) as `&str` consts |
+| `embedded-js` | off | `embedded` module: browser runtime modules as `&str` consts |
 
 The crate is `#![no_std]` on wasm32. Build tooling (`build_tools`, `cli`, the
 `ewe-wasm-bundle` binary) and the `server` module are **target-gated, not

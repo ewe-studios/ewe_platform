@@ -10,7 +10,7 @@ export async function init(importOverrides = {}) {
   const imports = { abi: { ...rt.web_abi, ...importOverrides } };
   const { instance } = await WebAssembly.instantiate(wasmBytes, imports);
   rt.init(instance);
-  FoundationWasmUiRuntime.registerWasmApp(rt);
+  FoundationUiBootstrap.registerFrameApp(rt);
   instance.exports.hello_dashboard();
   return { runtime: rt, instance };
 }

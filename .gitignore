@@ -220,3 +220,6 @@ backends/foundation_connectrpc/integration/wasm/integrations/
 # Python bytecode caches
 __pycache__/
 *.pyc
+
+# Local Swift package binary input
+/.build-inputs/

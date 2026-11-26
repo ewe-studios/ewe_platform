@@ -1,0 +1,261 @@
+{
+  "nodes": [
+    {
+      "id": 1,
+      "kind": "STACK",
+      "text": null,
+      "props": {},
+      "children": [
+        40
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 40,
+      "kind": "STACK",
+      "text": null,
+      "props": {
+        "AXIS": "Vertical",
+        "PADDING": "8pt"
+      },
+      "children": [
+        41,
+        42,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125
+      ],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 41,
+      "kind": "TEXT",
+      "text": "Count",
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 42,
+      "kind": "BUTTON",
+      "text": "0",
+      "props": {},
+      "children": [],
+      "actions": {
+        "TAP": "server:increment_counter"
+      },
+      "state_len": 160,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 111,
+      "kind": "MODAL",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 112,
+      "kind": "BOTTOM_SHEET",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 113,
+      "kind": "NAVIGATION_TITLE",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 114,
+      "kind": "TOOLBAR_BUTTON",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 115,
+      "kind": "SEGMENTED_CONTROL",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 116,
+      "kind": "INSET_LIST",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 117,
+      "kind": "CHECKLIST_ROW",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 118,
+      "kind": "CHECKMARK_BUTTON",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 119,
+      "kind": "DESTRUCTIVE_BUTTON",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 120,
+      "kind": "LIST_FOOTER",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 121,
+      "kind": "CONFIRMATION_DIALOG",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 122,
+      "kind": "SHEET_TITLE",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 123,
+      "kind": "SUBMIT_BUTTON",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 124,
+      "kind": "CANCEL_BUTTON",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 125,
+      "kind": "DRAWING_SURFACE",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    }
+  ],
+  "reports": [],
+  "commands": [],
+  "errors": [],
+  "data": []
+}

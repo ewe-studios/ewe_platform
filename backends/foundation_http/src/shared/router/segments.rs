@@ -40,6 +40,12 @@ pub enum RouteOp {
     PanicSegmentNotFound,
 }
 
+impl std::error::Error for RouteOp {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        if let Self::InvalidRouteRegex(error) = self { Some(error) } else { None }
+    }
+}
+
 impl From<regex::Error> for RouteOp {
     fn from(value: regex::Error) -> Self {
         RouteOp::InvalidRouteRegex(value)
@@ -156,8 +162,7 @@ impl<'a> TryFrom<&'a str> for SegmentType {
             return Ok(SegmentType::Param(text[1..].into()));
         }
 
-        let parts: Vec<&str> = text.split("::").collect();
-        let (first_part, second_part) = (parts[0], parts[2]);
+        let (first_part, second_part) = text.split_once("::").ok_or(RouteOp::InvalidSegment)?;
 
         if PARAM_REGEX_CAPTURE_ROUTES.is_match(text) {
             return Ok(SegmentType::ParamRegex(
@@ -411,7 +416,10 @@ impl<S> RouteSegment<S> {
         // If segments match AND self is not Root, merge directly on this node
         // Root is special — its children are the first-level route segments
         if self.segment == other.segment && !matches!(&self.segment, SegmentType::Root) {
-            self.method.set_method(method.clone(), handler.clone());
+            if other.static_routes.is_empty() && other.dynamic_routes.is_empty() {
+                self.method.set_method(method, handler);
+                return;
+            }
             // Merge children from `other` into `self`
             for (key, sub) in other.static_routes {
                 self.merge_or_create_static(key, sub, &method, &handler);
@@ -627,8 +635,19 @@ impl<S> RouteSegment<S> {
             }
         } else {
             self.validate_against_self(&next_segment_type, &mut params)?;
+            let fallback = self.dynamic_routes.iter().find(|child| child.segment == SegmentType::AnyPath);
+            let saved = fallback.map(|child| (child, params.clone()));
             let next = self.get_matching_segment_route(&remaining[0], &mut params)?;
-            Self::match_routes_from(next, remaining, params)
+            let result = Self::match_routes_from(next, remaining, params);
+            match (result, saved) {
+                (Ok((route, _)), Some((fallback, params))) if !route.method.has_any() => {
+                    Ok((fallback.clone(),params))
+                }
+                (Err(RouteOp::NoMatchingRoute(_) | RouteOp::DidNotMatchExpected(..)), Some((fallback, params))) => {
+                    Ok((fallback.clone(),params))
+                }
+                (result, _) => result,
+            }
         }
     }
 

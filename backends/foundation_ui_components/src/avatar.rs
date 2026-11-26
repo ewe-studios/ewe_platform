@@ -47,6 +47,7 @@ impl ImageLoadingStatus {
 }
 
 /// Static config for an avatar. Text fields are `Cow<'static, str>`.
+#[derive(Default)]
 pub struct AvatarConfig {
     /// Image URL — if absent, the fallback shows immediately.
     pub src: Option<Cow<'static, str>>,
@@ -59,27 +60,11 @@ pub struct AvatarConfig {
     pub class: Option<Cow<'static, str>>,
 }
 
-impl Default for AvatarConfig {
-    fn default() -> Self {
-        Self {
-            src: None,
-            alt: None,
-            fallback_delay_ms: 0,
-            class: None,
-        }
-    }
-}
-
 /// Slots for the avatar.
+#[derive(Default)]
 pub struct AvatarSlots {
     /// Fallback content (shown when the image is not loaded).
     pub fallback: Option<Slot>,
-}
-
-impl Default for AvatarSlots {
-    fn default() -> Self {
-        Self { fallback: None }
-    }
 }
 
 /// Avatar component — image with fallback.

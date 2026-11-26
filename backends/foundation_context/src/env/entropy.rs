@@ -17,6 +17,14 @@ pub trait EntropySource: Send + Sync + 'static {
     /// The platform source failed. A caller must not continue with a
     /// half-filled buffer.
     fn fill(&self, dest: &mut [u8]) -> Result<(), entropy::Error>;
+
+    /// Generate a version four universally unique identifier (UUID) from this source.
+    ///
+    /// # Errors
+    /// Returns the error from this source.
+    fn uuid_v4(&self) -> Result<foundation_compact::uuid::UuidV4, entropy::Error> {
+        foundation_compact::uuid::UuidV4::from_entropy(|bytes| self.fill(bytes))
+    }
 }
 
 /// The operating-system source. Native: `getrandom`/`getentropy`. wasm:

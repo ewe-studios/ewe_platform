@@ -15,7 +15,7 @@
 //! (400 ms), repeats every `CHANGE_VALUE_TICK_DELAY` (60 ms) until pointer-up
 //! (cancelling if the pointer moves > `SCROLLING_POINTER_MOVE_DISTANCE` = 8 px);
 //! keyboard ↑/↓/PageUp/PageDown/Home/End step; wheel scrubs (when enabled); the
-//! ScrubArea drags with pointer lock + a virtual cursor (`pixelSensitivity = 2`,
+//! `ScrubArea` drags with pointer lock + a virtual cursor (`pixelSensitivity = 2`,
 //! viewport-edge teleport). Alt = `smallStep`, Shift = `largeStep`. Step
 //! interactions always clamp (and snap when `snapOnStep`); only TYPED text may
 //! exceed the range. Each mutation writes the input + dispatches `change` →
@@ -30,6 +30,10 @@ use foundation_wasm_ui::{html, SharedInstructionReceiver};
 use crate::machinery::scoped_script;
 
 /// Static config for a number field.
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Each field sets an independent control option."
+)]
 pub struct NumberFieldConfig {
     /// Minimum value (inclusive).
     pub min: Option<f64>,
@@ -47,7 +51,7 @@ pub struct NumberFieldConfig {
     pub allow_wheel_scrub: bool,
     /// Allow TYPED text to exceed the range (step interactions still clamp).
     pub allow_out_of_range: bool,
-    /// Render a ScrubArea (pointer-drag scrubbing with a virtual cursor).
+    /// Render a `ScrubArea` (pointer-drag scrubbing with a virtual cursor).
     pub scrub: bool,
     /// Disabled.
     pub disabled: bool,
@@ -81,7 +85,7 @@ impl Default for NumberFieldConfig {
 
 /// The M8 number-field behavior: hold-repeat, keyboard step, wheel + pointer
 /// scrubbing, with step-modifier / snap / clamp semantics ported from base-ui.
-pub const NUMBER_FIELD_JS: &str = r#"function(scope){
+pub const NUMBER_FIELD_JS: &str = r"function(scope){
   var root = scope.parent();
   if (!root || root.__nf) return; root.__nf = true;
   var win = (root.ownerDocument && root.ownerDocument.defaultView) || window;
@@ -188,7 +192,7 @@ pub const NUMBER_FIELD_JS: &str = r#"function(scope){
       try { doc.exitPointerLock(); } catch (_) {}
     });
   }
-}"#;
+}";
 
 fn fmt(v: f64) -> Cow<'static, str> {
     Cow::Owned(alloc::format!("{v}"))
@@ -196,6 +200,10 @@ fn fmt(v: f64) -> Cow<'static, str> {
 
 /// Number-field component over a `f64` signal.
 #[must_use]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The component API takes ownership of values for its render callbacks."
+)]
 pub fn number_field(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,

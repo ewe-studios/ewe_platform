@@ -1,0 +1,14 @@
+{
+  "name": "@ewe-studios/foundation-wasm-ui",
+  "version": "{{crate_version}}",
+  "description": "Browser runtime for Ewe user interfaces",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./bundle.js": "./bundle.js",
+    "./bundle.min.js": "./bundle.min.js"
+  },
+  "files": ["index.js", "bundle.js", "bundle.min.js", "ui/", "foundation_wasm/", "README.md", "LICENSE"]
+}

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wasm_ui"
-version = "0.1.4"
+version = "0.1.13"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,40 +16,57 @@ path = "src/bin/ewe_wasm_bundle.rs"
 # the build tooling never belongs in the artifact.
 
 [dependencies]
+foundation_core.workspace = true
+foundation_ui_runtime = { path = "../foundation_ui_runtime", version = "0.0.8" }
+foundation_ui_wire = { path = "../foundation_ui_wire", version = "0.0.7" }
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.10", features = ["web"] }
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.4" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.11", features = ["web"] }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.6" }
 # The reactive layer this runtime bridges to the DOM (decision 012 diagram:
 # foundation_wasm_ui depends on BOTH signals and wasm). This crate is
 # `#![no_std]` and only uses the graph, so signals' `std` (the cross-thread
 # hub) stays off.
-foundation_signals = { path = "../foundation_signals", version = "0.0.6", default-features = false, features = ["single_threaded"] }
+foundation_signals = { path = "../foundation_signals", version = "0.0.7", default-features = false, features = ["single_threaded"] }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { workspace = true }
 # Theme token model + shared CSS generator (the theme!{} macro, ThemeTokens
 # derive, and runtime Theme builder all route through it).
 foundation_theme = { path = "../foundation_theme", version = "0.0.4" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 tracing = { version = "0.1", default-features = false }
-# Arrow IPC v2 over the loop (the `arrow` feature).
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.5", optional = true }
+[target.'cfg(target_family = "wasm")'.dependencies]
+# Only the browser uses the JavaScript event loop. Native commands park host threads.
+foundation_core = { workspace = true, features = ["js-foundation-wasm"] }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["browser-storage"], optional = true }
+serde = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+async-channel.workspace = true
+async-trait.workspace = true
 
 # Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
 # build_tools — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tar = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
+tempfile = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+blocking = { workspace = true, optional = true }
+foundation_tasks = { workspace = true, optional = true }
 clap = { version = "4", features = ["derive"] }
-foundation_codegen = { path = "../foundation_codegen", version = "0.2.2" }
+foundation_codegen = { path = "../foundation_codegen", version = "0.2.3" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
-# Apache Arrow IPC support is ON by default (arrow-native support is a
-# project goal; arrow-rs rides default-features=false and builds for
-# wasm32). Size-sensitive artifacts opt OUT with default-features = false.
-default = ["arrow"]
-# Wire VERSION 2 over the loop: ArrowIpcV2 + App::arrow_ipc.
-arrow = ["dep:foundation_arrow"]
+build-hook = ["dep:tempfile", "dep:serde_json", "foundation_codegen/javascript", "foundation_wasm/embedded-js"]
+browser-storage = ["dep:serde", "dep:foundation_db", "dep:wasm-bindgen", "dep:wasm-bindgen-futures"]
+tasks = ["dep:tar", "dep:flate2", "dep:sha2", "dep:base64", "dep:futures-util", "embedded-js", "dep:tempfile", "dep:serde_json", "dep:foundation_tasks", "dep:blocking", "foundation_codegen/javascript"]
+default = []
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]
 
@@ -57,5 +74,6 @@ embedded-js = ["foundation_wasm/embedded-js"]
 workspace = true
 
 [dev-dependencies]
+tempfile.workspace = true
 # Test 12: assert the JSON protocol's payload parses as real JSON.
 serde_json = { workspace = true }

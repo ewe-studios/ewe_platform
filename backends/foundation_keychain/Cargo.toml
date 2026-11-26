@@ -20,10 +20,10 @@ base64 = "0.22"
 base32 = "0.5"
 # Bitwarden client-side password hash (PBKDF2-SHA256) — used by the login
 # flow to verify raw master passwords sent by `bw login`.
-pbkdf2 = "0.12"
-sha2 = "0.10"
+pbkdf2 = { workspace = true }
+sha2 = { workspace = true }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
-rmp-serde = "1"
+rmp-serde = { workspace = true }
 tracing = { workspace = true }
 derive_more.workspace = true
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
@@ -31,10 +31,10 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # (SSH key provisioning deps are native-only — see the native target section below.)
 
 # Foundation deps
-foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false }
 # Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on
 # native via foundation_db/turso, wasm-fetch on wasm — see per-target sections).
@@ -49,11 +49,11 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-fea
 [target.'cfg(target_family = "wasm")'.dependencies]
 # `workers-rs` enables `From<worker::D1Database>` so the Workers `fetch` handler can
 # build a D1-backed StorageProvider from the env binding.
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
 # worker-rs: `#[event(fetch)]` entry point + Request/Response/Env/D1.
 worker = { version = "0.8.3", features = ["d1"] }
 # Needed by the #[durable_object] / #[wasm_bindgen] proc macros for DO structs.
-wasm-bindgen = "0.2"
+wasm-bindgen.workspace = true
 # `default-features = false` required: without it cargo's default-features union re-enables
 # foundation_auth's native `turso` default (→ foundation_db/turso → multi) on wasm.
 # `wasm-pbkdf2` brings the WebCrypto PBKDF2 path (js-sys/web-sys) the keychain uses for
@@ -68,17 +68,16 @@ foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare
 
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.15" }
+foundation_http = { path = "../foundation_http", version = "0.0.16" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false, features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["turso"] }
 # Feature 009 — SSH key provisioning (Argon2id app secrets are native-only).
 # `getrandom` gives ssh-key its own rand_core 0.6 `OsRng` (rand 0.9 implements
 # rand_core 0.9, which ssh-key 0.6's `CryptoRngCore` bound does not accept).
 ssh-key = { version = "0.6", features = ["ed25519", "rsa", "getrandom"] }
 age = { version = "0.12" }
-secrecy = "0.10"
 
 [dev-dependencies]
 tempfile = "3"

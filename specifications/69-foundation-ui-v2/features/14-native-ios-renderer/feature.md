@@ -1,22 +1,22 @@
 ---
 feature: "native-ios-renderer"
 description: "The EweUI Swift package: the generated reader, a node store with one observable record per node, SwiftUI views for the core kinds, the event bridge, live mounts, native commands, and the shared reference model that iOS and Android must match."
-status: "pending"
+status: "complete"
 priority: "medium"
 model: "sonnet"
-depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer-and-tiers", "13-native-core-and-commands"]
+depends_on: ["02-vocabulary-and-platform-forms", "03-frame-writer", "13-native-core-and-commands", "17"]
 estimated_effort: "large"
 created: 2026-11-13
-last_updated: 2026-11-13
+last_updated: 2026-11-20
 author: "Main Agent"
 crates: ["foundation_ui_wire"]
-packages: ["native/ios/EweUI", "examples/ui_counter_ios"]
-decisions: ["D4", "D11", "D12", "D29", "D36", "D39", "A4"]
+packages: ["../ewe-ui-swift", "../ewe-ui-swift/Examples/Todo"]
+decisions: ["D4", "D11", "D12", "D21", "D29", "D36", "D39", "D41", "D42", "D44", "D45", "D46", "D47", "D50", "D52", "D56", "D59", "A4"]
 tasks:
-  completed: 0
-  uncompleted: 13
-  total: 13
-  completion_percentage: 0
+  completed: 14
+  uncompleted: 0
+  total: 14
+  completion_percentage: 100
 ---
 
 # Feature 14: The iOS renderer
@@ -29,9 +29,14 @@ transfer protocol (HTTP); JavaScript Object Notation (JSON); continuous integrat
 browser view embedded in an app (WebView); identifier (id); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
+## Package source location
+
+The [release plan](../19-native-package-releases/feature.md) assigns this package to the sibling repository `ewe-ui-swift`.
+Use that checkout for library sources, tests and the starter app. The public starter resolves the released package by version.
+
 ## 1. Goal
 
-A Swift package, `native/ios/EweUI`, renders frames with SwiftUI. A generated reader edits a
+A Swift package, `../ewe-ui-swift`, renders frames with SwiftUI. A generated reader edits a
 node store. Each node is one observable record, so a change to node 42 recomposes only the
 view of node 42. Native controls give focus, gestures and accessibility. Events go to the
 action core of feature 13. Live mounts open channels with the same semantics as the web.
@@ -44,8 +49,8 @@ must match it, and so must the Kotlin store of feature 15.
 - **S2**: "A user taps a button, and the bound action runs."
 - **S3**: "A screen has a live region that follows a server stream."
 - **S4**: "A local action asks for a haptic pulse, and the phone gives it."
-- **S5**: "A screen mounts a WebView that renders the web runtime."
-- **S6**: "A frame holds a web form."
+- **S5**: "A screen holds a WebView mount row." (The control is later work, feature 18.)
+- **S6**: "A frame holds a web member."
 - **S7**: "A frame names a node that the store does not have."
 - **S8**: "A frame holds a node kind that this app version does not know."
 - **S9**: "A live channel drops, and the region resumes."
@@ -53,17 +58,17 @@ must match it, and so must the Kotlin store of feature 15.
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
 | U1 | Apply | Host | `store.receive(frame)` | The store changed; the views of the changed records recompose |
-| U2 | Event | User | A tap or a change on a control | `core.trigger(reference, input)`; the answer frame is applied |
+| U2 | Event | User | A tap or a change on a control | `core.trigger(reference, input)`; the store applies an immediate frame when supplied |
 | U3 | Live mount | Store | A `LiveMount` record enters the tree | `LiveMountHost` opens the channel and feeds frames |
-| U4 | Command | Store | A `NativeCommand` op | `CommandHost` runs the platform effect |
-| U5 | Report | Store | A form or id it cannot apply | A `Report`; the batch continues |
-| U6 | WebView | Store | `NativeControl(WEB_VIEW)` | A `WKWebView` that loads the given URL |
+| U4 | Command | Store | A `NativeCommand` member of `MobileOperation` | `CommandHost` runs the platform effect |
+| U5 | Report | Store | A member or id it cannot apply | A `Report`; the message list continues |
+| U6 | WebView mount | Store | A `MountWebView` member of `MobileOperation` | The store records the row; feature 18 mounts the control (D46) |
 
 ## 3. Bounded context
 
 **Inside this feature:** the reference model `foundation_ui_wire::reference` and its
 snapshots; the Swift package (`EweWire`, `EweUI`, `EweUITests`); the binding of
-`NativeCore`; the example app `examples/ui_counter_ios`; the build script; the CI step.
+`NativeCore`; the example app `../ewe-ui-swift/Examples/Todo`; the build script; the CI step.
 
 **Outside:**
 
@@ -71,22 +76,23 @@ snapshots; the Swift package (`EweWire`, `EweUI`, `EweUITests`); the binding of
 |---|---|
 | The schema, the generated Swift (`generated/swift`), the fixtures | Feature 01 |
 | The core vocabulary and the form table | Feature 02 |
-| The tier 2 column layout | Feature 03 section 6.4 |
+| The `ColumnarBatch` column layout | Feature 03 section 6.4 |
 | `NativeCore`, `EventInput`, `HostTransport`, `FrameListener`, the UniFFI bindings | Feature 13 |
 | SwiftUI, the render pass, focus, gestures, dynamic type, accessibility | Apple platform. Do not rebuild it (research 06 section 3.5) |
 | The web runtime inside a WebView | Features 09 to 11 |
-| Behaviour bindings beyond what the native control gives | Feature 16 |
+| The WebView control (`MountWebView`) | Feature 18, later work (D46) |
+| Behaviour bindings (`UiBehaviour` and `MobileBehaviour`) | Feature 16 |
 
 | Entity | Meaning | Owner (the one writer) |
 |---|---|---|
 | `NodeStore` | node id to `NodeRecord`; reports; stream cursors | `FrameApplier`, on the main actor |
-| `NodeRecord` | One node: kind, props, text, children, actions, state bytes, live mount, control | `FrameApplier` |
+| `NodeRecord` | One node: kind, props, text, children, actions, state bytes, live mount, behaviours, web view mount | `FrameApplier` |
 | Channel | One open SSE, WebSocket or HTTP connection of a live mount | `LiveMountHost` |
 
 | Verb | Kind | Trigger | Effect |
 |---|---|---|---|
 | `receive` | story | Frame bytes | Order, then apply each row to the store |
-| `send` (event bridge) | story | A control event | Harvest state, call the core, apply the answer |
+| `send` (event bridge) | story | A control event | Harvest state, call the core, apply any immediate answer |
 | `open`, `close` (live mount) | entity | A record enters or leaves the tree | Opens or closes a channel |
 
 **Words.** "Record" is a `NodeRecord`. "Screen root" is the record with id 1, which exists
@@ -126,15 +132,16 @@ Links to other entities: none
 | # | Invariant |
 |---|---|
 | I1 | For each conformance fixture, the JSON snapshot of the Swift store after `receive` equals the checked-in expected snapshot of the reference model. |
-| I2 | A `Web` form is never applied. It adds a report `UnsupportedPlatformOp` with the row index, and the next row applies. Its string is never rendered and never run. |
+| I2 | A `web` member of an `Operation` is never applied. It adds a report `UnsupportedPlatformOp` with the row index, and the next member applies. Its string is never rendered and never run. |
 | I3 | A row that names an unknown node changes nothing, adds a report `UnknownNode`, and the next row applies. |
 | I4 | A change to one record notifies only the observers of that record. |
 | I5 | `receive` returns after the store is edited. No scheduler sits between the reader and the store (research 06 section 3.5). |
-| I6 | Live frames of one stream apply in strictly increasing sequence order; an answer frame (`ack_action != 0`) applies at once; a frame with sequence 0 is out of band. The rule is the rule of feature 09 section 6.4. |
-| I7 | The state bytes that the event bridge sends equal the bytes of the last `AttachState` of the nearest ancestor-or-self record that has state. |
+| I6 | Live frames of one stream apply in strictly increasing sequence order; an answer frame (`ack != 0`) applies at once; a frame with sequence 0 is out of band. The rule is the rule of feature 09 section 6.4. |
+| I7 | The event bridge sends the exact bytes on the bound control’s record. A missing attachment gives empty bytes. |
 | I8 | A live mount opens its channel when its record is attached under the screen root and closes it when the record is removed. |
 | I9 | A `NativeCommand` with an unknown command id adds a report `UnknownCommand` and runs nothing. |
 | I10 | The package holds no script engine and loads no code from the network. |
+| I11 | A `UiBehaviour` or `MobileBehaviour` adds its id or custom name to the record's behaviour set. An id or name with no registered binding adds a report `UnknownBehaviour` and changes no record. |
 
 ### 4.3 Must have
 
@@ -156,6 +163,8 @@ Links to other entities: none
 - Do not add a tree compare. Each op names its node.
 - Do not implement focus, gestures, dismiss or dynamic type by hand when the SwiftUI
   control gives them.
+- Do not build the WebView control here. This feature stores the `MountWebView` row only;
+  feature 18 builds the control (D46).
 
 ## 5. Acceptance scenarios
 
@@ -172,12 +181,29 @@ Feature: iOS renderer
     When one receives native_tree.bin and the other receives native_columnar.bin
     Then both snapshots are equal
 
-  Scenario: A web form is reported and skipped
+  Scenario: Behaviours change the record set
+    Given a store after native_tree.bin
+    When the store receives native_behaviour.bin
+    Then the snapshot equals native_behaviour.expected.json
+    And record 40 has the behaviour "SCROLL_LOCK"
+
+  Scenario: An unknown behaviour is reported
+    When the store receives a frame with UiBehaviour(40, behaviour 999)
+    Then the reports hold { code: "UnknownBehaviour", row: 0, node: 40, name: "999" }
+    And record 40 has no behaviour
+
+  Scenario: A WebView mount row is stored
+    Given an empty store with the screen root
+    When the store receives a frame with CreateNode(70, STACK), MountWebView(70, 1, "https://x/ui") and AppendChild(1, 70)
+    Then record 70 holds a web view mount for "https://x/ui"
+    And the store built no control
+
+  Scenario: A web member is reported and skipped
     Given a store after native_tree.bin
     When the store receives native_mixed.bin
     Then the snapshot equals native_mixed.expected.json
-    And its reports hold { code: "UnsupportedPlatformOp", row: 1, op: 12 }
-    And its commands hold one HAPTIC
+    And its reports hold { code: "UnsupportedPlatformOp", row: 1 }
+    And its operations hold one NativeCommand HAPTIC
 
   Scenario: A text change notifies one record
     Given a store after native_tree.bin with observation counters on records 41 and 42
@@ -189,13 +215,31 @@ Feature: iOS renderer
     When the store receives native_replace.bin
     Then the snapshot equals native_replace.expected.json
 
-  Scenario: A tap sends the state of the component root
-    Given a store after native_tree.bin, where record 40 has state bytes S and record 42 has TAP bound to "server:increment_counter"
+  Scenario: A socket handoff has no immediate frame
+    Given a fake ActionCore that returns nil
+    When a bound control sends its action
+    Then the store receives zero frames
+    When the socket reader supplies frame_ops_counter.bin
+    Then the store applies it once
+
+  Scenario: A tap sends the triggering control’s own state
+    Given a store after native_tree.bin, where record 42 has state bytes S and TAP bound to "server:increment_counter"
     And a fake ActionCore that answers frame_ops_counter.bin
     When the event bridge sends TAP for record 42
     Then the fake core got reference "server:increment_counter" and EventInput
       { node_id: 42, event_name: "tap", parent_node: 40, state: S }
     And the store applied the answer: record 42 has the text "1"
+
+  Scenario: The next tap sends the updated local copy
+    Given the first frame attached signed bytes A to nodes 40 and 42
+    And the reply attached signed bytes B to both nodes
+    When record 42 triggers the action again
+    Then the request identifies node 42 and carries B from record 42
+
+  Scenario: A child has no attachment
+    Given only parent 40 has attached state and child 42 has a tap action
+    When child 42 triggers the action
+    Then its request contains empty state
 
   Scenario: An unbound event sends nothing
     Given record 41 has no action for TAP
@@ -234,7 +278,7 @@ flowchart LR
     S --> V["SwiftUI views"]
     V -->|"tap, change"| E["EventBridge"]
     E -->|"trigger"| C["ActionCore"]
-    C -->|"answer frame"| A
+    C -->|"immediate answer if present"| A
     S --> L["LiveMountHost"] -->|"frames"| A
     A --> K["CommandHost"]
 ```
@@ -269,23 +313,24 @@ impl RefStore {
 }
 ```
 
-`tests/reference_tests.rs` builds the conformance frames with `write_ops` for
+`tests/reference_tests.rs` builds the conformance frames with `write_messages` for
 `ClientCaps::native_current(Platform::Ios)`, except `native_mixed.bin`, which it builds
-with `finish_frame` directly so that it holds a web form (the gate would remove it; the
+with `finish_frame` directly so that it holds a `web` member (the gate would remove it; the
 fixture tests the reader's own defence). It writes the frames and the snapshots under
 `backends/foundation_ui_wire/fixtures/native/` with `UPDATE_FIXTURES=1` and compares them
 without it.
 
 | Fixture | Content |
 |---|---|
-| `native_tree.bin` | `CreateNode(40, STACK)`, `SetProp(40, PADDING, 8 Point)`, `SetProp(40, AXIS, Vertical)`, `CreateNode(41, TEXT)`, `SetText(41, "Count")`, `AppendChild(40, 41)`, `CreateNode(42, BUTTON)`, `SetText(42, "0")`, `BindAction(42, TAP, "server:increment_counter")`, `AppendChild(40, 42)`, `AppendChild(1, 40)`, `AttachState(40, state_counter.bin)`; header 7/1/1 |
-| `native_columnar.bin` | The same ops, written with threshold 0 |
+| `native_tree.bin` | `CreateNode(40, STACK)`, `SetProp(40, PADDING, 8 Point)`, `SetProp(40, AXIS, Vertical)`, `CreateNode(41, TEXT)`, `SetText(41, "Count")`, `AppendChild(40, 41)`, `CreateNode(42, BUTTON)`, `SetText(42, "0")`, `BindAction(42, TAP, "server:increment_counter")`, `AppendChild(40, 42)`, `AppendChild(1, 40)`, `AttachState(42, state_counter.bin)`; header 7/1/1 |
+| `native_columnar.bin` | The same rows packed with `columnar_batch` |
 | `native_mixed.bin` | `SetText(42, "a")`, `HtmlMorph(node 40, ReplaceChildren, "<b>x</b>")`, `NativeCommand(HAPTIC)`, `SetText(999, "x")`, `SetText(42, "b")`; header 7/2/2 |
 | `native_replace.bin` | `ReplaceSubtree(40, [CreateNode(43, TEXT), SetText(43, "new"), AppendChild(40, 43)])`; header 7/3/3 |
 | `native_unknown_kind.bin` | `CreateNode(60, UNKNOWN)`, `AppendChild(1, 60)`; header 7/4/4 |
+| `native_behaviour.bin` | `UiBehaviour(40, SCROLL_LOCK)`; header 7/5/5 |
 
-Each has an `.expected.json` next to it. `native_mixed` and `native_replace` are applied
-after `native_tree`; the snapshot is of the final store.
+Each has an `.expected.json` next to it. `native_mixed`, `native_replace` and
+`native_behaviour` are applied after `native_tree`; the snapshot is of the final store.
 
 ### 6.3 The apply rules
 
@@ -302,22 +347,27 @@ These rules are the contract for the reference model, the Swift store and the Ko
 | `ReplaceSubtree` | Delete every descendant of the node; clear its children; apply the nested rows with the same rules |
 | `BindAction` | `record.actions[event] = action` |
 | `UnbindAction` | Remove `record.actions[event]` |
-| `AttachState` | `root.state = bytes` (the exact bytes) |
+| `AttachState` | Store the exact bytes on the target record. A property write cannot change this field. |
 | `LiveMount` | Insert a record with kind `STACK` and `live = { kind, channel_id, transport, endpoint, resume_from }` |
-| `NativeControl` | Insert a record with kind `UNKNOWN` replaced by `control = { control, args }`. An unknown control id: report `UnknownControl`, and the record shows the fallback view |
-| `NativeCommand` | Append `{ command, args }` to the command list (the host runs it). An unknown command id: report `UnknownCommand`, nothing appended |
-| Any `Web` form (12 to 22) | Report `UnsupportedPlatformOp { row, op }` |
-| Union `NONE` or a number above 24 | Report `UnknownOp { row }` |
+| `MountWebView` | Set `record.webView = { parent_id, url }` on the node. A missing node follows the `UnknownNode` rule. The store builds no control; feature 18 mounts it (D46) |
+| `NativeCommand` | Append `{ command, args }` to the command list; the args are `NativeArg` (the host runs it). An unknown command id: report `UnknownCommand`, nothing appended |
+| `UiBehaviour` | Add the behaviour id name to `record.behaviours` (a sorted set). A name with no registered binding: report `UnknownBehaviour { row, node, name }`, no change |
+| `MobileBehaviour` | Add the id name, or the `custom` name when the id is `UNKNOWN`, to `record.behaviours`. A name with no registered binding: report `UnknownBehaviour { row, node, name }`, no change |
+| Any `web` member of an `Operation` | Report `UnsupportedPlatformOp { row }` |
+| A union `NONE` or a number above the last member of its union | Report `UnknownOp { row }` |
 
 A row that names a node id that is not in the store (as target, parent or child) reports
 `UnknownNode { row, node }` and changes nothing. Node id 1 is the screen root. Ids 0 and 2
 are not in a native store.
 
-Bodies: `Ops` and `Columnar` use the rows above (tier 2 through the column layout of
-feature 03 section 6.4). `Table`, `ArrowIpc` and `MessagePack` are passed to a data
-listener of the target node; the reference snapshot records only
-`{ "data": kind, "target": node }`. `Error` is recorded in `errors`. `Capabilities` is
-recorded in `caps`.
+Messages: a `Message` with `operation.ui` or `operation.mobile` uses the rows above (a
+`columnar` member uses the column layout of feature 03 section 6.4). A `Message` with
+`data` passes it to a data listener of the target node; the reference snapshot records
+only `{ "data": kind, "target": node }`. A `Message` with `control.error` is recorded in
+`errors`. A `Message` with `control.state_expired` or `control.update_required` is
+recorded in `errors` and calls the store's error callback with its own code
+(`StateExpired`, `UpdateRequired`). A `Message` with `control.caps` is recorded in
+`caps`. Pass the accepted caps frame once to `ActionCore.applyCapsFrame`. Report a core error through the host error callback.
 
 Ordering: the rule of feature 09 section 6.4, with the same three classes of frame.
 
@@ -327,7 +377,7 @@ Ordering: the rule of feature 09 section 6.4, with the same three classes of fra
 {
   "nodes": [
     { "id": 1, "kind": "STACK", "text": null, "props": {}, "children": [40],
-      "actions": {}, "state_len": 0, "live": null, "control": null }
+      "actions": {}, "state_len": 0, "live": null, "web_view": null, "behaviours": [] }
   ],
   "reports": [ { "code": "UnknownNode", "row": 3, "node": 999 } ],
   "commands": [ { "command": "HAPTIC", "args": {} } ],
@@ -341,7 +391,9 @@ Ordering: the rule of feature 09 section 6.4, with the same three classes of fra
   `"auto"`; a token is `"color:1"` or `"font:1"`; an enum is its name; a bool is `"true"`
   or `"false"`.
 - `actions` keys are the `EventId` names.
-- A report has `code`, `row`, and `op` or `node` when the rule gives one.
+- `behaviours` is a sorted list of names: the shared `BehaviourId` names and the custom
+  mobile names.
+- A report has `code`, `row`, and `op`, `node` or `name` when the rule gives one.
 
 The Swift and Kotlin tests build the same JSON and compare it as parsed JSON, so
 whitespace does not matter.
@@ -349,21 +401,22 @@ whitespace does not matter.
 ### 6.5 The Swift package
 
 ```
-native/ios/EweUI/
+../ewe-ui-swift/
 ├── Package.swift
 ├── Sources/
 │   ├── EweWire/                 generated Swift, copied from backends/foundation_ui_wire/generated/swift
 │   ├── EweUI/
 │   │   ├── NodeRecord.swift     @Observable final class NodeRecord
 │   │   ├── NodeStore.swift      @MainActor final class NodeStore
-│   │   ├── FrameApplier.swift   rows, tier 1 and tier 2 adapters, ordering
+│   │   ├── FrameApplier.swift   rows, the columnar adapter, ordering
 │   │   ├── Reports.swift        Report, ReportCode
 │   │   ├── Snapshot.swift       snapshotJSON() for tests
 │   │   ├── ActionCore.swift     protocol ActionCore; struct EventInput
 │   │   ├── EventBridge.swift
 │   │   ├── LiveMountHost.swift  protocol Channel, protocol ChannelFactory, URLSessionChannelFactory
 │   │   ├── CommandHost.swift    protocol CommandHost; SystemCommandHost
-│   │   ├── Views/NodeView.swift, CoreViews.swift, FallbackView.swift, WebViewControl.swift
+│   │   ├── Behaviours/          BehaviourBinding.swift, BehaviourRegistry.swift, ScrollLockBinding.swift
+│   │   ├── Views/NodeView.swift, CoreViews.swift, FallbackView.swift
 │   │   └── EweScreen.swift      the root view: EweScreen(store:)
 │   ├── EweCoreFFI/              UniFFI Swift, from scripts/ui_native/generate-bindings.sh
 │   └── EweCoreBinding/          adapts NativeCore to ActionCore and FrameListener to the store
@@ -389,9 +442,12 @@ Rust static library; `Package.swift` adds them only when the environment variabl
     public var actions: [EventId: String]
     public var state: Data?
     public var live: LiveMountSpec?
-    public var control: NativeControlSpec?
+    public var behaviours: Set<String>          // shared behaviour names and custom mobile names
+    public var webView: WebViewMountSpec?       // the row only; feature 18 mounts the control
     @ObservationIgnored public var parent: UInt32?
 }
+
+public struct WebViewMountSpec { public let parentId: UInt32; public let url: String }
 
 @MainActor public final class NodeStore {
     public init(gapTimeout: Duration = .milliseconds(1000),
@@ -408,7 +464,8 @@ Rust static library; `Package.swift` adds them only when the environment variabl
 
 public protocol ActionCore: Sendable {
     func hello() -> Data
-    func trigger(reference: String, event: EventInput) async throws -> Data
+    func applyCapsFrame(_ frame: Data) throws
+    func trigger(reference: String, event: EventInput) async throws -> Data?
 }
 
 @MainActor public final class EventBridge {
@@ -442,18 +499,34 @@ public protocol CommandHost { @MainActor func run(_ command: NativeCommandId, ar
 | `SPACER` | `Spacer()` | — |
 | `OVERLAY` | A `ZStack` layer above its parent's content | `BACKGROUND` |
 | `UNKNOWN` | `FallbackView`: an empty view with the accessibility label "unsupported content" | — |
-| control `WEB_VIEW` | `WebViewControl`: a `WKWebView` (through `UIViewRepresentable`) that loads the `url` text argument. It loads the web runtime and says hello with `mount: Web` (D11) | — |
+| web view mount | No view in this feature. The store holds `webView`; feature 18 mounts the `WKWebView` (D46) | `WIDTH`, `HEIGHT`, `HIDDEN` |
+
+**Behaviour bindings.** `Behaviours/` holds the protocol `BehaviourBinding` and the registry
+`BehaviourRegistry.standard`, as feature 16 section 6.6 defines. `NodeView` folds the
+bindings of `record.behaviours` over its content. `ScrollLockBinding` gives
+`content.scrollDisabled(true)`. A name in `record.behaviours` with no binding reports
+`UnknownBehaviour` and the node renders without it (I11).
+
+The shared set is `BehaviourId` (D56). A `MobileBehaviour` with `custom` names a behaviour
+that only the app knows. The registry is keyed by name, so the app registers that name with
+the same call that the standard registry uses for a shared behaviour (feature 16 section
+6.6).
 
 Every kind applies `A11Y_LABEL` (`.accessibilityLabel`), `HIDDEN`, `WIDTH` and `HEIGHT`
 (`.frame`). Tokens: `ColorToken` id `n` is `Color("ewe-color-\(n)", bundle: .main)` and
 `FontToken` id `n` comes from a table that the app passes to `EweScreen`. A missing asset
 falls back to the primary colour and the body font.
 
-**The event bridge `send`:** look up `record.actions[event]`; none means return. Find the
-nearest ancestor-or-self with `state != nil` (walk `parent`). Build `EventInput { node_id,
-event_name: lower-case event name, value, checked, parent_node: that root or 0, state: its
-bytes or empty }`. Start a `Task`: `let frame = try await core.trigger(...)`,
-then `store.receive(frame)` on the main actor. A thrown error goes to `store.onError` with
+**The event bridge `send`:** look up `record.actions[event]`; none means return. Read the bound control’s record. The parent number describes the tree structure only. Build `EventInput { node_id,
+event_name: lower-case event name, value, checked, parent_node: immediate parent id or 0, state: record.state or empty }`. Start a `Task` and await `core.trigger`. On the main actor, apply an immediate frame when present.
+
+```swift
+if let frame = try await core.trigger(reference: reference, event: input) {
+    store.receive(frame)
+}
+```
+
+A socket handoff returns `nil`. The host routes each incoming frame to the store once, through the socket reader or a live mount. A thrown error goes to `store.onError` with
 code `ActionFailed` and the error text.
 
 **`LiveMountHost`:** observes store changes after each `receive`: for each record with
@@ -478,7 +551,7 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
 | Step that fails | What the system does | What the caller sees | What is left behind |
 |---|---|---|---|
 | Size, verifier or identifier check | Adds a report `BadFrame` or `TooLarge` | `false` | nothing |
-| A row (other platform, unknown node, unknown op, unknown kind) | Adds a report; applies the next row | `true` | The other rows are applied. A frame is not atomic; each op names its node |
+| A row (other platform, unknown node, unknown op, unknown kind, unknown behaviour) | Adds a report; applies the next row | `true` | The other members are applied. A frame is not atomic; each member names its node |
 | The gap timer fires | Drops held frames of that stream; calls `onGap` | `onGap` | The cursor stays |
 
 **`send`**
@@ -487,72 +560,86 @@ query items `stream_id` and `resume_from`, as on the web (feature 11 section 6.5
 |---|---|---|---|
 | No action bound | Returns | nothing | nothing |
 | `core.trigger` throws | Calls `onError` | `onError(ActionFailed, text)` | The store is unchanged |
-| The answer is an `Error` frame | `receive` records it; `onError` with its code | `onError` | The store is unchanged |
+| The answer holds a `control.error` message | `receive` records it in `errors`; `onError` with its code | `onError` | The store is unchanged |
+| The answer holds a `control.state_expired` message | `receive` records it in `errors` and calls `onError(StateExpired, …)` | `onError(StateExpired, …)` | The nodes stay. The app reloads the state of its roots |
+| The answer holds a `control.update_required` message | `receive` records it in `errors` and calls `onError(UpdateRequired, …)` | `onError(UpdateRequired, …)` | The nodes stay. The app tells the user to update |
 
 ### 6.7 The example and CI
 
-- `examples/ui_counter_ios`: a small Xcode project (or a Swift package app target) that
-  links the `.xcframework` of the `ui_counter` core (a Rust crate
-  `examples/ui_counter/native` that registers `increment_counter` as a declared server
-  action and `increment_local` under `Origin::Native`, and exports the core constructor),
-  with a screen that mounts two counters. Its `README.md` gives the build and simulator
-  commands.
-- CI, on the macOS job of full runs only (rule 16), when `native/ios/**`,
-  `backends/foundation_ui_wire/**` or `backends/foundation_ui_native/**` changed:
-  `scripts/ui_native/sync-ios.sh --check`, `scripts/ui_native/generate-bindings.sh --check`,
-  `swift test --package-path native/ios/EweUI`, and `scripts/ui_native/build-ios.sh`
+- `../ewe-ui-swift/Examples/Todo`: a small Xcode project (or a Swift package app target) that links
+  the `.xcframework` of the `ui_todo` core (the Rust crate `examples/ui_todo/native`). The
+  app shows the D48 todo list: an "Add" button that opens a sheet with a text field, a long
+  scrolling list with scroll lock behind the sheet, a done toggle on each row, a delete
+  button that opens a confirm alert and whose second delete the domain rejects, a
+  notification after an add or a delete, a filter (all, open, done) bound to a `host:` action
+  in the core, and a count of open items that follows a live mount. The dialog, dismiss,
+  scroll lock and transition behaviours come from feature 16. Its `README.md` gives the build
+  and simulator commands.
+- Run the macOS job for Swift package full runs and for monorepo full runs that change the wire or native core.
+  Check out the Swift package beside the monorepo at the revision declared by the build. Run:
+  `scripts/toolchain/check.sh --scope apple`, `scripts/ui_native/sync-ios.sh --check`,
+  `scripts/ui_native/generate-bindings.sh --check`,
+  `swift test --package-path ../ewe-ui-swift`, and `scripts/ui_native/build-ios.sh`
   followed by `xcodebuild build` of the example for the simulator.
+
+Use `frame_state_custom.bin` and `action_increment_custom.bin` from the wire fixtures.
+Check that nodes 40 and 42 receive the bytes of `state_counter_custom.json` and that a submit on node 42 returns them unchanged.
 
 ## 7. Tests
 
 Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
-`native/ios/EweUI/Tests/EweUITests/`.
+`../ewe-ui-swift/Tests/EweUITests/`.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
 | The reference model follows section 6.3 | Rust `reference_tests.rs::each_rule_of_the_apply_table` (one case for each row of the table, including each report) and `::fixtures_match` | example |
-| I1; Scenarios: tree, mixed, replace | `ConformanceTests.testNativeTree`, `.testNativeMixed`, `.testNativeReplace`, `.testUnknownKind` | stateful model (the reference snapshots) |
-| I1 (tiers); Scenario: columns | `ConformanceTests.testColumnarEqualsOps` | metamorphic |
-| I2; Scenario: web form | `ConformanceTests.testNativeMixed`; `ApplierTests.testEveryWebFormIsReported` with `frame_ops_all_forms.bin` (11 reports with ops 12 to 22) | example |
+| I1; Scenarios: tree, mixed, replace, behaviour | `ConformanceTests.testNativeTree`, `.testNativeMixed`, `.testNativeReplace`, `.testUnknownKind`, `.testNativeUiBehaviour` | stateful model (the reference snapshots) |
+| The columnar member; Scenario: columns | `ConformanceTests.testColumnarEqualsOps` | metamorphic |
+| I2; Scenario: web member | `ConformanceTests.testNativeMixed`; `ApplierTests.testEveryWebMemberIsReported` with `frame_ops_all_forms.bin` (one report for each `web` member) | example |
 | I3 | `ApplierTests.testUnknownNodeIsReported` | example |
 | I4; Scenario: one record notified | `ObservationTests.testTextChangeNotifiesOneRecord` (`withObservationTracking` on two records) | example |
 | I5 | `ApplierTests.testReceiveIsSynchronous` (the record is changed on the line after `receive`) | example |
 | I6; Scenario: live gap | `OrderingTests.testLiveFramesApplyInOrder`, `.testGapAsksForResume`, `.testAnswerAppliesAtOnce`, `.testDuplicateIsIgnored` (an injected clock for the timer) | stateful model |
-| I7; Scenarios: tap, unbound | `EventBridgeTests.testTapSendsRootState`, `.testUnboundEventSendsNothing`, `.testTriggerErrorGoesToOnError` | example, fault |
+| I7; Scenarios: tap, unbound | `EventBridgeTests.testTapSendsLocalState`, `.testUnboundEventSendsNothing`, `.testTriggerErrorGoesToOnError` | example, fault |
 | I8; Scenario: live mount | `LiveMountTests.testOpensOnAttachAndClosesOnRemove`, `.testLocalTransportOpensNothing`, `.testResumeReopensWithCursor` | example |
 | I9; Scenario: unknown command | `ApplierTests.testUnknownCommandIsReported`, `.testHapticReachesCommandHost` | example |
 | I10 | Review item: the package has no `JavaScriptCore` import and no dynamic loading call | expected outcome |
+| I11; Scenarios: behaviour, unknown behaviour | `ApplierTests.testUiBehaviourIsStored`, `.testUnknownBehaviourIsReported`, `.testMobileBehaviourUsesItsCustomName` | example |
+| U6; Scenario: WebView mount row | `ApplierTests.testMountWebViewIsStored` (no control is built) | example |
 | Scenario: bad bytes | `ApplierTests.testBadBytesAreRejected`, `.testEveryPrefixIsRejectedOrApplied` | property |
 | Views build | `ViewSmokeTests.testEveryKindBuilds`: host `EweScreen` in an `NSHostingView` on macOS with a store that has one node of each kind, and lay it out | example |
+| Caps delivery | Feed a caps frame through the store and check that the core receives it once. | example |
 | I8 of feature 01 (four languages read one fixture) | `WireTests.testFixturesReadTheSameAsRust` (the field values of feature 01 section 6.7) | example |
 
 ## 8. Tasks
 
-- [ ] 1. `reference.rs`, the conformance fixtures and snapshots, with the Rust tests.
-- [ ] 2. The package skeleton; `sync-ios.sh`; `WireTests`.
-- [ ] 3. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
-- [ ] 4. `FrameApplier` tier 1 and the cross-platform rows; `ConformanceTests`.
-- [ ] 5. Tier 2, the mobile rows, the web-form reports.
-- [ ] 6. Ordering and the gap timer.
-- [ ] 7. `ActionCore`, `EventBridge`.
-- [ ] 8. `LiveMountHost` and `URLSessionChannelFactory`.
-- [ ] 9. `CommandHost`.
-- [ ] 10. The views and `EweScreen`; the smoke test.
-- [ ] 11. `EweCoreBinding`, `build-ios.sh`, the example app.
-- [ ] 12. The CI step.
-- [ ] 13. Update `progress.md` and `learnings.md`.
+- [x] 1. `reference.rs`, the conformance fixtures and snapshots, with the Rust tests.
+- [x] 2. The package skeleton; `sync-ios.sh`; `WireTests`.
+- [x] 3. `NodeRecord`, `NodeStore`, `Reports`, `Snapshot`.
+- [x] 4. `FrameApplier` and the cross-platform rows; `ConformanceTests`.
+- [x] 5. The columnar member, the mobile rows (`MountWebView`, `NativeCommand`, `MobileBehaviour`), the `UiBehaviour` rows, the web-member reports.
+- [x] 6. Ordering and the gap timer.
+- [x] 7. `ActionCore`, `EventBridge`.
+- [x] 8. `LiveMountHost` and `URLSessionChannelFactory`.
+- [x] 9. `CommandHost`.
+- [x] 10. The views, the behaviour bindings and `EweScreen`; the smoke test.
+- [x] 11. `EweCoreBinding`, `build-ios.sh`, the example app.
+- [x] 12. The CI step.
+- [x] 13. Update `progress.md` and `learnings.md`.
+- [x] 14. Write or update the package and starter README files.
+      Show how to run the iOS starter. Include generated bindings and the Swift fixture checks.
 
 ## 9. Verify
 
 ```bash
+mise exec -- scripts/toolchain/check.sh --scope apple
 cargo test -p foundation_ui_wire --profile uat --features reference
 cargo clippy -p foundation_ui_wire --profile uat --no-deps --features reference -- -D warnings
 scripts/ui_native/sync-ios.sh --check
-swift build --package-path native/ios/EweUI
-swift test  --package-path native/ios/EweUI
 scripts/ui_native/build-ios.sh
-xcodebuild -project examples/ui_counter_ios/UICounter.xcodeproj -scheme UICounter \
-  -destination 'generic/platform=iOS Simulator' build
+swift test --package-path "$EWE_UI_SWIFT"
+"$EWE_UI_SWIFT/scripts/build-example" Starter build CODE_SIGNING_ALLOWED=NO
+"$EWE_UI_SWIFT/scripts/build-example" Todo build CODE_SIGNING_ALLOWED=NO
 ```
 
 The last four commands need macOS with Xcode. On another host, the executor runs the first
@@ -560,10 +647,12 @@ two and reports that the Swift commands ran in the pull request's macOS CI job.
 
 ## 10. Done when
 
+- [x] The package and starter README files are current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The Swift snapshots equal the reference snapshots for every conformance fixture.
-- [ ] The example app shows both counters working in the simulator; the run is recorded in
+- [x] The Swift snapshots equal the reference snapshots for every conformance fixture.
+- [x] The example todo list runs in the simulator: an add, a done toggle, a delete with its
+      second-delete rejection, the filter and the live count; the run is recorded in
       `progress.md` with the date and the Xcode version.
 - [ ] The check list of the `story-driven-specification` skill passes.
 

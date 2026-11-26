@@ -472,9 +472,15 @@ impl Ctx {
     /// context.
     #[must_use]
     pub fn clock(&self) -> Arc<dyn Clock> {
-        self.0.clock.clone().expect(
+        self.try_clock().expect(
             "Ctx is missing its engine-minimum clock; call Ctx::assert_minimum at the boundary",
         )
+    }
+
+    /// Returns the injected clock when the context has one.
+    #[must_use]
+    pub fn try_clock(&self) -> Option<Arc<dyn Clock>> {
+        self.0.clock.clone()
     }
 
     /// The shared, read-only configuration.
@@ -503,9 +509,15 @@ impl Ctx {
     /// context.
     #[must_use]
     pub fn rng(&self) -> Arc<Mutex<ChaCha8Rng>> {
-        self.0.rng.clone().expect(
+        self.try_rng().expect(
             "Ctx is missing its engine-minimum rng; call Ctx::assert_minimum at the boundary",
         )
+    }
+
+    /// Returns the injected random number generator when the context has one.
+    #[must_use]
+    pub fn try_rng(&self) -> Option<Arc<Mutex<ChaCha8Rng>>> {
+        self.0.rng.clone()
     }
 
     /// A new handle over a *copied* map.

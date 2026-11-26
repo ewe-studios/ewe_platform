@@ -1,0 +1,7 @@
+syntax = "proto3";
+package ewe.demo.v1;
+message Item { string text = 1; }
+service Notes {
+  rpc Watch(Item) returns (stream Item);
+  rpc Upload(stream Item) returns (Item);
+}

@@ -23,7 +23,8 @@
 // lazily-populated `bridge`, so they work even though the instance doesn't exist at
 // the time the import object is built.
 //
-// Protocol bytes (decision 014/022): 0 = Custom Binary, 1 = Arrow, 2 = JSON.
+// Protocol bytes (decision 014/022, F27): 0 = Custom Binary, 1 = Arrow, 2 = JSON,
+//   3 = Capability Trigger (host→wasm), 4 = IPC Trigger (host→wasm).
 
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -1370,8 +1371,14 @@ export class ProtocolDispatcher {
     return this;
   }
 
+  /** Install a reader for a self-identifying binary format. Other messages use the envelope. */
+  setRawHandler(matches, apply) {
+    this.rawHandler = { matches, apply };
+  }
+
   /** @param {ArrayBuffer|Uint8Array} buffer */
   dispatch(buffer) {
+    if (this.rawHandler?.matches(buffer)) return this.rawHandler.apply(buffer);
     const { protocol, memoryId, payload } = WasmEnvelope.parse(buffer);
     const handler = this.handlers[protocol];
     if (!handler) {
@@ -1443,15 +1450,36 @@ export class TimerRegistry {
     this.host = host;
     this.timeouts = new Map();
     this.intervals = new Map();
+    // Set by cancelAll(): nothing scheduled for this instance may call into it
+    // afterwards (queued microtasks cannot be cancelled, so they check this).
+    this.disposed = false;
   }
 
   scheduleTimeout(callbackId, delayMs) {
+    if (this.disposed) return;
     const key = String(callbackId);
     const handle = this.host.setTimeout(() => {
       this.timeouts.delete(key);
+      if (this.disposed) return;
       this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
     }, delayMs);
     this.timeouts.set(key, handle);
+  }
+
+  /**
+   * Run the scheduled callback once as a microtask (`schedule_microtask`): right
+   * after the current task, before timers and I/O. Used by the guest to resume
+   * itself from an event-driven wake without the latency of a 0 ms timer.
+   */
+  scheduleMicrotask(callbackId) {
+    if (this.disposed) return;
+    const queue = this.host.queueMicrotask
+      ? this.host.queueMicrotask.bind(this.host)
+      : (fn) => Promise.resolve().then(fn);
+    queue(() => {
+      if (this.disposed) return;
+      this.bridge.exports.run_scheduled_callback(BigInt(callbackId));
+    });
   }
 
   cancelTimeout(callbackId) {
@@ -1464,6 +1492,7 @@ export class TimerRegistry {
   }
 
   scheduleInterval(callbackId, intervalMs) {
+    if (this.disposed) return;
     const key = String(callbackId);
     const handle = this.host.setInterval(() => {
       // run_interval_callback returns 0 (STOP) when the callback asked to stop.
@@ -1481,6 +1510,20 @@ export class TimerRegistry {
       this.host.clearInterval(handle);
       this.intervals.delete(key);
     }
+  }
+
+  /**
+   * Cancel every pending timeout and interval and refuse new ones: the instance
+   * these callbacks would run in is being discarded. Without this, a timer the
+   * guest scheduled keeps the old instance alive and calls into it later — after
+   * its owner has moved on (e.g. the `#[wasm_test]` runner's next case).
+   */
+  cancelAll() {
+    this.disposed = true;
+    for (const handle of this.timeouts.values()) this.host.clearTimeout(handle);
+    for (const handle of this.intervals.values()) this.host.clearInterval(handle);
+    this.timeouts.clear();
+    this.intervals.clear();
   }
 }
 
@@ -1720,6 +1763,92 @@ export class AsyncTaskCollector {
   awaitAll() { return Promise.all(this.tasks); }
 }
 
+// ─── WasmStreamReceiver / WasmStreamSender (F28) ─────────────────────────────────
+
+/**
+ * Host→WASM incoming stream. The WASM side writes data; JS receives it.
+ *
+ * Usage:
+ *   var stream = new WasmStreamReceiver({
+ *     onData: function(chunk) { ... },    // { data: Uint8Array, sequence: number }
+ *     onEnd:  function() { ... },
+ *     onError: function(err) { ... }
+ *   });
+ *
+ * The WASM side calls the internal `_push(id, data, seq, isLast)` to deliver
+ * chunks. IDs are assigned by the JS side (monotonic counter).
+ */
+let _receiverIdCounter = 0;
+const _receivers = {};
+
+export class WasmStreamReceiver {
+  constructor(opts) {
+    this._id = ++_receiverIdCounter;
+    this._onData = (opts && opts.onData) || function () {};
+    this._onEnd = (opts && opts.onEnd) || function () {};
+    this._onError = (opts && opts.onError) || function () {};
+    _receivers[this._id] = this;
+  }
+
+  /** Called by WASM (through host_apply or direct FFI) when data arrives. */
+  static _push(id, data, sequence, isLast) {
+    var r = _receivers[id];
+    if (!r) return;
+    try {
+      if (isLast) {
+        r._onEnd();
+        delete _receivers[id];
+      } else {
+        r._onData({ data: data, sequence: sequence });
+      }
+    } catch (e) {
+      r._onError(e);
+    }
+  }
+
+  /** The global ID used by WASM to reference this receiver. */
+  get receiverId() { return this._id; }
+}
+
+/**
+ * WASM→host outgoing stream. The WASM side creates a stream and sends chunks;
+ * the host receives them through callbacks.
+ *
+ * Usage:
+ *   var stream = new WasmStreamSender(function(chunk) {
+ *     // chunk = { data: Uint8Array, sequence: number } — deliver to host
+ *   }, function() {
+ *     // stream complete
+ *   });
+ *   // Pass stream.senderId to WASM so it can call host_sender_send / host_sender_end.
+ */
+let _senderIdCounter = 0;
+const _senders = {};
+
+export class WasmStreamSender {
+  constructor(onChunk, onEnd) {
+    this._id = ++_senderIdCounter;
+    this._onChunk = onChunk || function () {};
+    this._onEnd = onEnd || function () {};
+    _senders[this._id] = this;
+  }
+
+  /** Called by WASM when it has a chunk to send. */
+  static _send(id, data, sequence) {
+    var s = _senders[id];
+    if (s) s._onChunk({ data: data, sequence: sequence });
+  }
+
+  /** Called by WASM when the stream is complete. */
+  static _end(id) {
+    var s = _senders[id];
+    if (s) { s._onEnd(); delete _senders[id]; }
+  }
+
+  /** The global ID used by WASM to reference this sender. */
+  get senderId() { return this._id; }
+}
+
 // ─── FoundationWasm runtime ──────────────────────────────────────────────────────
 
 /**
@@ -1753,6 +1882,82 @@ export class FoundationWasm {
     // Protocol byte 0 (Custom Binary) IS the batch-instructions format (decision
     // 022) — pre-wire its handler so batch messages route without extra setup.
     this.dispatcher.setHandler(0, batchProtocolHandler(this.batches));
+    // F27: Protocol bytes 3 = capability trigger, 4 = IPC trigger.
+    // Handlers are set lazily via registerTriggerHandlers() so the WASM app
+    // can register callbacks before the dispatcher routes to them.
+    this._capTriggerHandler = null;
+    this._ipcTriggerHandler = null;
+    this.dispatcher.setHandler(3, { apply: (mid, payload) => this._dispatchCapTrigger(mid, payload) });
+    this.dispatcher.setHandler(4, { apply: (mid, payload) => this._dispatchIpcTrigger(mid, payload) });
+    // F28: Stream registry placeholder — WASM exports register streams here.
+    this._streamRegistry = null;
+    // F28: Host-side stream registry. Streams are created by WASM via
+    // host_stream_create() → returns an ID. Chunks are buffered until
+    // callbacks are bound via host_stream_bind(). This decouples creation
+    // (WASM gets an ID it can pass as a return value) from consumption
+    // (JS binds callbacks later).
+    this._streamRegistry = {};
+    this._nextStreamId = 1;
+  }
+
+  /**
+   * F27: Deliver a capability trigger FROM the host INTO the WASM module.
+   * The host (browser, Tauri, Deno) calls this to invoke a capability handler
+   * registered on the WASM side via TriggerRegistry.
+   *
+   * @param {{ capability: string, action: string, payload: Uint8Array }} request
+   * @returns {Promise<object>} capability response
+   */
+  triggerCapability(request) {
+    if (!this._capTriggerHandler) {
+      return Promise.reject(new Error('triggerCapability: no handler registered'));
+    }
+    return this._capTriggerHandler(request);
+  }
+
+  /**
+   * F27: Deliver an IPC trigger FROM the host INTO the WASM module.
+   *
+   * @param {{ ipc: string, action: string, payload: Uint8Array }} request
+   * @returns {Promise<object>} IPC response
+   */
+  triggerIpc(request) {
+    if (!this._ipcTriggerHandler) {
+      return Promise.reject(new Error('triggerIpc: no handler registered'));
+    }
+    return this._ipcTriggerHandler(request);
+  }
+
+  /**
+   * F27: Register trigger handlers for capability and IPC dispatch.
+   * Called by foundation_wasm_ui once the WASM app has set up its
+   * TriggerRegistry.
+   *
+   * @param {{ onCapability: Function, onIpc: Function }} handlers
+   */
+  registerTriggerHandlers(handlers) {
+    if (handlers.onCapability) this._capTriggerHandler = handlers.onCapability;
+    if (handlers.onIpc) this._ipcTriggerHandler = handlers.onIpc;
+  }
+
+  /** @private */
+  _dispatchCapTrigger(memoryId, payload) {
+    if (!this._capTriggerHandler) return;
+    try {
+      var req = JSON.parse(new TextDecoder().decode(payload));
+      this._capTriggerHandler(req);
+    } catch (_) { /* best-effort */ }
+    this.memory.dispose(memoryId);
+  }
+
+  /** @private */
+  _dispatchIpcTrigger(memoryId, payload) {
+    if (!this._ipcTriggerHandler) return;
+    try {
+      var req = JSON.parse(new TextDecoder().decode(payload));
+      this._ipcTriggerHandler(req);
+    } catch (_) { /* best-effort */ }
+    this.memory.dispose(memoryId);
   }
 
   /**
@@ -1761,7 +1966,8 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
-    const { memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
+    const self = this;
+    const { bridge, memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
       host_apply(memId, ptr, len) {
@@ -1776,6 +1982,9 @@ export class FoundationWasm {
       },
       unschedule_timeout(callbackId) {
         timers.cancelTimeout(callbackId);
+      },
+      schedule_microtask(callbackId) {
+        timers.scheduleMicrotask(callbackId);
       },
       schedule_interval(timing, callbackId) {
         timers.scheduleInterval(callbackId, Number(timing));
@@ -1800,6 +2009,60 @@ export class FoundationWasm {
             )
           : "";
         this.testReports.push(Number(status), message);
+      },
+
+      // Clock + entropy for foundation_compact's `host-abi` backend (the owned
+      // path's `Instant`, `SystemTime` and RNG seeding, no wasm-bindgen glue).
+      // Monotonic ms since the time origin; Date.now() where there is no
+      // `performance` (e.g. some worklets), like the rAF fallback above.
+      host_monotonic_now_ms() {
+        return globalThis.performance?.now?.() ?? Date.now();
+      },
+      // The time origin in ms since the Unix epoch (threaded builds only).
+      host_time_origin_ms() {
+        return globalThis.performance?.timeOrigin ?? 0;
+      },
+      // Wall-clock ms since the Unix epoch.
+      host_wall_clock_ms() {
+        return Date.now();
+      },
+      // Fill `len` bytes at `ptr` from crypto.getRandomValues: 0 = ok, 1 = no
+      // secure source. Web Crypto takes at most 65536 bytes per call, and
+      // refuses views over shared memory, which go through a scratch buffer.
+      host_fill_random: (ptr, len) => {
+        const crypto = globalThis.crypto;
+        if (typeof crypto?.getRandomValues !== "function") return 1;
+        const MAX_PER_CALL = 65536; // Web Crypto's per-call limit (spec).
+        const start = Number(ptr);
+        const total = Number(len);
+        try {
+          for (let done = 0; done < total; done += MAX_PER_CALL) {
+            const n = Math.min(MAX_PER_CALL, total - done);
+            const buffer = this.bridge.memory.buffer;
+            const dest = new Uint8Array(buffer, start + done, n);
+            if (typeof SharedArrayBuffer !== "undefined" && buffer instanceof SharedArrayBuffer) {
+              const scratch = new Uint8Array(n);
+              crypto.getRandomValues(scratch);
+              dest.set(scratch);
+            } else {
+              crypto.getRandomValues(dest);
+            }
+          }
+        } catch (_) {
+          return 1;
+        }
+        return 0;
+      },
+      // Console log for foundation_compact's `host-abi` trace backend: read a
+      // UTF-8 line from WASM memory and print it with console.log (no wasm-bindgen).
+      host_console_log(ptr, len) {
+        const length = Number(len);
+        const message = length
+          ? new TextDecoder().decode(
+              new Uint8Array(this.bridge.memory.buffer, Number(ptr), length),
+            )
+          : "";
+        console.log(message);
       },
 
       // Function registry: register a JS fn (source string) → handle; invoke it.
@@ -1860,6 +2123,96 @@ export class FoundationWasm {
       host_batch_returning_apply(opsPtr, opsLen, textPtr, textLen) {
         return batches.applyReturning(opsPtr, opsLen, textPtr, textLen);
       },
+
+      // F28: Stream FFI — WASM pushes data through buffered host-side streams.
+      //
+      // host_stream_create()  → returns stream ID (u64). WASM can pass this
+      //                         as a return value. Chunks are buffered until
+      //                         callbacks are bound.
+      // host_stream_bind(id, onChunk, onEnd) → bind callbacks, drain buffer.
+      // host_sender_send(id, ptr, len, seq)  → push chunk (buffer or deliver).
+      // host_sender_end(id)                  → signal end (or mark ended).
+      //
+      // This decouples stream creation from consumption:
+      //   1. WASM calls host_stream_create() → gets ID
+      //   2. WASM passes ID as return value to JS
+      //   3. JS binds callbacks via host_stream_bind(id, onChunk, onEnd)
+      //   4. WASM pushes chunks → delivered to onChunk
+      //   5. WASM calls host_sender_end → delivered to onEnd
+      host_stream_create() {
+        var id = self._nextStreamId++;
+        self._streamRegistry[id] = {
+          chunks: [],
+          onChunk: null,
+          onEnd: null,
+          ended: false,
+          bind: function (chunkFn, endFn) {
+            this.onChunk = chunkFn || null;
+            this.onEnd = endFn || null;
+            // Drain buffered chunks
+            if (this.onChunk) {
+              for (var i = 0; i < this.chunks.length; i++) {
+                this.onChunk(this.chunks[i]);
+              }
+              this.chunks.length = 0;
+            }
+            if (this.ended && this.onEnd) {
+              this.onEnd();
+            }
+          },
+        };
+        return BigInt(id);
+      },
+      host_stream_bind(streamId, cbOnChunk, cbOnEnd) {
+        var s = self._streamRegistry[Number(streamId)];
+        if (!s) return;
+        s.onChunk = typeof cbOnChunk === "function" ? cbOnChunk : null;
+        s.onEnd = typeof cbOnEnd === "function" ? cbOnEnd : null;
+        // Drain buffered chunks
+        if (s.onChunk) {
+          for (var i = 0; i < s.chunks.length; i++) {
+            s.onChunk(s.chunks[i]);
+          }
+          s.chunks.length = 0;
+        }
+        // If already ended, fire onEnd immediately
+        if (s.ended && s.onEnd) {
+          s.onEnd();
+        }
+      },
+      host_sender_send(streamId, dataPtr, dataLen, seq) {
+        var id = Number(streamId);
+        var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
+        var s = self._streamRegistry[id];
+        if (s) {
+          var chunk = { data: data, sequence: Number(seq) };
+          if (s.onChunk) {
+            s.onChunk(chunk);
+          } else {
+            s.chunks.push(chunk);
+          }
+        } else {
+          // Fallback: direct WasmStreamSender (pre-F28 API)
+          WasmStreamSender._send(id, data, Number(seq));
+        }
+      },
+      host_sender_end(streamId) {
+        var id = Number(streamId);
+        var s = self._streamRegistry[id];
+        if (s) {
+          s.ended = true;
+          if (s.onEnd) s.onEnd();
+          delete self._streamRegistry[id];
+        } else {
+          // Fallback: direct WasmStreamSender (pre-F28 API)
+          WasmStreamSender._end(id);
+        }
+      },
+      // Host → WASM (incoming): call host_receiver_push to deliver chunks.
+      host_receiver_push(receiverId, dataPtr, dataLen, seq, isLast) {
+        var data = new Uint8Array(bridge.memory.buffer, Number(dataPtr), Number(dataLen));
+        WasmStreamReceiver._push(Number(receiverId), data, Number(seq), isLast !== 0);
+      },
     };
   }
 
@@ -1873,6 +2226,16 @@ export class FoundationWasm {
     this.bridge.exports = instance.exports;
     this.bridge.memory = instance.exports.memory;
     return this;
+  }
+
+  /**
+   * Tear down this runtime's host-side scheduling before discarding the
+   * instance: pending timeouts, intervals, queued microtasks and the animation
+   * loop are cancelled, so no guest code runs after this call.
+   */
+  dispose() {
+    this.timers.cancelAll();
+    this.animation.stop();
   }
 
   /** Register a protocol handler `{ apply(memoryId, payload) }` for a protocol byte. */
@@ -2026,4 +2389,6 @@ globalThis.FoundationWasmRuntime = Object.freeze({
   ReplyContainer,
   FakeNode,
   ReplyError,
+  WasmStreamReceiver,
+  WasmStreamSender,
 });

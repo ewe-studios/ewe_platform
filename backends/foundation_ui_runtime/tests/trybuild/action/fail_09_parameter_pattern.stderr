@@ -1,0 +1,5 @@
+error: an action parameter must be a plain name
+ --> tests/trybuild/action/fail_09_parameter_pattern.rs:4:17
+  |
+4 | async fn submit(_: &Context, _event: Interaction<()>) -> ActionResult {
+  |                 ^

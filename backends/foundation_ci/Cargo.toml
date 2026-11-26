@@ -1,0 +1,49 @@
+[package]
+name = "foundation_ci"
+version = "0.1.1"
+description = "Plan and run workspace continuous integration tasks"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+autotests = false
+
+[[bin]]
+name = "foundation-ci"
+path = "src/main.rs"
+
+[[test]]
+name = "integration"
+path = "tests/mod.rs"
+
+[features]
+cloudflare-objects = ["dep:foundation_cloudflare_storage", "dep:foundation_netio"]
+
+[dependencies]
+foundation_cloudflare_storage = { workspace = true, optional = true }
+foundation_netio = { workspace = true, optional = true, features = ["ssl", "multi"] }
+blocking.workspace = true
+clap.workspace = true
+chrono.workspace = true
+foundation_tasks.workspace = true
+futures-util.workspace = true
+regex.workspace = true
+shlex.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tempfile.workspace = true
+toml = { workspace = true, features = ["preserve_order"] }
+sha2.workspace = true
+hex.workspace = true
+quick-xml.workspace = true
+sha1.workspace = true
+toml_edit.workspace = true
+tar.workspace = true
+flate2.workspace = true
+
+[dev-dependencies]
+foundation_core.workspace = true
+
+[lints]
+workspace = true

@@ -199,8 +199,8 @@ pub enum ProtocolHint {
     /// delivered as-is. This is the default.
     Default,
 
-    /// Prefer columnar v1 encoding (`DomOps` batches, wasm-loop, no-std).
-    Columnar,
+    /// Prefer length-prefixed user interface frames.
+    Frame,
 
     /// Prefer Arrow `RecordBatch` binary — raw columnar bytes cast to `&[u8]`.
     /// Single batch, no streaming metadata. The default for data payloads.
@@ -311,8 +311,8 @@ pub struct PageIdentity {
 /// The actual encode/decode logic lives in `foundation_wasm_ui`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Protocol {
-    /// `DomOp` batches — wasm-loop, no-std, TypedArray-friendly.
-    Columnar,
+    /// A length-prefixed stream of user interface frames.
+    Frame,
 
     /// Raw `RecordBatch` binary — single batch, no streaming metadata.
     Arrow,
@@ -335,7 +335,7 @@ impl Protocol {
     #[must_use]
     pub const fn content_type(self) -> &'static str {
         match self {
-            Protocol::Columnar => "application/primal-columnar",
+            Protocol::Frame => "application/primal-frame",
             Protocol::Arrow => "application/primal-arrow",
             Protocol::ArrowIpc => "application/vnd.apache.arrow.stream",
             Protocol::Json => "application/primal-json",

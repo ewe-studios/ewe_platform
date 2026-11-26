@@ -1,0 +1,8 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+**/jniLibs/
+
+!**/src/debug/
+!**/src/debug/AndroidManifest.xml

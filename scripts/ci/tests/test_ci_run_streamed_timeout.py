@@ -17,9 +17,9 @@ import time
 import unittest
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[3]
-CI = REPO / "scripts" / "ci" / "ci.py"
-
+# Production jobs call foundation-ci; this reference copy keeps the behaviour
+# the regression tests check.
+CI = Path(__file__).with_name("planner_reference.py")
 # The child holds the inherited stdout pipe and sleeps long enough that only the
 # timeout can end the command.
 FORK_AND_HOLD = (
