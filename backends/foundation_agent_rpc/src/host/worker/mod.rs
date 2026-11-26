@@ -11,4 +11,14 @@
 
 pub mod config;
 pub mod do_client;
+pub mod entry;
+pub mod object;
+pub mod registry;
 pub mod secrets;
+pub mod serve;
+
+/// The path pattern of every `AgentService` procedure.
+///
+/// The Connect path is `/ewe.agent.v1.AgentService/<Method>`; the router
+/// matches the last segment as `:method`.
+pub const SERVICE_PATH: &str = "/ewe.agent.v1.AgentService/:method";

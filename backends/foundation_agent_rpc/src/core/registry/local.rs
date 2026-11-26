@@ -13,6 +13,7 @@
 //! drop.
 
 use std::collections::BTreeMap;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::time::{Duration, Instant};
@@ -277,7 +278,24 @@ pub struct LocalInstanceRegistry<S: SessionStores = InMemoryStores> {
     turns: TurnLimits,
     shutdown: TurnShutdown,
     activity: Arc<TurnActivity>,
+    /// Runs before `destroy` removes an instance. The Durable Object uploads
+    /// the history here; an error stops the destroy and keeps the storage
+    /// (invariant I5).
+    destroy_hook: Option<DestroyHookFn>,
 }
+
+/// The future of one [`DestroyHook`].
+pub type DestroyHookFuture =
+    Pin<Box<dyn std::future::Future<Output = AgentRpcResult<()>> + Send + 'static>>;
+
+/// Runs before an instance is destroyed.
+///
+/// The hook receives the checked caller, the instance facts and the session
+/// identifier. It reads the session's history from the same storage and
+/// uploads it. When it returns an error, the registry keeps the instance and
+/// its storage, so no history is lost.
+pub type DestroyHookFn =
+    Arc<dyn Fn(Caller, InstanceInfo, SessionId) -> DestroyHookFuture + Send + Sync + 'static>;
 
 impl<S: SessionStores> std::fmt::Debug for LocalInstanceRegistry<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -313,7 +331,19 @@ impl<S: SessionStores> LocalInstanceRegistry<S> {
             turns,
             shutdown: TurnShutdown::default(),
             activity: Arc::new(TurnActivity::default()),
+            destroy_hook: None,
         })
+    }
+
+    /// Run `hook` before an instance is destroyed.
+    ///
+    /// The Durable Object uses it to upload the session history to R2. The
+    /// hook runs before the instance leaves the table; an error keeps the
+    /// instance and its storage (invariant I5).
+    #[must_use]
+    pub fn with_destroy_hook(mut self, hook: DestroyHookFn) -> Self {
+        self.destroy_hook = Some(hook);
+        self
     }
 
     /// The configuration.
@@ -506,9 +536,22 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
 
     fn destroy<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()> {
         Box::pin(async move {
-            let removed = self
-                .table_mut()
-                .remove(&(caller.scope.clone(), name.to_string()));
+            let key = (caller.scope.clone(), name.to_string());
+            let handle = {
+                let table = self.table();
+                table.get(&key).cloned()
+            };
+            let Some(handle) = handle else {
+                return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
+            };
+            // The history archive runs before the instance leaves the table.
+            // Its error keeps the instance and its storage (invariant I5).
+            if let Some(hook) = &self.destroy_hook {
+                let info = handle.info();
+                let session = handle.session().session_id().clone();
+                hook(caller.clone(), info, session).await?;
+            }
+            let removed = self.table_mut().remove(&key);
             let Some(handle) = removed else {
                 return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
             };

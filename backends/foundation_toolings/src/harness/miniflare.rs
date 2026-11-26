@@ -212,6 +212,22 @@ impl Miniflare {
         http_request("127.0.0.1", self.port, "POST", path, body, timeout)
     }
 
+    /// One request with explicit headers; returns the status, the response head
+    /// and the decoded body.
+    ///
+    /// # Errors
+    /// A connection, timeout or malformed-response failure.
+    pub fn request(
+        &self,
+        method: &str,
+        path: &str,
+        headers: &[(&str, &str)],
+        body: &str,
+        timeout: Duration,
+    ) -> Result<(u16, String, String), MiniflareError> {
+        http_request_full("127.0.0.1", self.port, method, path, headers, body, timeout)
+    }
+
     /// The last lines the worker process wrote to stdout (see
     /// [`MiniflareConfig::log_tail_lines`]).
     #[must_use]
@@ -502,6 +518,21 @@ fn http_request(
     body: &str,
     timeout: Duration,
 ) -> Result<(u16, String), MiniflareError> {
+    http_request_full(host, port, method, path, &[], body, timeout)
+        .map(|(status, _head, body)| (status, body))
+}
+
+/// One request with explicit headers; returns the status, the response head
+/// and the decoded body.
+fn http_request_full(
+    host: &str,
+    port: u16,
+    method: &str,
+    path: &str,
+    headers: &[(&str, &str)],
+    body: &str,
+    timeout: Duration,
+) -> Result<(u16, String, String), MiniflareError> {
     let addr = format!("{host}:{port}");
     let mut stream = TcpStream::connect(&addr)
         .map_err(|e| MiniflareError::HttpFailed(format!("connect {addr}: {e}")))?;
@@ -510,9 +541,13 @@ fn http_request(
         .set_read_timeout(Some(timeout))
         .map_err(|e| MiniflareError::HttpFailed(format!("set timeout: {e}")))?;
 
+    let mut extra = String::new();
+    for (name, value) in headers {
+        extra.push_str(&format!("{name}: {value}\r\n"));
+    }
     let request = format!(
         "{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\
-         Content-Length: {}\r\n\r\n{body}",
+         {extra}Content-Length: {}\r\n\r\n{body}",
         body.len()
     );
     stream
@@ -545,7 +580,7 @@ fn http_request(
         body.to_string()
     };
 
-    Ok((status_code, body))
+    Ok((status_code, head.to_string(), body))
 }
 
 /// Decode an HTTP/1.1 `Transfer-Encoding: chunked` body.

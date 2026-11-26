@@ -40,6 +40,7 @@ pub fn instance_client(
     env: &worker::Env,
     name: &str,
     limits: &ServeLimits,
+    principal: Option<&str>,
 ) -> AgentRpcResult<AgentServiceClient> {
     let config = ClientConfig::default()
         .with_body_queue_chunks(limits.response_queue)
@@ -51,13 +52,16 @@ pub fn instance_client(
             )))
         })?;
     let transport = H1Transport::new(Arc::new(stub));
-    AgentServiceClient::new(Arc::new(transport), INSTANCE_BASE_URL, ClientOptions::new()).map_err(
-        |error| {
-            ErrorTrace::new(AgentRpcError::Config(format!(
-                "the instance client cannot be built: {error}"
-            )))
-        },
-    )
+    let mut options = ClientOptions::new();
+    if let Some(subject) = principal {
+        let (key, value) = forwarded_principal_header(subject);
+        options = options.with_header(key, value);
+    }
+    AgentServiceClient::new(Arc::new(transport), INSTANCE_BASE_URL, options).map_err(|error| {
+        ErrorTrace::new(AgentRpcError::Config(format!(
+            "the instance client cannot be built: {error}"
+        )))
+    })
 }
 
 /// The forwarded principal header pair.

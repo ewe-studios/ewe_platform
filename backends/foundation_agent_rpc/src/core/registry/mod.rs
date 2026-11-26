@@ -15,7 +15,9 @@
 pub mod local;
 
 #[cfg(any(feature = "multi", feature = "worker"))]
-pub use local::{InMemoryStores, LocalInstanceRegistry, SessionStores};
+pub use local::{
+    DestroyHookFn, DestroyHookFuture, InMemoryStores, LocalInstanceRegistry, SessionStores,
+};
 
 use std::pin::Pin;
 

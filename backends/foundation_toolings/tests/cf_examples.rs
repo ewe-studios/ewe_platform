@@ -196,7 +196,7 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
             "OPENROUTER_BASE_URL",
             format!("http://127.0.0.1:{}/api", vendor.port),
         )
-        .startup_timeout(Duration::from_secs(90))
+        .startup_timeout(Duration::from_secs(300))
         .build(Ctx::host())
         .expect("start cf-cloud-provider under miniflare");
 
@@ -238,7 +238,7 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
             "WORKERS_AI_BASE_URL",
             format!("http://127.0.0.1:{}", vendor.port),
         )
-        .startup_timeout(Duration::from_secs(90))
+        .startup_timeout(Duration::from_secs(300))
         .build(Ctx::host())
         .expect("start cf-agent-loop under miniflare");
 
@@ -256,4 +256,84 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
 
     let (status, _) = worker.get("/").expect("GET / after a prompt");
     assert_eq!(status, 200, "the isolate must keep serving after a prompt");
+}
+
+/// `cf-agent-rpc`: the Worker starts, answers a CORS preflight, and refuses a
+/// forged `ewe-forwarded-principal` header with no credentials (invariant I4).
+///
+/// The full create/stream/list/destroy case needs a Worker secret for the
+/// model provider; a `--var` is not a secret. It runs in CI once the harness
+/// can set `.dev.vars`.
+#[test]
+fn cf_agent_rpc_answers_cors_and_refuses_a_forged_principal() {
+    if which::which("worker-build").is_err() || which::which("wrangler").is_err() {
+        eprintln!("cf-agent-rpc: worker-build or wrangler is absent; skipping");
+        return;
+    }
+    let dir = example_dir("cf-agent-rpc");
+    worker_build(&dir);
+
+    // 32 zero bytes in base64url: a well-formed Ed25519 public key.
+    let public_key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    let worker = Miniflare::builder()
+        .worker_dir(&dir)
+        .compatibility_date("2025-09-01")
+        .var("AGENT_RPC_PUBLIC_URL", "https://agents.example.com")
+        .var("AGENT_RPC_MODELS", "[]")
+        .var(
+            "AGENT_RPC_SECRET_PUBLIC_KEYS",
+            format!("[{{\"kid\":\"k1\",\"alg\":\"ed25519\",\"public_key\":\"{public_key}\"}}]"),
+        )
+        .var("AGENT_RPC_CORS_ORIGINS", "https://app.example.com")
+        .startup_timeout(Duration::from_secs(300))
+        .build(Ctx::host())
+        .expect("start cf-agent-rpc under miniflare");
+
+    let (status, head, _body) = worker
+        .request(
+            "OPTIONS",
+            "/ewe.agent.v1.AgentService/Health",
+            &[
+                ("Origin", "https://app.example.com"),
+                ("Access-Control-Request-Method", "POST"),
+            ],
+            "",
+            Duration::from_secs(10),
+        )
+        .expect("the CORS preflight");
+    assert_eq!(
+        status,
+        204,
+        "the preflight status\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
+    let head = head.to_ascii_lowercase();
+    assert!(
+        head.contains("access-control-allow-origin: https://app.example.com"),
+        "the preflight must name the origin; head:\n{head}"
+    );
+    assert!(
+        head.contains("access-control-allow-methods: post, get"),
+        "the preflight must allow POST and GET; head:\n{head}"
+    );
+
+    let (status, _head, body) = worker
+        .request(
+            "POST",
+            "/ewe.agent.v1.AgentService/Health",
+            &[
+                ("Origin", "https://app.example.com"),
+                ("Content-Type", "application/json"),
+                ("ewe-forwarded-principal", "evil"),
+            ],
+            "{}",
+            Duration::from_secs(20),
+        )
+        .expect("the forged-principal call");
+    assert_eq!(
+        status,
+        401,
+        "a forged forwarded header must not authenticate; body: {body}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
 }

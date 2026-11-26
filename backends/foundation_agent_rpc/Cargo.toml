@@ -139,8 +139,8 @@ worker = [
 ]
 # The browser client. wasm32 only.
 web-client = [
-  "dep:foundation_ai",
   "foundation_core/js-wasmbindgen",
+  "foundation_connectrpc/wasm-fetch",
   "foundation_netio/wasm-fetch",
   "foundation_auth/wasm",
 ]
