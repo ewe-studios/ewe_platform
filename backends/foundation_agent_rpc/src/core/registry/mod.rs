@@ -53,6 +53,19 @@ impl Scope {
     }
 }
 
+/// The Durable Object name and D1 key of one instance.
+///
+/// A Durable Object is addressed by name only (issue #987). Two owners that
+/// choose the same instance name would reach one object, and the object and
+/// its storage would be shared. The name therefore includes the scope:
+/// `"<scope>/<name>"`. The scope key is `shared` or a Secure Hash Algorithm
+/// with 256 bits (SHA-256) hex, and an instance name holds no slash, so the
+/// text is unambiguous. The D1 index keys the same text.
+#[must_use]
+pub fn object_key(scope: &Scope, name: &str) -> String {
+    format!("{}/{}", scope.as_key(), name)
+}
+
 /// Which scope a call gets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScopePolicy {

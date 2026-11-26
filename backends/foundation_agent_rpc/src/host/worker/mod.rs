@@ -13,6 +13,7 @@ pub mod config;
 pub mod do_client;
 pub mod entry;
 pub mod object;
+pub mod orchestrator;
 pub mod registry;
 pub mod secrets;
 pub mod serve;

@@ -21,7 +21,6 @@ use buffa::Message;
 use foundation_compact::SendWrapper;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::client::config::ClientConfig;
-use futures::Stream;
 use js_sys::Uint8Array;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -65,16 +64,21 @@ impl std::fmt::Debug for InstanceStub {
 }
 
 impl InstanceStub {
-    /// The stub of the Durable Object named `name`.
+    /// The stub of the Durable Object named `object_name`.
+    ///
+    /// `object_name` is the scope-in-name text from
+    /// [`object_key`](crate::core::registry::object_key), for example
+    /// `"<scope>/<name>"`. Two owners that choose one instance name therefore
+    /// reach two objects (issue #987).
     ///
     /// # Errors
     /// [`AgentRpcError::Config`] when the binding or the name is bad.
-    pub fn new(env: &worker::Env, name: &str, principal: &str) -> AgentRpcResult<Self> {
+    pub fn new(env: &worker::Env, object_name: &str, principal: &str) -> AgentRpcResult<Self> {
         let namespace = env
             .durable_object(INSTANCE_BINDING)
             .map_err(|error| config_error("the instance binding", error))?;
         let id = namespace
-            .id_from_name(name)
+            .id_from_name(object_name)
             .map_err(|error| config_error("the instance name", error))?;
         let stub = id
             .get_stub()
@@ -248,14 +252,14 @@ impl InstanceStub {
     /// [`AgentRpcError::Config`] when the binding or the name is bad.
     pub fn generated_client(
         env: &worker::Env,
-        name: &str,
+        object_name: &str,
         principal: &str,
     ) -> AgentRpcResult<crate::proto::v1::agent_service::AgentServiceClient> {
         let config = ClientConfig::default();
         let stub = foundation_netio::cloudflare::StubHttpClient::new_with_config(
             env,
             INSTANCE_BINDING,
-            name,
+            object_name,
             &config,
         )
         .map_err(|error| config_error("the instance stub", error))?;

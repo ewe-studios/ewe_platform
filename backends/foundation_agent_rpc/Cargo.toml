@@ -50,6 +50,13 @@ sha2 = { workspace = true }
 async-trait = { workspace = true }
 # Bootstrap payload URL checks (spec 83 feature 03).
 url = { workspace = true }
+# The spec 77 container surface: `ContainerControl`, `ContainerHandle` and the
+# Cloudflare platform wrapper that the native agent-rpc container runs on
+# (spec 83 feature 06, T6). Only the `sandbox` feature pulls it.
+foundation_sandbox = { path = "../foundation_sandbox", version = "0.0.8", default-features = false, features = ["control", "cloudflare"], optional = true }
+# The spec 77 deployment plan and deployers (spec 83 feature 06, T6). Native
+# only: the deploy adapters never build for wasm.
+foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.2.4", optional = true }
 
 # Native-only: the operator key signatures (ring) and the QR payload.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
@@ -139,7 +146,14 @@ worker = [
   "foundation_db/wasm-bindgen-storage",
   "foundation_db/workers-rs",
   "foundation_auth/wasm",
+  "sandbox",
 ]
+# The spec 77 container handle: `AgentContainer` over `ContainerControl`
+# (spec 83 feature 06, T6). It compiles on native and on wasm.
+sandbox = ["dep:foundation_sandbox"]
+# The agent-rpc Cloudflare deployment plan: `agent_rpc_plan` over the spec 77
+# `DeploymentPlan` (spec 83 feature 06, T6). The deployers are native only.
+deployment = ["dep:foundation_deployment_cloudflare"]
 # The browser client. wasm32 only.
 web-client = [
   "foundation_core/js-wasmbindgen",
@@ -147,9 +161,11 @@ web-client = [
   "foundation_netio/wasm-fetch",
   "foundation_auth/wasm",
 ]
-# Fakes for tests, and the test-only helpers of the key-store commands
-# (spec 83 feature 08). Never in a release build.
-testing = ["multi", "foundation_ai/testing"]
+# Fakes for tests, the test-only helpers of the key-store commands (spec 83
+# feature 08) and the Cloudflare plan tests (spec 83 feature 06). Never in a
+# release build. It enables the Cloudflare plan tests, so the plan module is
+# available to the test binary.
+testing = ["multi", "foundation_ai/testing", "sandbox", "deployment"]
 
 [[test]]
 name = "kek_selection_tests"
