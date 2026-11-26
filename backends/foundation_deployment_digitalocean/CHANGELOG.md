@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7](https://github.com/ewe-studios/ewe_platform/compare/foundation_deployment_digitalocean-v0.1.6...foundation_deployment_digitalocean-v0.1.7) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_macros, foundation_core, foundation_netio, foundation_db, foundation_codegentools, foundation_deployment
+
 ## [0.1.6](https://github.com/ewe-studios/ewe_platform/compare/foundation_deployment_digitalocean-v0.1.5...foundation_deployment_digitalocean-v0.1.6) - 2026-11-24
 
 ### Added

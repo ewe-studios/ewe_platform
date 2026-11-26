@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sshkit"
-version = "0.1.7"
+version = "0.1.8"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -29,7 +29,7 @@ default = []
 # `SimulatedClock` for the clock-injection test (spec 70 feature 134).
 [dev-dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.23"
+version = "0.0.24"
 features = ["test-clock"]
 
 [lints]

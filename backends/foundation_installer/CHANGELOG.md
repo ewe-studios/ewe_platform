@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2](https://github.com/ewe-studios/ewe_platform/compare/foundation_installer-v0.0.1...foundation_installer-v0.0.2) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_macros, foundation_core, foundation_netio, foundation_packager, foundation_deployment_docker
+
 ## [0.0.1](https://github.com/ewe-studios/ewe_platform/releases/tag/foundation_installer-v0.0.1) - 2026-11-24
 
 ### Fixed

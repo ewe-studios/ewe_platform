@@ -1,6 +1,6 @@
 [package]
 name = "foundation_html"
-version = "0.0.8"
+version = "0.0.9"
 description = "foundation_html crate for web and non-web based html generation"
 edition.workspace = true
 rust-version.workspace = true
@@ -10,7 +10,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.23" }
+foundation_core = { path = "../foundation_core", version = "0.0.24" }
 foundation_conditional = { path = "../foundation_conditional", version = "0.1.3" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 

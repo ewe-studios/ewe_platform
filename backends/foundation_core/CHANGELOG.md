@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.24](https://github.com/ewe-studios/ewe_platform/compare/foundation_core-v0.0.23...foundation_core-v0.0.24) - 2026-11-26
+
+### Other
+
+- *(core)* hold foundation_sandbox to the no-global-clock rule
+- *(sandbox)* rename to foundation_sandbox; move the binaries and facades in
+
 ## [0.0.23](https://github.com/ewe-studios/ewe_platform/compare/foundation_core-v0.0.22...foundation_core-v0.0.23) - 2026-11-24
 
 ### Fixed

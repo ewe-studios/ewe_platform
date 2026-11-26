@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.18](https://github.com/ewe-studios/ewe_platform/compare/foundation_netio-v0.0.17...foundation_netio-v0.0.18) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_macros, foundation_core, foundation_reactor
+
 ## [0.0.17](https://github.com/ewe-studios/ewe_platform/compare/foundation_netio-v0.0.16...foundation_netio-v0.0.17) - 2026-11-24
 
 ### Other

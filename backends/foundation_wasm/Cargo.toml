@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wasm"
-version = "0.0.10"
+version = "0.0.11"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -25,7 +25,7 @@ concurrent-queue = { version = "2.5.0", default-features = false }
 # bin/ sources — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_codegen = { path = "../foundation_codegen", version = "0.2.2" }
+foundation_codegen = { path = "../foundation_codegen", version = "0.2.3" }
 toml = { workspace = true }
 toml_edit = { workspace = true }
 clap = { version = "4", features = ["derive"] }
@@ -56,5 +56,5 @@ workspace = true
 
 [dev-dependencies]
 # `tests/wasi_host.rs` uses `#[wasm_test]`; the library itself does not.
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.24" }
 tempfile = "3.10"

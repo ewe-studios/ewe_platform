@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9](https://github.com/ewe-studios/ewe_platform/compare/foundation_deployment_platform-v0.1.8...foundation_deployment_platform-v0.1.9) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_macros, foundation_core, foundation_netio, foundation_wireguard, foundation_sshkit, foundation_deployment_docker
+
 ## [0.1.8](https://github.com/ewe-studios/ewe_platform/compare/foundation_deployment_platform-v0.1.7...foundation_deployment_platform-v0.1.8) - 2026-11-24
 
 ### Added

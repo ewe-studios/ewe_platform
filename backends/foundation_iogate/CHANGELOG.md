@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.7](https://github.com/ewe-studios/ewe_platform/compare/foundation_iogate-v0.0.6...foundation_iogate-v0.0.7) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_core, foundation_reactor, foundation_netio, foundation_nativeapis
+
 ## [0.0.6](https://github.com/ewe-studios/ewe_platform/compare/foundation_iogate-v0.0.5...foundation_iogate-v0.0.6) - 2026-11-24
 
 ### Added

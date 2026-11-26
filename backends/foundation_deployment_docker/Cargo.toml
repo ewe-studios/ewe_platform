@@ -57,11 +57,11 @@ workspace = true
 [dependencies.foundation_connectrpc]
 optional = true
 path = "../foundation_connectrpc"
-version = "0.0.16"
+version = "0.0.17"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.23"
+version = "0.0.24"
 
 [dependencies.foundation_context]
 path = "../foundation_context"
@@ -69,24 +69,24 @@ version = "0.0.4"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.7"
+version = "0.0.8"
 optional = true
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.10"
+version = "0.0.11"
 optional = true
 
 # HTTP/2 server for the BuildKit session sidecar (serves FileSync back to
 # buildkitd). Optional; only the `buildkit` feature needs it.
 [dependencies.foundation_http]
 path = "../foundation_http"
-version = "0.0.15"
+version = "0.0.16"
 optional = true
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.23"
+version = "0.0.24"
 
 [dependencies.foundation_netio]
 features = [
@@ -94,11 +94,11 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.17"
+version = "0.0.18"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"
-version = "0.1.7"
+version = "0.1.8"
 optional = true
 
 [dependencies.serde]
@@ -327,7 +327,7 @@ docker_ws = []
 [package]
 description = "Docker Engine API v1.53 client over DynNetClient + valtron (bollard-free)"
 name = "foundation_deployment_docker"
-version = "0.1.8"
+version = "0.1.9"
 
 [package.authors]
 workspace = true

@@ -11,22 +11,22 @@ keywords = ["registrar", "sidecar", "proxy", "registration", "discovery"]
 
 [dependencies]
 derive_more = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.24", features = ["multi"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
 # Enrollment, the certificate signing request, the mutual-TLS (mTLS) client
 # configurations and the server proof (spec 81 / 87).
-foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17" }
 # The `ErrorTrace` type of a failed Connect call.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # The HTTP client, the Unix-socket transport and the HTTP/2 gRPC health probe.
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 # The generated registration client and the gRPC health probe.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16" }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17" }
 # Docker discovery and stats through the generated client.
-foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.9", features = ["docker"] }
 # SIGTERM and SIGHUP reception for the binary's lifecycle.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16" }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.17" }
 # Runtime for the buffa-generated registration messages (same version as the
 # generated code the build script emits).
 buffa = { version = "0.9.2", features = ["json"] }
@@ -59,13 +59,13 @@ prost-types = "0.12"
 
 [dev-dependencies]
 # The clock injection tests move a `SimulatedClock`; `test-clock` exposes it.
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.24", features = ["test-clock"] }
 # The real registration authority, for the enrollment and end-to-end tests.
-foundation_proxy = { path = "../foundation_proxy", version = "0.2.0" }
+foundation_proxy = { path = "../foundation_proxy", version = "0.2.1" }
 # The installer's Docker deploy target for the end-to-end test.
-foundation_installer = { path = "../foundation_installer", version = "0.0.1" }
+foundation_installer = { path = "../foundation_installer", version = "0.0.2" }
 # The proxy's shutdown signal in the client tests.
-foundation_http = { path = "../foundation_http", version = "0.0.15", features = ["multi", "ssl"] }
+foundation_http = { path = "../foundation_http", version = "0.0.16", features = ["multi", "ssl"] }
 futures-lite = "2"
 tempfile = "3"
 tracing-subscriber = { workspace = true }

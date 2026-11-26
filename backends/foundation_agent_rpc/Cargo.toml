@@ -1,6 +1,6 @@
 [package]
 name = "foundation_agent_rpc"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,27 +10,27 @@ description = "Per-machine agent RPC model server: load a model once, serve name
 keywords = ["agent", "rpc", "connectrpc", "grpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.24", features = ["multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # Local model backends stay opt-in (`candle` default, `gguf` adds llama.cpp):
 # the agentic layer, providers and `PreloadedProvider` need neither.
-foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.11", default-features = false, features = ["multi"] }
 # Trusted-client store: any foundation_db SQL backend; `turso` = the embedded
 # SQLite default (`TrustedClientStore::open_sqlite`).
-foundation_db = { path = "../foundation_db", version = "0.0.10", default-features = false, features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.11", default-features = false, features = ["turso"] }
 # The side-effect bundle (`Ctx`) the trusted-client store needs: clocks, entropy
 # and the connection gate. The host builds it; callers pass it in.
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16" }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17" }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
-foundation_http = { path = "../foundation_http", version = "0.0.15", features = ["multi", "ssl"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
+foundation_http = { path = "../foundation_http", version = "0.0.16", features = ["multi", "ssl"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", features = ["ssl", "multi"] }
 # Entropy for bootstrap secrets (the cross-platform substrate).
 foundation_compact = { path = "../foundation_compact", version = "0.2.6" }
 # Client auth: the certificate authority, the trust store and the mutual-TLS
 # (mTLS) verifier and configuration builders (spec 87).
-foundation_auth = { path = "../foundation_auth", version = "0.0.16" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17" }
 # Ed25519 / RSA-PSS signatures over bootstrap secrets (same ring as rustls).
 ring = "0.17"
 base64 = "0.22"
@@ -62,7 +62,7 @@ prost-types = "0.12"
 [dev-dependencies]
 tracing-subscriber = { workspace = true }
 # `testing`: MockModelProvider + message builders for deterministic server tests.
-foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["multi", "testing"] }
+foundation_ai = { path = "../foundation_ai", version = "0.0.11", default-features = false, features = ["multi", "testing"] }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 # State directories (CA, signing key, trusted-client DB) per test.
 tempfile = "3"

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.10](https://github.com/ewe-studios/ewe_platform/compare/foundation_testbed-v0.0.9...foundation_testbed-v0.0.10) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_macros, foundation_core, foundation_codegen, foundation_netio, foundation_http, foundation_wasm_ui, foundation_connectrpc, foundation_browser, foundation_deployment_platform
+
 ## [0.0.9](https://github.com/ewe-studios/ewe_platform/compare/foundation_testbed-v0.0.6...foundation_testbed-v0.0.9) - 2026-11-24
 
 ### Added

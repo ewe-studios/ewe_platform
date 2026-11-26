@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.11](https://github.com/ewe-studios/ewe_platform/compare/foundation_keychain-v0.1.10...foundation_keychain-v0.1.11) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_core, foundation_netio, foundation_db, foundation_http, foundation_auth, foundation_deployment_cloudflare
+
 ## [0.1.10](https://github.com/ewe-studios/ewe_platform/compare/foundation_keychain-v0.1.7...foundation_keychain-v0.1.10) - 2026-11-24
 
 ### Added

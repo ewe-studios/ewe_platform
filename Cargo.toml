@@ -74,7 +74,7 @@ foundation_vfs = { path = "backends/foundation_vfs", version = "0.0.1" }
 
 # Virtual file system (VFS) implementations. The `vfs` feature builds on wasm
 # too; only `NativeFs` is native. `foundation_db` tests use `MemoryFs`.
-foundation_nativeapis = { path = "backends/foundation_nativeapis", version = "0.0.16", default-features = false, features = ["vfs"] }
+foundation_nativeapis = { path = "backends/foundation_nativeapis", version = "0.0.17", default-features = false, features = ["vfs"] }
 
 # core library dependencies
 serde = { version = "1.0.197", features = ["derive"] }

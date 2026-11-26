@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/ewe-studios/ewe_platform/compare/foundation_proxy-v0.2.0...foundation_proxy-v0.2.1) - 2026-11-26
+
+### Other
+
+- updated the following local packages: foundation_macros, foundation_core, foundation_netio, foundation_db, foundation_nativeapis, foundation_iogate, foundation_http, foundation_auth, foundation_connectrpc
+
 ## [0.2.0](https://github.com/ewe-studios/ewe_platform/compare/foundation_proxy-v0.1.9...foundation_proxy-v0.2.0) - 2026-11-24
 
 ### Added

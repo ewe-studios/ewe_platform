@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sandbox"
-version = "0.0.2"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,7 +14,7 @@ keywords = ["sandbox", "firecracker", "cloudflare", "rpc", "foundation"]
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The valtron stream traits and the executor bridges this crate names in its
 # driver and provider interfaces.
-foundation_core = { path = "../foundation_core", version = "0.0.23" }
+foundation_core = { path = "../foundation_core", version = "0.0.24" }
 # The monotonic instant and wall-clock types the injected clock returns.
 foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
 # The platform error trace (`ErrorTrace`), so `SandboxResult` is one trace.
@@ -23,13 +23,13 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 # context. The renderer's default features are not needed: this crate uses the
 # service surface only, and the native-only `multi` feature must stay off for
 # the wasm32 build.
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16", default-features = false }
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.17", default-features = false }
 # The `#[service]` macro, re-exported by `foundation_connectrpc`.
-foundation_macros = { path = "../foundation_macros", version = "0.0.23" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.24" }
 # `Secret` and `extract_bearer_token` (spec 86). The crate never defines a
 # second secret type. `default-features = false` keeps the database, JWT and
 # signed-secret providers out of this crate.
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
@@ -42,7 +42,7 @@ tracing = { workspace = true }
 proptest = { workspace = true }
 # `SimulatedClock` for the deterministic identifier test. The feature is
 # test-only; it adds no code to the library build.
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.24", features = ["test-clock"] }
 
 [features]
 default = ["control", "firecracker"]
