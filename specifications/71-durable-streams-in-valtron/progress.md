@@ -2,6 +2,9 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: S3/R2 layout is configuration. Segmented objects are the default. An append-only
+  file layout is supported. Batching is local: one batch becomes one object PUT. Segment size,
+  batch size, linger, parallel PUTs and flush policy are configuration.
 - 2026-11-27: durable core moved to `foundation_core::durable::shared`. Added the
   `shared/`, `wasm/`, `cf/` and `native/` layout rule and the per-feature path tables. 21
   durable tests pass.

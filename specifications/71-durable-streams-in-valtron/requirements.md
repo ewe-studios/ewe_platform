@@ -546,8 +546,12 @@ are paged.
 
 Each VFS lives in the crate that owns its environment. It can use the full native capability of
 that environment. The memory VFS uses `foundation_core`. The file VFS uses
-`foundation_nativeapis` for file I/O and LMDB. R2/S3 uses `foundation_db`. DO SQLite and D1 use
-their spec 83 crates.
+`foundation_nativeapis` for file I/O and LMDB. R2/S3 uses `foundation_nativeapis`. DO SQLite and
+D1 use their spec 83 crates.
+
+The VFS layout is configuration. The default is segmented objects. An append-only file layout is
+supported. Layout and batch limits never change the protocol outcome. Batching is local: a batch
+becomes one object PUT.
 
 ### 3.8 HTTP surface (feature 06)
 

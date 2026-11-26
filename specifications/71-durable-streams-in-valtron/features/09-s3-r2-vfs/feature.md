@@ -37,14 +37,17 @@ durable and safe for several writers.
 
 1. **Provider trait.** One `ObjectStore` trait covers S3 and R2. It has conditional PUT, range
    GET, HEAD, LIST and DELETE. The provider is selected by configuration.
-2. **Object layout.** Immutable segment objects and one head manifest per stream. The key scheme
-   is private. Example: `<root>/<stream>/HEAD` and `<root>/<stream>/seg/<gen>-<seq>.log`.
+2. **Layout strategy.** Two layouts: segmented (default) and append-only file. The key scheme is
+   private. Segmented example: `<root>/<stream>/HEAD` and
+   `<root>/<stream>/seg/<gen>-<seq>.log`. Append-only example: `<root>/<stream>/HEAD` and
+   `<root>/<stream>/log`. Both preserve the same protocol semantics.
 3. **Head manifest.** The head has a version, the segment list, the tail length, producer state,
    `Stream-Seq`, closure and expiry. It is the CAS target.
 4. **Immediate local write.** An append writes to a local spool file and fsyncs before it returns
    `Accepted`. A crash loses nothing that was acknowledged.
-5. **Local batching.** The batcher groups appends by bytes and time. It seals one segment per
-   batch. It sends one object PUT per batch. Large batches use multipart.
+5. **Local batching.** The batcher groups appends by bytes and time. It seals one object per
+   batch. It sends one object PUT per batch. Large batches use multipart. Batching is local. It
+   is not an S3 batch API.
 6. **CAS.** Create uses `If-None-Match: *`. Update uses `If-Match: <etag>`. A stale ETag returns
    `412 Precondition Failed`. The writer re-reads the head and retries.
 7. **Multi-writer safety.** Only one writer wins a head CAS. A loser keeps its sealed segment and
@@ -75,6 +78,11 @@ durable and safe for several writers.
 19. **Provider specifics.** R2 uses region `auto`, path-style addressing when needed and CRC32
     checksums. The provider capability record states conditional write support. Check every
     `DeleteObjects` per-key result.
+20. **Configuration.** Layout mode, segment target bytes, batch max bytes, linger time, parallel
+    PUT count and flush policy are configuration. The default is segmented. The default target is
+    256 KiB (Rivet). An append-only file layout is supported.
+21. **Same semantics.** The layout never changes the protocol outcome. A read, cursor, producer
+    acknowledgement or closure result is the same in both layouts.
 
 ## 3. Lessons from Rivet
 
@@ -85,7 +93,7 @@ it from open source. These are the lessons for feature 09:
 |---|---|---|
 | Object identity | Immutable key with shard, version and content hash | Immutable segment key with stream, generation, sequence and content hash |
 | Publication | Head/CAS record is the authority; publish after PUT | Head CAS is the authority; publish after PUT |
-| Object size | About 256 KiB per shard object | Target 256 KiB per segment; one PUT per batch |
+| Object size | About 256 KiB per shard object | Default 256 KiB segment; configurable; append-only file is supported |
 | Read path | Hot first, cold fallback; revalidate the ref; missing object is an error | Head first, range GET; revalidate the head; missing object is an error |
 | Cache | Background shard cache fill, deduplicated | Background segment cache fill, deduplicated |
 | Lifecycle | Live, retired, delete-issued, deleted; grace window | Same state machine and grace window |
@@ -146,12 +154,13 @@ The read path:
 
 - [ ] **T1 — `ObjectStore` trait.** S3 and R2 clients. Capability record. Tests:
       `s3_and_r2_share_the_contract`.
-- [ ] **T2 — key layout and head manifest.** Segment keys, head key, version and JSON encoding.
-      Test: `head_manifest_round_trips`.
+- [ ] **T2 — key layout and head manifest.** Segmented and append-only keys, head key, version
+      and JSON encoding. Tests: `head_manifest_round_trips`, `both_layouts_have_the_same_keys`.
 - [ ] **T3 — local spool.** Append, fsync, replay and idempotent batch id. Tests:
       `spool_survives_crash`, `spool_replay_is_idempotent`.
-- [ ] **T4 — batcher.** Byte and time limits. One PUT per batch. Multipart for large batches.
-      Tests: `one_put_per_batch`, `large_batch_uses_multipart`.
+- [ ] **T4 — batcher.** Byte and time limits. One PUT per batch in both layouts. Multipart for
+      large batches. Tests: `one_put_per_batch`, `append_only_batches_locally`,
+      `large_batch_uses_multipart`.
 - [ ] **T5 — CAS head.** `If-None-Match` create and `If-Match` update. Retry on `412`. Tests:
       `two_writers_one_cas_wins`, `cas_retry_preserves_both_segments`.
 - [ ] **T6 — read path.** Head cache, range GET and cross-segment stitch. Tests:
@@ -162,8 +171,9 @@ The read path:
       `compaction_keeps_bytes_exact`, `retention_drops_old_segments`.
 - [ ] **T9 — provider differences.** Conditional write probe, multipart limits and checksums.
       Tests: `provider_capabilities_are_recorded`, `weak_cas_fallback_is_documented`.
-- [ ] **T10 — conformance and coverage.** Run the shared VFS scenarios and the coverage tests.
-      Tests: `s3_vfs_conformance`, `r2_vfs_conformance`, `s3_vfs_coverage`, `r2_vfs_coverage`.
+- [ ] **T10 — conformance and coverage.** Run the shared VFS scenarios in both layouts and the
+      coverage tests. Tests: `s3_vfs_conformance`, `r2_vfs_conformance`, `s3_vfs_coverage`,
+      `r2_vfs_coverage`, `both_layouts_pass_the_same_scenarios`.
 - [ ] **T11 — differential.** Run S3 and R2 against the same scenarios with a local emulator.
       Test: `s3_and_r2_agree`.
 - [ ] **T12 — performance.** Measure batch latency, PUT count and throughput. Record the
@@ -184,7 +194,9 @@ The read path:
 - [ ] The S3 and R2 VFS pass the shared conformance and coverage suites.
 - [ ] A crash after a segment PUT loses no acknowledged data.
 - [ ] Two writers never lose a batch; one CAS wins and one retries.
-- [ ] One batch sends one object PUT (or one multipart upload).
+- [ ] One local batch sends one object PUT (or one multipart upload).
+- [ ] The default layout is segmented. The append-only file layout passes the same scenarios.
+- [ ] Segment target, batch limits, linger, parallel PUTs and flush policy are configuration.
 - [ ] Reads use range GETs and never materialise a whole stream.
 - [ ] A reader revalidates the head after a GET; a missing object is an error.
 - [ ] The object lifecycle never deletes a live or retired object.

@@ -82,7 +82,10 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **Rivet has no S3 CAS, multipart, range GET or local spool.** Our VFS adds them because it has
   no database authority in the publication path.
 - **Borrow:** deterministic keys, publish-after-PUT, post-read revalidation, hot-first read,
-  background cache fill, object lifecycle with a grace window and about 256 KiB objects.
+  background cache fill and an object lifecycle with a grace window.
+- **Layout and batch sizes are configuration.** The default is segmented objects with a 256 KiB
+  target. An append-only file layout is supported. Batching is local: one batch becomes one
+  object PUT. Do not hard-code the layout or the segment size.
 - **Avoid:** unchecked per-key `DeleteObjects` errors, no fsync in the filesystem tier, and
   implicit R2 configuration. Configure R2 region `auto`, path-style and CRC32.
 - **HTTP is one surface, not the server.** The core is runtime-neutral. The same core runs in a
