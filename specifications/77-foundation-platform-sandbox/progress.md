@@ -570,9 +570,10 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 3. Feature 09 (the libkrun driver): pull request #925, in review.
 4. Feature 18 (the lifetime deadline and the stream bound), after 08.
 5. Spec 83 feature 04: pull request #909, in review.
-6. Phase 2: features 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox product).
-   Feature 17 needs 08.
-7. Phase 3: features 12 to 15 (images).
+6. Feature 10 (the Docker driver): on branch `spec77/f10-docker-driver`. The Docker
+   Engine 29.8.2 runs on this host.
+7. Phase 2: features 11 (nested) and 17 (Cloudflare Sandbox product). Feature 17 needs 08.
+8. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 
