@@ -93,6 +93,17 @@ pub struct SandboxSpec {
     /// The driver to use, or `None` for the first usable driver in the
     /// configured order.
     pub driver: Option<crate::shared::ids::DriverId>,
+    /// The parent sandbox of a nested child (feature 11).
+    ///
+    /// It is `Some` exactly when `driver` is `Some(Nested)`. Each path of the
+    /// spec is a path in the parent container, because the inner control plane
+    /// runs there.
+    #[serde(default)]
+    pub parent: Option<crate::shared::ids::SandboxId>,
+    /// Whether this sandbox is a nested host: a container whose slave also
+    /// serves the control plane (feature 11). Default `false`.
+    #[serde(default)]
+    pub nested_host: bool,
     /// The root file system. Required.
     pub rootfs: RootFs,
     /// How writes to the root are handled. Default [`RootMode::Overlay`].
@@ -130,6 +141,8 @@ impl SandboxSpec {
     pub fn new(rootfs: RootFs) -> Self {
         Self {
             driver: None,
+            parent: None,
+            nested_host: false,
             rootfs,
             root_mode: RootMode::Overlay,
             vcpus: 1,
@@ -161,6 +174,15 @@ impl SandboxSpec {
         }
         if self.memory_mib < 64 {
             return Err(invalid("memory_mib", "memory_mib must be at least 64"));
+        }
+
+        // A child has a parent, and only a child has one (feature 11).
+        let nested = self.driver == Some(crate::shared::ids::DriverId::Nested);
+        if self.parent.is_some() != nested {
+            return Err(invalid(
+                "parent",
+                "parent is set exactly when driver is `nested`",
+            ));
         }
 
         if !absolute_without_parent(Path::new(&self.workdir)) {

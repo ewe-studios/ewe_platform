@@ -697,6 +697,15 @@ impl SlaveConnector for NativeConnector {
                 }
                 .into());
             }
+            SlaveEndpoint::Parent { .. } => {
+                // A nested child has no native transport: its calls go to the
+                // parent's inner control plane (feature 11).
+                return Err(SandboxError::InvalidSpec {
+                    field: "endpoint".to_string(),
+                    reason: "a nested child is reached through its parent".to_string(),
+                }
+                .into());
+            }
         };
         Ok(Arc::new(H1Transport::new(client)))
     }

@@ -5053,6 +5053,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_api_common"
+version = "0.0.1"
+dependencies = [
+ "base85rs",
+ "bytes",
+ "foundation_core",
+ "foundation_macros",
+ "foundation_netio",
+ "futures-core",
+ "futures-lite",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_arrow"
 version = "0.0.6"
 dependencies = [
@@ -6099,6 +6116,7 @@ dependencies = [
  "bytes",
  "chrono",
  "derive_more",
+ "foundation_api_common",
  "foundation_compact",
  "foundation_context",
  "foundation_core",
@@ -6856,6 +6874,7 @@ dependencies = [
  "clap",
  "derive_more",
  "flate2",
+ "foundation_api_common",
  "foundation_auth",
  "foundation_codegentools",
  "foundation_compact",

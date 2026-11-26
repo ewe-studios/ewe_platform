@@ -15,7 +15,11 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::native::connection::{Acceptor, Connection};
 
+#[cfg(feature = "control")]
+use crate::shared::control::service::ControlService;
 use crate::shared::limits::SandboxLimits;
+#[cfg(feature = "control")]
+use crate::shared::rpc::sandbox::{procedure as control_procedure, register_sandbox_service};
 use crate::shared::rpc::slave::{procedure, register_slave_service};
 
 use super::Slave;
@@ -99,9 +103,21 @@ pub fn bind_with_mode(
 }
 
 /// Serves the slave service until the shutdown signal turns on.
-pub fn serve(bound: &Bound, ctx: Ctx, slave: Arc<Slave>) {
+pub fn serve(bound: &Bound, ctx: Ctx, slave: &Arc<Slave>) {
     let mut router = Router::new();
-    register_slave_service(&mut router, slave);
+    register_slave_service(&mut router, Arc::clone(slave));
+    // A slave with the control role serves `SandboxService` on the same
+    // listener (feature 11, invariant I4). Without `--control` the control
+    // paths answer `NotFound`, because the router has no handler for them.
+    #[cfg(feature = "control")]
+    {
+        let provider = slave.control().unwrap_or_else(|| {
+            Arc::new(crate::shared::control::DisabledControl)
+                as Arc<dyn crate::shared::control::SandboxProvider>
+        });
+        let service = Arc::new(ControlService::new(provider, SandboxLimits::default()));
+        register_sandbox_service(&mut router, service);
+    }
     let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
 
     let mut app = HttpApp::<Arc<dyn Serve>>::with_ctx(ctx);
@@ -117,6 +133,25 @@ pub fn serve(bound: &Bound, ctx: Ctx, slave: Arc<Slave>) {
         procedure::FILE_WRITE_ABORT,
         procedure::FILE_READ,
         procedure::SHUTDOWN,
+    ] {
+        app.router.add_route_any(path, &serve);
+    }
+    #[cfg(feature = "control")]
+    for path in [
+        control_procedure::PROBE,
+        control_procedure::CREATE,
+        control_procedure::GET,
+        control_procedure::LIST,
+        control_procedure::STOP,
+        control_procedure::KILL,
+        control_procedure::EXEC,
+        control_procedure::EXEC_INPUT,
+        control_procedure::EXEC_SIGNAL,
+        control_procedure::FILE_WRITE_BEGIN,
+        control_procedure::FILE_WRITE_CHUNK,
+        control_procedure::FILE_WRITE_COMMIT,
+        control_procedure::FILE_WRITE_ABORT,
+        control_procedure::FILE_READ,
     ] {
         app.router.add_route_any(path, &serve);
     }

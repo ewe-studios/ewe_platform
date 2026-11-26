@@ -520,6 +520,8 @@ impl SandboxDriver for SimDriver {
                 root,
                 mounts,
                 handle: Box::new(SimHandle(substrate)),
+                calls: None,
+                slave: None,
             };
             items.push(ValtronStream::Next(Ok(substrate)));
         }
@@ -553,6 +555,8 @@ impl SandboxDriver for SimDriver {
                     root,
                     mounts,
                     handle: Box::new(SimHandle(substrate)),
+                    calls: None,
+                    slave: None,
                 })),
             }
         })
@@ -823,6 +827,15 @@ impl ScriptedSlave {
                 message: "the slave is not ready".to_string(),
             }));
         }
+    }
+
+    /// Sets whether the default `Info` answer reports `can_control`.
+    pub fn with_can_control(&self, can_control: bool) {
+        self.inner
+            .default_info
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .can_control = can_control;
     }
 
     /// Sets whether the default `Info` answer is prepared.
@@ -1573,6 +1586,29 @@ impl SlaveConnector for InMemoryConnector {
 pub fn in_memory_connector(slave: Arc<ScriptedSlave>) -> Arc<dyn SlaveConnector> {
     let mut router = Router::new();
     register_slave_service(&mut router, slave);
+    Arc::new(InMemoryConnector {
+        handler: Arc::new(router.into_handler()),
+    })
+}
+
+/// A connector to a slave that serves both services, as a nested host does
+/// (feature 11).
+///
+/// The `SlaveService` calls go to `slave`; the `SandboxService` calls go to
+/// `control`. A nested child reaches the second service through this
+/// connector.
+#[must_use]
+pub fn in_memory_dual_connector<S>(
+    _ctx: Ctx,
+    slave: Arc<ScriptedSlave>,
+    control: Arc<S>,
+) -> Arc<dyn SlaveConnector>
+where
+    S: SandboxService + 'static,
+{
+    let mut router = Router::new();
+    register_slave_service(&mut router, slave);
+    register_sandbox_service(&mut router, control);
     Arc::new(InMemoryConnector {
         handler: Arc::new(router.into_handler()),
     })

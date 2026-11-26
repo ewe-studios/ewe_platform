@@ -161,7 +161,7 @@ fn provider_id(driver: DriverId) -> ProviderId {
         DriverId::Libkrun => ProviderId::Libkrun,
         DriverId::Docker => ProviderId::DockerSandbox,
         DriverId::CloudflareContainer | DriverId::CloudflareDo => ProviderId::CloudflareContainer,
-        DriverId::Firecracker => ProviderId::Firecracker,
+        DriverId::Firecracker | DriverId::Nested => ProviderId::Firecracker,
     }
 }
 
@@ -171,6 +171,7 @@ fn driver_name(driver: DriverId) -> &'static str {
         DriverId::Firecracker => "firecracker",
         DriverId::Libkrun => "libkrun",
         DriverId::Docker => "docker",
+        DriverId::Nested => "nested",
         DriverId::CloudflareContainer => "cloudflare-container",
         DriverId::CloudflareDo => "cloudflare-do",
     }

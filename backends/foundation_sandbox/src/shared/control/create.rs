@@ -22,7 +22,7 @@ use crate::shared::control::{wait_until, SandboxState};
 use crate::shared::control::{SandboxHandle, SandboxIdPolicy};
 use crate::shared::driver::{CreateProgress, LaunchStream, SubstrateHandle};
 use crate::shared::error::{SandboxError, SandboxResult};
-use crate::shared::handles::CreateStream;
+use crate::shared::handles::{CreateStream, ExecFileCalls};
 use crate::shared::ids::SandboxId;
 use crate::shared::images::{apply_manifest, check_arch};
 use crate::shared::limits::SandboxLimits;
@@ -466,6 +466,10 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
     )
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "one transition of the create state machine reads the one answer of the driver"
+)]
 async fn launch_state(
     ctx: Ctx,
     mut task: CreateTask,
@@ -493,10 +497,15 @@ async fn launch_state(
             )
         }
         Some(Stream::Next(Ok(substrate))) => {
-            let endpoint = substrate.endpoint;
-            let root = substrate.root;
-            let mounts = substrate.mounts;
-            let handle: Arc<dyn SubstrateHandle> = Arc::from(substrate.handle);
+            let crate::shared::driver::Substrate {
+                endpoint,
+                root,
+                mounts,
+                handle,
+                calls,
+                slave,
+            } = substrate;
+            let handle: Arc<dyn SubstrateHandle> = Arc::from(handle);
             if let Some(record) = &task.record {
                 let mut state = record
                     .state
@@ -507,6 +516,11 @@ async fn launch_state(
             }
             if task.guard.is_cancelled() {
                 return stopped(task);
+            }
+            // A nested child is ready already: the parent's inner control plane
+            // called `Info` and `Prepare` (feature 11, section 6.2).
+            if let Some(calls) = calls {
+                return nested_ready(task, id, spec, calls, slave).await;
             }
             let transport = match task.inner.connector.connect(&ctx, &endpoint, &spec.limits) {
                 Ok(transport) => transport,
@@ -573,6 +587,55 @@ async fn launch_state(
             TaskStatus::Ignore,
         ),
     }
+}
+
+/// Moves a nested child to `Ready` without a second `Info` and `Prepare`.
+///
+/// The parent's inner control plane already reached and prepared the slave, and
+/// the launch result carries its `SlaveInfo` (feature 11, section 6.2).
+async fn nested_ready(
+    mut task: CreateTask,
+    id: SandboxId,
+    spec: SandboxSpec,
+    calls: Arc<dyn ExecFileCalls>,
+    slave: Option<SlaveInfo>,
+) -> (CreateTask, Status) {
+    let Some(record) = task.record.clone() else {
+        return fail(task, SandboxError::SlaveHandshake).await;
+    };
+    {
+        let mut state = record
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        state.state = SandboxState::Ready;
+        state.calls = Some(calls);
+        state.slave = slave;
+    }
+    if task.guard.is_cancelled() {
+        return stopped(task);
+    }
+    if let Err(error) = task.inner.store.put(record.stored()).await {
+        return fail(task, error.current_context().clone()).await;
+    }
+    start_watcher(Arc::clone(&task.inner), Arc::clone(&record));
+    let ops: Arc<dyn crate::shared::control::SandboxOps> = Arc::new(LocalSandboxOps::new(
+        Arc::clone(&task.inner),
+        record,
+        task.inner.ctx.clone(),
+        spec.limits.clone(),
+    ));
+    let handle = SandboxHandle::new(id, ops);
+    task.guard.finish();
+    let status = if task.progress(CreateProgress::SlaveReady) {
+        TaskStatus::Pending(CreateProgress::SlaveReady)
+    } else {
+        TaskStatus::Ignore
+    };
+    (
+        task.next(CreateState::Finish { result: Ok(handle) }),
+        status,
+    )
 }
 
 /// One candidate of the readiness wait.

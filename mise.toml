@@ -1207,6 +1207,9 @@ fi
 
 [tasks."sandbox:slave"]
 description = "Build agent-slave as a static program for both musl targets"
+# The slave has the control and firecracker features, so a slave in a nested
+# host can also serve the control plane (spec 77 feature 11, section 6.1). The
+# build has no TLS provider: artifacts-remote is off.
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
@@ -1215,7 +1218,7 @@ mkdir -p target/sandbox
 for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
   RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
     cargo build -p foundation_sandbox --bin agent-slave --profile agent \
-      --no-default-features --features slave,cli --target "$target"
+      --no-default-features --features slave,cli,control,firecracker --target "$target"
 done
 cp target/x86_64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-x86_64
 cp target/aarch64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-aarch64
@@ -1277,6 +1280,21 @@ sed \
   infrastructure/sandbox_worker/Dockerfile.product.in \
   > infrastructure/sandbox_worker/Dockerfile.product
 echo "infrastructure/sandbox_worker/Dockerfile.product"
+"""
+
+[tasks."sandbox:nested-image"]
+description = "Build the nested host image with the versions of ci/sandbox.toml"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+version=$(grep -E '^firecracker_version = ' ci/sandbox.toml | cut -d '"' -f 2)
+sha=$(grep -E '^firecracker_x86_64_sha256 = ' ci/sandbox.toml | cut -d '"' -f 2)
+docker build \
+  --platform linux/amd64 \
+  --build-arg "FIRECRACKER_VERSION=${version}" \
+  --build-arg "FIRECRACKER_SHA256=${sha}" \
+  -t ewe/sandbox-nested:latest \
+  infrastructure/sandbox_nested_image
 """
 
 [tasks.bacon]

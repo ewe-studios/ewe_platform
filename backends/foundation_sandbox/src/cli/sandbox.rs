@@ -552,13 +552,17 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
                 #[cfg(feature = "docker")]
                 drivers.push(Arc::new(crate::native::docker::driver::DockerDriver::new()));
             }
-            // The Cloudflare drivers are not part of a native local host.
-            DriverId::CloudflareContainer | DriverId::CloudflareDo => {}
+            // A nested child and the Cloudflare drivers are not part of a
+            // native local host.
+            DriverId::Nested | DriverId::CloudflareContainer | DriverId::CloudflareDo => {}
         }
     }
     let store = FileRecordStore::new(Arc::clone(&host.fs), host.config.state_dir.clone())
         .map_err(|error| failure(&error))?;
-    Ok(Arc::new(SandboxManager::new(
+    // The nested driver serves a child sandbox in a parent container
+    // (feature 11). It is in every local control plane; the automatic driver
+    // choice never picks it, because a child names it.
+    Ok(Arc::new(SandboxManager::with_nested_driver(
         ctx.clone(),
         drivers,
         host.connector.clone(),

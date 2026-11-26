@@ -98,6 +98,24 @@ impl SlaveProcess {
         threads: usize,
         socket_mode: u32,
     ) -> Self {
+        Self::start_full(tag, plain_root, threads, socket_mode, false)
+    }
+
+    /// Starts a slave with the control role (`--control`).
+    ///
+    /// # Panics
+    /// When the process does not start or does not answer.
+    pub fn start_with_control(tag: &str) -> Self {
+        Self::start_full(tag, None, 4, 0o600, true)
+    }
+
+    fn start_full(
+        tag: &str,
+        plain_root: Option<PathBuf>,
+        threads: usize,
+        socket_mode: u32,
+        control: bool,
+    ) -> Self {
         let directory = TempDir::new(tag);
         let socket = directory.join("slave.sock");
         let plain_root = plain_root.unwrap_or_else(|| PathBuf::from("/"));
@@ -108,6 +126,7 @@ impl SlaveProcess {
             .env("EWE_SLAVE_PLAIN_ROOT", &plain_root)
             .env("EWE_SLAVE_THREADS", threads.to_string())
             .env("EWE_SLAVE_SOCKET_MODE", format!("{socket_mode:o}"))
+            .env("EWE_SLAVE_CONTROL", if control { "1" } else { "0" })
             .env("SLAVE_SECRET", "1")
             .stdin(Stdio::null())
             .stdout(Stdio::null())

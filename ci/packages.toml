@@ -851,10 +851,22 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # `Provider` facade (spec 77 feature 06).
 wasm = "enforce"
 wasm-runs = ["", "--no-default-features", "--no-default-features --features control cloudflare"]
-runs = ["", "slave", "testing", "slave cli testing", "cli provider testing", "cloudflare testing", "libkrun libkrun-runner testing"]
+runs = [
+    "",
+    "slave",
+    "testing",
+    "slave cli testing",
+    "cli provider testing",
+    "cloudflare testing",
+    "libkrun libkrun-runner testing",
+    # The Docker driver and the nested driver tests (features 10 and 11): the
+    # fake Engine starts no container.
+    "docker testing",
+]
 # Lint each feature tree of this phase: a warning in the CLI, the slave, the
-# provider, the Cloudflare part or the libkrun driver must fail CI too.
-clippy-runs = ["", "slave cli testing", "cli provider testing", "cloudflare testing", "libkrun libkrun-runner testing"]
+# provider, the Cloudflare part, the libkrun driver or the Docker driver must
+# fail CI too.
+clippy-runs = ["", "slave cli testing", "cli provider testing", "cloudflare testing", "libkrun libkrun-runner testing", "docker testing"]
 clippy-deny-warnings = true
 # The slave tests are Linux only: "the slave is a Linux guest program". It calls
 # fork, signalfd, mount and the process identifier 1 duties, which no other

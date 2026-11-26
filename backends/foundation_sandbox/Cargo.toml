@@ -70,9 +70,9 @@ sha2 = { version = "0.10" }
 # `sha2`; a derive expands in this crate, so this crate names them.
 base85rs = { version = "0.1", optional = true }
 # The common API types (`ApiClient`, `ApiError`, `ApiResponse`, `BodyLimits`)
-# that the generated Firecracker client uses (feature 04). This is the same
-# dependency that `foundation_deployment_docker` takes for its generated client.
-foundation_deployment = { path = "../foundation_deployment", version = "0.0.7", optional = true }
+# that the generated Firecracker client uses (features 04 and 11). This small
+# crate has no database and no C code, so the static guest slave links it.
+foundation_api_common = { workspace = true, optional = true }
 # The HTTP/1.1 server of the two listeners (features 01 and 06) and the client of
 # `SandboxRpcClient::connect`. `default-features = false` and `netio-core`: no
 # C TLS library, so the static musl slave links without a C compiler. The value
@@ -138,10 +138,20 @@ foundation_reactor = { path = "../foundation_reactor", version = "0.0.5", option
 libc = { version = "0.2", optional = true }
 
 [features]
-# The guest-artifact store (feature 03) and its manifest.
+# The guest-artifact store (feature 03) and its manifest. It has no TLS: the
+# store itself reads the cache and unpacks archives. A caller that downloads
+# over HTTPS also enables `artifacts-remote`.
 artifacts = [
     "dep:flate2",
     "dep:tar",
+    "dep:sha2",
+]
+# The HTTPS download of an artifact. It enables the TLS provider of
+# `foundation_netio`, which links `ring` and its C code. The static guest slave
+# leaves it off (spec 77 feature 11, section 6.5): the nested host image
+# already holds the artifacts in its cache, so the slave never downloads.
+artifacts-remote = [
+    "artifacts",
     "foundation_netio/ssl",
 ]
 # The command structures and the two programs (feature 06). Native only. The
@@ -157,7 +167,7 @@ cli = [
 cloudflare = ["control", "dep:foundation_netio", "dep:worker"]
 # `SandboxManager` (feature 02).
 control = []
-default = ["control", "firecracker", "artifacts"]
+default = ["control", "firecracker", "artifacts", "artifacts-remote"]
 # The Docker driver (feature 10). It talks to the Docker Engine through the
 # client of `foundation_deployment_docker` and builds the slave tar with the
 # `tar` crate.
@@ -173,8 +183,10 @@ firecracker = [
     # from the artifact store (feature 03).
     "artifacts",
     "dep:base85rs",
+    "dep:foundation_api_common",
     "dep:foundation_codegentools",
     "dep:foundation_deployment",
+    "dep:sha2",
     "firecracker_actions",
     "firecracker_balloon",
     "firecracker_boot_source",

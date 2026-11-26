@@ -8,6 +8,11 @@
 //! process start ([`run`]), `Prepare` ([`root`]), the sessions ([`exec`]), the
 //! files ([`files`]) and `Shutdown`.
 
+/// The control role of the slave (feature 11, section 6.1): the inner control
+/// plane that runs micro virtual machines (VMs) in a container.
+#[cfg(all(feature = "control", feature = "firecracker"))]
+pub mod control;
+
 pub mod exec;
 pub mod files;
 pub mod pid1;
@@ -20,7 +25,11 @@ pub mod unpack;
 
 use std::path::PathBuf;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+
+#[cfg(feature = "control")]
+use crate::shared::control::SandboxProvider;
 
 use foundation_compact::rng::Rng;
 use foundation_connectrpc::{ConnectError, ConnectResult, Request, Response, RpcCtx};
@@ -88,6 +97,12 @@ pub struct Slave {
     files: Mutex<Option<Arc<Files>>>,
     unpack: Mutex<Option<Arc<UnpackSessions>>>,
     shutdown: Arc<ShutdownSignal>,
+    /// The inner control plane, when the slave was started with `--control`.
+    #[cfg(feature = "control")]
+    control: Mutex<Option<Arc<dyn SandboxProvider>>>,
+    /// Whether the slave can control: the build has the features, `--control`
+    /// was given, and the Firecracker probe is usable (feature 11).
+    can_control: AtomicBool,
 }
 
 impl Slave {
@@ -122,7 +137,39 @@ impl Slave {
             files: Mutex::new(None),
             unpack: Mutex::new(None),
             shutdown,
+            #[cfg(feature = "control")]
+            control: Mutex::new(None),
+            can_control: AtomicBool::new(false),
         })
+    }
+
+    /// Adds the inner control plane and the result of its Firecracker probe.
+    ///
+    /// The slave serves `SandboxService` only when this method ran (feature 11,
+    /// invariant I4).
+    #[cfg(feature = "control")]
+    pub fn set_control(&self, provider: Arc<dyn SandboxProvider>, can_control: bool) {
+        *self
+            .control
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(provider);
+        self.can_control.store(can_control, Ordering::SeqCst);
+    }
+
+    /// The inner control plane, when the slave was started with `--control`.
+    #[cfg(feature = "control")]
+    #[must_use]
+    pub fn control(&self) -> Option<Arc<dyn SandboxProvider>> {
+        self.control
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+
+    /// Whether the slave can control (feature 11).
+    #[must_use]
+    pub fn can_control(&self) -> bool {
+        self.can_control.load(Ordering::SeqCst)
     }
 
     /// The signal that stops the server.
@@ -391,6 +438,23 @@ fn end_everything(
     }
 }
 
+/// Stops the inner sandboxes of a slave with the control role.
+///
+/// The children stop first, then the programs of the slave (feature 11,
+/// section 6.1). A failed stop is not reported: the slave is going away.
+#[cfg(feature = "control")]
+async fn stop_inner_sandboxes(control: &Arc<dyn SandboxProvider>) {
+    let Ok(sandboxes) = control.list().await else {
+        return;
+    };
+    for info in sandboxes {
+        let Ok(id) = info.id.parse() else {
+            continue;
+        };
+        let _ = control.stop(id).await;
+    }
+}
+
 /// Stops the sessions with `SIGTERM`, waits up to `grace`, then kills them and
 /// stops the server.
 async fn shutdown_sessions(
@@ -400,7 +464,13 @@ async fn shutdown_sessions(
     unpack: Option<Arc<UnpackSessions>>,
     shutdown: Arc<ShutdownSignal>,
     grace: std::time::Duration,
+    #[cfg(feature = "control")] control: Option<Arc<dyn SandboxProvider>>,
 ) {
+    // The children stop first.
+    #[cfg(feature = "control")]
+    if let Some(control) = &control {
+        stop_inner_sandboxes(control).await;
+    }
     for session in sessions.snapshot() {
         let _ = session.signal_group(libc::SIGTERM);
     }
@@ -476,7 +546,7 @@ impl SlaveService for Slave {
             kernel,
             is_pid1: self.pid1,
             prepared: state.is_prepared(),
-            can_control: false,
+            can_control: self.can_control(),
         }))
     }
 
@@ -705,8 +775,20 @@ impl SlaveService for Slave {
                 .clone();
             let shutdown = Arc::clone(&self.shutdown);
             let grace = std::time::Duration::from_millis(u64::from(request.msg.grace_ms));
+            #[cfg(feature = "control")]
+            let control = self.control();
             let future = async move {
-                shutdown_sessions(ctx, sessions, files, unpack, shutdown, grace).await;
+                shutdown_sessions(
+                    ctx,
+                    sessions,
+                    files,
+                    unpack,
+                    shutdown,
+                    grace,
+                    #[cfg(feature = "control")]
+                    control,
+                )
+                .await;
             };
             if let Err(error) =
                 foundation_core::valtron::send(foundation_core::valtron::from_future(future))
@@ -869,6 +951,22 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
         Arc::clone(&shutdown),
     );
 
+    if args.control {
+        #[cfg(all(feature = "control", feature = "firecracker"))]
+        match control::build(&ctx) {
+            Ok(role) => slave.set_control(role.provider, role.can_control),
+            // A failure to build the inner control plane leaves the slave
+            // unable to control; the control paths answer `DriverUnavailable`.
+            Err(error) => {
+                tracing::warn!(error = %error, "the slave could not build its control role");
+            }
+        }
+        #[cfg(not(all(feature = "control", feature = "firecracker")))]
+        tracing::warn!(
+            "--control is ignored: this build has no `control` and `firecracker` features"
+        );
+    }
+
     if let Err(error) = reaper::start(Arc::clone(slave.children())) {
         write_error(&format!("agent-slave: the reaper set-up failed: {error}"));
         if pid1 {
@@ -883,8 +981,16 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
         debug_assert!(slave.is_pid1());
     }
 
-    serve::serve(&bound, ctx, Arc::clone(&slave));
-    // The listener loop ended: no session or upload stays behind.
+    serve::serve(&bound, ctx, &slave);
+    // The listener loop ended. The children stop first, then the sessions and
+    // the uploads of the slave: nothing stays behind.
+    #[cfg(feature = "control")]
+    if let Some(control) = slave.control() {
+        let control = Arc::clone(&control);
+        foundation_core::valtron::block_on_future(async move {
+            stop_inner_sandboxes(&control).await;
+        });
+    }
     slave.end_everything();
     // A writable image must be unmounted before the machine stops, so a later
     // mount needs no journal replay.

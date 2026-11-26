@@ -58,9 +58,14 @@ fn blocking_only_at_boundaries() {
         // The `Provider` methods and the two programs block. The CLI module is
         // the body of the `agent-sandbox` main function, so it is a boundary
         // too; section 4.2 I12 names "main functions", and `cli::sandbox::run`
-        // is that function.
-        if !(path.starts_with("providers/") || path.starts_with("bin/") || path.starts_with("cli/"))
-        {
+        // is that function. The slave's `run` and its control role are the body
+        // of the `agent-slave` main function (feature 11).
+        let is_entry_boundary = path.starts_with("providers/")
+            || path.starts_with("bin/")
+            || path.starts_with("cli/")
+            || path.ends_with("native/slave/mod.rs")
+            || path.ends_with("native/slave/control.rs");
+        if !is_entry_boundary {
             offenders.push(path);
         }
     }
@@ -68,6 +73,29 @@ fn blocking_only_at_boundaries() {
         offenders.is_empty(),
         "block_on_future appears outside the boundaries: {offenders:?}"
     );
+}
+
+/// I5 of feature 11: the slave's control role uses the manager and adds no
+/// sandbox rule.
+#[cfg(all(feature = "control", feature = "firecracker"))]
+#[test]
+fn slave_control_uses_manager() {
+    let path = source_root().join("native/slave/control.rs");
+    let text = std::fs::read_to_string(&path).expect("the control module");
+    assert!(
+        text.contains("SandboxManager"),
+        "the control role builds a SandboxManager"
+    );
+    assert!(
+        text.contains("FirecrackerDriver"),
+        "the control role runs the Firecracker driver"
+    );
+    for needle in ["SandboxState", "retry", "boot_timeout"] {
+        assert!(
+            !text.contains(needle),
+            "the control role holds sandbox logic: {needle}"
+        );
+    }
 }
 
 #[test]

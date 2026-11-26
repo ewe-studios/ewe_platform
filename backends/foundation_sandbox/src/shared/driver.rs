@@ -12,7 +12,9 @@ use serde::{Deserialize, Serialize};
 use crate::shared::container::{ContainerControl, ContainerHandle};
 use crate::shared::control::SandboxState;
 use crate::shared::error::{cut, SandboxError, SandboxResult};
+use crate::shared::handles::ExecFileCalls;
 use crate::shared::ids::{DriverId, SandboxId};
+use crate::shared::rpc::messages::SlaveInfo;
 use crate::shared::spec::{GuestMount, RootMode, RootSetup, SandboxSpec};
 use crate::shared::BoxFuture;
 
@@ -140,6 +142,19 @@ pub struct Substrate {
     pub mounts: Vec<GuestMount>,
     /// The handle of the substrate.
     pub handle: Box<dyn SubstrateHandle>,
+    /// The calls of the slave, when the control plane does not dial the slave
+    /// itself.
+    ///
+    /// A nested child forwards each call to the parent's inner control plane
+    /// (feature 11). A normal substrate leaves it `None`, and the control plane
+    /// dials the slave through the connector.
+    pub calls: Option<Arc<dyn ExecFileCalls>>,
+    /// What the slave reported, when the driver already reached it.
+    ///
+    /// A nested child's inner control plane called `Info` and `Prepare`, so the
+    /// create task does not call them again (feature 11). A normal substrate
+    /// leaves it `None`.
+    pub slave: Option<SlaveInfo>,
 }
 
 /// How to reach the slave of a substrate.
@@ -175,6 +190,13 @@ pub enum SlaveEndpoint {
         binding: String,
         /// The name of the slave Durable Object: the sandbox identifier.
         name: SandboxId,
+    },
+    /// A child sandbox of a parent's inner control plane (feature 11).
+    Parent {
+        /// The parent sandbox in this control plane.
+        parent: SandboxId,
+        /// The sandbox inside the parent's inner control plane.
+        inner: SandboxId,
     },
 }
 

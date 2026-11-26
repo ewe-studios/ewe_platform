@@ -9,6 +9,15 @@
 //! The trait set: [`ContainerApi`] (the DO's container), [`DoStorage`] (the DO
 //! key-value store), [`DoAlarm`] (the DO's one timer) and [`SandboxIndex`] (the
 //! Worker-wide list of sandboxes).
+//!
+//! # Nested sandboxes (feature 11, section 6.6)
+//!
+//! A Cloudflare container has no `/dev/kvm`: the platform does not offer nested
+//! virtualisation. The Firecracker probe of the inner control plane therefore
+//! reports the missing device, and the slave reports `can_control: false`. A
+//! caller that creates a child of that slave gets `DriverUnavailable`
+//! (invariant I2). The code path is the same as on a native host; only the
+//! probe result differs. If Cloudflare adds the capability, no code changes.
 
 use std::sync::Arc;
 use std::time::Duration;

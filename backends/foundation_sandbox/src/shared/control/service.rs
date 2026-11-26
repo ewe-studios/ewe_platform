@@ -46,6 +46,64 @@ pub fn authorize(header: Option<&str>, token: &Secret) -> SandboxResult<()> {
     }
 }
 
+/// A control plane with no sandbox: every call answers `NotFound`.
+///
+/// A slave without `--control` serves the control paths with this provider, so
+/// a caller gets the typed `NotFound { what: "method" }` of feature 11,
+/// invariant I4, and not a transport error.
+pub struct DisabledControl;
+
+/// The error of a call to a slave that cannot control.
+fn disabled() -> foundation_errstacks::ErrorTrace<SandboxError> {
+    SandboxError::NotFound {
+        what: "method".to_string(),
+    }
+    .into()
+}
+
+impl crate::shared::control::SandboxProvider for DisabledControl {
+    fn probe(&self) -> BoxFuture<'_, SandboxResult<Vec<crate::shared::driver::HostReport>>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn create(
+        &self,
+        _spec: crate::shared::spec::SandboxSpec,
+    ) -> BoxFuture<'_, SandboxResult<SandboxHandle>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn create_with_progress(
+        &self,
+        _spec: crate::shared::spec::SandboxSpec,
+    ) -> crate::shared::handles::CreateStream {
+        let item: foundation_core::valtron::Stream<
+            SandboxResult<SandboxHandle>,
+            crate::shared::driver::CreateProgress,
+        > = foundation_core::valtron::Stream::Next(Err(disabled()));
+        crate::shared::handles::CreateStream::new(Box::new(std::iter::once(item)))
+    }
+
+    fn get(
+        &self,
+        _id: crate::shared::ids::SandboxId,
+    ) -> BoxFuture<'_, SandboxResult<SandboxHandle>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn list(&self) -> BoxFuture<'_, SandboxResult<Vec<SandboxInfo>>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn stop(&self, _id: crate::shared::ids::SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn kill(&self, _id: crate::shared::ids::SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>> {
+        send_box(async { Err(disabled()) })
+    }
+}
+
 /// `SandboxService` on any control plane.
 pub struct ControlService {
     control: Arc<dyn crate::shared::control::SandboxProvider>,

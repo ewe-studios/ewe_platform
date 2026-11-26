@@ -1127,6 +1127,8 @@ fn make_substrate(
         },
         mounts: Vec::new(),
         handle: Box::new(handle),
+        calls: None,
+        slave: None,
     })
 }
 
