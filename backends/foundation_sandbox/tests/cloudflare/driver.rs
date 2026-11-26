@@ -205,11 +205,11 @@ fn other_error_times_out() {
 #[test]
 fn not_listening_text_match() {
     assert_eq!(
-        port_error_from_text("the container is not listening"),
+        port_error_from_text("the container is not listening", 64 * 1024),
         PortError::NotListening
     );
     assert!(matches!(
-        port_error_from_text("internal error"),
+        port_error_from_text("internal error", 64 * 1024),
         PortError::Other(_)
     ));
 }

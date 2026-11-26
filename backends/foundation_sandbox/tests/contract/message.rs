@@ -214,6 +214,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         env: vec![("K".to_string(), text.to_string())],
         cwd: Some("/".to_string()),
         stdin: true,
+        timeout_ms: None,
     });
     roundtrip(&ExecEventMsg {
         seq: number,
@@ -306,6 +307,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             env: Vec::new(),
             cwd: None,
             stdin: false,
+            timeout_ms: None,
         },
     });
     roundtrip(&SandboxRef {

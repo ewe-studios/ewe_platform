@@ -3,10 +3,10 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_sandbox::shared::cloudflare::testing::container_transport;
+use foundation_sandbox::shared::cloudflare::testing::{container_transport, slave_calls};
 use foundation_sandbox::shared::cloudflare::transport::PortConnector;
 use foundation_sandbox::shared::cloudflare::{CloudflareContainerControl, DoContainerClient};
-use foundation_sandbox::shared::command::Command;
+use foundation_sandbox::shared::command::{Command, StdinMode};
 use foundation_sandbox::shared::container::{
     ContainerControl, ContainerHandle, ContainerResources, ContainerSpec, PortRequest,
 };
@@ -183,10 +183,12 @@ fn container_remote_roundtrip() {
     echo_script(&h);
     let control = control(&h);
     let handle = block_on(control.start(h.ctx.clone(), container_spec())).expect("start");
+    let calls = slave_calls(&h.ctx, &h.host, &support::limits()).expect("slave calls");
     let transport = container_transport(
         h.ctx.clone(),
         control.clone() as Arc<dyn ContainerControl>,
         support::limits(),
+        calls,
         h.id(),
     );
     let client = DoContainerClient::new(h.ctx.clone(), transport, support::limits())
@@ -203,14 +205,92 @@ fn container_remote_roundtrip() {
 }
 
 #[test]
-fn container_wait_deadline() {
-    let h = Harness::new(47, true, false);
+fn container_remote_exec_input() {
+    let h = Harness::new(70, true, false);
+    h.scripted.with_gated_exec(
+        vec![
+            ExecEventKind::Started { pid: 1 },
+            ExecEventKind::Stdout {
+                data: b"first".to_vec(),
+            },
+        ],
+        ExecEventKind::Exit {
+            code: Some(0),
+            signal: None,
+        },
+    );
     let control = control(&h);
     let handle = block_on(control.start(h.ctx.clone(), container_spec())).expect("start");
+    let calls = slave_calls(&h.ctx, &h.host, &support::limits()).expect("slave calls");
     let transport = container_transport(
         h.ctx.clone(),
         control as Arc<dyn ContainerControl>,
         support::limits(),
+        calls,
+        h.id(),
+    );
+    let client = DoContainerClient::new(h.ctx.clone(), transport, support::limits())
+        .with_info(handle.info());
+    let remote = ContainerHandle::new(handle.id().clone(), Arc::new(client));
+    let mut command = Command::new(["cat"]);
+    command.stdin = StdinMode::Piped;
+    let mut exec = block_on(remote.exec(command)).expect("exec");
+    let mut stdin = exec.stdin().expect("the command reads input");
+    block_on(stdin.write(b"hello")).expect("write the input");
+    assert!(
+        h.scripted
+            .applied_input()
+            .iter()
+            .any(|input| input.data == b"hello"),
+        "{:?}",
+        h.scripted.applied_input()
+    );
+}
+
+#[test]
+fn container_remote_exec_signal() {
+    let h = Harness::new(71, true, false);
+    h.scripted.with_gated_exec(
+        vec![
+            ExecEventKind::Started { pid: 1 },
+            ExecEventKind::Stdout {
+                data: b"first".to_vec(),
+            },
+        ],
+        ExecEventKind::Exit {
+            code: Some(0),
+            signal: None,
+        },
+    );
+    let control = control(&h);
+    let handle = block_on(control.start(h.ctx.clone(), container_spec())).expect("start");
+    let calls = slave_calls(&h.ctx, &h.host, &support::limits()).expect("slave calls");
+    let transport = container_transport(
+        h.ctx.clone(),
+        control as Arc<dyn ContainerControl>,
+        support::limits(),
+        calls,
+        h.id(),
+    );
+    let client = DoContainerClient::new(h.ctx.clone(), transport, support::limits())
+        .with_info(handle.info());
+    let remote = ContainerHandle::new(handle.id().clone(), Arc::new(client));
+    let exec = block_on(remote.exec(Command::new(["cat"]))).expect("exec");
+    block_on(exec.signal(9)).expect("signal");
+    assert_eq!(h.scripted.signals(), vec![9]);
+}
+
+#[test]
+fn container_wait_deadline() {
+    let h = Harness::new(47, true, false);
+    let control = control(&h);
+    let handle = block_on(control.start(h.ctx.clone(), container_spec())).expect("start");
+    let calls = slave_calls(&h.ctx, &h.host, &support::limits()).expect("slave calls");
+    let transport = container_transport(
+        h.ctx.clone(),
+        control as Arc<dyn ContainerControl>,
+        support::limits(),
+        calls,
         h.id(),
     );
     let client = DoContainerClient::new(h.ctx.clone(), transport, support::limits())

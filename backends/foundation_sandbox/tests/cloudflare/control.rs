@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use foundation_sandbox::shared::cloudflare::testing::{
-    control_get_request, response_body, response_status,
+    control_exec_request, control_get_request, response_body, response_status,
 };
 use foundation_sandbox::shared::cloudflare::ContainerApi;
 use foundation_sandbox::shared::cloudflare::DoControlPlane;
@@ -11,7 +11,7 @@ use foundation_sandbox::shared::command::Command;
 use foundation_sandbox::shared::control::SandboxState;
 use foundation_sandbox::shared::driver::SlaveEndpoint;
 use foundation_sandbox::shared::error::SandboxError;
-use foundation_sandbox::shared::rpc::messages::SandboxInfo;
+use foundation_sandbox::shared::rpc::messages::{ExecEventKind, SandboxInfo};
 
 use super::support::{self, block_on, spec, Harness};
 
@@ -314,4 +314,51 @@ fn handle_routes_get() {
     assert_eq!(status, 200);
     let info: SandboxInfo = serde_json::from_slice(&body).expect("the info is JSON");
     assert_eq!(info.id, h.id().to_string());
+}
+
+#[test]
+fn handle_streams_exec() {
+    let h = Harness::new(34, true, false);
+    let planner = support::planner(&h, Some(h.id()));
+    let sandbox = block_on(planner.sandboxes().create(spec())).expect("create");
+    h.scripted.with_gated_exec(
+        vec![
+            ExecEventKind::Started { pid: 1 },
+            ExecEventKind::Stdout {
+                data: b"first".to_vec(),
+            },
+        ],
+        ExecEventKind::Exit {
+            code: Some(0),
+            signal: None,
+        },
+    );
+    let exec_id = "0123456789abcdef";
+    let mut response = block_on(planner.handle(control_exec_request(&h.id(), exec_id, false)));
+    assert_eq!(response.status, 200);
+    // The first frame is already in the body stream while the producer waits
+    // on its gate, so the head left before the stream ended.
+    let first = block_on(futures::StreamExt::next(&mut response.body))
+        .expect("a first chunk")
+        .expect("the first chunk is valid");
+    assert_ne!(first.len(), 0);
+    assert_eq!(h.scripted.signals().len(), 0);
+    block_on(sandbox.calls().exec_signal(
+        foundation_sandbox::shared::rpc::messages::ExecSignalRequest {
+            exec_id: exec_id.to_string(),
+            signal: 9,
+        },
+    ))
+    .expect("release the producer");
+    assert_eq!(
+        h.scripted.signals(),
+        vec![9],
+        "the signal reached the slave"
+    );
+    let mut frames = 1;
+    while let Some(item) = block_on(futures::StreamExt::next(&mut response.body)) {
+        item.expect("a later chunk is valid");
+        frames += 1;
+    }
+    assert!(frames > 1, "the stream has the later frames");
 }

@@ -40,6 +40,7 @@ fn exec_request() -> ExecRequest {
         env: Vec::new(),
         cwd: None,
         stdin: false,
+        timeout_ms: None,
     }
 }
 
