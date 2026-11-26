@@ -13,11 +13,12 @@ use std::fmt;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_compact::rng::Rng as _;
+use foundation_compact::Instant;
 use foundation_context::Ctx;
 use foundation_core::valtron::{execute, StreamIteratorExt as _};
 use foundation_netio::shared::client::request_task::HttpExchange;
@@ -30,7 +31,11 @@ use sha2::{Digest as _, Sha256};
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::host::HostFs;
 use crate::shared::spec::GuestArch;
+use crate::shared::Secret;
 
+use super::auth::{
+    basic_header, check_realm, parse_www_authenticate, query_value, Challenge, TokenResponse,
+};
 use super::manifest::{
     check_image_arch, choose_platform, DocumentKind, OciDescriptor, OciImageConfigDocument,
     OciManifestDocument, MANIFEST_ACCEPT,
@@ -239,16 +244,30 @@ pub(crate) struct HttpResponse {
     pub(crate) stream: ExchangeStream,
 }
 
+/// One bearer token that this client holds.
+struct TokenEntry {
+    /// The registry host.
+    registry: String,
+    /// The repository that the token is for.
+    repository: String,
+    /// The token. Its `Debug` form is redacted.
+    token: Secret,
+    /// The instant when the token stops being used.
+    expires_at: Instant,
+}
+
 /// The client of one registry pull.
 ///
-/// The client keeps no token in this stage. The authentication part adds the
-/// token cache (feature 15, section 6.3).
+/// The client keeps the bearer token of the repository for its own life, so the
+/// manifest and the blobs of one import use it without another token request
+/// (feature 15, section 6.3). The `Debug` form never shows a token.
 pub struct RegistryClient {
     ctx: Ctx,
     fs: Arc<dyn HostFs>,
     cache_dir: PathBuf,
     options: RegistryOptions,
     client: DynNetClient,
+    tokens: Mutex<Vec<TokenEntry>>,
 }
 
 impl fmt::Debug for RegistryClient {
@@ -287,6 +306,7 @@ impl RegistryClient {
             cache_dir,
             options,
             client,
+            tokens: Mutex::new(Vec::new()),
         }
     }
 
@@ -606,17 +626,145 @@ impl RegistryClient {
         )
     }
 
-    /// Sends one GET request and returns its head with the body stream.
+    /// Sends one GET request with the token of this client.
     ///
-    /// This stage sends no credentials. The authentication part sends the token
-    /// and retries one 401 (feature 15, section 6.3).
+    /// It sends the request with no `Authorization` header, or with the cached
+    /// token, and sends it one more time after a 401 with a challenge. A second
+    /// 401, or a 403, is [`SandboxError::Unauthorized`] (feature 15, section
+    /// 6.3).
     async fn send_get(
         &self,
-        _reference: &OciReference,
+        reference: &OciReference,
         url: &str,
         accept: Option<&str>,
     ) -> SandboxResult<HttpResponse> {
-        self.open_response(url, accept, None).await
+        let cached = self.cached_authorization(reference);
+        let mut response = self.open_response(url, accept, cached.as_deref()).await?;
+        if response.status == 401 {
+            let challenge = header_first(&response.headers, &SimpleHeader::WWW_AUTHENTICATE)
+                .map(str::to_string);
+            // Drain the failed body so the connection goes back to the pool.
+            drop(
+                self.read_error_body(&mut response.stream, self.options.limits.max_error_body)
+                    .await,
+            );
+            let Some(challenge) = challenge.and_then(|text| parse_www_authenticate(&text)) else {
+                return Err(unauthorized());
+            };
+            let authorization = if challenge.is_bearer() {
+                let token = self.fetch_token(reference, &challenge).await?;
+                format!("Bearer {}", token.expose())
+            } else if challenge.is_basic() {
+                let Some(header) = basic_header(self.options.auth_for(&reference.registry)) else {
+                    return Err(unauthorized());
+                };
+                header
+            } else {
+                return Err(unauthorized());
+            };
+            response = self
+                .open_response(url, accept, Some(&authorization))
+                .await?;
+            if response.status == 401 || response.status == 403 {
+                return Err(unauthorized());
+            }
+        } else if response.status == 403 {
+            return Err(unauthorized());
+        }
+        Ok(response)
+    }
+
+    /// The `Authorization` header of a cached token for this reference.
+    fn cached_authorization(&self, reference: &OciReference) -> Option<String> {
+        let now = self.ctx.clock().now();
+        let tokens = self
+            .tokens
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        tokens
+            .iter()
+            .find(|entry| {
+                entry.expires_at > now
+                    && entry.registry.eq_ignore_ascii_case(&reference.registry)
+                    && entry.repository == reference.repository
+            })
+            .map(|entry| format!("Bearer {}", entry.token.expose()))
+    }
+
+    /// Gets one token from the token service and keeps it.
+    async fn fetch_token(
+        &self,
+        reference: &OciReference,
+        challenge: &Challenge,
+    ) -> SandboxResult<Secret> {
+        let Some(realm) = challenge.param("realm") else {
+            return Err(unauthorized());
+        };
+        check_realm(realm, &self.options.allow_insecure)?;
+        let mut url = realm.to_string();
+        let mut separator = if url.contains('?') { '&' } else { '?' };
+        if let Some(service) = challenge.param("service") {
+            url.push(separator);
+            url.push_str("service=");
+            url.push_str(&query_value(service));
+            separator = '&';
+        }
+        url.push(separator);
+        url.push_str("scope=repository:");
+        url.push_str(&query_value(&reference.repository));
+        url.push_str(":pull");
+
+        let basic = basic_header(self.options.auth_for(&reference.registry));
+        let mut response = self.open_response(&url, None, basic.as_deref()).await?;
+        if response.status != 200 {
+            let body = self
+                .read_error_body(&mut response.stream, self.options.limits.max_error_body)
+                .await;
+            return if response.status == 401 || response.status == 403 {
+                Err(unauthorized())
+            } else {
+                Err(registry_status(response.status, &body))
+            };
+        }
+        let body = self
+            .read_body_bounded(
+                &mut response.stream,
+                self.options.limits.max_error_body,
+                "token answer",
+            )
+            .await?;
+        let answer: TokenResponse =
+            serde_json::from_slice(&body).map_err(|error| SandboxError::Io {
+                op: "read a registry token".to_string(),
+                message: error.to_string(),
+            })?;
+        let expires_in = answer.expires_in;
+        let Some(text) = answer.into_token() else {
+            return Err(unauthorized());
+        };
+        let limit = self.options.limits.token_ttl;
+        let ttl = expires_in.map_or(limit, |seconds| Duration::from_secs(seconds).min(limit));
+        let token = Secret::new(text);
+        self.store_token(reference, token.clone(), self.ctx.clock().now() + ttl);
+        Ok(token)
+    }
+
+    /// Keeps one token for the later calls of the same repository.
+    fn store_token(&self, reference: &OciReference, token: Secret, expires_at: Instant) {
+        let mut tokens = self
+            .tokens
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        tokens.retain(|entry| {
+            !(entry.registry.eq_ignore_ascii_case(&reference.registry)
+                && entry.repository == reference.repository)
+        });
+        tokens.push(TokenEntry {
+            registry: reference.registry.clone(),
+            repository: reference.repository.clone(),
+            token,
+            expires_at,
+        });
     }
 
     /// Sends one GET request with an optional `Accept` and `Authorization`
@@ -798,6 +946,11 @@ pub(crate) fn registry_status(
         message: format!("status {status}: {body}"),
     }
     .into()
+}
+
+/// The error of a request that the registry did not authorize.
+fn unauthorized() -> foundation_errstacks::ErrorTrace<SandboxError> {
+    SandboxError::Unauthorized.into()
 }
 
 /// The error of a transport failure.

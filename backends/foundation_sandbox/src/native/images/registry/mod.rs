@@ -17,10 +17,12 @@
     reason = "the feature names the module registry and keeps the spec type names"
 )]
 
+pub mod auth;
 pub mod client;
 pub mod manifest;
 pub mod reference;
 
+pub use auth::{parse_www_authenticate, Challenge};
 pub use client::{
     digest_hex, RegistryAuth, RegistryClient, RegistryLimits, RegistryOptions, ResolvedManifest,
 };

@@ -158,6 +158,9 @@ pub struct State {
 /// A fake registry on a loopback address.
 pub struct FakeRegistry {
     address: SocketAddr,
+    /// The host name that [`Self::base_url`] uses, which can differ from the
+    /// bound address so a test can play a second host on this machine.
+    url_host: String,
     state: Arc<Mutex<State>>,
     stop: Arc<AtomicBool>,
     accept: Option<JoinHandle<()>>,
@@ -179,8 +182,17 @@ impl FakeRegistry {
     /// When the listener cannot bind.
     #[must_use]
     pub fn start_on(address: &str) -> Self {
-        let listener = TcpListener::bind(format!("{address}:0"))
-            .unwrap_or_else(|error| panic!("the fake registry binds to {address}: {error}"));
+        Self::start_on_host(address, address)
+    }
+
+    /// Starts the registry on `bind`, and names it `url_host` in its base URL.
+    ///
+    /// # Panics
+    /// When the listener cannot bind.
+    #[must_use]
+    pub fn start_on_host(bind: &str, url_host: &str) -> Self {
+        let listener = TcpListener::bind(format!("{bind}:0"))
+            .unwrap_or_else(|error| panic!("the fake registry binds to {bind}: {error}"));
         let address = listener.local_addr().expect("the fake registry has a port");
         let state = Arc::new(Mutex::new(State::default()));
         let stop = Arc::new(AtomicBool::new(false));
@@ -204,6 +216,7 @@ impl FakeRegistry {
         };
         Self {
             address,
+            url_host: url_host.to_string(),
             state,
             stop,
             accept: Some(accept),
@@ -219,7 +232,7 @@ impl FakeRegistry {
     /// The base address, such as `http://127.0.0.1:5000`.
     #[must_use]
     pub fn base_url(&self) -> String {
-        format!("http://{}", self.address)
+        format!("http://{}:{}", self.url_host, self.address.port())
     }
 
     /// The state of the server.
@@ -438,12 +451,11 @@ fn authorized(state: &State, request: &RecordedRequest) -> bool {
 /// The 401 answer with the challenge of this server.
 fn challenge_answer(state: &State, _request: &RecordedRequest) -> Answer {
     let challenge = match &state.challenge {
-        Challenge::Bearer { .. } => format!(
+        Challenge::Bearer { .. } | Challenge::None => format!(
             "Bearer realm=\"{}/token\",service=\"the test registry\",scope=\"repository:test/image:pull\"",
             state.realm_base()
         ),
         Challenge::Basic { .. } => "Basic realm=\"the test registry\"".to_string(),
-        Challenge::None => "Bearer realm=\"the test registry\"".to_string(),
     };
     (
         401,
