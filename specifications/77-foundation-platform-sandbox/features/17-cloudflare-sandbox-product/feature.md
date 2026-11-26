@@ -254,8 +254,8 @@ the document shows them with `curl`:
 
 | Call kind | Request | Answer |
 |---|---|---|
-| Unary (`Create`, `Get`, `List`, `Stop`, `ExecInput`, the file calls except `FileRead`) | `POST <base>/ewe.sandbox.control.v1.SandboxService/<Method>`; `Content-Type: application/json`; `Authorization: Bearer <token>`; the body is the request message as JSON | `200` and the answer message as JSON; or an HTTP error status and `{"code": "...", "message": "..."}` |
-| Server stream (`Exec`, `FileRead`, `CreateWithProgress`) | the same path; `Content-Type: application/connect+json`; the body is one envelope: 1 byte of flags (0), 4 bytes of length (big-endian), the JSON message | `200`; a stream of envelopes; the last one has the flag `0x02` and holds `{}` or `{"error": {..}}` |
+| Unary (`Get`, `List`, `Stop`, `ExecInput`, the file calls except `FileRead`) | `POST <base>/ewe.sandbox.control.v1.SandboxService/<Method>`; `Content-Type: application/json`; `Authorization: Bearer <token>`; the body is the request message as JSON | `200` and the answer message as JSON; or an HTTP error status and `{"code": "...", "message": "..."}` |
+| Server stream (`Create`, `Exec`, `FileRead`) | the same path; `Content-Type: application/connect+json`; the body is one envelope: 1 byte of flags (0), 4 bytes of length (big-endian), the JSON message | `200`; a stream of envelopes; the last one has the flag `0x02` and holds `{}` or `{"error": {..}}` |
 
 The document has one complete example for each row, with the real field names of
 feature 00, and a TS example of 20 lines or fewer that reads the `Exec` stream with
@@ -298,7 +298,7 @@ feature 08):
    `EWE_SHIM_SHA256`.
 4. Start `wrangler dev --local -c wrangler.product.toml` and save its PID. Stop it by
    that PID at the end.
-5. Run `cargo test -p foundation_sandbox --features testing --profile uat e2e_cf_product`
+5. Run `cargo test -p foundation_sandbox --features testing --profile uat e2e_cf`
    with `EWE_SANDBOX_URL` and the token.
 
 Faults:
