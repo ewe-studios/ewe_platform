@@ -37,7 +37,7 @@ use crate::error::{AgentRpcError, AgentRpcResult};
 use crate::host::worker::config::{ServeLimits, WorkerHostConfig};
 use crate::host::worker::secrets::read_api_keys;
 use crate::host::worker::serve::{incoming_from_web_request, ConnectService, ServedAgent};
-use crate::host::worker::SERVICE_PATH;
+use crate::host::worker::SERVICE_PATHS;
 use crate::proto::v1::agent_service::register_agent_service;
 
 /// The Durable Object binding of the history archive.
@@ -194,7 +194,9 @@ async fn build(state: &worker::State, env: &worker::Env, ctx: Ctx) -> AgentRpcRe
 
     let limits = ServeLimits::from(&config);
     let mut app = HttpApp::<Arc<dyn CfServe>>::with_ctx(ctx.clone());
-    app.route_any_cf::<ConnectService>(SERVICE_PATH);
+    for path in SERVICE_PATHS {
+        app.route_any_cf::<ConnectService>(path);
+    }
     ctx.store(ServedAgent {
         handler: Arc::new(router.into_handler()),
         limits: limits.clone(),

@@ -17,8 +17,16 @@ pub mod registry;
 pub mod secrets;
 pub mod serve;
 
-/// The path pattern of every `AgentService` procedure.
+/// The Connect path of every `AgentService` procedure.
 ///
-/// The Connect path is `/ewe.agent_rpc.v1.AgentService/<Method>`; the router
-/// matches the last segment as `:method`.
-pub const SERVICE_PATH: &str = "/ewe.agent_rpc.v1.AgentService/:method";
+/// The generated code names each one; a route with a `:method` parameter does
+/// not match a Durable Object dispatch, so each procedure has its own route.
+pub const SERVICE_PATHS: &[&str] = &[
+    crate::proto::v1::agent_service::procedure::HEALTH,
+    crate::proto::v1::agent_service::procedure::GET_CAPABILITIES,
+    crate::proto::v1::agent_service::procedure::CREATE_INSTANCE,
+    crate::proto::v1::agent_service::procedure::LIST_INSTANCES,
+    crate::proto::v1::agent_service::procedure::DESTROY_INSTANCE,
+    crate::proto::v1::agent_service::procedure::CHAT,
+    crate::proto::v1::agent_service::procedure::CHAT_STREAM,
+];
