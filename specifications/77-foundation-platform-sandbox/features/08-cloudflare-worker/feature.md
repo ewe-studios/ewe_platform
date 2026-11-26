@@ -415,9 +415,11 @@ with no storage.
 ### 6.4 The `Provider`
 
 `foundation_deployment_platform`: `ProviderId::CloudflareContainer`
-(`cloudflare-container`); `SandboxDeploymentProvider::cloudflare(control)` is
-`SandboxDeploymentProvider::new(control, DriverId::CloudflareContainer)`. No other code: the facade
-of feature 06 works on any `SandboxProvider`.
+(`cloudflare-container`). `foundation_sandbox::providers` (feature 06):
+`SandboxDeploymentProvider::cloudflare(control)` is
+`SandboxDeploymentProvider::new(control, DriverId::CloudflareContainer)`. No other code: the
+facade of feature 06 works on any `SandboxProvider`. Decision D1 moved the facades into
+`foundation_sandbox`; the `Provider` trait stays in the deployment crate.
 
 ### 6.5 `wrangler.toml`
 
