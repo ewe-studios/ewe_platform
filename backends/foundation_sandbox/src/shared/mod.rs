@@ -22,6 +22,7 @@ pub mod sequence;
 pub mod serde_helpers;
 pub mod spec;
 pub mod unpack;
+pub mod user;
 
 /// The Cloudflare part of the platform. Feature 07 fills this module.
 #[cfg(feature = "cloudflare")]

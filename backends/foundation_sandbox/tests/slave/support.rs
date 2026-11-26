@@ -441,6 +441,7 @@ pub fn exec_request(exec_id: &str, argv: &[&str]) -> ExecRequest {
         env: Vec::new(),
         cwd: None,
         stdin: false,
+        user: None,
     }
 }
 

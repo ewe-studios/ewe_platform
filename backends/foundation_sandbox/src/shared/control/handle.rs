@@ -353,6 +353,7 @@ pub async fn exec_session(
         env: command.env.clone(),
         cwd: command.cwd.clone(),
         stdin: stdin_requested,
+        user: command.user.clone(),
     };
     let mut stream = calls.exec(request).await?;
     let Some(Ok(ExecEventMsg {
@@ -785,6 +786,17 @@ impl ReadState {
     }
 }
 
+/// The command with the image user when it names none (invariant I10).
+fn with_image_user(
+    mut command: Command,
+    manifest: Option<crate::shared::images::ImageManifest>,
+) -> Command {
+    if command.user.is_none() {
+        command.user = manifest.and_then(|manifest| manifest.user);
+    }
+    command
+}
+
 fn ensure_ready(record: &SandboxRecord) -> SandboxResult<()> {
     let state = record
         .state
@@ -920,6 +932,7 @@ impl SandboxOps for LocalSandboxOps {
     }
 
     fn exec(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecHandle>> {
+        let command = with_image_user(command, self.manifest());
         let result = ensure_ready(&self.record);
         let calls = record_calls(&self.record);
         let ctx = self.ctx.clone();
@@ -931,6 +944,7 @@ impl SandboxOps for LocalSandboxOps {
     }
 
     fn run(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecOutput>> {
+        let command = with_image_user(command, self.manifest());
         let result = ensure_ready(&self.record);
         let calls = record_calls(&self.record);
         let ctx = self.ctx.clone();
@@ -1316,6 +1330,7 @@ impl SandboxOps for RemoteSandboxOps {
     }
 
     fn exec(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecHandle>> {
+        let command = with_image_user(command, self.manifest());
         let ready = self.info.state == SandboxState::Ready;
         let calls = Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>;
         let ctx = self.ctx.clone();
@@ -1329,6 +1344,7 @@ impl SandboxOps for RemoteSandboxOps {
     }
 
     fn run(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecOutput>> {
+        let command = with_image_user(command, self.manifest());
         let ready = self.info.state == SandboxState::Ready;
         let calls = Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>;
         let ctx = self.ctx.clone();

@@ -854,6 +854,37 @@ pub fn child_chdir(path: &CString) -> i32 {
     0
 }
 
+/// Clears the supplementary groups of the child. It returns the error number,
+/// or 0.
+#[must_use]
+pub fn child_setgroups() -> i32 {
+    // SAFETY: a count of zero with a null list clears every group.
+    if unsafe { libc::setgroups(0, std::ptr::null()) } < 0 {
+        return child_errno();
+    }
+    0
+}
+
+/// Sets the group of the child. It returns the error number, or 0.
+#[must_use]
+pub fn child_setgid(gid: u32) -> i32 {
+    // SAFETY: `setgid` takes one number.
+    if unsafe { libc::setgid(gid) } < 0 {
+        return child_errno();
+    }
+    0
+}
+
+/// Sets the user of the child. It returns the error number, or 0.
+#[must_use]
+pub fn child_setuid(uid: u32) -> i32 {
+    // SAFETY: `setuid` takes one number.
+    if unsafe { libc::setuid(uid) } < 0 {
+        return child_errno();
+    }
+    0
+}
+
 /// Replaces the image of the child. It returns the error number, or 0 when the
 /// call did not return.
 #[must_use]

@@ -4,7 +4,8 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_sandbox::shared::control::testing::{ScriptedSlave, SimDriver};
+use foundation_sandbox::shared::command::Command;
+use foundation_sandbox::shared::control::testing::{ScriptedSlave, SimDriver, SlaveCall};
 use foundation_sandbox::shared::control::SandboxProvider;
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::images::ImageManifest;
@@ -148,6 +149,60 @@ fn start_cmd_without_a_manifest_command() {
         error,
         SandboxError::InvalidSpec { ref field, .. } if field == "cmd"
     ));
+}
+
+/// The user that the scripted slave received for its last `Exec` call.
+fn exec_user(slave: &ScriptedSlave) -> Option<String> {
+    slave
+        .calls()
+        .into_iter()
+        .rev()
+        .find_map(|call| match call {
+            SlaveCall::Exec { user, .. } => Some(user),
+            _ => None,
+        })?
+}
+
+fn exit_events() -> Vec<ExecEventKind> {
+    vec![
+        ExecEventKind::Started { pid: 1 },
+        ExecEventKind::Exit {
+            code: Some(0),
+            signal: None,
+        },
+    ]
+}
+
+#[test]
+fn manifest_user_applies() {
+    let _serial = crate::control::support::serial();
+    let mut manifest = support::manifest(foundation_sandbox::shared::spec::GuestArch::host());
+    manifest.user = Some("1000:1000".to_string());
+    let created = create_image(101, resolver_with(manifest));
+    created.slave.with_exec_events(exit_events());
+    crate::pool::block_on(created.handle.run(Command::new(["/bin/tool"])))
+        .expect("the command runs");
+    assert_eq!(
+        exec_user(&created.slave),
+        Some("1000:1000".to_string()),
+        "the manifest user applies to a command without a user"
+    );
+}
+
+#[test]
+fn command_user_wins() {
+    let _serial = crate::control::support::serial();
+    let mut manifest = support::manifest(foundation_sandbox::shared::spec::GuestArch::host());
+    manifest.user = Some("1000:1000".to_string());
+    let created = create_image(102, resolver_with(manifest));
+    created.slave.with_exec_events(exit_events());
+    let command = Command::new(["/bin/tool"]).with_user("0:0");
+    crate::pool::block_on(created.handle.run(command)).expect("the command runs");
+    assert_eq!(
+        exec_user(&created.slave),
+        Some("0:0".to_string()),
+        "the command user wins over the manifest user"
+    );
 }
 
 #[test]

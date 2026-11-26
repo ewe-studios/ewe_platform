@@ -11,4 +11,5 @@ mod control;
 mod disks;
 mod store;
 mod unpack;
+mod user;
 mod writable;

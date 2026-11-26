@@ -32,6 +32,11 @@ pub struct Command {
     /// The time limit, or `None` for no time limit.
     #[serde(with = "duration_millis_option", default)]
     pub timeout: Option<Duration>,
+    /// The user of the program: `"uid"`, `"uid:gid"`, `"name"` or
+    /// `"name:group"` (feature 12). `None` runs as root, or as the image user
+    /// when the sandbox came from an image.
+    #[serde(default)]
+    pub user: Option<String>,
 }
 
 impl Command {
@@ -50,7 +55,15 @@ impl Command {
             cwd: None,
             stdin: StdinMode::Null,
             timeout: None,
+            user: None,
         }
+    }
+
+    /// The same command with this user.
+    #[must_use]
+    pub fn with_user(mut self, user: impl Into<String>) -> Self {
+        self.user = Some(user.into());
+        self
     }
 }
 

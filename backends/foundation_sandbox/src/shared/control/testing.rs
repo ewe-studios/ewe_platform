@@ -583,6 +583,8 @@ pub enum SlaveCall {
         argv: Vec<String>,
         /// Whether the program reads input.
         stdin: bool,
+        /// The user of the command (feature 12).
+        user: Option<String>,
     },
     /// `ExecInput`.
     ExecInput {
@@ -1097,6 +1099,7 @@ impl SlaveService for ScriptedSlave {
             exec_id: request.msg.exec_id.clone(),
             argv: request.msg.argv.clone(),
             stdin: request.msg.stdin,
+            user: request.msg.user.clone(),
         });
         let script = self
             .inner

@@ -140,6 +140,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         cwd: Some("/workspace".to_string()),
         stdin: StdinMode::Piped,
         timeout: Some(Duration::from_millis(250)),
+        user: None,
     });
     roundtrip(&Command {
         argv: vec!["cat".to_string()],
@@ -147,6 +148,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         cwd: None,
         stdin: StdinMode::Bytes(byte_data.clone()),
         timeout: None,
+        user: None,
     });
     roundtrip(&StdinMode::Null);
     roundtrip(&ExitStatus::code(0));
@@ -220,6 +222,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         env: vec![("K".to_string(), text.to_string())],
         cwd: Some("/".to_string()),
         stdin: true,
+        user: None,
     });
     roundtrip(&ExecEventMsg {
         seq: number,
@@ -313,6 +316,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             env: Vec::new(),
             cwd: None,
             stdin: false,
+            user: None,
         },
     });
     roundtrip(&SandboxRef {

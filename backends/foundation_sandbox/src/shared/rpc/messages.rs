@@ -111,6 +111,10 @@ pub struct ExecRequest {
     pub cwd: Option<String>,
     /// Whether the program reads input. `false` uses `/dev/null`.
     pub stdin: bool,
+    /// The user of the program, in the forms of feature 12. `None` runs as
+    /// root, or as the image user when the command has no user.
+    #[serde(default)]
+    pub user: Option<String>,
 }
 
 /// One event of a running program.
