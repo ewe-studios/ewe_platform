@@ -191,3 +191,14 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   timer that the valtron reactor drives, so the adapter parks instead of spinning.
 - **The adapter keeps SSE off until both waits are bounded.** The client gate stays at 208
   pass, 0 fail.
+
+## SSE second finding (2026-11-27)
+
+- **The open phase needs its own bound.** `NetioTransport` races `send_sse_async` against
+  `valtron::timer::sleep_for`. The timeout is configuration, default 30 s. Some SSE reads now
+  finish in 23 ms.
+- **The adapter still stalls on other SSE reads.** Empty-stream and reconnect cases time out
+  the next command. A control event without an `event:` type, or a data event with an empty
+  payload, is not handled. The serial adapter also cannot serve commands while a read is open.
+- **Keep the adapter honest.** SSE stays announced as unsupported until the whole suite is
+  green. The client gate stays at 208 pass, 0 fail.

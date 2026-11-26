@@ -17,6 +17,7 @@ use std::time::Duration;
 /// A transport over the native HTTP client.
 pub struct NetioTransport {
     client: DynNetClient,
+    sse_open_timeout: Duration,
 }
 
 impl NetioTransport {
@@ -33,13 +34,26 @@ impl NetioTransport {
             .connect_timeout(connect)
             .read_timeout(read)
             .build();
-        Self { client }
+        Self {
+            client,
+            sse_open_timeout: Duration::from_secs(30),
+        }
     }
 
     /// Build a transport over an existing client.
     #[must_use]
     pub fn from_client(client: DynNetClient) -> Self {
-        Self { client }
+        Self {
+            client,
+            sse_open_timeout: Duration::from_secs(30),
+        }
+    }
+
+    /// Set the longest wait for a Server-Sent Events (SSE) response head.
+    #[must_use]
+    pub fn with_sse_open_timeout(mut self, timeout: Duration) -> Self {
+        self.sse_open_timeout = timeout;
+        self
     }
 }
 
@@ -79,10 +93,29 @@ impl ClientTransport for NetioTransport {
             for (name, value) in request.headers {
                 builder = builder.header(known_header(&name), value);
             }
-            let inner = client
-                .send_sse_async(builder.build())
-                .await
-                .map_err(|error| TransportError::new(error.to_string()))?;
+            let timeout = self.sse_open_timeout;
+            let open = client.send_sse_async(builder.build());
+            let bounded = async {
+                let head = async { Some(open.await) };
+                let deadline = async {
+                    foundation_core::valtron::timer::sleep_for(
+                        timeout,
+                        &foundation_context::Ctx::host(),
+                    )
+                    .await;
+                    None
+                };
+                futures_lite::future::or(head, deadline).await
+            };
+            let inner = match bounded.await {
+                Some(Ok(inner)) => inner,
+                Some(Err(error)) => return Err(TransportError::new(error.to_string())),
+                None => {
+                    return Err(TransportError::new(
+                        "Server-Sent Events head timed out",
+                    ))
+                }
+            };
             let events = futures_lite::stream::unfold(inner, |mut inner| async move {
                 use foundation_core::valtron::Stream;
                 use futures_lite::StreamExt;
