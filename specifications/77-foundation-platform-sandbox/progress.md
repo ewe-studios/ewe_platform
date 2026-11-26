@@ -557,6 +557,13 @@ pull request #936.
 spec 70 feature 22 removed. #935 records that a promoted Worker URL needs the account
 subdomain.
 
+## Feature 06: the end-to-end job timeout (2026-11-27)
+
+The `sandbox-e2e` job of pull request #881 ran its full 60 minutes and was cancelled. The
+job now allows 90 minutes and caches the musl slave build under a key that names the
+operating system and the `agent` profile (`611e7a77c`). No test changed. A cancelled run is
+not a failure (specifications rule 2).
+
 ## In progress
 
 Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for
