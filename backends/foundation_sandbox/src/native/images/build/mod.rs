@@ -9,6 +9,7 @@ use crate::shared::limits::BuildLimits;
 
 pub mod cache;
 pub mod keys;
+pub mod steps;
 
 /// The metadata that the steps of a build gather so far.
 ///

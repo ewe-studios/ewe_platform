@@ -2036,6 +2036,41 @@ impl crate::shared::host::HostFs for FakeHostFs {
             .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
     }
 
+    fn entry_meta(&self, path: &Path) -> SandboxResult<crate::shared::host::EntryMeta> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(data) = state.files.get(path) {
+            return Ok(crate::shared::host::EntryMeta {
+                kind: crate::shared::host::EntryKind::File,
+                mode: 0o644,
+                size: u64::try_from(data.len()).unwrap_or(u64::MAX),
+            });
+        }
+        if state.dirs.contains(path) {
+            return Ok(crate::shared::host::EntryMeta {
+                kind: crate::shared::host::EntryKind::Directory,
+                mode: 0o755,
+                size: 0,
+            });
+        }
+        Err(SandboxError::Io {
+            op: "entry_meta".to_string(),
+            message: format!("{}: not found", path.display()),
+        }
+        .into())
+    }
+
+    fn canonicalize(&self, path: &Path) -> SandboxResult<PathBuf> {
+        if self.exists(path) {
+            Ok(path.to_path_buf())
+        } else {
+            Err(SandboxError::Io {
+                op: "canonicalize".to_string(),
+                message: format!("{}: not found", path.display()),
+            }
+            .into())
+        }
+    }
+
     fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>> {
         let data = self.file(path).ok_or_else(|| SandboxError::Io {
             op: "read_stream".to_string(),
