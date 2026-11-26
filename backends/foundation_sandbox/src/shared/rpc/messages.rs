@@ -11,6 +11,124 @@ use crate::shared::spec::SandboxSpec;
 pub use crate::shared::control::{ExitReport, SandboxInfo, SandboxState};
 pub use crate::shared::spec::{FsType, GuestMount, RootMode, RootSetup, RootSource};
 
+/// The request of the container `Start` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerStartRequest {
+    /// What the caller wants the container to be.
+    pub spec: crate::shared::container::ContainerSpec,
+}
+
+/// The request of the container `Get` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerGetRequest {
+    /// The container identifier.
+    pub container_id: String,
+}
+
+/// The response of the container `Get` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerGetResponse {
+    /// The container, when this control has it and it runs.
+    pub container: Option<crate::shared::container::ContainerInfo>,
+}
+
+/// The response of the container `List` call.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerListResponse {
+    /// The containers of this control.
+    pub containers: Vec<crate::shared::container::ContainerInfo>,
+}
+
+/// The request of the container `Fetch` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerFetchRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The port.
+    pub port: u16,
+    /// The request.
+    pub request: crate::shared::container::PortRequest,
+}
+
+/// One event of a container `Fetch` response.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ContainerFetchEvent {
+    /// The response head. It is first.
+    Head {
+        /// The HTTP status.
+        status: u16,
+        /// The response headers.
+        headers: Vec<(String, String)>,
+    },
+    /// One chunk of the response body.
+    Chunk {
+        /// The bytes.
+        #[serde(with = "base64_bytes")]
+        data: Vec<u8>,
+    },
+}
+
+/// The request of the container `Exec` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerExecRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The execution request of the slave.
+    pub request: ExecRequest,
+}
+
+/// The request of the container `Signal` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerSignalRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The signal number.
+    pub signo: i32,
+}
+
+/// The request of the container `Wait` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerWaitRequest {
+    /// The container identifier.
+    pub container_id: String,
+}
+
+/// The request of the container `Stop` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerStopRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The grace period in milliseconds.
+    pub grace_ms: u64,
+}
+
+/// The request of the container `Destroy` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerDestroyRequest {
+    /// The container identifier.
+    pub container_id: String,
+}
+
+/// The request of the container `LogTail` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerLogTailRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The most bytes to read.
+    pub max: usize,
+}
+
+/// The response of the container `LogTail` call.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerLogTailResponse {
+    /// The bytes of the tail.
+    pub data: Vec<u8>,
+}
+
+// The values of the container service are the contract values of feature 00.
+pub use crate::shared::container::{ContainerInfo, ContainerResources, ContainerSpec, PortRequest};
+pub use crate::shared::driver::SubstrateExit;
+
 /// An empty request or response.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Empty {}

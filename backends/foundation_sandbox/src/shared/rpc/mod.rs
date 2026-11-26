@@ -10,11 +10,18 @@
 
 pub mod messages;
 
+/// The internal container service (feature 07). The module is public so the
+/// server reads the generated procedure paths.
+pub mod container;
 mod sandbox;
 /// The slave service. The module is public so the server reads the generated
 /// procedure paths of [`slave::procedure`].
 pub mod slave;
 
+pub use container::{
+    register_container_service, ContainerService, ContainerServiceClient,
+    ContainerServiceClientExt, UnimplementedContainerServiceHandler,
+};
 pub use sandbox::{
     register_sandbox_service, SandboxService, SandboxServiceClient, SandboxServiceClientExt,
     UnimplementedSandboxServiceHandler,

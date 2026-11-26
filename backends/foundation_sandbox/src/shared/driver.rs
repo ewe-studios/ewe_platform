@@ -161,6 +161,13 @@ pub enum SlaveEndpoint {
         /// The port.
         port: u16,
     },
+    /// A slave in a second Durable Object, through a service binding.
+    CloudflareDo {
+        /// The name of the service binding, for example `SLAVE`.
+        binding: String,
+        /// The name of the slave Durable Object: the sandbox identifier.
+        name: SandboxId,
+    },
 }
 
 /// How a substrate ended.
