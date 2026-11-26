@@ -745,3 +745,24 @@ fn given_new_data_when_a_read_runs_then_the_etag_changes() {
         assert_eq!(second.body, b"abcdef");
     });
 }
+
+#[test]
+fn given_producer_errors_when_the_headers_are_built_then_the_contract_fields_are_present() {
+    let gap = error_headers(&StoreError::SequenceGap {
+        expected: 1,
+        received: 2,
+    });
+    assert!(gap
+        .iter()
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-expected-seq")
+            && value == "1"));
+    assert!(gap
+        .iter()
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-received-seq")
+            && value == "2"));
+
+    let fenced = error_headers(&StoreError::Fenced { current_epoch: 5 });
+    assert!(fenced
+        .iter()
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-epoch") && value == "5"));
+}
