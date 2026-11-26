@@ -266,6 +266,57 @@ impl Slave {
         Ok(opened)
     }
 
+    /// Unmounts a writable root cleanly before the machine powers off.
+    ///
+    /// It unmounts the bind mounts below the root, flushes the buffers and
+    /// unmounts the root. When the root refuses with `EBUSY`, it remounts the
+    /// root read-only, which also makes the image clean. It never fails the
+    /// stop: every error is logged, and the power off runs next.
+    pub fn unmount_writable_root(&self) {
+        let Some(record) = self.lock_state().prepare.clone() else {
+            return;
+        };
+        if record.root_mode != crate::shared::spec::RootMode::Writable {
+            return;
+        }
+        let root = &record.exec_root;
+        let mut targets: Vec<PathBuf> = Vec::new();
+        for mount in &record.request.mounts {
+            targets.push(root.join(mount.guest_path.trim_start_matches('/')));
+        }
+        if !record.request.dns.is_empty() {
+            targets.push(root.join("etc/resolv.conf"));
+        }
+        for directory in ["dev", "sys", "proc"] {
+            targets.push(root.join(directory));
+        }
+        for target in &targets {
+            if let Err(error) = sys::unmount(target, 0) {
+                tracing::warn!(
+                    target = %target.display(),
+                    error = %error,
+                    "cannot unmount a bind mount of the writable root"
+                );
+            }
+        }
+        self.host.power.sync();
+        if let Err(error) = sys::unmount(root, 0) {
+            tracing::warn!(
+                root = %root.display(),
+                error = %error,
+                "cannot unmount the writable root: remount it read-only"
+            );
+            let flags = (libc::MS_REMOUNT | libc::MS_RDONLY) as u64;
+            if let Err(error) = self.host.mounts.mount("none", root, "", flags, "") {
+                tracing::warn!(
+                    root = %root.display(),
+                    error = %error,
+                    "cannot remount the writable root read-only"
+                );
+            }
+        }
+    }
+
     /// Ends every session and every upload. The server calls it when its loop
     /// ends, and `Shutdown` calls it after the grace time.
     pub fn end_everything(&self) {
@@ -686,6 +737,9 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
     serve::serve(&bound, ctx, Arc::clone(&slave));
     // The listener loop ended: no session or upload stays behind.
     slave.end_everything();
+    // A writable image must be unmounted before the machine stops, so a later
+    // mount needs no journal replay.
+    slave.unmount_writable_root();
 
     if pid1 {
         pid1::finish_and_power_off(&host);

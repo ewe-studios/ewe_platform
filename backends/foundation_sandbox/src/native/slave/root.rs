@@ -48,38 +48,49 @@ fn prepare_image(host: &SlaveHost, request: &PrepareRequest) -> SandboxResult<(R
     // The slave needs a writable directory for the layers, even when the root
     // itself is read-only.
     ensure_run_ewe(host)?;
-    let lower = Path::new(BASE).join("lower");
-    host.mounts
-        .mkdir_p(&lower, DIR_MODE)
-        .map_err(|error| root_setup_failure("mount point of the lower layer", &lower, &error))?;
-    match &request.root.source {
-        RootSource::BlockDevice { device, fstype } => {
-            let fstype = match fstype {
-                FsType::Ext4 => "ext4",
-                FsType::Squashfs => "squashfs",
-            };
-            host.mounts
-                .mount(device, &lower, fstype, libc::MS_RDONLY, "")
-                .map_err(|error| mount_failure("lower layer", &lower, &error))?;
-        }
-        RootSource::VirtioFs { tag } => {
-            host.mounts
-                .mount(tag, &lower, "virtiofs", libc::MS_RDONLY, "")
-                .map_err(|error| mount_failure("lower layer", &lower, &error))?;
-        }
-        RootSource::Plain => {
-            return Err(slave_error(
-                SlaveErrorCode::Internal,
-                None,
-                "the plain root does not use the image set-up",
-            ));
-        }
-    }
-
     let root = Path::new(BASE).join("root");
     match request.root.mode {
-        RootMode::Overlay => prepare_overlay(host, &lower, &root)?,
-        RootMode::ReadOnly => prepare_read_only(host, request, &lower, &root)?,
+        RootMode::Writable => prepare_writable(host, request, &root)?,
+        RootMode::Overlay | RootMode::ReadOnly => {
+            let lower = Path::new(BASE).join("lower");
+            host.mounts.mkdir_p(&lower, DIR_MODE).map_err(|error| {
+                root_setup_failure("mount point of the lower layer", &lower, &error)
+            })?;
+            match &request.root.source {
+                RootSource::BlockDevice { device, fstype } => {
+                    let fstype = match fstype {
+                        FsType::Ext4 => "ext4",
+                        FsType::Squashfs => "squashfs",
+                    };
+                    host.mounts
+                        .mount(device, &lower, fstype, libc::MS_RDONLY, "")
+                        .map_err(|error| mount_failure("lower layer", &lower, &error))?;
+                }
+                RootSource::VirtioFs { tag } => {
+                    host.mounts
+                        .mount(tag, &lower, "virtiofs", libc::MS_RDONLY, "")
+                        .map_err(|error| mount_failure("lower layer", &lower, &error))?;
+                }
+                RootSource::Plain => {
+                    return Err(slave_error(
+                        SlaveErrorCode::Internal,
+                        None,
+                        "the plain root does not use the image set-up",
+                    ));
+                }
+            }
+            match request.root.mode {
+                RootMode::Overlay => prepare_overlay(host, &lower, &root)?,
+                RootMode::ReadOnly => prepare_read_only(host, request, &lower, &root)?,
+                RootMode::Writable => {
+                    return Err(slave_error(
+                        SlaveErrorCode::Internal,
+                        None,
+                        "the writable root does not use a lower layer",
+                    ));
+                }
+            }
+        }
     }
 
     // Step 3: the kernel file systems.
@@ -118,6 +129,37 @@ fn prepare_image(host: &SlaveHost, request: &PrepareRequest) -> SandboxResult<(R
 
     // Step 7: the result.
     Ok((request.root.mode, root))
+}
+
+/// The writable mode: the image itself is the root, mounted read-write.
+///
+/// There is no lower layer and no overlay. The mount is the image file, so a
+/// program's write reaches the file and a clean unmount leaves it clean.
+fn prepare_writable(host: &SlaveHost, request: &PrepareRequest, root: &Path) -> SandboxResult<()> {
+    let RootSource::BlockDevice { device, fstype } = &request.root.source else {
+        return Err(slave_error(
+            SlaveErrorCode::RootSetupFailed,
+            None,
+            "the writable root needs a block device",
+        ));
+    };
+    let fstype = match fstype {
+        FsType::Ext4 => "ext4",
+        FsType::Squashfs => {
+            return Err(slave_error(
+                SlaveErrorCode::RootSetupFailed,
+                None,
+                "the writable root needs an ext4 image, not squashfs",
+            ));
+        }
+    };
+    host.mounts
+        .mkdir_p(root, DIR_MODE)
+        .map_err(|error| root_setup_failure("root mount point", root, &error))?;
+    host.mounts
+        .mount(device, root, fstype, 0, "")
+        .map_err(|error| mount_failure("writable root", root, &error))?;
+    Ok(())
 }
 
 /// The overlay mode: a tmpfs for the writable layer, then the overlay mount.
@@ -256,9 +298,10 @@ fn write_name_servers(
 
     let target = join_guest(root, "/etc/resolv.conf");
     match request.root.mode {
-        RootMode::Overlay => {
-            // The overlay makes the file when the image has none. A failure to
-            // write it here means that the image path cannot hold the file.
+        RootMode::Overlay | RootMode::Writable => {
+            // The overlay makes the file when the image has none, and the
+            // writable root holds the file in the image. A failure to write it
+            // here means that the image path cannot hold the file.
             if let Err(error) = host.mounts.write_file(&target, b"") {
                 if error.raw_os_error() != Some(libc::EROFS) {
                     return Err(root_setup_failure("name server target", &target, &error));

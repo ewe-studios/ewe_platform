@@ -650,6 +650,21 @@ pub fn mount(source: &str, target: &Path, fstype: &str, flags: u64, data: &str) 
     Ok(())
 }
 
+/// Unmounts `target`.
+///
+/// # Errors
+/// The operating system error of `umount2`, such as `EBUSY` when a mount below
+/// `target` is still mounted.
+pub fn unmount(target: &Path, flags: i32) -> io::Result<()> {
+    let target = CString::new(target.as_os_str().as_bytes()).map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `target` is a valid zero-terminated string.
+    let result = unsafe { libc::umount2(target.as_ptr(), flags) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
 /// Flushes every file system buffer.
 pub fn sync() {
     // SAFETY: `sync` has no argument.

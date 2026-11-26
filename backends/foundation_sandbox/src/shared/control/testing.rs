@@ -63,7 +63,7 @@ pub fn full_capabilities() -> Capabilities {
         rootfs_ext4: true,
         rootfs_squashfs: true,
         rootfs_container_image: true,
-        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly],
+        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly, RootMode::Writable],
         host_mounts: true,
         network_none: true,
         network_host: true,
