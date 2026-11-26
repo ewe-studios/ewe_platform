@@ -238,3 +238,12 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   cannot answer 404 or 410 and cannot read `stream-sse-data-encoding`. Issue #947 records the
   fix: return the response head with the stream. The adapter stays on the long-poll path until
   that lands.
+
+## SSE blocking poll, root cause (2026-11-27)
+
+- **The native SSE stream blocks inside `poll_next`.** A probe against the repository server printed
+  the data and control events, then the next poll never returned. A self-waking deadline and a
+  2 s socket read timeout both failed to interrupt it. Issue #963 records the fix: the event task
+  must return `Stream::Wait` with a wake registration, not block.
+- **No client-side timeout can fix this.** The Durable Streams adapter keeps Server-Sent Events
+  off until the netio event task stops blocking. The client gate stays at 208 pass, 0 fail.
