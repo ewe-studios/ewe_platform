@@ -407,3 +407,26 @@ fn given_a_missing_stream_when_an_sse_read_runs_then_the_probe_answers_not_found
         assert!(matches!(error, ClientError::NotFound { .. }));
     });
 }
+
+#[test]
+fn given_an_sse_encoding_header_when_a_text_read_runs_then_the_data_is_decoded() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("stream-sse-data-encoding", "base64")],
+            b"",
+        )]);
+        transport.events.lock().expect("events").extend([
+            sse("data", "SGVsbG8="),
+            sse("control", r#"{"streamNextOffset":"00cc"}"#),
+        ]);
+        let result = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .send()
+            .await
+            .expect("sse");
+
+        assert_eq!(result.chunks[0].data, b"Hello");
+    });
+}

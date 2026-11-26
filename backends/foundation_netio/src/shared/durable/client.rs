@@ -552,6 +552,13 @@ impl ReadBuilder {
             status => return Err(unexpected(status, &probe)),
         }
 
+        // The head states the data encoding. Fall back to the caller's flag
+        // when the transport cannot supply the header.
+        let decode_base64 = probe
+            .header("stream-sse-data-encoding")
+            .is_some_and(|value| value.eq_ignore_ascii_case("base64"))
+            || self.sse_binary;
+
         let mut stream = self.handle.transport.open_sse(request).await?;
         let mut result = ReadResult {
             status: 200,
@@ -573,7 +580,7 @@ impl ReadBuilder {
                     if event.data.is_empty() {
                         continue;
                     }
-                    let data = if self.sse_binary {
+                    let data = if decode_base64 {
                         base64::Engine::decode(
                             &base64::engine::general_purpose::STANDARD,
                             event.data.as_bytes(),
