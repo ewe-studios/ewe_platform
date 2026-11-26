@@ -160,3 +160,11 @@ jobs:
         env:
           EWE_SANDBOX_E2E_REQUIRED: "1"
         run: infrastructure/sandbox_worker/test/run.sh
+
+      # The Cloudflare Sandbox product path (spec 77 feature 17). The step
+      # builds the donor image and the product image, then runs the product
+      # tests and the no-slave fault test against two local Workers.
+      - name: Run the Cloudflare Sandbox product end-to-end tests
+        env:
+          EWE_SANDBOX_E2E_REQUIRED: "1"
+        run: infrastructure/sandbox_worker/test/product.sh
