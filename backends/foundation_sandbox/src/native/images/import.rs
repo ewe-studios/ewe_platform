@@ -180,11 +180,10 @@ pub struct ImportReport {
 
 /// The progress stream of one import.
 ///
-/// It ends after one [`ImportEvent::Done`]. Dropping the stream stops the
-/// import at its next await.
+/// It ends after one [`ImportEvent::Done`]. The import itself runs on the
+/// valtron pool to its end, so dropping the stream stops the progress reports
+/// but never strands the temporary container (invariant I4).
 pub struct ImportStream {
-    /// The import future, until it ends.
-    future: Option<Pin<Box<dyn std::future::Future<Output = ()> + Send>>>,
     /// The events that the import sends.
     events: futures::channel::mpsc::UnboundedReceiver<ImportEvent>,
 }
@@ -193,7 +192,6 @@ impl std::fmt::Debug for ImportStream {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
             .debug_struct("ImportStream")
-            .field("running", &self.future.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -209,21 +207,7 @@ impl Stream for ImportStream {
     type Item = ImportEvent;
 
     fn poll_next(self: Pin<&mut Self>, context: &mut TaskContext<'_>) -> Poll<Option<Self::Item>> {
-        let this = self.get_mut();
-        // Drive the import first, so it can send an event before the receiver
-        // is polled. Both wakers belong to this task.
-        if let Some(future) = this.future.as_mut() {
-            if future.as_mut().poll(context).is_ready() {
-                this.future = None;
-            }
-        }
-        match this.events.poll_next_unpin(context) {
-            Poll::Ready(Some(event)) => Poll::Ready(Some(event)),
-            // The sender lives in the import future, so a closed channel means
-            // that the future ended.
-            Poll::Ready(None) => Poll::Ready(None),
-            Poll::Pending => Poll::Pending,
-        }
+        self.get_mut().events.poll_next_unpin(context)
     }
 }
 
@@ -281,6 +265,10 @@ impl ImageImporter {
 
     /// Imports one source and returns its report.
     ///
+    /// The import runs on the valtron pool, so a caller that drops this future
+    /// still lets the import finish and remove its temporary container
+    /// (invariant I4). The result is then lost.
+    ///
     /// # Errors
     /// The typed error of the failed step (feature 13, section 6.2).
     pub async fn import(
@@ -288,11 +276,20 @@ impl ImageImporter {
         source: ImageSource,
         options: ImportOptions,
     ) -> SandboxResult<ImportReport> {
-        self.import_inner(source, options, ProgressSink::default())
-            .await
+        let mut stream = self.import_with_progress(source, options);
+        while let Some(event) = stream.next().await {
+            if let ImportEvent::Done(result) = event {
+                return *result;
+            }
+        }
+        Err(SandboxError::StreamLost.into())
     }
 
     /// Imports one source and reports its progress.
+    ///
+    /// The import runs on the valtron pool. A caller that drops the stream
+    /// loses the progress values; the import still finishes and removes its
+    /// temporary container.
     #[must_use]
     pub fn import_with_progress(
         &self,
@@ -300,18 +297,26 @@ impl ImageImporter {
         options: ImportOptions,
     ) -> ImportStream {
         let (sender, events) = futures::channel::mpsc::unbounded();
+        // A clone survives a failed schedule, so the caller still gets a typed
+        // error instead of a stream that ends with no result.
+        let on_failure = sender.clone();
         let importer = self.clone();
-        let done = sender.clone();
         let future = async move {
-            let result = importer
-                .import_inner(source, options, ProgressSink(Some(sender)))
-                .await;
-            let _ = done.unbounded_send(ImportEvent::Done(Box::new(result)));
+            let sink = ProgressSink(Some(sender.clone()));
+            let result = importer.import_inner(source, options, sink).await;
+            let _ = sender.unbounded_send(ImportEvent::Done(Box::new(result)));
         };
-        ImportStream {
-            future: Some(Box::pin(future)),
-            events,
+        if let Err(error) =
+            foundation_core::valtron::send(foundation_core::valtron::from_future(future))
+        {
+            let error: ErrorTrace<SandboxError> = SandboxError::Io {
+                op: "import".to_string(),
+                message: format!("the valtron pool is not available: {error}"),
+            }
+            .into();
+            let _ = on_failure.unbounded_send(ImportEvent::Done(Box::new(Err(error))));
         }
+        ImportStream { events }
     }
 
     /// The import story of section 6.2.
