@@ -223,6 +223,12 @@ pub trait HostFs: Send + Sync + 'static {
     /// [`SandboxError::Io`] when the directory cannot be removed.
     fn remove_dir_all(&self, path: &Path) -> SandboxResult<()>;
 
+    /// Removes one file. A missing file is not an error.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be removed.
+    fn remove_file(&self, path: &Path) -> SandboxResult<()>;
+
     /// Writes a file and replaces its contents.
     ///
     /// # Errors
@@ -234,6 +240,21 @@ pub trait HostFs: Send + Sync + 'static {
     /// # Errors
     /// [`SandboxError::Io`] when the file cannot be read.
     fn read(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>>;
+
+    /// Opens a file for a streamed read.
+    ///
+    /// The caller reads it in bounded chunks. The driver uses it to send the
+    /// slave into a container without holding the whole file (feature 10).
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be opened.
+    fn open_read(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send + Sync>>;
+
+    /// The size of a file in bytes.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the size cannot be read.
+    fn file_size(&self, path: &Path) -> SandboxResult<u64>;
 
     /// Reads at most `max` bytes from the end of a file.
     ///

@@ -313,6 +313,22 @@ impl HostFs for RecordingFs {
         NativeFs.remove_dir_all(path)
     }
 
+    fn remove_file(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<()> {
+        NativeFs.remove_file(path)
+    }
+
+    fn open_read(
+        &self,
+        path: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<Box<dyn std::io::Read + Send + Sync>>
+    {
+        NativeFs.open_read(path)
+    }
+
+    fn file_size(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<u64> {
+        NativeFs.file_size(path)
+    }
+
     fn write(
         &self,
         path: &Path,

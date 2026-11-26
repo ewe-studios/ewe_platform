@@ -22,6 +22,10 @@ pub enum ProviderId {
     Docker,
     /// A sandbox on the `foundation_sandbox` control plane (spec 77).
     Firecracker,
+    /// A Docker container sandbox on the `foundation_sandbox` control plane
+    /// (spec 77 feature 10). It is not [`ProviderId::Docker`], which is the
+    /// virtual machine provider of this crate.
+    DockerSandbox,
     /// A libkrun microVM on the `foundation_sandbox` control plane
     /// (spec 77 feature 09).
     Libkrun,
@@ -34,6 +38,7 @@ impl std::fmt::Display for ProviderId {
             ProviderId::Utm => write!(f, "utm"),
             ProviderId::Docker => write!(f, "docker"),
             ProviderId::Firecracker => write!(f, "firecracker"),
+            ProviderId::DockerSandbox => write!(f, "docker-sandbox"),
             ProviderId::Libkrun => write!(f, "libkrun"),
         }
     }

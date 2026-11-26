@@ -13,6 +13,10 @@ pub mod artifacts;
 #[cfg(feature = "firecracker")]
 pub mod firecracker;
 
+/// The Docker driver and the container control (feature 10).
+#[cfg(feature = "docker")]
+pub mod docker;
+
 /// The real host file system behind `HostFs`.
 pub mod host;
 
@@ -28,6 +32,10 @@ pub mod images;
     any(feature = "libkrun", feature = "libkrun-runner")
 ))]
 pub mod libkrun;
+
+/// The record store on disk (feature 10).
+#[cfg(feature = "control")]
+pub mod record;
 
 /// The tar reader and applier of an image unpack (feature 12). It is portable
 /// Unix code, so a test applies a tar to a temporary directory without root.

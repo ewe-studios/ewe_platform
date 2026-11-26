@@ -1878,6 +1878,15 @@ impl crate::shared::host::HostFs for FakeHostFs {
         Ok(())
     }
 
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .remove(path);
+        Ok(())
+    }
+
     fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
         let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(parent) = path.parent() {
@@ -1898,6 +1907,33 @@ impl crate::shared::host::HostFs for FakeHostFs {
                 message: format!("{}: not found", path.display()),
             })?;
         Ok(data[..data.len().min(max)].to_vec())
+    }
+
+    fn open_read(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send + Sync>> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let data = state
+            .files
+            .get(path)
+            .cloned()
+            .ok_or_else(|| SandboxError::Io {
+                op: "open_read".to_string(),
+                message: format!("{}: not found", path.display()),
+            })?;
+        Ok(Box::new(std::io::Cursor::new(data)))
+    }
+
+    fn file_size(&self, path: &Path) -> SandboxResult<u64> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state.files.get(path).map_or_else(
+            || {
+                Err(SandboxError::Io {
+                    op: "file_size".to_string(),
+                    message: format!("{}: not found", path.display()),
+                }
+                .into())
+            },
+            |data| Ok(u64::try_from(data.len()).unwrap_or(u64::MAX)),
+        )
     }
 
     fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {

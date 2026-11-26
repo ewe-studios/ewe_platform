@@ -24,11 +24,10 @@ use foundation_nativeapis::signal::{signal_task, SignalEvent, SignalKind};
 use futures::{FutureExt as _, StreamExt as _};
 
 use crate::cli::{parse_connect, parse_listen};
+use crate::native::record::FileRecordStore;
 use crate::native::serve::{bind_control, serve_bound, ServeConfig, ServeError};
 use crate::shared::command::{Command, ExecEvent, ExitStatus, StdinMode};
-use crate::shared::control::{
-    MemoryRecordStore, SandboxHandle, SandboxManager, SandboxProvider, SandboxRpcClient,
-};
+use crate::shared::control::{SandboxHandle, SandboxManager, SandboxProvider, SandboxRpcClient};
 use crate::shared::driver::SandboxDriver;
 use crate::shared::error::SandboxError;
 use crate::shared::handles::ExecEvents;
@@ -543,22 +542,27 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
                     crate::native::firecracker::driver::FirecrackerDriver::new(),
                 ));
             }
+            DriverId::Docker => {
+                #[cfg(feature = "docker")]
+                drivers.push(Arc::new(crate::native::docker::driver::DockerDriver::new()));
+            }
             DriverId::Libkrun => {
                 #[cfg(all(feature = "libkrun", any(target_os = "linux", target_os = "macos")))]
                 drivers.push(Arc::new(
                     crate::native::libkrun::driver::LibkrunDriver::new(),
                 ));
             }
-            // Feature 10 adds the Docker driver; the Cloudflare drivers are
-            // not part of a native local host.
-            DriverId::Docker | DriverId::CloudflareContainer | DriverId::CloudflareDo => {}
+            // The Cloudflare drivers are not part of a native local host.
+            DriverId::CloudflareContainer | DriverId::CloudflareDo => {}
         }
     }
+    let store = FileRecordStore::new(Arc::clone(&host.fs), host.config.state_dir.clone())
+        .map_err(|error| failure(&error))?;
     Ok(Arc::new(SandboxManager::new(
         ctx.clone(),
         drivers,
         host.connector.clone(),
-        Arc::new(MemoryRecordStore::default()),
+        Arc::new(store),
         crate::shared::control::ManagerConfig::default(),
     )))
 }

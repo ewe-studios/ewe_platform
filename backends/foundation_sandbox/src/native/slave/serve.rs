@@ -56,20 +56,36 @@ impl Bound {
     }
 }
 
-/// Binds a listener of one kind. `shutdown` is the signal that stops the
-/// server; the slave holds the same value.
+/// The mode of the slave socket when the caller names none.
+pub const DEFAULT_SOCKET_MODE: u32 = 0o600;
+
+/// Binds a listener of one kind with the default socket mode.
 ///
 /// # Errors
 /// The operating system error of the bind, listen or socket-file call.
 pub fn bind(address: &ListenAddr, shutdown: Arc<ShutdownSignal>) -> io::Result<Bound> {
+    bind_with_mode(address, shutdown, DEFAULT_SOCKET_MODE)
+}
+
+/// Binds a listener of one kind. `shutdown` is the signal that stops the
+/// server; the slave holds the same value. `socket_mode` is the mode of the
+/// Unix domain socket file, and it has no meaning for the other kinds.
+///
+/// # Errors
+/// The operating system error of the bind, listen or socket-file call.
+pub fn bind_with_mode(
+    address: &ListenAddr,
+    shutdown: Arc<ShutdownSignal>,
+    socket_mode: u32,
+) -> io::Result<Bound> {
     // The server parks its accept loop on the shared reactor; the signal wakes
     // it at once instead of after the poll time.
     let _ = shutdown.register_wake();
     let (acceptor, socket_path): (Arc<dyn Acceptor>, Option<PathBuf>) = match address {
         ListenAddr::Unix { path } => {
             let listener = UnixListener::bind(path)?;
-            // The socket file carries the right of the caller only.
-            super::sys::set_mode(path, 0o600)?;
+            // The socket file carries the right that the caller asks for.
+            super::sys::set_mode(path, socket_mode)?;
             (Arc::new(UnixAcceptor { listener }), Some(path.clone()))
         }
         ListenAddr::Tcp { addr } => (Arc::new(std::net::TcpListener::bind(addr)?), None),

@@ -567,7 +567,7 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 1. Feature 07 (the Cloudflare control plane, library): pull request #901, in review.
 2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, on branch
    `spec77/f08-cloudflare-worker`. It started from feature 07 and merges feature 06.
-3. Feature 09 (the libkrun driver): on branch `spec77/f09-libkrun-driver`, in parallel.
+3. Feature 09 (the libkrun driver): pull request #925, in review.
 4. Feature 18 (the lifetime deadline and the stream bound), after 08.
 5. Spec 83 feature 04: pull request #909, in review.
 6. Phase 2: features 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox product).

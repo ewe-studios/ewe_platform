@@ -74,6 +74,7 @@ impl Drop for TempDir {
 pub struct SlaveProcess {
     child: Child,
     _directory: TempDir,
+    socket: PathBuf,
     /// The caller on the socket.
     pub caller: Caller,
 }
@@ -84,6 +85,19 @@ impl SlaveProcess {
     /// # Panics
     /// When the process does not start or does not answer.
     pub fn start(tag: &str, plain_root: Option<PathBuf>, threads: usize) -> Self {
+        Self::start_with_socket_mode(tag, plain_root, threads, 0o600)
+    }
+
+    /// Starts a slave with the given Unix socket file mode.
+    ///
+    /// # Panics
+    /// When the process does not start or does not answer.
+    pub fn start_with_socket_mode(
+        tag: &str,
+        plain_root: Option<PathBuf>,
+        threads: usize,
+        socket_mode: u32,
+    ) -> Self {
         let directory = TempDir::new(tag);
         let socket = directory.join("slave.sock");
         let plain_root = plain_root.unwrap_or_else(|| PathBuf::from("/"));
@@ -93,6 +107,7 @@ impl SlaveProcess {
             .env("EWE_SLAVE_SOCKET", &socket)
             .env("EWE_SLAVE_PLAIN_ROOT", &plain_root)
             .env("EWE_SLAVE_THREADS", threads.to_string())
+            .env("EWE_SLAVE_SOCKET_MODE", format!("{socket_mode:o}"))
             .env("SLAVE_SECRET", "1")
             .stdin(Stdio::null())
             .stdout(Stdio::null())
@@ -113,8 +128,15 @@ impl SlaveProcess {
         Self {
             child,
             _directory: directory,
+            socket,
             caller,
         }
+    }
+
+    /// The Unix socket path of the listener.
+    #[must_use]
+    pub fn socket_path(&self) -> &Path {
+        &self.socket
     }
 
     /// Starts a slave with a fresh temporary plain root and prepares it.

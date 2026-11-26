@@ -68,6 +68,12 @@ pub struct SlaveArgs {
     /// the file calls only: a program cannot start under a root other than `/`
     /// without the right to `chroot`.
     pub plain_root: PathBuf,
+    /// The mode of the Unix domain socket file.
+    ///
+    /// Default `0o600`. A slave that serves a control plane of another user,
+    /// as in a Docker container, needs a wider mode; the run directory's own
+    /// mode keeps other users out.
+    pub socket_mode: u32,
 }
 
 /// The slave service.
@@ -845,7 +851,7 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
     start_pool(&ctx);
 
     let shutdown = Arc::new(ShutdownSignal::new());
-    let bound = match serve::bind(&args.listen, Arc::clone(&shutdown)) {
+    let bound = match serve::bind_with_mode(&args.listen, Arc::clone(&shutdown), args.socket_mode) {
         Ok(bound) => bound,
         Err(error) => {
             write_error(&format!("agent-slave: the bind failed: {error}"));
