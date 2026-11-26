@@ -398,6 +398,7 @@ impl StreamHandle {
             max_chunks: None,
             sse_binary: false,
             sse_timeout_ms: 2_000,
+            cursor: None,
         }
     }
 }
@@ -412,6 +413,7 @@ pub struct ReadBuilder {
     max_chunks: Option<usize>,
     sse_binary: bool,
     sse_timeout_ms: u64,
+    cursor: Option<String>,
 }
 
 impl ReadBuilder {
@@ -450,6 +452,13 @@ impl ReadBuilder {
         self
     }
 
+    /// Echo a collapsing cursor from a previous response.
+    #[must_use]
+    pub fn cursor(mut self, cursor: impl Into<String>) -> Self {
+        self.cursor = Some(cursor.into());
+        self
+    }
+
     /// Stop a Server-Sent Events (SSE) read after this many milliseconds.
     #[must_use]
     pub fn sse_timeout(mut self, milliseconds: u64) -> Self {
@@ -469,6 +478,13 @@ impl ReadBuilder {
         } else {
             // An omitted offset reads from the start of the stream.
             query.push_str("offset=-1");
+        }
+        if let Some(cursor) = &self.cursor {
+            if !query.is_empty() {
+                query.push('&');
+            }
+            query.push_str("cursor=");
+            query.push_str(cursor);
         }
         match self.mode {
             ReadMode::CatchUp => {}

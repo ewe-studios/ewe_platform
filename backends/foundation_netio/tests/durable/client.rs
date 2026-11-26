@@ -498,3 +498,17 @@ fn given_an_absolute_deadline_when_head_runs_then_it_reports_the_timestamp() {
         assert_eq!(head.expires_at.as_deref(), Some("2030-01-01T00:00:00Z"));
     });
 }
+
+#[test]
+fn given_a_cursor_when_a_read_runs_then_it_is_echoed_on_the_query() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(200, &[], b"")]);
+        handle(transport.clone())
+            .read()
+            .cursor("42")
+            .send()
+            .await
+            .expect("read");
+        assert!(transport.last_request().url.ends_with("cursor=42"));
+    });
+}
