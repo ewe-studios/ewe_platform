@@ -1,0 +1,33 @@
+# The control plane in a container (spec 77 feature 10, section 6.8).
+#
+# A process that has the Docker socket controls the host's Docker. Treat this
+# container as trusted. See README.md.
+services:
+  sandbox-control:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ewe/sandbox-control:dev
+    environment:
+      # The control plane and the daemon must see the same run directory path.
+      EWE_SANDBOX_STATE_DIR: /var/run/ewe-sbx
+      # The Docker driver is the only usable driver in this container.
+      EWE_SANDBOX_DRIVERS: docker
+    ports:
+      # The control plane listens on all container interfaces; publish it on the
+      # host loopback only.
+      - "127.0.0.1:7070:7070"
+    volumes:
+      # The host's Docker Engine. A sibling container starts on this Engine.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # The run directory of the Unix domain socket link, at the same path on
+      # the host and in this container.
+      - /var/run/ewe-sbx:/var/run/ewe-sbx
+    secrets:
+      - sandbox_token
+    restart: unless-stopped
+
+secrets:
+  sandbox_token:
+    # Write the token as the first line of this file. See README.md.
+    file: ./sandbox_token
