@@ -550,6 +550,7 @@ async fn handle(
                     "offset": head.offset,
                     "contentType": head.content_type,
                     "ttlSeconds": head.ttl_seconds,
+                    "expiresAt": head.expires_at,
                     "streamClosed": head.closed,
                 }),
                 false,

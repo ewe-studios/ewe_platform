@@ -485,3 +485,16 @@ fn given_a_stream_sequence_when_an_append_runs_then_the_header_is_sent() {
             .contains(&("stream-seq".to_string(), "0007".to_string())));
     });
 }
+
+#[test]
+fn given_an_absolute_deadline_when_head_runs_then_it_reports_the_timestamp() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("stream-expires-at", "2030-01-01T00:00:00Z")],
+            b"",
+        )]);
+        let head = handle(transport).head().await.expect("head");
+        assert_eq!(head.expires_at.as_deref(), Some("2030-01-01T00:00:00Z"));
+    });
+}

@@ -126,6 +126,8 @@ pub struct HeadResult {
     pub content_type: Option<String>,
     /// The time-to-live seconds.
     pub ttl_seconds: Option<u64>,
+    /// The absolute deadline in RFC 3339 form.
+    pub expires_at: Option<String>,
     /// True when the stream is closed.
     pub closed: bool,
 }
@@ -329,6 +331,7 @@ impl StreamHandle {
                 ttl_seconds: response
                     .header("stream-ttl")
                     .and_then(|value| value.parse().ok()),
+                expires_at: response.header("stream-expires-at").map(str::to_string),
                 closed: response.header("stream-closed") == Some("true"),
             }),
             404 => Err(ClientError::NotFound {
