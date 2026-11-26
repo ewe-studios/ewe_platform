@@ -406,6 +406,34 @@ pub fn validate(plan: &DeploymentPlan) -> Result<(), DeployError> {
     Ok(())
 }
 
+/// Validates a batch of plans that one deploy applies.
+///
+/// One Worker name has one main module. Two plans for the same Worker name
+/// that name different main modules are refused, so a deploy cannot switch the
+/// Worker module under a running deployment.
+///
+/// # Errors
+/// [`DeployError::InvalidPlan`] for the first plan or pair that breaks a rule.
+pub fn validate_plans(plans: &[DeploymentPlan]) -> Result<(), DeployError> {
+    for (index, plan) in plans.iter().enumerate() {
+        validate(plan)?;
+        for other in &plans[..index] {
+            if other.worker.name == plan.worker.name && other.worker.main != plan.worker.main {
+                return Err(invalid(
+                    "worker.main",
+                    &format!(
+                        "the Worker {} has two main modules: {} and {}",
+                        plan.worker.name,
+                        other.worker.main.display(),
+                        plan.worker.main.display()
+                    ),
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// One invalid plan.
 fn invalid(field: &str, reason: &str) -> DeployError {
     DeployError::InvalidPlan {

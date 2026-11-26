@@ -23,9 +23,9 @@ pub use host::{
     ImageBuilder, SecretStore,
 };
 pub use plan::{
-    validate, Binding, ContainerDeployment, ContainerImage, DeploymentId, DeploymentOutcome,
-    DeploymentPlan, DeploymentStatus, DoMigration, Route, SecretRef, SecretSource,
-    WorkerDeployment,
+    validate, validate_plans, Binding, ContainerDeployment, ContainerImage, DeploymentId,
+    DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration, Route, SecretRef,
+    SecretSource, WorkerDeployment,
 };
 pub use wrangler::WranglerCloudflareDeployer;
 

@@ -14,10 +14,11 @@ use foundation_context::Ctx;
 use foundation_core::valtron::{block_on_future, SimulatedClock};
 use foundation_deployment_cloudflare::deploy::foundation::plan_shape;
 use foundation_deployment_cloudflare::{
-    default_deployer, validate, Binding, CloudflareDeployHost, CloudflareDeployer, CommandOutput,
-    CommandRunner, CommandSpec, ContainerImage, DeployError, DeploymentApi, DeploymentId,
-    DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration, FoundationCloudflareDeployer,
-    ImageBuilder, Route, SecretSource, SecretStore, WorkerDeployment, WranglerCloudflareDeployer,
+    default_deployer, validate, validate_plans, Binding, CloudflareDeployHost, CloudflareDeployer,
+    CommandOutput, CommandRunner, CommandSpec, ContainerImage, DeployError, DeploymentApi,
+    DeploymentId, DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration,
+    FoundationCloudflareDeployer, ImageBuilder, Route, SecretRef, SecretSource, SecretStore,
+    WorkerDeployment, WranglerCloudflareDeployer,
 };
 
 /// A unique temporary directory for one test.
@@ -742,6 +743,44 @@ fn wrangler_deploy_command_lines() {
     assert_eq!(
         outcome.worker_url,
         "https://ewe-sandbox.example.workers.dev"
+    );
+}
+
+/// Two plans for one Worker name cannot name two main modules (#919).
+#[test]
+fn deploy_plans_with_two_mains() {
+    let directory = temporary_directory("two-mains");
+    let first = sandbox_plan(&directory);
+    let mut second = first.clone();
+    second.worker.main = directory.join("build/second.js");
+    match validate_plans(&[first.clone(), second]) {
+        Err(DeployError::InvalidPlan { field, .. }) => assert_eq!(field, "worker.main"),
+        other => panic!("expected InvalidPlan, got {other:?}"),
+    }
+    assert_eq!(
+        validate_plans(&[first.clone(), first]),
+        Ok(()),
+        "one main module is valid"
+    );
+}
+
+/// The `wrangler` CLI cannot take a Secrets Store value from standard input
+/// (#920).
+#[test]
+fn wrangler_secrets_store_is_reported() {
+    let directory = temporary_directory("secrets-store");
+    let mut plan = sandbox_plan(&directory);
+    plan.secrets = vec![SecretRef {
+        name: "SANDBOX_TOKEN".to_string(),
+        source: SecretSource::SecretsStore {
+            store: "store-1".to_string(),
+        },
+    }];
+    let fakes = Fakes::with_stdout("https://ewe-sandbox.example.workers.dev");
+    let error = wrangler_deploy(context(fakes.host()), plan).expect_err("the deploy stops");
+    assert!(
+        matches!(&error, DeployError::Unsupported { what } if what.contains("Secrets Store")),
+        "the error names the limit: {error}"
     );
 }
 

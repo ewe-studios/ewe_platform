@@ -29,9 +29,9 @@ pub mod workers;
 pub use client::CloudflareClient;
 #[cfg(not(target_family = "wasm"))]
 pub use deploy::{
-    default_deployer, validate, Binding, CloudflareDeployHost, CloudflareDeployer, CommandOutput,
-    CommandRunner, CommandSpec, ContainerDeployment, ContainerImage, DeployError, DeploymentApi,
-    DeploymentId, DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration,
+    default_deployer, validate, validate_plans, Binding, CloudflareDeployHost, CloudflareDeployer,
+    CommandOutput, CommandRunner, CommandSpec, ContainerDeployment, ContainerImage, DeployError,
+    DeploymentApi, DeploymentId, DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration,
     FoundationCloudflareDeployer, GeneratedCloudflareApi, ImageBuilder, Route, SecretRef,
     SecretSource, SecretStore, WorkerDeployment, WranglerCloudflareDeployer,
 };

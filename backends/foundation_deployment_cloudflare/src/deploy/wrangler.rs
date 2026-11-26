@@ -94,31 +94,25 @@ impl WranglerCloudflareDeployer {
         // never in the plan or a log.
         for secret in &plan.secrets {
             let value = secrets.get(&secret.name, &secret.source).await?;
-            let (args, stdin) = match &secret.source {
-                SecretSource::WorkerSecret => (
-                    vec![
-                        "wrangler".to_string(),
-                        "secret".to_string(),
-                        "put".to_string(),
-                        secret.name.clone(),
-                    ],
-                    value,
-                ),
-                SecretSource::SecretsStore { store } => (
-                    vec![
-                        "wrangler".to_string(),
-                        "secrets-store".to_string(),
-                        "secret".to_string(),
-                        "create".to_string(),
-                        store.clone(),
-                        "--name".to_string(),
-                        secret.name.clone(),
-                        "--scopes".to_string(),
-                        "workers".to_string(),
-                    ],
-                    value,
-                ),
-            };
+            // `wrangler secrets-store secret create <store-id> --name <name>
+            // --scopes workers` reads its value only from an interactive prompt
+            // or the insecure `--value` flag. The adapter never puts a value in
+            // an argument, so a Secrets Store secret uses the foundation path.
+            if matches!(secret.source, SecretSource::SecretsStore { .. }) {
+                return Err(DeployError::Unsupported {
+                    what: format!(
+                        "the wrangler CLI cannot read the Secrets Store secret {} from standard input; use the foundation adapter",
+                        secret.name
+                    ),
+                });
+            }
+            let args = vec![
+                "wrangler".to_string(),
+                "secret".to_string(),
+                "put".to_string(),
+                secret.name.clone(),
+            ];
+            let stdin = value;
             let output = commands
                 .run(CommandSpec {
                     program: "npx".to_string(),
