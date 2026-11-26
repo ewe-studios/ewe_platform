@@ -226,3 +226,61 @@ fn given_a_body_shorter_than_its_header_when_the_client_half_closes_then_the_ser
 
     shutdown.turn_on();
 }
+
+#[test]
+#[foundation_macros::timeout(120000)]
+#[serial(http_test)]
+fn given_many_put_get_pairs_on_one_connection_when_they_run_then_every_read_is_200() {
+    use std::io::{BufRead, BufReader, Read, Write};
+    use std::net::TcpStream;
+
+    fn read_response(reader: &mut BufReader<TcpStream>) -> (u16, String) {
+        let mut status_line = String::new();
+        reader.read_line(&mut status_line).expect("status line");
+        let status: u16 = status_line
+            .split_whitespace()
+            .nth(1)
+            .and_then(|value| value.parse().ok())
+            .unwrap_or(0);
+        let mut content_length = 0_usize;
+        loop {
+            let mut line = String::new();
+            reader.read_line(&mut line).expect("header");
+            if line == "\r\n" || line.is_empty() {
+                break;
+            }
+            if let Some(value) = line.to_ascii_lowercase().strip_prefix("content-length:") {
+                content_length = value.trim().parse().unwrap_or(0);
+            }
+        }
+        let mut body = vec![0_u8; content_length];
+        reader.read_exact(&mut body).expect("body");
+        (status, String::from_utf8_lossy(&body).into_owned())
+    }
+
+    let _guard = initialize_pool(42, Some(5));
+    let (addr, shutdown) = start_server(durable_app());
+
+    let stream = TcpStream::connect(addr).expect("connect");
+    let mut writer = stream.try_clone().expect("clone");
+    let mut reader = BufReader::new(stream);
+
+    for _ in 0..20 {
+        writer
+            .write_all(
+                b"PUT /v1/stream/keepalive HTTP/1.1\r\nHost: test\r\nContent-Type: text/plain\r\nContent-Length: 7\r\n\r\ninitial",
+            )
+            .expect("put");
+        let (status, _) = read_response(&mut reader);
+        assert!(status == 200 || status == 201, "put status {status}");
+
+        writer
+            .write_all(b"GET /v1/stream/keepalive HTTP/1.1\r\nHost: test\r\n\r\n")
+            .expect("get");
+        let (status, body) = read_response(&mut reader);
+        assert_eq!(status, 200, "get status");
+        assert_eq!(body, "initial");
+    }
+
+    shutdown.turn_on();
+}
