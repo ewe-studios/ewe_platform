@@ -202,7 +202,10 @@ fn with_stream_deadline(body: BoxByteStream, deadline: Instant, ctx: Ctx) -> Box
                         // logged it; end the stream with a clean end.
                         return None;
                     }
-                    Some((Ok(deadline_end_frame()), (body, ctx, true)))
+                    // Drop the live stream at once, so the slave sees the end
+                    // and kills the program. Then yield the error frame.
+                    let done: BoxByteStream = Box::pin(futures::stream::empty());
+                    Some((Ok(deadline_end_frame()), (done, ctx, true)))
                 }
             }
         },

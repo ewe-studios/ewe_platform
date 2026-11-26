@@ -267,7 +267,9 @@ pub struct CloudflareConfig {
     /// kills its program when the stream ends. An open stream is an open
     /// request, so it keeps the Durable Object (DO) awake and billed.
     ///
-    /// Default 1 hour: the value of feature 18. An operator can raise it.
+    /// Default 1 hour: the value of feature 18. It is longer than the
+    /// 60-second `proxy_read_timeout` default of nginx, because one build
+    /// command can run for hours. An operator can raise it.
     pub stream_max_duration: Duration,
 }
 
