@@ -13,6 +13,7 @@
 //! trait that a host implements. The handlers read the checked caller from
 //! the request extension that the auth interceptor sets.
 
+pub mod archive;
 pub mod bootstrap;
 pub mod config;
 pub mod enroll;
