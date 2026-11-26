@@ -242,7 +242,11 @@ def main() -> int:
                         file=sys.stderr,
                     )
                     try:
-                        result = run(["cargo", "publish", "-p", name], check=False)
+                        # `--allow-dirty` accepts the manifest edit above; without
+                        # it, `cargo publish` refuses any uncommitted change.
+                        result = run(
+                            ["cargo", "publish", "-p", name, "--allow-dirty"], check=False
+                        )
                         output = f"{result.stdout}\n{result.stderr}"
                     finally:
                         manifest.write_text(original)
