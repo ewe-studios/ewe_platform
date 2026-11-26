@@ -181,3 +181,13 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **Keep the announced features honest.** When the end-to-end path is not green, announce the
   feature as unsupported and keep the gate at zero failures. A partial feature that hangs the
   adapter fails more tests than an absent feature.
+
+## SSE deadline finding (2026-11-27)
+
+- **An event-loop deadline does not cover the open.** `open_sse` waits for the response
+  headers. When that wait blocks, a deadline inside the event loop never runs. The adapter
+  needs a timeout around both the open and the read.
+- **A self-waking poll loop spins.** It needs a wall clock and a free thread. A better fix is a
+  timer that the valtron reactor drives, so the adapter parks instead of spinning.
+- **The adapter keeps SSE off until both waits are bounded.** The client gate stays at 208
+  pass, 0 fail.

@@ -394,6 +394,7 @@ impl StreamHandle {
             headers: Vec::new(),
             max_chunks: None,
             sse_binary: false,
+            sse_timeout_ms: 2_000,
         }
     }
 }
@@ -407,6 +408,7 @@ pub struct ReadBuilder {
     headers: Vec<(String, String)>,
     max_chunks: Option<usize>,
     sse_binary: bool,
+    sse_timeout_ms: u64,
 }
 
 impl ReadBuilder {
@@ -442,6 +444,13 @@ impl ReadBuilder {
     #[must_use]
     pub fn sse_binary(mut self, binary: bool) -> Self {
         self.sse_binary = binary;
+        self
+    }
+
+    /// Stop a Server-Sent Events (SSE) read after this many milliseconds.
+    #[must_use]
+    pub fn sse_timeout(mut self, milliseconds: u64) -> Self {
+        self.sse_timeout_ms = milliseconds;
         self
     }
 
@@ -525,7 +534,15 @@ impl ReadBuilder {
             status: 200,
             ..ReadResult::default()
         };
-        while let Some(item) = stream.next().await {
+        #[cfg(feature = "std")]
+        let deadline = std::time::Instant::now()
+            + std::time::Duration::from_millis(self.sse_timeout_ms);
+        loop {
+            #[cfg(feature = "std")]
+            let item = next_sse(&mut stream, deadline).await;
+            #[cfg(not(feature = "std"))]
+            let item = stream.next().await;
+            let Some(item) = item else { break };
             let event = item?;
             match event.event_type.as_deref() {
                 Some("data") => {
@@ -559,6 +576,30 @@ impl ReadBuilder {
         }
         Ok(result)
     }
+}
+
+/// Read the next SSE event, or stop at the deadline.
+///
+/// The stream has no timer of its own, so the future wakes itself and checks
+/// the wall clock. The wait is short and a test adapter can afford it.
+#[cfg(feature = "std")]
+async fn next_sse(
+    stream: &mut crate::shared::durable::ClientSseStream,
+    deadline: std::time::Instant,
+) -> Option<Result<crate::shared::durable::SseEvent, TransportError>> {
+    use futures_core::Stream as _;
+    futures_lite::future::poll_fn(|cx| match stream.as_mut().poll_next(cx) {
+        std::task::Poll::Pending => {
+            if std::time::Instant::now() >= deadline {
+                std::task::Poll::Ready(None)
+            } else {
+                cx.waker().wake_by_ref();
+                std::task::Poll::Pending
+            }
+        }
+        std::task::Poll::Ready(item) => std::task::Poll::Ready(item),
+    })
+    .await
 }
 
 fn outcome(path: &str, response: ClientResponse) -> Result<AppendResult, ClientError> {
