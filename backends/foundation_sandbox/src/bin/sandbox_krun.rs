@@ -55,7 +55,7 @@ fn main() {
                 }
             }
         }
-        let loaded = ffi::KrunLibrary::load(library.as_deref())
+        let loaded = ffi::KrunLibrary::load(library.as_deref(), false)
             .map_err(|error| (EXIT_LIBRARY, error.to_string()))?;
         let answer = loaded
             .probe()
@@ -81,8 +81,9 @@ fn main() {
             .map_err(|error| (EXIT_USAGE, format!("cannot read {path}: {error}")))?;
         let config: KrunRunnerConfig = serde_json::from_slice(&bytes)
             .map_err(|error| (EXIT_USAGE, format!("bad JSON in {path}: {error}")))?;
-        let loaded = ffi::KrunLibrary::load(config.libkrun_path.as_deref())
-            .map_err(|error| (EXIT_LIBRARY, error.to_string()))?;
+        let loaded =
+            ffi::KrunLibrary::load(config.libkrun_path.as_deref(), !config.disks.is_empty())
+                .map_err(|error| (EXIT_LIBRARY, error.to_string()))?;
         loaded
             .run(&config)
             .map_err(|error| (EXIT_CALL_FAILED, error.to_string()))

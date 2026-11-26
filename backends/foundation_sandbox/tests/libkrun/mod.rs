@@ -7,4 +7,4 @@
 
 mod driver;
 mod e2e;
-mod support;
+pub mod support;

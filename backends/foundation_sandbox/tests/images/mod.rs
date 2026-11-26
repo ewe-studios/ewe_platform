@@ -6,5 +6,8 @@
 mod support;
 
 mod control;
+/// The libkrun disk tests need the libkrun driver and its simulation helpers.
+#[cfg(all(unix, feature = "libkrun"))]
+mod disks;
 mod store;
 mod writable;
