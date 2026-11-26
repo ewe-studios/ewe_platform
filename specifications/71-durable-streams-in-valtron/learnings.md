@@ -261,3 +261,11 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   212 pass and 46 fail: the real read never returns, so every data test sees an empty result.
 - **No adapter-side workaround delivers SSE data.** The readiness-aware `ReadingStream` state in
   issue #963 is the only fix. The gate stays at 208 pass, 0 fail with SSE off.
+
+## SSE readiness attempt (2026-11-27)
+
+- **A readiness check before `iterator.next()` is not enough.** The socket can be readable with a
+  partial event buffered, so the read still blocks. The body iterator must parse incrementally and
+  return no event until the buffer holds a complete one. Issue #963.
+- **Every server-side and adapter-side workaround is now measured.** None delivers SSE data. The
+  fix is in the netio SSE body iterator. The gate stays at 208 pass, 0 fail.
