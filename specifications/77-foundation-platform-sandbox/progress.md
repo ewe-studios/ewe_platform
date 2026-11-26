@@ -605,9 +605,9 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 9. Feature 12 (sandbox images): pull request #982.
 10. Feature 13 (container image source): on branch `spec77/f13-container-image-source`, from
     feature 12, with feature 10 merged.
-11. Feature 14 (the Sandboxfile builder): on branch
-    `spec77/f14-sandboxfile-builder`, from feature 13.
-12. Feature 15 (registry pull), after feature 14.
+11. Feature 14 (the Sandboxfile builder): branch `spec77/f14-sandboxfile-builder`, merged
+    into pull request #1009.
+12. Feature 15 (registry pull): on branch `spec77/f15-registry-pull`, from feature 14.
 
 ## Milestones
 
