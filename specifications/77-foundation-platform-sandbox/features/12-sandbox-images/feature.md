@@ -454,7 +454,7 @@ cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "libkrun slave testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat images_ slave_unpack control_sim libkrun_sim
 cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat e2e_images -- --nocapture
-cargo check -p agent_slave --target x86_64-unknown-linux-musl --profile uat
+cargo build -p foundation_sandbox --no-default-features --features "slave cli" --bin agent-slave --target x86_64-unknown-linux-musl --profile uat
 ```
 
 ## 9. Done when

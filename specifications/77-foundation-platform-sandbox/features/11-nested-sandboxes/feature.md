@@ -284,7 +284,7 @@ Fix, in this feature:
 4. `foundation_netio` in the slave build has TLS off (feature 01, section 6.1); the
    Firecracker API is on a UDS and needs none.
 
-Verify: `cargo check -p agent_slave --features control --target x86_64-unknown-linux-musl`.
+Verify: `cargo build -p foundation_sandbox --no-default-features --features "slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl`.
 
 ### 6.6 Cloudflare
 
