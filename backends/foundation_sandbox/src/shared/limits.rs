@@ -105,6 +105,135 @@ impl Default for SandboxLimits {
     }
 }
 
+/// Every size and time limit of one `Sandboxfile` build (feature 14).
+///
+/// Build a value with [`BuildLimits::default`] and change the fields that
+/// matter with the `with_` methods.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BuildLimits {
+    /// The largest build file that the parser reads.
+    ///
+    /// Default 1 MiB: the `client_max_body_size` default of nginx. A build
+    /// file is text, so this is generous.
+    pub max_file_bytes: u64,
+    /// The most instructions that one build file may hold.
+    ///
+    /// Default 1000. A build file that needs more steps is a script that
+    /// belongs in a `RUN` step.
+    pub max_steps: usize,
+    /// The largest file that one `FETCH` downloads.
+    ///
+    /// Default 1 GiB: the default of
+    /// [`ArtifactLimits::max_download_bytes`].
+    pub max_fetch_bytes: u64,
+    /// The longest time that one `RUN` step may take.
+    ///
+    /// Default 30 minutes. A build step that compiles a large program is
+    /// slower than a sandbox command, so the value is larger than the
+    /// shutdown grace.
+    #[serde(with = "duration_millis")]
+    pub step_timeout: Duration,
+    /// The most bytes that the step cache keeps.
+    ///
+    /// Default 20 GiB. When the cache passes this size, the builder removes
+    /// the snapshots whose access time is oldest, and never one that the
+    /// running build named.
+    pub cache_max_bytes: u64,
+    /// The most bytes that one `ADD` copies from the build context.
+    ///
+    /// Default 2 GiB: a smaller limit than the image size, because a build
+    /// context is source code and data, not a whole root file system.
+    pub max_context_bytes: u64,
+    /// The most entries that one `ADD` copies.
+    ///
+    /// Default 100 000. A source tree with more entries is larger than the
+    /// default image size in metadata alone.
+    pub max_context_entries: usize,
+}
+
+impl Default for BuildLimits {
+    fn default() -> Self {
+        Self {
+            max_file_bytes: 1024 * 1024,
+            max_steps: 1000,
+            max_fetch_bytes: 1024 * 1024 * 1024,
+            step_timeout: Duration::from_mins(30),
+            cache_max_bytes: 20 * 1024 * 1024 * 1024,
+            max_context_bytes: 2 * 1024 * 1024 * 1024,
+            max_context_entries: 100_000,
+        }
+    }
+}
+
+impl BuildLimits {
+    /// A set of limits with every default.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Replaces [`Self::max_file_bytes`].
+    #[must_use]
+    pub fn with_max_file_bytes(mut self, value: u64) -> Self {
+        self.max_file_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::max_steps`].
+    #[must_use]
+    pub fn with_max_steps(mut self, value: usize) -> Self {
+        self.max_steps = value;
+        self
+    }
+
+    /// Replaces [`Self::max_fetch_bytes`].
+    #[must_use]
+    pub fn with_max_fetch_bytes(mut self, value: u64) -> Self {
+        self.max_fetch_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::step_timeout`].
+    #[must_use]
+    pub fn with_step_timeout(mut self, value: Duration) -> Self {
+        self.step_timeout = value;
+        self
+    }
+
+    /// Replaces [`Self::cache_max_bytes`].
+    #[must_use]
+    pub fn with_cache_max_bytes(mut self, value: u64) -> Self {
+        self.cache_max_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::max_context_bytes`].
+    #[must_use]
+    pub fn with_max_context_bytes(mut self, value: u64) -> Self {
+        self.max_context_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::max_context_entries`].
+    #[must_use]
+    pub fn with_max_context_entries(mut self, value: usize) -> Self {
+        self.max_context_entries = value;
+        self
+    }
+
+    /// Whether every time and every size limit is more than zero.
+    #[must_use]
+    pub fn all_positive(&self) -> bool {
+        self.max_file_bytes > 0
+            && self.max_steps > 0
+            && self.max_fetch_bytes > 0
+            && !self.step_timeout.is_zero()
+            && self.cache_max_bytes > 0
+            && self.max_context_bytes > 0
+            && self.max_context_entries > 0
+    }
+}
+
 /// Every size and time limit of the sandbox image store.
 ///
 /// Build a value with [`ImageLimits::default`] and change the fields that

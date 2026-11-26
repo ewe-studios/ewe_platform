@@ -28,6 +28,10 @@ use crate::shared::BoxFuture;
 #[cfg(feature = "images")]
 pub mod import;
 
+/// The build file grammar (feature 14).
+#[cfg(feature = "images")]
+pub mod sandboxfile;
+
 /// The names of `mkfs.ext4` that the store tries on this host.
 const MKFS_CANDIDATES: [&str; 5] = [
     "/sbin/mkfs.ext4",
