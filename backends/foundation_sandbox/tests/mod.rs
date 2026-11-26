@@ -15,6 +15,11 @@ mod artifacts;
 #[cfg(all(feature = "control", feature = "testing"))]
 mod control;
 
+/// The Firecracker API client tests. They need the `firecracker` feature and a
+/// Unix domain socket.
+#[cfg(all(feature = "firecracker", unix))]
+mod firecracker;
+
 /// The slave process tests. They need Linux: the slave is a Linux guest
 /// program, and it controls processes, signals and mounts.
 #[cfg(all(target_os = "linux", feature = "slave"))]

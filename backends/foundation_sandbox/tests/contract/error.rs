@@ -70,6 +70,7 @@ fn every_error(text: &str, number: u64, data: &[u8]) -> Vec<SandboxError> {
             status: 500,
             message: text.to_string(),
         },
+        SandboxError::ApiTimeout { timeout_ms: 5000 },
         SandboxError::BootTimeout {
             stage: text.to_string(),
             log_tail: data.to_vec(),
@@ -167,7 +168,9 @@ fn error_code_table() {
             | SandboxError::NotSigned
             | SandboxError::UnsupportedCapability { .. }
             | SandboxError::PlatformMismatch { .. } => Code::FailedPrecondition,
-            SandboxError::BootTimeout { .. } | SandboxError::ExecTimeout => Code::DeadlineExceeded,
+            SandboxError::ApiTimeout { .. }
+            | SandboxError::BootTimeout { .. }
+            | SandboxError::ExecTimeout => Code::DeadlineExceeded,
             SandboxError::TooManySessions | SandboxError::InputQueueFull => Code::ResourceExhausted,
             SandboxError::SequenceGap => Code::OutOfRange,
             SandboxError::StreamLost => Code::Aborted,

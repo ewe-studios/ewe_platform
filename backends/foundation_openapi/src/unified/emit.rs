@@ -78,6 +78,17 @@ pub enum VariantShape {
     Struct(Vec<Field>),
 }
 
+/// One variant of a generated string enum (an inline `enum` in the spec).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnumVariant {
+    /// Doc comment text (without `///`), or empty.
+    pub doc: String,
+    /// The variant identifier.
+    pub name: String,
+    /// The JSON string the variant stands for.
+    pub value: String,
+}
+
 /// The body of a generated type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TypeBody {
@@ -96,6 +107,12 @@ pub enum TypeBody {
     Union {
         derives: Vec<String>,
         variants: Vec<Variant>,
+    },
+    /// `pub enum Name { variants }`: the string values of an inline `enum` in
+    /// the spec. Each variant renames to its exact value.
+    Enum {
+        derives: Vec<String>,
+        variants: Vec<EnumVariant>,
     },
 }
 
@@ -154,6 +171,39 @@ impl TypeDef {
         }
     }
 
+    /// A string enum with the given variants (an inline `enum` in the spec).
+    ///
+    /// WHY: an inline string enum is part of the API: a caller must be able to
+    /// name `InstanceStart`, and a value with a space or a leading digit needs
+    /// an explicit `rename`. Used only when the generator opts in (see
+    /// `UnifiedGenerator::with_inline_enums`), so other providers keep their
+    /// committed output.
+    ///
+    /// It derives `Default` with the first variant as the default, because a
+    /// generated struct that holds this enum in a required field derives
+    /// `Default` too.
+    #[must_use]
+    pub fn enumeration(name: &str, doc: &str, variants: Vec<EnumVariant>) -> Self {
+        Self {
+            name: name.to_string(),
+            doc: vec![doc.to_string()],
+            body: TypeBody::Enum {
+                derives: [
+                    "Debug",
+                    "Clone",
+                    "Default",
+                    "Serialize",
+                    "Deserialize",
+                    "JsonHash",
+                ]
+                .iter()
+                .map(|d| (*d).to_string())
+                .collect(),
+                variants,
+            },
+        }
+    }
+
     /// Render this type's definition into `out`.
     ///
     /// # Errors
@@ -170,6 +220,9 @@ impl TypeDef {
         }
         match &self.body {
             TypeBody::Alias { target } => writeln!(out, "pub type {} = {};", self.name, target)?,
+            TypeBody::Enum { derives, variants } => {
+                render_enum(out, &self.name, derives, variants)?;
+            }
             TypeBody::Union { derives, variants } => {
                 writeln!(out, "#[derive({})]", derives.join(", "))?;
                 writeln!(out, "#[serde(untagged)]")?;
@@ -252,6 +305,31 @@ impl TypeDef {
         }
         writeln!(out)
     }
+}
+
+/// Renders one generated string enum.
+fn render_enum(
+    out: &mut String,
+    name: &str,
+    derives: &[String],
+    variants: &[EnumVariant],
+) -> std::fmt::Result {
+    writeln!(out, "#[derive({})]", derives.join(", "))?;
+    writeln!(out, "#[allow(clippy::enum_variant_names)]")?;
+    writeln!(out, "pub enum {name} {{")?;
+    for (index, variant) in variants.iter().enumerate() {
+        if !variant.doc.is_empty() {
+            writeln!(out, "    /// {}", variant.doc)?;
+        }
+        if index == 0 {
+            writeln!(out, "    #[default]")?;
+        }
+        if variant.name != variant.value {
+            writeln!(out, "    #[serde(rename = \"{}\")]", variant.value)?;
+        }
+        writeln!(out, "    {},", variant.name)?;
+    }
+    writeln!(out, "}}")
 }
 
 /// A piece of a generated module: verbatim text, or a type.
@@ -579,7 +657,7 @@ pub fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
                     .iter()
                     .find(|f| f.name == "result")
                     .map_or_default(|f| f.ty.clone()),
-                TypeBody::Alias { .. } | TypeBody::Union { .. } => continue,
+                TypeBody::Alias { .. } | TypeBody::Union { .. } | TypeBody::Enum { .. } => continue,
             };
             let target = format!("{}{name}<{result_ty}>", shared_path(loc.0, shared));
             make_alias(files, loc, target);

@@ -18,7 +18,7 @@
 
 pub mod shared;
 
-/// Native adapters. Features 05, 09 and 10 fill this module.
+/// Native adapters. Features 01, 03, 04, 05, 09 and 10 fill this module.
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
