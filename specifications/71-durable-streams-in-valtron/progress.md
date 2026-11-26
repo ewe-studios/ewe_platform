@@ -13,6 +13,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-27: feature 08 records the verified conformance commands and their results in its
   feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
   71 skip. The harness task remains.
+- 2026-11-27: verified Rust suites. Core durable 81 pass. HTTP durable targets 40 pass (adapter
+  30, parser 6, fallback 2, status 2) plus the server end-to-end target. Client core 24 pass.
 - 2026-11-27: checkpoint. `ci/durable_conformance.sh` exits 0: server 332 pass, 6 skip, 0 fail;
   client 208 pass, 0 fail, 61 skip. The 61 skips are Server-Sent Events (SSE) only. Closed
   issues: #926 (405 flake, regression test), #974 (JSON page chunk limit), #975 (JSON VFS read
