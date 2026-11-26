@@ -12,6 +12,9 @@
 // The workers module uses `worker::Fetch` / `wasm-fetch` instead.
 #[cfg(not(target_family = "wasm"))]
 pub mod client;
+/// The deployment plan and the two deploy adapters (spec 77 feature 08).
+#[cfg(not(target_family = "wasm"))]
+pub mod deploy;
 #[cfg(not(target_family = "wasm"))]
 pub mod dns_ops;
 #[cfg(not(target_family = "wasm"))]
@@ -24,6 +27,14 @@ pub mod workers;
 
 #[cfg(not(target_family = "wasm"))]
 pub use client::CloudflareClient;
+#[cfg(not(target_family = "wasm"))]
+pub use deploy::{
+    default_deployer, validate, Binding, CloudflareDeployHost, CloudflareDeployer, CommandOutput,
+    CommandRunner, CommandSpec, ContainerDeployment, ContainerImage, DeployError, DeploymentApi,
+    DeploymentId, DeploymentOutcome, DeploymentPlan, DeploymentStatus, DoMigration,
+    FoundationCloudflareDeployer, ImageBuilder, Route, SecretRef, SecretSource, SecretStore,
+    WorkerDeployment, WranglerCloudflareDeployer,
+};
 #[cfg(not(target_family = "wasm"))]
 pub use types::{
     cf_err, CloudflareApiError, CloudflareError, CloudflareResponse, DnsRecord, DnsRecordInput,
