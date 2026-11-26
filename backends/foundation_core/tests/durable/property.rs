@@ -176,3 +176,59 @@ proptest! {
         prop_assert_eq!(source_bytes, expected_source);
     }
 }
+
+proptest! {
+    #[test]
+    fn json_append_then_read_returns_each_message(
+        messages in prop::collection::vec((any::<i64>(), "[a-z]{0,8}"), 1..12),
+    ) {
+        let read_back = smol::block_on(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new())),
+            );
+            let stream = streams.stream(StreamName::parse("json/property").expect("name"));
+            stream
+                .create(CreateSpec {
+                    content_type: Some(
+                        foundation_core::durable::ContentType::parse("application/json")
+                            .expect("type"),
+                    ),
+                    ..CreateSpec::default()
+                })
+                .await
+                .expect("create");
+
+            for (number, text) in &messages {
+                let value = serde_json::json!({ "n": number, "s": text });
+                stream
+                    .append(AppendRequest {
+                        chunk: Chunk::new(serde_json::to_vec(&value).expect("json")),
+                        content_type: None,
+                        stream_seq: None,
+                        producer: None,
+                        close: false,
+                    })
+                    .await
+                    .expect("append");
+            }
+
+            let page = stream
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("read");
+            page.chunks
+                .into_iter()
+                .map(|chunk| serde_json::from_slice::<serde_json::Value>(chunk.as_bytes()).expect("json"))
+                .collect::<Vec<_>>()
+        });
+
+        let expected: Vec<serde_json::Value> = messages
+            .iter()
+            .map(|(number, text)| serde_json::json!({ "n": number, "s": text }))
+            .collect();
+        prop_assert_eq!(read_back, expected);
+    }
+}
