@@ -16,7 +16,7 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
 | 04 — native host and DST | 🔎 T17 and T18 done; pull request #909 open. The DST harness uses a scripted registry until #908 part (b) lands | `c9e6f1c85` |
-| 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete; the plan adds rules, tests and verify (2026-11-27) | — |
+| 05 — Worker host and web client | 🔧 in progress on branch `spec83/f05-worker-host-and-web-client` (tasks T20, T21, T22, T26) | — |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
 | 08 — key protection at rest | 📝 0/6, todo (last) | — |
