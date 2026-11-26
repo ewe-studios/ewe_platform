@@ -197,7 +197,7 @@ Docker capability lives in `foundation_deployment_docker` (the existing Docker c
 `foundation_sandbox` uses it behind the `docker` feature.
 
 Cloudflare deployment lives in `foundation_deployment_cloudflare` (the existing crate, with
-its generated Cloudflare types and `ewe_deployables::cloudflare`). It is a native library,
+its generated Cloudflare types; the old `ewe_deployables::cloudflare` module was removed in spec 70 feature 22). It is a native library,
 not wasm. `foundation_sandbox` does not use it; a caller of the deployer does
 (feature 08).
 
