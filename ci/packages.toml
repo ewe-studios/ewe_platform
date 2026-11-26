@@ -109,6 +109,14 @@ directory = "backends/foundation_core/integration/wasm_tests"
 recipe = "wasm-runtime-tests"
 build-members = []
 
+# The sandbox Cloudflare Worker (spec 77 feature 08). It is a self-contained
+# wasm32 workspace, so cargo metadata never lists it; the recipe runs its
+# check, clippy and fmt with its own Cargo.toml.
+[groups.sandbox_worker]
+directory = "infrastructure/sandbox_worker"
+recipe = "sandbox-worker"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
@@ -716,6 +724,16 @@ macos-runs = ["", "device"]
 
 # ---------------------------------------------------------------------------
 # Example workspaces
+
+[packages.sandbox_worker]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The sandbox Worker is a wasm32-only workspace; its checks run on the Linux Cloudflare job."
+fmt = "enforce"
+build = "enforce"
+clippy = "enforce"
+test = "off"
+wasm = "off"
 
 [packages.examples]
 macos-tests = "none"
