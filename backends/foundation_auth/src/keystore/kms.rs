@@ -687,16 +687,29 @@ impl AwsKmsBackend {
         let amz_date = now.format("%Y%m%dT%H%M%SZ").to_string();
         let date = now.format("%Y%m%d").to_string();
         let content_type = "application/x-amz-json-1.1";
-        let mut canonical_headers = format!(
-            "content-type:{content_type}\nhost:{host}\nx-amz-date:{amz_date}\nx-amz-target:{target}\n"
-        );
-        let mut signed_headers = "content-type;host;x-amz-date;x-amz-target".to_string();
+        // The signed headers must be in sorted order, and the session token
+        // sits between x-amz-date and x-amz-target.
+        let mut signed = vec![
+            ("content-type", content_type.to_string()),
+            ("host", host.clone()),
+            ("x-amz-date", amz_date.clone()),
+        ];
         if let Some(token) = &credentials.session_token {
-            canonical_headers.push_str("x-amz-security-token:");
-            canonical_headers.push_str(token);
-            canonical_headers.push('\n');
-            signed_headers.push_str(";x-amz-security-token");
+            signed.push(("x-amz-security-token", token.clone()));
         }
+        signed.push(("x-amz-target", target.to_string()));
+        let mut canonical_headers = String::new();
+        for (name, value) in &signed {
+            let _ = std::fmt::Write::write_fmt(
+                &mut canonical_headers,
+                format_args!("{name}:{value}\n"),
+            );
+        }
+        let signed_headers = signed
+            .iter()
+            .map(|(name, _)| *name)
+            .collect::<Vec<_>>()
+            .join(";");
         let payload_hash = hex_lower(&sha2::Sha256::digest(body.as_bytes()));
         let canonical_request =
             format!("POST\n/\n\n{canonical_headers}\n{signed_headers}\n{payload_hash}");
