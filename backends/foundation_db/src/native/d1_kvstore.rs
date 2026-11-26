@@ -1003,6 +1003,37 @@ impl KeyValueStore for D1Store {
         Ok(())
     }
 
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        let json_value = serde_json::to_string(&value)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        // One statement: D1 runs it atomically, and `meta.changes` says whether
+        // this call inserted the row.
+        let sql = format!(
+            "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO NOTHING",
+            self.kv_table()
+        );
+        let response = self
+            .execute_sql_async(
+                &sql,
+                &[
+                    serde_json::Value::String(key.to_string()),
+                    serde_json::Value::String(json_value),
+                ],
+            )
+            .await?;
+        let changes = response
+            .result
+            .first()
+            .and_then(|statement| statement.meta.as_ref())
+            .and_then(|meta| meta.changes)
+            .map_or(0, i64::unsigned_abs);
+        Ok(changes == 1)
+    }
+
     fn take_is_atomic(&self) -> bool {
         true
     }

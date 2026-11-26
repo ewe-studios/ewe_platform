@@ -368,6 +368,51 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        match &self.inner {
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
+            StorageProviderInner::Turso(storage) => {
+                storage.insert_if_absent_async(key, value).await
+            }
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            StorageProviderInner::Libsql(storage) => {
+                storage.insert_if_absent_async(key, value).await
+            }
+            #[cfg(json_file_backend)]
+            StorageProviderInner::JsonFile(storage) => {
+                storage.insert_if_absent_async(key, value).await
+            }
+            StorageProviderInner::Memory(storage) => {
+                storage.insert_if_absent_async(key, value).await
+            }
+            StorageProviderInner::MemoryJson(storage) => {
+                storage.insert_if_absent_async(key, value).await
+            }
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
+            StorageProviderInner::D1(storage) => storage.insert_if_absent_async(key, value).await,
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
+            StorageProviderInner::R2(_) => Err(StorageError::Unsupported(
+                "insert_if_absent_async on R2".to_string(),
+            )),
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => {
+                storage.insert_if_absent_async(key, value).await
+            }
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Unsupported(
+                "insert_if_absent_async on R2".to_string(),
+            )),
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(_) => Err(StorageError::Unsupported(
+                "insert_if_absent_async on Workers KV".to_string(),
+            )),
+        }
+    }
+
     fn take_is_atomic(&self) -> bool {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]

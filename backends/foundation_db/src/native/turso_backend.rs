@@ -646,6 +646,29 @@ impl KeyValueStore for TursoStorage {
         self.delete_async_internal(key).await
     }
 
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        let _guard = self.write().await?;
+        let serialized = serde_json::to_string(&value)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let stored_value = self.maybe_encrypt(&serialized)?;
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        // One statement: the database runs it atomically, and the row count
+        // says whether this call inserted the row.
+        let changed = conn
+            .execute(
+                "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO NOTHING",
+                [key, stored_value],
+            )
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(changed > 0)
+    }
+
     fn take_is_atomic(&self) -> bool {
         true
     }
