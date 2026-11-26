@@ -86,6 +86,10 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16",
 # The `Provider` trait and its identifier types (feature 06). The trait stays in
 # the deployment crate; only the sandbox facade lives here (decision D1).
 foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.9", optional = true }
+# The Docker Engine API client, its generated types and its streamed bodies
+# (feature 10). The driver uses them as they are; it adds no request body of its
+# own (invariant I9).
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", default-features = false, features = ["docker"], optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 # The Connect client transport (`H1Transport`) and the shared HTTP types.
@@ -110,6 +114,9 @@ optional = true
 [dev-dependencies]
 # The workspace holds one `proptest` version for every crate (spec 77 rule).
 proptest = { workspace = true }
+# The streamed bodies of the Docker driver tests (feature 10): the fake Engine
+# answer is a `ByteStream` or a `JsonLinesStream` over a fixed body.
+foundation_deployment = { path = "../foundation_deployment", version = "0.0.7" }
 # `SimulatedClock` for the deterministic identifier test. The feature is
 # test-only; it adds no code to the library build.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
@@ -151,8 +158,13 @@ cloudflare = ["control", "dep:foundation_netio", "dep:worker"]
 # `SandboxManager` (feature 02).
 control = []
 default = ["control", "firecracker", "artifacts"]
-# The Docker driver (feature 10).
-docker = []
+# The Docker driver (feature 10). It talks to the Docker Engine through the
+# client of `foundation_deployment_docker` and builds the slave tar with the
+# `tar` crate.
+docker = [
+    "dep:foundation_deployment_docker",
+    "dep:tar",
+]
 # The Firecracker API client and driver (features 04 and 05). Linux only in use.
 # The generator writes one `firecracker_<group>` feature for each operation
 # group; this feature turns them all on, below the one `firecracker` gate.

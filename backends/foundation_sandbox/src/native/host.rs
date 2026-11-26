@@ -108,6 +108,14 @@ impl HostFs for NativeFs {
         }
     }
 
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        match std::fs::remove_file(path) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(io_error("remove_file", path, &error).into()),
+        }
+    }
+
     fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
         std::fs::write(path, data).map_err(|error| io_error("write", path, &error).into())
     }
@@ -119,6 +127,17 @@ impl HostFs for NativeFs {
             .read_to_end(&mut bytes)
             .map_err(|error| io_error("read", path, &error))?;
         Ok(bytes)
+    }
+
+    fn open_read(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send + Sync>> {
+        let file = File::open(path).map_err(|error| io_error("open_read", path, &error))?;
+        Ok(Box::new(file))
+    }
+
+    fn file_size(&self, path: &Path) -> SandboxResult<u64> {
+        std::fs::metadata(path)
+            .map(|metadata| metadata.len())
+            .map_err(|error| io_error("file_size", path, &error).into())
     }
 
     fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {

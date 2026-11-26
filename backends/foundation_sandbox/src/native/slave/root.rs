@@ -243,12 +243,19 @@ fn prepare_read_only(
 
 /// The plain mode: the slave's own root, with the name servers and the work
 /// directory only.
+///
+/// A container already holds the name server file that its runtime wrote, and a
+/// container's process identifier (PID) 1 has no right to bind-mount over it.
+/// The plain root in a container therefore writes no name server file (feature
+/// 10).
 fn prepare_plain(
     host: &SlaveHost,
     request: &PrepareRequest,
     plain_root: &Path,
 ) -> SandboxResult<(RootMode, PathBuf)> {
-    write_name_servers(host, request, plain_root)?;
+    if !super::pid1::in_container() {
+        write_name_servers(host, request, plain_root)?;
+    }
     let workdir = join_guest(plain_root, &request.workdir);
     host.mounts
         .mkdir_p(&workdir, DIR_MODE)

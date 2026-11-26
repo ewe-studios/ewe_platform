@@ -108,6 +108,32 @@ fn provider_launch_stop_libkrun_sim() {
 }
 
 #[test]
+fn provider_docker_sim() {
+    let ctx = ctx(124);
+    let driver = SimDriver::new(DriverId::Docker);
+    let slave = Arc::new(ScriptedSlave::new());
+    slave.with_shutdown_exit(driver.substrate());
+    let control = manager(&ctx, driver, slave);
+    let provider = SandboxDeploymentProvider::docker(control);
+    assert_eq!(
+        provider.id(),
+        ProviderId::DockerSandbox,
+        "the Docker driver has its own provider identifier (issue #924)"
+    );
+    assert_eq!(provider.name(), "docker");
+    let handle = provider.launch(&spec()).expect("the launch succeeds");
+    assert_eq!(handle.provider_id, ProviderId::DockerSandbox);
+    assert!(
+        provider.is_running(&handle),
+        "invariant I8: a ready sandbox runs"
+    );
+    assert_eq!(handle.sandbox.info().state, SandboxState::Ready);
+    assert_eq!(handle.sandbox.info().driver, DriverId::Docker);
+    provider.stop(&handle).expect("the stop succeeds");
+    assert!(!provider.is_running(&handle));
+}
+
+#[test]
 fn provider_error_is_typed() {
     let ctx = ctx(121);
     // The driver is usable, but it cannot use a directory root.

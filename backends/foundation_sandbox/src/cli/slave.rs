@@ -20,6 +20,21 @@ pub struct SlaveCli {
     /// The directory under which file calls that name a plain root work.
     #[arg(long, default_value = "/")]
     pub plain_root: std::path::PathBuf,
+
+    /// The mode of the Unix domain socket file, in octal.
+    ///
+    /// Default `600`. A container sets `666`: the slave runs as root there and
+    /// the control plane on the host is a normal user. The run directory's own
+    /// mode keeps other users out.
+    #[arg(long, default_value = "600", value_parser = parse_octal_mode)]
+    pub socket_mode: u32,
+}
+
+/// Parses an octal file mode, such as `666` or `0600`.
+fn parse_octal_mode(value: &str) -> Result<u32, String> {
+    let text = value.trim_start_matches("0o").trim_start_matches('0');
+    let text = if text.is_empty() { "0" } else { text };
+    u32::from_str_radix(text, 8).map_err(|error| format!("{value} is not an octal mode: {error}"))
 }
 
 /// Parses the arguments and runs the slave.
@@ -52,6 +67,7 @@ pub fn run(ctx: foundation_context::Ctx, cli: SlaveCli) -> i32 {
             listen: address,
             control: false,
             plain_root: cli.plain_root,
+            socket_mode: cli.socket_mode,
         },
     )
 }
