@@ -698,6 +698,7 @@ fn handle_model() {
         Arc::from(child),
         Arc::new(fs.clone()),
         run_dir(),
+        None,
     );
 
     // A terminate with a grace the timer answers at once forces the stop.
@@ -735,6 +736,7 @@ fn machine_config_body() {
         guest_cid: 3,
         boot_args: String::new(),
         limits: SandboxLimits::default(),
+        lock: None,
     };
     let body = machine_config(&plan);
     assert_eq!(body.vcpu_count, 2);

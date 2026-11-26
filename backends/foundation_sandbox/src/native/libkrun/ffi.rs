@@ -277,6 +277,10 @@ impl KrunLibrary {
     /// # Errors
     /// [`RunError`] when a host call fails or a libkrun call returns a negative
     /// error number.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the call sequence of section 3.3 is one ordered list; a split would hide the order"
+    )]
     pub fn run(&self, config: &KrunRunnerConfig) -> Result<i32, RunError> {
         let symbols = &self.symbols;
         // SAFETY: each call uses the signature of `include/libkrun.h` on

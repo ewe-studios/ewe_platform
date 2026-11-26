@@ -296,17 +296,6 @@ impl Slave {
         Ok(sessions)
     }
 
-    /// The child limits of one unpack.
-    fn unpack_limits(&self, limits: crate::shared::rpc::messages::SlaveLimits) -> ChildOptions {
-        ChildOptions {
-            oci_whiteouts: false,
-            skip: Vec::new(),
-            max_entries: limits.max_unpack_entries as usize,
-            max_bytes: limits.max_unpack_bytes,
-            max_path_bytes: limits.max_unpack_path_bytes as usize,
-        }
-    }
-
     /// Unmounts a writable root cleanly before the machine powers off.
     ///
     /// It unmounts the bind mounts below the root, flushes the buffers and
@@ -347,6 +336,10 @@ impl Slave {
                 error = %error,
                 "cannot unmount the writable root: remount it read-only"
             );
+            #[allow(
+                clippy::unnecessary_cast,
+                reason = "the mount flag type is not the same on every system"
+            )]
             let flags = (libc::MS_REMOUNT | libc::MS_RDONLY) as u64;
             if let Err(error) = self.host.mounts.mount("none", root, "", flags, "") {
                 tracing::warn!(
@@ -429,6 +422,17 @@ fn start_upload_timer(ctx: Ctx, files: Arc<Files>, interval: std::time::Duration
         foundation_core::valtron::send(foundation_core::valtron::from_future(future))
     {
         tracing::error!(error = %error, "the slave could not start the upload timer");
+    }
+}
+
+/// The child limits of one unpack.
+fn unpack_child_limits(limits: crate::shared::rpc::messages::SlaveLimits) -> ChildOptions {
+    ChildOptions {
+        oci_whiteouts: false,
+        skip: Vec::new(),
+        max_entries: usize::try_from(limits.max_unpack_entries).unwrap_or(usize::MAX),
+        max_bytes: limits.max_unpack_bytes,
+        max_path_bytes: usize::try_from(limits.max_unpack_path_bytes).unwrap_or(usize::MAX),
     }
 }
 
@@ -608,9 +612,9 @@ impl SlaveService for Slave {
         let max = self.max_error_message();
         let answer = self.prepared().and_then(|prepared| {
             let sessions = self.unpack_sessions()?;
-            let mut child = self.unpack_limits(prepared.limits());
+            let mut child = unpack_child_limits(prepared.limits());
             child.oci_whiteouts = request.msg.oci_whiteouts;
-            child.skip = request.msg.skip.clone();
+            child.skip.clone_from(&request.msg.skip);
             let upload_id = sessions.begin(&prepared.exec_root, &request.msg.dest, &child)?;
             Ok(UnpackBeginResponse {
                 upload_id: upload_id.to_string(),
