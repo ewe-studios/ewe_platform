@@ -46,7 +46,7 @@ pub use manager::{DropPolicy, ManagerConfig, SandboxIdPolicy, SandboxManager};
 #[cfg(feature = "control")]
 pub use record::{MemoryRecordStore, RecordState, RecordStore, SandboxRecord, StopGate};
 #[cfg(feature = "control")]
-pub use service::{authorize, ControlService, SandboxRpcClient};
+pub use service::{authorize, ControlService, DisabledControl, SandboxRpcClient};
 #[cfg(feature = "control")]
 pub use slave_client::SlaveClient;
 #[cfg(feature = "control")]

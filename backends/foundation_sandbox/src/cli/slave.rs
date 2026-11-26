@@ -17,6 +17,14 @@ pub struct SlaveCli {
     #[arg(long)]
     pub listen: Option<String>,
 
+    /// Also serve `SandboxService` on this listener (feature 11).
+    ///
+    /// The inner control plane runs Firecracker micro virtual machines (VMs)
+    /// in this process. A build without the `control` and `firecracker`
+    /// features ignores this argument and reports `can_control: false`.
+    #[arg(long)]
+    pub control: bool,
+
     /// The directory under which file calls that name a plain root work.
     #[arg(long, default_value = "/")]
     pub plain_root: std::path::PathBuf,
@@ -65,7 +73,7 @@ pub fn run(ctx: foundation_context::Ctx, cli: SlaveCli) -> i32 {
         ctx,
         SlaveArgs {
             listen: address,
-            control: false,
+            control: cli.control || control_from_cmdline(),
             plain_root: cli.plain_root,
             socket_mode: cli.socket_mode,
         },
@@ -85,4 +93,24 @@ fn listen_from_cmdline() -> Option<String> {
 #[cfg(not(target_os = "linux"))]
 fn listen_from_cmdline() -> Option<String> {
     None
+}
+
+/// Whether the kernel command line asks for the control role (`ewe.control=1`).
+///
+/// A micro virtual machine (VM) gives the slave no arguments, so the key is
+/// the only way to ask a guest slave for the control role.
+#[cfg(target_os = "linux")]
+fn control_from_cmdline() -> bool {
+    std::fs::read_to_string("/proc/cmdline")
+        .map(|text| {
+            text.split_ascii_whitespace()
+                .any(|word| word == "ewe.control=1")
+        })
+        .unwrap_or(false)
+}
+
+/// Another target has no kernel command line.
+#[cfg(not(target_os = "linux"))]
+fn control_from_cmdline() -> bool {
+    false
 }
