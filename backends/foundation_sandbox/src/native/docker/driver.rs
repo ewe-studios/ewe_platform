@@ -10,7 +10,7 @@
 //! the container and the run directory (invariant I5).
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
@@ -169,7 +169,16 @@ pub fn container_name(id: &SandboxId) -> String {
 /// The slave command of one link (section 6.3).
 #[must_use]
 pub fn slave_command(link: DockerLink) -> Vec<String> {
-    match link {
+    slave_command_for(link, false)
+}
+
+/// The slave command of one link, with the control role when `control` holds.
+///
+/// A nested host adds `--control`, so its slave also serves the control plane
+/// (feature 11, section 6.3).
+#[must_use]
+pub fn slave_command_for(link: DockerLink, control: bool) -> Vec<String> {
+    let mut command = match link {
         DockerLink::Unix => vec![
             SLAVE_FILE.to_string(),
             "--listen".to_string(),
@@ -184,7 +193,11 @@ pub fn slave_command(link: DockerLink) -> Vec<String> {
             "--listen".to_string(),
             format!("tcp:0.0.0.0:{SLAVE_PORT}"),
         ],
+    };
+    if control {
+        command.push("--control".to_string());
     }
+    command
 }
 
 /// The Docker driver.
@@ -359,6 +372,19 @@ impl SandboxDriver for DockerDriver {
                 name: "slave".to_string(),
                 ok: slave_ok,
                 message: slave_message,
+            });
+            // A nested host needs `/dev/kvm` on the daemon's host. The check is
+            // a report only: it is not part of `usable` (feature 11, section
+            // 6.3).
+            let kvm_for_nested = host.is_ok_and(|host| host.fs.exists(Path::new("/dev/kvm")));
+            checks.push(HostCheck {
+                name: "kvm_for_nested".to_string(),
+                ok: kvm_for_nested,
+                message: if kvm_for_nested {
+                    "/dev/kvm exists on the daemon's host".to_string()
+                } else {
+                    "no /dev/kvm on the daemon's host: a nested sandbox cannot start".to_string()
+                },
             });
             HostReport {
                 driver: DriverId::Docker,
@@ -962,7 +988,7 @@ async fn sidecar(
     container: String,
     substrate: Substrate,
 ) -> (DockerState, Status) {
-    let command = slave_command(plan.config.link);
+    let command = slave_command_for(plan.config.link, plan.spec.nested_host);
     let argv: Vec<&str> = command.iter().map(String::as_str).collect();
     let created = match call_with_timeout(
         ctx,
@@ -1162,8 +1188,12 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
     let mut labels = BTreeMap::new();
     labels.insert(LABEL_SANDBOX_ID, plan.id.to_string());
     labels.insert(LABEL_SANDBOX_DRIVER, "docker".to_string());
+    let nested = plan.spec.nested_host;
     let (entrypoint, cmd) = match plan.config.slave_mode {
-        SlaveMode::Main => (Some(slave_command(plan.config.link)), Some(Vec::new())),
+        SlaveMode::Main => (
+            Some(slave_command_for(plan.config.link, nested)),
+            Some(Vec::new()),
+        ),
         // Sidecar: the image keeps its own entry point and command.
         SlaveMode::Sidecar => (None, None),
     };
@@ -1172,12 +1202,22 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
         ports.insert(format!("{SLAVE_PORT}/tcp"), json!({}));
         Value::Object(ports)
     });
+    // A nested host gets the paths of its artifacts and its run directory
+    // (feature 11, section 6.3). A normal container gets no environment
+    // variable (invariant I2).
+    let env = nested.then(|| {
+        vec![
+            "EWE_FIRECRACKER=/usr/local/bin/firecracker".to_string(),
+            format!("EWE_SANDBOX_SLAVE={SLAVE_FILE}"),
+            "EWE_SANDBOX_STATE_DIR=/run/ewe-sbx".to_string(),
+            "EWE_SANDBOX_CACHE_DIR=/var/cache/ewe-sandbox".to_string(),
+        ]
+    });
     let config = ContainerConfig {
         image: Some(plan.image.clone()),
         entrypoint,
         cmd,
-        // The driver adds no environment variable (invariant I2).
-        env: None,
+        env,
         labels: Some(json!(labels)),
         exposed_ports,
         ..ContainerConfig::default()
@@ -1204,9 +1244,20 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
         );
         Value::Object(ports)
     });
+    // A nested host gets `/dev/kvm`, and still no privilege (invariant I6).
+    let devices = nested.then(|| {
+        vec![
+            foundation_deployment_docker::generated::json::DeviceMapping {
+                cgroup_permissions: Some("rwm".to_string()),
+                path_in_container: Some("/dev/kvm".to_string()),
+                path_on_host: Some("/dev/kvm".to_string()),
+            },
+        ]
+    });
     let host = HostConfig {
         auto_remove: Some(false),
         binds: (!binds.is_empty()).then_some(binds),
+        devices: devices.clone(),
         network_mode: Some(
             match plan.spec.network {
                 NetworkMode::Host => "bridge",
@@ -1223,6 +1274,10 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
         memory: Some(i64::from(plan.spec.memory_mib) * 1_048_576),
         nano_cpus: Some(i64::from(plan.spec.vcpus) * 1_000_000_000),
         pids_limit: Some(plan.config.pids_limit),
+        // `Resources` is flattened after `HostConfig` in the create body, so a
+        // `Devices` value here is the one that serializes (issue: the wrapper
+        // flattens two generated structs that both name `Devices`).
+        devices,
         ..Resources::default()
     };
     create_body(config, host, resources)

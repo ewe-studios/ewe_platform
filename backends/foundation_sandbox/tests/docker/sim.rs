@@ -15,8 +15,8 @@ use foundation_core::valtron::{SimulatedClock, Stream};
 use foundation_sandbox::native::docker::api::{LABEL_CONTAINER_CONTROL, LABEL_SANDBOX_ID};
 use foundation_sandbox::native::docker::control::DockerContainerControl;
 use foundation_sandbox::native::docker::driver::{
-    container_name, sandbox_body, slave_command, DockerDriver, DockerDriverConfig, DockerHandle,
-    DockerLink, DockerPlan, SlaveMode,
+    container_name, sandbox_body, slave_command, slave_command_for, DockerDriver,
+    DockerDriverConfig, DockerHandle, DockerLink, DockerPlan, SlaveMode,
 };
 use foundation_sandbox::native::host::NativeConnector;
 use foundation_sandbox::shared::command::Command;
@@ -280,6 +280,71 @@ fn slave_command_of_each_link() {
         slave_command(DockerLink::Tcp),
         vec!["/.ewe/agent-slave", "--listen", "tcp:0.0.0.0:1024"]
     );
+    assert_eq!(
+        slave_command_for(DockerLink::Unix, true),
+        vec![
+            "/.ewe/agent-slave",
+            "--listen",
+            "unix:/.ewe/run/slave.sock",
+            "--socket-mode",
+            "666",
+            "--control"
+        ]
+    );
+}
+
+/// I6 and section 6.3: a nested host gets `/dev/kvm`, the control argument and
+/// the artifact paths. It is still not privileged.
+#[test]
+fn create_body_nested_host() {
+    let mut nested_plan = plan(
+        DockerLink::Unix,
+        SlaveMode::Main,
+        NetworkMode::None,
+        Some(run_dir()),
+    );
+    nested_plan.spec.nested_host = true;
+    let body = serde_json::to_value(sandbox_body(&nested_plan)).expect("the body serializes");
+    assert_eq!(
+        body["Entrypoint"],
+        serde_json::json!([
+            "/.ewe/agent-slave",
+            "--listen",
+            "unix:/.ewe/run/slave.sock",
+            "--socket-mode",
+            "666",
+            "--control"
+        ])
+    );
+    assert_eq!(
+        body["Env"],
+        serde_json::json!([
+            "EWE_FIRECRACKER=/usr/local/bin/firecracker",
+            "EWE_SANDBOX_SLAVE=/.ewe/agent-slave",
+            "EWE_SANDBOX_STATE_DIR=/run/ewe-sbx",
+            "EWE_SANDBOX_CACHE_DIR=/var/cache/ewe-sandbox"
+        ])
+    );
+    assert_eq!(
+        body["HostConfig"]["Devices"],
+        serde_json::json!([{
+            "CgroupPermissions": "rwm",
+            "PathInContainer": "/dev/kvm",
+            "PathOnHost": "/dev/kvm"
+        }])
+    );
+    assert_eq!(body["HostConfig"]["Privileged"], false);
+
+    // A normal container gets no device and no environment variable.
+    let plain = plan(
+        DockerLink::Unix,
+        SlaveMode::Main,
+        NetworkMode::None,
+        Some(run_dir()),
+    );
+    let body = serde_json::to_value(sandbox_body(&plain)).expect("the body serializes");
+    assert!(body["HostConfig"]["Devices"].is_null());
+    assert!(body["Env"].is_null());
 }
 
 #[test]
@@ -632,6 +697,13 @@ fn probe_capabilities_follow_the_link() {
     let api = FakeDockerApi::new();
     let report = crate::pool::block_on(driver(&api, config.clone()).probe(ctx.clone()));
     assert!(report.usable);
+    assert!(
+        report
+            .checks
+            .iter()
+            .any(|check| check.name == "kvm_for_nested"),
+        "the probe reports whether the daemon's host has /dev/kvm"
+    );
     assert!(
         report.capabilities.network_none,
         "the Unix link has network_none"

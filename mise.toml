@@ -1209,6 +1209,21 @@ cp target/x86_64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave
 cp target/aarch64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-aarch64
 """
 
+[tasks."sandbox:nested-image"]
+description = "Build the nested host image with the versions of ci/sandbox.toml"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+version=$(grep -E '^firecracker_version = ' ci/sandbox.toml | cut -d '"' -f 2)
+sha=$(grep -E '^firecracker_x86_64_sha256 = ' ci/sandbox.toml | cut -d '"' -f 2)
+docker build \
+  --platform linux/amd64 \
+  --build-arg "FIRECRACKER_VERSION=${version}" \
+  --build-arg "FIRECRACKER_SHA256=${sha}" \
+  -t ewe/sandbox-nested:latest \
+  infrastructure/sandbox_nested_image
+"""
+
 [tasks.bacon]
 description = "Start bacon with bacon-ls job for IDE integration"
 run = "bacon -j bacon-ls"

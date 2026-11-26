@@ -23,6 +23,9 @@ exclude = [
   # The control-plane image holds a Dockerfile, not a Rust crate (spec 77
   # feature 10).
   "infrastructure/sandbox_control_image",
+  # The nested host image holds a Dockerfile, not a Rust crate (spec 77
+  # feature 11).
+  "infrastructure/sandbox_nested_image",
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
