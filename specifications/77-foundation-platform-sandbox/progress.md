@@ -542,13 +542,15 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 
 ## Next
 
-1. Feature 07 (the Cloudflare control plane, library), on a branch from the merged tree.
-2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B.
-3. Feature 18 (the lifetime deadline and the stream bound), after 08.
-4. Spec 83 feature 04 (the native host and the deterministic simulation tests).
-5. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
-   product). Feature 17 needs 08.
-6. Phase 3: features 12 to 15 (images).
+1. Feature 07 (the Cloudflare control plane, library): pull request #901, in review.
+2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, on branch
+   `spec77/f08-cloudflare-worker`. It started from feature 07 and merges feature 06.
+3. Feature 09 (the libkrun driver): on branch `spec77/f09-libkrun-driver`, in parallel.
+4. Feature 18 (the lifetime deadline and the stream bound), after 08.
+5. Spec 83 feature 04: pull request #909, in review.
+6. Phase 2: features 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox product).
+   Feature 17 needs 08.
+7. Phase 3: features 12 to 15 (images).
 
 ## Milestones
 
