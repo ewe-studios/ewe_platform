@@ -143,8 +143,9 @@ pub async fn fetch(
             )
             .await
         }
-        RouteTarget::Sandbox(id) => {
-            // Step 5: forward and return the response as it is.
+        RouteTarget::Sandbox(id) | RouteTarget::Container(id) => {
+            // Step 5: forward and return the response as it is. A container
+            // call reaches the same Durable Object as a scoped sandbox call.
             let response = forward(
                 &env,
                 SANDBOX_BINDING,

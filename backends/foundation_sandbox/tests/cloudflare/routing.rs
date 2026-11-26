@@ -2,7 +2,8 @@
 //! section 6.1 and invariant I1).
 
 use foundation_sandbox::shared::cloudflare::routing::{
-    route, RouteTarget, SANDBOX_SERVICE_PREFIX, SCOPED_METHODS,
+    route, RouteTarget, CONTAINER_SCOPED_METHODS, CONTAINER_SERVICE_PREFIX, SANDBOX_SERVICE_PREFIX,
+    SCOPED_METHODS,
 };
 use foundation_sandbox::shared::control::authorize;
 use foundation_sandbox::shared::error::{SandboxError, SandboxResult};
@@ -19,6 +20,16 @@ fn path(method: &str) -> String {
 /// The JSON body of one scoped request.
 fn scoped_body(id: &str) -> Vec<u8> {
     format!(r#"{{"sandbox_id":"{id}"}}"#).into_bytes()
+}
+
+/// The path of one method of `ContainerService`.
+fn container_path(method: &str) -> String {
+    format!("{CONTAINER_SERVICE_PREFIX}{method}")
+}
+
+/// The JSON body of one container request.
+fn container_body(id: &str) -> Vec<u8> {
+    format!(r#"{{"container_id":"{id}"}}"#).into_bytes()
 }
 
 /// The error that a failed route returned.
@@ -94,7 +105,7 @@ fn route_unknown_method() {
         path("Unknown"),
         format!("{SANDBOX_SERVICE_PREFIX}Get/extra"),
         "/index/x".to_string(),
-        "/ewe.sandbox.container.v1.ContainerService/Start".to_string(),
+        "/ewe.sandbox.container.v1.ContainerService/Unknown".to_string(),
         String::new(),
     ] {
         match error_of(route(&path, b"")) {
@@ -121,6 +132,37 @@ fn check_bearer_cases() {
     assert!(authorize(Some("Bearer test"), &token).is_ok(), "the token");
 }
 
+/// Every `ContainerService` method that names a container reaches the same
+/// Durable Object as a scoped sandbox call.
+#[test]
+fn route_container_table() {
+    for method in CONTAINER_SCOPED_METHODS {
+        assert_eq!(
+            route(&container_path(method), &container_body("000000000001")).unwrap(),
+            RouteTarget::Container(id("000000000001")),
+            "method {method}"
+        );
+    }
+}
+
+/// `Start` and `List` name no container, and a bad identifier is refused.
+#[test]
+fn route_container_without_id() {
+    for method in ["Start", "List"] {
+        match error_of(route(&container_path(method), b"{}")) {
+            SandboxError::InvalidSpec { field, .. } => assert_eq!(field, "container_id"),
+            other => panic!("expected InvalidSpec, got {other:?}"),
+        }
+    }
+    match error_of(route(
+        &container_path("Get"),
+        &container_body("not-an-identifier"),
+    )) {
+        SandboxError::InvalidSpec { field, .. } => assert_eq!(field, "container_id"),
+        other => panic!("expected InvalidSpec, got {other:?}"),
+    }
+}
+
 proptest! {
     #![proptest_config(ProptestConfig {
         rng_seed: RngSeed::Fixed(0x5eed_0008),
@@ -136,6 +178,11 @@ proptest! {
             let target = route(&path(method), &scoped_body(&id_text))
                 .expect("a valid identifier routes");
             prop_assert_eq!(target, RouteTarget::Sandbox(id(&id_text)));
+        }
+        for method in CONTAINER_SCOPED_METHODS {
+            let target = route(&container_path(method), &container_body(&id_text))
+                .expect("a valid identifier routes");
+            prop_assert_eq!(target, RouteTarget::Container(id(&id_text)));
         }
     }
 }

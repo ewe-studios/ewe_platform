@@ -5,15 +5,17 @@
 //! no `worker` type and no platform call, so the native tests run the same code
 //! as the Worker.
 //!
-//! The path shape is `/ewe.sandbox.control.v1.SandboxService/<Method>`.
-
-use serde::Deserialize;
+//! The path shapes are `/ewe.sandbox.control.v1.SandboxService/<Method>` and
+//! `/ewe.sandbox.container.v1.ContainerService/<Method>`.
 
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::ids::SandboxId;
 
 /// The service prefix of every `SandboxService` call.
 pub const SANDBOX_SERVICE_PREFIX: &str = "/ewe.sandbox.control.v1.SandboxService/";
+
+/// The service prefix of every `ContainerService` call.
+pub const CONTAINER_SERVICE_PREFIX: &str = "/ewe.sandbox.container.v1.ContainerService/";
 
 /// The methods that carry their sandbox identifier in the request body.
 ///
@@ -33,6 +35,25 @@ pub const SCOPED_METHODS: &[&str] = &[
     "FileRead",
 ];
 
+/// The `ContainerService` methods that carry their container identifier in the
+/// request body.
+///
+/// On Cloudflare the container identifier is the Durable Object name, so it is
+/// also the sandbox identifier. `Start` and `List` name no container: a Start
+/// belongs to one Durable Object, and a List is the list of that object.
+pub const CONTAINER_SCOPED_METHODS: &[&str] = &[
+    "Get",
+    "Fetch",
+    "Exec",
+    "ExecInput",
+    "ExecSignal",
+    "Signal",
+    "Wait",
+    "Stop",
+    "Destroy",
+    "LogTail",
+];
+
 /// The Durable Object (DO) that one request reaches.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RouteTarget {
@@ -45,35 +66,50 @@ pub enum RouteTarget {
     NewSandbox,
     /// The Durable Object with this name.
     Sandbox(SandboxId),
+    /// The `ContainerService` call of the Durable Object with this name. It is
+    /// the same Durable Object as [`RouteTarget::Sandbox`].
+    Container(SandboxId),
 }
 
 /// Finds the target of one request.
 ///
 /// `path` is the request path. `body` is the JavaScript Object Notation (JSON)
-/// request message. A path that is not a method of `SandboxService` gives
+/// request message. A path that is not a method of the two services gives
 /// [`SandboxError::NotFound`] with `what` set to `method`. A missing or invalid
-/// `sandbox_id` gives [`SandboxError::InvalidSpec`] with `field` set to
-/// `sandbox_id`.
+/// `sandbox_id` or `container_id` gives [`SandboxError::InvalidSpec`] with
+/// `field` set to that name.
 ///
 /// # Errors
 /// [`SandboxError::NotFound`] for an unknown method, and
-/// [`SandboxError::InvalidSpec`] for a body with no valid `sandbox_id`.
+/// [`SandboxError::InvalidSpec`] for a body with no valid identifier.
 pub fn route(path: &str, body: &[u8]) -> SandboxResult<RouteTarget> {
-    let Some(method) = path.strip_prefix(SANDBOX_SERVICE_PREFIX) else {
-        return unknown_method();
-    };
-    match method {
-        "Probe" => Ok(RouteTarget::Probe),
-        "List" => Ok(RouteTarget::List),
-        "Create" => Ok(RouteTarget::NewSandbox),
-        known if SCOPED_METHODS.contains(&known) => {
-            Ok(RouteTarget::Sandbox(sandbox_id_from_body(body)?))
-        }
-        _ => unknown_method(),
+    if let Some(method) = path.strip_prefix(SANDBOX_SERVICE_PREFIX) {
+        return match method {
+            "Probe" => Ok(RouteTarget::Probe),
+            "List" => Ok(RouteTarget::List),
+            "Create" => Ok(RouteTarget::NewSandbox),
+            known if SCOPED_METHODS.contains(&known) => {
+                Ok(RouteTarget::Sandbox(scoped_id(body, "sandbox_id")?))
+            }
+            _ => unknown_method(),
+        };
     }
+    if let Some(method) = path.strip_prefix(CONTAINER_SERVICE_PREFIX) {
+        if CONTAINER_SCOPED_METHODS.contains(&method) {
+            return Ok(RouteTarget::Container(scoped_id(body, "container_id")?));
+        }
+        if method == "Start" || method == "List" {
+            return Err(SandboxError::InvalidSpec {
+                field: "container_id".to_string(),
+                reason: "the request names no container".to_string(),
+            }
+            .into());
+        }
+    }
+    unknown_method()
 }
 
-/// The error of a path that is not a method of `SandboxService`.
+/// The error of a path that is not a method of the two services.
 fn unknown_method() -> crate::shared::error::SandboxResult<RouteTarget> {
     Err(SandboxError::NotFound {
         what: "method".to_string(),
@@ -81,22 +117,27 @@ fn unknown_method() -> crate::shared::error::SandboxResult<RouteTarget> {
     .into())
 }
 
-/// The one field that the routing rule reads from a scoped request body.
-#[derive(Deserialize)]
-struct ScopedBody {
-    sandbox_id: String,
-}
-
-/// The sandbox identifier of one scoped request body.
-fn sandbox_id_from_body(body: &[u8]) -> SandboxResult<SandboxId> {
-    let scoped =
-        serde_json::from_slice::<ScopedBody>(body).map_err(|error| SandboxError::InvalidSpec {
-            field: "sandbox_id".to_string(),
-            reason: format!("the body is not JSON with a sandbox_id: {error}"),
-        })?;
-    scoped.sandbox_id.parse::<SandboxId>().map_err(|error| {
+/// The identifier of one scoped request body.
+///
+/// The entry reads only this field; every other field of the message is
+/// ignored.
+fn scoped_id(body: &[u8], field: &str) -> SandboxResult<SandboxId> {
+    let value = serde_json::from_slice::<serde_json::Value>(body).map_err(|error| {
         SandboxError::InvalidSpec {
-            field: "sandbox_id".to_string(),
+            field: field.to_string(),
+            reason: format!("the body is not JSON: {error}"),
+        }
+    })?;
+    let text = value
+        .get(field)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| SandboxError::InvalidSpec {
+            field: field.to_string(),
+            reason: format!("the body has no {field}"),
+        })?;
+    text.parse::<SandboxId>().map_err(|error| {
+        SandboxError::InvalidSpec {
+            field: field.to_string(),
             reason: error.to_string(),
         }
         .into()

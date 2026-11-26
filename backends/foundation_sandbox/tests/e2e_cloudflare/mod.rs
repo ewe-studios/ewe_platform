@@ -10,6 +10,7 @@ use std::process::Command;
 use std::sync::OnceLock;
 use std::time::Duration;
 
+use foundation_connectrpc::{ClientOptions, H1Transport, Request, RpcCtx};
 use foundation_context::Ctx;
 use foundation_core::valtron::{block_on_future, execute, initialize_pool, StreamIteratorExt};
 use foundation_errstacks::ErrorTrace;
@@ -24,6 +25,8 @@ use foundation_sandbox::shared::control::{
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::ids::{DriverId, SandboxId};
 use foundation_sandbox::shared::limits::SandboxLimits;
+use foundation_sandbox::shared::rpc::messages::{ContainerGetRequest, ContainerGetResponse};
+use foundation_sandbox::shared::rpc::ContainerServiceClient;
 use foundation_sandbox::shared::spec::{NetworkMode, RootFs, SandboxSpec};
 use foundation_sandbox::shared::Secret;
 use futures::StreamExt;
@@ -222,6 +225,48 @@ fn raw_request(
         }
     }
     RawResponse { status, body }
+}
+
+/// One `ContainerService` call through the Worker reaches the sandbox DO.
+async fn container_get(id: String) -> ContainerGetResponse {
+    use std::sync::Arc;
+
+    let url = worker_url().expect("the test skipped without a URL");
+    let transport = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let client = ContainerServiceClient::new(
+        transport,
+        &url,
+        ClientOptions::new()
+            .with_codec("json")
+            .with_header("AUTHORIZATION".to_string(), format!("Bearer {}", token())),
+    )
+    .expect("the container client builds");
+    let ctx = RpcCtx::client(Ctx::host()).with_deadline(Duration::from_secs(30));
+    client
+        .get(ctx, Request::new(ContainerGetRequest { container_id: id }))
+        .await
+        .expect("the container Get")
+        .msg
+}
+
+/// A `ContainerService` call reaches its Durable Object through the Worker.
+#[test]
+fn e2e_cloudflare_container_route() {
+    if skip("e2e_cloudflare_container_route") {
+        return;
+    }
+    run(async {
+        let control = client(Some(&token()));
+        let sandbox = SandboxProvider::create(&control, container_spec())
+            .await
+            .expect("the create");
+        let response = container_get(sandbox.id().to_string()).await;
+        assert!(
+            response.container.is_some(),
+            "the Durable Object answers with its container"
+        );
+        sandbox.stop().await.expect("the stop");
+    });
 }
 
 /// A command runs in a Cloudflare container (I8, the first scenario).
