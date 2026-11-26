@@ -18,6 +18,7 @@ fn record(id: &str, created_unix_ms: u64) -> StoredRecord {
         state: SandboxState::Ready,
         created_unix_ms,
         endpoint: None,
+        manifest: None,
     }
 }
 

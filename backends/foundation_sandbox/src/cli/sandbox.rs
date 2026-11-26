@@ -24,6 +24,14 @@ use foundation_nativeapis::signal::{signal_task, SignalEvent, SignalKind};
 use futures::{FutureExt as _, StreamExt as _};
 
 use crate::cli::{parse_connect, parse_listen};
+#[cfg(feature = "images")]
+use crate::native::docker::api::DockerApi;
+#[cfg(feature = "images")]
+use crate::native::images::import::{
+    ImageImporter, ImageSource, ImportEvent, ImportOptions, ImportProgress,
+};
+#[cfg(feature = "images")]
+use crate::native::images::ImageStore;
 use crate::native::record::FileRecordStore;
 use crate::native::serve::{bind_control, serve_bound, ServeConfig, ServeError};
 use crate::shared::command::{Command, ExecEvent, ExitStatus, StdinMode};
@@ -33,10 +41,14 @@ use crate::shared::error::SandboxError;
 use crate::shared::handles::ExecEvents;
 use crate::shared::host::SandboxHost;
 use crate::shared::ids::DriverId;
+#[cfg(feature = "images")]
+use crate::shared::images::is_image_key;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::listen::ListenAddress;
 #[cfg(all(feature = "artifacts", target_os = "linux"))]
 use crate::shared::spec::GuestArch;
+#[cfg(feature = "images")]
+use crate::shared::spec::ImageRef;
 use crate::shared::spec::{NetworkMode, RootFs, RootMode, SandboxSpec};
 use crate::shared::Secret;
 
@@ -80,6 +92,9 @@ pub enum SandboxCommand {
     Kill(IdArgs),
     /// Report what this host can run.
     Doctor(DoctorArgs),
+    /// Manage the local sandbox images (feature 13).
+    #[cfg(feature = "images")]
+    Image(ImageArgs),
 }
 
 /// The options of a sandbox request.
@@ -203,6 +218,58 @@ pub struct DoctorArgs {
     pub driver_order: Option<String>,
 }
 
+/// `image`: the local sandbox images.
+#[cfg(feature = "images")]
+#[derive(Debug, Args)]
+pub struct ImageArgs {
+    /// The image sub-command.
+    #[command(subcommand)]
+    pub command: ImageCommand,
+}
+
+/// The image sub-commands.
+#[cfg(feature = "images")]
+#[derive(Debug, Subcommand)]
+pub enum ImageCommand {
+    /// Import a Docker image, a tar file or the Alpine archive.
+    Import(ImageImportArgs),
+    /// List the local images.
+    List,
+    /// Remove one image by tag or key.
+    Rm(ImageRmArgs),
+}
+
+/// `image import`: one source becomes one sandbox image.
+#[cfg(feature = "images")]
+#[derive(Debug, Args)]
+pub struct ImageImportArgs {
+    /// The source: `docker:NAME`, `tar:PATH` or `alpine:VERSION`.
+    pub source: String,
+    /// The tag that the image gets.
+    #[arg(long)]
+    pub tag: Option<String>,
+    /// The size of the image in mebibytes.
+    #[arg(long = "size-mib")]
+    pub size_mib: Option<u32>,
+    /// A start command, as a JSON array of strings.
+    #[arg(long)]
+    pub cmd: Option<String>,
+    /// A base environment entry, as `KEY=VALUE`. Repeat it for each entry.
+    #[arg(long = "env", value_name = "KEY=VALUE")]
+    pub env: Vec<String>,
+    /// Do not pull a Docker image that the daemon does not have.
+    #[arg(long = "no-pull")]
+    pub no_pull: bool,
+}
+
+/// `image rm`: one tag or key.
+#[cfg(feature = "images")]
+#[derive(Debug, Args)]
+pub struct ImageRmArgs {
+    /// The tag or the 32-character key of the image.
+    pub image: String,
+}
+
 /// Runs one sub-command and returns its exit code.
 #[must_use]
 pub fn run(ctx: Ctx, cli: SandboxCli) -> i32 {
@@ -216,6 +283,8 @@ pub fn run(ctx: Ctx, cli: SandboxCli) -> i32 {
         SandboxCommand::Stop(args) => stop_or_kill(ctx, args, limits, false),
         SandboxCommand::Kill(args) => stop_or_kill(ctx, args, limits, true),
         SandboxCommand::Doctor(args) => doctor_command(ctx, args),
+        #[cfg(feature = "images")]
+        SandboxCommand::Image(args) => image_command(ctx, args),
     }
 }
 
@@ -500,6 +569,195 @@ fn state_name(state: crate::shared::control::SandboxState) -> &'static str {
     }
 }
 
+/// `image`: import, list or remove a local sandbox image.
+#[cfg(feature = "images")]
+fn image_command(ctx: Ctx, args: ImageArgs) -> i32 {
+    match args.command {
+        ImageCommand::Import(args) => image_import(&ctx, args),
+        ImageCommand::List => image_list(&ctx),
+        ImageCommand::Rm(args) => image_remove(&ctx, &args.image),
+    }
+}
+
+/// The image store of this host.
+#[cfg(feature = "images")]
+fn image_store(ctx: &Ctx) -> Result<ImageStore, i32> {
+    let host = SandboxHost::from_ctx(ctx).map_err(|error| failure(&error))?;
+    Ok(ImageStore::new(ctx.clone(), host))
+}
+
+/// `image import`: one source becomes one sandbox image.
+#[cfg(feature = "images")]
+fn image_import(ctx: &Ctx, args: ImageImportArgs) -> i32 {
+    let source = match ImageSource::parse(&args.source) {
+        Ok(source) => source,
+        Err(error) => return usage(&error),
+    };
+    let cmd = match parse_cmd(args.cmd.as_deref()) {
+        Ok(cmd) => cmd,
+        Err(code) => return code,
+    };
+    let env = match parse_env(&args.env) {
+        Ok(env) => env,
+        Err(error) => return usage(&error),
+    };
+    let options = ImportOptions {
+        tag: args.tag.clone(),
+        size_mib: args.size_mib.unwrap_or(0),
+        cmd,
+        env,
+        pull: !args.no_pull,
+    };
+    let host = match SandboxHost::from_ctx(ctx) {
+        Ok(host) => host,
+        Err(error) => return failure(&error),
+    };
+    let store = ImageStore::new(ctx.clone(), host.clone());
+    let manager = match local_manager(ctx, None) {
+        Ok(manager) => manager,
+        Err(code) => return code,
+    };
+    // A host without Docker still imports a tar or the Alpine archive.
+    let docker = foundation_deployment_docker::DockerClient::connect_with_defaults()
+        .ok()
+        .map(|client| Arc::new(client) as Arc<dyn DockerApi>);
+    let importer = ImageImporter::new(
+        ctx.clone(),
+        host,
+        store,
+        Arc::clone(&manager) as Arc<dyn SandboxProvider>,
+        docker,
+    );
+    let mut stream = importer.import_with_progress(source, options);
+    let report = block_on_future(async move {
+        while let Some(event) = stream.next().await {
+            match event {
+                ImportEvent::Progress(progress) => {
+                    eprintln!("agent-sandbox: {}", progress_text(&progress));
+                }
+                ImportEvent::Done(result) => return *result,
+            }
+        }
+        Err(SandboxError::StreamLost.into())
+    });
+    match report {
+        Ok(report) => {
+            println!("{}", image_ref_text(&report.image));
+            if !report.dropped_config.is_empty() {
+                eprintln!(
+                    "agent-sandbox: the configuration fields not used: {}",
+                    report.dropped_config.join(", ")
+                );
+            }
+            0
+        }
+        Err(error) => failure(&error),
+    }
+}
+
+/// `image list`: one line for each local image.
+#[cfg(feature = "images")]
+fn image_list(ctx: &Ctx) -> i32 {
+    let store = match image_store(ctx) {
+        Ok(store) => store,
+        Err(code) => return code,
+    };
+    match block_on_future(async move { store.list().await }) {
+        Ok(manifests) => {
+            for manifest in manifests {
+                println!(
+                    "{}\t{}\t{}",
+                    manifest.key,
+                    manifest.arch.as_str(),
+                    manifest.source
+                );
+            }
+            0
+        }
+        Err(error) => failure(&error),
+    }
+}
+
+/// `image rm`: remove one tag or key.
+#[cfg(feature = "images")]
+fn image_remove(ctx: &Ctx, name: &str) -> i32 {
+    let image = if is_image_key(name) {
+        ImageRef::Key(name.to_string())
+    } else {
+        ImageRef::Tag(name.to_string())
+    };
+    let store = match image_store(ctx) {
+        Ok(store) => store,
+        Err(code) => return code,
+    };
+    match block_on_future(async move { store.remove(&image).await }) {
+        Ok(()) => 0,
+        Err(error) => failure(&error),
+    }
+}
+
+/// The text of one import progress value.
+#[cfg(feature = "images")]
+fn progress_text(progress: &ImportProgress) -> String {
+    match progress {
+        ImportProgress::Identifying => "identifying the image source".to_string(),
+        ImportProgress::Pulling => "pulling the Docker image".to_string(),
+        ImportProgress::CacheHit => "the image is already in the store".to_string(),
+        ImportProgress::Filling { bytes } => format!("filling the image: {bytes} bytes"),
+        ImportProgress::Committing => "committing the image".to_string(),
+    }
+}
+
+/// The command-line text of one image reference.
+#[cfg(feature = "images")]
+fn image_ref_text(image: &ImageRef) -> String {
+    match image {
+        ImageRef::Tag(tag) => tag.clone(),
+        ImageRef::Key(key) => key.clone(),
+    }
+}
+
+/// Parses a `--cmd` value: a JSON array of strings.
+#[cfg(feature = "images")]
+fn parse_cmd(value: Option<&str>) -> Result<Option<Vec<String>>, i32> {
+    match value {
+        None => Ok(None),
+        Some(text) => serde_json::from_str::<Vec<String>>(text)
+            .map(Some)
+            .map_err(|error| usage(&format!("--cmd must be a JSON array of strings: {error}"))),
+    }
+}
+
+/// The local image reference of a `--image` value, when this host has it.
+///
+/// A local image is a tag or a 32-character key in the image store. A value
+/// that names no local image stays a Docker container image name, so the
+/// Docker driver of feature 10 keeps working (feature 13, section 6.5).
+#[cfg(feature = "images")]
+fn local_image_reference(ctx: &Ctx, value: &str, local: bool) -> Option<ImageRef> {
+    if !local {
+        return None;
+    }
+    let host = SandboxHost::from_ctx(ctx).ok()?;
+    let store = ImageStore::new(ctx.clone(), host);
+    let reference = if is_image_key(value) {
+        ImageRef::Key(value.to_string())
+    } else {
+        ImageRef::Tag(value.to_string())
+    };
+    store.has(&reference).then_some(reference)
+}
+
+/// A build without the image feature has no local image.
+#[cfg(not(feature = "images"))]
+fn local_image_reference(
+    _ctx: &Ctx,
+    _value: &str,
+    _local: bool,
+) -> Option<crate::shared::spec::ImageRef> {
+    None
+}
+
 /// The `--connect` value, or the environment variable.
 fn resolve_connect(args: &ConnectArgs) -> Option<String> {
     args.connect
@@ -562,13 +820,18 @@ fn local_manager(ctx: &Ctx, order: Option<Vec<DriverId>>) -> Result<Arc<SandboxM
     // The nested driver serves a child sandbox in a parent container
     // (feature 11). It is in every local control plane; the automatic driver
     // choice never picks it, because a child names it.
-    Ok(Arc::new(SandboxManager::with_nested_driver(
+    let manager = SandboxManager::with_nested_driver(
         ctx.clone(),
         drivers,
         host.connector.clone(),
         Arc::new(store),
         crate::shared::control::ManagerConfig::default(),
-    )))
+    );
+    // A local `run --image` needs the image store to resolve the reference
+    // (feature 13, section 6.5).
+    #[cfg(feature = "images")]
+    let manager = manager.with_image_resolver(Arc::new(ImageStore::new(ctx.clone(), host.clone())));
+    Ok(Arc::new(manager))
 }
 
 /// The bearer token: the file first, then the environment variable.
@@ -647,7 +910,12 @@ fn build_spec(ctx: &Ctx, args: &SpecArgs, local: bool) -> Result<SandboxSpec, i3
     let rootfs = if let Some(path) = &args.rootfs {
         rootfs_from_path(path)?
     } else if let Some(image) = &args.image {
-        RootFs::ContainerImage(image.clone())
+        // A local image tag or key wins over a Docker container image name.
+        let reference = local_image_reference(ctx, image, local);
+        match reference {
+            Some(reference) => RootFs::Image(reference),
+            None => RootFs::ContainerImage(image.clone()),
+        }
     } else if local {
         // Only the Firecracker driver ships a default image.
         if matches!(driver, Some(id) if id != DriverId::Firecracker) {

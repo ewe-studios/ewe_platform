@@ -281,12 +281,6 @@ pub trait HostFs: Send + Sync + 'static {
     /// [`SandboxError::Io`] when the file cannot be created.
     fn create_file(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Write + Send>>;
 
-    /// Removes one file. A missing file is not an error.
-    ///
-    /// # Errors
-    /// [`SandboxError::Io`] when the file cannot be removed.
-    fn remove_file(&self, path: &Path) -> SandboxResult<()>;
-
     /// Opens one file for a streamed read.
     ///
     /// The caller reads the body through this handle, so it never holds the

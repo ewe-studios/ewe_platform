@@ -862,6 +862,9 @@ runs = [
     # The Docker driver and the nested driver tests (features 10 and 11): the
     # fake Engine starts no container.
     "docker testing",
+    # The image import (feature 13): the fake Engine starts no container.
+    "images docker testing slave",
+    "images docker testing slave cli",
 ]
 # Lint each feature tree of this phase: a warning in the CLI, the slave, the
 # provider, the Cloudflare part, the libkrun driver or the Docker driver must
@@ -873,7 +876,10 @@ clippy-deny-warnings = true
 # operating system has. macOS and Windows run the contract, control, CLI,
 # provider and Cloudflare tests. The libkrun driver tests run on Linux and macOS.
 # They start no virtual machine: the real-machine tests return with a report when
-# libkrun is absent. Windows keeps the default runs: the driver is Unix only, so
-# its tests do not compile there.
-macos-runs = ["", "testing", "cli testing", "cloudflare testing", "libkrun libkrun-runner testing"]
+# libkrun is absent. The image import tests (spec 77 feature 13) run on Linux and
+# macOS: their end-to-end rows print a reason and return when the host has no KVM,
+# no Firecracker program or no `mkfs.ext4` (issues #994 and #996). Windows keeps
+# the contract, control and CLI runs: the import needs Docker and the image store
+# is Unix only.
+macos-runs = ["", "testing", "cli testing", "cloudflare testing", "libkrun libkrun-runner testing", "images docker testing slave", "images docker testing slave cli"]
 windows-runs = ["", "testing", "cli testing", "cloudflare testing"]

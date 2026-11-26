@@ -6,4 +6,5 @@
 
 mod e2e;
 mod sim;
-mod support;
+/// The fake Engine is shared with the image-import tests of feature 13.
+pub mod support;

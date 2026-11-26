@@ -30,7 +30,7 @@ use foundation_sandbox::shared::driver::{
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::host::{HostConfig, HostFs as _, SandboxHost};
 use foundation_sandbox::shared::ids::{DriverId, SandboxId};
-use foundation_sandbox::shared::limits::ArtifactLimits;
+use foundation_sandbox::shared::limits::{ArtifactLimits, ImageLimits};
 use foundation_sandbox::shared::spec::{HostMount, NetworkMode, RootFs, SandboxSpec};
 
 use super::support::{Call, Failure, FakeContainer, FakeDockerApi, Op};
@@ -77,8 +77,10 @@ fn host_config() -> HostConfig {
         firecracker_path: None,
         krun_runner_path: None,
         libkrun_path: None,
+        mkfs_ext4_path: None,
         driver_order: vec![DriverId::Docker],
         artifact_limits: ArtifactLimits::default(),
+        image_limits: ImageLimits::default(),
     }
 }
 
@@ -609,6 +611,7 @@ fn attach_cases() {
         state: foundation_sandbox::shared::control::SandboxState::Ready,
         created_unix_ms: 0,
         endpoint: None,
+        manifest: None,
     };
 
     // Running with the label: a substrate.

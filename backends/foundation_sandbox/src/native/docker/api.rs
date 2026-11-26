@@ -16,7 +16,7 @@ use std::sync::Arc;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::BoxedSendableDataIterator;
-use foundation_deployment_docker::client::body::{LogStream, ProgressStream};
+use foundation_deployment_docker::client::body::{ByteBody, LogStream, ProgressStream};
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::client::{
     ContainerCreateBody, ContainerHostConfig, DockerClient,
@@ -45,6 +45,12 @@ pub const LABEL_SANDBOX_DRIVER: &str = "ewe.sandbox.driver";
 
 /// The label that marks a container of the container control.
 pub const LABEL_CONTAINER_CONTROL: &str = "ewe.container.control";
+
+/// The label that marks the temporary container of an image import.
+///
+/// Feature 13 creates one container only to export its file tree, and removes
+/// it on every path.
+pub const LABEL_IMPORT: &str = "ewe.sandbox.import";
 
 /// The Docker Engine calls of the driver and the container control.
 ///
@@ -150,6 +156,12 @@ pub trait DockerApi: Send + Sync + 'static {
 
     /// `GET /info`.
     fn system_info(&self) -> BoxFuture<'_, Result<SystemInfo, DockerError>>;
+
+    /// `GET /containers/{id}/export`.
+    ///
+    /// The answer is the container's file tree as a tar stream; the import of
+    /// feature 13 reads it in bounded chunks.
+    fn container_export<'a>(&'a self, id: &'a str) -> BoxFuture<'a, Result<ByteBody, DockerError>>;
 
     /// `GET /_ping`.
     fn system_ping(&self) -> BoxFuture<'_, Result<(), DockerError>>;
@@ -274,6 +286,10 @@ impl DockerApi for DockerClient {
 
     fn system_info(&self) -> BoxFuture<'_, Result<SystemInfo, DockerError>> {
         Box::pin(async move { DockerClient::system_info(self).await })
+    }
+
+    fn container_export<'a>(&'a self, id: &'a str) -> BoxFuture<'a, Result<ByteBody, DockerError>> {
+        Box::pin(async move { DockerClient::container_export(self, id).await })
     }
 
     fn system_ping(&self) -> BoxFuture<'_, Result<(), DockerError>> {
