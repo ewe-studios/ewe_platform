@@ -572,7 +572,8 @@ Features 00 to 05 are on `master` and their tests pass in CI.
 2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, pull request
    #936.
 3. Feature 09 (the libkrun driver): pull request #925, in review.
-4. Feature 18 (the lifetime deadline and the stream bound), after 08.
+4. Feature 18 (the lifetime deadline and the stream bound): on branch
+   `spec77/f18-sandbox-lifetime-and-stream-cost`, from feature 08.
 5. Spec 83 feature 04: pull request #909, in review.
 6. Feature 10 (the Docker driver): on branch `spec77/f10-docker-driver`. The Docker
    Engine 29.8.2 runs on this host.
