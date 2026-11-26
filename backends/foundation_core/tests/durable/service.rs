@@ -114,3 +114,72 @@ fn given_a_page_limit_when_a_read_runs_then_no_page_exceeds_it() {
         assert!(pages >= 3, "the limit forces several pages");
     });
 }
+
+#[test]
+fn given_a_chunk_limit_when_a_json_read_runs_then_no_page_exceeds_it() {
+    smol::block_on(async {
+        use foundation_core::durable::{
+            AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
+            DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
+        };
+        use std::sync::Arc;
+
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let service = DurableService::with_limits(
+            stream,
+            DurableLimits::default().with_page_chunks(2),
+        );
+        let name = StreamName::parse("bounded/chunks").expect("name");
+        service
+            .create(
+                name.clone(),
+                CreateSpec {
+                    content_type: Some(ContentType::parse("application/json").expect("type")),
+                    ..CreateSpec::default()
+                },
+            )
+            .await
+            .expect("create");
+        for value in [r#"{"n":1}"#, r#"{"n":2}"#, r#"{"n":3}"#] {
+            service
+                .append(
+                    &name,
+                    AppendRequest {
+                        chunk: Chunk::new(value.as_bytes().to_vec()),
+                        content_type: None,
+                        stream_seq: None,
+                        producer: None,
+                        close: false,
+                    },
+                )
+                .await
+                .expect("append");
+        }
+
+        let first = service
+            .read(
+                &name,
+                ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                },
+            )
+            .await
+            .expect("read");
+        assert_eq!(first.chunks.len(), 2);
+        assert!(!first.cursor.up_to_date);
+
+        let second = service
+            .read(
+                &name,
+                ReadRequest {
+                    from: ReadFrom::Offset(first.cursor.next.clone()),
+                    limit: ReadLimit::default(),
+                },
+            )
+            .await
+            .expect("read");
+        assert_eq!(second.chunks.len(), 1);
+        assert!(second.cursor.up_to_date);
+    });
+}

@@ -1347,14 +1347,27 @@ impl DurableStreamStore for DurableStream {
             req.limit.max_bytes.unwrap_or(usize::MAX)
         };
         let bytes = self.vfs.read_at(name, &start, limit).await?;
-        let end = start.0.saturating_add(bytes.len() as u64).min(meta.len);
-        let chunks = if is_json {
-            decode_json(&bytes)?
+        let max_chunks = req.limit.max_chunks.unwrap_or(usize::MAX);
+        let (chunks, consumed) = if is_json {
+            let mut messages = decode_json(&bytes)?;
+            if messages.len() > max_chunks {
+                messages.truncate(max_chunks);
+                let consumed = messages
+                    .iter()
+                    .map(|message| message.as_bytes().len() as u64 + 1)
+                    .sum::<u64>();
+                (messages, consumed)
+            } else {
+                let consumed = bytes.len() as u64;
+                (messages, consumed)
+            }
         } else if bytes.is_empty() {
-            Vec::new()
+            (Vec::new(), 0)
         } else {
-            vec![Chunk::new(bytes)]
+            let consumed = bytes.len() as u64;
+            (vec![Chunk::new(bytes)], consumed)
         };
+        let end = start.0.saturating_add(consumed).min(meta.len);
         Ok(ReadPage {
             chunks,
             cursor: ResumeCursor {
