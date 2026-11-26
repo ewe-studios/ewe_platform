@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP-A"
 depends_on: ["05-firecracker-driver"]
-crates: ["foundation_sandbox", "foundation_deployment_platform", "agent_slave"]
+crates: ["foundation_sandbox", "foundation_deployment_platform"]
 ---
 
 # Feature 06: The programs, `SandboxService`, the remote client and the `Provider` facade (MVP-A)
@@ -74,7 +74,7 @@ not decide.
 | `ControlService`, `SandboxRpcClient` | Defined in feature 02; served and connected here. | feature 02 |
 | `ConnectAddr` | Where a remote control plane is. | `cli` |
 | Access token | A shared secret for TCP listeners. | the operator; read by the boundary |
-| `SandboxDeploymentProvider`, `SandboxDeploymentHandle` | The `Provider` adapter and its handle. | `foundation_deployment_platform::providers::sandbox` |
+| `SandboxDeploymentProvider`, `SandboxDeploymentHandle` | The `Provider` adapter and its handle. | `foundation_sandbox::providers` (Cargo feature `provider`; decision D1) |
 | `ProviderId` | The identifier of a provider kind. | `foundation_deployment_platform::providers` |
 
 | Verb | Kind | Trigger | Effect |
@@ -407,8 +407,10 @@ looks for beside `agent-sandbox` when both are installed in one directory.
 
 ### 6.7 The `Provider` facade
 
-`foundation_deployment_platform`, Cargo feature `sandbox`
-(`sandbox = ["dep:foundation_sandbox"]`, in `all-providers`, off by default).
+`foundation_sandbox::providers`, Cargo feature `provider`
+(`provider = ["dep:foundation_deployment_platform"]`, off by default). The `Provider`
+trait itself stays in `foundation_deployment_platform`; only the sandbox facade lives
+here (decision D1, revised 2026-11-25).
 
 ```rust
 /// A running sandbox, as a `Provider` handle.
@@ -515,7 +517,7 @@ When the owner approves issue filing (decision D9):
 | I3, the two token scenarios | `tcp_needs_token`, `tcp_wrong_token`, `tcp_no_token_no_start` | `tests/serve_*.rs` | expected outcome |
 | I4 | `unix_socket_mode`, `unix_stale_socket_removed`, `unix_live_socket_refused`, `unix_path_too_long` | the same | example |
 | token file | `token_file_empty_is_usage_error`, `token_never_logged` (a `traced_test` log has no token text) | the same | expected outcome |
-| I12 | `blocking_only_at_boundaries` (a source scan: `block_on_future` appears only in `providers/sandbox/` and `main` files) | `tests/boundary_scan.rs` | example |
+| I12 | `blocking_only_at_boundaries` (a source scan: `block_on_future` appears only in `providers/` and `main` files) | `tests/boundary_scan.rs` | example |
 | `create` stream dropped by the client | `rpc_create_dropped_cleans_up` (simulation: the driver handle got `kill` and `cleanup`) | `tests/control_rpc_*.rs` | fault |
 | `exec_input` through the service | `rpc_input_duplicate_and_gap` | the same | expected outcome |
 | I5, I6, the two `run` scenarios | `cli_run_exit_code`, `cli_run_signal_exit`, `cli_run_sigint_cleans_up` | `foundation_deployment_platform/tests/agent_sandbox_cli.rs` (real Firecracker; returns with a message when not usable) | expected outcome |
