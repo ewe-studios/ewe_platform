@@ -965,7 +965,17 @@ async fn handle_read(
     let chunks: Vec<serde_json::Value> = result
         .chunks
         .iter()
-        .map(|chunk| serde_json::json!({ "data": String::from_utf8_lossy(&chunk.data) }))
+        .map(|chunk| match std::str::from_utf8(&chunk.data) {
+            // Text data stays readable even on an octet-stream.
+            Ok(text) => serde_json::json!({ "data": text }),
+            Err(_) => {
+                use base64::Engine as _;
+                serde_json::json!({
+                    "data": base64::engine::general_purpose::STANDARD.encode(&chunk.data),
+                    "binary": true,
+                })
+            }
+        })
         .collect();
     serde_json::json!({
         "type": "read",
