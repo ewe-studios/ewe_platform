@@ -262,6 +262,18 @@ fn flatten_headers(headers: SimpleHeaders) -> Vec<(String, String)> {
     flat
 }
 
+/// Why the one alarm stopped a sandbox.
+///
+/// The control plane keeps the last reason so a test can read it. A restart of
+/// the object forgets it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StopReason {
+    /// The idle deadline passed.
+    Idle,
+    /// The lifetime deadline passed. It wins when both deadlines passed.
+    Expired,
+}
+
 /// The shared state of one DO control plane.
 struct Inner {
     ctx: Ctx,
@@ -270,6 +282,7 @@ struct Inner {
     handler: ConnectRpcHandler,
     id: SandboxId,
     restored: AtomicBool,
+    last_stop_reason: std::sync::Mutex<Option<StopReason>>,
 }
 
 /// The control plane of one Durable Object.
@@ -382,6 +395,7 @@ impl DoControlPlane {
                 handler,
                 id,
                 restored: AtomicBool::new(false),
+                last_stop_reason: std::sync::Mutex::new(None),
             }),
         }))
     }
@@ -435,6 +449,9 @@ impl DoControlPlane {
             self.inner.host.config.stream_queue_len,
         )
         .await;
+        // The create writes its record during the call, so its lifetime deadline
+        // is known only after the response started. Arm the one alarm again.
+        self.rearm().await;
         // A stream error after the head means that the sandbox is gone, so the
         // entry of this Durable Object leaves the index (invariant I6).
         let body = remove_index_on_stream_error(
@@ -450,34 +467,83 @@ impl DoControlPlane {
     }
 
     /// The one DO alarm.
+    ///
+    /// The alarm stops the sandbox when either deadline passed. It removes the
+    /// record and the idle alarm with the stop. Otherwise it moves the alarm to
+    /// the earlier future deadline.
     pub async fn on_alarm(&self) {
         self.restore().await;
         let now = created_unix_ms(&self.inner.ctx);
-        let deadline = read_deadline(&*self.inner.host.storage).await;
         let sandboxes = self.inner.manager.list().await.unwrap_or_default();
-        if sandboxes.is_empty() {
+        let Some(info) = sandboxes.first() else {
             if let Err(error) = self.inner.host.alarm.clear().await {
                 tracing::warn!(error = %error, "the idle alarm was not cleared");
             }
             return;
+        };
+        let idle = read_deadline(&*self.inner.host.storage).await;
+        let expires = info.expires_at_unix_ms;
+        let reason = if expires.is_some_and(|expires| now >= expires) {
+            Some(StopReason::Expired)
+        } else if idle.is_some_and(|idle| now >= idle) {
+            Some(StopReason::Idle)
+        } else {
+            None
+        };
+        if let Some(reason) = reason {
+            self.record_stop_reason(reason);
+            tracing::debug!(?reason, id = %self.inner.id, "the alarm stops the sandbox");
+            if let Err(error) = self.inner.manager.stop(self.inner.id.clone()).await {
+                tracing::warn!(error = %error, id = %self.inner.id, "the alarm stop failed");
+            }
+            return;
         }
-        match deadline {
-            Some(deadline) if now >= deadline => {
-                if let Err(error) = self.inner.manager.stop(self.inner.id.clone()).await {
-                    tracing::warn!(error = %error, id = %self.inner.id, "the idle stop failed");
-                }
-            }
-            Some(deadline) => {
-                if let Err(error) = self.inner.host.alarm.set(deadline).await {
-                    tracing::warn!(error = %error, "the idle alarm was not set again");
-                }
-            }
+        let next_idle = match idle {
+            Some(idle) => idle,
             None => {
-                if let Err(error) = self.inner.host.alarm.clear().await {
-                    tracing::warn!(error = %error, "the idle alarm was not cleared");
+                let next = now.saturating_add(millis(self.inner.host.config.idle_timeout));
+                if let Err(error) = self
+                    .inner
+                    .host
+                    .storage
+                    .put(IDLE_DEADLINE_KEY, next.to_string().into_bytes())
+                    .await
+                {
+                    tracing::warn!(error = %error, "the idle deadline was not stored");
                 }
+                next
             }
-        }
+        };
+        arm(&self.inner, Some(next_idle), expires).await;
+    }
+
+    /// The reason of the last stop that the alarm made.
+    ///
+    /// The value is `None` before the first alarm stop. A restart of the object
+    /// forgets it.
+    #[must_use]
+    pub fn last_stop_reason(&self) -> Option<StopReason> {
+        *self
+            .inner
+            .last_stop_reason
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+
+    /// Keeps the reason of the stop that the alarm just made.
+    fn record_stop_reason(&self, reason: StopReason) {
+        *self
+            .inner
+            .last_stop_reason
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(reason);
+    }
+
+    /// Sets the one alarm to the earlier of the two stored deadlines.
+    async fn rearm(&self) {
+        let idle = read_deadline(&*self.inner.host.storage).await;
+        let expires = expires_at(&self.inner).await;
+        arm(&self.inner, idle, expires).await;
     }
 
     /// A guard that keeps the sandbox alive while a response streams.
@@ -552,24 +618,62 @@ async fn read_deadline(storage: &dyn DoStorage) -> Option<u64> {
     String::from_utf8(value).ok()?.parse().ok()
 }
 
-/// Moves the idle deadline and sets the alarm.
+/// The lifetime deadline of the one sandbox, when the record is known.
+async fn expires_at(inner: &Inner) -> Option<u64> {
+    inner
+        .manager
+        .list()
+        .await
+        .ok()
+        .and_then(|sandboxes| sandboxes.first().and_then(|info| info.expires_at_unix_ms))
+}
+
+/// Sets the one alarm to the earlier deadline, or clears it.
+async fn arm(inner: &Inner, idle: Option<u64>, expires: Option<u64>) {
+    match earlier_deadline(idle, expires) {
+        Some(at) => {
+            if let Err(error) = inner.host.alarm.set(at).await {
+                tracing::warn!(error = %error, "the alarm was not set");
+            }
+        }
+        None => {
+            if let Err(error) = inner.host.alarm.clear().await {
+                tracing::warn!(error = %error, "the alarm was not cleared");
+            }
+        }
+    }
+}
+
+/// The earlier of the idle deadline and the lifetime deadline.
+///
+/// The DO has one alarm, so a sandbox with both deadlines uses this value
+/// (invariant I1).
+fn earlier_deadline(idle: Option<u64>, expires: Option<u64>) -> Option<u64> {
+    match (idle, expires) {
+        (Some(idle), Some(expires)) => Some(idle.min(expires)),
+        (Some(deadline), None) | (None, Some(deadline)) => Some(deadline),
+        (None, None) => None,
+    }
+}
+
+/// Moves the idle deadline and sets the alarm to the earlier deadline.
+///
+/// A touch never moves the lifetime deadline (invariant I4).
 async fn touch_inner(inner: &Inner) {
     let now = created_unix_ms(&inner.ctx);
     let timeout = millis(inner.host.config.idle_timeout);
     let next = now.saturating_add(timeout);
     let current = read_deadline(&*inner.host.storage).await;
-    let deadline = current.map_or(next, |current| current.max(next));
+    let idle = current.map_or(next, |current| current.max(next));
     if let Err(error) = inner
         .host
         .storage
-        .put(IDLE_DEADLINE_KEY, deadline.to_string().into_bytes())
+        .put(IDLE_DEADLINE_KEY, idle.to_string().into_bytes())
         .await
     {
         tracing::warn!(error = %error, "the idle deadline was not stored");
     }
-    if let Err(error) = inner.host.alarm.set(deadline).await {
-        tracing::warn!(error = %error, "the idle alarm was not set");
-    }
+    arm(inner, Some(idle), expires_at(inner).await).await;
 }
 
 /// A duration in whole milliseconds, saturating at `u64`.

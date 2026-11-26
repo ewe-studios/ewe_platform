@@ -32,7 +32,7 @@ pub mod testing;
 
 pub use container::{CloudflareContainerControl, DoContainerClient, DoContainerOps};
 pub use container_service::ContainerControlService;
-pub use control::{DoControlPlane, HttpRequestParts, HttpResponseParts, StreamGuard};
+pub use control::{DoControlPlane, HttpRequestParts, HttpResponseParts, StopReason, StreamGuard};
 pub use do_slave::{DoSlaveConnector, ServiceBinding};
 pub use driver::{CloudflareContainerDriver, CloudflareDoDriver};
 pub use model_slave::{
