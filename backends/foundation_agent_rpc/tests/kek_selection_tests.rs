@@ -34,7 +34,7 @@ async fn kek_selection_uses_the_configured_secret_file() {
     let dir = TempDir::new().expect("temp dir");
     let config = write_kek(&dir, "kek", 3);
 
-    let sealer = keys::select_native_kek(Some(&config), &env)
+    let sealer = keys::select_native_kek(Some(&config), &env, ctx.clock())
         .await
         .expect("load");
     assert!(sealer.kek_id().starts_with("secret-file:"));
@@ -48,7 +48,7 @@ async fn kek_selection_refuses_an_environment_variable_without_permission() {
         name: "EWE_TEST_KEK_SELECTION".to_string(),
         allow_environment_variable: false,
     };
-    let Err(error) = keys::select_native_kek(Some(&config), &env).await else {
+    let Err(error) = keys::select_native_kek(Some(&config), &env, ctx.clock()).await else {
         panic!("an environment variable without permission must be refused");
     };
     assert!(format!("{error}").contains("allow_environment_variable"));
@@ -65,7 +65,7 @@ async fn kek_selection_with_no_source_lists_the_options() {
     }
     let ctx = test_ctx();
     let env = ctx.require_env().expect("env");
-    let Err(error) = keys::select_native_kek(None, &env).await else {
+    let Err(error) = keys::select_native_kek(None, &env, ctx.clock()).await else {
         panic!("a host with no KEK source must not start");
     };
     let text = format!("{error}");
@@ -121,7 +121,7 @@ async fn kek_migrate_seals_the_legacy_key_and_removes_the_file() {
 
     // The sealed record opens with the same KEK.
     let env = ctx.require_env().expect("env");
-    let sealer = keys::select_native_kek(Some(&config), &env)
+    let sealer = keys::select_native_kek(Some(&config), &env, ctx.clock())
         .await
         .expect("load");
     let store = Arc::new(FsKeyStore::new(state));
@@ -157,7 +157,7 @@ async fn kek_rotate_moves_the_record_to_the_new_key() {
 
     // The record now opens with the new KEK alone.
     let env = ctx.require_env().expect("env");
-    let sealer = keys::select_native_kek(Some(&new), &env)
+    let sealer = keys::select_native_kek(Some(&new), &env, ctx.clock())
         .await
         .expect("load");
     let store = Arc::new(FsKeyStore::new(state));

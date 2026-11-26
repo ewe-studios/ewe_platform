@@ -18,6 +18,7 @@ pub mod env;
 #[cfg(not(target_family = "wasm"))]
 pub mod fs;
 pub mod kek;
+pub mod kms;
 pub mod material;
 pub mod memory;
 pub mod migrate;
@@ -37,6 +38,11 @@ pub use kek::{
     SystemdCredentialKek,
 };
 pub use kek::{KekSource, KekSourceInfo};
+#[cfg(feature = "testing")]
+pub use kms::FakeKms;
+#[cfg(not(target_family = "wasm"))]
+pub use kms::{build_backend, RemoteKmsKek, VaultTransitBackend};
+pub use kms::{EnvelopeSealer, KmsBackend, KmsConfig, SecretRef};
 pub use material::{KeyMaterial, KeyProtection};
 pub use memory::MemoryKeyStore;
 pub use migrate::{migrate_legacy_keys, MigrationReport};

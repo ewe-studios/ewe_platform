@@ -256,6 +256,12 @@ name = "keystore_tests"
 path = "tests/keystore/mod.rs"
 required-features = ["testing"]
 
+# Spec 83 feature 08: envelope encryption with a remote key management service.
+[[test]]
+name = "kms_tests"
+path = "tests/kms/mod.rs"
+required-features = ["testing"]
+
 # Spec 81 feature 00: the signed-secret, JWT, plaintext and composite providers.
 [[test]]
 name = "client_auth_tests"

@@ -40,7 +40,7 @@ pub const NO_KEK_MESSAGE: &str = "no key encryption key (KEK) is available. Conf
     specifications/83-agent-rpc-serving-system/features/08-key-protection-at-rest/key-protection.md";
 
 /// One KEK source, as the native host configuration names it.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum KekConfig {
     /// A systemd encrypted credential. The default name is
     /// [`DEFAULT_CREDENTIAL_NAME`].
@@ -62,6 +62,8 @@ pub enum KekConfig {
         /// The operator allows an environment variable.
         allow_environment_variable: bool,
     },
+    /// Envelope encryption with a remote key management service.
+    RemoteKms(foundation_auth::keystore::KmsConfig),
 }
 
 impl KekConfig {
@@ -116,7 +118,10 @@ pub fn default_kek_source() -> Result<Box<dyn KekSource>, KeyStoreError> {
 ///
 /// # Errors
 /// [`KeyStoreError::KekUnavailable`] when no source is available.
-pub fn kek_source(config: Option<&KekConfig>) -> Result<Box<dyn KekSource>, KeyStoreError> {
+pub fn kek_source(
+    config: Option<&KekConfig>,
+    clock: std::sync::Arc<dyn foundation_context::Clock>,
+) -> Result<Box<dyn KekSource>, KeyStoreError> {
     match config {
         Some(KekConfig::SystemdCredential { name }) => {
             Ok(Box::new(SystemdCredentialKek::new(name.clone())))
@@ -132,6 +137,9 @@ pub fn kek_source(config: Option<&KekConfig>) -> Result<Box<dyn KekSource>, KeyS
                 *allow_environment_variable,
             ),
         )),
+        Some(KekConfig::RemoteKms(config)) => Ok(Box::new(
+            foundation_auth::keystore::RemoteKmsKek::new(config.clone(), "remote-kms", clock)?,
+        )),
         None => default_kek_source(),
     }
 }
@@ -143,8 +151,9 @@ pub fn kek_source(config: Option<&KekConfig>) -> Result<Box<dyn KekSource>, KeyS
 pub async fn select_native_kek(
     config: Option<&KekConfig>,
     env: &Env,
+    clock: std::sync::Arc<dyn foundation_context::Clock>,
 ) -> Result<Arc<dyn KeySealer>, KeyStoreError> {
-    kek_source(config)?.load(env).await
+    kek_source(config, clock)?.load(env).await
 }
 
 /// The `agent-rpc keys` subcommands.
@@ -246,7 +255,7 @@ pub async fn migrate(
     ctx: &Ctx,
 ) -> Result<KeysReport, KeyStoreError> {
     let env = require_env(ctx)?;
-    let sealer = select_native_kek(config, &env).await?;
+    let sealer = select_native_kek(config, &env, ctx.clock()).await?;
     let (store, material) = material(state_dir, KeyProtection::new(sealer), ctx);
     let report = migrate_legacy_keys(&store, &material).await?;
     Ok(KeysReport::from_migration(report))
@@ -264,10 +273,10 @@ pub async fn rotate(
     ctx: &Ctx,
 ) -> Result<KeysReport, KeyStoreError> {
     let env = require_env(ctx)?;
-    let current = select_native_kek(current, &env).await?;
+    let current = select_native_kek(current, &env, ctx.clock()).await?;
     let mut old = Vec::with_capacity(previous.len());
     for config in previous {
-        old.push(select_native_kek(Some(config), &env).await?);
+        old.push(select_native_kek(Some(config), &env, ctx.clock()).await?);
     }
     let (_store, material) = material(state_dir, KeyProtection::with_previous(current, old), ctx);
     let rotated = material.rotate_kek().await?;
@@ -282,6 +291,9 @@ pub async fn rotate(
 ///
 /// # Errors
 /// [`KeyStoreError::KekUnavailable`] when no source is available.
-pub fn describe(config: Option<&KekConfig>) -> Result<KekSourceInfo, KeyStoreError> {
-    Ok(kek_source(config)?.describe())
+pub fn describe(
+    config: Option<&KekConfig>,
+    clock: std::sync::Arc<dyn foundation_context::Clock>,
+) -> Result<KekSourceInfo, KeyStoreError> {
+    Ok(kek_source(config, clock)?.describe())
 }
