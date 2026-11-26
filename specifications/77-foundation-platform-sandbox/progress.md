@@ -565,6 +565,23 @@ job now allows 90 minutes and caches the musl slave build under a key that names
 operating system and the `agent` profile (`611e7a77c`). No test changed. A cancelled run is
 not a failure (specifications rule 2).
 
+## One combined pull request (2026-11-27)
+
+The owner asked for one pull request instead of twelve. Branch `integration/spec77-spec83`
+merges features 06, 07, 08, 09, 10, 11, 12, 13, 17 and 18 (and the spec 83 branches below)
+into `master`. It is pull request #1009. The twelve earlier pull requests are closed with a
+pointer to it.
+
+The integration resolved the conflicts between the feature branches: one `ProviderId` and one
+`DriverId` union, one `Cargo.toml` per crate with every feature, one `ci/packages.toml` with
+every run, and the later `extract_path` that accepts a full URL. It also found and fixed a
+test that expected the old 404 and a nested-driver timer that used the native module.
+
+Checks on the branch: 302 sandbox tests, the agent-rpc suites (including 17 Cloudflare tests
+and the 4 simulation tests), the deployment and keystore suites, the wasm checks, and the
+lockfile checks. The CI matrix is the proof for the real Firecracker, Docker, Cloudflare and
+image-import paths.
+
 ## In progress
 
 Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for

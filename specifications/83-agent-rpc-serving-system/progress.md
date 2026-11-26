@@ -40,6 +40,11 @@ cooperative event stream in `foundation_ai` (`agentic/turn.rs`), and the harness
 scripted registry until then. The determinism guarantee holds; the registry code is not
 under test.
 
+## One combined pull request (2026-11-27)
+
+Features 04, 05, 06 and 08 are in pull request #1009 together with spec 77. The earlier
+separate pull requests are closed. The branch is `integration/spec77-spec83`.
+
 ## Branches and PRs
 
 - **#124** (`worktree-65-agent-rpc-serving-system`) merged: feature 02 (old 06), feature 00
