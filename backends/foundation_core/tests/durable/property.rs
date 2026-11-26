@@ -97,3 +97,82 @@ proptest! {
         prop_assert_eq!(bytes, chunks.iter().flatten().copied().collect::<Vec<u8>>());
     }
 }
+
+proptest! {
+    #[test]
+    fn fork_reads_the_prefix_at_its_offset(
+        first in prop::collection::vec(any::<u8>(), 1..32),
+        second in prop::collection::vec(any::<u8>(), 1..32),
+        third in prop::collection::vec(any::<u8>(), 1..32),
+    ) {
+        let (fork_bytes, source_bytes) = smol::block_on(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new())),
+            );
+            let source = streams.stream(StreamName::parse("fork/source").expect("name"));
+            source.create(CreateSpec::default()).await.expect("create");
+            let after_first = source
+                .append(AppendRequest::new(Chunk::new(first.clone())))
+                .await
+                .expect("append first")
+                .cursor
+                .next;
+            source
+                .append(AppendRequest::new(Chunk::new(second.clone())))
+                .await
+                .expect("append second");
+
+            let fork = streams.stream(StreamName::parse("fork/child").expect("name"));
+            fork.create(CreateSpec {
+                fork: Some(foundation_core::durable::ForkSpec {
+                    source: StreamName::parse("fork/source").expect("source"),
+                    at: Some(after_first),
+                    sub_offset: 0,
+                }),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("fork");
+
+            // A source append after the fork point is invisible to the fork.
+            source
+                .append(AppendRequest::new(Chunk::new(third.clone())))
+                .await
+                .expect("append third");
+            fork.append(AppendRequest::new(Chunk::new(b"!".to_vec())))
+                .await
+                .expect("fork append");
+
+            let fork_page = fork
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("fork read");
+            let source_page = source
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("source read");
+            let bytes = |page: foundation_core::durable::ReadPage| {
+                page.chunks
+                    .into_iter()
+                    .flat_map(|chunk| chunk.as_bytes().to_vec())
+                    .collect::<Vec<u8>>()
+            };
+            (bytes(fork_page), bytes(source_page))
+        });
+
+        let mut expected_fork = first.clone();
+        expected_fork.push(b'!');
+        prop_assert_eq!(fork_bytes, expected_fork);
+
+        let mut expected_source = first;
+        expected_source.extend_from_slice(&second);
+        expected_source.extend_from_slice(&third);
+        prop_assert_eq!(source_bytes, expected_source);
+    }
+}
