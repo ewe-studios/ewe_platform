@@ -231,3 +231,10 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **SSE still stalls the suite when enabled.** The adapter keeps SSE off. The remaining suspects
   are the event stream's own progress under the blocking executor, and the runner's background
   read pattern. The client gate stays at 208 pass, 0 fail.
+
+## SSE status gap (2026-11-27)
+
+- **The SSE open hides the status.** `send_sse_async` returns only the event stream, so a client
+  cannot answer 404 or 410 and cannot read `stream-sse-data-encoding`. Issue #947 records the
+  fix: return the response head with the stream. The adapter stays on the long-poll path until
+  that lands.
