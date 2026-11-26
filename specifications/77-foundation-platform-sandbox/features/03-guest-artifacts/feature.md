@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["00-contract"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 03: Guest artifacts (kernel, root file systems, initramfs)
@@ -185,6 +185,8 @@ Feature: Guest artifacts
     And GNU cpio unpacks it into the same entries
 ```
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law | Test | Oracle |
 |---|---|---|
 | I1 | `fetch_checks_hash`, `alpine_dir_real`, `ci_rootfs_real` | expected outcome |
@@ -200,7 +202,7 @@ Feature: Guest artifacts
 
 ## 2. Module layout
 
-`backends/foundation_platform_sandbox/src/native/artifacts/`:
+`backends/foundation_sandbox/src/native/artifacts/`:
 
 | File | Content |
 |---|---|
@@ -349,7 +351,7 @@ Firecracker with the squashfs image, which already has correct owners.
 
 ## 5. Tests
 
-`backends/foundation_platform_sandbox/tests/artifacts_*.rs`:
+`backends/foundation_sandbox/tests/artifacts_*.rs`:
 
 | Test | Needs | Proves |
 |---|---|---|
@@ -371,8 +373,8 @@ Firecracker with the squashfs image, which already has correct owners.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --profile uat artifacts
+cargo clippy -p foundation_sandbox --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --profile uat artifacts
 ```
 
 ## 7. Done when

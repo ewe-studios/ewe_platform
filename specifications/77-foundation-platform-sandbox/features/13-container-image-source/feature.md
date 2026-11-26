@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "3"
 depends_on: ["12-sandbox-images", "10-docker-driver"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 13: A Docker image becomes a sandbox image
@@ -292,9 +292,9 @@ agent-sandbox run --image <tag-or-key> [...] [-- <program> ...]     # with no pr
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "images docker testing slave" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "images docker testing slave" --profile uat images_import slave_unpack cli_parse
-cargo test -p foundation_platform_sandbox --features "images docker testing slave" --profile uat e2e_images -- --nocapture
+cargo clippy -p foundation_sandbox --features "images docker testing slave" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat images_import slave_unpack cli_parse
+cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat e2e_images -- --nocapture
 ```
 
 ## 9. Done when

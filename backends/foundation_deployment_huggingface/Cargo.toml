@@ -1,6 +1,6 @@
 [package]
 name = "foundation_deployment_huggingface"
-version = "0.1.5"
+version = "0.1.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -25,7 +25,7 @@ chrono = {workspace = true }
 tracing = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_macros = { workspace = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.16" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
 
 [dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }

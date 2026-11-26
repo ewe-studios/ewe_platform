@@ -35,7 +35,7 @@ created: 2026-11-15
 **Owned crates:** `foundation_auth` for T1 to T5. T6 also touches `foundation_agent_rpc`, and
 only to remove code that moved.
 
-Do not change `foundation_proxy`, `foundation_connectrpc` or `foundation_platform_sandbox`:
+Do not change `foundation_proxy`, `foundation_connectrpc` or `foundation_sandbox`:
 their specifications record the dependency and do their own change.
 
 **Version:** `foundation_auth` moves one minor version. `foundation_agent_rpc` moves one minor

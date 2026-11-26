@@ -51,7 +51,7 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 [workspace.dependencies]
 image = { version = "0.25.10", default-features = false }
 foundation_cloudflare_storage = { path = "backends/foundation_cloudflare_storage", version = "0.1.2" }
-foundation_netio = { path = "backends/foundation_netio", version = "0.0.16", default-features = false }
+foundation_netio = { path = "backends/foundation_netio", version = "0.0.17", default-features = false }
 foundation_core = { path = "backends/foundation_core", version = "0.0.23" }
 rustix = "1.1.4"
 foundation_ui_project = { path = "backends/foundation_ui_project", version = "0.1.0" }
@@ -142,7 +142,7 @@ foundation_vfs = { path = "backends/foundation_vfs", version = "0.0.1" }
 
 # Virtual file system (VFS) implementations. The `vfs` feature builds on wasm
 # too; only `NativeFs` is native. `foundation_db` tests use `MemoryFs`.
-foundation_nativeapis = { path = "backends/foundation_nativeapis", version = "0.0.15", default-features = false, features = ["vfs"] }
+foundation_nativeapis = { path = "backends/foundation_nativeapis", version = "0.0.16", default-features = false, features = ["vfs"] }
 
 # core library dependencies
 serde = { version = "1.0.197", features = ["derive"] }
@@ -151,6 +151,9 @@ rmp = "0.8"
 rmp-serde = "1.3"
 toml = { version = "0.9" }
 toml_edit = { version = "0.22" }
+# Uniform resource locator (URL) parsing. The bootstrap payload of agent-rpc
+# checks that its address is an HTTP or HTTPS URL (spec 83 feature 03).
+url = "2"
 
 # One media type table for the platform (spec 89).
 # `phf` builds a perfect hash map at compile time. It needs no `std`, so the
@@ -196,6 +199,8 @@ thiserror = { version = "2"}
 
 # examples and benchmarks
 criterion = { version = "0.5.1" }
+# Property tests (spec 77 requirement 8); one version for every crate that uses it.
+proptest = { version = "1.12" }
 # 0.73.2 accepts syn 3 (`syn = ">=2, <4"`), but `prettyplease` 0.2 uses syn 2.
 # The default `prettyplease` feature then fails to compile. Drop it; the
 # generated bindings are unformatted, which changes nothing in their meaning.

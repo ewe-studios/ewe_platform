@@ -151,6 +151,28 @@ jobs:
           foundation-ci record-release-tags --state "$RUNNER_TEMP/ewe-tags"
           foundation-ci record-release-tags --product browser --state "$RUNNER_TEMP/browser-tags"
 
+      - name: Publish in dependency order
+        # WHY: `cargo publish` resolves dev-dependencies when it prepares a
+        # package, and release-plz orders crates by their normal dependencies
+        # only. The dev-dependency cycle between foundation_nativeapis and
+        # foundation_db then stalls the publish (issue #468).
+        # WHAT: publish each crate whose version is not on crates.io yet, in an
+        # order that includes dev-dependencies. The step publishes and tags; the
+        # retry step below fills in what is left. A failure is a warning, so the
+        # retry step still runs.
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          GIT_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
+            echo "::warning::CARGO_REGISTRY_TOKEN is not set; skipping the ordered publish"
+            exit 0
+          fi
+          python3 scripts/ci/publish_crates.py --deadline-seconds 17940 \
+            || echo "::warning::publish_crates.py stopped early; release-plz continues with what is left"
+
       - name: Publish what is not on crates.io yet
         shell: bash
         env:
@@ -267,3 +289,27 @@ jobs:
         env:
           GIT_TOKEN: ${{ steps.app.outputs.token || github.token }}
         run: release-plz release-pr
+
+      - name: Sync the excluded workspaces, template pins and nested locks
+        # WHY: release-plz bumps the crate versions, but it does not touch the
+        # path requirements outside the root workspace, the template pins or
+        # the nested lockfiles. Those go stale and fail the release PR's own
+        # Plan and template checks (issue #544).
+        # WHAT: set every path requirement and template pin to the tree
+        # version, then regenerate each nested lockfile, and commit the result
+        # onto the branch release-plz just created or updated.
+        env:
+          GITHUB_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: |
+          set -euo pipefail
+          # release-plz names its branch `release-plz-<UTC timestamp>`, so the
+          # newest name is the branch it just created or updated. `ls-remote`
+          # reads the remote directly: a remote-tracking ref can be missing.
+          branch=$(git ls-remote --heads origin 'refs/heads/release-plz-*' \
+            | awk '{print $2}' | sed 's|refs/heads/||' | sort | tail -1)
+          if [ -z "$branch" ]; then
+            echo "::error::no release-plz branch on origin; the release PR was not created"
+            exit 1
+          fi
+          echo "syncing $branch"
+          python3 scripts/ci/sync_release_tree.py --branch "$branch"

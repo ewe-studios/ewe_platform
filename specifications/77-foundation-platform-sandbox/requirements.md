@@ -1,6 +1,6 @@
 ---
-description: "foundation_platform_sandbox: one core library that starts sandboxes (Firecracker, Cloudflare containers and the Cloudflare Sandbox product, libkrun, Docker containers, the Docker Sandboxes product) and runs commands in them. A control plane (agent-sandbox) drives an in-sandbox slave (agent-slave) over Connect RPC. Binaries, the Cloudflare Durable Object and the Provider implementations are thin boundaries on the library."
-status: "draft"
+description: "foundation_sandbox: one core library that starts sandboxes (Firecracker, Cloudflare containers and the Cloudflare Sandbox product, libkrun, Docker containers, the Docker Sandboxes product) and runs commands in them. A control plane (agent-sandbox) drives an in-sandbox slave (agent-slave) over Connect RPC. Binaries, the Cloudflare Durable Object and the Provider implementations are thin boundaries on the library."
+status: "in-progress"
 priority: "high"
 created: 2026-11-11
 author: "Main Agent"
@@ -31,7 +31,7 @@ features:
   completion_percentage: 0%
 ---
 
-# Spec 77: Sandboxes (`foundation_platform_sandbox`)
+# Spec 77: Sandboxes (`foundation_sandbox`)
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -51,13 +51,13 @@ the owner of the STE standard ASD-STE100.
 | Term | Meaning |
 |---|---|
 | sandbox | An isolated Linux environment that runs commands for a caller. |
-| substrate | The technology that gives the isolation: a Firecracker microVM, a libkrun microVM, a Docker container, a Docker Sandboxes microVM or a Cloudflare container. |
+| substrate | The technology behind one sandbox: a Firecracker microVM, a libkrun microVM, a Docker container, a Docker Sandboxes microVM, a Cloudflare container, or a Cloudflare Durable Object (DO) that serves the slave itself. The last one gives no operating-system isolation (decision D16). |
 | Docker Sandboxes | A Docker product. Its program is `sbx`. Each sandbox is a microVM that Docker manages. It is not a Docker container. |
 | Cloudflare Sandbox | A Cloudflare product: a Durable Object and the container that it starts, with a helper package (`@cloudflare/sandbox`) and a helper program in the image (`sandbox-shim`). |
 | control plane | The code that owns all sandbox set-up: it starts a substrate, waits for the slave, and passes commands to it. The program is `agent-sandbox`. |
 | slave | The code that runs inside each sandbox and does what the control plane asks: start a program, move a file, stop. The program is `agent-slave`. |
 | driver | The control-plane part for one substrate. It knows how to start and stop that substrate. |
-| core | The library code of `foundation_platform_sandbox`. Programs and Workers call it; they add no logic. |
+| core | The library code of `foundation_sandbox`. Programs and Workers call it; they add no logic. |
 | boundary | A thin wrapper that plugs the core into a place where it runs: a `main` function, a DO class, a `Provider` implementation. |
 | `SlaveService` | The RPC interface that the slave serves. |
 | `SandboxService` | The RPC interface that the control plane serves. |
@@ -81,6 +81,7 @@ Each substrate has a different control model:
 | libkrun | Linux with KVM, macOS on Apple silicon | A C library that takes over the calling process. | Its built-in init runs one program. |
 | Docker container | A Docker daemon | The Docker API (`foundation_deployment_docker`). | `exec` in the Docker API. |
 | Cloudflare container | Cloudflare | Only a DO can reach its container, through `fetch` to a port. | A program in the container. |
+| Cloudflare DO (model slave) | Cloudflare | The control plane calls the slave DO directly. | The slave DO: the turn runs against OpenRouter or the Cloudflare Model API. |
 
 This spec gives them one model.
 
@@ -141,6 +142,7 @@ it what that place has.
 | A Linux or macOS host (the general case) | the program `agent-sandbox` | Firecracker (Linux), libkrun, Docker, Docker Sandboxes | HTTP on a UDS (vsock behind it) or TCP |
 | A Docker container on that host (the operator's choice) | the program `agent-sandbox` in the control-plane image, with the host's Docker socket | Docker | TCP, or a UDS in a shared directory |
 | A Cloudflare DO | a `#[durable_object]` class | Cloudflare container | `container.get_tcp_port(port).fetch(..)` |
+| A Cloudflare DO driving a slave DO | a `#[durable_object]` class | Cloudflare DO slave (model API) | a service binding (`stub.fetch(..)`) |
 | Inside a Docker container (nested) | the program `agent-slave` with the control feature | Firecracker | HTTP on a UDS |
 
 The last row is the nested case: a slave in a container holds the same control-plane core
@@ -157,6 +159,7 @@ The owner named six systems. Two of the names are products (owner answer, 2026-1
 |---|---|---|
 | Firecracker | The control plane starts a Firecracker microVM; the slave is PID 1. | 05 |
 | Cloudflare container | The control plane, in a DO, starts its container; the slave is the container's main process. | 07, 08 |
+| Cloudflare DO slave (model API) | The control plane, in a DO, drives a second DO as the slave. That DO runs the turn against OpenRouter or the Cloudflare Model API. No container, no isolation. | 07, 08 |
 | Cloudflare Sandbox (the product) | The same primitive as the row above: a DO and its container. An image made for the product runs under our control plane, and an application of the product can call our control plane. | 17 (on 07, 08) |
 | libkrun | The control plane starts a libkrun microVM; the slave is the program of the libkrun init. | 09 |
 | Docker container | The control plane talks to the Docker Engine of the host and starts containers that hold the slave. The slave is the entry point or a sidecar process. | 10 |
@@ -175,27 +178,27 @@ Where the control plane runs is a different question from which system it drives
 
 | Path | Kind | Content |
 |---|---|---|
-| `backends/foundation_platform_sandbox` | library | **All logic.** |
+| `backends/foundation_sandbox` | library | **All logic.** |
 | `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxProvider`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system, `Platform` and `PlatformKind` (`shared/platform.rs`). |
 | `.../src/shared/cloudflare/` | all targets | Everything of the Cloudflare part that needs no `worker` type: `CloudflareContainerDriver`, `CloudflareContainerControl`, `DoContainerOps`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane` and `CloudflarePlatform`. `ContainerApi`, `DoStorage` and `DoAlarm` are the seams. |
 | `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP, and the wrappers `NativePlatform` and `DockerPlatform`. |
 | `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The three adapters of the traits (feature 07 section 6.3): `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, and `CloudflareHost::from_state`. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
-| `backends/foundation_deployment_platform/src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::sandbox::run`. |
-| `bin/agent_slave/src/main.rs` | program | `main`: build the `Ctx`, call `foundation_platform_sandbox::cli::slave::run`. It is its own package because it must be a static musl program, and `foundation_deployment_platform` does not build for musl today (decisions D4 and D11). |
-| `backends/foundation_deployment_platform/src/providers/sandbox/` | library | `Provider` facades. They call `SandboxManager`. No logic. |
-| `infrastructure/sandbox_worker` | Cloudflare Worker (Rust, wasm) | The `#[durable_object]` class and the Worker entry. They call `foundation_platform_sandbox::cloudflare`. No logic. |
+| `.../src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `cli::sandbox::run`. The control plane is this crate's binary (decision D4). |
+| `.../src/bin/agent_slave.rs` | program | `main`: build the `Ctx`, call `cli::slave::run`. The `slave` feature pulls no TLS library and no Docker client, so the binary builds as a static musl program (decision D11). |
+| `.../src/providers/` | not wasm | `Provider` facades over `SandboxManager`, behind the `provider` feature. They hold no logic. The `Provider` trait itself stays in `foundation_deployment_platform` (decision D1). |
+| `infrastructure/sandbox_worker` | Cloudflare Worker (Rust, wasm) | The `#[durable_object]` class and the Worker entry. They call `foundation_sandbox::cloudflare`. No logic. |
 
 The split `shared` / `native` / `cloudflare` follows `foundation_connectrpc`,
 `foundation_http` and `foundation_auth`. A `wasm/` module is added only when a browser-only
 part exists; this spec has none (the RPC client is in `shared/`).
 
 Docker capability lives in `foundation_deployment_docker` (the existing Docker client).
-`foundation_platform_sandbox` uses it behind the `docker` feature.
+`foundation_sandbox` uses it behind the `docker` feature.
 
 Cloudflare deployment lives in `foundation_deployment_cloudflare` (the existing crate, with
 its generated Cloudflare types and `ewe_deployables::cloudflare`). It is a native library,
-not wasm. `foundation_platform_sandbox` does not use it; a caller of the deployer does
+not wasm. `foundation_sandbox` does not use it; a caller of the deployer does
 (feature 08).
 
 ### 2.5 The two RPC contracts
@@ -319,7 +322,7 @@ a given specific platform expect the specific rust type, as far as they implemen
 can use them where using the trait is more suited".
 
 ```rust
-// foundation_platform_sandbox/src/shared/platform.rs
+// foundation_sandbox/src/shared/platform.rs
 /// What every platform wrapper gives a caller that does not name the part.
 pub trait Platform: Send + Sync + 'static {
     /// The `Ctx` of this run: the clock, the timers, the entropy and the `Env` entry.
@@ -385,7 +388,7 @@ not a trait call:
 | Cloudflare | `CloudflarePlatform` | the `CloudflareContainerControl` | feature 07 |
 
 ```rust
-// foundation_platform_sandbox/src/shared/cloudflare/platform.rs — compiled on every target
+// foundation_sandbox/src/shared/cloudflare/platform.rs — compiled on every target
 pub struct CloudflarePlatform {
     /// The `Ctx` of this run.
     pub ctx: Ctx,
@@ -692,6 +695,12 @@ command, exit code, input, files, isolation, stop). Each driver's `e2e_*.rs` cal
 its own `SandboxProvider`, so every substrate proves the same behaviour, and so does the RPC
 path (law L11).
 
+Property tests use `proptest` 1.12, declared once in the root `[workspace.dependencies]` and
+taken with `proptest = { workspace = true }`. Each test file sets one `ProptestConfig` with a
+fixed seed, so a failure reproduces from the seed that the case prints. A feature names the
+property tests it needs in the `Oracle` column: `identity`, `bound`, `metamorphic` or
+`stateful model`.
+
 A real substrate test calls `probe()` first. When the host cannot run it, the test prints
 the report and returns.
 
@@ -723,19 +732,20 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 
 | # | Decision |
 |---|---|
-| D1 | The `Provider` trait is in `foundation_deployment_platform`. The providers are facades; all logic is in `foundation_platform_sandbox`. |
+| D1 | The `Provider` trait is in `foundation_deployment_platform`, the platform abstraction every deployment uses. The sandbox `Provider` facades are in `foundation_sandbox/src/providers/`, behind the `provider` feature; all logic is in the crate (revised 2026-11-25). |
 | D2 | The control plane is `agent-sandbox`; the in-sandbox part is `agent-slave`. They talk over Connect RPC (`foundation_connectrpc`). |
 | D3 | Everything is a library split into `shared`, `native` and `cloudflare`. Programs, the DO and the Worker are boundaries. |
-| D4 | The program entry points are in `foundation_deployment_platform/src/bin/`. (`agent-sandbox` is. `agent-slave` is not: decision D11.) |
+| D4 | Both program entry points are `src/bin/` of `foundation_sandbox`: `agent_sandbox.rs` and `agent_slave.rs` (revised 2026-11-25). |
 | D5 | The slave uses valtron, not threads. |
 | D6 | MVP order: Firecracker, then Cloudflare. libkrun and Docker follow. |
 | D7 | The slave can start nested microVMs with the same core. |
 | D8 | Image tooling: containers as a source, an own build file, and a registry pull (features 12 to 15). |
 | D9 | The work is a specification on a branch, raised as a PR for review. No GitHub issue is filed yet. |
 | D10 | (2026-11-12) "Docker sandbox" and "Cloudflare sandbox" are the products. Both are supported: Docker Sandboxes with a driver (feature 16), Cloudflare Sandbox on the Cloudflare container driver (feature 17). |
-| D11 | (2026-11-12) `agent-slave` has its own package, `bin/agent_slave`. It must be a static musl program, and `foundation_deployment_platform` does not build for musl today (measured: TLS pulls a C library, and its Docker client is not optional). A later move needs the Docker client and TLS of that crate behind features (an issue in feature 06, section 6.10). |
+| D11 | (2026-11-12, superseded 2026-11-25) `agent-slave` first had its own package, because `foundation_deployment_platform` does not build for musl. It now lives in `foundation_sandbox/src/bin/agent_slave.rs`: the `slave` feature alone pulls no TLS library and no Docker client, so the binary builds for musl. Feature 06 section 6.10 keeps an issue open for the exact dependency set. |
 | D12 | (2026-11-12) The Docker driver talks to the Docker Engine of the host and starts containers that hold the slave. The general case is a control plane on the host. A control plane in a Docker container is the operator's choice; it uses the host's Docker socket. |
 | D13 | (2026-11-12) On Cloudflare the control plane runs `agent-slave` in Cloudflare containers. There is no nested case there. |
+| D16 | (2026-11-25) On Cloudflare the slave may also be another Durable Object (DO). That DO answers `SlaveService` with agent turns against OpenRouter or the Cloudflare Model API, so a model runtime is a sandbox with the same RPC surface. The driver id is `cloudflare-do`. It is **not** an isolation boundary; it shares feature 07 (library) and feature 08 (Worker classes) with the Cloudflare container. |
 | D14 | (2026-11-12) The Docker Sandboxes product is not ready. Feature 16 is a draft and not a must have. It is not scheduled, and no milestone needs it. |
 | D15 | (2026-11-14) Spec 77 owns Cloudflare container control and Cloudflare deployment. `foundation_deployment_cloudflare` is the primary deploy path; the manual `wrangler` adapter is a supported fallback. Both apply one `DeploymentPlan`. Spec 83 feature 06 consumes these surfaces and builds the agent-rpc Worker on them. |
 | D16 | (2026-11-15) The target vocabulary is two levels with the same shape: `SandboxProvider` and `SandboxHandle`, `ContainerControl` and `ContainerHandle` (section 6.0). The old control trait is `SandboxProvider`; the old handle struct is `SandboxHandle`; the old id-policy enum of feature 02 is `SandboxIdPolicy`, because `IdSource` is the spec 84 trait. Feature 06's deployment adapter is `SandboxDeploymentProvider` with the handle `SandboxDeploymentHandle`, so it does not clash with the control. Every outside caller takes a reference to the wrapper of section 6.0 (the concrete type, or `&dyn Platform` when a function serves several parts). `foundation_context` gets no change. |
@@ -745,6 +755,6 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 
 | # | Question | Recommendation |
 |---|---|---|
-| Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | Use `foundation_deployment_docker`. A rename is a separate change. |
+| Q2 | The owner named `foundation_platform_docker`. The existing Docker client crate is `foundation_deployment_docker`. | (2026-11-24) Decided: use `foundation_deployment_docker`. A rename is a separate change. |
 | Q4 | Authentication of `SandboxService`: a bearer token on TCP and on the Worker; file permissions on a UDS. A Worker cannot run its own mTLS: Cloudflare ends TLS. | (2026-11-14) Decided: a signed secret as a bearer credential, or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of spec 86 and spec 87. The secret and the bearer check are spec 86's `Secret` and `extract_bearer_token`. A direct native listener adds mTLS when spec 87 lands; on a Worker the provider is `CfMtlsAuth` of spec 87. |
 | Q5 | The old spec `start.md` files are not in spec 76 or here. | (2026-11-14) Resolved: this spec has a `start.md` at its root and one in each feature directory, as spec 83 does. |

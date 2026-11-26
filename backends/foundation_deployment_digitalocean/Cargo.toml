@@ -22,7 +22,7 @@ version = "0.0.11"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.6"
+version = "0.0.7"
 
 [dependencies.foundation_macros]
 workspace = true
@@ -33,7 +33,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.16"
+version = "0.0.17"
 
 [dependencies.serde]
 workspace = true
@@ -75,7 +75,7 @@ workspace = true
 [package]
 description = "DigitalOcean API v2 client — droplet provisioning and SSH keys"
 name = "foundation_deployment_digitalocean"
-version = "0.1.5"
+version = "0.1.6"
 
 [package.authors]
 workspace = true

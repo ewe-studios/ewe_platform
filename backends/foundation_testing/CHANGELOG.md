@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.8](https://github.com/ewe-studios/ewe_platform/compare/foundation_testing-v0.0.7...foundation_testing-v0.0.8) - 2026-11-24
+
+### Added
+
+- *(netio)* stream wasm response bodies and use the exchange client (spec 85 T1, T2)
+
+### Other
+
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+- spec 89: one compile-time MIME table (draft) ([#656](https://github.com/ewe-studios/ewe_platform/pull/656))
+
 ## [0.0.7](https://github.com/ewe-studios/ewe_platform/compare/foundation_testing-v0.0.6...foundation_testing-v0.0.7) - 2026-11-12
 
 ### Other

@@ -24,6 +24,7 @@ use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::proto::v1::agent_service::AgentServiceClient;
 use foundation_agent_rpc::proto::v1::{ChatRequest, CreateInstanceRequest};
 use foundation_agent_rpc::{AgentRpcServer, ModelHandle};
+use foundation_agent_rpc::{Device, ModelKind};
 use foundation_ai::agentic::testing::{mock_text, zero_usage, MockModelProvider};
 use foundation_ai::errors::GenerationResult;
 use foundation_ai::types::{
@@ -178,6 +179,8 @@ async fn chat_stream_delivers_each_token_before_the_next_is_produced() {
     let gate = Arc::new(Gate::default());
     let model = ModelHandle::from_model(
         "gated",
+        ModelKind::Candle,
+        Device::Cpu,
         GatedModel {
             gate: Arc::clone(&gate),
         },
@@ -247,7 +250,13 @@ async fn chat_stream_round_trips_over_http1() {
     mock.on_any(vec![mock_text("one "), mock_text("two")]);
     let server = AgentRpcServer::builder()
         .with_ctx(foundation_context::Ctx::host())
-        .with_model(ModelHandle::from_router("mock", "mock", mock.into_router()))
+        .with_model(ModelHandle::from_router(
+            "mock",
+            ModelKind::Api,
+            Device::Remote,
+            "mock",
+            mock.into_router(),
+        ))
         .insecure_plaintext()
         .build()
         .expect("server builds")
@@ -302,6 +311,8 @@ async fn the_service_stream_is_unbuffered_in_process() {
         .with_ctx(foundation_context::Ctx::host())
         .with_model(ModelHandle::from_model(
             "gated",
+            ModelKind::Candle,
+            Device::Cpu,
             GatedModel {
                 gate: Arc::clone(&gate),
             },
@@ -349,7 +360,12 @@ async fn chat_stream_on_a_missing_instance_is_not_found() {
     let gate = Arc::new(Gate::default());
     let server = AgentRpcServer::builder()
         .with_ctx(foundation_context::Ctx::host())
-        .with_model(ModelHandle::from_model("gated", GatedModel { gate }))
+        .with_model(ModelHandle::from_model(
+            "gated",
+            ModelKind::Candle,
+            Device::Cpu,
+            GatedModel { gate },
+        ))
         .insecure_plaintext()
         .build()
         .expect("server builds")

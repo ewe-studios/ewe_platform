@@ -62,7 +62,7 @@ The test-side "simulated from the seed" behaviour is met by the default, so
 
 A `clippy.toml` with the five disallowed global calls exists in
 `foundation_core`, `foundation_auth`, `foundation_connectrpc`, `foundation_http`
-and `foundation_ai`. The planned `foundation_platform_sandbox` crate does not
+and `foundation_ai`. The planned `foundation_sandbox` crate does not
 exist yet (spec 77), so it has no file. The `no_global_clock_in_core` test in
 `foundation_core/tests` proves the configuration in the five crates.
 
@@ -100,7 +100,7 @@ runs the same law in one process with a hand-moved clock. The crate version is
   with a comment. `MessageApi::append`, `fresh_message_id` and
   `fresh_record_id` have the same allowance, because they have no `Ctx` and no
   `Env`. Issue #677 has the fix plan.
-- **`foundation_platform_sandbox`.** Spec 84 names this crate in T4, but spec 77
+- **`foundation_sandbox`.** Spec 84 names this crate in T4, but spec 77
   has not created it. No clippy file exists until the crate does.
 - **Wasm test execution.** `cargo test -p foundation_context --target
   wasm32-unknown-unknown` builds the test binary but no wasm runner is
@@ -115,7 +115,7 @@ runs the same law in one process with a hand-moved clock. The crate version is
 ## Next steps
 
 1. Pick up issue #677 for the provider backends and the serde defaults.
-2. When spec 77 creates `foundation_platform_sandbox`, add its `clippy.toml` and
+2. When spec 77 creates `foundation_sandbox`, add its `clippy.toml` and
    add the crate to `no_global_clock_in_core`.
 3. Add a wasm-bindgen test runner to the CI image if the team wants the
    `wasm32-unknown-unknown` test command from section 10 to execute.

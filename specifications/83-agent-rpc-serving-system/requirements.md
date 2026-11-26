@@ -325,7 +325,7 @@ specification:
 - `backends/foundation_connectrpc/` — used; the wasm fetch transport is feature 05.
 - `backends/foundation_deployment_cloudflare/` — used through spec 77 feature 08; no change
   from feature 06.
-- `backends/foundation_platform_sandbox/` — used through spec 77 feature 07; no change from
+- `backends/foundation_sandbox/` — used through spec 77 feature 07; no change from
   feature 06.
 - `backends/foundation_auth/` — used through spec 81.
 - `proto/ewe/agent_rpc/v1/agent.proto` — the wire contract (feature 03).

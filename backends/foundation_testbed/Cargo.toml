@@ -101,7 +101,7 @@ foundation_http = { path = "../foundation_http", version = "0.0.16", optional = 
 # library surface; the default `rpc_multi` is not needed for a server route.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16", optional = true, default-features = false, features = ["rpc"] }
 # The `/connect` route reads a chunked body's `ChunkedData` items.
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", optional = true }
 futures = { version = "0.3", optional = true }
 foundation_browser = { path = "../foundation_browser", version = "0.0.9", optional = true }
 foundation_macros = { workspace = true, optional = true }
@@ -147,7 +147,7 @@ clap = { version = "4", features = ["derive"], optional = true }
 # vms has moved to foundation_deployment_platform (spec-53, Feature 11). This is
 # a NATIVE dependency (VM/container orchestration), enabled by the `vms` feature
 # — it must not live under the wasm32-only target table.
-foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.7", optional = true }
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.8", optional = true }
 
 # The multi-threaded valtron executor is native-only (its `idle_wake` module is
 # `#[cfg(not(target_family = "wasm"))]`). Enable it only for the native testbed;

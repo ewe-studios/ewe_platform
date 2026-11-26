@@ -5,7 +5,7 @@ priority: "high"
 model: "sonnet"
 phase: "MVP"
 depends_on: ["00-contract"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 01: The slave core
@@ -21,7 +21,7 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 
 ## 1. Goal
 
-Write the slave as library code in `foundation_platform_sandbox` (feature `slave`): the
+Write the slave as library code in `foundation_sandbox` (feature `slave`): the
 implementation of `SlaveService`, the engine that starts programs and moves files in the
 guest, the root file system set-up, the PID 1 duties, and the function that serves the
 service on a listener. The program `agent-slave` (feature 06) is a `main` that calls
@@ -620,7 +620,7 @@ has an idle time-out, feature 07).
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/slave_*.rs`, Linux only, as a normal user, with
+`backends/foundation_sandbox/tests/slave_*.rs`, Linux only, as a normal user, with
 the feature `slave`. A test helper starts `slave::run` in a child process (a small test
 program in `tests/support/slave_main.rs`, built as a test binary) on a UDS in a temporary
 directory, and talks to it with the generated `SlaveService` client over
@@ -629,6 +629,8 @@ directory, and talks to it with the generated `SlaveService` client over
 `exec_root`; the command line does not expose it, and a value other than `/` makes
 programs fail to start unless the slave can `chroot`, so the tests use it only for file
 calls.
+
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
 
 | Law or scenario | Test | Oracle |
 |---|---|---|
@@ -661,10 +663,10 @@ calls.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features slave --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features slave --profile uat slave_
-cargo check -p foundation_platform_sandbox --no-default-features --features slave --target x86_64-unknown-linux-musl --profile uat
-cargo check -p foundation_platform_sandbox --no-default-features --features slave --target aarch64-unknown-linux-musl --profile uat
+cargo clippy -p foundation_sandbox --features slave --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features slave --profile uat slave_
+cargo check -p foundation_sandbox --no-default-features --features slave --target x86_64-unknown-linux-musl --profile uat
+cargo check -p foundation_sandbox --no-default-features --features slave --target aarch64-unknown-linux-musl --profile uat
 python3 scripts/ci/check_executor_wake.py
 ```
 

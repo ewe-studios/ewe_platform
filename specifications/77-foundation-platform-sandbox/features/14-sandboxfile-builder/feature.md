@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "3"
 depends_on: ["13-container-image-source"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 14: The `Sandboxfile` builder
@@ -417,6 +417,8 @@ the prefix `[3/7] `. The exit code is 0, or 125 with the error.
 
 ## 7. Tests
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
 | I1 | `parse_never_panics` (property: any byte string that is valid UTF-8) | `tests/sandboxfile_*.rs` | bound |
@@ -441,9 +443,9 @@ the prefix `[3/7] `. The exit code is 0, or 125 with the error.
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "images testing slave" --profile uat sandboxfile_ build_
-cargo test -p foundation_platform_sandbox --features "images testing slave" --profile uat e2e_images -- --nocapture
+cargo clippy -p foundation_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "images testing slave" --profile uat sandboxfile_ build_
+cargo test -p foundation_sandbox --features "images testing slave" --profile uat e2e_images -- --nocapture
 ```
 
 ## 9. Done when

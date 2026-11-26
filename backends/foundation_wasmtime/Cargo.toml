@@ -1,6 +1,6 @@
 [package]
 name = "foundation_wasmtime"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 # The injected `Ctx` bundle comes from foundation_context, whose minimum is the
 # workspace's. Use the same minimum so the manifest tells the truth.

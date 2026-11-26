@@ -7,12 +7,14 @@ use futures_util::lock::Mutex;
 use serde::{Deserialize, Serialize};
 
 use super::client::{
-    SecretUse, TrustError, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
+    ClientKeyRecord, SecretUse, TrustError, TrustFuture, TrustStore, TrustStoreInfo, TrustedClient,
     TrustedClientStream, UseOutcome,
 };
 
 const CLIENT_PREFIX: &str = "trust/v1/client/";
 const CLIENT_ID_PREFIX: &str = "trust/v1/client_id/";
+const CLIENT_KEY_PREFIX: &str = "trust/v1/client_key/";
+const REFRESH_NONCE_PREFIX: &str = "trust/v1/refresh/";
 const USE_PREFIX: &str = "trust/v1/use/";
 const REVOKED_PREFIX: &str = "trust/v1/revoked/";
 
@@ -34,6 +36,12 @@ struct KvUse {
 #[derive(Serialize, Deserialize)]
 struct KvRevoked {
     valid_until: u64,
+}
+
+/// One used refresh nonce.
+#[derive(Serialize, Deserialize)]
+struct KvNonce {
+    seen_at: u64,
 }
 
 /// A trust store over any [`KeyValueStore`].
@@ -75,6 +83,20 @@ impl<K: KeyValueStore + ?Sized + 'static> KvTrustStore<K> {
 
     fn use_key(secret_id: &str) -> String {
         format!("{USE_PREFIX}{secret_id}")
+    }
+
+    fn client_key_key(client_id: &str) -> String {
+        format!("{CLIENT_KEY_PREFIX}{client_id}")
+    }
+
+    fn refresh_nonce_key(client_id: &str, nonce: &[u8]) -> String {
+        let mut message = client_id.as_bytes().to_vec();
+        message.push(0);
+        message.extend_from_slice(nonce);
+        format!(
+            "{REFRESH_NONCE_PREFIX}{}",
+            crate::fingerprint::sha256_hex(&message)
+        )
     }
 
     fn revoked_key(secret_id: &str) -> String {
@@ -205,6 +227,54 @@ impl<K: KeyValueStore + ?Sized + 'static> TrustStore for KvTrustStore<K> {
                 return Err(Self::storage_error(error));
             }
             Ok(())
+        })
+    }
+
+    fn record_client_key<'a>(
+        &'a self,
+        client_id: &'a str,
+        key: &'a ClientKeyRecord,
+    ) -> TrustFuture<'a, ()> {
+        Box::pin(async move {
+            self.storage
+                .set(&Self::client_key_key(client_id), key.clone())
+                .await
+                .map_err(Self::storage_error)?;
+            Ok(())
+        })
+    }
+
+    fn client_key<'a>(&'a self, client_id: &'a str) -> TrustFuture<'a, Option<ClientKeyRecord>> {
+        Box::pin(async move {
+            self.storage
+                .get::<ClientKeyRecord>(&Self::client_key_key(client_id))
+                .await
+                .map_err(Self::storage_error)
+        })
+    }
+
+    fn consume_refresh_nonce<'a>(
+        &'a self,
+        client_id: &'a str,
+        nonce: &'a [u8],
+        at: u64,
+    ) -> TrustFuture<'a, bool> {
+        Box::pin(async move {
+            let _guard = self.lock.lock().await;
+            let key = Self::refresh_nonce_key(client_id, nonce);
+            if self
+                .storage
+                .exists(&key)
+                .await
+                .map_err(Self::storage_error)?
+            {
+                return Ok(false);
+            }
+            self.storage
+                .set(&key, KvNonce { seen_at: at })
+                .await
+                .map_err(Self::storage_error)?;
+            Ok(true)
         })
     }
 
@@ -347,6 +417,29 @@ impl<K: KeyValueStore + ?Sized + 'static> TrustStore for KvTrustStore<K> {
                             .map_err(Self::storage_error)?;
                         removed += 1;
                     }
+                }
+            }
+            let keys = self
+                .storage
+                .list_keys(Some(REFRESH_NONCE_PREFIX))
+                .await
+                .map_err(Self::storage_error)?
+                .collect_all()
+                .await
+                .map_err(Self::storage_error)?;
+            for key in keys {
+                let seen = self
+                    .storage
+                    .get::<KvNonce>(&key)
+                    .await
+                    .map_err(Self::storage_error)?
+                    .map(|record| record.seen_at);
+                if seen.is_some_and(|seen_at| seen_at < cutoff) {
+                    self.storage
+                        .delete(&key)
+                        .await
+                        .map_err(Self::storage_error)?;
+                    removed += 1;
                 }
             }
             Ok(removed)

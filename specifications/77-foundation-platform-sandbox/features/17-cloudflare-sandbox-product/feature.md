@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["08-cloudflare-worker"]
-crates: ["foundation_platform_sandbox", "sandbox_worker"]
+crates: ["foundation_sandbox", "sandbox_worker"]
 ---
 
 # Feature 17: Support for the Cloudflare Sandbox product
@@ -298,7 +298,7 @@ feature 08):
    `EWE_SHIM_SHA256`.
 4. Start `wrangler dev --local -c wrangler.product.toml` and save its PID. Stop it by
    that PID at the end.
-5. Run `cargo test -p foundation_platform_sandbox --features testing --profile uat e2e_cf_product`
+5. Run `cargo test -p foundation_sandbox --features testing --profile uat e2e_cf_product`
    with `EWE_SANDBOX_URL` and the token.
 
 Faults:
@@ -327,7 +327,7 @@ The script runs in the CI workflow of feature 08, as one more step after its own
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
+cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
 infrastructure/sandbox_worker/test/product.sh
 ```
 

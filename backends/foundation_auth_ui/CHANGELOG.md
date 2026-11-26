@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.6](https://github.com/ewe-studios/ewe_platform/compare/foundation_auth_ui-v0.0.5...foundation_auth_ui-v0.0.6) - 2026-11-24
+
+### Other
+
+- updated the following local packages: foundation_signals, foundation_wasm_ui, foundation_ui_components
+
 ## [0.0.5](https://github.com/ewe-studios/ewe_platform/compare/foundation_auth_ui-v0.0.4...foundation_auth_ui-v0.0.5) - 2026-11-12
 
 ### Other

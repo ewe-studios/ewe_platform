@@ -1181,3 +1181,18 @@ A prefix-only proxy exposes root-relative requests that a resource-only browser 
 
 A Compose accessibility label on an Android view wrapper can disappear from the device accessibility tree.
 Set the description on the native drawing surface when its label changes.
+
+### Master integration
+
+Both sides bumped crate versions with separate releases. Take the larger version for each crate. Set every path requirement to that version.
+A branch refactor that deletes a script must carry the master change into its replacement. The branch keeps the ordered publish through `publish_crates.py`.
+A moved directory breaks a script that names the old path. `sync_release_tree.py` now reads the templates under `foundation_ui_project`.
+Git pairs a deleted file with a similar file in the other branch. It applied the master patch of `ci.py` to `tests/planner_reference.py`, which is correct here.
+The mise environment sets the development profile to Cranelift. Cranelift cannot compile the wasmtime inline assembly. Check the workspace with `--profile uat`.
+
+### A re-export disappears with a major dependency
+
+`foundation_proxy` named `sha2::digest::generic_array::GenericArray` to turn a P-256 coordinate into bytes.
+sha2 0.11 does not re-export that type, so the workspace build failed.
+Call `as_slice` on the value instead. This works for either array type.
+The mise environment sets the development profile to Cranelift. Cranelift cannot compile the wasmtime inline assembly.

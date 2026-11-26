@@ -1468,7 +1468,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "argon2",
  "async-trait",
@@ -1508,7 +1508,7 @@ version = "0.0.3"
 
 [[package]]
 name = "foundation_cloudflare_types"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "base85rs",
  "foundation_macros",
@@ -1646,7 +1646,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_iogate"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "foundation_core",
  "foundation_nativeapis",
@@ -1696,7 +1696,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_nativeapis"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -1719,7 +1719,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_netio"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "async-trait",
  "base64",
@@ -1768,7 +1768,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_reactor"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "foundation_context",
  "foundation_core",
@@ -1784,7 +1784,7 @@ version = "0.0.4"
 
 [[package]]
 name = "foundation_vectors"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "cc",

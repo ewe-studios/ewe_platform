@@ -1,0 +1,67 @@
+[package]
+name = "foundation_sandbox"
+version = "0.0.2"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "One core library that starts sandboxes and runs commands in them: the contract (domain types, errors, limits and the two RPC services)"
+keywords = ["sandbox", "firecracker", "cloudflare", "rpc", "foundation"]
+
+[dependencies]
+# The injected side effects (`Ctx`: clock, config, entropy and the `Env` entry).
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+# The valtron stream traits and the executor bridges this crate names in its
+# driver and provider interfaces.
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
+# The monotonic instant and wall-clock types the injected clock returns.
+foundation_compact = { path = "../foundation_compact", version = "0.2.6", default-features = false }
+# The platform error trace (`ErrorTrace`), so `SandboxResult` is one trace.
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
+# The code-first service macro, `Request`/`Response`, `ConnectError` and the
+# context. The renderer's default features are not needed: this crate uses the
+# service surface only, and the native-only `multi` feature must stay off for
+# the wasm32 build.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.16", default-features = false }
+# The `#[service]` macro, re-exported by `foundation_connectrpc`.
+foundation_macros = { path = "../foundation_macros", version = "0.0.25" }
+# `Secret` and `extract_bearer_token` (spec 86). The crate never defines a
+# second secret type. `default-features = false` keeps the database, JWT and
+# signed-secret providers out of this crate.
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
+base64 = "0.22"
+derive_more = { workspace = true }
+futures = "0.3"
+tracing = { workspace = true }
+
+[dev-dependencies]
+# The workspace holds one `proptest` version for every crate (spec 77 rule).
+proptest = { workspace = true }
+# `SimulatedClock` for the deterministic identifier test. The feature is
+# test-only; it adds no code to the library build.
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
+
+[features]
+default = ["control", "firecracker"]
+# The slave engine (feature 01). Native only.
+slave = []
+# `SandboxManager` (feature 02).
+control = []
+# The Firecracker driver (features 04 and 05). Linux only in use.
+firecracker = []
+# The libkrun driver (feature 09).
+libkrun = []
+# The Docker driver (feature 10).
+docker = []
+# The Cloudflare part (feature 07).
+cloudflare = []
+# The command structures (feature 06). Native only.
+cli = []
+# The simulation helpers (feature 02).
+testing = []
+
+[lints]
+workspace = true

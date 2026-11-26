@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["10-docker-driver"]
-crates: ["foundation_platform_sandbox", "agent_slave", "foundation_deployment"]
+crates: ["foundation_sandbox", "agent_slave", "foundation_deployment"]
 ---
 
 # Feature 11: Nested sandboxes (a slave that is also a control plane)
@@ -279,7 +279,7 @@ Fix, in this feature:
    so every current user compiles with no change.
 3. The generator (`foundation_openapi` `UnifiedGenerator`) gets an option for the import
    path of the common types; the Firecracker generated code is made again with
-   `foundation_api_common`. `foundation_platform_sandbox` drops its dependency on
+   `foundation_api_common`. `foundation_sandbox` drops its dependency on
    `foundation_deployment`.
 4. `foundation_netio` in the slave build has TLS off (feature 01, section 6.1); the
    Firecracker API is on a UDS and needs none.
@@ -320,12 +320,12 @@ The `e2e_nested` tests run in the CI job `sandbox-e2e` (it has KVM and Docker).
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "docker firecracker slave testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo clippy -p foundation_sandbox --features "docker firecracker slave testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_api_common -p foundation_deployment -p foundation_deployment_docker --profile uat
-cargo test -p foundation_platform_sandbox --features "docker firecracker slave testing" --profile uat control_sim docker_sim slave_ contract boundary_scan
+cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat control_sim docker_sim slave_ contract boundary_scan
 cargo check -p agent_slave --features control --target x86_64-unknown-linux-musl --profile uat
 mise run sandbox:nested-image
-cargo test -p foundation_platform_sandbox --features "docker firecracker slave testing" --profile uat e2e_nested -- --nocapture
+cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat e2e_nested -- --nocapture
 ```
 
 ## 9. Done when
@@ -333,5 +333,5 @@ cargo test -p foundation_platform_sandbox --features "docker firecracker slave t
 - Each scenario of section 5 and each row of section 7 passes.
 - A child sandbox passes the shared acceptance scenarios.
 - `agent-slave` with the control feature is a static musl program.
-- `foundation_api_common` exists, and `foundation_platform_sandbox` does not depend on
+- `foundation_api_common` exists, and `foundation_sandbox` does not depend on
   `foundation_deployment`.

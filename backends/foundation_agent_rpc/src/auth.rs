@@ -309,10 +309,26 @@ impl EnrollmentService {
         let verified = self.secrets.verify_at(&req.token, now).inspect_err(|e| {
             tracing::warn!(client = %req.client_name, reason = %e.current_context(), "enrollment refused");
         })?;
+        let csr_pem = match &req.credential {
+            Some(crate::proto::v1::__buffa::oneof::enroll_request::Credential::CsrPem(csr)) => {
+                csr.as_str()
+            }
+            Some(crate::proto::v1::__buffa::oneof::enroll_request::Credential::ClientKey(_)) => {
+                return Err(AgentRpcError::Unsupported(
+                    "client keys on the legacy certificate service".to_string(),
+                )
+                .into());
+            }
+            None => {
+                return Err(
+                    AgentRpcError::InvalidArgument("a credential is required".to_string()).into(),
+                );
+            }
+        };
         // Signing first validates the CSR, so a bad CSR does not spend a use.
         let issued = self
             .ca
-            .sign_client_csr(&req.csr_pem, &req.client_name, self.client_cert_lifetime)
+            .sign_client_csr(csr_pem, &req.client_name, self.client_cert_lifetime)
             .map_err(|e| pki_error(&e))?;
         if let Err(error) = self
             .trusted

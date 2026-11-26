@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["06-programs-rpc-provider"]
-crates: ["foundation_platform_sandbox", "sandbox_krun"]
+crates: ["foundation_sandbox", "sandbox_krun"]
 ---
 
 # Feature 09: The libkrun driver
@@ -236,8 +236,8 @@ from `krun_start_enter`.
 ### 3.1 Configuration file
 
 The driver writes `<run_dir>/krun.json`. The type is in
-`foundation_platform_sandbox::shared::krun_config` so that both sides use one definition.
-The runner depends on `foundation_platform_sandbox` with `default-features = false` to get
+`foundation_sandbox::shared::krun_config` so that both sides use one definition.
+The runner depends on `foundation_sandbox` with `default-features = false` to get
 it; that configuration must not pull the drivers.
 
 ```rust
@@ -357,7 +357,7 @@ thread calls `libc::_exit(137)`. On Linux the driver sets `kill_with_parent`, an
 
 ## 4. The driver
 
-File `backends/foundation_platform_sandbox/src/native/libkrun/mod.rs`, behind the feature
+File `backends/foundation_sandbox/src/native/libkrun/mod.rs`, behind the feature
 `libkrun` and `cfg(any(target_os = "linux", target_os = "macos"))`.
 
 ### 4.1 Launch state machine
@@ -475,7 +475,7 @@ section 3.2, prints one JSON line (`{"library": "<path>", "max_vcpus": <n>}` fro
 
 ## 7. Tests
 
-`backends/foundation_platform_sandbox/tests/`. Each scenario of section D is one test.
+`backends/foundation_sandbox/tests/`. Each scenario of section D is one test.
 
 No VM (`libkrun_sim_*.rs`), with the fakes of the `testing` module:
 
@@ -510,12 +510,12 @@ report when `usable` is false. It runs the shared acceptance scenarios
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox -p sandbox_krun --features "libkrun testing" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "libkrun testing" --profile uat libkrun_sim
+cargo clippy -p foundation_sandbox -p sandbox_krun --features "libkrun testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "libkrun testing" --profile uat libkrun_sim
 cargo test -p sandbox_krun --profile uat
 mise run sandbox:slave && mise run sandbox:krun
 EWE_SANDBOX_SLAVE=<slave path> EWE_SANDBOX_KRUN=<runner path> \
-  cargo test -p foundation_platform_sandbox --features "libkrun testing" --profile uat e2e_libkrun -- --nocapture
+  cargo test -p foundation_sandbox --features "libkrun testing" --profile uat e2e_libkrun -- --nocapture
 ```
 
 Run the last command on a Linux host with KVM and on a macOS host with Apple silicon.

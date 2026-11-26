@@ -1,6 +1,6 @@
 [package]
 name = "foundation_deployment_platform"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 rust-version.workspace = true
 license.workspace = true
@@ -17,14 +17,14 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # The injected clock reads `foundation_compact::SystemTime`; the timestamp
 # conversions (`unix_millis`, `unix_seconds`) live here (AGENTS rule 11).
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", features = ["ssl", "multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["ssl", "multi"] }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_macros = { workspace = true }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
 # injection. Linking BoringSSL here clashes with libssh2/OpenSSL (foundation_sshkit).
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.9", optional = true, default-features = false }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.10", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
 foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.8", features = ["docker"] }
@@ -103,8 +103,8 @@ tracing-subscriber = "0.3"
 # `SimulatedClock` for the clock-injection tests. The feature is additive, so
 # the normal dependency above stays as it is.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.9", default-features = false }
-foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.6" }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.10", default-features = false }
+foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.7" }
 
 [[bin]]
 name = "testbed"

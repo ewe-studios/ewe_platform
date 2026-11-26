@@ -735,3 +735,34 @@ The two defects of the client itself are recorded, not hidden:
 - Issue #557 (high): the wasm `HttpClient` reads whole bodies. Spec 85 T1 fixes it.
 - Issue #558 (medium): `WASM_FETCH_CAPABILITIES` says the wasm client cannot stream a request
   body, but it can. Spec 85 T2 corrects the constant.
+
+## 11. Feature 00 implementation findings (2026-11-24)
+
+- A trait object of `StreamIterator` needs the supertrait associated type, so
+  `Box<dyn StreamIterator<D = D, P = P>>` does not compile. `StreamIterator` has a
+  blanket implementation for every `Iterator<Item = Stream<D, P>>`. The boxed form is
+  `Box<dyn Iterator<Item = Stream<D, P>> + Send + 'static>`. Features 02 and 05 use this
+  form.
+- Two `#[service]` traits in one module both emit a `procedure` module. Each service
+  lives in its own module (`rpc/slave.rs` and `rpc/sandbox.rs`), and `rpc/mod.rs`
+  re-exports the names.
+- The service macro writes default method bodies that ignore their parameters. A
+  module-level `#![allow(unused_variables, reason = "...")]` in each service module keeps
+  the `-D warnings` build clean.
+- `std::os::fd::OwnedFd` does not exist on `wasm32-unknown-unknown`. The process type set
+  and the `SandboxHost.processes` field are `#[cfg(unix)]`.
+- `proptest` is one workspace dependency. Each property test file uses one
+  `ProptestConfig` with `RngSeed::Fixed(seed)`, so a failure reproduces from its seed.
+
+## Owner corrections (2026-11-25)
+
+- **One crate for the sandbox work.** The owner moved the programs and the provider facades
+  into `foundation_sandbox`. The earlier decision (D11) kept `agent-slave` in its own
+  `bin/agent_slave` package because `foundation_deployment_platform` does not build for
+  musl. That reason is gone: the `slave` feature of `foundation_sandbox` pulls neither a
+  TLS library nor the Docker client.
+- **A model runtime is a sandbox substrate.** On Cloudflare the slave can be another DO that
+  answers `SlaveService` with turns against `OpenRouter` or the Cloudflare Model API
+  (decision D16). State its limit in every document: it gives no isolation.
+- **A crate rename touches every spec.** 70 files named the old crate. Search the whole
+  tree, including the completed specifications, before the first commit.

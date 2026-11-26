@@ -14,7 +14,7 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 00 — WASM and Workers readiness | 🔧 6/7 (T7 needs Cloudflare credentials) | PR #124 (merged) |
 | 01 — agent RPC model server | ✅ 10/10 + GGUF, landed as #126 | `bfff3326d` on master |
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
-| 03 — agent RPC core | ⏳ 0/4, design complete | — |
+| 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
 | 04 — native host and DST | ⏳ 0/2, design complete | — |
 | 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete | — |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
@@ -127,15 +127,35 @@ The old feature 07 held only task T0: merge master into `65-f01-agent-rpc` and a
 APIs. It is complete; #126 is on master and the branch content equals master except `Cargo.lock`.
 The shared design of the pluggable server is `agent-rpc-architecture.md`.
 
+## Feature 03 — agent RPC core
+
+The transport-agnostic core is in `src/core/`. Branch `spec83/f03-agent-rpc-core`.
+
+| Task | Status | What landed |
+|---|---|---|
+| T13 — new `agent.proto`, selection rules | ✅ | `GetCapabilities`, `RefreshAccess`, model kinds and devices, paging, the `BootstrapPayload` URL form; `ModelRequest::from_wire`, `select`, `InstanceSpec::from_wire`; `core::bootstrap::decode`; the legacy feature-01 host adapted to the new wire fields |
+| T14 — model catalog | ✅ | `ModelCatalog`, `ModelCapabilities`, `ModelHandle` with kind and device, `RemoteCatalog`; the load-once `LocalCatalog` stays with T17 |
+| T15 — instance registry | ✅ | `InstanceRegistry` trait, `Scope`, `ScopePolicy`, `Caller`, `RegistryConfig`, `TurnLimits`, `LocalInstanceRegistry`, `SessionStores`, `guarded_turn` with the idle timeout |
+| T16 — service and enrollment | ✅ | `core::service` handlers over the traits, `GetCapabilities`; `core::enroll` with client keys, CSRs, server proofs and `RefreshAccess` |
+
+The enrollment design assumed client-key primitives that spec 81 did not ship. This
+change adds them to `foundation_auth`: `ClientPublicKey` (`secret`), `ClientKeyRecord`,
+three `TrustStore` methods (`record_client_key`, `client_key`, `consume_refresh_nonce`)
+and the `TrustedClients` wrappers. `foundation_auth` is 0.0.16.
+
+Tests: `model_selection_tests`, `proto_compat_tests`, `model_catalog_tests`,
+`registry_contract_tests`, `handler_tests`, `enroll_tests`. The legacy certificate service
+keeps its typed refusal of `RefreshAccess`; feature 04 replaces that host.
+
 ## Current work and next steps
 
-1. **Feature 03 (agent RPC core)** is next. It needs spec 80 and spec 81 on master.
-2. **Feature 04 (native host and DST)** follows. When it is done, the proof of concept works.
-3. **Feature 05 (Worker host and web client)** follows 03.
-4. **Feature 06 (Cloudflare)** follows 05. Its old T1 and T2 are replaced by feature 05 T19 and
+1. **Feature 04 (native host and DST)** is next. It builds `host::native` (including
+   `LocalCatalog`) on this core. When it is done, the proof of concept works.
+2. **Feature 05 (Worker host and web client)** follows 03.
+3. **Feature 06 (Cloudflare)** follows 05. Its old T1 and T2 are replaced by feature 05 T19 and
    T21; T3 to T6 stay here.
-5. **Feature 08 (key protection)** is last.
-6. **Feature 00 T7** when Cloudflare credentials exist.
+4. **Feature 08 (key protection)** is last.
+5. **Feature 00 T7** when Cloudflare credentials exist.
 
 ## Deliberately not done
 

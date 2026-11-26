@@ -1491,3 +1491,26 @@ The production executable rejected the removed `--data-only` flag. These checks 
 
 The Android drawing surface exposes its label to accessibility services.
 On Android 36, the installed Todo app reported “Mathalley game” on its native surface after the first frame.
+
+### Master integration
+
+The combined branch includes master to `3dfce6c11` (41 commits).
+Git reported 123 conflicts in manifests, lockfiles, the release workflow and one changelog.
+All conflicts are resolved.
+A crate that both sides versioned keeps the larger version. Every path requirement names that version.
+The branch keeps its workspace dependency form and its moved directories.
+The publish job keeps the branch's retry task and runs `publish_crates.py` first, so issue 468 stays fixed.
+`sync_release_tree.py` from master names the template directory under `foundation_ui_project`.
+The new `foundation_sandbox` crate, the agent RPC core and the ordered publisher arrive from master.
+`sync_release_tree.py --check` passes on the merged tree.
+No leftover conflict marker remains.
+
+### Workspace check after the merge
+
+`cargo check --locked --workspace --profile uat` passes.
+The first run found one error outside the merge in `foundation_proxy`.
+The crate named a `digest` re-export that sha2 0.11 removed.
+The JWK builder now calls `as_slice` on each P-256 coordinate.
+All `foundation_proxy` tests pass.
+The 145 Python CI tests pass.
+`publish_crates.py --dry-run` lists the publish order from the merged manifests.

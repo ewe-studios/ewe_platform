@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.15"
+version = "0.0.16"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -57,7 +57,7 @@ smoltcp = { version = "0.12", default-features = false, features = [
 # the `native` module holds. A wasm build has no user of it, so the manifest
 # gates it to avoid an unused-dependency warning on that target.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.4" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.5" }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]

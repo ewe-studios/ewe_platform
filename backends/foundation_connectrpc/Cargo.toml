@@ -20,7 +20,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", fe
 foundation_macros = { workspace = true }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
-foundation_auth = { path = "../foundation_auth", version = "0.0.15", optional = true, default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", optional = true, default-features = false }
 buffa = { version = "0.9.2", features = ["json"] }
 bytes = "1.5"
 futures = "0.3"
@@ -41,7 +41,7 @@ brotli = { version = "8", optional = true }
 # no longer type-checks.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.16" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.16" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
 # The H2 client dials without blocking a valtron worker (feature 127):
 # `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
 socket2 = "0.6"
@@ -50,16 +50,16 @@ socket2 = "0.6"
 foundation_http = { path = "../foundation_http", version = "0.0.16", default-features = false, features = ["wasm"] }
 # The fetch client is optional on wasm: the owned-harness test package turns it
 # off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
-foundation_netio = { path = "../foundation_netio", version = "0.0.16", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
 # The streaming response sink holds a JS `Response` behind a `SendWrapper`.
 web-sys = { workspace = true, features = ["Response"] }
-foundation_auth = { path = "../foundation_auth", version = "0.0.15", optional = true, default-features = false, features = ["wasm"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.16", optional = true, default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 # The shared reactor parks the HTTP/1.1 server's connection driver on socket
 # readiness (`FdReadiness`), replacing the old per-request `poll(2)`/`block_on`.
-foundation_reactor = { path = "../foundation_reactor", version = "0.0.4" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.5" }
 
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a call

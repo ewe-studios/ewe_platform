@@ -152,8 +152,11 @@ linux-only-features = [
 macos-shards = 4
 windows-shards = 4
 # The most minutes one shard job may run: the sum of its packages' timeouts,
-# capped at this value.
-shard-timeout-minutes = 300
+# capped at this value. A hung shard holds the master concurrency group, so it
+# delays every later master run and the release publish (issue #803). Two hours
+# is far above the slowest healthy shard; a shard that needs more is a test
+# defect, not a budget to raise.
+shard-timeout-minutes = 120
 # Most jobs of one matrix that run at once. See the header for the reason.
 max-parallel-linux = 8
 max-parallel-macos = 2
@@ -806,3 +809,9 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does not compile. Remove this opt-out when the issue is fixed."
+
+[packages.foundation_sandbox]
+# The contract compiles on every target. `control` and `firecracker` are the
+# default features; their code lands in features 02 and 05.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features"]

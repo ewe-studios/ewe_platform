@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add an optional native runtime for signals shared between threads.
 - Export SingleThreadedRuntime and preserve the existing Runtime alias.
 
+## [0.0.6](https://github.com/ewe-studios/ewe_platform/compare/foundation_signals-v0.0.5...foundation_signals-v0.0.6) - 2026-11-24
+
+### Other
+
+- spec 84: context injection ([#679](https://github.com/ewe-studios/ewe_platform/pull/679))
+
 ## [0.0.5](https://github.com/ewe-studios/ewe_platform/compare/foundation_signals-v0.0.4...foundation_signals-v0.0.5) - 2026-11-12
 
 ### Other

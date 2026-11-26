@@ -5,7 +5,7 @@ priority: "low"
 model: "sonnet"
 phase: "3"
 depends_on: ["13-container-image-source", "14-sandboxfile-builder"]
-crates: ["foundation_platform_sandbox"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 15: Pull a container image from a registry with no Docker daemon
@@ -337,6 +337,8 @@ Unit and simulation tests use a small in-process HTTP server that plays a regist
 command is in a README there). End-to-end tests use the `registry:2` image through Docker
 on the test machine to host the fixtures; the importer under test uses no Docker.
 
+Property tests (`proptest`, from the workspace dependency list, with a fixed seed in a `ProptestConfig` per test file) are marked in the `Oracle` column as `identity`, `bound`, `metamorphic` or `stateful model`.
+
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
 | reference | `reference_table` (each row of section 6.1 and bad inputs); `reference_roundtrip` (property) | `tests/oci_reference.rs` | example, identity |
@@ -360,9 +362,9 @@ on the test machine to host the fixtures; the importer under test uses no Docker
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_platform_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_platform_sandbox --features "images testing slave" --profile uat oci_ images_import build_sim
-cargo test -p foundation_platform_sandbox --features "images docker testing slave" --profile uat e2e_images -- --nocapture
+cargo clippy -p foundation_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
+cargo test -p foundation_sandbox --features "images testing slave" --profile uat oci_ images_import build_sim
+cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat e2e_images -- --nocapture
 ```
 
 ## 9. Done when
