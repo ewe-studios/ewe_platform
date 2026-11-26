@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use crate::shared::driver::SlaveEndpoint;
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::ids::DriverId;
-use crate::shared::limits::SandboxLimits;
+use crate::shared::limits::{ArtifactLimits, SandboxLimits};
 #[cfg(unix)]
 use crate::shared::BoxFuture;
 
@@ -78,6 +78,8 @@ pub struct HostConfig {
     pub libkrun_path: Option<PathBuf>,
     /// The driver order. The default is Firecracker, libkrun and Docker.
     pub driver_order: Vec<DriverId>,
+    /// The limits of the guest-artifact store (feature 03).
+    pub artifact_limits: ArtifactLimits,
 }
 
 impl Default for HostConfig {
@@ -90,6 +92,7 @@ impl Default for HostConfig {
             krun_runner_path: None,
             libkrun_path: None,
             driver_order: vec![DriverId::Firecracker, DriverId::Libkrun, DriverId::Docker],
+            artifact_limits: ArtifactLimits::default(),
         }
     }
 }
@@ -195,6 +198,22 @@ pub trait HostFs: Send + Sync + 'static {
 
     /// Whether a file or directory exists.
     fn exists(&self, path: &Path) -> bool;
+
+    /// Renames a file or a directory. It replaces a file, and it fails when the
+    /// target is a non-empty directory.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the rename fails.
+    fn rename(&self, from: &Path, to: &Path) -> SandboxResult<()>;
+
+    /// Creates a file for a streamed write. It replaces the file contents.
+    ///
+    /// The caller writes the body in bounded chunks. The returned writer does
+    /// not hold the whole body.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be created.
+    fn create_file(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Write + Send>>;
 }
 
 /// The guest side effects of the slave.

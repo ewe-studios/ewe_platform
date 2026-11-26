@@ -301,6 +301,52 @@ Residual pass on 2026-11-26:
 Open: the lost wake of #866 stays intermittent; it is a wake race in the shared
 HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and every
 typed-error check pass.
+## Feature 03: the guest artifacts (2026-11-25)
+
+Feature 03 is on the branch `spec77/f03-guest-artifacts`, stacked on feature 02
+(`spec77/f02-control-plane-core`, pull request #851) and, through it, on feature 01
+(`spec77/f01-slave-core`, pull request #848) and the crate rename (pull request #824).
+
+`src/native/artifacts/` holds the store:
+
+- `mod.rs`: `ArtifactStore`, `ArtifactSpec`, `ArtifactKind`, `ArtifactProgress`,
+  `ArtifactUpdate`, `ArtifactStream` and the `Job` that both `ensure` and
+  `ensure_with_progress` drive. The cache is `<cache_dir>/<kind>/<hash prefix 16>/` with a
+  `.ready` marker, a `<entry>.tmp-<random>` build and a rename as the commit.
+- `manifest.rs`: the pinned Alpine 3.22.8, Firecracker CI `v1.15` kernel 6.1.155 and
+  Ubuntu 24.04 squashfs entries for both architectures.
+- `fetch.rs`: the streamed download with a SHA-256 check, the status check first, the
+  bounded error body, the download limit and the idle deadline from `ctx`.
+- `tarball.rs`: the streamed unpack with the `..`/absolute check, the symbolic-link
+  defence, the mode copy, the device skip and the byte and entry limits.
+- `cpio.rs`: the deterministic `newc` writer.
+
+`src/native/host.rs` adds `NativeFs`, the real `HostFs`. `HostFs` gains `rename` and
+`create_file`. `HostConfig` gains `artifact_limits` (`ArtifactLimits`), and the `artifacts`
+feature is in the default set. The native `foundation_netio` dependency keeps its base
+features and takes TLS through `foundation_netio?/ssl`, so the musl slave build stays free
+of a C TLS library.
+
+The tests are `tests/artifacts/` in the crate's single test binary, with the fixtures under
+`tests/fixtures/artifacts/`. They cover every row of feature section 7:
+`cpio_golden` (checked one time with `cpio -tv`), `cpio_read_by_gnu_cpio`,
+`cpio_is_deterministic`, `fetch_checks_hash`, `fetch_stops_at_limit`,
+`fetch_reads_bounded_error`, `fetch_streams` (64 MiB with a recording writer),
+`store_is_atomic`, `store_reuses_entry`, `store_concurrent_ensure`, `tar_rejects_escape`,
+`tar_stops_at_limits`, `alpine_dir_real` and `ci_rootfs_real`. Two tests start every test
+binary from one pool (`tests/pool/mod.rs`); the two support modules had started it twice
+and the second start blocked.
+
+The download uses the streamed exchange of `foundation_netio`. Two client defects appeared
+during the work: `send_async` ended a large HTTPS body early (issue #861, the store does not
+use it), and the exchange task pooled a `Connection: close` socket (issue #860, fixed in
+this change). `learnings.md` section 14 has the details.
+
+The real x86_64 Alpine 3.22.8 archive, with its pinned hash, unpacked through the store on
+macOS: `bin/busybox` is a `0755` file and `usr/bin/yes` links to `/bin/busybox`. The two
+real-download tests skipped on this host because the content delivery networks measured 13 to
+17 KiB/s on 2026-11-25; `learnings.md` section 14.9 records the bounded probe. The Linux run
+and a full-link run of the network tests are the pull request's CI job.
 
 ## In progress
 

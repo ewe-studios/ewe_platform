@@ -32,9 +32,6 @@ bytes = "1"
 derive_more = { workspace = true }
 futures = "0.3"
 tracing = { workspace = true }
-# The in-memory transport of the simulation helpers builds a real HTTP request
-# object for the router. It is optional: only the `testing` feature needs it.
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, optional = true }
 
 # The code-first service macro, `Request`/`Response`, `ConnectError` and the
 # context. The renderer's default features are not needed: this crate uses the
@@ -47,6 +44,17 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-f
 # The feature is native only: single-threaded wasm keeps the one-thread executor.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["netio-core"] }
+# The platform HTTP client (`HttpClientBuilder`, `DynNetClient`) of the artifact
+# store, the in-memory transport of the simulation helpers and the client of the
+# slave tests. The base set has no TLS: the static musl slave enables only the
+# `slave` feature, which keeps this dependency below. The `artifacts` feature
+# adds the TLS provider with the weak feature `foundation_netio?/ssl`.
+foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, features = ["standard", "std", "wire-native", "multi"], optional = true }
+# The gzip decoder and the tar reader of the artifact store.
+flate2 = { version = "1", optional = true }
+tar = { version = "0.4", optional = true }
+# The SHA-256 hasher of a streamed download (feature 03).
+sha2 = { version = "0.10", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false }
@@ -75,7 +83,15 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-f
 libc = { version = "0.2", optional = true }
 
 [features]
-default = ["control", "firecracker"]
+default = ["control", "firecracker", "artifacts"]
+# The guest-artifact store (feature 03) and its manifest.
+artifacts = [
+    "dep:foundation_netio",
+    "dep:flate2",
+    "dep:tar",
+    "dep:sha2",
+    "foundation_netio?/ssl",
+]
 # The slave engine (feature 01). Native only.
 slave = [
     "dep:foundation_reactor",

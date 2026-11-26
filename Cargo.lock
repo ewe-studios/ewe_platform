@@ -6800,6 +6800,7 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "derive_more",
+ "flate2",
  "foundation_auth",
  "foundation_compact",
  "foundation_connectrpc",
@@ -6816,6 +6817,8 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
+ "tar",
  "tracing",
 ]
 

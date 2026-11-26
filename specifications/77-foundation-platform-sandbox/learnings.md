@@ -1190,4 +1190,140 @@ queue has room. No sleep and no timing assumption remains. Five runs pass in 0.7
 to 0.84 s each.
 
 
+## 14. Feature 03 implementation findings (2026-11-25)
+
+### 14.1 The pinned values and how each hash was made
+
+One manual session on 2026-11-25 set every value in `native/artifacts/manifest.rs`.
+The code lists no bucket at run time.
+
+| Artifact | Where the value came from |
+|---|---|
+| Alpine 3.22 patch | `https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/<arch>/` listed once by hand. The newest patch is `3.22.8`. |
+| Alpine SHA-256 | The published file `alpine-minirootfs-3.22.8-<arch>.tar.gz.sha256` beside the archive. x86_64: `2d7f46af…96e5`; aarch64: `36091efa…bca4`. |
+| Alpine size | `Content-Length` of `curl -sSIL` (3 647 469 bytes for x86_64, 3 971 704 for aarch64). |
+| Firecracker CI prefix | One S3 list call, paged with the continuation token: `https://s3.amazonaws.com/spec.ccfc.min?list-type=2&prefix=firecracker-ci/v1&delimiter=/`. The newest stable prefix is `v1.15`. |
+| Firecracker files | `firecracker-ci/v1.15/<arch>/vmlinux-6.1.155` and `firecracker-ci/v1.15/<arch>/ubuntu-24.04.squashfs`. |
+| Firecracker SHA-256 | `curl -sS <url> \| shasum -a 256` for each of the four files. |
+| Firecracker size | `Content-Length` of the same URLs (kernel 44 279 576 bytes on x86_64 and 17 111 552 on aarch64; image 107 986 944 and 105 332 736). |
+| File kinds | The kernel starts with `7f 45 4c 46` (ELF) on x86_64; the image starts with `hsqs`. |
+
+The prefix layout in section 2.6 (`<YYYYMMDD>-<hash>/`) is old. The bucket now
+uses one directory for each Firecracker version.
+
+The real x86_64 Alpine 3.22.8 archive (SHA-256 `2d7f46af…96e5`) unpacked through the store on
+2026-11-25 from a local copy: the hash matched the pinned value, `bin/busybox` is a regular
+file with mode `0755`, and `usr/bin/yes` is a symbolic link to `/bin/busybox`. The tree has
+520 entries.
+
+### 14.2 The feature text names a download example that does not match the code
+
+Feature section 3.2 says: "Read how
+`backends/foundation_deployment_platform/src/qemu/download.rs` downloads images, and use the
+same client calls." That file does not use `foundation_netio`. It starts `curl` with
+`std::process::Command`, writes `dest.partial` and renames it. The same section and the
+spec rules say the HTTP client is `foundation_netio`, and root rule 11 forbids
+`std::process::Command` in core logic. The implementation follows the explicit client rule.
+Issue #855 records the stale reference (severity: low).
+
+### 14.3 The real archive must accept two shapes
+
+- **The archive root entry.** The Alpine archive starts with `./`. A `..`-and-absolute
+  check that also rejects the root would fail the real tree with `ArtifactUnsafePath`.
+  `checked_relative` gives `None` for the root entry, and the unpack applies its mode to
+  the target directory.
+- **Absolute symbolic links.** The Alpine minirootfs has 335 symbolic links, and most have
+  the target `/bin/busybox`. An unpack that rejects an absolute link target cannot produce
+  a working tree, and a symbolic link is a path string and not a write. The unpack allows
+  the target, records each created link, and rejects a later entry whose path passes
+  through a link. A `link -> /tmp` entry followed by `link/x` gives
+  `ArtifactUnsafePath`; without that check the second write would follow the link.
+
+### 14.4 The TLS-free slave build stays TLS-free
+
+`foundation_netio` holds the base feature set
+(`standard`, `std`, `wire-native`, `multi`) in the native dependency table, and the
+`artifacts` feature adds the provider through the weak feature `foundation_netio?/ssl`.
+So `cargo build --no-default-features --features slave` for musl still links no C TLS
+library, and the default native build downloads the `https://` URLs.
+
+`HttpClientBuilder::build()` calls `unimplemented!` when the native build lacks the
+`multi` feature. A consumer of the artifact store must keep `multi` on.
+
+### 14.5 The host file system has no mode or remove call
+
+Feature 00 names two `HostFs` additions: `rename` and `create_file`. Tar entries carry a
+mode, and the temporary archive must leave the entry after the unpack. The unpack calls
+`std::fs::set_permissions` (Unix) and `std::fs::remove_file` directly. A fake `HostFs`
+therefore does not see the modes or the archive removal. Issue #854 (severity: low)
+records the missing `HostFs::set_mode` and `HostFs::remove_file`.
+
+### 14.6 The test layout
+
+The feature text names `tests/artifacts_*.rs`. That form would add a second test binary and
+restart the harness for each group. The crate keeps one binary (`tests/mod.rs`), so the
+tests are the module `tests/artifacts/` (`support`, `cpio`, `fetch`, `store`, `tarball`,
+`net`), as in section 12.6. The golden file is
+`tests/fixtures/artifacts/initramfs-golden.newc`; `cpio -tv` listed its five entries one
+time by hand.
+
+### 14.7 The concurrency and the deadline
+
+- Two builders draw two values from `ctx.rng()` and never share a temporary directory. The
+  rename is the commit. A builder whose rename fails finds the `.ready` marker of the
+  winner and returns the winner's path.
+- One idle deadline covers each body read. It comes from `ctx.require_env()?.timer()`, so a
+  stalled body fails on the injected clock and never on real time. A context without an
+  `Env` gives `HostNotConfigured`.
+- The stream of `ensure_with_progress` runs the same `Job` steps as `ensure`. The two
+  functions cannot drift.
+
+### 14.8 The download uses the streamed exchange, not `send_async`
+
+Two defects in `foundation_netio` appeared with the real `https://` URLs (macOS, 2026-11-25).
+
+1. **`send_async` ended a large HTTPS body early.** The head and `Content-Length` were
+   correct, and the body stopped after 16898 bytes of a 65536-byte range
+   (`https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.15/aarch64/vmlinux-6.1.155`
+   with `Range: bytes=0-65535`). A 4096-byte range worked, and the sync `send` read the same
+   URL in full. The same URL through `open_exchange` also read all 65536 bytes, so the
+   defect is the `AsyncSendSafeBody` wake path of `send_async`. The store now uses
+   `open_exchange` and the body arrives as `HttpExchange::BodyChunk` items, driven by
+   `execute(...).into_next_stream()`. Issue #861 records the `send_async` defect (severity:
+   high); the store does not use that path.
+2. **The exchange task pooled a `Connection: close` socket.** The next request on the same
+   client checked out the dead socket, waited for the head until the head deadline and
+   failed with `Timeout occurred, please investigate`. A fresh client succeeded. The fix is
+   in `http_exchange_task.rs` in this change: the body stream remembers whether the head
+   allows another request, and a failed, stalled or unsupported-mode body drops its
+   connection instead of pooling it. `store_is_atomic` and `fetch_checks_hash` cover the
+   second request after a failure. The existing test
+   `test_connection_returned_to_pool_after_exchange` expected a `Connection: close` socket
+   in the pool, so it now uses a keep-alive server; a new test
+   `test_connection_close_is_not_pooled` proves the close case. Issue #860 records it
+   (severity: high). A server that closes an idle keep-alive socket without a header still
+   leaves a dead pooled socket; issue #862 records that remaining limit (severity: medium).
+
+The `execute` call needs the valtron pool. The boundary program starts it; a context without
+a pool gives the text of `execute`'s error in `SandboxError::Io`. The artifact tests start
+the pool once for the whole test binary (`tests/pool/mod.rs`), because `initialize_pool`
+blocks until the previous guard drops and the test binary keeps its guard.
+
+### 14.9 The network tests skip a link that is too slow
+
+On 2026-11-25 this host reached `dl-cdn.alpinelinux.org` and `s3.amazonaws.com` at 13 to
+17 KiB/s. The Firecracker root file system is 105 MiB, so `curl` and the store both needed
+hours. Each network test now asks for a bounded prefix of its own pinned URL (256 KiB for
+Alpine, 1 MiB for the root file system) on a thread with a five-second window. A link that
+cannot deliver the prefix in that window gives the same skip message as a missing link. A CI
+runner passes the probe in well under a second, so the full file and its hash check still
+run there.
+
+### 14.10 One test pool for the whole binary
+
+The control tests and the artifact tests each started the pool in their own support module.
+`initialize_pool` takes a process-wide FIFO gate (the previous `PoolGuard` must drop), and
+both modules `std::mem::forget` their guard. The second start blocked forever, and the
+control tests waited on their serial mutex behind it. `tests/pool/mod.rs` now owns the one
+start, and both support modules call it.
 
