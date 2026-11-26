@@ -19,7 +19,7 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 05 — Worker host and web client | 🔧 T20 and T26 core done; #927, #928 and #929 implemented; T21 waits on #948, T22 on #939 | branch `spec83/f05-worker-host-and-web-client` |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
-| 08 — key protection at rest | 📝 0/6, todo (last) | — |
+| 08 — key protection at rest | 🔧 in progress on branch `spec83/f08-key-protection-at-rest` (tasks K1 to K6) | — |
 
 ## Feature 04 progress (2026-11-27)
 
