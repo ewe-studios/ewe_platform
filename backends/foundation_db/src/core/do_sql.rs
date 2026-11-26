@@ -27,9 +27,6 @@ use std::sync::Arc;
 use async_trait::async_trait;
 
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{
-    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore, SqlRow,
-};
 #[cfg(any(
     feature = "turso",
     feature = "d1",
@@ -37,6 +34,9 @@ use crate::core::storage_provider::{
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use crate::core::storage_provider::RateLimiterStore;
+use crate::core::storage_provider::{
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore, SqlRow,
+};
 
 /// One SQL engine that a [`DoSqlStore`] runs its statements on.
 ///
@@ -63,10 +63,11 @@ pub trait DoSql: Send + Sync + 'static {
 /// The `prefix` names the key-value table (`<prefix>_kv`). The documents and
 /// rate-limit tables keep their standard names, because one DO holds one
 /// session.
+#[derive(Clone)]
 pub struct DoSqlStore {
     sql: Arc<dyn DoSql>,
     prefix: String,
-    schema_ready: AtomicBool,
+    schema_ready: Arc<AtomicBool>,
 }
 
 impl std::fmt::Debug for DoSqlStore {
@@ -84,7 +85,7 @@ impl DoSqlStore {
         Self {
             sql,
             prefix: prefix.to_string(),
-            schema_ready: AtomicBool::new(false),
+            schema_ready: Arc::new(AtomicBool::new(false)),
         }
     }
 

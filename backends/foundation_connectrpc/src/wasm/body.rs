@@ -64,9 +64,7 @@ impl Stream for StreamBody {
                     // A chunk may have arrived while the callback registered.
                     // Poll once more; a second retry parks the task.
                     return match self.bytes.next() {
-                        Some(Ok(Data::Bytes(chunk))) => {
-                            Poll::Ready(Some(Ok(Bytes::from(chunk))))
-                        }
+                        Some(Ok(Data::Bytes(chunk))) => Poll::Ready(Some(Ok(Bytes::from(chunk)))),
                         Some(Ok(Data::Retry)) => Poll::Pending,
                         Some(Err(error)) => {
                             Poll::Ready(Some(Err(io::Error::other(error.to_string()))))

@@ -3,6 +3,8 @@
 //! Feature 04 task T18: a client and a server in one process.
 
 #![cfg(unix)]
+// The in-memory transport is a test fake behind the `testing` feature.
+#![cfg(feature = "testing")]
 
 use std::sync::Arc;
 
