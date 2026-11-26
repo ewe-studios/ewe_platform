@@ -15,7 +15,7 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 01 — agent RPC model server | ✅ 10/10 + GGUF, landed as #126 | `bfff3326d` on master |
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
-| 04 — native host and DST | 🔧 T17 done; T18 partial (SimRuntime, MemNetwork, faulty stores) on branch `spec83/f04-native-host-and-dst` | `6eb49caa2`, `4198c445f`, `cbadec5a5` |
+| 04 — native host and DST | 🔎 T17 and T18 done; pull request #909 open. #908 (foundation_ai without multi) is the last fidelity gap | `50725c70e` and later |
 | 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete; the plan adds rules, tests and verify (2026-11-27) | — |
 | 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
@@ -28,13 +28,14 @@ Task T17 is done on branch `spec83/f04-native-host-and-dst`: the native host mod
 operator keys with no key generation, and the tests `native_{config,e2e,revocation,shutdown}_tests.rs`.
 `foundation_http` `ServerConfig` derives `Clone`.
 
-Task T18 is partial: `foundation_core` `valtron::sim` (`SimRuntime`, 4 tests),
-`foundation_connectrpc` `MemNetwork`/`MemTransport` (1 test) and `foundation_db`
-`FaultyDocumentStore` (2 tests). The agent-rpc DST harness waits on issue #904: the crate
-enables `foundation_core/multi` unconditionally, so `SimRuntime` is compiled out. The design
-answer is a separate package, `foundation_agent_rpc_dst`.
+Task T18 is complete: `foundation_core` `valtron::sim`, `foundation_connectrpc`
+`MemNetwork`/`MemTransport`, `foundation_db` `FaultyDocumentStore`, and the new package
+`foundation_agent_rpc_dst` with `ScriptedCatalog`, `TestWorld` and the 32-seed determinism
+test. The crate `foundation_agent_rpc` gains a `multi` feature, in `default`, so the harness
+gets the single-threaded engine.
 
-Findings: #903 (high, shutdown ends no turn), #904 (high, the multi feature), #905 to #907.
+Issues #903 to #907 are closed by the change. #908 (high) records that `foundation_ai` does
+not build without `multi`; the harness uses a scripted registry until that is fixed.
 
 ## Branches and PRs
 
