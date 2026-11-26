@@ -172,13 +172,21 @@ pub(crate) async fn dispatch_streaming(
 /// The body yields every frame until the deadline. At the deadline it yields
 /// one Connect end-stream error frame with the code `deadline_exceeded` and
 /// then ends. Dropping the body before the deadline ends the stream at once.
+///
+/// A host with no timer in its context gets no limit: the stream stays open
+/// and the log holds one warning. Such a host cannot measure a deadline.
 fn with_stream_deadline(body: BoxByteStream, deadline: Instant, ctx: Ctx) -> BoxByteStream {
     let stream = futures::stream::unfold(
-        (body, ctx, false),
-        move |(mut body, ctx, ended)| async move {
+        (body, ctx, Some(deadline), false),
+        move |(mut body, ctx, deadline, ended)| async move {
             if ended {
                 return None;
             }
+            let Some(deadline) = deadline else {
+                // No timer: pass every frame on, with no limit.
+                let item = body.next().await?;
+                return Some((item, (body, ctx, None, false)));
+            };
             let seen = select(
                 body.next(),
                 Box::pin(wait_for_deadline(deadline, ctx.clone())),
@@ -188,7 +196,7 @@ fn with_stream_deadline(body: BoxByteStream, deadline: Instant, ctx: Ctx) -> Box
                 Either::Left((Some(item), timer)) => {
                     // Drop the timer future before the state moves on.
                     drop(timer);
-                    Some((item, (body, ctx, false)))
+                    Some((item, (body, ctx, Some(deadline), false)))
                 }
                 Either::Left((None, timer)) => {
                     drop(timer);
@@ -198,14 +206,15 @@ fn with_stream_deadline(body: BoxByteStream, deadline: Instant, ctx: Ctx) -> Box
                     // Drop the waiting body read before the body moves on.
                     drop(body_next);
                     if !waited {
-                        // Without a timer the limit cannot run. The helper
-                        // logged it; end the stream with a clean end.
-                        return None;
+                        // The helper logged the missing timer. Keep the stream
+                        // open with no limit.
+                        let item = body.next().await?;
+                        return Some((item, (body, ctx, None, false)));
                     }
                     // Drop the live stream at once, so the slave sees the end
                     // and kills the program. Then yield the error frame.
                     let done: BoxByteStream = Box::pin(futures::stream::empty());
-                    Some((Ok(deadline_end_frame()), (done, ctx, true)))
+                    Some((Ok(deadline_end_frame()), (done, ctx, None, true)))
                 }
             }
         },
