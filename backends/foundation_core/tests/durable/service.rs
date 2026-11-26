@@ -239,3 +239,59 @@ fn given_a_byte_limit_when_a_json_read_runs_then_the_page_respects_it() {
         assert!(!first.cursor.up_to_date);
     });
 }
+
+#[test]
+fn given_a_message_larger_than_the_page_when_it_is_read_then_it_arrives_whole() {
+    smol::block_on(async {
+        use foundation_core::durable::{
+            AppendRequest, Chunk, ContentType, CreateSpec, DurableLimits, DurableService,
+            DurableStream, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName,
+        };
+        use std::sync::Arc;
+
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let service = DurableService::with_limits(
+            stream,
+            DurableLimits::default().with_page_bytes(4),
+        );
+        let name = StreamName::parse("bounded/large-message").expect("name");
+        service
+            .create(
+                name.clone(),
+                CreateSpec {
+                    content_type: Some(ContentType::parse("application/json").expect("type")),
+                    ..CreateSpec::default()
+                },
+            )
+            .await
+            .expect("create");
+        let message = br#"{"text":"a message longer than four bytes"}"#;
+        service
+            .append(
+                &name,
+                AppendRequest {
+                    chunk: Chunk::new(message.to_vec()),
+                    content_type: None,
+                    stream_seq: None,
+                    producer: None,
+                    close: false,
+                },
+            )
+            .await
+            .expect("append");
+
+        let page = service
+            .read(
+                &name,
+                ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                },
+            )
+            .await
+            .expect("read");
+        assert_eq!(page.chunks.len(), 1);
+        assert_eq!(page.chunks[0].as_bytes(), message);
+        assert!(page.cursor.up_to_date);
+    });
+}

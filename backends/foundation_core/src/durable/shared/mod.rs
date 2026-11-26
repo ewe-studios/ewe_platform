@@ -1341,12 +1341,19 @@ impl DurableStreamStore for DurableStream {
             ReadFrom::Tail => VfsOffset(meta.len),
         };
         let is_json = meta.content_type.is_json();
-        let limit = if is_json {
-            usize::MAX
-        } else {
-            req.limit.max_bytes.unwrap_or(usize::MAX)
-        };
-        let bytes = self.vfs.read_at(name, &start, limit).await?;
+        let limit = req.limit.max_bytes.unwrap_or(usize::MAX);
+        let mut bytes = self.vfs.read_at(name, &start, limit).await?;
+        if is_json && limit != usize::MAX {
+            let remaining = meta.len.saturating_sub(start.0);
+            if (bytes.len() as u64) < remaining {
+                // Keep whole messages only. A window with no newline holds one
+                // message larger than the budget, so read the rest of it.
+                match bytes.iter().rposition(|byte| *byte == b'\n') {
+                    Some(position) => bytes.truncate(position + 1),
+                    None => bytes = self.vfs.read_at(name, &start, usize::MAX).await?,
+                }
+            }
+        }
         let max_chunks = req.limit.max_chunks.unwrap_or(usize::MAX);
         let (chunks, consumed) = if is_json {
             let mut messages = decode_json(&bytes)?;
