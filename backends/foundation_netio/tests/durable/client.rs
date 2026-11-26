@@ -558,3 +558,25 @@ fn given_a_closed_stream_at_the_tail_when_a_read_runs_then_it_reports_the_end() 
         assert_eq!(result.next_offset.as_deref(), Some("0000000000000003"));
     });
 }
+
+#[test]
+fn given_an_absolute_deadline_when_create_runs_then_the_header_is_sent() {
+    smol::block_on(async {
+        let transport = MockTransport::with(vec![response(201, &[], b"")]);
+        handle(transport.clone())
+            .create(
+                Some("text/plain"),
+                None,
+                Some("2030-01-01T00:00:00Z"),
+                false,
+                Vec::new(),
+            )
+            .await
+            .expect("create");
+
+        assert!(transport.last_request().headers.contains(&(
+            "stream-expires-at".to_string(),
+            "2030-01-01T00:00:00Z".to_string(),
+        )));
+    });
+}
