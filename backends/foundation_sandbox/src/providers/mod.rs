@@ -55,6 +55,12 @@ impl SandboxDeploymentProvider {
         Self::new(control, DriverId::Firecracker)
     }
 
+    /// A provider that launches Docker container sandboxes.
+    #[must_use]
+    pub fn docker(control: Arc<dyn SandboxProvider>) -> Self {
+        Self::new(control, DriverId::Docker)
+    }
+
     /// A provider that launches sandboxes with `driver`.
     #[must_use]
     pub fn new(control: Arc<dyn SandboxProvider>, driver: DriverId) -> Self {
@@ -72,7 +78,7 @@ impl Provider for SandboxDeploymentProvider {
     }
 
     fn id(&self) -> ProviderId {
-        ProviderId::Firecracker
+        provider_id(self.driver)
     }
 
     fn launch(&self, config: &Self::Config) -> SandboxResult<Self::Handle> {
@@ -82,7 +88,7 @@ impl Provider for SandboxDeploymentProvider {
         let sandbox = block_on_future(async move { control.create(spec).await })?;
         Ok(SandboxDeploymentHandle {
             sandbox,
-            provider_id: ProviderId::Firecracker,
+            provider_id: provider_id(self.driver),
         })
     }
 
@@ -126,6 +132,22 @@ impl Provider for SandboxDeploymentProvider {
                 error.current_context().to_string(),
             )],
         }
+    }
+}
+
+/// The provider identifier of one driver.
+///
+/// The Docker driver has its own identifier: the `ProviderId::Docker` of this
+/// crate is the virtual machine provider, so the Docker branch returned the
+/// wrong identifier (issue #924). A driver without its own identifier keeps the
+/// Firecracker one: the caller reads the driver from the sandbox info.
+fn provider_id(driver: DriverId) -> ProviderId {
+    match driver {
+        DriverId::Docker => ProviderId::DockerSandbox,
+        DriverId::Firecracker
+        | DriverId::Libkrun
+        | DriverId::CloudflareContainer
+        | DriverId::CloudflareDo => ProviderId::Firecracker,
     }
 }
 
