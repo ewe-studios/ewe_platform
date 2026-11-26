@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["06-programs-rpc-provider"]
-crates: ["foundation_sandbox", "sandbox_krun"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 09: The libkrun driver
@@ -106,7 +106,7 @@ Links to other entities: shared as virtio-fs tag "ewe-root", read-only
 
 | # | Invariant |
 |---|---|
-| I1 | The driver never calls a `krun_*` function. Only `bin/sandbox_krun` does. |
+| I1 | The driver never calls a `krun_*` function. Only `src/bin/sandbox_krun.rs` and `src/native/libkrun/ffi.rs` do. |
 | I2 | The driver does not call the slave. It returns `SlaveEndpoint::Unix { path: <run_dir>/slave.sock }`; libkrun makes that socket, and the control plane does the readiness wait. |
 | I3 | The user root is shared read-only. No file in it is made, changed or removed by a sandbox. |
 | I4 | The guest gets no host environment variable: `krun_set_exec` always gets an explicit list. |
@@ -119,7 +119,7 @@ Links to other entities: shared as virtio-fs tag "ewe-root", read-only
 
 ### Must have
 
-- `LibkrunDriver`, `KrunRunnerConfig`, the program `sandbox-krun` with `--probe`.
+- `LibkrunDriver`, `KrunRunnerConfig`, the program `sandbox-krun` (`src/bin/sandbox_krun.rs`) with `--probe`.
 - The entitlement file and the `mise` task that signs the runner on macOS.
 
 ### Must do
@@ -228,7 +228,7 @@ Firecracker: a libkrun host registers `LibkrunDriver` instead of `FirecrackerDri
 driver, so this feature adds no type of its own for injection. The `Ctx` and
 `foundation_context` do not change (requirements section 6.0).
 
-## 3. The runner (`bin/sandbox_krun`)
+## 3. The runner (`src/bin/sandbox_krun.rs`)
 
 A host program. One run is one VM. It reads a JSON file, calls libkrun, and never returns
 from `krun_start_enter`.
@@ -237,8 +237,9 @@ from `krun_start_enter`.
 
 The driver writes `<run_dir>/krun.json`. The type is in
 `foundation_sandbox::shared::krun_config` so that both sides use one definition.
-The runner depends on `foundation_sandbox` with `default-features = false` to get
-it; that configuration must not pull the drivers.
+The runner is a `[[bin]]` of this crate, so it reads the type directly. The bin names
+`required-features = ["libkrun-runner"]`; that feature pulls `libloading` and nothing that a
+guest or a wasm target needs.
 
 ```rust
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -258,9 +259,24 @@ pub struct KrunRunnerConfig {
 }
 ```
 
+The `Cargo.toml` entries:
+
+```toml
+[features]
+# The driver. Native Unix only.
+libkrun = []
+# The runner program: it loads libkrun and becomes the VM.
+libkrun-runner = ["dep:libloading"]
+
+[[bin]]
+name = "sandbox-krun"
+path = "src/bin/sandbox_krun.rs"
+required-features = ["libkrun-runner"]
+```
+
 ### 3.2 FFI
 
-File `bin/sandbox_krun/src/ffi.rs`. It loads the library with `libloading` at run time.
+File `src/native/libkrun/ffi.rs`. It loads the library with `libloading` at run time.
 Library names, tried in order when `libkrun_path` is `None`:
 
 | System | Names |
@@ -348,10 +364,10 @@ thread calls `libc::_exit(137)`. On Linux the driver sets `kill_with_parent`, an
 
 ### 3.6 macOS signing
 
-- Add `bin/sandbox_krun/hvf-entitlements.plist` with the key
+- Add `backends/foundation_sandbox/hvf-entitlements.plist` with the key
   `com.apple.security.hypervisor` set to true.
 - Add a `mise` task `sandbox:krun` that builds the runner and, on macOS, runs
-  `codesign --entitlements bin/sandbox_krun/hvf-entitlements.plist --force -s - <program>`.
+  `codesign --entitlements backends/foundation_sandbox/hvf-entitlements.plist --force -s - <program>`.
 - A runner with no entitlement fails in `krun_start_enter`. The host check (section 5)
   finds this before a start.
 
@@ -490,7 +506,7 @@ No VM (`libkrun_sim_*.rs`), with the fakes of the `testing` module:
 | "The host check names what is missing" | `probe_missing_runner` | expected outcome |
 | I1 | `no_krun_symbols_outside_runner` (a source scan) | example |
 
-The runner (`bin/sandbox_krun/tests/`): `config_parse_error_exit_64`,
+The runner (`tests/libkrun_runner/`): `config_parse_error_exit_64`,
 `probe_without_library_exit_71` (with `--libkrun /nonexistent`).
 
 Real microVM (`e2e_libkrun.rs`). Each test calls `probe()` first and returns with the
@@ -510,9 +526,9 @@ report when `usable` is false. It runs the shared acceptance scenarios
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_sandbox -p sandbox_krun --features "libkrun testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo clippy -p foundation_sandbox --features "libkrun testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_sandbox --features "libkrun testing" --profile uat libkrun_sim
-cargo test -p sandbox_krun --profile uat
+cargo test -p foundation_sandbox --features "libkrun testing" --profile uat libkrun_runner
 mise run sandbox:slave && mise run sandbox:krun
 EWE_SANDBOX_SLAVE=<slave path> EWE_SANDBOX_KRUN=<runner path> \
   cargo test -p foundation_sandbox --features "libkrun testing" --profile uat e2e_libkrun -- --nocapture
@@ -525,7 +541,7 @@ records the date, the host and the libkrun version. The Linux run is added to th
 `sandbox-e2e` with libkrun installed from the distribution package or built from the
 `stable-1.19.x` branch (the job caches the build).
 
-`ci/packages.toml`: `sandbox_krun` builds and runs its tests on Linux and macOS;
+`ci/packages.toml`: the `libkrun` feature of `foundation_sandbox` builds and runs the runner tests on Linux and macOS;
 `windows-tests = "none"` with the reason "libkrun has no stable Windows backend".
 
 ## 9. Done when
@@ -536,4 +552,4 @@ records the date, the host and the libkrun version. The Linux run is added to th
   (`foundation_deployment_platform`), with one test on the simulated manager.
 - `agent-sandbox` has the libkrun driver when it is built with the feature, and
   `agent-sandbox doctor` shows its report.
-- No code outside `bin/sandbox_krun` names a `krun_*` symbol.
+- No code outside `src/bin/sandbox_krun.rs` and `src/native/libkrun/ffi.rs` names a `krun_*` symbol.

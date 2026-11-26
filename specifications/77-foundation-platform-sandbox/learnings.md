@@ -234,7 +234,7 @@ Source: `README.md`, `docs/vm-lifecycle.md`, `docs/workloads.md`, `docs/init.md`
   macOS. Shutdown works on macOS aarch64. These return `FeatureDisabled` on Linux.
 - New: a Windows backend (`src/whp`) is "upcoming".
 - The same concepts that we use exist in 2.0: `FsDevice` with an overlay, `VsockDevice`
-  with `TsiFlags`, port forward to a UDS. A port of `bin/sandbox_krun` is small.
+  with `TsiFlags`, port forward to a UDS. A port of `src/bin/sandbox_krun.rs` is small.
 
 ### 3.7 Security notes
 
