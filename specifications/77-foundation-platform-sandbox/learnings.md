@@ -1720,3 +1720,18 @@ clock itself and never blocks on the future.
 **Rule for the code.** The transport was correct: the 50 ms deadline dropped the pending port
 exchange and returned `DeadlineExceeded`. The defect was in the test, and the fix stayed in the
 test.
+
+## 22. A Durable Object must stream with `dispatch_to` (2026-11-27)
+
+`ConnectRpcHandler::dispatch` collects a streaming response and returns it when the stream
+ends. Its own documentation says that a server must use `dispatch_to` to send frames as they
+are produced. Feature 07 used `dispatch` first. An `Exec` through a Durable Object would then
+arrive only at its end: the stream guard never held, and the idle alarm could stop a sandbox
+while a command ran.
+
+**Rule.** A server writes with `dispatch_to` and a `ResponseSink`. The only use of `dispatch`
+is a test or an in-process caller that needs the whole answer.
+
+The response of the DO handler is `HttpResponseParts`: a status, flat headers and a
+`BoxByteStream`. A Worker maps it to the wasm response and holds the stream for the life of
+the response. The request body is bounded by `max_message_bytes`; the response streams.

@@ -533,7 +533,10 @@ Analytics Engine view and in-isolate coalescing wait for a later feature.
 
 ## In progress
 
-Feature 06 is in pull request #881. Its review and merge are next.
+Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for
+issues #885 to #891 (the streaming handler, the port deadline, the CI feature gate, the
+container service calls, the error cap and the exec id). Both wait on continuous
+integration (CI).
 
 Features 00 to 05 are on `master` and their tests pass in CI.
 
