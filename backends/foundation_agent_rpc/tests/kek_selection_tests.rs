@@ -4,6 +4,7 @@
 use std::io::IsTerminal as _;
 use std::sync::Arc;
 
+use foundation_agent_rpc::cli;
 use foundation_agent_rpc::keys::{self, KekConfig, KeysCommand};
 use foundation_auth::keystore::{FsKeyStore, KeyId, KeyMaterial, KeyProtection, KeyStore};
 use foundation_context::Ctx;
@@ -234,4 +235,83 @@ async fn kek_rotate_by_kid_keeps_the_old_verifying_key() {
         .collect();
     assert!(kids.contains(&old_kid), "the old public key is still there");
     assert!(kids.contains(&current_kid), "the new public key is there");
+}
+
+#[test]
+fn kek_cli_parses_migrate_and_rotate() {
+    let parse = |words: &[&str]| cli::parse(words.iter().map(|word| (*word).to_string()));
+    let parsed = parse(&[
+        "keys",
+        "migrate",
+        "--state-dir",
+        "/tmp/state",
+        "--kek-file",
+        "/tmp/kek",
+    ])
+    .expect("parse migrate");
+    let cli::Command::Keys(args) = parsed;
+    assert_eq!(args.command, KeysCommand::Migrate);
+    assert_eq!(args.state_dir, std::path::PathBuf::from("/tmp/state"));
+    assert_eq!(args.kek_file, Some(std::path::PathBuf::from("/tmp/kek")));
+
+    let parsed = parse(&["keys", "rotate", "--state-dir", "/tmp/state"]).expect("parse rotate");
+    let cli::Command::Keys(args) = parsed;
+    assert_eq!(args.command, KeysCommand::RotateKey);
+
+    let parsed = parse(&[
+        "keys",
+        "rotate-kek",
+        "--state-dir",
+        "/tmp/state",
+        "--kek-file",
+        "/tmp/new",
+        "--previous-kek-file",
+        "/tmp/old",
+    ])
+    .expect("parse rotate-kek");
+    let cli::Command::Keys(args) = parsed;
+    assert_eq!(args.command, KeysCommand::RotateKek);
+    assert_eq!(
+        args.previous_kek_files,
+        vec![std::path::PathBuf::from("/tmp/old")]
+    );
+
+    assert!(parse(&["keys", "wrong"]).is_err());
+    assert!(
+        parse(&["keys", "migrate"]).is_err(),
+        "state-dir is required"
+    );
+    assert!(parse(&["nope"]).is_err());
+}
+
+#[test]
+fn kek_cli_migrate_runs_against_a_legacy_state_directory() {
+    let dir = TempDir::new().expect("temp dir");
+    let state = dir.path();
+    let legacy = state.join("bootstrap-signing-key.pem");
+    std::fs::write(&legacy, LEGACY_SIGNING_KEY).expect("write the legacy key");
+    let kek = state.join("kek");
+    std::fs::write(&kek, [9u8; 32]).expect("write the KEK");
+
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_agent-rpc"))
+        .args([
+            "keys",
+            "migrate",
+            "--state-dir",
+            &state.display().to_string(),
+            "--kek-file",
+            &kek.display().to_string(),
+        ])
+        .output()
+        .expect("run agent-rpc");
+    assert!(
+        output.status.success(),
+        "agent-rpc failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!legacy.exists(), "the clear-text file is removed");
+    assert!(
+        state.join("keys").join("secret-signing.json").exists(),
+        "the sealed record is written"
+    );
 }

@@ -99,6 +99,12 @@ name = "kek_selection_tests"
 path = "tests/kek_selection_tests.rs"
 required-features = ["testing", "multi"]
 
+# The process entry point: `agent-rpc keys migrate|rotate|rotate-kek`.
+[[bin]]
+name = "agent-rpc"
+path = "src/bin/agent-rpc.rs"
+required-features = ["multi"]
+
 [[test]]
 name = "model_share_tests"
 path = "tests/model_share_tests.rs"
