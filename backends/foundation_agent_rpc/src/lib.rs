@@ -36,9 +36,8 @@ pub mod proto;
 pub mod auth;
 #[cfg(feature = "multi")]
 pub mod bootstrap;
-#[cfg(feature = "multi")]
 pub mod client;
-#[cfg(feature = "multi")]
+#[cfg(any(feature = "multi", feature = "worker"))]
 pub mod host;
 #[cfg(feature = "multi")]
 pub mod instance;

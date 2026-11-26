@@ -1,0 +1,34 @@
+name = "cf-agent-rpc"
+main = "build/worker/shim.mjs"
+compatibility_date = "2025-09-01"
+
+[build]
+command = "worker-build --release"
+
+[vars]
+AGENT_RPC_PUBLIC_URL = "https://agents.example.com"
+AGENT_RPC_MODELS = '[{"name":"llama-3.1-8b","provider":"workers-ai","model_id":"@cf/meta/llama-3.1-8b-instruct","api_key_secret":"WORKERS_AI_API_TOKEN"}]'
+AGENT_RPC_SECRET_PUBLIC_KEYS = '[{"kid":"k1","alg":"ed25519","public_key":"<base64url>"}]'
+AGENT_RPC_CORS_ORIGINS = "https://app.example.com"
+
+[[durable_objects.bindings]]
+name = "AGENT_INSTANCES"
+class_name = "AgentInstance"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AgentInstance"]
+
+[[d1_databases]]
+binding = "AGENT_RPC_DB"
+database_name = "agent-rpc"
+database_id = "<id>"
+
+# The history archive of every destroyed instance (owner decision 5).
+[[r2_buckets]]
+binding = "AGENT_RPC_ARCHIVE"
+bucket_name = "agent-rpc-archive"
+
+# Secrets (never in this file):
+#   npx wrangler secret put WORKERS_AI_API_TOKEN
+#   npx wrangler secret put CLOUDFLARE_ACCOUNT_ID

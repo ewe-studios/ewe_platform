@@ -1,6 +1,8 @@
 //! The fault-injecting document store: a failure at one named step.
 //!
-//! Feature 04 task T18.
+//! Feature 04 task T18. The fake is behind the `testing` feature, so the
+//! default test build leaves this file empty.
+#![cfg(feature = "testing")]
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::testing::{FaultStep, FaultyDocumentStore};

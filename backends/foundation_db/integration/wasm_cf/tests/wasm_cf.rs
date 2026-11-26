@@ -323,3 +323,60 @@ async fn d1r2_document_store_round_trip() {
     let content: serde_json::Value = serde_json::from_str(&read[0].content).unwrap();
     assert_eq!(content, serde_json::json!({ "big": big }));
 }
+
+/// #940: the R2 upload streams a 20 MiB body in parts.
+///
+/// The source yields 5 MiB per pull, so the stream is pulled once per part,
+/// never prefetched: the buffer holds at most one part. R2 chooses its own
+/// multipart boundaries from the stream.
+#[wasm_bindgen_test]
+async fn r2_put_blob_stream_uploads_twenty_mib_in_parts() {
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicU32, Ordering};
+    use std::task::Poll;
+
+    use foundation_db::traits::BlobStream;
+
+    const PART: usize = 5 * 1024 * 1024;
+    const PARTS: u32 = 4; // 20 MiB
+
+    let produced = Arc::new(AtomicU32::new(0));
+    let count = Arc::clone(&produced);
+    let chunks: BlobStream = Box::pin(futures_lite::stream::poll_fn(move |_| {
+        let n = count.fetch_add(1, Ordering::SeqCst);
+        if n < PARTS {
+            Poll::Ready(Some(Ok(vec![7u8; PART])))
+        } else {
+            Poll::Ready(None)
+        }
+    }));
+
+    let store = R2WasmStorage::new(r2("BUCKET"), &unique("r2stream"))
+        .with_part_size(PART);
+    store
+        .put_blob_stream("parts", None, chunks)
+        .await
+        .expect("the streamed put");
+
+    assert_eq!(
+        produced.load(Ordering::SeqCst),
+        PARTS + 1,
+        "one pull per part and one for the end; nothing is prefetched"
+    );
+    assert_eq!(
+        store.last_part_count(),
+        PARTS,
+        "one R2 multipart part for each 5 MiB chunk, and nothing buffered ahead"
+    );
+    let body = store
+        .get_blob("parts")
+        .await
+        .expect("read the object")
+        .expect("the object exists");
+    assert_eq!(
+        body.len(),
+        PART * usize::try_from(PARTS).unwrap_or(0),
+        "20 MiB arrives"
+    );
+}

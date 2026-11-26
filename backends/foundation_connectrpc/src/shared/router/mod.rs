@@ -45,8 +45,8 @@ use erased::{
 };
 
 pub use dispatch::{
-    in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, RequestBody,
-    ResponseSink,
+    extract_path, in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer,
+    RequestBody, ResponseSink,
 };
 pub(crate) use erased::ProcedureMeta;
 pub use erased::RequestStream;

@@ -173,3 +173,13 @@ if cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-test
 fi
 echo "✓ both wasm-bindgen runners reject a failing case"
 """
+
+[tasks."test:wasm-bindgen:agent-rpc"]
+alias = "test-wasm-bindgen-agent-rpc"
+description = "foundation_agent_rpc's browser client cases (spec 83 feature 05, T22) in Node, with the pinned wasm-bindgen-test-runner."
+run = """
+mise install github:wasm-bindgen/wasm-bindgen
+CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER="$HOME/.local/share/mise/installs/github-wasm-bindgen-wasm-bindgen/0.2.130/wasm-bindgen-test-runner" \
+cargo test --manifest-path backends/foundation_agent_rpc/integration/wasm/Cargo.toml \
+  --profile uat --target wasm32-unknown-unknown --test wasm
+"""

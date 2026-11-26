@@ -1239,7 +1239,12 @@ fn test_websocket_upgrade() {
     let sec_accept = headers
         .iter()
         .find(|(k, _)| format!("{k}").to_lowercase() == "sec-websocket-accept");
-    assert_eq!(sec_accept.and_then(|(_, values)| values.first()).map(String::as_str), Some("s3pPLMBiTxaQ9kYGzzhZRbK+xOo="));
+    assert_eq!(
+        sec_accept
+            .and_then(|(_, values)| values.first())
+            .map(String::as_str),
+        Some("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
+    );
 
     shutdown.turn_on();
 }

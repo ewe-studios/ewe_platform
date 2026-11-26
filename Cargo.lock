@@ -4934,11 +4934,14 @@ dependencies = [
 name = "foundation_agent_rpc"
 version = "0.0.4"
 dependencies = [
+ "async-trait",
  "base64 0.22.1",
  "buffa",
  "buffa-build",
+ "chrono",
  "derive_more",
  "ed25519-compact",
+ "flate2",
  "foundation_ai",
  "foundation_auth",
  "foundation_compact",
@@ -4951,17 +4954,24 @@ dependencies = [
  "foundation_http",
  "foundation_netio",
  "futures",
+ "futures-lite",
+ "js-sys",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "qrcode",
  "ring",
  "serde",
  "serde_json",
+ "sha2 0.11.1",
  "tempfile",
  "tracing",
  "tracing-subscriber",
  "tracing-test",
  "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "worker",
  "zeroize",
 ]
 
@@ -7002,8 +7012,11 @@ dependencies = [
 name = "foundation_toolings"
 version = "0.0.11"
 dependencies = [
+ "base64 0.22.1",
  "concurrent-queue",
  "derive_more",
+ "flate2",
+ "foundation_auth",
  "foundation_compact",
  "foundation_context",
  "foundation_core",

@@ -54,24 +54,22 @@ const AGENT_PROCEDURES: [&str; 7] = [
     agent_procedure::CHAT_STREAM,
 ];
 
-/// The operator key material of a secure host.
-pub(crate) struct MtlsKeys {
-    /// The bootstrap signing key.
-    pub(crate) signing: foundation_auth::secret::SigningKey,
-    /// The certificate authority.
-    pub(crate) ca: Arc<foundation_auth::pki::CertificateAuthority>,
-    /// The server certificate.
-    pub(crate) identity: foundation_auth::pki::ServerIdentity,
-    /// The trusted clients.
-    pub(crate) trust: Arc<foundation_auth::trust::TrustedClients>,
-}
-
 /// The operator key material of a secure host, or the development mode.
 pub(crate) enum HostKeys {
     /// No TLS and no auth.
     Insecure,
     /// Mutual TLS (mTLS), with enrollment.
-    Mtls(Box<MtlsKeys>),
+    Mtls {
+        /// The bootstrap signing key. Boxed: the variant is much larger than
+        /// `Insecure`, and the key is built once.
+        signing: Box<foundation_auth::secret::SigningKey>,
+        /// The certificate authority.
+        ca: Arc<foundation_auth::pki::CertificateAuthority>,
+        /// The server certificate.
+        identity: foundation_auth::pki::ServerIdentity,
+        /// The trusted clients.
+        trust: Arc<foundation_auth::trust::TrustedClients>,
+    },
 }
 
 /// Bind the listeners, build the authentication parts and serve.
@@ -83,9 +81,7 @@ pub(crate) enum HostKeys {
 /// [`AgentRpcError::Transport`] when an address cannot be bound;
 /// [`AgentRpcError::Config`] when the TLS material or the enrollment service
 /// cannot be built.
-// A host start is one readable sequence: bind, build the auth parts, build the
-// core, then spawn the two listeners. Splitting it would hide that order.
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines)] // one ordered start-up: bind, keys, apps, threads
 pub(crate) fn serve(
     config: &NativeHostConfig,
     service: Arc<AgentRpcService>,
@@ -100,23 +96,20 @@ pub(crate) fn serve(
 
     let security = match keys {
         HostKeys::Insecure => NativeSecurityParts::Insecure,
-        HostKeys::Mtls(parts) => {
-            let MtlsKeys {
-                signing,
-                ca,
-                identity,
-                trust,
-            } = *parts;
-            crate::host::native::security::build_mtls(
-                config,
-                signing,
-                Arc::clone(&ca),
-                identity,
-                Arc::clone(&trust),
-                ctx,
-                &agent_url,
-            )?
-        }
+        HostKeys::Mtls {
+            signing,
+            ca,
+            identity,
+            trust,
+        } => crate::host::native::security::build_mtls(
+            config,
+            *signing,
+            Arc::clone(&ca),
+            identity,
+            Arc::clone(&trust),
+            ctx,
+            &agent_url,
+        )?,
     };
 
     let models: Vec<String> = service
@@ -134,7 +127,8 @@ pub(crate) fn serve(
                 &service,
                 agent_listener,
                 agent_addr,
-                Arc::new(foundation_auth::client_auth::InsecureNoAuth::new()),
+                &(Arc::new(foundation_auth::client_auth::InsecureNoAuth::new())
+                    as Arc<dyn foundation_auth::client_auth::ClientAuth>),
                 &shutdown,
             )?;
             tracing::info!(addr = %agent_addr, "agent-rpc listening (plaintext)");
@@ -455,12 +449,12 @@ fn spawn_plain(
     service: &Arc<AgentRpcService>,
     listener: TcpListener,
     addr: SocketAddr,
-    auth: Arc<dyn foundation_auth::client_auth::ClientAuth>,
+    auth: &Arc<dyn foundation_auth::client_auth::ClientAuth>,
     shutdown: &Arc<ShutdownSignal>,
 ) -> AgentRpcResult<JoinHandle<()>> {
     let app = routed_app(&AGENT_PROCEDURES, move || {
         let interceptor: Arc<dyn Interceptor> =
-            Arc::new(ClientAuthInterceptor::new(Arc::clone(&auth)));
+            Arc::new(ClientAuthInterceptor::new(Arc::clone(auth)));
         let mut router = Router::new().with_global_interceptors(vec![interceptor]);
         register_agent_service(&mut router, Arc::clone(service));
         router

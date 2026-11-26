@@ -424,10 +424,17 @@ impl D1WasmStorage {
     }
 
     async fn do_execute_batch_async(db: &Arc<D1Database>, sql: &str) -> Result<(), StorageError> {
-        let promise = db.exec(sql);
-        SendWrapper::new(JsFuture::from(promise))
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 exec failed: {e:?}")))?;
+        // `D1Database::exec` splits its argument on newlines, so a formatted
+        // `CREATE TABLE` (its columns are on later lines) fails with an
+        // incomplete statement. Split on `;` instead and run each statement
+        // through a prepared statement. A `;` inside a string literal in a
+        // batch is not supported; no caller writes one.
+        for statement in sql.split(';') {
+            let statement = statement.trim();
+            if !statement.is_empty() {
+                do_execute_sql(db, statement, &[]).await?;
+            }
+        }
         Ok(())
     }
 }

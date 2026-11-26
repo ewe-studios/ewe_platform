@@ -131,5 +131,10 @@ workers-rs = ["dep:worker"]
 name = "migrations"
 path = "tests/migrations/mod.rs"
 
+# The Durable Object store contract (spec 83 feature 05, T20).
+[[test]]
+name = "do_sql_tests"
+path = "tests/do_sql_tests.rs"
+
 [lints]
 workspace = true

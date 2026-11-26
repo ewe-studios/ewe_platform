@@ -13,6 +13,7 @@
 //! drop.
 
 use std::collections::BTreeMap;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Condvar, Mutex, RwLock};
 use std::time::{Duration, Instant};
@@ -277,7 +278,39 @@ pub struct LocalInstanceRegistry<S: SessionStores = InMemoryStores> {
     turns: TurnLimits,
     shutdown: TurnShutdown,
     activity: Arc<TurnActivity>,
+    /// Runs before `destroy` removes an instance. The Durable Object uploads
+    /// the history here; an error stops the destroy and keeps the storage
+    /// (invariant I5).
+    destroy_hook: Option<DestroyHookFn>,
+    /// Runs after `create` inserts an instance. The Durable Object records the
+    /// instance and its session here, so a new object can restore them.
+    create_hook: Option<CreateHookFn>,
 }
+
+/// The future of one [`DestroyHook`].
+pub type DestroyHookFuture =
+    Pin<Box<dyn std::future::Future<Output = AgentRpcResult<()>> + Send + 'static>>;
+
+/// Runs before an instance is destroyed.
+///
+/// The hook receives the checked caller, the instance facts and the session
+/// identifier. It reads the session's history from the same storage and
+/// uploads it. When it returns an error, the registry keeps the instance and
+/// its storage, so no history is lost.
+pub type DestroyHookFn =
+    Arc<dyn Fn(Caller, InstanceInfo, SessionId) -> DestroyHookFuture + Send + Sync + 'static>;
+
+/// Runs after an instance is created.
+///
+/// It receives the checked caller, the instance facts, the session identifier
+/// and the spec. A Durable Object uses it to record the instance in its SQL
+/// storage. An error removes the new instance and fails the create.
+pub type CreateHookFn = Arc<
+    dyn Fn(Caller, InstanceInfo, SessionId, InstanceSpec) -> DestroyHookFuture
+        + Send
+        + Sync
+        + 'static,
+>;
 
 impl<S: SessionStores> std::fmt::Debug for LocalInstanceRegistry<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -313,7 +346,69 @@ impl<S: SessionStores> LocalInstanceRegistry<S> {
             turns,
             shutdown: TurnShutdown::default(),
             activity: Arc::new(TurnActivity::default()),
+            destroy_hook: None,
+            create_hook: None,
         })
+    }
+
+    /// Run `hook` before an instance is destroyed.
+    ///
+    /// The Durable Object uses it to upload the session history to R2. The
+    /// hook runs before the instance leaves the table; an error keeps the
+    /// instance and its storage (invariant I5).
+    #[must_use]
+    pub fn with_destroy_hook(mut self, hook: DestroyHookFn) -> Self {
+        self.destroy_hook = Some(hook);
+        self
+    }
+
+    /// Run `hook` after an instance is created.
+    ///
+    /// The Durable Object uses it to record the instance and its session in
+    /// SQL, so a new object can restore the instance. An error removes the new
+    /// instance and fails the create.
+    #[must_use]
+    pub fn with_create_hook(mut self, hook: CreateHookFn) -> Self {
+        self.create_hook = Some(hook);
+        self
+    }
+
+    /// Rebuild one instance from its recorded facts.
+    ///
+    /// A Durable Object calls this after a restart for every record that its
+    /// SQL storage holds. The session keeps its identifier, so its history
+    /// stays. An instance that is already in the table is left as it is.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::ModelSelection`] when the model is gone, and
+    /// [`AgentRpcError::Storage`] when a store cannot open.
+    pub async fn restore(
+        &self,
+        caller: &Caller,
+        info: &InstanceInfo,
+        session_id: SessionId,
+        spec: &InstanceSpec,
+    ) -> AgentRpcResult<()> {
+        let key = (caller.scope.clone(), info.name.clone());
+        if self.table().contains_key(&key) {
+            return Ok(());
+        }
+        let model = self.catalog.resolve(&spec.model).await?;
+        let (doc, memory) = self.stores.open(&session_id)?;
+        let session =
+            build_session(&model, spec, session_id, doc, memory, self.ctx.clone()).await?;
+        let handle = InstanceHandle {
+            inner: Arc::new(InstanceInner {
+                name: info.name.clone(),
+                model,
+                session,
+                busy: AtomicBool::new(false),
+                turns: AtomicU64::new(info.turns),
+                created_unix_ms: info.created_unix_ms,
+            }),
+        };
+        self.table_mut().insert(key, handle);
+        Ok(())
     }
 
     /// The configuration.
@@ -426,19 +521,7 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
             let (doc, memory) = self.stores.open(&session_id)?;
             let session =
                 build_session(&model, &spec, session_id, doc, memory, self.ctx.clone()).await?;
-            let mut table = self.table_mut();
             let key = (caller.scope.clone(), spec.name.clone());
-            if table.contains_key(&key) {
-                return Err(AgentRpcError::InstanceExists(spec.name).into());
-            }
-            if table
-                .keys()
-                .filter(|(scope, _)| scope == &caller.scope)
-                .count()
-                >= self.config.max_instances
-            {
-                return Err(AgentRpcError::InstanceLimit(self.config.max_instances).into());
-            }
             let handle = InstanceHandle {
                 inner: Arc::new(InstanceInner {
                     name: spec.name.clone(),
@@ -450,10 +533,33 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                         .unwrap_or(0),
                 }),
             };
-            table.insert(key, handle.clone());
-            drop(table);
+            let info = handle.info();
+            let session_id = handle.session().session_id().clone();
+            {
+                let mut table = self.table_mut();
+                if table.contains_key(&key) {
+                    return Err(AgentRpcError::InstanceExists(spec.name).into());
+                }
+                if table
+                    .keys()
+                    .filter(|(scope, _)| scope == &caller.scope)
+                    .count()
+                    >= self.config.max_instances
+                {
+                    return Err(AgentRpcError::InstanceLimit(self.config.max_instances).into());
+                }
+                table.insert(key.clone(), handle.clone());
+            }
+            if let Some(hook) = &self.create_hook {
+                if let Err(error) =
+                    hook(caller.clone(), info.clone(), session_id, spec.clone()).await
+                {
+                    let _ = self.table_mut().remove(&key);
+                    return Err(error);
+                }
+            }
             tracing::info!(instance = %spec.name, model = %handle.model().name(), "instance created");
-            Ok(handle.info())
+            Ok(info)
         })
     }
 
@@ -506,9 +612,22 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
 
     fn destroy<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()> {
         Box::pin(async move {
-            let removed = self
-                .table_mut()
-                .remove(&(caller.scope.clone(), name.to_string()));
+            let key = (caller.scope.clone(), name.to_string());
+            let handle = {
+                let table = self.table();
+                table.get(&key).cloned()
+            };
+            let Some(handle) = handle else {
+                return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
+            };
+            // The history archive runs before the instance leaves the table.
+            // Its error keeps the instance and its storage (invariant I5).
+            if let Some(hook) = &self.destroy_hook {
+                let info = handle.info();
+                let session = handle.session().session_id().clone();
+                hook(caller.clone(), info, session).await?;
+            }
+            let removed = self.table_mut().remove(&key);
             let Some(handle) = removed else {
                 return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
             };

@@ -1,0 +1,25 @@
+[package]
+name = "cf-agent-rpc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "agent-rpc on Cloudflare Workers: the Connect service, the instance Durable Object and the R2 history archive (spec 83 feature 05, T21)"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# `examples/*` are excluded from the root workspace, so this crate is its own
+# workspace root and cannot inherit workspace settings.
+[workspace]
+
+[dependencies]
+foundation_agent_rpc = { path = "../../backends/foundation_agent_rpc", default-features = false, features = ["worker"] }
+foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["std", "js-wasmbindgen"] }
+foundation_context = { path = "../../backends/foundation_context" }
+worker = "0.8.3"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["Request", "Response"] }
+console_error_panic_hook = "0.1"

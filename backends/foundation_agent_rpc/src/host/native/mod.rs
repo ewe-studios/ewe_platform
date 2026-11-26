@@ -120,12 +120,12 @@ impl NativeHost {
                     .map_err(|error| {
                         state_error(format!("opening the trusted clients: {error}"))
                     })?;
-                listener::HostKeys::Mtls(Box::new(listener::MtlsKeys {
-                    signing,
+                listener::HostKeys::Mtls {
+                    signing: Box::new(signing),
                     ca,
                     identity,
                     trust,
-                }))
+                }
             }
         };
 

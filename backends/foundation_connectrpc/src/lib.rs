@@ -25,6 +25,8 @@ pub mod native;
 pub mod wasm;
 
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use wasm::body::request_body_from_stream;
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use wasm::sink::{ConnectSink, ConnectSinkHandle};
 
 pub use shared::error_writer::ErrorWriter;
@@ -36,8 +38,8 @@ pub use shared::error_writer::ErrorWriter;
 
 pub use shared::message::{Request, Response};
 pub use shared::router::{
-    in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, HandlerOptions,
-    RequestBody, RequestStream, ResponseSink, Router,
+    extract_path, in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer,
+    HandlerOptions, RequestBody, RequestStream, ResponseSink, Router,
 };
 
 /// Proc-macro for code-first `ConnectRPC` service generation (Feature 27,
