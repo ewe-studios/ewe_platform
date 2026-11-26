@@ -92,11 +92,11 @@ fn kek_command_parsing_accepts_the_subcommands() {
     );
     assert_eq!(
         keys::parse_keys_command(&args(&["keys", "rotate"])),
-        Ok(KeysCommand::Rotate)
+        Ok(KeysCommand::RotateKey)
     );
     assert_eq!(
         keys::parse_keys_command(&args(&["rotate-kek"])),
-        Ok(KeysCommand::Rotate)
+        Ok(KeysCommand::RotateKek)
     );
     assert!(keys::parse_keys_command(&args(&["keys", "wrong"])).is_err());
 }
@@ -150,7 +150,7 @@ async fn kek_rotate_moves_the_record_to_the_new_key() {
     keys::migrate(state, Some(&old), &ctx)
         .await
         .expect("migrate under the old KEK");
-    let report = keys::rotate(state, Some(&new), &[old], &ctx)
+    let report = keys::rotate_kek(state, Some(&new), &[old], &ctx)
         .await
         .expect("rotate");
     assert_eq!(report.rotated, 1);
@@ -171,4 +171,67 @@ async fn kek_rotate_moves_the_record_to_the_new_key() {
         .signing_key(&id)
         .await
         .expect("the rotated key opens");
+}
+
+#[valtron_test]
+async fn kek_rotate_by_kid_keeps_the_old_verifying_key() {
+    let ctx = test_ctx();
+    let dir = TempDir::new().expect("temp dir");
+    let state = dir.path();
+    std::fs::write(state.join("bootstrap-signing-key.pem"), LEGACY_SIGNING_KEY)
+        .expect("write the legacy key");
+    let config = write_kek(&dir, "kek", 5);
+
+    // Migrate the legacy key, then read the current key.
+    keys::migrate(state, Some(&config), &ctx)
+        .await
+        .expect("migrate");
+    let env = ctx.require_env().expect("env");
+    let sealer = keys::select_native_kek(Some(&config), &env, ctx.clock())
+        .await
+        .expect("load");
+    let store = Arc::new(FsKeyStore::new(state));
+    let material = KeyMaterial::new(
+        Arc::clone(&store) as Arc<dyn KeyStore>,
+        KeyProtection::new(sealer),
+        ctx.clone(),
+    );
+    let id = KeyId::new(KeyId::SECRET_SIGNING).expect("valid id");
+    let old_kid = material
+        .signing_key(&id)
+        .await
+        .expect("old key")
+        .verifying_key()
+        .kid()
+        .map(str::to_string)
+        .expect("the old kid");
+
+    // Rotate the signing key by `kid`.
+    let report = keys::rotate_signing_key(state, Some(&config), &ctx)
+        .await
+        .expect("rotate the signing key");
+    assert_eq!(report.rotated, 1);
+    let new_kid = report.new_kid.expect("a new kid");
+    assert_ne!(new_kid, old_kid);
+
+    // The current key is the new one, and the verifier holds both public keys.
+    let current_kid = material
+        .signing_key(&id)
+        .await
+        .expect("the new current key")
+        .verifying_key()
+        .kid()
+        .map(str::to_string)
+        .expect("the current kid");
+    assert_eq!(&current_kid, &new_kid);
+    let keys_of_kind = material
+        .verifying_keys_of_kind(foundation_auth::keystore::KeyKind::SecretSigning)
+        .await
+        .expect("verifying keys");
+    let kids: Vec<String> = keys_of_kind
+        .iter()
+        .filter_map(|key| key.kid().map(str::to_string))
+        .collect();
+    assert!(kids.contains(&old_kid), "the old public key is still there");
+    assert!(kids.contains(&current_kid), "the new public key is there");
 }

@@ -19,7 +19,7 @@ use std::sync::Arc;
 
 use foundation_auth::keystore::{
     migrate_legacy_keys, FsKeyStore, KekSource, KekSourceInfo, KeyId, KeyMaterial, KeyProtection,
-    KeySealer, KeyStoreError, MigrationReport, PassphrasePromptKek, SecretFileKek,
+    KeySealer, KeyStore, KeyStoreError, MigrationReport, PassphrasePromptKek, SecretFileKek,
     SystemdCredentialKek,
 };
 use foundation_context::Ctx;
@@ -161,8 +161,10 @@ pub async fn select_native_kek(
 pub enum KeysCommand {
     /// Seal the clear-text key files of the first version, then remove them.
     Migrate,
-    /// Reseal every record with the current KEK.
-    Rotate,
+    /// Reseal every record with the current key encryption key (KEK).
+    RotateKek,
+    /// Make a new secret-signing key and keep the old public key.
+    RotateKey,
 }
 
 /// Parse the arguments of `agent-rpc keys ...`.
@@ -180,8 +182,9 @@ pub fn parse_keys_command(args: &[String]) -> Result<KeysCommand, String> {
         .collect();
     match args.as_slice() {
         ["migrate"] => Ok(KeysCommand::Migrate),
-        ["rotate" | "rotate-kek"] => Ok(KeysCommand::Rotate),
-        _ => Err("usage: agent-rpc keys <migrate|rotate>".to_string()),
+        ["rotate-kek"] => Ok(KeysCommand::RotateKek),
+        ["rotate"] => Ok(KeysCommand::RotateKey),
+        _ => Err("usage: agent-rpc keys <migrate|rotate|rotate-kek>".to_string()),
     }
 }
 
@@ -192,8 +195,10 @@ pub struct KeysReport {
     pub migrated: Vec<KeyId>,
     /// The clear-text files that the migration removed.
     pub removed: Vec<PathBuf>,
-    /// The records that a rotation resealed.
+    /// The records that a rotation resealed or replaced.
     pub rotated: usize,
+    /// The key ID (`kid`) of a new secret-signing key.
+    pub new_kid: Option<String>,
 }
 
 impl KeysReport {
@@ -202,6 +207,7 @@ impl KeysReport {
             migrated: report.migrated,
             removed: report.removed,
             rotated: 0,
+            new_kid: None,
         }
     }
 }
@@ -220,7 +226,10 @@ impl core::fmt::Display for KeysReport {
             }
         }
         if self.rotated > 0 {
-            writeln!(f, "resealed {} key record(s)", self.rotated)?;
+            writeln!(f, "resealed or replaced {} key record(s)", self.rotated)?;
+        }
+        if let Some(kid) = &self.new_kid {
+            writeln!(f, "the new secret-signing key has kid {kid}")?;
         }
         if self.migrated.is_empty() && self.rotated == 0 {
             f.write_str("nothing to do")?;
@@ -266,7 +275,7 @@ pub async fn migrate(
 ///
 /// # Errors
 /// [`KeyStoreError`] variants.
-pub async fn rotate(
+pub async fn rotate_kek(
     state_dir: &Path,
     current: Option<&KekConfig>,
     previous: &[KekConfig],
@@ -284,6 +293,68 @@ pub async fn rotate(
         migrated: Vec::new(),
         removed: Vec::new(),
         rotated,
+        new_kid: None,
+    })
+}
+
+/// Make a new secret-signing key with a new key ID (`kid`), and keep the old
+/// public key under `secret-signing-<kid>`.
+///
+/// The verifier reads every record of the signing kind, so an old secret still
+/// verifies while its record is present. New secrets use the new current key.
+/// The operator removes the old record after the last old secret expires.
+///
+/// # Errors
+/// [`KeyStoreError::NotFound`] when the state directory has no signing key, and
+/// the other [`KeyStoreError`] variants.
+pub async fn rotate_signing_key(
+    state_dir: &Path,
+    config: Option<&KekConfig>,
+    ctx: &Ctx,
+) -> Result<KeysReport, KeyStoreError> {
+    use foundation_auth::keystore::{
+        record_aad, CreateOutcome, KeyKind, KeyRecord, StoredPrivateKey,
+    };
+
+    let env = require_env(ctx)?;
+    let sealer = select_native_kek(config, &env, ctx.clock()).await?;
+    let (store, material) = material(state_dir, KeyProtection::new(sealer), ctx);
+    let id = KeyId::new(KeyId::SECRET_SIGNING)?;
+    let current = store
+        .get(&id)
+        .await?
+        .ok_or_else(|| KeyStoreError::NotFound(id.to_string()))?;
+
+    // Archive the old key under a `kid` suffix, so the verifier keeps it.
+    let old_private = material.open_private(&current).await?;
+    let archive_id = id.with_suffix(&current.kid())?;
+    if store.get(&archive_id).await?.is_none() {
+        let aad = record_aad(&archive_id, KeyKind::SecretSigning, 1);
+        let archive = KeyRecord {
+            id: archive_id,
+            revision: 1,
+            private: StoredPrivateKey::Sealed(
+                material.seal_bytes(&aad, old_private.as_slice()).await?,
+            ),
+            ..current.clone()
+        };
+        // Another process may have archived the same key first.
+        if let CreateOutcome::Created = store.create(&archive).await? {
+            tracing::info!(key = archive.id.as_str(), "archived the old signing key");
+        }
+    }
+
+    // Replace the current record with a new key at the next revision.
+    let new_record = material
+        .fresh_signing_record(&id, current.revision + 1)
+        .await?;
+    let new_kid = new_record.kid();
+    store.replace(&new_record, current.revision).await?;
+    Ok(KeysReport {
+        migrated: Vec::new(),
+        removed: Vec::new(),
+        rotated: 1,
+        new_kid: Some(new_kid),
     })
 }
 

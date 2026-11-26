@@ -319,6 +319,31 @@ impl KeyMaterial {
             .map_err(|e| KeyStoreError::Corrupt(format!("{}: {e}", record.id)))
     }
 
+    /// A new secret-signing record, sealed but not stored.
+    ///
+    /// Rotation uses it to replace the current record at the next revision.
+    ///
+    /// # Errors
+    /// [`KeyStoreError`] variants.
+    pub async fn fresh_signing_record(
+        &self,
+        id: &KeyId,
+        revision: u64,
+    ) -> Result<KeyRecord, KeyStoreError> {
+        let (public, plaintext) = self.make_ed25519()?;
+        let aad = record_aad(id, KeyKind::SecretSigning, revision);
+        let sealed = self.seal(&aad, &plaintext).await?;
+        Ok(KeyRecord {
+            id: id.clone(),
+            kind: KeyKind::SecretSigning,
+            revision,
+            created_at_unix: self.now_unix(),
+            not_after_unix: None,
+            public,
+            private: StoredPrivateKey::Sealed(sealed),
+        })
+    }
+
     /// The public keys for a verify-only host (a Worker).
     ///
     /// # Errors
