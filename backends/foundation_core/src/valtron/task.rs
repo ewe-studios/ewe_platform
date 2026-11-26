@@ -21,6 +21,30 @@ use crate::{
     valtron::{AnyResult, GenericResult},
 };
 
+/// A task that the engine can schedule.
+///
+/// The trait carries the engine's own `Send` bound as a supertrait: under
+/// `multi` a schedulable task must be `Send`, and under the single-threaded
+/// engine it need not be. A crate that boxes a task for `valtron::send` uses
+/// `Box<dyn EngineTask<...>>`, so the box is `Send` exactly when this build's
+/// engine can move it.
+///
+/// Use this trait instead of the consumer's own `feature = "multi"`: Cargo can
+/// unify `multi` into `foundation_core` without turning it on in the consumer,
+/// and the consumer's feature then picks the wrong bound.
+#[cfg(feature = "multi")]
+pub trait EngineTask: TaskIterator + Send {}
+
+#[cfg(feature = "multi")]
+impl<T: TaskIterator + Send> EngineTask for T {}
+
+/// The single-threaded form of [`EngineTask`]: no `Send` bound.
+#[cfg(not(feature = "multi"))]
+pub trait EngineTask: TaskIterator {}
+
+#[cfg(not(feature = "multi"))]
+impl<T: TaskIterator> EngineTask for T {}
+
 /// A trait for types that can answer "is this task ready to run?"
 ///
 /// Under `multi` the pointer type used by `State::Depends` requires
@@ -1161,6 +1185,15 @@ impl<D: 'static, P: 'static> TaskIterator for Box<dyn TaskIterator<Ready = D, Pe
 }
 
 impl<D: 'static, P: 'static> TaskIterator for Box<dyn TaskIterator<Ready = D, Pending = P> + Send> {
+    type Ready = D;
+    type Pending = P;
+
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        (**self).next_status(ctx)
+    }
+}
+
+impl<D: 'static, P: 'static> TaskIterator for Box<dyn EngineTask<Ready = D, Pending = P>> {
     type Ready = D;
     type Pending = P;
 

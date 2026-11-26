@@ -3,56 +3,73 @@
 //! WHY: launching one binary on a host should start an RPC server that serves
 //! many agent sessions against a model loaded **once** for the whole machine.
 //!
-//! WHAT: the crate root. Module map (spec 83 features 01 and 03):
+//! WHAT: the crate root. The transport-agnostic core is on every build. The
+//! native host and the legacy feature-01 modules need the `multi` feature: the
+//! thread pool, the TLS and SQLite dependencies, and the serve threads.
 //!
-//! | Module | Role |
-//! |---|---|
-//! | [`auth`] | CA, mTLS config, `BootstrapService` (enrollment), client-cert verification |
-//! | [`bootstrap`] | the base64 / QR bootstrap payload |
-//! | [`client`] | enroll with a signed secret, then a typed client over mutual TLS |
-//! | [`core`] | the transport-agnostic core: models, registry, service, enrollment |
-//! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping |
-//! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle |
-//! | [`proto`] | generated wire types + service stubs (`proto/`) |
-//! | [`secret`] | signing key + signed, expiring bootstrap secrets |
-//! | [`trust`] | trusted-client store (`foundation_db` SQL; SQLite by default) |
-//! | [`server`] | [`AgentRpcServer`] — builder, listener, graceful shutdown |
-//! | [`service`] | [`AgentRpcService`] — the legacy generated `AgentService` over the registry |
-//! | [`instance`] | the legacy concrete instance registry over shared models |
+//! | Module | Role | Build |
+//! |---|---|---|
+//! | [`core`] | the transport-agnostic core: models, registry, service, enrollment | all |
+//! | [`error`] | [`AgentRpcError`] — the single error type + wire status mapping | all |
+//! | [`proto`] | generated wire types + service stubs (`proto/`) | all |
+//! | [`auth`] | CA, mTLS config, `BootstrapService` (enrollment) | `multi` |
+//! | [`bootstrap`] | the base64 / QR bootstrap payload | `multi` |
+//! | [`client`] | enroll with a signed secret, then a typed client over mutual TLS | `multi` |
+//! | [`host`] | the native host: config, listeners, catalog, client | `multi` |
+//! | [`model`] | [`ModelHandle`] — load-once, `Arc`-shared model handle | `multi` |
+//! | [`secret`] | signing key + signed, expiring bootstrap secrets | `multi` |
+//! | [`trust`] | trusted-client store (`foundation_db` SQL; SQLite by default) | `multi` |
+//! | [`server`] | [`AgentRpcServer`] — builder, listener, graceful shutdown | `multi` |
+//! | [`service`] | [`AgentRpcService`] — the legacy generated `AgentService` over the registry | `multi` |
+//! | [`instance`] | the legacy concrete instance registry over shared models | `multi` |
 //!
 //! HOW: the RPC edge is async (`foundation_connectrpc` handlers); inference runs
 //! on valtron behind `Send + 'static` boundaries; the model is shared through an
-//! `Arc`-backed handle. Modules are added as their task lands (see
-//! `specifications/83-agent-rpc-serving-system/features/01-agent-rpc`).
+//! `Arc`-backed handle. A deterministic simulation test depends on this crate
+//! with `default-features = false`, so it gets `core` only.
 
-pub mod auth;
-pub mod bootstrap;
-pub mod client;
 pub mod core;
 pub mod error;
-pub mod instance;
 /// The `agent-rpc keys` commands and the native key encryption key (KEK)
 /// selection (spec 83 feature 08).
 #[cfg(not(target_family = "wasm"))]
 pub mod keys;
-pub mod model;
 pub mod proto;
+
+#[cfg(feature = "multi")]
+pub mod auth;
+#[cfg(feature = "multi")]
+pub mod bootstrap;
+#[cfg(feature = "multi")]
+pub mod client;
+#[cfg(feature = "multi")]
+pub mod host;
+#[cfg(feature = "multi")]
+pub mod instance;
+#[cfg(feature = "multi")]
+pub mod model;
+#[cfg(feature = "multi")]
 pub mod secret;
 /// The listener needs the native HTTP server, which is Unix only. Every other
 /// platform gets the client, the model and the registry.
-#[cfg(unix)]
+#[cfg(all(feature = "multi", unix))]
 pub mod server;
+#[cfg(feature = "multi")]
 pub mod service;
+#[cfg(feature = "multi")]
 pub mod trust;
 
 pub use core::model::{Device, ModelKind};
 pub use error::{AgentRpcError, AgentRpcResult};
+#[cfg(feature = "multi")]
 pub use instance::{
     InstanceConfig, InstanceHandle, InstanceMeta, InstanceRegistry, RegistryConfig, TurnGuard,
 };
-#[cfg(feature = "gguf")]
+#[cfg(all(feature = "multi", feature = "gguf"))]
 pub use model::GgufDevice;
+#[cfg(feature = "multi")]
 pub use model::{ModelHandle, ModelSource};
-#[cfg(unix)]
+#[cfg(all(feature = "multi", unix))]
 pub use server::{AgentRpcServer, AgentRpcServerBuilder, RunningServer};
+#[cfg(feature = "multi")]
 pub use service::{agent_router, AgentRpcService, TurnEventStream};

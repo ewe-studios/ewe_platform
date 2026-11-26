@@ -199,6 +199,40 @@ pub fn server_config_mutual(
     Ok(Arc::new(config))
 }
 
+/// A server configuration with an **optional** client certificate.
+///
+/// A client that presents no certificate completes the handshake, so it can
+/// call with a bearer access secret. A client that presents one is checked
+/// against the certificate authority (CA) and the in-memory trust index, as in
+/// [`server_config_mutual`].
+///
+/// # Errors
+/// [`PkiError`] when the certificate authority root store, a protocol version
+/// or the certificate chain is invalid.
+pub fn server_config_optional_mutual(
+    identity: &ServerIdentity,
+    ca: &CertificateAuthority,
+    index: TrustIndex,
+    ctx: &Ctx,
+) -> Result<Arc<rustls::ServerConfig>, PkiError> {
+    let provider = crypto_provider();
+    let chain = WebPkiClientVerifier::builder_with_provider(
+        Arc::new(ca.root_store()?),
+        Arc::clone(&provider),
+    )
+    .allow_unauthenticated()
+    .build()
+    .map_err(|e| tls_error("client verifier", e))?;
+    let verifier = Arc::new(ClientCertVerifier::new(chain, index));
+    let config = rustls::ServerConfig::builder_with_details(provider, time_provider(ctx))
+        .with_safe_default_protocol_versions()
+        .map_err(|e| tls_error("TLS versions", e))?
+        .with_client_cert_verifier(verifier)
+        .with_single_cert(vec![identity.cert_der().clone()], identity.key_der())
+        .map_err(|e| tls_error("server certificate", e))?;
+    Ok(Arc::new(config))
+}
+
 /// A server configuration with no client certificate, for the enrollment
 /// listener.
 ///
