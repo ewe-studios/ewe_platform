@@ -296,6 +296,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             prepared: true,
             can_control: false,
         }),
+        manifest: None,
     };
     roundtrip(&info);
     roundtrip(&Scoped {

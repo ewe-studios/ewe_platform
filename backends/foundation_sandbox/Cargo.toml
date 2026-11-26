@@ -62,8 +62,9 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-f
 # The gzip decoder and the tar reader of the artifact store.
 flate2 = { version = "1", optional = true }
 tar = { version = "0.4", optional = true }
-# The SHA-256 hasher of a streamed download (feature 03).
-sha2 = { version = "0.10", optional = true }
+# The SHA-256 hasher of a streamed download (feature 03) and of an image
+# commit (feature 12).
+sha2 = { version = "0.10" }
 # The `JsonHash` derive of the generated Firecracker types calls `base85rs` and
 # `sha2`; a derive expands in this crate, so this crate names them.
 base85rs = { version = "0.1", optional = true }
@@ -124,7 +125,6 @@ libc = { version = "0.2", optional = true }
 artifacts = [
     "dep:flate2",
     "dep:tar",
-    "dep:sha2",
     "foundation_netio/ssl",
 ]
 # The command structures and the two programs (feature 06). Native only. The
@@ -152,7 +152,6 @@ firecracker = [
     "dep:base85rs",
     "dep:foundation_codegentools",
     "dep:foundation_deployment",
-    "dep:sha2",
     "firecracker_actions",
     "firecracker_balloon",
     "firecracker_boot_source",

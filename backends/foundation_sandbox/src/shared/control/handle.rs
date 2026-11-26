@@ -828,6 +828,10 @@ impl SandboxOps for LocalSandboxOps {
     fn calls(&self) -> Arc<dyn ExecFileCalls> {
         record_calls(&self.record)
     }
+
+    fn manifest(&self) -> Option<crate::shared::images::ImageManifest> {
+        self.record.manifest.clone()
+    }
 }
 
 /// The scoped calls of one sandbox on a remote `SandboxService`.
@@ -1153,6 +1157,10 @@ impl SandboxOps for RemoteSandboxOps {
 
     fn calls(&self) -> Arc<dyn ExecFileCalls> {
         Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>
+    }
+
+    fn manifest(&self) -> Option<crate::shared::images::ImageManifest> {
+        self.info.manifest.clone()
     }
 }
 

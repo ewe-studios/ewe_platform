@@ -24,9 +24,10 @@ use crate::shared::driver::{CreateProgress, LaunchStream, SubstrateHandle};
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::handles::CreateStream;
 use crate::shared::ids::SandboxId;
+use crate::shared::images::{apply_manifest, check_arch};
 use crate::shared::limits::SandboxLimits;
 use crate::shared::rpc::messages::{PrepareRequest, SlaveInfo, SlaveLimits};
-use crate::shared::spec::{GuestMount, NetworkMode, RootSetup, SandboxSpec};
+use crate::shared::spec::{GuestMount, NetworkMode, RootFs, RootSetup, SandboxSpec};
 
 /// One step of the create task.
 pub enum CreateState {
@@ -140,6 +141,29 @@ impl CreateTask {
         self.last_progress = Some(rank);
         true
     }
+}
+
+/// Resolves a named image to a root file and rewrites the spec (section 6.3).
+///
+/// A spec that names a driver sees the rewritten root, so every driver gets an
+/// `Ext4Image` and no driver needs image code. A manager with no resolver
+/// refuses `RootFs::Image` with `InvalidSpec { field: "rootfs" }`.
+async fn resolve_image(
+    inner: &Inner,
+    spec: &SandboxSpec,
+) -> SandboxResult<(SandboxSpec, Option<crate::shared::images::ImageManifest>)> {
+    let RootFs::Image(reference) = &spec.rootfs else {
+        return Ok((spec.clone(), None));
+    };
+    let resolver = inner
+        .image_resolver()
+        .ok_or_else(|| SandboxError::InvalidSpec {
+            field: "rootfs".to_string(),
+            reason: "this manager has no image resolver".to_string(),
+        })?;
+    let (rootfs, manifest) = resolver.resolve(reference).await?;
+    check_arch(&manifest)?;
+    Ok((apply_manifest(spec, rootfs, &manifest), Some(manifest)))
 }
 
 /// The order of the progress values of one create.
@@ -379,7 +403,11 @@ pub async fn create_sandbox(
 }
 
 async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
-    let spec = apply_default_limits(&task.spec, &task.inner.config.limits);
+    let (resolved, manifest) = match resolve_image(&task.inner, &task.spec).await {
+        Ok(value) => value,
+        Err(error) => return fail(task, error.current_context().clone()).await,
+    };
+    let spec = apply_default_limits(&resolved, &task.inner.config.limits);
     let (driver, _report) = match choose_driver(&task.inner, &spec).await {
         Ok(chosen) => chosen,
         Err(error) => return fail(task, error.current_context().clone()).await,
@@ -406,12 +434,9 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
         }
     };
     let created = created_unix_ms(&ctx);
-    let record = Arc::new(SandboxRecord::new(
-        id.clone(),
-        driver.id(),
-        spec.clone(),
-        created,
-    ));
+    let mut record = SandboxRecord::new(id.clone(), driver.id(), spec.clone(), created);
+    record.manifest = manifest;
+    let record = Arc::new(record);
     task.inner.insert(Arc::clone(&record));
     task.record = Some(Arc::clone(&record));
     task.guard.set_record(Arc::clone(&record));

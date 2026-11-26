@@ -285,6 +285,10 @@ pub struct CreateRequest {
 
 /// One event of `Create`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(
+    clippy::large_enum_variant,
+    reason = "the created sandbox carries its manifest; a create sends one event, so the box would save nothing"
+)]
 pub enum CreateEvent {
     /// The create reached a progress step.
     Progress(CreateProgress),

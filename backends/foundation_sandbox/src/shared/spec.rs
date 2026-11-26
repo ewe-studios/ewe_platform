@@ -34,6 +34,11 @@ pub enum RootMode {
     Overlay,
     /// Only `/tmp`, `/run` and the work directory are writable.
     ReadOnly,
+    /// The root file system is the image itself, mounted read-write.
+    ///
+    /// Only an [`RootFs::Ext4Image`] can use this mode. The driver holds an
+    /// exclusive lock on the image file, so one sandbox writes it at a time.
+    Writable,
 }
 
 /// The network mode of a sandbox.
@@ -64,6 +69,9 @@ pub enum KernelSource {
     Default,
     /// A kernel image file on the control plane's host.
     Path(PathBuf),
+    /// A pinned kernel manifest name of feature 03, such as
+    /// `firecracker-kernel-x86_64`.
+    Named(String),
 }
 
 /// A sandbox image reference of feature 12.
@@ -179,6 +187,13 @@ impl SandboxSpec {
 
         if !self.rootfs_supported(caps) {
             return Err(SandboxError::UnsupportedRootFs.into());
+        }
+
+        if self.root_mode == RootMode::Writable && !matches!(self.rootfs, RootFs::Ext4Image(_)) {
+            return Err(invalid(
+                "root_mode",
+                "the writable root mode needs an ext4 image root",
+            ));
         }
 
         if !caps.root_modes.contains(&self.root_mode) {

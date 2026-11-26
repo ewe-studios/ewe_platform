@@ -107,8 +107,10 @@ fn host_config() -> foundation_sandbox::shared::host::HostConfig {
         firecracker_path: Some(PathBuf::from("/bin/firecracker")),
         krun_runner_path: None,
         libkrun_path: None,
+        mkfs_ext4_path: None,
         driver_order: vec![DriverId::Firecracker],
         artifact_limits: ArtifactLimits::default(),
+        image_limits: foundation_sandbox::shared::limits::ImageLimits::default(),
     }
 }
 
@@ -605,6 +607,7 @@ fn attach_returns_none_and_removes_run_dir() {
         state: foundation_sandbox::shared::control::SandboxState::Ready,
         created_unix_ms: 0,
         endpoint: None,
+        manifest: None,
     };
     let attached =
         crate::pool::block_on(driver.attach(ctx.clone(), &record)).expect("attach succeeds");

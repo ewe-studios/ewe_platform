@@ -12,6 +12,7 @@ pub mod error;
 pub mod handles;
 pub mod host;
 pub mod ids;
+pub mod images;
 pub mod krun_config;
 pub mod limits;
 pub mod listen;

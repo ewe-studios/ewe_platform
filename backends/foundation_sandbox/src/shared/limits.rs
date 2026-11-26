@@ -100,6 +100,56 @@ impl Default for SandboxLimits {
     }
 }
 
+/// Every size and time limit of the sandbox image store.
+///
+/// Build a value with [`ImageLimits::default`] and change the fields that
+/// matter with the `with_` methods.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ImageLimits {
+    /// The size of a blank work image in mebibytes.
+    ///
+    /// Default 4096. The file is sparse, so its disk use is its content; a
+    /// guest that fills it gets `ENOSPC` and the error names this limit.
+    pub default_size_mib: u32,
+    /// The oldest age of a work image that the store removes at start.
+    ///
+    /// Default 24 h. A work image older than this belongs to a tool that died;
+    /// the store removes it at start.
+    #[serde(with = "duration_millis")]
+    pub work_max_age: Duration,
+}
+
+impl Default for ImageLimits {
+    fn default() -> Self {
+        Self {
+            default_size_mib: 4096,
+            work_max_age: Duration::from_hours(24),
+        }
+    }
+}
+
+impl ImageLimits {
+    /// A set of limits with every default.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Replaces [`Self::default_size_mib`].
+    #[must_use]
+    pub fn with_default_size_mib(mut self, value: u32) -> Self {
+        self.default_size_mib = value;
+        self
+    }
+
+    /// Replaces [`Self::work_max_age`].
+    #[must_use]
+    pub fn with_work_max_age(mut self, value: Duration) -> Self {
+        self.work_max_age = value;
+        self
+    }
+}
+
 /// Every size and time limit of the guest-artifact store.
 ///
 /// Build a value with [`ArtifactLimits::default`] and change the fields that

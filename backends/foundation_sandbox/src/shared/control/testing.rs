@@ -1715,6 +1715,7 @@ struct FsState {
     dirs: std::collections::HashSet<PathBuf>,
     modified: HashMap<PathBuf, foundation_compact::SystemTime>,
     read_write: HashMap<PathBuf, bool>,
+    locked: std::collections::HashSet<PathBuf>,
 }
 
 impl FakeHostFs {
@@ -1910,6 +1911,63 @@ impl crate::shared::host::HostFs for FakeHostFs {
             .get(path)
             .copied()
             .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
+    }
+
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .remove(path);
+        Ok(())
+    }
+
+    fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>> {
+        let data = self.file(path).ok_or_else(|| SandboxError::Io {
+            op: "read_stream".to_string(),
+            message: format!("{}: not found", path.display()),
+        })?;
+        Ok(Box::new(std::io::Cursor::new(data)))
+    }
+
+    fn clone_file(&self, from: &Path, to: &Path) -> SandboxResult<()> {
+        let data = self.file(from).ok_or_else(|| SandboxError::Io {
+            op: "clone_file".to_string(),
+            message: format!("{}: not found", from.display()),
+        })?;
+        self.write(to, &data)
+    }
+
+    fn lock_exclusive(&self, path: &Path) -> SandboxResult<crate::shared::host::FileLock> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if !state.locked.insert(path.to_path_buf()) {
+            return Err(SandboxError::Io {
+                op: "lock_exclusive".to_string(),
+                message: format!("{}: the lock is held", path.display()),
+            }
+            .into());
+        }
+        drop(state);
+        Ok(crate::shared::host::FileLock::new(FakeLock {
+            state: Arc::clone(&self.state),
+            path: path.to_path_buf(),
+        }))
+    }
+}
+
+/// The token of one [`FakeHostFs`] lock. Its drop releases the lock.
+struct FakeLock {
+    state: Arc<Mutex<FsState>>,
+    path: PathBuf,
+}
+
+impl Drop for FakeLock {
+    fn drop(&mut self) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .locked
+            .remove(&self.path);
     }
 }
 

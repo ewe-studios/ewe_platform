@@ -996,6 +996,11 @@ async fn prepare_plan(
             }
             path.clone()
         }
+        Some(KernelSource::Named(name)) => {
+            store
+                .firecracker_kernel_named(name, GuestArch::host())
+                .await?
+        }
         _ => store.firecracker_kernel(GuestArch::host()).await?,
     };
     let initramfs = store.slave_initramfs(&slave).await?;

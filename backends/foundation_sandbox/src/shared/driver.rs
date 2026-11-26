@@ -120,6 +120,9 @@ pub struct StoredRecord {
     pub created_unix_ms: u64,
     /// How to reach the slave, or `None` while the driver has not answered.
     pub endpoint: Option<SlaveEndpoint>,
+    /// The image manifest, when the root came from a named image (feature 12).
+    #[serde(default)]
+    pub manifest: Option<crate::shared::images::ImageManifest>,
 }
 
 /// A started substrate. The slave in it may not answer yet.

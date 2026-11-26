@@ -76,10 +76,14 @@ pub struct HostConfig {
     pub krun_runner_path: Option<PathBuf>,
     /// The path of the libkrun library.
     pub libkrun_path: Option<PathBuf>,
+    /// The path of `mkfs.ext4` (feature 12). `None` searches the host.
+    pub mkfs_ext4_path: Option<PathBuf>,
     /// The driver order. The default is Firecracker, libkrun and Docker.
     pub driver_order: Vec<DriverId>,
     /// The limits of the guest-artifact store (feature 03).
     pub artifact_limits: ArtifactLimits,
+    /// The limits of the sandbox image store (feature 12).
+    pub image_limits: crate::shared::limits::ImageLimits,
 }
 
 impl Default for HostConfig {
@@ -91,8 +95,10 @@ impl Default for HostConfig {
             firecracker_path: None,
             krun_runner_path: None,
             libkrun_path: None,
+            mkfs_ext4_path: None,
             driver_order: vec![DriverId::Firecracker, DriverId::Libkrun, DriverId::Docker],
             artifact_limits: ArtifactLimits::default(),
+            image_limits: crate::shared::limits::ImageLimits::default(),
         }
     }
 }
@@ -171,6 +177,38 @@ pub struct ProcessExit {
     pub signal: Option<i32>,
 }
 
+/// An exclusive advisory lock on one file.
+///
+/// The lock lives until this value drops. The native host holds the locked file
+/// descriptor; a test fake holds its own token. The wrapped resource is opaque,
+/// so the trait stays free of platform types.
+pub struct FileLock {
+    #[allow(
+        dead_code,
+        reason = "the value holds the lock open and releases it when it drops"
+    )]
+    resource: Arc<dyn std::any::Any + Send + Sync>,
+}
+
+impl FileLock {
+    /// A lock over the resource that releases it when the value drops.
+    #[must_use]
+    pub fn new<R>(resource: R) -> Self
+    where
+        R: std::any::Any + Send + Sync,
+    {
+        Self {
+            resource: Arc::new(resource),
+        }
+    }
+}
+
+impl std::fmt::Debug for FileLock {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("FileLock(..)")
+    }
+}
+
 /// Reads and writes host files.
 pub trait HostFs: Send + Sync + 'static {
     /// Creates a directory and its parents.
@@ -221,6 +259,38 @@ pub trait HostFs: Send + Sync + 'static {
     /// # Errors
     /// [`SandboxError::Io`] when the file cannot be created.
     fn create_file(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Write + Send>>;
+
+    /// Removes one file. A missing file is not an error.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be removed.
+    fn remove_file(&self, path: &Path) -> SandboxResult<()>;
+
+    /// Opens one file for a streamed read.
+    ///
+    /// The caller reads the body through this handle, so it never holds the
+    /// whole file.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be opened.
+    fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>>;
+
+    /// Copies one file, keeping its holes when the file system supports it.
+    ///
+    /// It tries a reflink, then a sparse copy, then a plain copy.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when no copy works.
+    fn clone_file(&self, from: &Path, to: &Path) -> SandboxResult<()>;
+
+    /// Takes an exclusive advisory lock on one file.
+    ///
+    /// A second lock of the same file by another process fails; a second lock
+    /// by this process also fails.
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the file cannot be opened or the lock is held.
+    fn lock_exclusive(&self, path: &Path) -> SandboxResult<FileLock>;
 
     /// The modification time of a path, when the host can read it.
     ///
