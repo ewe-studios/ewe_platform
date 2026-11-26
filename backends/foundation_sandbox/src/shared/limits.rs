@@ -121,6 +121,12 @@ pub struct BuildLimits {
     /// Default 1000. A build file that needs more steps is a script that
     /// belongs in a `RUN` step.
     pub max_steps: usize,
+    /// The most progress values that the builder holds for a slow consumer.
+    ///
+    /// Default 8: the `proxy_buffers` count default of nginx. The build waits
+    /// for room, so a consumer that pauses does not let output collect in
+    /// host memory (invariant I12).
+    pub progress_queue: usize,
     /// The largest file that one `FETCH` downloads.
     ///
     /// Default 1 GiB: the default of
@@ -156,6 +162,7 @@ impl Default for BuildLimits {
         Self {
             max_file_bytes: 1024 * 1024,
             max_steps: 1000,
+            progress_queue: 8,
             max_fetch_bytes: 1024 * 1024 * 1024,
             step_timeout: Duration::from_mins(30),
             cache_max_bytes: 20 * 1024 * 1024 * 1024,
@@ -183,6 +190,13 @@ impl BuildLimits {
     #[must_use]
     pub fn with_max_steps(mut self, value: usize) -> Self {
         self.max_steps = value;
+        self
+    }
+
+    /// Replaces [`Self::progress_queue`].
+    #[must_use]
+    pub fn with_progress_queue(mut self, value: usize) -> Self {
+        self.progress_queue = value;
         self
     }
 
@@ -226,6 +240,7 @@ impl BuildLimits {
     pub fn all_positive(&self) -> bool {
         self.max_file_bytes > 0
             && self.max_steps > 0
+            && self.progress_queue > 0
             && self.max_fetch_bytes > 0
             && !self.step_timeout.is_zero()
             && self.cache_max_bytes > 0

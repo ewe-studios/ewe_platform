@@ -6,10 +6,13 @@ use std::sync::Arc;
 
 use foundation_sandbox::native::host::NativeFs;
 use foundation_sandbox::native::images::build::cache::StepCache;
-use foundation_sandbox::native::images::build::executor::{BuildProgress, BuildStepLine};
+use foundation_sandbox::native::images::build::executor::{
+    BuildEvent, BuildProgress, BuildStepLine,
+};
 use foundation_sandbox::native::images::build::keys::step_key;
 use foundation_sandbox::native::images::build::BuildOptions;
 use foundation_sandbox::native::images::sandboxfile::Sandboxfile;
+use foundation_sandbox::shared::control::testing::SlaveCall;
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::host::HostFs;
 use foundation_sandbox::shared::limits::BuildLimits;
@@ -432,4 +435,78 @@ fn run_output_streams() {
         largest < 1024 * 1024,
         "the builder holds less than 1 MiB of one chunk: {largest}"
     );
+}
+
+#[test]
+fn build_asks_to_keep_an_existing_directory_mode() {
+    let _serial = crate::control::support::serial();
+    let harness = Harness::new("add-keep-mode");
+    harness.base(&base_name());
+    write_file(
+        harness.cache.parent().expect("the context"),
+        "tool",
+        b"tool\n",
+    );
+    harness
+        .build(&Harness::file(&base_name(), "ADD ./tool /tmp/tool\n"))
+        .expect("the ADD build succeeds");
+    assert!(
+        harness.slave.calls().iter().any(|call| matches!(
+            call,
+            SlaveCall::UnpackBegin {
+                keep_existing_dirs: true
+            }
+        )),
+        "the build asks the guest to keep an existing directory's mode"
+    );
+}
+
+#[test]
+fn progress_queue_bounds_a_paused_consumer() {
+    let _serial = crate::control::support::serial();
+    let harness = Harness::new("progress-queue");
+    harness.base(&base_name());
+    harness.slave.with_exec_events(vec![
+        ExecEventKind::Started { pid: 5 },
+        ExecEventKind::Stdout {
+            data: b"one\n".to_vec(),
+        },
+        ExecEventKind::Exit {
+            code: Some(0),
+            signal: None,
+        },
+    ]);
+    let text = one_step("RUN one");
+    let file = Sandboxfile::parse(&text).expect("the file parses");
+    let options = BuildOptions {
+        limits: BuildLimits::default().with_progress_queue(1),
+        ..BuildOptions::default()
+    };
+    let mut stream = harness.builder.build_with_progress(
+        file,
+        harness.cache.parent().expect("the context").to_path_buf(),
+        options,
+    );
+    // Read one value and then pause. The queue holds one value, so the build
+    // waits for room and cannot commit the image.
+    let first = crate::pool::block_on(stream.next());
+    assert!(matches!(first, Some(BuildEvent::Progress(_))));
+    std::thread::sleep(std::time::Duration::from_millis(250));
+    assert_eq!(
+        image_count(&harness),
+        1,
+        "the build waits for the paused consumer and commits nothing"
+    );
+
+    // Drain the stream: the build continues and commits the image.
+    let result = crate::pool::block_on(async {
+        while let Some(event) = stream.next().await {
+            if let BuildEvent::Done(result) = event {
+                return *result;
+            }
+        }
+        Err(foundation_sandbox::shared::error::SandboxError::StreamLost.into())
+    });
+    result.expect("the build succeeds after the consumer returns");
+    assert_eq!(image_count(&harness), 2, "the image is committed");
 }

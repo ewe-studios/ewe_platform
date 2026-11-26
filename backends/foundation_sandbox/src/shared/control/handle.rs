@@ -641,6 +641,7 @@ pub async fn unpack_stream(
             dest,
             oci_whiteouts: options.oci_whiteouts,
             skip: options.skip,
+            keep_existing_dirs: options.keep_existing_dirs,
         })
         .await?;
     let mut guard = UnpackAbort {

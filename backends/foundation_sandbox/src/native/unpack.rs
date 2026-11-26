@@ -239,18 +239,25 @@ pub fn unpack<R: Read>(
             stats.bytes = total;
         }
         let destination = resolve_in_root(root, &relative)?;
-        apply_entry(&mut reader, &header, &pending, root, &destination, &path).map_err(
-            |error| match error {
-                // The reader reports the entry path, not one host path of the
-                // entry, so a caller can name the tar entry that failed.
-                UnpackError::Entry { errno, message, .. } => UnpackError::Entry {
-                    path: path.clone(),
-                    errno,
-                    message,
-                },
-                other => other,
+        apply_entry(
+            &mut reader,
+            &header,
+            &pending,
+            options.keep_existing_dirs,
+            root,
+            &destination,
+            &path,
+        )
+        .map_err(|error| match error {
+            // The reader reports the entry path, not one host path of the
+            // entry, so a caller can name the tar entry that failed.
+            UnpackError::Entry { errno, message, .. } => UnpackError::Entry {
+                path: path.clone(),
+                errno,
+                message,
             },
-        )?;
+            other => other,
+        })?;
         mark_created(&mut created, &relative);
         pending.clear();
     }
@@ -560,6 +567,7 @@ fn apply_entry<R: Read>(
     reader: &mut TarReader<R>,
     header: &Header,
     pending: &Pending,
+    keep_existing_dirs: bool,
     root: &Path,
     destination: &Path,
     path: &str,
@@ -587,8 +595,13 @@ fn apply_entry<R: Read>(
             set_capability(destination, pending.pax_capability.as_deref(), path)?;
         }
         HeaderKind::Directory => {
+            // A build writes the parent directories of an ADD destination and
+            // cannot see which of them the image already has. It asks the
+            // reader to keep the mode of an existing directory, so the mode of
+            // a guest `/tmp` of 1777 does not become the mode of the entry.
+            let mut existed = false;
             match fs::symlink_metadata(destination) {
-                Ok(metadata) if metadata.is_dir() => {}
+                Ok(metadata) if metadata.is_dir() => existed = true,
                 Ok(_) => {
                     remove_other(destination, true)?;
                     create_dir(destination, path)?;
@@ -599,7 +612,9 @@ fn apply_entry<R: Read>(
                 Err(error) => return Err(UnpackError::entry(path, &error)),
             }
             set_owner(destination, uid, gid, path)?;
-            set_mode(destination, mode, path)?;
+            if !(keep_existing_dirs && existed) {
+                set_mode(destination, mode, path)?;
+            }
         }
         HeaderKind::Symlink => {
             remove_other(destination, true)?;

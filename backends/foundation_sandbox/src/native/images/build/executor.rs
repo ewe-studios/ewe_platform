@@ -19,7 +19,7 @@ use std::task::{Context as TaskContext, Poll};
 
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
-use futures::{Stream, StreamExt};
+use futures::{SinkExt as _, Stream, StreamExt};
 
 use crate::native::images::build::cache::{SnapshotName, StepCache, StepRecord};
 use crate::native::images::build::keys::{self, image_key};
@@ -106,7 +106,7 @@ pub enum BuildEvent {
 /// to its end, so dropping the stream stops the reports but leaves the steps
 /// and their snapshots in a consistent state.
 pub struct BuildStream {
-    events: futures::channel::mpsc::UnboundedReceiver<BuildEvent>,
+    events: futures::channel::mpsc::Receiver<BuildEvent>,
     cancel: Arc<std::sync::atomic::AtomicBool>,
 }
 
@@ -210,17 +210,19 @@ impl ImageBuilder {
         context: PathBuf,
         options: BuildOptions,
     ) -> BuildStream {
-        let (sender, events) = futures::channel::mpsc::unbounded();
-        let on_failure = sender.clone();
+        let capacity = options.limits.progress_queue.max(1);
+        let (sender, events) = futures::channel::mpsc::channel(capacity);
+        let mut on_failure = sender.clone();
         let builder = self.clone();
         let cancel = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let task_cancel = Arc::clone(&cancel);
         let future = async move {
             let sink = ProgressSink(Some(sender.clone()));
+            let mut sender = sender;
             let result = builder
                 .build_inner(file, context, options, sink, task_cancel)
                 .await;
-            let _ = sender.unbounded_send(BuildEvent::Done(Box::new(result)));
+            let _ = sender.send(BuildEvent::Done(Box::new(result))).await;
         };
         if let Err(error) =
             foundation_core::valtron::send(foundation_core::valtron::from_future(future))
@@ -230,7 +232,7 @@ impl ImageBuilder {
                 message: format!("the valtron pool is not available: {error}"),
             }
             .into();
-            let _ = on_failure.unbounded_send(BuildEvent::Done(Box::new(Err(error))));
+            let _ = on_failure.try_send(BuildEvent::Done(Box::new(Err(error))));
         }
         BuildStream { events, cancel }
     }
@@ -268,7 +270,9 @@ impl ImageBuilder {
         };
 
         // Step 1: FROM. The base image is already a complete root file system.
-        progress.step_started(1, total, first.line, &file.lines()[0]);
+        progress
+            .step_started(1, total, first.line, &file.lines()[0])
+            .await;
         let started = self.started();
         let (_base_path, base_manifest, base_cached) = self.resolve_base(base, &options).await?;
         let metadata = metadata_from_manifest(&base_manifest);
@@ -277,9 +281,9 @@ impl ImageBuilder {
         let mut protected = HashSet::new();
         protected.insert(previous_key.clone());
         if base_cached {
-            progress.cache_hit(1);
+            progress.cache_hit(1).await;
         }
-        progress.step_done(1, self.elapsed(started));
+        progress.step_done(1, self.elapsed(started)).await;
 
         let mut state = BuildState {
             metadata,
@@ -324,7 +328,7 @@ impl ImageBuilder {
         let total = u32::try_from(file.steps.len()).unwrap_or(u32::MAX);
         let index = u32::try_from(position + 1).unwrap_or(u32::MAX);
         let text = file.lines().get(position).cloned().unwrap_or_default();
-        progress.step_started(index, total, step.line, &text);
+        progress.step_started(index, total, step.line, &text).await;
         let started = self.started();
         let canonical = text.trim_end();
         let (key, plan) = match &step.kind {
@@ -374,8 +378,8 @@ impl ImageBuilder {
                 state.previous_key = key;
                 state.protected.insert(state.previous_key.clone());
                 cache.touch(&state.previous_key);
-                progress.cache_hit(index);
-                progress.step_done(index, self.elapsed(started));
+                progress.cache_hit(index).await;
+                progress.step_done(index, self.elapsed(started)).await;
                 return Ok(());
             }
         }
@@ -419,7 +423,7 @@ impl ImageBuilder {
         state.previous_key = key;
         state.protected.insert(state.previous_key.clone());
         cache.touch(&state.previous_key);
-        progress.step_done(index, self.elapsed(started));
+        progress.step_done(index, self.elapsed(started)).await;
         Ok(())
     }
 
@@ -432,7 +436,7 @@ impl ImageBuilder {
         progress: &ProgressSink,
         state: &mut BuildState,
     ) -> SandboxResult<ImageRef> {
-        progress.committing();
+        progress.committing().await;
         let final_key = image_key(&state.previous_key, &state.metadata.canonical_json());
         let last_snapshot = self.snapshot_path(&state.snapshot).await?;
         let work = self.store.snapshot(&last_snapshot).await?;
@@ -686,10 +690,10 @@ impl ImageBuilder {
                 while let Some(item) = events.next().await {
                     match item? {
                         ExecEvent::Stdout(data) => {
-                            progress.output(index, false, data);
+                            progress.output(index, false, data).await;
                         }
                         ExecEvent::Stderr(data) => {
-                            progress.output(index, true, data);
+                            progress.output(index, true, data).await;
                         }
                         ExecEvent::Exit(status) => {
                             exit = Some(status);
@@ -726,7 +730,14 @@ impl ImageBuilder {
     async fn unpack(&self, sandbox: &SandboxHandle, plan: steps::TarPlan) -> SandboxResult<()> {
         let stream: BoxByteStream = plan.tar_stream(self.host.fs.clone());
         sandbox
-            .unpack("/", stream, UnpackOptions::default())
+            .unpack(
+                "/",
+                stream,
+                UnpackOptions {
+                    keep_existing_dirs: true,
+                    ..UnpackOptions::default()
+                },
+            )
             .await?;
         Ok(())
     }
@@ -798,42 +809,50 @@ enum Action {
 
 /// The progress sink of one build.
 #[derive(Clone, Default)]
-struct ProgressSink(Option<futures::channel::mpsc::UnboundedSender<BuildEvent>>);
+struct ProgressSink(Option<futures::channel::mpsc::Sender<BuildEvent>>);
 
 impl ProgressSink {
-    fn send(&self, progress: BuildProgress) {
+    /// Sends one value, and waits for room in a full queue.
+    ///
+    /// The queue has `BuildLimits::progress_queue` slots, so a consumer that
+    /// pauses stops the build at this point instead of letting output collect
+    /// in memory (invariant I12).
+    async fn send(&self, progress: BuildProgress) {
         if let Some(sender) = &self.0 {
-            let _ = sender.unbounded_send(BuildEvent::Progress(progress));
+            let mut sender = sender.clone();
+            let _ = sender.send(BuildEvent::Progress(progress)).await;
         }
     }
 
-    fn step_started(&self, index: u32, total: u32, line: u32, text: &str) {
+    async fn step_started(&self, index: u32, total: u32, line: u32, text: &str) {
         self.send(BuildProgress::StepStarted {
             index,
             total,
             line,
             text: text.lines().next().unwrap_or("").trim_end().to_string(),
-        });
+        })
+        .await;
     }
 
-    fn cache_hit(&self, index: u32) {
-        self.send(BuildProgress::CacheHit { index });
+    async fn cache_hit(&self, index: u32) {
+        self.send(BuildProgress::CacheHit { index }).await;
     }
 
-    fn output(&self, index: u32, stderr: bool, data: Vec<u8>) {
+    async fn output(&self, index: u32, stderr: bool, data: Vec<u8>) {
         self.send(BuildProgress::Output {
             index,
             stderr,
             data,
-        });
+        })
+        .await;
     }
 
-    fn step_done(&self, index: u32, millis: u64) {
-        self.send(BuildProgress::StepDone { index, millis });
+    async fn step_done(&self, index: u32, millis: u64) {
+        self.send(BuildProgress::StepDone { index, millis }).await;
     }
 
-    fn committing(&self) {
-        self.send(BuildProgress::Committing);
+    async fn committing(&self) {
+        self.send(BuildProgress::Committing).await;
     }
 }
 

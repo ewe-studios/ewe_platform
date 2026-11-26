@@ -648,6 +648,11 @@ pub enum SlaveCall {
         /// The path.
         path: String,
     },
+    /// `UnpackBegin`.
+    UnpackBegin {
+        /// Whether an existing directory keeps its mode.
+        keep_existing_dirs: bool,
+    },
     /// `Shutdown`.
     Shutdown {
         /// The grace in milliseconds.
@@ -670,6 +675,7 @@ impl SlaveCall {
             Self::FileWriteCommit { .. } => "file_write_commit",
             Self::FileWriteAbort { .. } => "file_write_abort",
             Self::FileRead { .. } => "file_read",
+            Self::UnpackBegin { .. } => "unpack_begin",
             Self::Shutdown { .. } => "shutdown",
         }
     }
@@ -1395,8 +1401,11 @@ impl SlaveService for ScriptedSlave {
     async fn unpack_begin(
         &self,
         _ctx: RpcCtx,
-        _request: Request<UnpackBeginRequest>,
+        request: Request<UnpackBeginRequest>,
     ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        self.record(SlaveCall::UnpackBegin {
+            keep_existing_dirs: request.msg.keep_existing_dirs,
+        });
         Ok(Response::new(UnpackBeginResponse {
             upload_id: "unpack-00000001".to_string(),
         }))

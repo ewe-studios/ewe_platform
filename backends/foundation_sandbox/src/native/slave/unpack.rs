@@ -38,6 +38,8 @@ const READY_LINE: &str = "ready";
 pub struct ChildOptions {
     /// Whether OCI whiteouts apply.
     pub oci_whiteouts: bool,
+    /// Whether an existing directory keeps its mode.
+    pub keep_existing_dirs: bool,
     /// Exact relative paths that the reader drops.
     pub skip: Vec<String>,
     /// The most entries.
@@ -443,6 +445,7 @@ pub fn run_unpack_child(dest: &str, options_json: &str) -> i32 {
     let options = UnpackOptions {
         oci_whiteouts: options.oci_whiteouts,
         skip: options.skip,
+        keep_existing_dirs: options.keep_existing_dirs,
     };
     let stdin = std::io::stdin();
     let outcome =

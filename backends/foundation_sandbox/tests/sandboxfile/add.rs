@@ -1,6 +1,7 @@
 //! The ADD rows of feature 14, section 7: I8, I10 and section 6.3.
 
 use std::io::Cursor;
+use std::os::unix::fs::{MetadataExt as _, PermissionsExt as _};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -9,8 +10,11 @@ use foundation_sandbox::native::images::build::steps::{plan_add, TarPlan};
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::host::HostFs;
 use foundation_sandbox::shared::limits::BuildLimits;
+use foundation_sandbox::shared::unpack::UnpackOptions;
 use foundation_sandbox::shared::BoxByteStream;
 use futures::StreamExt as _;
+
+use foundation_sandbox::native::unpack::{unpack, UnpackLimits};
 
 use super::support::{write_file, TempDir};
 
@@ -46,18 +50,23 @@ struct TarEntry {
     link: Option<String>,
 }
 
-/// The entries of one tar plan, in order.
-fn tar_entries(plan: TarPlan) -> Vec<TarEntry> {
+/// The bytes of one tar plan.
+fn tar_bytes(plan: TarPlan) -> Vec<u8> {
     let fs: Arc<dyn HostFs> = Arc::new(NativeFs);
     let stream: BoxByteStream = plan.tar_stream(fs);
-    let bytes = crate::pool::block_on(async move {
+    crate::pool::block_on(async move {
         let mut stream = stream;
         let mut bytes = Vec::new();
         while let Some(chunk) = stream.next().await {
             bytes.extend_from_slice(&chunk.expect("the tar stream yields"));
         }
         bytes
-    });
+    })
+}
+
+/// The entries of one tar plan, in order.
+fn tar_entries(plan: TarPlan) -> Vec<TarEntry> {
+    let bytes = tar_bytes(plan);
     let mut archive = tar::Archive::new(Cursor::new(bytes));
     let mut entries = Vec::new();
     for entry in archive.entries().expect("the tar has entries") {
@@ -234,4 +243,103 @@ fn add_tar_entries() {
         error.current_context(),
         SandboxError::ArtifactTooLarge { .. }
     ));
+}
+
+/// Rewrites the owner of every tar header to the test user.
+///
+/// The builder writes owner 0:0 for the guest. A test runs as an ordinary
+/// user, so it applies the archive as its own owner; feature 12 tests the
+/// root owner in the guest.
+fn owned_by_test_user(mut bytes: Vec<u8>) -> Vec<u8> {
+    // SAFETY: `geteuid` and `getegid` read the process credential.
+    let (uid, gid) = unsafe { (libc::geteuid(), libc::getegid()) };
+    let mut offset = 0;
+    while offset + 512 <= bytes.len() {
+        let block = &bytes[offset..offset + 512];
+        if block.iter().all(|byte| *byte == 0) {
+            break;
+        }
+        let size_field = &bytes[offset + 124..offset + 136];
+        let size_text: String = size_field
+            .iter()
+            .take_while(|byte| **byte != 0 && **byte != b' ')
+            .map(|byte| char::from(*byte))
+            .collect();
+        let size = u64::from_str_radix(size_text.trim(), 8).expect("the tar size is octal");
+        bytes[offset + 108..offset + 116].fill(0);
+        bytes[offset + 108..offset + 116].copy_from_slice(format!("{uid:07o}\0").as_bytes());
+        bytes[offset + 116..offset + 124].fill(0);
+        bytes[offset + 116..offset + 124].copy_from_slice(format!("{gid:07o}\0").as_bytes());
+        bytes[offset + 148..offset + 156].fill(b' ');
+        let checksum: u64 = bytes[offset..offset + 512]
+            .iter()
+            .map(|byte| u64::from(*byte))
+            .sum();
+        bytes[offset + 148..offset + 156].copy_from_slice(format!("{checksum:06o}\0 ").as_bytes());
+        let padded = u64::div_ceil(size, 512) * 512;
+        offset += 512 + usize::try_from(padded).expect("the tar entry fits");
+    }
+    bytes
+}
+
+#[test]
+fn add_keeps_an_existing_directory_mode() {
+    let directory = TempDir::new("add-keep-mode");
+    let context = directory.path().join("context");
+    write_file(&context, "tool", b"tool\n");
+    let fs: Arc<dyn HostFs> = Arc::new(NativeFs);
+    let built = plan_add(
+        &fs,
+        &context,
+        "./tool",
+        "/tmp/tool",
+        None,
+        &BuildLimits::default(),
+    )
+    .expect("the ADD plan is built");
+    let bytes = owned_by_test_user(tar_bytes(built.tar));
+
+    // The image already has /tmp with mode 1777. The ADD keeps it.
+    let root = directory.path().join("keep");
+    std::fs::create_dir_all(root.join("tmp")).expect("the image /tmp is made");
+    std::fs::set_permissions(root.join("tmp"), std::fs::Permissions::from_mode(0o1777))
+        .expect("the image /tmp mode is set");
+    let options = UnpackOptions {
+        keep_existing_dirs: true,
+        ..UnpackOptions::default()
+    };
+    unpack(
+        Cursor::new(bytes.clone()),
+        &root,
+        &options,
+        &UnpackLimits::default(),
+    )
+    .expect("the archive applies");
+    let mode = std::fs::metadata(root.join("tmp"))
+        .expect("the directory is there")
+        .mode()
+        & 0o7777;
+    assert_eq!(mode, 0o1777, "an existing directory keeps its mode");
+    assert_eq!(
+        std::fs::read(root.join("tmp/tool")).expect("the file is there"),
+        b"tool\n"
+    );
+
+    // Without the option the directory entry sets its mode.
+    let plain = directory.path().join("plain");
+    std::fs::create_dir_all(plain.join("tmp")).expect("the image /tmp is made");
+    std::fs::set_permissions(plain.join("tmp"), std::fs::Permissions::from_mode(0o1777))
+        .expect("the image /tmp mode is set");
+    unpack(
+        Cursor::new(bytes),
+        &plain,
+        &UnpackOptions::default(),
+        &UnpackLimits::default(),
+    )
+    .expect("the archive applies");
+    let mode = std::fs::metadata(plain.join("tmp"))
+        .expect("the directory is there")
+        .mode()
+        & 0o7777;
+    assert_eq!(mode, 0o755, "the entry sets the mode without the option");
 }
