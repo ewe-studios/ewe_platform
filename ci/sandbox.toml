@@ -27,10 +27,9 @@ wrangler_version = "4.144.0"
 # pinned base system of the example product image. Both values are the image
 # reference with a digest: `<tag>@sha256:<digest>`.
 #
-# The registries were unreachable from the implementing host on 2026-11-27, so
-# the digests are not resolved. Resolve both with
-# `docker buildx imagetools inspect <tag>` and add `@sha256:<digest>` to each
-# value before a `wrangler` build. `sandbox:product-dockerfile` refuses a value
-# with no digest.
-cloudflare_sandbox_tools_image = "docker.io/cloudflare/sandbox:1.0.3"
-product_base_image = "ubuntu:24.04"
+# Docker Hub did not answer on the implementing host on 2026-11-27. The values
+# come from the pull-through mirror `mirror.gcr.io`. Each digest is the SHA-256
+# of the raw manifest that the mirror served. A CI run must prove that Docker
+# Hub serves the same digest.
+cloudflare_sandbox_tools_image = "docker.io/cloudflare/sandbox:1.0.3@sha256:fc1740c3cba26461f0ab1771287c84018ab2cca43a70ebb823087c85d780aaec"
+product_base_image = "ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b"
