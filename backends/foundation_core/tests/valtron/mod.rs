@@ -31,6 +31,8 @@ mod map_circuit;
 mod notification_based_waiting;
 mod park_busy_loop;
 mod pool_seed_root;
+#[cfg(not(target_family = "wasm"))]
+mod scoped_block_on;
 mod readiness_deadline_tests;
 mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
