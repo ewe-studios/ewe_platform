@@ -36,7 +36,9 @@ impl From<GpuError> for GraphicsError {
             GpuError::Unsupported => Self::Unsupported,
             GpuError::DeviceLost => Self::DeviceLost,
             GpuError::StaleSurface => Self::StaleSurface,
-            GpuError::IncompatibleSurface => Self::IncompatibleSurface,
+            GpuError::ExtentUnsupported { .. } | GpuError::IncompatibleSurface => {
+                Self::IncompatibleSurface
+            }
             GpuError::Suspended => Self::Suspended,
             GpuError::Cancelled => Self::Cancelled,
         }

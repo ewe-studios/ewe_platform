@@ -1209,3 +1209,10 @@ Name the Cargo library separately from the package. The two are equal today, but
 Name the concrete continuation type. Its bounds then follow the feature set of each build.
 The host build hid the defect because the default features include `multi`.
 Check a crate with the feature set that the consumer uses, not only with its defaults.
+
+## Take the texture limit from the adapter
+
+The device limit came from the configuration default of 2048 pixels. A phone display is taller than that.
+Read the limit from the adapter report and keep one documented fallback for a zero report.
+Check the extent before each configuration, and return a typed error that carries the values.
+A rejected extent must leave the owner usable; the next valid configuration must present.

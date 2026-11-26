@@ -36,12 +36,26 @@ impl Surfaces {
 #[derive(Debug, Clone)]
 pub struct SurfaceId(u64, std::sync::Weak<()>);
 
-fn validate_extent(device: &wgpu::Device, width: u32, height: u32) -> Result<(), GpuError> {
-    let limit = device.limits().max_texture_dimension_2d;
-    if width != 0 && height != 0 && (width > limit || height > limit) {
-        return Err(GpuError::Unsupported);
+/// Check one surface extent against the device texture limit.
+///
+/// A zero dimension suspends the surface, so it always passes.
+///
+/// # Errors
+/// Returns `ExtentUnsupported` when a dimension exceeds `limit`.
+pub fn check_surface_extent(limit: u32, width: u32, height: u32) -> Result<(), GpuError> {
+    if width == 0 || height == 0 || (width <= limit && height <= limit) {
+        Ok(())
+    } else {
+        Err(GpuError::ExtentUnsupported {
+            width,
+            height,
+            limit,
+        })
     }
-    Ok(())
+}
+
+fn validate_extent(device: &wgpu::Device, width: u32, height: u32) -> Result<(), GpuError> {
+    check_surface_extent(device.limits().max_texture_dimension_2d, width, height)
 }
 
 impl GpuOwner {

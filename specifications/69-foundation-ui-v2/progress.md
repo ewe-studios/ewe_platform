@@ -1538,3 +1538,14 @@ The host build without the `multi` feature also passes; it failed before the cha
 All netio test suites pass, with 1242 tests in the largest. Strict Clippy reports no warning.
 The wasm check passes with the `std` and `wire-native` features.
 The full `native:build-android --with-todo` run now finishes in 1 minute 24 seconds and stages both libraries.
+
+## Phone-sized graphics surfaces
+
+Issue [722](https://github.com/ewe-studios/ewe_platform/issues/722) is fixed.
+The device asked for the 2048 texture limit in its configuration. A 1206 by 2241 phone surface then failed the check on the worker.
+The device now asks for the adapter's own two-dimensional texture limit. A zero report uses the documented 2048 fallback.
+Attach and resize check the extent before every configuration.
+An unsupported extent returns `ExtentUnsupported`, which carries the width, height and limit.
+The surface owner stays available, and the next valid configuration presents.
+`GraphicsError` is unchanged; the new variant maps to `IncompatibleSurface`.
+Five new tests pass, including a Metal attach, a rejected oversized resize and a later presentation on this Mac.

@@ -21,12 +21,17 @@ pub mod metal;
 mod surfaces;
 #[cfg(any(target_os = "android", target_os = "linux"))]
 pub mod vulkan;
-pub use surfaces::{RenderHost, SurfaceId};
+pub use surfaces::{check_surface_extent, RenderHost, SurfaceId};
 
 /// Requested features and limits apply to this host's single device.
 #[derive(Clone, Debug)]
 pub struct GpuConfig {
     pub features: wgpu::Features,
+    /// Requested device limits.
+    ///
+    /// The device requests the adapter's two-dimensional texture limit.
+    /// `max_texture_dimension_2d` is the fallback for an adapter that reports
+    /// no limit. Its default is 2048 pixels, the WebGPU downlevel default.
     pub limits: wgpu::Limits,
     pub backends: wgpu::Backends,
     /// The default queue accepts 64 waiting commands. Further callers await capacity.
@@ -46,6 +51,44 @@ impl Default for GpuConfig {
     }
 }
 
+impl GpuConfig {
+    /// Return the surface extent limit for one adapter report.
+    ///
+    /// A non-zero adapter report wins. A zero report uses the configured
+    /// fallback, `limits.max_texture_dimension_2d`. The fallback default is
+    /// 2048 pixels, the WebGPU downlevel default.
+    #[must_use]
+    pub fn surface_extent_limit(&self, adapter: u32) -> u32 {
+        if adapter > 0 {
+            adapter
+        } else {
+            self.limits.max_texture_dimension_2d
+        }
+    }
+
+    /// Return the limits to request from one adapter.
+    fn requested_limits(&self, adapter: &wgpu::Limits) -> wgpu::Limits {
+        let mut limits = self.limits.clone();
+        limits.max_texture_dimension_2d =
+            self.surface_extent_limit(adapter.max_texture_dimension_2d);
+        limits
+    }
+}
+
+/// Compare requested limits against an adapter report.
+///
+/// A zero two-dimensional texture report counts as absent, so the configured
+/// fallback applies.
+fn check_adapter_limits(reported: &wgpu::Limits, requested: &wgpu::Limits) -> bool {
+    if reported.max_texture_dimension_2d == 0 {
+        let mut comparable = reported.clone();
+        comparable.max_texture_dimension_2d = requested.max_texture_dimension_2d;
+        requested.check_limits(&comparable)
+    } else {
+        requested.check_limits(reported)
+    }
+}
+
 #[derive(Debug, Clone, derive_more::Display, derive_more::Error)]
 pub enum GpuError {
     #[display("The host graphics service has stopped")]
@@ -54,6 +97,10 @@ pub enum GpuError {
     Unavailable(#[error(not(source))] String),
     #[display("The requested features or limits exceed the adapter capabilities")]
     Unsupported,
+    #[display(
+        "The surface extent {width} by {height} exceeds the maximum texture dimension {limit}"
+    )]
+    ExtentUnsupported { width: u32, height: u32, limit: u32 },
     #[display("The graphics device was lost")]
     DeviceLost,
     #[display("The registered surface has been removed")]
@@ -142,18 +189,17 @@ impl GraphicsDevice {
             .request_adapter(&wgpu::RequestAdapterOptions::default())
             .await
             .map_err(|e| GpuError::Unavailable(e.to_string()))?;
+        let reported = adapter.limits();
+        let requested = config.requested_limits(&reported);
         if !adapter.features().contains(config.features)
-            || !config.limits.check_limits(&adapter.limits())
+            || !check_adapter_limits(&reported, &requested)
         {
             return Err(GpuError::Unsupported);
         }
-        // Surface dimensions use the adapter's native resolution.
-        let mut limits = config.limits.clone();
-        limits.max_texture_dimension_2d = adapter.limits().max_texture_dimension_2d;
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
                 required_features: config.features,
-                required_limits: limits,
+                required_limits: requested,
                 ..Default::default()
             })
             .await

@@ -1,5 +1,6 @@
 //! Test the graphics service through the same context handle that actions use.
 mod leases;
+mod surfaces;
 use foundation_context::Ctx;
 use foundation_ui_gpu::{GpuConfig, GpuError, GpuService};
 

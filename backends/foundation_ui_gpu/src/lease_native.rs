@@ -206,9 +206,10 @@ impl From<GpuError> for LeaseError {
             GpuError::Cancelled => Self::Cancelled,
             GpuError::DeviceLost => Self::DeviceLost,
             GpuError::StaleSurface => Self::Stale,
-            GpuError::IncompatibleSurface | GpuError::Unsupported | GpuError::Suspended => {
-                Self::Incompatible
-            }
+            GpuError::IncompatibleSurface
+            | GpuError::Unsupported
+            | GpuError::ExtentUnsupported { .. }
+            | GpuError::Suspended => Self::Incompatible,
             GpuError::Unavailable(reason) | GpuError::Operation(reason) => {
                 Self::Unavailable(reason)
             }
