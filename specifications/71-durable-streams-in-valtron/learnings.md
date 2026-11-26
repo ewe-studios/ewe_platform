@@ -202,3 +202,14 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   payload, is not handled. The serial adapter also cannot serve commands while a read is open.
 - **Keep the adapter honest.** SSE stays announced as unsupported until the whole suite is
   green. The client gate stays at 208 pass, 0 fail.
+
+## Concurrent adapter experiment (2026-11-27)
+
+- **Unordered worker results break the runner.** The runner keeps one pending response. A worker
+  pool that writes each result when it finishes mixed the answers to four streaming-equivalence
+  reads. The failure count rose from 0 to 4.
+- **The adapter needs an ordered result queue.** The main thread reads every command at once and
+  assigns a sequence number. Workers run in parallel, and one writer thread emits results in
+  sequence order. A later result waits for an earlier one. The runner never sees an out-of-order
+  line.
+- **The adapter stays serial until the queue exists.** The client gate stays at 208 pass, 0 fail.
