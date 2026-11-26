@@ -95,3 +95,49 @@ fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_wind
         assert!(matches!(error, StoreError::NotFound));
     });
 }
+
+#[test]
+fn given_an_expired_ttl_stream_when_it_is_used_then_it_reports_not_found() {
+    let clock = TestClock::new();
+    let streams = DurableStreams::new(DurableStream::with_clock(
+        Arc::new(MemoryVfs::new()),
+        Arc::new(clock.clone()),
+    ));
+    let name = StreamName::parse("ttl/expired").expect("name");
+
+    smol::block_on(async {
+        streams
+            .stream(name.clone())
+            .create(CreateSpec {
+                expires: Some(Expiry::Ttl(Duration::from_secs(10))),
+                initial: Some(Chunk::new(b"data".to_vec())),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("create");
+    });
+
+    clock.set(10_001);
+
+    smol::block_on(async {
+        assert!(matches!(
+            streams.stream(name.clone()).head().await,
+            Err(StoreError::NotFound)
+        ));
+        // The entry is gone, so a later access stays not found.
+        assert!(matches!(
+            streams.stream(name.clone()).head().await,
+            Err(StoreError::NotFound)
+        ));
+        assert!(matches!(
+            streams
+                .stream(name.clone())
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await,
+            Err(StoreError::NotFound)
+        ));
+    });
+}
