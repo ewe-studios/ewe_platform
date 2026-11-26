@@ -11,10 +11,10 @@
 //! a [`Caller`]. The registry methods take that caller, so the Worker can
 //! separate clients and the native host can keep one shared name space.
 
-#[cfg(feature = "multi")]
+#[cfg(any(feature = "multi", feature = "worker"))]
 pub mod local;
 
-#[cfg(feature = "multi")]
+#[cfg(any(feature = "multi", feature = "worker"))]
 pub use local::{InMemoryStores, LocalInstanceRegistry, SessionStores};
 
 use std::pin::Pin;
