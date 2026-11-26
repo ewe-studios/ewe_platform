@@ -48,7 +48,8 @@ use crate::shared::rpc::messages::{
     ExecSignalRequest, FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::{
     register_sandbox_service, register_slave_service, SandboxService, SlaveService,
@@ -63,7 +64,7 @@ pub fn full_capabilities() -> Capabilities {
         rootfs_ext4: true,
         rootfs_squashfs: true,
         rootfs_container_image: true,
-        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly],
+        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly, RootMode::Writable],
         host_mounts: true,
         network_none: true,
         network_host: true,
@@ -582,6 +583,8 @@ pub enum SlaveCall {
         argv: Vec<String>,
         /// Whether the program reads input.
         stdin: bool,
+        /// The user of the command (feature 12).
+        user: Option<String>,
     },
     /// `ExecInput`.
     ExecInput {
@@ -737,6 +740,7 @@ struct ScriptedInner {
     shutdown_count: Mutex<usize>,
     info_pending: AtomicBool,
     shutdown_error: Mutex<Option<SandboxError>>,
+    unpack_error: Mutex<Option<SandboxError>>,
 }
 
 /// A `SlaveService` implementation that a test scripts.
@@ -775,8 +779,18 @@ impl ScriptedSlave {
                 shutdown_count: Mutex::new(0),
                 info_pending: AtomicBool::new(false),
                 shutdown_error: Mutex::new(None),
+                unpack_error: Mutex::new(None),
             }),
         }
+    }
+
+    /// Makes the next `UnpackCommit` fail with `error`.
+    pub fn with_unpack_error(&self, error: SandboxError) {
+        *self
+            .inner
+            .unpack_error
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(error);
     }
 
     /// Makes `Shutdown` fail.
@@ -1085,6 +1099,7 @@ impl SlaveService for ScriptedSlave {
             exec_id: request.msg.exec_id.clone(),
             argv: request.msg.argv.clone(),
             stdin: request.msg.stdin,
+            user: request.msg.user.clone(),
         });
         let script = self
             .inner
@@ -1351,6 +1366,54 @@ impl SlaveService for ScriptedSlave {
                 forced: false,
             });
         }
+        Ok(Response::new(Empty {}))
+    }
+
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackBeginRequest>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        Ok(Response::new(UnpackBeginResponse {
+            upload_id: "unpack-00000001".to_string(),
+        }))
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackChunkRequest>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        Ok(Response::new(UnpackChunkResponse {
+            next_offset: request.msg.offset + request.msg.data.len() as u64,
+        }))
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackCommitRequest>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let error = self
+            .inner
+            .unpack_error
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take();
+        if let Some(error) = error {
+            return Err(slave_connect_error(&error));
+        }
+        Ok(Response::new(UnpackCommitResponse {
+            entries: 0,
+            bytes: 0,
+        }))
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackAbortRequest>,
+    ) -> ConnectResult<Response<Empty>> {
         Ok(Response::new(Empty {}))
     }
 }
@@ -1715,6 +1778,7 @@ struct FsState {
     dirs: std::collections::HashSet<PathBuf>,
     modified: HashMap<PathBuf, foundation_compact::SystemTime>,
     read_write: HashMap<PathBuf, bool>,
+    locked: std::collections::HashSet<PathBuf>,
 }
 
 impl FakeHostFs {
@@ -1910,6 +1974,63 @@ impl crate::shared::host::HostFs for FakeHostFs {
             .get(path)
             .copied()
             .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
+    }
+
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .remove(path);
+        Ok(())
+    }
+
+    fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>> {
+        let data = self.file(path).ok_or_else(|| SandboxError::Io {
+            op: "read_stream".to_string(),
+            message: format!("{}: not found", path.display()),
+        })?;
+        Ok(Box::new(std::io::Cursor::new(data)))
+    }
+
+    fn clone_file(&self, from: &Path, to: &Path) -> SandboxResult<()> {
+        let data = self.file(from).ok_or_else(|| SandboxError::Io {
+            op: "clone_file".to_string(),
+            message: format!("{}: not found", from.display()),
+        })?;
+        self.write(to, &data)
+    }
+
+    fn lock_exclusive(&self, path: &Path) -> SandboxResult<crate::shared::host::FileLock> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if !state.locked.insert(path.to_path_buf()) {
+            return Err(SandboxError::Io {
+                op: "lock_exclusive".to_string(),
+                message: format!("{}: the lock is held", path.display()),
+            }
+            .into());
+        }
+        drop(state);
+        Ok(crate::shared::host::FileLock::new(FakeLock {
+            state: Arc::clone(&self.state),
+            path: path.to_path_buf(),
+        }))
+    }
+}
+
+/// The token of one [`FakeHostFs`] lock. Its drop releases the lock.
+struct FakeLock {
+    state: Arc<Mutex<FsState>>,
+    path: PathBuf,
+}
+
+impl Drop for FakeLock {
+    fn drop(&mut self) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .locked
+            .remove(&self.path);
     }
 }
 

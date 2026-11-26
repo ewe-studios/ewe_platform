@@ -23,6 +23,7 @@ use crate::shared::error::{SandboxError, SandboxResult, SlaveErrorCode};
 use crate::shared::ids::ExecId;
 use crate::shared::rpc::messages::{ExecEventKind, ExecEventMsg, ExecRequest, SlaveLimits};
 use crate::shared::sequence::Sequence;
+use crate::shared::user::{resolve_user, ResolvedUser};
 
 use super::reaper::ChildTable;
 use super::slave_error;
@@ -662,7 +663,18 @@ pub(crate) async fn start(
         .into());
     }
     let exec_root = prepare.exec_root.clone();
-    let environment = merge_environment(prepare, request);
+    // The user of the command is part of the image, not of the slave: the
+    // names come from the guest files.
+    let user = match &request.user {
+        Some(spec) => Some(resolve_guest_user(&exec_root, spec)?),
+        None => None,
+    };
+    let mut environment = merge_environment(prepare, request);
+    if let Some(user) = &user {
+        if !environment.iter().any(|(key, _)| key == "HOME") {
+            environment.push(("HOME".to_string(), user.home.clone()));
+        }
+    }
     let program = resolve_program(&exec_root, &request.argv[0], &environment)?;
 
     let spawned = spawn_process(
@@ -674,6 +686,7 @@ pub(crate) async fn start(
         &cwd,
         &environment,
         &program,
+        user.as_ref().map(|user| (user.uid, user.gid)),
     )
     .await?;
 
@@ -724,6 +737,7 @@ async fn spawn_process(
     cwd: &str,
     environment: &[(String, String)],
     program: &str,
+    credentials: Option<(u32, u32)>,
 ) -> SandboxResult<Spawned> {
     let limits = prepare.limits();
     let (stdout_read, stdout_write) = sys::pipe().map_err(|error| spawn_io(&error))?;
@@ -773,6 +787,7 @@ async fn spawn_process(
             argv: &argv,
             envp: &envp,
             status_fd: status_write.as_raw_fd(),
+            credentials,
         })
         .map_err(|error| spawn_io(&error))?;
         let changed = Arc::new(Notify::new());
@@ -836,6 +851,7 @@ struct ForkInputs<'a> {
     argv: &'a [CString],
     envp: &'a [CString],
     status_fd: RawFd,
+    credentials: Option<(u32, u32)>,
 }
 
 /// Forks the program. The child never returns; the parent gets its identifier.
@@ -865,6 +881,7 @@ fn fork_process(inputs: &ForkInputs<'_>) -> io::Result<i32> {
                 &argv,
                 &envp,
                 inputs.status_fd,
+                inputs.credentials,
             );
         }
     }
@@ -889,6 +906,7 @@ unsafe fn child_start(
     argv: &[*const libc::c_char],
     envp: &[*const libc::c_char],
     status_fd: RawFd,
+    credentials: Option<(u32, u32)>,
 ) -> ! {
     let mut step = 1_u8;
     let mut errno = sys::child_setsid();
@@ -914,6 +932,20 @@ unsafe fn child_start(
     }
     if errno == 0 {
         step = 5;
+        // The command user needs its own credentials: no extra group, then the
+        // group, then the user, after the `chroot` and before `execve`.
+        if let Some((uid, gid)) = credentials {
+            errno = sys::child_setgroups();
+            if errno == 0 {
+                errno = sys::child_setgid(gid);
+            }
+            if errno == 0 {
+                errno = sys::child_setuid(uid);
+            }
+        }
+    }
+    if errno == 0 {
+        step = 6;
         // The child unblocks every signal and returns each common disposition
         // to the default before the new image starts.
         sys::child_reset_signals();
@@ -1014,6 +1046,84 @@ fn parse_exec_id(value: &str) -> SandboxResult<ExecId> {
 /// Whether a guest path is absolute.
 fn is_guest_absolute(path: &str) -> bool {
     path.starts_with('/')
+}
+
+/// The most bytes of one guest account file that the slave reads.
+const MAX_ACCOUNT_FILE_BYTES: usize = 1024 * 1024;
+
+/// Resolves one command user against the guest account files.
+///
+/// The files are read through the root descriptor, so a symbolic link in the
+/// image cannot reach a file of the slave.
+fn resolve_guest_user(exec_root: &Path, spec: &str) -> SandboxResult<ResolvedUser> {
+    let passwd = read_guest_file(exec_root, "/etc/passwd")?;
+    // A guest without `/etc/group` still resolves a numeric group.
+    let group = read_guest_file(exec_root, "/etc/group").unwrap_or_default();
+    resolve_user(spec, &passwd, &group)
+        .map_err(|error| slave_error(SlaveErrorCode::BadRequest, None, error.to_string()))
+}
+
+/// Reads one guest account file through the root descriptor.
+fn read_guest_file(exec_root: &Path, guest: &str) -> SandboxResult<String> {
+    let root = CString::new(exec_root.as_os_str().as_encoded_bytes()).map_err(|_| {
+        slave_error(
+            SlaveErrorCode::Internal,
+            None,
+            "the root path has a zero byte",
+        )
+    })?;
+    let directory =
+        sys::open_path(&root, libc::O_PATH | libc::O_DIRECTORY, 0).map_err(|error| {
+            slave_error(
+                SlaveErrorCode::RootSetupFailed,
+                error.raw_os_error(),
+                format!("open the root for the account files: {error}"),
+            )
+        })?;
+    let path = CString::new(guest).map_err(|_| {
+        slave_error(
+            SlaveErrorCode::BadRequest,
+            None,
+            format!("the account path has a zero byte: {guest}"),
+        )
+    })?;
+    let file =
+        sys::open_in_root(directory.as_raw_fd(), &path, libc::O_RDONLY, 0).map_err(|error| {
+            slave_error(
+                SlaveErrorCode::BadRequest,
+                error.raw_os_error(),
+                format!("the image has no {guest}: {error}"),
+            )
+        })?;
+    let mut data = Vec::new();
+    let mut buffer = vec![0_u8; 16 * 1024];
+    loop {
+        let read = sys::read(file.as_raw_fd(), &mut buffer).map_err(|error| {
+            slave_error(
+                SlaveErrorCode::Io,
+                error.raw_os_error(),
+                format!("read {guest}: {error}"),
+            )
+        })?;
+        if read == 0 {
+            break;
+        }
+        data.extend_from_slice(&buffer[..read]);
+        if data.len() > MAX_ACCOUNT_FILE_BYTES {
+            return Err(slave_error(
+                SlaveErrorCode::BadRequest,
+                None,
+                format!("{guest} is larger than {MAX_ACCOUNT_FILE_BYTES} bytes"),
+            ));
+        }
+    }
+    String::from_utf8(data).map_err(|_| {
+        slave_error(
+            SlaveErrorCode::BadRequest,
+            None,
+            format!("{guest} is not valid text"),
+        )
+    })
 }
 
 /// The environment of the program: `Prepare.env`, then `ExecRequest.env`, with

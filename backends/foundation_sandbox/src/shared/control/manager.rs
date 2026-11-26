@@ -18,6 +18,7 @@ use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::handles::CreateStream;
 use crate::shared::host::SlaveConnector;
 use crate::shared::ids::{DriverId, SandboxId};
+use crate::shared::images::ImageResolver;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::spec::SandboxSpec;
 use crate::shared::BoxFuture;
@@ -139,6 +140,8 @@ pub struct Inner {
     pub store: Arc<dyn RecordStore>,
     /// The configuration.
     pub config: ManagerConfig,
+    /// The resolver of a named image. `None` refuses `RootFs::Image`.
+    image_resolver: Mutex<Option<Arc<dyn ImageResolver>>>,
     entries: Mutex<HashMap<SandboxId, Arc<SandboxRecord>>>,
     stopped: Mutex<Vec<(SandboxId, ExitReport)>>,
     restored: AtomicBool,
@@ -229,6 +232,22 @@ impl Inner {
         }
     }
 
+    /// Sets the resolver of a named image.
+    pub fn set_image_resolver(&self, resolver: Arc<dyn ImageResolver>) {
+        *self
+            .image_resolver
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(resolver);
+    }
+
+    /// The resolver of a named image, when the manager has one.
+    pub fn image_resolver(&self) -> Option<Arc<dyn ImageResolver>> {
+        self.image_resolver
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+
     /// The driver with this identifier.
     pub fn driver(&self, id: DriverId) -> Option<Arc<dyn SandboxDriver>> {
         self.drivers
@@ -263,6 +282,7 @@ impl SandboxManager {
                 connector,
                 store,
                 config,
+                image_resolver: Mutex::new(None),
                 entries: Mutex::new(HashMap::new()),
                 stopped: Mutex::new(Vec::new()),
                 restored: AtomicBool::new(false),
@@ -274,6 +294,17 @@ impl SandboxManager {
     #[must_use]
     pub fn inner(&self) -> Arc<Inner> {
         Arc::clone(&self.inner)
+    }
+
+    /// Sets the resolver that turns a named image into a root file and a
+    /// manifest (feature 12).
+    ///
+    /// A manager with no resolver refuses `RootFs::Image` with
+    /// `InvalidSpec { field: "rootfs" }`.
+    #[must_use]
+    pub fn with_image_resolver(self, resolver: Arc<dyn ImageResolver>) -> Self {
+        self.inner.set_image_resolver(resolver);
+        self
     }
 
     /// Loads the stored records and finds their substrates again.
@@ -357,13 +388,15 @@ impl SandboxManager {
         let info = client.info(limits.rpc_timeout).await;
         match info {
             Ok(info) if info.prepared => {
-                let record = Arc::new(SandboxRecord::new(
+                let mut rebuilt = SandboxRecord::new(
                     stored.id.clone(),
                     stored.driver,
                     stored.spec.clone(),
                     stored.created_unix_ms,
                     stored.expires_at_unix_ms,
-                ));
+                );
+                rebuilt.manifest.clone_from(&stored.manifest);
+                let record = Arc::new(rebuilt);
                 {
                     let mut state = record
                         .state

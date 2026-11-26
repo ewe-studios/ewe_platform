@@ -118,6 +118,8 @@ pub struct SandboxRecord {
     pub driver: DriverId,
     /// The spec that the caller gave.
     pub spec: SandboxSpec,
+    /// The image manifest, when the root came from a named image.
+    pub manifest: Option<crate::shared::images::ImageManifest>,
     /// The creation time as Unix milliseconds.
     pub created_unix_ms: u64,
     /// The lifetime deadline as Unix milliseconds, or `None` for no limit.
@@ -142,6 +144,7 @@ impl SandboxRecord {
             id,
             driver,
             spec,
+            manifest: None,
             created_unix_ms,
             expires_at_unix_ms,
             state: Mutex::new(RecordState {
@@ -170,6 +173,7 @@ impl SandboxRecord {
             created_unix_ms: self.created_unix_ms,
             expires_at_unix_ms: self.expires_at_unix_ms,
             slave: state.slave.clone(),
+            manifest: self.manifest.clone(),
         }
     }
 
@@ -188,6 +192,7 @@ impl SandboxRecord {
             created_unix_ms: self.created_unix_ms,
             expires_at_unix_ms: self.expires_at_unix_ms,
             endpoint: state.endpoint.clone(),
+            manifest: self.manifest.clone(),
         }
     }
 

@@ -88,8 +88,10 @@ pub fn host_config() -> HostConfig {
         firecracker_path: None,
         krun_runner_path: Some(PathBuf::from("/bin/sandbox-krun")),
         libkrun_path: None,
+        mkfs_ext4_path: None,
         driver_order: vec![DriverId::Libkrun],
         artifact_limits: ArtifactLimits::default(),
+        image_limits: foundation_sandbox::shared::limits::ImageLimits::default(),
     }
 }
 

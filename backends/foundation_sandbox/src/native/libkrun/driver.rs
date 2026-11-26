@@ -13,9 +13,7 @@
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-#[cfg(target_os = "macos")]
-use std::sync::{Mutex, PoisonError};
+use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use foundation_compact::Instant;
@@ -30,10 +28,13 @@ use crate::shared::driver::{
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::host::{ChildProcess, HostFs, ProcessExit, ProcessSpec, SandboxHost};
 use crate::shared::ids::{check_socket_path, DriverId, SandboxId};
-use crate::shared::krun_config::{KrunMount, KrunProbe, KrunRunnerConfig, KRUN_LOG_LEVEL_WARN};
+use crate::shared::krun_config::{
+    KrunDisk, KrunMount, KrunProbe, KrunRunnerConfig, KRUN_LOG_LEVEL_WARN,
+};
 use crate::shared::limits::SandboxLimits;
 use crate::shared::spec::{
-    GuestArch, GuestMount, NetworkMode, RootFs, RootMode, RootSetup, RootSource, SandboxSpec,
+    FsType, GuestArch, GuestMount, NetworkMode, RootFs, RootMode, RootSetup, RootSource,
+    SandboxSpec,
 };
 use crate::shared::BoxFuture;
 
@@ -49,6 +50,11 @@ pub const MOUNT_TAG_PREFIX: &str = "ewe-m";
 /// The four directories of the boot root. The libkrun init needs `dev`, `proc`
 /// and `sys`; `run` is the private writable directory of the guest.
 pub const BOOT_ROOT_DIRS: [&str; 4] = ["dev", "proc", "sys", "run"];
+
+/// The block device identifier of the ext4 root disk.
+pub const KRUN_ROOT_DISK_ID: &str = "rootfs";
+/// The guest device path of the ext4 root disk.
+pub const KRUN_ROOT_DEVICE: &str = "/dev/vda";
 
 /// The lifeline write end on macOS, and nothing on Linux.
 #[cfg(target_os = "macos")]
@@ -107,16 +113,21 @@ impl LibkrunDriver {
 
 /// The capabilities of this driver (feature 09, section 4.4).
 ///
-/// `max_vcpus` is the value from the probe. A root image format that has no
-/// virtio-fs reader is off: the driver shares directories only.
+/// `max_vcpus` is the value from the probe. `blk` is the block device support
+/// of the installed library: an ext4 image is possible only when it is true,
+/// and the writable root mode needs it too (feature 12, section 6.5).
 #[must_use]
-pub fn capabilities(max_vcpus: u8) -> Capabilities {
+pub fn capabilities(max_vcpus: u8, blk: bool) -> Capabilities {
+    let mut root_modes = vec![RootMode::Overlay, RootMode::ReadOnly];
+    if blk {
+        root_modes.push(RootMode::Writable);
+    }
     Capabilities {
         rootfs_directory: true,
-        rootfs_ext4: false,
+        rootfs_ext4: blk,
         rootfs_squashfs: false,
         rootfs_container_image: false,
-        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly],
+        root_modes,
         host_mounts: true,
         network_none: true,
         network_host: true,
@@ -141,6 +152,8 @@ pub struct KrunPlan {
     pub config: KrunRunnerConfig,
     /// How writes to the root are handled.
     pub root_mode: RootMode,
+    /// The root that the control plane sends in `Prepare`.
+    pub root: RootSetup,
     /// The mount descriptions that the control plane sends in `Prepare`.
     pub mounts: Vec<GuestMount>,
     /// The environment of the runner process.
@@ -149,6 +162,8 @@ pub struct KrunPlan {
     pub limits: SandboxLimits,
     /// The started runner, after the first `Spawn` step.
     pub started: Option<KrunStarted>,
+    /// The exclusive lock on a writable image. It is held until `cleanup`.
+    pub lock: Option<Arc<crate::shared::host::FileLock>>,
 }
 
 /// One started runner process.
@@ -180,6 +195,10 @@ impl KrunPlan {
 }
 
 /// One step of the launch.
+#[allow(
+    clippy::large_enum_variant,
+    reason = "the launch state machine carries the spec once; the size is the plan that the launch builds"
+)]
 pub enum KrunLaunch {
     /// Check the root, make the run directory and write `krun.json`.
     Prepare {
@@ -297,9 +316,10 @@ fn ready(ctx: &Ctx, plan: KrunPlan) -> (KrunLaunch, Status) {
     };
     let KrunPlan {
         run_dir,
-        root_mode,
+        root,
         mounts,
         started,
+        lock,
         ..
     } = plan;
     let Some(started) = started else {
@@ -318,19 +338,21 @@ fn ready(ctx: &Ctx, plan: KrunPlan) -> (KrunLaunch, Status) {
         host.fs.clone(),
         run_dir.clone(),
         started.lifeline,
+        lock,
     );
     #[cfg(not(target_os = "macos"))]
-    let handle = KrunHandle::new(ctx.clone(), started.child, host.fs.clone(), run_dir.clone());
+    let handle = KrunHandle::new(
+        ctx.clone(),
+        started.child,
+        host.fs.clone(),
+        run_dir.clone(),
+        lock,
+    );
     let substrate = Substrate {
         endpoint: SlaveEndpoint::Unix {
             path: run_dir.join("slave.sock"),
         },
-        root: RootSetup {
-            source: RootSource::VirtioFs {
-                tag: USER_ROOT_TAG.to_string(),
-            },
-            mode: root_mode,
-        },
+        root,
         mounts,
         handle: Box::new(handle),
     };
@@ -356,7 +378,7 @@ impl SandboxDriver for LibkrunDriver {
                         ok: false,
                         message: "the sandbox host is not configured".to_string(),
                     }],
-                    capabilities: capabilities(0),
+                    capabilities: capabilities(0, false),
                 };
             };
             let mut checks = Vec::new();
@@ -386,15 +408,30 @@ impl SandboxDriver for LibkrunDriver {
                 Err("no runner program to probe".to_string())
             };
             let mut max_vcpus = 0_u8;
+            let mut blk = false;
             checks.push(HostCheck {
                 name: "libkrun".to_string(),
                 ok: probe.is_ok(),
                 message: match &probe {
                     Ok(found) => {
                         max_vcpus = found.max_vcpus;
+                        blk = found.blk;
                         format!("{} with at most {} vCPUs", found.library, found.max_vcpus)
                     }
                     Err(reason) => reason.clone(),
+                },
+            });
+
+            // Block support decides the ext4 root and the writable mode. It
+            // does not make the driver unusable: a directory root needs none.
+            checks.push(HostCheck {
+                name: "blk".to_string(),
+                ok: blk,
+                message: if blk {
+                    "the library has block device support".to_string()
+                } else {
+                    "the library has no block device support: build libkrun with `BLK=1`"
+                        .to_string()
                 },
             });
 
@@ -416,12 +453,17 @@ impl SandboxDriver for LibkrunDriver {
                 },
             });
 
-            let usable = checks.iter().all(|check| check.ok);
+            // The block support check reports a capability, not a reason to
+            // refuse the driver: a directory root works without it.
+            let usable = checks
+                .iter()
+                .filter(|check| check.name != "blk")
+                .all(|check| check.ok);
             HostReport {
                 driver: DriverId::Libkrun,
                 usable,
                 checks,
-                capabilities: capabilities(max_vcpus),
+                capabilities: capabilities(max_vcpus, blk),
             }
         })
     }
@@ -471,6 +513,101 @@ impl SandboxDriver for LibkrunDriver {
     }
 }
 
+/// The root of one sandbox: a shared directory or a raw ext4 disk.
+///
+/// A directory arrives as the virtio-fs share `ewe-root`, always read-only. An
+/// ext4 image arrives as the raw disk `rootfs`. A writable image takes an
+/// exclusive lock now, before the runner starts.
+#[allow(
+    clippy::type_complexity,
+    reason = "the four values are the root of the design, and a named record would only rename them"
+)]
+fn resolve_root(
+    host: &SandboxHost,
+    spec: &SandboxSpec,
+) -> SandboxResult<(
+    Option<KrunMount>,
+    Vec<KrunDisk>,
+    RootSetup,
+    Option<Arc<crate::shared::host::FileLock>>,
+)> {
+    match &spec.rootfs {
+        RootFs::Directory(path) => {
+            if spec.root_mode == RootMode::Writable {
+                return Err(SandboxError::InvalidSpec {
+                    field: "root_mode".to_string(),
+                    reason: "the writable mode needs an ext4 image root".to_string(),
+                }
+                .into());
+            }
+            if !host.fs.exists(path) {
+                return Err(SandboxError::InvalidSpec {
+                    field: "rootfs".to_string(),
+                    reason: format!("the root directory {} does not exist", path.display()),
+                }
+                .into());
+            }
+            Ok((
+                Some(KrunMount {
+                    tag: USER_ROOT_TAG.to_string(),
+                    host_path: path.clone(),
+                    read_only: true,
+                }),
+                Vec::new(),
+                RootSetup {
+                    source: RootSource::VirtioFs {
+                        tag: USER_ROOT_TAG.to_string(),
+                    },
+                    mode: spec.root_mode,
+                },
+                None,
+            ))
+        }
+        RootFs::Ext4Image(path) => {
+            if !host.fs.exists(path) {
+                return Err(SandboxError::BinaryNotFound {
+                    name: path.display().to_string(),
+                }
+                .into());
+            }
+            let lock = if spec.root_mode == RootMode::Writable {
+                let lock = host
+                    .fs
+                    .lock_exclusive(path)
+                    .map_err(|_| SandboxError::InvalidSpec {
+                        field: "rootfs".to_string(),
+                        reason: format!(
+                            "the image {} is used by another writable sandbox",
+                            path.display()
+                        ),
+                    })?;
+                Some(Arc::new(lock))
+            } else {
+                None
+            };
+            Ok((
+                None,
+                vec![KrunDisk {
+                    id: KRUN_ROOT_DISK_ID.to_string(),
+                    path: path.clone(),
+                    read_only: spec.root_mode != RootMode::Writable,
+                }],
+                RootSetup {
+                    source: RootSource::BlockDevice {
+                        device: KRUN_ROOT_DEVICE.to_string(),
+                        fstype: FsType::Ext4,
+                    },
+                    mode: spec.root_mode,
+                },
+                lock,
+            ))
+        }
+        RootFs::SquashfsImage(_) | RootFs::ContainerImage(_) | RootFs::Image(_) => {
+            Err(SandboxError::UnsupportedRootFs.into())
+        }
+    }
+}
+
 /// Resolves every file of one virtual machine and makes its run directory.
 fn prepare_plan(
     ctx: &Ctx,
@@ -479,17 +616,7 @@ fn prepare_plan(
     log_level: u32,
 ) -> SandboxResult<KrunPlan> {
     let host = SandboxHost::from_ctx(ctx)?;
-    let user_root = match &spec.rootfs {
-        RootFs::Directory(path) => path.clone(),
-        _ => return Err(SandboxError::UnsupportedRootFs.into()),
-    };
-    if !host.fs.exists(&user_root) {
-        return Err(SandboxError::InvalidSpec {
-            field: "rootfs".to_string(),
-            reason: format!("the root directory {} does not exist", user_root.display()),
-        }
-        .into());
-    }
+    let (user_root, disks, root, lock) = resolve_root(&host, spec)?;
     let runner = resolve_program(
         &host,
         host.config.krun_runner_path.as_deref(),
@@ -528,16 +655,13 @@ fn prepare_plan(
             vcpus: spec.vcpus,
             memory_mib: spec.memory_mib,
             boot_root: boot_root.clone(),
-            user_root: Some(KrunMount {
-                tag: USER_ROOT_TAG.to_string(),
-                host_path: user_root.clone(),
-                read_only: true,
-            }),
+            user_root,
             slave_path: slave.clone(),
             slave_socket: run_dir.join("slave.sock"),
             slave_port: SLAVE_VSOCK_PORT,
             tsi_inet: spec.network == NetworkMode::Host,
             mounts: krun_mounts,
+            disks: disks.clone(),
             log_level,
             lifeline_fd: lifeline_fd(),
         };
@@ -559,10 +683,12 @@ fn prepare_plan(
                 runner,
                 config,
                 root_mode: spec.root_mode,
+                root,
                 mounts,
                 env,
                 limits: spec.limits.clone(),
                 started: None,
+                lock,
             })
         }
         Err(error) => {
@@ -744,6 +870,7 @@ pub struct KrunHandle {
     fs: Arc<dyn HostFs>,
     run_dir: PathBuf,
     forced: AtomicBool,
+    lock: Mutex<Option<Arc<crate::shared::host::FileLock>>>,
     #[cfg(target_os = "macos")]
     lifeline: Mutex<Option<std::os::fd::OwnedFd>>,
 }
@@ -758,6 +885,7 @@ impl KrunHandle {
         fs: Arc<dyn HostFs>,
         run_dir: PathBuf,
         lifeline: Lifeline,
+        lock: Option<Arc<crate::shared::host::FileLock>>,
     ) -> Self {
         Self {
             ctx,
@@ -765,6 +893,7 @@ impl KrunHandle {
             fs,
             run_dir,
             forced: AtomicBool::new(false),
+            lock: Mutex::new(lock),
             lifeline: Mutex::new(lifeline),
         }
     }
@@ -778,6 +907,7 @@ impl KrunHandle {
         child: Arc<dyn ChildProcess>,
         fs: Arc<dyn HostFs>,
         run_dir: PathBuf,
+        lock: Option<Arc<crate::shared::host::FileLock>>,
     ) -> Self {
         Self {
             ctx,
@@ -785,6 +915,7 @@ impl KrunHandle {
             fs,
             run_dir,
             forced: AtomicBool::new(false),
+            lock: Mutex::new(lock),
         }
     }
 
@@ -884,6 +1015,12 @@ impl SubstrateHandle for KrunHandle {
                 let _ = self.kill().await;
             }
             self.close_lifeline();
+            // Release the writable image lock before the run directory goes.
+            let _lock = self
+                .lock
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .take();
             if self.fs.exists(&self.run_dir) {
                 self.fs.remove_dir_all(&self.run_dir)?;
             }

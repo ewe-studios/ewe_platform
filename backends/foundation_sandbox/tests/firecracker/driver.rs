@@ -107,8 +107,10 @@ fn host_config() -> foundation_sandbox::shared::host::HostConfig {
         firecracker_path: Some(PathBuf::from("/bin/firecracker")),
         krun_runner_path: None,
         libkrun_path: None,
+        mkfs_ext4_path: None,
         driver_order: vec![DriverId::Firecracker],
         artifact_limits: ArtifactLimits::default(),
+        image_limits: foundation_sandbox::shared::limits::ImageLimits::default(),
     }
 }
 
@@ -606,6 +608,7 @@ fn attach_returns_none_and_removes_run_dir() {
         created_unix_ms: 0,
         expires_at_unix_ms: None,
         endpoint: None,
+        manifest: None,
     };
     let attached =
         crate::pool::block_on(driver.attach(ctx.clone(), &record)).expect("attach succeeds");
@@ -696,6 +699,7 @@ fn handle_model() {
         Arc::from(child),
         Arc::new(fs.clone()),
         run_dir(),
+        None,
     );
 
     // A terminate with a grace the timer answers at once forces the stop.
@@ -733,6 +737,7 @@ fn machine_config_body() {
         guest_cid: 3,
         boot_args: String::new(),
         limits: SandboxLimits::default(),
+        lock: None,
     };
     let body = machine_config(&plan);
     assert_eq!(body.vcpu_count, 2);

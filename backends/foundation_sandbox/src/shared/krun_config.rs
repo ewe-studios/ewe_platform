@@ -33,6 +33,20 @@ pub struct KrunMount {
     pub read_only: bool,
 }
 
+/// One raw disk image that libkrun attaches to the guest.
+///
+/// The driver adds one for an ext4 root (feature 12). libkrun opens the file as
+/// a raw disk: it never probes the format (feature 12, rule 4.5).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct KrunDisk {
+    /// The block device identifier in the guest.
+    pub id: String,
+    /// The image file on the host.
+    pub path: PathBuf,
+    /// Whether the guest may write the image.
+    pub read_only: bool,
+}
+
 /// The full description of one libkrun virtual machine.
 ///
 /// The driver writes it once. The runner only reads it, and it never changes
@@ -60,7 +74,12 @@ pub struct KrunRunnerConfig {
     /// Impersonation (TSI). It is on only with `NetworkMode::Host`.
     pub tsi_inet: bool,
     /// The extra host directories, as `{ tag, host_path, read_only }`.
+    #[serde(default)]
     pub mounts: Vec<KrunMount>,
+    /// The raw disk images, as `{ id, path, read_only }`. The ext4 root is one
+    /// of them (feature 12).
+    #[serde(default)]
+    pub disks: Vec<KrunDisk>,
     /// The libkrun log level, one of the `KRUN_LOG_LEVEL_*` values.
     pub log_level: u32,
     /// The macOS lifeline descriptor. The driver sets 3 on macOS and `None` on
@@ -77,4 +96,7 @@ pub struct KrunProbe {
     pub library: String,
     /// The most virtual CPUs that the library gives one machine.
     pub max_vcpus: u8,
+    /// Whether the library has block device support (`KRUN_FEATURE_BLK`).
+    #[serde(default)]
+    pub blk: bool,
 }

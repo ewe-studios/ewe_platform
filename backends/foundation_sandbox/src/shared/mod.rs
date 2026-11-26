@@ -12,6 +12,7 @@ pub mod error;
 pub mod handles;
 pub mod host;
 pub mod ids;
+pub mod images;
 pub mod krun_config;
 pub mod limits;
 pub mod listen;
@@ -20,6 +21,8 @@ pub mod rpc;
 pub mod sequence;
 pub mod serde_helpers;
 pub mod spec;
+pub mod unpack;
+pub mod user;
 
 /// The Cloudflare part of the platform. Feature 07 fills this module.
 #[cfg(feature = "cloudflare")]

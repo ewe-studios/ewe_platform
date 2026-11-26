@@ -112,6 +112,8 @@ pub struct FcPlan {
     pub boot_args: String,
     /// Every size and time limit of the sandbox.
     pub limits: SandboxLimits,
+    /// The exclusive lock on a writable image. It is held until `cleanup`.
+    pub lock: Option<Arc<crate::shared::host::FileLock>>,
 }
 
 impl FcPlan {
@@ -293,7 +295,7 @@ pub fn capabilities() -> Capabilities {
         rootfs_ext4: true,
         rootfs_squashfs: true,
         rootfs_container_image: false,
-        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly],
+        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly, RootMode::Writable],
         host_mounts: false,
         network_none: true,
         network_host: false,
@@ -996,9 +998,31 @@ async fn prepare_plan(
             }
             path.clone()
         }
+        Some(KernelSource::Named(name)) => {
+            store
+                .firecracker_kernel_named(name, GuestArch::host())
+                .await?
+        }
         _ => store.firecracker_kernel(GuestArch::host()).await?,
     };
     let initramfs = store.slave_initramfs(&slave).await?;
+    // A writable image has one writer. The lock is taken before the VM starts,
+    // so a second writable sandbox on the same file fails here.
+    let lock = if spec.root_mode == RootMode::Writable {
+        let lock = host
+            .fs
+            .lock_exclusive(&rootfs)
+            .map_err(|_| SandboxError::InvalidSpec {
+                field: "rootfs".to_string(),
+                reason: format!(
+                    "the image {} is used by another writable sandbox",
+                    rootfs.display()
+                ),
+            })?;
+        Some(Arc::new(lock))
+    } else {
+        None
+    };
     let run_dir = host.config.state_dir.join(id.as_str());
     host.fs.create_dir_all(&run_dir, 0o700)?;
     let prepared = (|| -> SandboxResult<()> {
@@ -1033,6 +1057,7 @@ async fn prepare_plan(
         boot_args: boot_args_override
             .map_or_else(|| boot_args(GuestArch::host()), ToString::to_string),
         limits: spec.limits.clone(),
+        lock,
     })
 }
 
@@ -1081,7 +1106,13 @@ fn make_substrate(
     vmm: Arc<dyn ChildProcess>,
 ) -> SandboxResult<Substrate> {
     let host = SandboxHost::from_ctx(ctx)?;
-    let handle = FcHandle::new(ctx.clone(), vmm, host.fs.clone(), plan.run_dir.clone());
+    let handle = FcHandle::new(
+        ctx.clone(),
+        vmm,
+        host.fs.clone(),
+        plan.run_dir.clone(),
+        plan.lock.clone(),
+    );
     Ok(Substrate {
         endpoint: SlaveEndpoint::FirecrackerVsock {
             uds: plan.vsock_socket(),
@@ -1127,7 +1158,7 @@ pub fn drive(plan: &FcPlan) -> Drive {
         drive_id: "rootfs".to_string(),
         path_on_host: Some(plan.rootfs.display().to_string()),
         is_root_device: false,
-        is_read_only: Some(true),
+        is_read_only: Some(plan.root_mode != RootMode::Writable),
         ..Drive::default()
     }
 }
@@ -1319,6 +1350,7 @@ pub struct FcHandle {
     fs: Arc<dyn HostFs>,
     run_dir: PathBuf,
     forced: AtomicBool,
+    lock: std::sync::Mutex<Option<Arc<crate::shared::host::FileLock>>>,
 }
 
 impl FcHandle {
@@ -1329,6 +1361,7 @@ impl FcHandle {
         vmm: Arc<dyn ChildProcess>,
         fs: Arc<dyn HostFs>,
         run_dir: PathBuf,
+        lock: Option<Arc<crate::shared::host::FileLock>>,
     ) -> Self {
         Self {
             ctx,
@@ -1336,6 +1369,7 @@ impl FcHandle {
             fs,
             run_dir,
             forced: AtomicBool::new(false),
+            lock: std::sync::Mutex::new(lock),
         }
     }
 
@@ -1420,6 +1454,13 @@ impl SubstrateHandle for FcHandle {
             if self.vmm.try_wait()?.is_none() {
                 let _ = self.kill().await;
             }
+            // Release the writable image lock before the run directory goes,
+            // so a later writable sandbox on the same file can start.
+            let _lock = self
+                .lock
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .take();
             if self.fs.exists(&self.run_dir) {
                 self.fs.remove_dir_all(&self.run_dir)?;
             }

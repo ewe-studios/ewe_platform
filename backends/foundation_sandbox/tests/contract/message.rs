@@ -140,6 +140,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         cwd: Some("/workspace".to_string()),
         stdin: StdinMode::Piped,
         timeout: Some(Duration::from_millis(250)),
+        user: None,
     });
     roundtrip(&Command {
         argv: vec!["cat".to_string()],
@@ -147,6 +148,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         cwd: None,
         stdin: StdinMode::Bytes(byte_data.clone()),
         timeout: None,
+        user: None,
     });
     roundtrip(&StdinMode::Null);
     roundtrip(&ExitStatus::code(0));
@@ -180,6 +182,9 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         input_pipe_bytes: 32_768,
         max_message_bytes: 4_194_304,
         event_queue_len: 4,
+        max_unpack_entries: 1_000_000,
+        max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+        max_unpack_path_bytes: 4096,
     });
     roundtrip(&PrepareRequest {
         root: RootSetup {
@@ -203,6 +208,9 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             input_pipe_bytes: 32_768,
             max_message_bytes: 4_194_304,
             event_queue_len: 4,
+            max_unpack_entries: 1_000_000,
+            max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+            max_unpack_path_bytes: 4096,
         },
     });
     roundtrip(&PrepareResponse {
@@ -215,6 +223,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
         cwd: Some("/".to_string()),
         stdin: true,
         timeout_ms: None,
+        user: None,
     });
     roundtrip(&ExecEventMsg {
         seq: number,
@@ -298,6 +307,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             prepared: true,
             can_control: false,
         }),
+        manifest: None,
     };
     roundtrip(&info);
     roundtrip(&Scoped {
@@ -309,6 +319,7 @@ fn check_all_messages(text: &str, number: u64, data: &[u8]) {
             cwd: None,
             stdin: false,
             timeout_ms: None,
+            user: None,
         },
     });
     roundtrip(&SandboxRef {
@@ -352,11 +363,11 @@ proptest! {
 fn no_request_streaming() {
     let mut router = Router::new();
     register_slave_service(&mut router, Arc::new(UnimplementedSlaveServiceHandler));
-    assert_eq!(router.len(), 11);
+    assert_eq!(router.len(), 15);
 
     let mut router = Router::new();
     register_sandbox_service(&mut router, Arc::new(UnimplementedSandboxServiceHandler));
-    assert_eq!(router.len(), 14);
+    assert_eq!(router.len(), 18);
 }
 
 /// A host report survives RPC.

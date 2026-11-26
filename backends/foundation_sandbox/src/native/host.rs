@@ -180,6 +180,116 @@ impl HostFs for NativeFs {
     fn is_openable_read_write(&self, path: &Path) -> bool {
         OpenOptions::new().read(true).write(true).open(path).is_ok()
     }
+
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        match std::fs::remove_file(path) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(io_error("remove_file", path, &error).into()),
+        }
+    }
+
+    fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send>> {
+        let file = File::open(path).map_err(|error| io_error("read_stream", path, &error))?;
+        Ok(Box::new(file))
+    }
+
+    fn clone_file(&self, from: &Path, to: &Path) -> SandboxResult<()> {
+        if let Some(parent) = to.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| io_error("clone_file", parent, &error))?;
+        }
+        if reflink(from, to) {
+            return Ok(());
+        }
+        let mut source = File::open(from).map_err(|error| io_error("clone_file", from, &error))?;
+        let mut target = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(to)
+            .map_err(|error| io_error("clone_file", to, &error))?;
+        std::io::copy(&mut source, &mut target)
+            .map_err(|error| io_error("clone_file", to, &error))?;
+        Ok(())
+    }
+
+    fn lock_exclusive(&self, path: &Path) -> SandboxResult<crate::shared::host::FileLock> {
+        #[cfg(unix)]
+        {
+            use std::os::fd::{AsRawFd as _, OwnedFd};
+
+            let file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(path)
+                .map_err(|error| io_error("lock_exclusive", path, &error))?;
+            let fd = OwnedFd::from(file);
+            // SAFETY: `fd` is an open descriptor of this process. `flock` reads
+            // only that descriptor and changes the lock state of its file.
+            let result = unsafe { libc::flock(fd.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
+            if result != 0 {
+                return Err(
+                    io_error("lock_exclusive", path, &std::io::Error::last_os_error()).into(),
+                );
+            }
+            Ok(crate::shared::host::FileLock::new(fd))
+        }
+        #[cfg(not(unix))]
+        {
+            Err(io_error(
+                "lock_exclusive",
+                path,
+                &std::io::Error::from(std::io::ErrorKind::Unsupported),
+            )
+            .into())
+        }
+    }
+}
+
+/// Tries a copy-on-write clone of one file. It returns `false` when the file
+/// system or the operating system has no clone call, so the caller copies.
+fn reflink(from: &Path, to: &Path) -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::fd::AsRawFd as _;
+
+        // The FICLONE request number of `linux/fs.h`.
+        const FICLONE: libc::c_ulong = 0x4004_9409;
+        let Ok(source) = File::open(from) else {
+            return false;
+        };
+        let Ok(target) = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(to)
+        else {
+            return false;
+        };
+        // SAFETY: both descriptors are open, and FICLONE takes the source
+        // descriptor as its argument.
+        unsafe { libc::ioctl(target.as_raw_fd(), FICLONE, source.as_raw_fd()) == 0 }
+    }
+    #[cfg(target_os = "macos")]
+    {
+        use std::ffi::CString;
+
+        let (Ok(source), Ok(target)) = (
+            CString::new(from.as_os_str().as_encoded_bytes()),
+            CString::new(to.as_os_str().as_encoded_bytes()),
+        ) else {
+            return false;
+        };
+        // SAFETY: both strings are valid and live for the call; `clonefile`
+        // reads them only during the call.
+        unsafe { libc::clonefile(source.as_ptr(), target.as_ptr(), 0) == 0 }
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    {
+        let _ = (from, to);
+        false
+    }
 }
 
 /// The real side effects of the native control plane.
@@ -664,6 +774,9 @@ impl HostConfig {
             env("EWE_SANDBOX_KRUN").map_or_else(|| exe_dir.join("sandbox-krun"), PathBuf::from),
         );
         let libkrun_path = env("EWE_LIBKRUN").map(PathBuf::from);
+        let mkfs_ext4_path = env("EWE_MKFS_EXT4")
+            .map(PathBuf::from)
+            .or_else(|| find_on_path(&env, "mkfs.ext4"));
         let driver_order = env("EWE_SANDBOX_DRIVERS")
             .map(|list| parse_driver_order(&list))
             .filter(|order| !order.is_empty())
@@ -675,8 +788,10 @@ impl HostConfig {
             firecracker_path,
             krun_runner_path,
             libkrun_path,
+            mkfs_ext4_path,
             driver_order,
             artifact_limits: crate::shared::limits::ArtifactLimits::default(),
+            image_limits: crate::shared::limits::ImageLimits::default(),
         }
     }
 }

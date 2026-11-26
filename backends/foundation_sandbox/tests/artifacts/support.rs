@@ -349,6 +349,33 @@ impl HostFs for RecordingFs {
         NativeFs.rename(from, to)
     }
 
+    fn remove_file(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<()> {
+        NativeFs.remove_file(path)
+    }
+
+    fn read_stream(
+        &self,
+        path: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<Box<dyn std::io::Read + Send>> {
+        NativeFs.read_stream(path)
+    }
+
+    fn clone_file(
+        &self,
+        from: &Path,
+        to: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<()> {
+        NativeFs.clone_file(from, to)
+    }
+
+    fn lock_exclusive(
+        &self,
+        path: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<foundation_sandbox::shared::host::FileLock>
+    {
+        NativeFs.lock_exclusive(path)
+    }
+
     fn create_file(
         &self,
         path: &Path,

@@ -31,10 +31,13 @@ use crate::shared::rpc::messages::{
     ExecEventKind, ExecEventMsg, ExecInputRequest, ExecInputResponse, ExecRequest,
     ExecSignalRequest, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
-    FileWriteCommitResponse, SandboxRef, Scoped,
+    FileWriteCommitResponse, SandboxRef, Scoped, UnpackAbortRequest, UnpackBeginRequest,
+    UnpackBeginResponse, UnpackChunkRequest, UnpackChunkResponse, UnpackCommitRequest,
+    UnpackCommitResponse,
 };
 use crate::shared::rpc::SandboxServiceClient;
 use crate::shared::sequence::{Sequence, SequenceCheck};
+use crate::shared::unpack::{UnpackOptions, UnpackReport, UNPACK_LIMIT_MESSAGE};
 use crate::shared::{BoxByteStream, BoxFuture, ExecEventStream};
 
 /// The address that the remote client uses in the request line.
@@ -369,6 +372,7 @@ pub async fn exec_session_with_id(
         cwd: command.cwd.clone(),
         stdin: stdin_requested,
         timeout_ms,
+        user: command.user.clone(),
     };
     let mut stream = calls.exec(request).await?;
     let Some(Ok(ExecEventMsg {
@@ -596,6 +600,143 @@ pub async fn write_file_stream(
     }
 }
 
+/// The abort guard of one unpack. It aborts the session when the caller drops
+/// the future before the commit.
+struct UnpackAbort {
+    calls: Arc<dyn ExecFileCalls>,
+    upload_id: Option<String>,
+    armed: bool,
+}
+
+impl UnpackAbort {
+    fn disarm(&mut self) {
+        self.armed = false;
+    }
+
+    async fn abort_now(&mut self) {
+        self.armed = false;
+        if let Some(upload_id) = self.upload_id.take() {
+            let _ = self
+                .calls
+                .unpack_abort(UnpackAbortRequest { upload_id })
+                .await;
+        }
+    }
+}
+
+impl Drop for UnpackAbort {
+    fn drop(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let Some(upload_id) = self.upload_id.take() else {
+            return;
+        };
+        let calls = Arc::clone(&self.calls);
+        spawn_detached(async move {
+            let _ = calls.unpack_abort(UnpackAbortRequest { upload_id }).await;
+        });
+    }
+}
+
+/// Applies one uncompressed tar stream to `dest` in the sandbox.
+///
+/// The stream is written in bounded chunks, so the control plane never holds
+/// the archive. A limit failure of the slave becomes
+/// [`SandboxError::ArtifactTooLarge`].
+///
+/// # Errors
+/// The error of the begin, chunk or commit call, or the error of the byte
+/// stream.
+pub async fn unpack_stream(
+    limits: SandboxLimits,
+    calls: Arc<dyn ExecFileCalls>,
+    dest: String,
+    options: UnpackOptions,
+    tar: BoxByteStream,
+) -> SandboxResult<UnpackReport> {
+    let begin = calls
+        .unpack_begin(UnpackBeginRequest {
+            dest,
+            oci_whiteouts: options.oci_whiteouts,
+            skip: options.skip,
+        })
+        .await?;
+    let mut guard = UnpackAbort {
+        calls: Arc::clone(&calls),
+        upload_id: Some(begin.upload_id.clone()),
+        armed: true,
+    };
+    let mut tar = tar;
+    let mut offset = 0_u64;
+    let chunk = limits.chunk_bytes.max(1);
+    loop {
+        match tar.next().await {
+            None => break,
+            Some(Err(error)) => {
+                guard.abort_now().await;
+                return Err(error);
+            }
+            Some(Ok(bytes)) => {
+                for piece in bytes.chunks(chunk) {
+                    let answer = calls
+                        .unpack_chunk(UnpackChunkRequest {
+                            upload_id: begin.upload_id.clone(),
+                            offset,
+                            data: piece.to_vec(),
+                        })
+                        .await;
+                    match answer {
+                        Ok(response) => offset = response.next_offset,
+                        Err(error) => {
+                            guard.abort_now().await;
+                            return Err(error);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let answer = calls
+        .unpack_commit(UnpackCommitRequest {
+            upload_id: begin.upload_id,
+            size: offset,
+        })
+        .await;
+    match answer {
+        Ok(response) => {
+            guard.disarm();
+            Ok(UnpackReport {
+                entries: response.entries,
+                bytes: response.bytes,
+            })
+        }
+        Err(error) => {
+            guard.abort_now().await;
+            Err(map_unpack_error(error, limits.max_unpack_bytes))
+        }
+    }
+}
+
+/// Maps the slave limit failure of an unpack to `ArtifactTooLarge`.
+fn map_unpack_error(error: ErrorTrace<SandboxError>, max_bytes: u64) -> ErrorTrace<SandboxError> {
+    if let SandboxError::SlaveError {
+        code: crate::shared::error::SlaveErrorCode::Io,
+        message,
+        errno: _,
+    } = error.current_context()
+    {
+        if message.contains(UNPACK_LIMIT_MESSAGE) {
+            return SandboxError::ArtifactTooLarge {
+                limit: max_bytes,
+                message: message.clone(),
+            }
+            .into();
+        }
+    }
+    error
+}
+
 /// Reads one file as a byte stream, with the offset check.
 ///
 /// # Errors
@@ -662,6 +803,17 @@ impl ReadState {
             }
         }
     }
+}
+
+/// The command with the image user when it names none (invariant I10).
+fn with_image_user(
+    mut command: Command,
+    manifest: Option<crate::shared::images::ImageManifest>,
+) -> Command {
+    if command.user.is_none() {
+        command.user = manifest.and_then(|manifest| manifest.user);
+    }
+    command
 }
 
 fn ensure_ready(record: &SandboxRecord) -> SandboxResult<()> {
@@ -740,6 +892,31 @@ impl ExecFileCalls for MissingCalls {
     ) -> BoxFuture<'_, SandboxResult<crate::shared::FileChunkStream>> {
         send_box(async { Err(SandboxError::SandboxStopped.into()) })
     }
+
+    fn unpack_begin(
+        &self,
+        _request: UnpackBeginRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackBeginResponse>> {
+        send_box(async { Err(SandboxError::SandboxStopped.into()) })
+    }
+
+    fn unpack_chunk(
+        &self,
+        _request: UnpackChunkRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackChunkResponse>> {
+        send_box(async { Err(SandboxError::SandboxStopped.into()) })
+    }
+
+    fn unpack_commit(
+        &self,
+        _request: UnpackCommitRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackCommitResponse>> {
+        send_box(async { Err(SandboxError::SandboxStopped.into()) })
+    }
+
+    fn unpack_abort(&self, _request: UnpackAbortRequest) -> BoxFuture<'_, SandboxResult<()>> {
+        send_box(async { Err(SandboxError::SandboxStopped.into()) })
+    }
 }
 
 /// The operations of one local sandbox.
@@ -774,6 +951,7 @@ impl SandboxOps for LocalSandboxOps {
     }
 
     fn exec(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecHandle>> {
+        let command = with_image_user(command, self.manifest());
         let result = ensure_ready(&self.record);
         let calls = record_calls(&self.record);
         let ctx = self.ctx.clone();
@@ -785,6 +963,7 @@ impl SandboxOps for LocalSandboxOps {
     }
 
     fn run(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecOutput>> {
+        let command = with_image_user(command, self.manifest());
         let result = ensure_ready(&self.record);
         let calls = record_calls(&self.record);
         let ctx = self.ctx.clone();
@@ -820,6 +999,21 @@ impl SandboxOps for LocalSandboxOps {
         })
     }
 
+    fn unpack(
+        &self,
+        dest: String,
+        options: UnpackOptions,
+        tar: BoxByteStream,
+    ) -> BoxFuture<'_, SandboxResult<UnpackReport>> {
+        let result = ensure_ready(&self.record);
+        let calls = record_calls(&self.record);
+        let limits = self.limits.clone();
+        send_box(async move {
+            result?;
+            unpack_stream(limits, calls, dest, options, tar).await
+        })
+    }
+
     fn stop(&self) -> BoxFuture<'_, SandboxResult<ExitReport>> {
         send_box(stop_record(
             Arc::clone(&self.inner),
@@ -846,6 +1040,10 @@ impl SandboxOps for LocalSandboxOps {
 
     fn calls(&self) -> Arc<dyn ExecFileCalls> {
         record_calls(&self.record)
+    }
+
+    fn manifest(&self) -> Option<crate::shared::images::ImageManifest> {
+        self.record.manifest.clone()
     }
 }
 
@@ -1072,6 +1270,51 @@ impl ExecFileCalls for ScopedCalls {
             Ok(chunk_stream(stream))
         })
     }
+
+    fn unpack_begin(
+        &self,
+        request: UnpackBeginRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackBeginResponse>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move {
+            self.client
+                .unpack_begin(self.rpc_ctx(timeout), Request::new(self.scoped(request)))
+                .await
+                .map(|response| response.msg)
+                .map_err(|error| connect_to_sandbox(&error))
+        })
+    }
+
+    fn unpack_chunk(
+        &self,
+        request: UnpackChunkRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackChunkResponse>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move { scoped_retry!(self, unpack_chunk, request, timeout) })
+    }
+
+    fn unpack_commit(
+        &self,
+        request: UnpackCommitRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackCommitResponse>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move {
+            self.client
+                .unpack_commit(self.rpc_ctx(timeout), Request::new(self.scoped(request)))
+                .await
+                .map(|response| response.msg)
+                .map_err(|error| connect_to_sandbox(&error))
+        })
+    }
+
+    fn unpack_abort(&self, request: UnpackAbortRequest) -> BoxFuture<'_, SandboxResult<()>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move {
+            let answer: SandboxResult<crate::shared::rpc::messages::Empty> =
+                scoped_retry!(self, unpack_abort, request, timeout);
+            answer.map(|_empty| ())
+        })
+    }
 }
 
 /// The operations of one sandbox on a remote `SandboxService`.
@@ -1106,6 +1349,7 @@ impl SandboxOps for RemoteSandboxOps {
     }
 
     fn exec(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecHandle>> {
+        let command = with_image_user(command, self.manifest());
         let ready = self.info.state == SandboxState::Ready;
         let calls = Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>;
         let ctx = self.ctx.clone();
@@ -1119,6 +1363,7 @@ impl SandboxOps for RemoteSandboxOps {
     }
 
     fn run(&self, command: Command) -> BoxFuture<'_, SandboxResult<ExecOutput>> {
+        let command = with_image_user(command, self.manifest());
         let ready = self.info.state == SandboxState::Ready;
         let calls = Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>;
         let ctx = self.ctx.clone();
@@ -1160,6 +1405,23 @@ impl SandboxOps for RemoteSandboxOps {
         })
     }
 
+    fn unpack(
+        &self,
+        dest: String,
+        options: UnpackOptions,
+        tar: BoxByteStream,
+    ) -> BoxFuture<'_, SandboxResult<UnpackReport>> {
+        let ready = self.info.state == SandboxState::Ready;
+        let calls = Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>;
+        let limits = self.limits.clone();
+        send_box(async move {
+            if !ready {
+                return Err(SandboxError::SandboxStopped.into());
+            }
+            unpack_stream(limits, calls, dest, options, tar).await
+        })
+    }
+
     fn stop(&self) -> BoxFuture<'_, SandboxResult<ExitReport>> {
         let calls = Arc::clone(&self.calls);
         send_box(async move { calls.stop().await })
@@ -1172,6 +1434,10 @@ impl SandboxOps for RemoteSandboxOps {
 
     fn calls(&self) -> Arc<dyn ExecFileCalls> {
         Arc::clone(&self.calls) as Arc<dyn ExecFileCalls>
+    }
+
+    fn manifest(&self) -> Option<crate::shared::images::ImageManifest> {
+        self.info.manifest.clone()
     }
 }
 

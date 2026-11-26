@@ -13,11 +13,13 @@ use serde::{Deserialize, Serialize};
 use crate::shared::command::{Command, ExecOutput};
 use crate::shared::container::ContainerHandle;
 use crate::shared::driver::HostReport;
-use crate::shared::error::SandboxResult;
+use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::handles::{CreateStream, ExecFileCalls, ExecHandle, FileStream};
 use crate::shared::ids::{DriverId, SandboxId};
+use crate::shared::images::ImageManifest;
 use crate::shared::rpc::messages::SlaveInfo;
 use crate::shared::spec::SandboxSpec;
+use crate::shared::unpack::{UnpackOptions, UnpackReport};
 use crate::shared::{BoxByteStream, BoxFuture, ByteStream};
 
 #[cfg(feature = "control")]
@@ -156,6 +158,9 @@ pub struct SandboxInfo {
     pub expires_at_unix_ms: Option<u64>,
     /// What the slave reports, when the control plane reached it.
     pub slave: Option<SlaveInfo>,
+    /// The image manifest, when the root came from a named image (feature 12).
+    #[serde(default)]
+    pub manifest: Option<crate::shared::images::ImageManifest>,
 }
 
 /// How a sandbox ended.
@@ -219,6 +224,14 @@ pub trait SandboxOps: Send + Sync + 'static {
     /// Reads one file as a byte stream.
     fn read_file(&self, path: String) -> BoxFuture<'_, SandboxResult<FileStream>>;
 
+    /// Applies one uncompressed tar stream to a directory of the guest.
+    fn unpack(
+        &self,
+        dest: String,
+        options: UnpackOptions,
+        tar: BoxByteStream,
+    ) -> BoxFuture<'_, SandboxResult<UnpackReport>>;
+
     /// Stops the sandbox.
     fn stop(&self) -> BoxFuture<'_, SandboxResult<ExitReport>>;
 
@@ -237,6 +250,13 @@ pub trait SandboxOps: Send + Sync + 'static {
     /// The `ControlService` of feature 06 uses them to pass a remote caller's
     /// calls through with no change.
     fn calls(&self) -> Arc<dyn ExecFileCalls>;
+
+    /// The image manifest of this sandbox, when its root came from an image.
+    ///
+    /// The default is `None` for a sandbox that started from a bare root.
+    fn manifest(&self) -> Option<ImageManifest> {
+        None
+    }
 }
 
 /// A cheap handle to one sandbox.
@@ -280,6 +300,27 @@ impl SandboxHandle {
         self.ops.exec(command).await
     }
 
+    /// Runs the start command of the image manifest (feature 12).
+    ///
+    /// # Errors
+    /// [`SandboxError::InvalidSpec`] with field `cmd` when the sandbox has no
+    /// image manifest or the manifest has no command, or the error of the
+    /// slave call.
+    pub async fn start_cmd(&self) -> SandboxResult<ExecHandle> {
+        let manifest = self
+            .ops
+            .manifest()
+            .ok_or_else(|| SandboxError::InvalidSpec {
+                field: "cmd".to_string(),
+                reason: "the sandbox has no image manifest".to_string(),
+            })?;
+        let argv = manifest.cmd.ok_or_else(|| SandboxError::InvalidSpec {
+            field: "cmd".to_string(),
+            reason: "the image manifest has no command".to_string(),
+        })?;
+        self.exec(Command::new(argv)).await
+    }
+
     /// Runs one command and captures its output, up to `max_captured_output`
     /// bytes for each stream.
     ///
@@ -303,6 +344,22 @@ impl SandboxHandle {
     ) -> SandboxResult<u64> {
         let data: BoxByteStream = Box::pin(data);
         self.ops.write_file(path.to_string(), mode, data).await
+    }
+
+    /// Applies one uncompressed tar stream to `dest` in the guest (feature 12).
+    ///
+    /// # Errors
+    /// [`SandboxError::SandboxStopped`] when the sandbox is not ready, the error
+    /// of the slave call, or [`SandboxError::ArtifactTooLarge`] when the
+    /// archive passes a configured unpack limit.
+    pub async fn unpack(
+        &self,
+        dest: &str,
+        tar: impl ByteStream,
+        options: UnpackOptions,
+    ) -> SandboxResult<UnpackReport> {
+        let tar: BoxByteStream = Box::pin(tar);
+        self.ops.unpack(dest.to_string(), options, tar).await
     }
 
     /// The low-level execution and file calls of this sandbox.

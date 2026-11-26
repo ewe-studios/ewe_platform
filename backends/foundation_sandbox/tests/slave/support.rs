@@ -410,6 +410,9 @@ pub fn limits() -> SlaveLimits {
         input_pipe_bytes: 64 * 1024,
         max_message_bytes: 4 * 1024 * 1024,
         event_queue_len: 4,
+        max_unpack_entries: 1_000_000,
+        max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+        max_unpack_path_bytes: 4096,
     }
 }
 
@@ -439,6 +442,7 @@ pub fn exec_request(exec_id: &str, argv: &[&str]) -> ExecRequest {
         cwd: None,
         stdin: false,
         timeout_ms: None,
+        user: None,
     }
 }
 

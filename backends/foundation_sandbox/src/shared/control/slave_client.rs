@@ -20,7 +20,8 @@ use crate::shared::rpc::messages::{
     FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::SlaveServiceClient;
 use crate::shared::{BoxFuture, ExecEventStream, FileChunkStream};
@@ -333,6 +334,50 @@ impl ExecFileCalls for SlaveClient {
                 .await
                 .map_err(|error| connect_to_sandbox(&error))?;
             Ok(chunk_stream(stream))
+        })
+    }
+
+    fn unpack_begin(
+        &self,
+        request: UnpackBeginRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackBeginResponse>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move {
+            self.client
+                .unpack_begin(self.rpc_ctx(timeout), Request::new(request))
+                .await
+                .map(|response| response.msg)
+                .map_err(|error| connect_to_sandbox(&error))
+        })
+    }
+
+    fn unpack_chunk(
+        &self,
+        request: UnpackChunkRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackChunkResponse>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move { unary_retry!(self, unpack_chunk, request, timeout) })
+    }
+
+    fn unpack_commit(
+        &self,
+        request: UnpackCommitRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackCommitResponse>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move {
+            self.client
+                .unpack_commit(self.rpc_ctx(timeout), Request::new(request))
+                .await
+                .map(|response| response.msg)
+                .map_err(|error| connect_to_sandbox(&error))
+        })
+    }
+
+    fn unpack_abort(&self, request: UnpackAbortRequest) -> BoxFuture<'_, SandboxResult<()>> {
+        let timeout = self.limits.rpc_timeout;
+        send_box(async move {
+            let answer: SandboxResult<Empty> = unary_retry!(self, unpack_abort, request, timeout);
+            answer.map(|_empty| ())
         })
     }
 }

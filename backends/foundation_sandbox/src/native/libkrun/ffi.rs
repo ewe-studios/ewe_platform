@@ -12,7 +12,7 @@ use std::path::Path;
 
 use libloading::Library;
 
-use crate::shared::krun_config::{KrunProbe, KrunRunnerConfig};
+use crate::shared::krun_config::{KrunDisk, KrunProbe, KrunRunnerConfig};
 
 /// The tag of the root virtio-fs device (`KRUN_FS_ROOT_TAG`).
 pub const KRUN_FS_ROOT_TAG: &CStr = c"/dev/root";
@@ -26,11 +26,17 @@ pub const KRUN_TSI_HIJACK_INET: u32 = 1;
 /// The file mode of the overlay slave file: a regular program that every user
 /// may run.
 pub const SLAVE_FILE_MODE: u32 = 0o100_755;
+/// The libkrun disk format number of a raw image (`KRUN_DISK_FORMAT_RAW`).
+pub const KRUN_DISK_FORMAT_RAW: u32 = 0;
+/// The libkrun feature number of block device support (`KRUN_FEATURE_BLK`).
+pub const KRUN_FEATURE_BLK: u32 = 1;
 
 type SetLogLevel = unsafe extern "C" fn(u32) -> i32;
 type CreateCtx = unsafe extern "C" fn() -> i32;
 type SetVmConfig = unsafe extern "C" fn(u32, u8, u32) -> i32;
 type AddVirtiofs3 = unsafe extern "C" fn(u32, *const c_char, *const c_char, u64, bool) -> i32;
+type AddDisk2 = unsafe extern "C" fn(u32, *const c_char, *const c_char, u32, bool) -> i32;
+type HasFeature = unsafe extern "C" fn(u32) -> bool;
 type FsAddOverlayFile =
     unsafe extern "C" fn(u32, *const c_char, *const c_char, *const u8, usize, u32, bool) -> i32;
 type DisableImplicitVsock = unsafe extern "C" fn(u32) -> i32;
@@ -48,6 +54,8 @@ struct Symbols {
     create_ctx: CreateCtx,
     set_vm_config: SetVmConfig,
     add_virtiofs3: AddVirtiofs3,
+    /// `krun_add_disk2`, resolved only when the configuration has a disk.
+    add_disk2: Option<AddDisk2>,
     fs_add_overlay_file: FsAddOverlayFile,
     disable_implicit_vsock: DisableImplicitVsock,
     add_vsock: AddVsock,
@@ -161,7 +169,7 @@ impl KrunLibrary {
     /// # Errors
     /// [`LoadError::NotFound`] when no library loads, and
     /// [`LoadError::MissingSymbol`] when a required symbol is absent.
-    pub fn load(path: Option<&Path>) -> Result<Self, LoadError> {
+    pub fn load(path: Option<&Path>, with_disks: bool) -> Result<Self, LoadError> {
         let candidates: Vec<OsString> = match path {
             Some(path) => vec![path.as_os_str().to_os_string()],
             None => library_names().iter().map(OsString::from).collect(),
@@ -180,11 +188,21 @@ impl KrunLibrary {
                     continue;
                 }
             };
+            // The disk symbol is optional: a configuration with no disk needs
+            // no block support. A configuration with a disk resolves it now, so
+            // a library without `krun_add_disk2` fails before the VM starts
+            // with the missing-symbol error and exit code 71.
+            let add_disk2 = if with_disks {
+                Some(symbol(&loaded, "krun_add_disk2")?)
+            } else {
+                None
+            };
             let symbols = Symbols {
                 set_log_level: symbol(&loaded, "krun_set_log_level")?,
                 create_ctx: symbol(&loaded, "krun_create_ctx")?,
                 set_vm_config: symbol(&loaded, "krun_set_vm_config")?,
                 add_virtiofs3: symbol(&loaded, "krun_add_virtiofs3")?,
+                add_disk2,
                 fs_add_overlay_file: symbol(&loaded, "krun_fs_add_overlay_file")?,
                 disable_implicit_vsock: symbol(&loaded, "krun_disable_implicit_vsock")?,
                 add_vsock: symbol(&loaded, "krun_add_vsock")?,
@@ -232,7 +250,21 @@ impl KrunLibrary {
         Ok(KrunProbe {
             library: self.loaded.clone(),
             max_vcpus: self.max_vcpus()?,
+            blk: self.has_blk(),
         })
+    }
+
+    /// Whether the library has block device support.
+    ///
+    /// A library without `krun_has_feature` is an older library with no block
+    /// support that this driver can trust, so the answer is `false`.
+    fn has_blk(&self) -> bool {
+        let Ok(has_feature) = symbol::<HasFeature>(&self.library, "krun_has_feature") else {
+            return false;
+        };
+        // SAFETY: the symbol takes one feature number and reads no state of the
+        // caller.
+        unsafe { has_feature(KRUN_FEATURE_BLK) }
     }
 
     /// Configures one virtual machine and becomes it (feature 09, section 3.3).
@@ -245,6 +277,10 @@ impl KrunLibrary {
     /// # Errors
     /// [`RunError`] when a host call fails or a libkrun call returns a negative
     /// error number.
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the call sequence of section 3.3 is one ordered list; a split would hide the order"
+    )]
     pub fn run(&self, config: &KrunRunnerConfig) -> Result<i32, RunError> {
         let symbols = &self.symbols;
         // SAFETY: each call uses the signature of `include/libkrun.h` on
@@ -303,6 +339,17 @@ impl KrunLibrary {
             }
             for mount in &config.mounts {
                 add_mount(symbols, ctx, mount)?;
+            }
+            if !config.disks.is_empty() {
+                let Some(add_disk2) = symbols.add_disk2 else {
+                    return Err(RunError::Io {
+                        op: "add a disk",
+                        message: "the library has no krun_add_disk2".to_string(),
+                    });
+                };
+                for disk in &config.disks {
+                    add_disk(ctx, add_disk2, disk)?;
+                }
             }
 
             check(
@@ -378,6 +425,28 @@ fn add_mount(
     // `include/libkrun.h` line 364.
     check("krun_add_virtiofs3", unsafe {
         (symbols.add_virtiofs3)(ctx, tag.as_ptr(), path.as_ptr(), 0, mount.read_only)
+    })
+    .map(|_| ())
+}
+
+/// Attaches one raw disk image.
+fn add_disk(ctx: u32, add: AddDisk2, disk: &KrunDisk) -> Result<(), RunError> {
+    let id = CString::new(disk.id.as_str()).map_err(|_| RunError::Io {
+        op: "encode a disk identifier",
+        message: format!("the identifier {} has a zero byte", disk.id),
+    })?;
+    let path = cstring_path(&disk.path)?;
+    // SAFETY: `id` and `path` live until the end of the call, and the function
+    // reads them only during the call. The signature is the one of
+    // `include/libkrun.h`.
+    check("krun_add_disk2", unsafe {
+        add(
+            ctx,
+            id.as_ptr(),
+            path.as_ptr(),
+            KRUN_DISK_FORMAT_RAW,
+            disk.read_only,
+        )
     })
     .map(|_| ())
 }

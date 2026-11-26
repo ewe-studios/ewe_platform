@@ -65,6 +65,7 @@ fn krun_config_roundtrip() {
             host_path: PathBuf::from("/data"),
             read_only: false,
         }],
+        disks: Vec::new(),
         log_level: KRUN_LOG_LEVEL_WARN,
         lifeline_fd: Some(3),
     };
@@ -399,7 +400,7 @@ fn probe_missing_runner() {
 
 #[test]
 fn capabilities_are_the_section_4_4_values() {
-    let caps: Capabilities = capabilities(8);
+    let caps: Capabilities = capabilities(8, false);
     assert!(caps.rootfs_directory);
     assert!(!caps.rootfs_ext4);
     assert!(!caps.rootfs_squashfs);
@@ -409,6 +410,14 @@ fn capabilities_are_the_section_4_4_values() {
     assert!(caps.network_none);
     assert!(caps.network_host);
     assert_eq!(caps.max_vcpus, 8);
+
+    // Block support turns on the ext4 root and the writable mode.
+    let with_blk = capabilities(8, true);
+    assert!(with_blk.rootfs_ext4);
+    assert_eq!(
+        with_blk.root_modes,
+        vec![RootMode::Overlay, RootMode::ReadOnly, RootMode::Writable]
+    );
 }
 
 #[test]
@@ -439,6 +448,7 @@ fn handle_model() {
         Arc::new(fs.clone()),
         run_dir(),
         None,
+        None,
     );
     #[cfg(not(target_os = "macos"))]
     let handle = KrunHandle::new(
@@ -446,6 +456,7 @@ fn handle_model() {
         Arc::from(child),
         Arc::new(fs.clone()),
         run_dir(),
+        None,
     );
 
     let exit =

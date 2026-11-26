@@ -78,6 +78,10 @@ pub struct SandboxLimits {
     /// Default 16 GiB. The type is `u64` because a 32-bit target cannot hold
     /// 16 GiB in `usize`. Feature 12 uses this limit.
     pub max_unpack_bytes: u64,
+    /// The longest path that one image unpack accepts.
+    ///
+    /// Default 4096: `PATH_MAX` on Linux. A longer path fails the unpack.
+    pub max_unpack_path_bytes: usize,
 }
 
 impl Default for SandboxLimits {
@@ -96,7 +100,58 @@ impl Default for SandboxLimits {
             input_retry_timeout: Duration::from_secs(30),
             max_unpack_entries: 1_000_000,
             max_unpack_bytes: 16 * 1024 * 1024 * 1024,
+            max_unpack_path_bytes: 4096,
         }
+    }
+}
+
+/// Every size and time limit of the sandbox image store.
+///
+/// Build a value with [`ImageLimits::default`] and change the fields that
+/// matter with the `with_` methods.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ImageLimits {
+    /// The size of a blank work image in mebibytes.
+    ///
+    /// Default 4096. The file is sparse, so its disk use is its content; a
+    /// guest that fills it gets `ENOSPC` and the error names this limit.
+    pub default_size_mib: u32,
+    /// The oldest age of a work image that the store removes at start.
+    ///
+    /// Default 24 h. A work image older than this belongs to a tool that died;
+    /// the store removes it at start.
+    #[serde(with = "duration_millis")]
+    pub work_max_age: Duration,
+}
+
+impl Default for ImageLimits {
+    fn default() -> Self {
+        Self {
+            default_size_mib: 4096,
+            work_max_age: Duration::from_hours(24),
+        }
+    }
+}
+
+impl ImageLimits {
+    /// A set of limits with every default.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Replaces [`Self::default_size_mib`].
+    #[must_use]
+    pub fn with_default_size_mib(mut self, value: u32) -> Self {
+        self.default_size_mib = value;
+        self
+    }
+
+    /// Replaces [`Self::work_max_age`].
+    #[must_use]
+    pub fn with_work_max_age(mut self, value: Duration) -> Self {
+        self.work_max_age = value;
+        self
     }
 }
 
@@ -326,6 +381,13 @@ impl SandboxLimits {
         self
     }
 
+    /// Replaces [`Self::max_unpack_path_bytes`].
+    #[must_use]
+    pub fn with_max_unpack_path_bytes(mut self, value: usize) -> Self {
+        self.max_unpack_path_bytes = value;
+        self
+    }
+
     /// Whether every time and every size limit is more than zero.
     #[must_use]
     pub fn all_positive(&self) -> bool {
@@ -342,5 +404,6 @@ impl SandboxLimits {
             && !self.input_retry_timeout.is_zero()
             && self.max_unpack_entries > 0
             && self.max_unpack_bytes > 0
+            && self.max_unpack_path_bytes > 0
     }
 }

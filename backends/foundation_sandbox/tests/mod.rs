@@ -15,6 +15,11 @@ mod artifacts;
 #[cfg(all(feature = "control", feature = "testing"))]
 mod control;
 
+/// The sandbox image tests (feature 12). They need the control plane and its
+/// simulation helpers; the store reads real files.
+#[cfg(all(unix, feature = "control", feature = "testing"))]
+mod images;
+
 /// The Firecracker API client tests. They need the `firecracker` feature and a
 /// Unix domain socket.
 #[cfg(all(feature = "firecracker", unix))]
