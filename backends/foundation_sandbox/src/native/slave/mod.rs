@@ -786,13 +786,13 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
         debug_assert!(slave.is_pid1());
     }
 
-    serve::serve(&bound, ctx, Arc::clone(&slave));
+    serve::serve(&bound, ctx, &slave);
     // The listener loop ended. The children stop first, then the sessions and
     // the uploads of the slave: nothing stays behind.
     #[cfg(feature = "control")]
     if let Some(control) = slave.control() {
         let control = Arc::clone(&control);
-        let _ = foundation_core::valtron::block_on_future(async move {
+        foundation_core::valtron::block_on_future(async move {
             stop_inner_sandboxes(&control).await;
         });
     }

@@ -103,9 +103,9 @@ pub fn bind_with_mode(
 }
 
 /// Serves the slave service until the shutdown signal turns on.
-pub fn serve(bound: &Bound, ctx: Ctx, slave: Arc<Slave>) {
+pub fn serve(bound: &Bound, ctx: Ctx, slave: &Arc<Slave>) {
     let mut router = Router::new();
-    register_slave_service(&mut router, Arc::clone(&slave));
+    register_slave_service(&mut router, Arc::clone(slave));
     // A slave with the control role serves `SandboxService` on the same
     // listener (feature 11, invariant I4). Without `--control` the control
     // paths answer `NotFound`, because the router has no handler for them.
