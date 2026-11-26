@@ -1,6 +1,7 @@
 //! Spec 83 feature 08: the key store, sealed key records and rotation.
 
 mod common;
+mod keystore_debug_output;
 mod keystore_migration;
 mod keystore_no_plaintext;
 mod keystore_race;
