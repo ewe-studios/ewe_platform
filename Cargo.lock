@@ -6073,6 +6073,7 @@ version = "0.2.4"
 dependencies = [
  "chrono",
  "derive_more",
+ "foundation_auth",
  "foundation_cloudflare_access",
  "foundation_cloudflare_accounts",
  "foundation_cloudflare_ai",
