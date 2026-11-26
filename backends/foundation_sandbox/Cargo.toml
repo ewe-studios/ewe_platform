@@ -99,7 +99,7 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16",
 # The HTTP/1.1 server and the UDS/TCP client. `default-features = false`: no
 # TLS, so the static musl slave links without a C compiler.
 foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, features = ["netio-core"], optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.18", default-features = false, optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, optional = true }
 # `fork`, `execve`, `mount`, `signalfd`, `openat2` and the other system calls.
 libc = { version = "0.2", optional = true }
 
