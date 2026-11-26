@@ -28,8 +28,16 @@ impl TaskOutput for Capture {
     }
 }
 
+#[derive(Clone, Copy, Default)]
+enum Fixture {
+    #[default]
+    Silent,
+    Artifacts,
+    MissingArtifact,
+}
+
 #[derive(Default)]
-struct FakeProcess(Mutex<Vec<ProcessCommand>>, bool);
+struct FakeProcess(Mutex<Vec<ProcessCommand>>, Fixture);
 
 impl TaskProcess for FakeProcess {
     fn run(
@@ -39,7 +47,7 @@ impl TaskProcess for FakeProcess {
         _: Cancellation,
     ) -> BoxFuture<'_, TaskResult> {
         Box::pin(async move {
-            if self.1 {
+            if !matches!(self.1, Fixture::Silent) {
                 if command.program == "mise" && command.args.first().is_some_and(|arg| arg == "env")
                 {
                     output.write(OutputStream::Stdout, br#"{"PATH":"/tools","ANDROID_HOME":"/android home","ANDROID_NDK":"123"}"#)
@@ -54,13 +62,20 @@ impl TaskProcess for FakeProcess {
                             .nth(1)
                             .expect("Cargo argument")
                     };
-                    let directory = std::path::PathBuf::from(after("-o"));
+                    let directory = std::path::PathBuf::from(after("--target-dir"));
                     let package = after("-p").to_string_lossy();
-                    for abi in ["arm64-v8a", "x86_64"] {
-                        let abi = directory.join(abi);
-                        std::fs::create_dir_all(&abi).map_err(TaskError::operation)?;
-                        std::fs::write(abi.join(format!("lib{package}.so")), package.as_bytes())
+                    if matches!(self.1, Fixture::Artifacts) {
+                        for triple in ["aarch64-linux-android", "x86_64-linux-android"] {
+                            let release = directory.join(triple).join("release");
+                            std::fs::create_dir_all(&release).map_err(TaskError::operation)?;
+                            std::fs::write(
+                                release.join(format!("lib{package}.so")),
+                                package.as_bytes(),
+                            )
                             .map_err(TaskError::operation)?;
+                            std::fs::write(release.join("libdependency.so"), b"dependency")
+                                .map_err(TaskError::operation)?;
+                        }
                     }
                 }
             }
@@ -89,6 +104,78 @@ fn command(
     let mut runner = TaskRunner::new(ctx, argv.iter().map(Into::into).collect());
     runner.register(tasks::set()?)?;
     futures_lite::future::block_on(runner.run())
+}
+
+fn android_root() -> tempfile::TempDir {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::create_dir(root.path().join("release")).unwrap();
+    std::fs::write(root.path().join("release/native-ui.toml"), "").unwrap();
+    std::fs::write(root.path().join("Cargo.toml"), "").unwrap();
+    root
+}
+
+#[test]
+fn android_build_stages_only_the_requested_library_for_each_abi() {
+    let root = android_root();
+    let process = Arc::new(FakeProcess(Mutex::default(), Fixture::Artifacts));
+    command(
+        root.path(),
+        &["native-task", "task", "run", "native:build-android"],
+        process.clone(),
+        Arc::new(Capture::default()),
+    )
+    .unwrap();
+    let calls = process.0.lock().unwrap();
+    let build = calls
+        .iter()
+        .find(|call| call.program == "cargo")
+        .expect("Cargo invocation");
+    let args = build
+        .args
+        .iter()
+        .map(|arg| arg.to_string_lossy().into_owned())
+        .collect::<Vec<_>>();
+    assert!(!args.iter().any(|arg| arg == "-o"));
+    assert!(args.iter().any(|arg| arg == "--target-dir"));
+    assert!(
+        build
+            .env
+            .iter()
+            .any(|(key, value)| key == "CARGO_NDK_OUTPUT_PATH" && value.is_none())
+    );
+    drop(calls);
+    for abi in ["arm64-v8a", "x86_64"] {
+        let directory = root
+            .path()
+            .join("mobile/android/binding/src/main/jniLibs")
+            .join(abi);
+        assert_eq!(directory.read_dir().unwrap().count(), 1);
+        assert_eq!(
+            std::fs::read(directory.join("libfoundation_ui_native.so")).unwrap(),
+            b"foundation_ui_native"
+        );
+        assert!(!directory.join("libdependency.so").exists());
+    }
+}
+
+#[test]
+fn android_build_reports_the_missing_artifact() {
+    let root = android_root();
+    let process = Arc::new(FakeProcess(Mutex::default(), Fixture::MissingArtifact));
+    let error = command(
+        root.path(),
+        &["native-task", "task", "run", "native:build-android"],
+        process,
+        Arc::new(Capture::default()),
+    )
+    .unwrap_err();
+    let expected = std::path::Path::new("aarch64-linux-android")
+        .join("release")
+        .join("libfoundation_ui_native.so");
+    assert!(
+        error.to_string().contains(&expected.display().to_string()),
+        "{error}"
+    );
 }
 
 #[test]

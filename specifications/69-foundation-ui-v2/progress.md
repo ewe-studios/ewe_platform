@@ -1514,3 +1514,14 @@ The JWK builder now calls `as_slice` on each P-256 coordinate.
 All `foundation_proxy` tests pass.
 The 145 Python CI tests pass.
 `publish_crates.py --dry-run` lists the publish order from the merged manifests.
+
+## Shared Android library staging
+
+Issue [837](https://github.com/ewe-studios/ewe_platform/issues/837) is fixed for the shared build provider.
+The provider no longer passes an output directory to `cargo-ndk`.
+It builds into an explicit target directory and copies `lib<library>.so` from each triple's release directory.
+The other known library files are still removed from each destination.
+A missing artifact returns an error that names its path.
+Two new tests cover both ABI destinations and the missing artifact. The Todo task test follows the same shape.
+Strict Clippy passes for the crate, and all 26 native task tests pass.
+A real Android build still stops in `foundation_netio`. Issue [879](https://github.com/ewe-studios/ewe_platform/issues/879) records that failure.

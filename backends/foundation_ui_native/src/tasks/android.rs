@@ -10,9 +10,10 @@ use std::{
 #[derive(Args)]
 pub(super) struct BuildAndroid {}
 
-/// A Cargo library and the Gradle modules that consume its Android artifacts.
+/// One Cargo library and the Gradle modules that consume its Android artifacts.
 pub struct Library<'a> {
     pub package: &'a str,
+    pub library: &'a str,
     pub arguments: &'a [&'a str],
     pub destinations: Vec<PathBuf>,
 }
@@ -21,6 +22,7 @@ impl Library<'_> {
     pub fn framework() -> Self {
         Self {
             package: "foundation_ui_native",
+            library: "foundation_ui_native",
             arguments: &[],
             destinations: vec!["mobile/android/binding/src/main/jniLibs".into()],
         }
@@ -66,10 +68,10 @@ pub async fn build_at(ctx: &TaskContext, root: &Path, packages: &[Library<'_>]) 
             .iter()
             .map(|p| root.join(p))
             .collect::<Vec<_>>();
-        let package = library.package.to_owned();
+        let name = library.library.to_owned();
         blocking::unblock(move || {
             for target in destinations {
-                install(&source, &target, &package)?;
+                install(&source, &target, &name)?;
             }
             Ok::<(), TaskError>(())
         })
@@ -119,7 +121,7 @@ async fn read_environment(
 async fn compile(
     ctx: &TaskContext,
     root: &Path,
-    output: &Path,
+    target: &Path,
     package: &str,
     flags: &[&str],
     environment: &[(OsString, OsString)],
@@ -127,18 +129,17 @@ async fn compile(
     let mut command = ProcessCommand::new("cargo")
         .current_dir(root)
         .env_clear()
+        .env_remove("CARGO_NDK_OUTPUT_PATH")
+        .args(["ndk", "--platform", "26", "-t", "arm64-v8a", "-t", "x86_64"])
         .args([
-            "ndk",
-            "--platform",
-            "26",
-            "-t",
-            "arm64-v8a",
-            "-t",
-            "x86_64",
-            "-o",
+            "build",
+            "--locked",
+            "-p",
+            package,
+            "--release",
+            "--target-dir",
         ])
-        .arg(output)
-        .args(["build", "--locked", "-p", package, "--release"])
+        .arg(target)
         .args(flags.iter().copied());
     for (name, value) in environment {
         command = command.env(name, value);
@@ -153,22 +154,30 @@ fn install(source: &Path, output: &Path, library: &str) -> TaskResult {
         "foundation_nativeapis",
         "foundation_ui_connectrpc",
     ];
-    for abi in ["arm64-v8a", "x86_64"] {
-        let target = output.join(abi);
-        std::fs::create_dir_all(&target).map_err(TaskError::operation)?;
+    for (abi, triple) in [
+        ("arm64-v8a", "aarch64-linux-android"),
+        ("x86_64", "x86_64-linux-android"),
+    ] {
+        let destination = output.join(abi);
+        std::fs::create_dir_all(&destination).map_err(TaskError::operation)?;
+        let artifact = source.join(triple).join("release").join(&name);
         let mut temporary =
-            tempfile::NamedTempFile::new_in(&target).map_err(TaskError::operation)?;
-        let mut input =
-            std::fs::File::open(source.join(abi).join(&name)).map_err(TaskError::operation)?;
+            tempfile::NamedTempFile::new_in(&destination).map_err(TaskError::operation)?;
+        let mut input = std::fs::File::open(&artifact).map_err(|error| {
+            TaskError::operation(format!(
+                "Missing Android library {}: {error}",
+                artifact.display()
+            ))
+        })?;
         std::io::copy(&mut input, &mut temporary).map_err(TaskError::operation)?;
         temporary
-            .persist(target.join(&name))
+            .persist(destination.join(&name))
             .map_err(TaskError::operation)?;
         for obsolete in libraries
             .into_iter()
             .filter(|candidate| *candidate != library)
         {
-            let path = target.join(PathBuf::from(format!("lib{obsolete}.so")));
+            let path = destination.join(format!("lib{obsolete}.so"));
             match std::fs::remove_file(path) {
                 Ok(()) => {}
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}

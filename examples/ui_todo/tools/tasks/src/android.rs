@@ -16,6 +16,7 @@ pub(super) async fn build(ctx: TaskContext, args: Build) -> TaskResult {
     if args.with_todo {
         libraries.push(Library {
             package: "ui_todo",
+            library: "ui_todo",
             arguments: &["--lib", "--no-default-features", "--features", "mobile"],
             destinations: ["todo_server", "todo_on_device"]
                 .map(|name| {

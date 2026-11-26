@@ -53,13 +53,16 @@ impl TaskProcess for FakeProcess {
                             .nth(1)
                             .expect("Cargo argument")
                     };
-                    let directory = std::path::PathBuf::from(after("-o"));
+                    let directory = std::path::PathBuf::from(after("--target-dir"));
                     let package = after("-p").to_string_lossy();
-                    for abi in ["arm64-v8a", "x86_64"] {
-                        let abi = directory.join(abi);
-                        std::fs::create_dir_all(&abi).map_err(TaskError::operation)?;
-                        std::fs::write(abi.join(format!("lib{package}.so")), package.as_bytes())
-                            .map_err(TaskError::operation)?;
+                    for triple in ["aarch64-linux-android", "x86_64-linux-android"] {
+                        let release = directory.join(triple).join("release");
+                        std::fs::create_dir_all(&release).map_err(TaskError::operation)?;
+                        std::fs::write(
+                            release.join(format!("lib{package}.so")),
+                            package.as_bytes(),
+                        )
+                        .map_err(TaskError::operation)?;
                     }
                 }
             }

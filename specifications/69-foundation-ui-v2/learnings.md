@@ -1196,3 +1196,9 @@ The mise environment sets the development profile to Cranelift. Cranelift cannot
 sha2 0.11 does not re-export that type, so the workspace build failed.
 Call `as_slice` on the value instead. This works for either array type.
 The mise environment sets the development profile to Cranelift. Cranelift cannot compile the wasmtime inline assembly.
+
+## Shared Android library staging
+
+`cargo ndk -o <directory>` copies the library it selects, which was a dependency here.
+Build with an explicit `--target-dir` and copy `lib<library>.so` from `<target-dir>/<triple>/release` yourself.
+Name the Cargo library separately from the package. The two are equal today, but the artifact name follows the library.
