@@ -49,16 +49,15 @@ fn parse_octal_mode(value: &str) -> Result<u32, String> {
 ///
 /// It returns the exit code when the slave is not process identifier 1, and
 /// never returns when it is.
+#[must_use = "the exit code must reach the caller"]
 pub fn run(ctx: foundation_context::Ctx, cli: SlaveCli) -> i32 {
-    let value = match cli.listen {
-        Some(value) => value,
-        None => match listen_from_cmdline() {
-            Some(value) => value,
-            None => {
-                eprintln!("agent-slave: no listen address");
-                return 64;
-            }
-        },
+    let value = if let Some(value) = cli.listen {
+        value
+    } else if let Some(value) = listen_from_cmdline() {
+        value
+    } else {
+        eprintln!("agent-slave: no listen address");
+        return 64;
     };
     let address = match parse_listen(&value) {
         Ok(crate::shared::listen::ListenAddress::Unix { path }) => ListenAddr::Unix { path },
@@ -101,12 +100,10 @@ fn listen_from_cmdline() -> Option<String> {
 /// the only way to ask a guest slave for the control role.
 #[cfg(target_os = "linux")]
 fn control_from_cmdline() -> bool {
-    std::fs::read_to_string("/proc/cmdline")
-        .map(|text| {
-            text.split_ascii_whitespace()
-                .any(|word| word == "ewe.control=1")
-        })
-        .unwrap_or(false)
+    std::fs::read_to_string("/proc/cmdline").is_some_and(|text| {
+        text.split_ascii_whitespace()
+            .any(|word| word == "ewe.control=1")
+    })
 }
 
 /// Another target has no kernel command line.
