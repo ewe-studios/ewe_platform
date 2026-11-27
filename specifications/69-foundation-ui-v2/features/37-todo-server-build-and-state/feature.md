@@ -61,6 +61,40 @@ Resolve package paths relative to the application mount. Keep an explicitly conf
 Test the standard layout and a project override below a subdirectory. Check the script, style, icon, modules, game, resources, and service calls.
 Verify that the override requires no matching path edit in Todo.
 
+### Proposed packaging closure sequence
+
+This brief awaits owner approval. It uses the existing Todo screen and browser controls.
+Use the existing [pending](../32-portable-view-targets/screenshots/chrome-pending.png) and
+[retry](../32-portable-view-targets/screenshots/chrome-retry.png) captures as visual references.
+
+1. Keep the development server resource tree available during native builds. [Issue 1060](https://github.com/ewe-studios/ewe_platform/issues/1060)
+   - Separate package-local resource staging from publication beside the development server executable.
+   - Publish the server resource tree only when the packaging hook produces browser outputs. Keep native output and explicit destinations available.
+   - Build browser and native settings in both orders in one scratch profile. Verify the active server still serves the same script and module.
+   - Test a failed browser build. Verify the last successful public tree remains available.
+2. Verify reused connections before relying on browser navigation results. [Issue 784](https://github.com/ewe-studios/ewe_platform/issues/784)
+   - Start the real Todo binary with its normal server settings and a scratch store.
+   - Use six independent clients. Each reads each response fully and requests up to 100 scripts on the same connection.
+   - Record status, response-header wait, route, and request number. Check the read buffer and wake registration only if the stall recurs.
+   - Test two attached Chromium tabs separately. Match events to their session and document. Check failed navigation and same-document navigation.
+   - Keep a server-side fix separate from a browser-driver fix. A passing driver test alone does not clear a server header stall.
+3. Resolve asset and service addresses from one project configuration. [Issue 839](https://github.com/ewe-studios/ewe_platform/issues/839)
+   - Extend the generated browser configuration from the standard path settings above. Generate page links from the same values.
+   - Resolve relative addresses from the public application mount. Keep the exposed prefix in the browser even when the proxy strips it upstream.
+   - Route default initial, action, live, Connect, socket, and resource requests through the configured service base.
+   - Use the canonical Todo service address for pending state. Preserve the existing root namespace and keep separate mounts independent.
+   - Use the existing one-script output for this brief. The two-script output amendment needs a separate approval.
+4. Check the package at the origin root and below a prefix-only proxy.
+   - Use a clean target directory. Check default paths and a project override with no matching edit in Todo JavaScript.
+   - Record the page, stylesheet, icon, one script, application module, and lazy game module requests and media types.
+   - Exercise local dialog input, remote actions, a live peer update, a named resource, and the game return.
+   - Test the default, socket, and Connect transports. Include an explicitly configured service endpoint.
+   - Move the development executable and its public tree. Run a standalone release outside the checkout.
+   - Check missing generated inputs and confirm that each failure preserves the last successful public tree.
+
+Use the existing server entry point for these checks. The proposed shared Cargo run tasks are separate.
+[Specification 90, Feature 5](../../../90-foundation-tasks/features/05-ewe-ui-application-command/feature.md#proposed-shared-application-run-tasks)
+
 ### Proposed browser output amendment
 
 Produce readable `bundle.js` and minified `bundle.min.js` in development and release builds.

@@ -14,6 +14,12 @@ Feature 37 has durable server evidence for restart, retrieval, listing, and dele
 The final release still needs the clean-target package check and subdirectory requests.
 Repeat the affected three-host paths on the final package. Record each command, build profile, platform, and source revision.
 
+### Todo browser package closure
+
+The [Feature 37 brief](features/37-todo-server-build-and-state/feature.md#proposed-packaging-closure-sequence) awaits owner approval.
+It orders public staging, reused connection checks, and application path configuration.
+The shared Cargo run commands and the two-script output amendment remain separate proposals.
+
 ## Android Todo Server startup address
 
 - Read the default address from the Android project settings.

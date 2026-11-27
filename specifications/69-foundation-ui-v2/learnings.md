@@ -11,6 +11,14 @@ A standalone local build proves local package use. Published Rust and Android pa
 A three-host pass applies to its recorded commit and package. Repeat affected checks after packaging or transport changes.
 The current Todo package loads one script from the site root. The Feature 37 ledger separates subdirectory support from the proposed two-script output.
 
+### Todo browser package closure
+
+The native-only packaging path can choose the Web target on a desktop host.
+It can publish a resource tree without the browser script or browser module.
+Issue #784 records both browser-driver event correlation and a response-header stall without a browser.
+Test the server and the driver separately. A driver change cannot establish that reused server connections work.
+The package needs one mount-aware configuration for assets and services to pass a prefix-only proxy.
+
 ## Android Todo Server startup address
 
 The launcher starts the activity without the custom server extra. Port forwarding does not supply that extra.
