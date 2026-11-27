@@ -160,10 +160,26 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       adds the wasm32 target (#1091 is closed). The full gate measured 231.91 s (3 min 52 s) on
       this host, under the 20-minute job limit. Command:
       `cargo test --profile uat -p durable_transport_matrix --features do-driver --test do_driver`.
-      Remaining:
-      - Session: `DurableDocumentStore` is a document store over a stream, not the stream
-        operations. A `Driver` mapping would rewrite the payload and hide the outcomes, which
-        is a fake. See #1092.
+      Session (replaced by a document scenario suite). The stream `Driver` trait is not used.
+      `DurableDocumentStore` is a document store over a stream, not the stream operations. A
+      `Driver` mapping would encode the bytes again, move the chunk boundaries and hide the
+      create status, the time to live and the `Stream-Seq` outcome, so it would be a fake. The
+      Session proof is the document-level Given/When/Then suite in
+      `backends/foundation_ai/tests/agentic/durable_store_scenario_tests.rs`. The thin top-level
+      target `backends/foundation_ai/tests/durable_store_scenario_tests.rs` runs it with the
+      default features, because the `agentic_tests` target needs the `testing` feature. The
+      suite runs over `MemoryVfs` with an independent document model and asserts the model
+      first, then the store. The five scenarios are:
+      - Given a session, when a document is written and read, then the document round trips.
+      - Given several documents, when the session replays from an offset, then it returns
+        exactly the later documents in order.
+      - Given a parent session at its tail, when a branch forks and writes, then the branch
+        reads the prefix and its own document, and the parent does not change.
+      - Given a session, when the tail offset is read, then a replay from that offset returns
+        nothing and a subsequent write is read from it.
+      - Given a missing session, when a document is read, then the store reports no document.
+
+      Issue #1092 is closed.
 - [ ] **T13 — model oracle.** Build a small independent state model. Test:
       `model_matches_driver`.
 - [ ] **T14 — differential oracle.** Compare drivers and transports. Test: `drivers_agree`.

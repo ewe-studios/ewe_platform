@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-28: feature 08 T12 Session proof landed as a document scenario suite. The stream
+  `Driver` trait in `integration/durable_transport_matrix` is not used for the Session.
+  `DurableDocumentStore` is document oriented: one session id is one stream and one document
+  is one JSON chunk. A `Driver` mapping would encode the bytes again, move the chunk
+  boundaries and hide the create status, the time to live and the `Stream-Seq` outcome, so it
+  would be a fake. The proof is `backends/foundation_ai/tests/agentic/durable_store_scenario_tests.rs`.
+  The thin top-level target `backends/foundation_ai/tests/durable_store_scenario_tests.rs` runs
+  it with the default features, because the `agentic_tests` target needs the `testing` feature.
+  It runs five Given/When/Then scenarios over `MemoryVfs` with `Ctx::host()` and an independent
+  document model. Each test asserts the model first, then the store. The scenarios are: a
+  write and read round trip; a replay from an offset returns the later documents in order; a
+  branch forks at the parent tail, reads the prefix and its own document, and leaves the
+  parent unchanged; a replay from the tail offset returns nothing and a later write is read
+  from it; and a missing session reports no document. Issue #1092 is closed.
+
 - 2026-11-27: strict gate, hosted stores and wasm proof. `bash ci/durable_conformance.sh` with
   live MinIO: server 338 passed (338); client 267 passed, 0 failed, 2 upstream-forced skips; DO
   matrix eight scenarios; local R2 block store; our own base64 SSE coverage; exit 0. The gate

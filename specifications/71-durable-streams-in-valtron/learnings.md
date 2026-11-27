@@ -1034,3 +1034,20 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   give a real local R2 bucket and D1 database. The `integration/r2_blocks` fixture runs the
   block put, the idempotent retry, the exact range read and the SQL VFS flush and vacuumed
   read. No mock bucket is needed.
+
+## Feature 08: Session document scenario suite (2026-11-28)
+
+- **The stream `Driver` trait does not fit a document store.** `DurableDocumentStore` maps one
+  session id to one stream and one document to one JSON chunk. Its API is `append`, `get`,
+  `query`, `replay` and `fork`. A `Driver` mapping would encode the bytes again, move the
+  chunk boundaries and hide the create status, the time to live and the `Stream-Seq` outcome.
+  That is a fake, not the same scenario. Write a document-level Given/When/Then suite with its
+  own document model instead (issue #1092).
+- **A test target with a required feature is a silent zero-test pass.** `agentic_tests`
+  requires the `testing` feature. `cargo test -p foundation_ai durable_store` without that
+  feature runs 0 tests and exits green. A thin top-level target that includes the suite file
+  with `#[path = "agentic/..."]` runs it under the default features. Check the pass count,
+  not only the exit code.
+- **The clippy command was red before this change.** `map(|a| match a { ... }).unwrap_or_default()`
+  in the two Hugging Face providers trips `clippy::map_unwrap_or`. `Option::map_or_default`
+  is the fix. Issue #1124 is closed.
