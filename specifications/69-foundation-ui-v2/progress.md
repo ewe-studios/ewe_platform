@@ -2254,3 +2254,10 @@ Issue 1180 remains open for the Linux `foundation_core` build recipe.
 The native task tests find a mixed separator in the path to the staged project templates.
 Join the environment directory and template suffix through the platform path API.
 Use the existing package generator and native task tests to check template access.
+
+## Todo browser binding tool in package shards
+
+The macOS Todo package tests need the locked WebAssembly binding command.
+Use the planner's package names to select the affected macOS and Windows shards.
+Add the Windows WebAssembly target before the same test recipe.
+Keep the existing native application and server tests.
