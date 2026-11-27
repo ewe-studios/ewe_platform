@@ -645,14 +645,18 @@ fn yield_for_reports_waiting_for_a_long_delay() {
     );
 }
 
-/// Two sleeping tasks resume in deadline order: 10 ms before 30 ms.
+/// Two sleeping tasks resume in deadline order: 10 ms before 300 ms.
+///
+/// The gap is wide on purpose. A loaded JavaScript event loop can delay the
+/// shorter callback past the longer deadline; a 290 ms margin keeps the order
+/// meaningful without making the case a load test.
 #[wasm_test]
 async fn two_parked_tasks_resume_in_deadline_order() {
     initialize_pool(42);
     let order = Arc::new(Mutex::new(Vec::new()));
     let ended = Arc::new(AtomicUsize::new(0));
 
-    for (id, ms) in [(1_u32, 10_u64), (2, 30)] {
+    for (id, ms) in [(1_u32, 10_u64), (2, 300)] {
         spawn()
             .with_task(RecordEnd {
                 inner: SleepingTask::sleep(Duration::from_millis(ms)),
@@ -676,7 +680,7 @@ async fn two_parked_tasks_resume_in_deadline_order() {
     assert_eq!(
         *order,
         vec![1, 2],
-        "the 10 ms task must end before the 30 ms task"
+        "the 10 ms task must end before the 300 ms task"
     );
 }
 
@@ -1238,4 +1242,55 @@ async fn async_collect_future_collects_pushed_items() {
 
     let values = iterator.into_collect_future().await;
     assert_eq!(values, vec![7, 8]);
+}
+
+/// A durable stream round trip on the JavaScript host: create, append, read.
+///
+/// Before this case the wasm32 gate was compile-only (issue #1080). This case
+/// runs the protocol core over `MemoryVfs` on the owned `js-foundation-wasm`
+/// backend and checks the bytes, so an event-loop fault fails a test and not
+/// only a build.
+#[wasm_test]
+async fn durable_core_roundtrip_over_memory_vfs() {
+    use foundation_core::durable::{
+        AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreamStore, MemoryVfs, ReadFrom,
+        ReadLimit, ReadRequest, StreamName,
+    };
+
+    let ctx = Ctx::host();
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &ctx);
+    let name = StreamName::parse("wasm/roundtrip").expect("valid stream name");
+    stream
+        .create(name.clone(), CreateSpec::default())
+        .await
+        .expect("create");
+    stream
+        .append(
+            &name,
+            AppendRequest {
+                chunk: Chunk::new(b"hello wasm".to_vec()),
+                content_type: None,
+                stream_seq: None,
+                producer: None,
+                close: false,
+            },
+        )
+        .await
+        .expect("append");
+    let page = stream
+        .read(
+            &name,
+            ReadRequest {
+                from: ReadFrom::Start,
+                limit: ReadLimit::default(),
+            },
+        )
+        .await
+        .expect("read");
+    let bytes: Vec<u8> = page
+        .chunks
+        .iter()
+        .flat_map(|chunk| chunk.as_bytes().iter().copied())
+        .collect();
+    assert_eq!(bytes, b"hello wasm");
 }

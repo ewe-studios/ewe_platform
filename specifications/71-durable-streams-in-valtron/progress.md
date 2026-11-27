@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: strict gate, no skip, hosted stores and wasm proof. `bash ci/durable_conformance.sh`
+  with live MinIO: server 338 passed (338); client 269 passed, 0 failed, 0 skipped; DO matrix
+  eight scenarios; local R2 block store; exit 0. The gate removes the two upstream
+  `Swift implementation broken` markers in the installed suite, so a skip is now a failure.
+  MinIO has a local compose service in `docker-compose.services.yaml` (profile `object-store`).
+  #1056 fixed: `turso` and `libsql` no longer pull `multi`, so the default `foundation_db` build
+  works for wasm32. #1080 fixed: `durable_core_roundtrip_over_memory_vfs` runs over `MemoryVfs`
+  on the `js-foundation-wasm` host. #1115 records a wasm deadline-order case that fails in
+  isolation; the executor needs the fix.
 - 2026-11-27: feature 08 T12 (Durable Object CI fixes). The gate uses the project wrangler pin,
   `npx --yes wrangler@4.156.2` (`WRANGLER_VERSION` in `mise.toml`), not a global npm install.
   `tests/do_driver.rs` resolves `WRANGLER_BIN`, then `npx --yes wrangler@<version>`, then
@@ -189,10 +198,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
   The reference client is a dev-dependency on the public git repository, pinned to commit
   `461b40267aabd644558f9b19dbb9507dd5f691cf`, because the crate is not published on crates.io.
-  `tokio` moved to `[workspace.dependencies]` (rule 17); `foundation_core` and
-  `foundation_testbed` use the workspace entry.
+  `tokio` is a dev-dependency where a test needs it, not a workspace dependency: it is declared
+  in `foundation_http/Cargo.toml` and the `foundation_core` native dev-dependencies.
 
-  Verified: both cross-run test binaries pass (5 + 5), the other durable HTTP tests pass
+  Verified: both cross-run test binaries pass (5 + 6), the other durable HTTP tests pass
   (`durable_adapter`, `durable_server`, `durable_parse`, `durable_status`,
   `durable_router_fallback`), `foundation_core` durable client tests pass (27), clippy reports no
   warning from the two new files, and both guards report 0 violations. The cross-run found issue

@@ -1,5 +1,8 @@
 # Fresh verification: spec 71 claims
 
+> Update after this report: the owner removed the skip exception. The gate now unmarks the two
+> suite-forced cases and requires 269 of 269, with 0 skipped. See handoff 4.2 and feature 08 T5.
+
 _Date: 2026-11-27. Branch: `spec-durable-streams`. Head: `3f5377519`._
 
 This report records a fresh check of the spec 71 claims. The verifier read the spec,
