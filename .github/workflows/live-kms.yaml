@@ -1,0 +1,103 @@
+# Live AWS KMS and GCP Cloud KMS proof (spec 92 feature 04)
+#
+# The `live-kms` task creates real keys, runs the four gated tests of
+# `foundation_auth` and removes the keys again. This workflow is opt-in: the
+# preflight job names every missing value, and the live job runs only when the
+# repository holds them all.
+#
+# Secrets and variables:
+#   secrets.AWS_ROLE_ARN                    role assumed through GitHub OIDC
+#   vars.AWS_REGION                         AWS region
+#   secrets.GCP_WORKLOAD_IDENTITY_PROVIDER  workload identity federation (WIF)
+#   secrets.GCP_SERVICE_ACCOUNT             service account for WIF
+#   vars.GCP_PROJECT                        GCP project
+#   vars.GCP_LOCATION                       GCP location
+#
+# The task reads GCP_ACCESS_TOKEN from its environment first, so the workflow
+# passes the token of the authentication step and never writes it to a file.
+
+name: Live KMS
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  schedule:
+    - cron: '41 3 * * 1'  # 3:41 UTC on Monday
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has-live-credentials: ${{ steps.check.outputs.has-live-credentials }}
+    steps:
+      - name: Check the live credentials
+        id: check
+        env:
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          GCP_PROJECT: ${{ vars.GCP_PROJECT }}
+          GCP_LOCATION: ${{ vars.GCP_LOCATION }}
+        run: |
+          missing=""
+          for name in AWS_ROLE_ARN GCP_WORKLOAD_IDENTITY_PROVIDER GCP_SERVICE_ACCOUNT GCP_PROJECT GCP_LOCATION; do
+            eval "value=\${$name}"
+            [ -n "$value" ] || missing="$missing $name"
+          done
+          if [ -z "$missing" ]; then
+            echo "has-live-credentials=true" >> "$GITHUB_OUTPUT"
+            echo "the live KMS run has its credentials"
+          else
+            echo "has-live-credentials=false" >> "$GITHUB_OUTPUT"
+            echo "the live KMS run did not run; missing:$missing"
+          fi
+
+  live-kms:
+    needs: preflight
+    if: needs.preflight.outputs.has-live-credentials == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          submodules: false
+
+      - name: Install the pinned toolchain
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Authenticate to Google Cloud
+        id: gcp
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: live-kms-${{ runner.os }}
+
+      - name: Run the live KMS proof
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          GCP_PROJECT: ${{ vars.GCP_PROJECT }}
+          GCP_LOCATION: ${{ vars.GCP_LOCATION }}
+          GCP_ACCESS_TOKEN: ${{ steps.gcp.outputs.access_token }}
+        run: cargo run --locked --profile uat -p foundation_ci -- live-kms

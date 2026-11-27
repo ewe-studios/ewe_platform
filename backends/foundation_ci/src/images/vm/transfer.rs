@@ -1,7 +1,7 @@
 //! Transfer project files through the selected guest's loopback port.
 use super::{
+    connection::{command, copy, Connection},
     Guest,
-    connection::{Connection, command, copy},
 };
 use crate::CiEnvironment;
 use clap::Args;

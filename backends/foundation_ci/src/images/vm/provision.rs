@@ -1,8 +1,7 @@
 //! Copy the selected image's provisioning files to a local macOS guest.
 use super::{
-    Guest,
-    connection::{Connection, command},
-    state,
+    connection::{command, Connection},
+    state, Guest,
 };
 use clap::Args;
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult, TaskSet};
