@@ -134,7 +134,9 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 ## 5.1 Owner acceptance bar (2026-11-27)
 
 - The server suite runs with `subscriptions: true` and reports 338 of 338.
-- The client suite reports 269 of 269 with every feature announced.
+- The client suite reports every runnable test. Every feature is announced. The suite forces two
+  skips for all clients (`read-sse-base64.yaml`, `Swift implementation broken`); the target is 267
+  passed and those 2 skips. No skip comes from our client.
 - A skip that the reference suite forces is named with its reason; it is not a pass.
 - A fresh zero-context agent verifies the claims against the code.
 

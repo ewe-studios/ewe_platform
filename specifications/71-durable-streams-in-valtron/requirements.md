@@ -901,8 +901,11 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 
 - **Server conformance: 338 of 338.** Run with `subscriptions: true`. No test skips because of
   our code.
-- **Client conformance: 269 of 269.** Every feature is announced as supported: SSE, long-poll,
-  auto mode, streaming, batching and dynamic headers. No test skips because of our client.
+- **Client conformance: every runnable test.** Every feature is announced as supported: SSE,
+  long-poll, auto mode, streaming, batching and dynamic headers. No test skips because of our
+  client. The suite itself skips two tests for every client (`read-sse-base64.yaml`, both marked
+  `Swift implementation broken`). Those two are the only allowed skips; the target is 267 passed
+  and those 2 suite-forced skips.
 - A skip that the reference suite itself forces (for example the suite marks a test broken for
   another client) is listed by name, with the suite's reason. It is not counted as a pass.
 - **All Rust tests of every touched crate pass, and clippy is clean.**
