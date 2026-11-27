@@ -1744,3 +1744,12 @@ An automatic CRLF checkout reproduces the difference without changing the source
 Git can change line endings in a working copy without changing the selected commit.
 Read the tracked manifest from Git. Set its checksum from the original archive bytes.
 The regression checks the same source and generated revisions in both checkout modes.
+
+## Native preview stages
+
+A passing native package preview checks staged package consumers and both mobile Todo hosts.
+Run the separate generated project check to exercise the CLI's emitted native project.
+The current generator resolves one Foundation Resources source in the mobile and mixed browser graphs.
+The scratch Git mirror omits unrelated tool submodules and retains the package source bytes.
+The Android emulator tool reports duplicate SDK paths from the installation aliases.
+[Android SDK discovery](https://github.com/ewe-studios/ewe_platform/issues/1206)

@@ -2345,3 +2345,23 @@ The forced checkout regression reproduces the failure on macOS.
 The native integration suite passes all 29 tests with the fix.
 Keep the issue open for the next hosted Windows native test.
 [Issue 1204](https://github.com/ewe-studios/ewe_platform/issues/1204)
+
+## Native package preview follow-up
+
+The unsigned 0.1.2 preview at `8ce2352b9` passes on Apple and Android.
+The Android task builds both architectures, runs both Todo apps, and checks the repeated delete result.
+The Apple job builds both starters against the local candidate archives.
+The source predates the latest generated template and native library staging fixes.
+[Hosted preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598) · [Android assertion](https://github.com/ewe-studios/ewe_platform/issues/1181)
+
+The current preview at `4e4a50b9d` includes the template source and Android build type staging fixes.
+This source differs from `957736c46` only in the nine package version references.
+All eight local generator integration tests pass.
+The new hosted preview and generated Android archive check remain in progress.
+[Current preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46079128868)
+
+The Windows precursor builds the embedded project templates and runs 29 native task tests.
+The Swift manifest assertion fails before the canonical checkout fix.
+The separate project crate links on Windows and defines zero tests.
+Its generated project assertions run in the command-line application crate.
+[Native shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509/job/140763397493) · [Project shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509/job/140763397530)
