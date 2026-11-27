@@ -216,7 +216,19 @@ pub(crate) async fn run(ctx: TaskContext, args: Options) -> TaskResult {
             true,
         )
         .await?;
-        touch(&screen, &scene, 105, 690).await
+        // The rotated surface can appear before the game dialog receives focus.
+        screen.wait(&["Back to Todos", "Mathalley game"], &[]).await?;
+        touch(&screen, &scene, 105, 690).await?;
+        // Keep the display in landscape until the game processes the answer.
+        presented(
+            &screen,
+            &args.captures,
+            "android-gumball-landscape-result",
+            Some([0xfd, 0xf3, 0xdc]),
+            true,
+        )
+        .await?;
+        Ok(())
     }
     .await;
     cleanup(result, screen.restore(&restore).await)?;

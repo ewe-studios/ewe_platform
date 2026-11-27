@@ -1964,3 +1964,13 @@ The workflow installs the locked Protocol Buffers and WebAssembly binding comman
 The Maven checker accepts managed external versions and requires the exact candidate version on both Ewe dependencies.
 The branch preview tests version 0.1.2. The shared branch still selects version 0.1.1 for public mobile packages.
 The [second preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46060536936) runs both checks.
+
+## 2026-11-28 — Android full-resolution landscape replay
+
+The replay waits for the game dialog after the first landscape frame.
+It captures the round result before it restores the original rotation.
+Two runs at 2400 by 1080 reach Round 1 Complete with three hearts and return to Todos.
+Android reports no additional Application Not Responding (ANR) exit.
+Three baseline captures also show a successful landscape answer when the replay waits long enough to capture the result.
+The Todo task test passes.
+See [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
