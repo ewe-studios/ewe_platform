@@ -1490,3 +1490,16 @@ The mounted Chrome page and two native hosts can use one scratch server through 
 The gate holds an action without blocking the other hosts.
 A failed reply changes the sender's pending row to a retry row.
 The confirmed row reaches both peers with the same identifier after retry.
+
+## Native release preview prerequisites
+
+Gradle imports a bill of materials (BOM) to manage Compose dependency versions.
+The generated Maven package descriptor can omit a version for a direct external dependency.
+Require the exact version for each Ewe dependency after the descriptor parser reads its coordinates.
+Include the descriptor path in parse errors.
+See [issue 1165](https://github.com/ewe-studios/ewe_platform/issues/1165).
+
+The native Todo tests can build the browser server package during setup.
+A WebAssembly build can finish before binding generation starts.
+Install the locked binding command in the same environment as both Todo test suites.
+See [issue 1166](https://github.com/ewe-studios/ewe_platform/issues/1166).

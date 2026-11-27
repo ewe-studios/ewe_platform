@@ -1948,3 +1948,19 @@ See the [list check](../../examples/ui_todo/README.md#verify-list-changes-from-a
 
 The browser and native pending and retry screenshots remain in the [Feature 32 captures](features/32-portable-view-targets/feature.md).
 The [acceptance ledger](completion-audit.md#feature-37-acceptance-ledger) records all twelve checks.
+
+## Apple renderer focused checks
+
+The Swift host applies a known text row after it reports an unknown node in the same frame.
+The same frame supplies server capabilities. The action core receives those bytes once.
+The focused test passes on macOS with Xcode 27.2 and the local framework archive.
+The test uses the current renderer and host source files. The test fixture stays in the scratch checkout.
+
+## Native release preview prerequisites
+
+The first preview builds both Android Todo application variants and the native Apple library.
+The Apple job stops at Maven dependency validation. The Android job stops at browser binding generation before installation.
+The workflow installs the locked Protocol Buffers and WebAssembly binding commands.
+The Maven checker accepts managed external versions and requires the exact candidate version on both Ewe dependencies.
+The branch preview tests version 0.1.2. The shared branch still selects version 0.1.1 for public mobile packages.
+The [second preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46060536936) runs both checks.
