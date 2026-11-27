@@ -1737,3 +1737,10 @@ The Android host applies the status bar inset while it shows a live failure bann
 The Android 36 test moves the banner from y=0 to y=128, below the status bar.
 After Retry, the normal Todo title uses its original bounds.
 See [issue 849](https://github.com/ewe-studios/ewe_platform/issues/849).
+
+## 2026-11-28 — Android dialog Back
+
+The Android 36 ARM64 emulator passes the isolated dialog Back test and all four tests in its class.
+The full Android user interface test suite passes all ten tests.
+The Back test checks one dismissal and the removal of the dialog. No source change is necessary.
+See [issue 692](https://github.com/ewe-studios/ewe_platform/issues/692).

@@ -1371,3 +1371,9 @@ Apply the inset to the parent of the live banner and the screen only while the b
 The parent consumes the inset, so the screen's top app bar does not add it again.
 Test a live channel drop through a separate local proxy. Restore the proxy before tapping Retry.
 The default Hypertext Transfer Protocol (HTTP) action path recovers. WebSocket actions have a separate retry failure in [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).
+
+## 2026-11-28 — Dialog Back test
+
+Repeat the Back test in isolation, in its class, and in the full suite.
+On the Android 36 review emulator, the existing key event dismisses the dialog once in all three runs.
+See [issue 692](https://github.com/ewe-studios/ewe_platform/issues/692).
