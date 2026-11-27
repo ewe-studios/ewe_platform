@@ -579,8 +579,7 @@ fn fault_unpack() {
 /// compresses that repeated content, so the served blob stays small while the
 /// decoded layer is large.
 fn repeated_gzip_layer(payload: u64) -> Vec<u8> {
-    let mut encoder =
-        flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
+    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
     {
         let mut builder = tar::Builder::new(&mut encoder);
         let mut header = tar::Header::new_gnu();
@@ -645,8 +644,7 @@ fn layer_streams() {
     // The same cached bytes decode to the tar header, the repeated payload and
     // the two end blocks, so the gzip path of the import reads the layer.
     let file = std::fs::File::open(&path).expect("the cached layer opens");
-    let mut decoder =
-        flate2::read::GzDecoder::new(std::io::BufReader::new(file));
+    let mut decoder = flate2::read::GzDecoder::new(std::io::BufReader::new(file));
     let mut buffer = vec![0_u8; 64 * 1024];
     let mut decoded = 0_u64;
     loop {

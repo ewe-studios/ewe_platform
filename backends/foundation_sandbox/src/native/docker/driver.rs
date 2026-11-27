@@ -25,7 +25,7 @@ use foundation_deployment_docker::client::ContainerCreateBody;
 use foundation_deployment_docker::error::DockerError;
 use foundation_deployment_docker::generated::create::{ContainerCreateResponse, CreateImageInfo};
 use foundation_deployment_docker::generated::json::{
-    ContainerConfig, ContainerInspectResponse, HostConfig, Resources,
+    ContainerConfig, ContainerInspectResponse, HostConfig,
 };
 use futures::future::{select, Either};
 use serde_json::{json, Map, Value};
@@ -1257,7 +1257,9 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
     let host = HostConfig {
         auto_remove: Some(false),
         binds: (!binds.is_empty()).then_some(binds),
-        devices: devices.clone(),
+        devices,
+        memory: Some(i64::from(plan.spec.memory_mib) * 1_048_576),
+        nano_cpus: Some(i64::from(plan.spec.vcpus) * 1_000_000_000),
         network_mode: Some(
             match plan.spec.network {
                 NetworkMode::Host => "bridge",
@@ -1265,22 +1267,13 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
             }
             .to_string(),
         ),
+        pids_limit: Some(plan.config.pids_limit),
         port_bindings,
         privileged: Some(false),
         security_opt: Some(vec!["no-new-privileges".to_string()]),
         ..HostConfig::default()
     };
-    let resources = Resources {
-        memory: Some(i64::from(plan.spec.memory_mib) * 1_048_576),
-        nano_cpus: Some(i64::from(plan.spec.vcpus) * 1_000_000_000),
-        pids_limit: Some(plan.config.pids_limit),
-        // `Resources` is flattened after `HostConfig` in the create body, so a
-        // `Devices` value here is the one that serializes (issue: the wrapper
-        // flattens two generated structs that both name `Devices`).
-        devices,
-        ..Resources::default()
-    };
-    create_body(config, host, resources)
+    create_body(config, host)
 }
 
 /// Why one Engine call did not give a result.
