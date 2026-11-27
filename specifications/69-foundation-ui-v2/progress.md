@@ -16,8 +16,15 @@ Repeat the affected three-host paths on the final package. Record each command, 
 
 ### Todo browser package closure
 
-The [Feature 37 brief](features/37-todo-server-build-and-state/feature.md#proposed-packaging-closure-sequence) awaits owner approval.
-It orders public staging, reused connection checks, and application path configuration.
+The owner approves step 1 in the [Feature 37 brief](features/37-todo-server-build-and-state/feature.md#proposed-packaging-closure-sequence).
+Todo server builds publish resources beside the executable. Mobile-only builds stage resources for their own package.
+The independent Chromium fixture serves one script and compiles the browser module in both build orders.
+It checks a separate Apple payload and preserves published bytes after a rejected build.
+A scratch Todo server returns the same script and WebAssembly module after a mobile-only build in the same profile.
+The response checks cover status, media type, and exact bytes. The mobile output contains the Todo icon and version.
+A browser build with a missing resource fails. The running scratch server still serves both files.
+The Todo builds use `cargo build --locked -p ui_todo --profile uat --bin ui_todo` and the mobile feature without defaults.
+The reused connection checks and application path configuration await owner approval.
 The shared Cargo run commands and the two-script output amendment remain separate proposals.
 
 ## Android Todo Server startup address

@@ -116,7 +116,7 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     let script_file = private.path().join("bundle.js");
     fs::write(&script_file, script.bytes)?;
     artifacts.push(("bundle.js".to_owned(), script_file));
-    stage_artifacts(artifacts, &output)
+    stage_artifacts(artifacts, &output, options.publish_dev_preview)
 }
 
 fn npm_runtime(package: &Path, lock: &Path, private: &Path, tree: &Path) -> io::Result<()> {
@@ -186,7 +186,11 @@ fn npm_runtime(package: &Path, lock: &Path, private: &Path, tree: &Path) -> io::
     Ok(())
 }
 
-fn stage_artifacts(artifacts: Vec<(String, PathBuf)>, output: &Path) -> io::Result<()> {
+fn stage_artifacts(
+    artifacts: Vec<(String, PathBuf)>,
+    output: &Path,
+    publish_dev_preview: bool,
+) -> io::Result<()> {
     let mut generated = Vec::new();
     for (index, (name, source)) in artifacts.into_iter().enumerate() {
         if source.extension() == Some(OsStr::new("wasm")) {
@@ -212,7 +216,7 @@ fn stage_artifacts(artifacts: Vec<(String, PathBuf)>, output: &Path) -> io::Resu
         }
         generated.push((name, relative));
     }
-    stage_outputs(&generated).map(drop)
+    stage_outputs(&generated, publish_dev_preview).map(drop)
 }
 
 fn add_companion(

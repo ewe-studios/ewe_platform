@@ -473,10 +473,13 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
 /// # Errors
 /// Returns an error when Cargo variables or resource inputs are missing.
 pub fn stage_from_cargo() -> io::Result<Staged> {
-    stage_outputs(&[])
+    stage_outputs(&[], true)
 }
 
-pub(crate) fn stage_outputs(outputs: &[(String, PathBuf)]) -> io::Result<Staged> {
+pub(crate) fn stage_outputs(
+    outputs: &[(String, PathBuf)],
+    publish_dev_preview: bool,
+) -> io::Result<Staged> {
     for key in [
         "EWE_RESOURCE_TARGET",
         "EWE_RESOURCE_DEST",
@@ -527,7 +530,7 @@ pub(crate) fn stage_outputs(outputs: &[(String, PathBuf)]) -> io::Result<Staged>
         payload.as_ref(),
         outputs,
     )?;
-    if target == Target::Web && env::var_os("EWE_RESOURCE_DEST").is_none() {
+    if publish_dev_preview && target == Target::Web && env::var_os("EWE_RESOURCE_DEST").is_none() {
         let profile = generated
             .ancestors()
             .find(|path| path.file_name() == Some(std::ffi::OsStr::new("build")))

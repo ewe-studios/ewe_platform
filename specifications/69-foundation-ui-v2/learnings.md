@@ -15,6 +15,8 @@ The current Todo package loads one script from the site root. The Feature 37 led
 
 The native-only packaging path can choose the Web target on a desktop host.
 It can publish a resource tree without the browser script or browser module.
+The package target selects resources. A separate setting determines which build publishes beside the server.
+Existing web callers keep their default publication behavior. An explicit destination publishes only to that destination.
 Issue #784 records both browser-driver event correlation and a response-header stall without a browser.
 Test the server and the driver separately. A driver change cannot establish that reused server connections work.
 The package needs one mount-aware configuration for assets and services to pass a prefix-only proxy.
