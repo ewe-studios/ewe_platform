@@ -49,7 +49,8 @@ jobs:
       - name: Install pinned tools
         run: |
           unset ANDROID_SDK_ROOT
-          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python github:wasm-bindgen/wasm-bindgen
+          mise exec -- wasm-bindgen --version
           mise run toolchain:android
       - name: Build the native task command
         run: |
@@ -94,7 +95,8 @@ jobs:
           unset ANDROID_SDK_ROOT
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
-          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python github:wasm-bindgen/wasm-bindgen
+          mise exec -- wasm-bindgen --version
           mise run toolchain:android
           native-task task run native:bindings:sync-android --check
           native-task task run native:build-android --with-todo
