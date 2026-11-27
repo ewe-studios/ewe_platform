@@ -71,3 +71,11 @@ The descriptor omits literal versions for dependency versions that the BOM sets.
 Permit these external dependency entries. Require the exact candidate version for both Ewe dependencies.
 Check the Maven descriptor path in error messages. Verify the generated descriptor and a failing Ewe version case.
 [Issue 1165](https://github.com/ewe-studios/ewe_platform/issues/1165)
+
+## Todo browser binding command
+
+The Android preview assembles both Todo application variants from the shared build provider.
+The device test task then builds the Todo server.
+The server build needs the locked WebAssembly binding command to generate browser bindings.
+Install the command in both preview jobs before the Todo tests.
+[Issue 1166](https://github.com/ewe-studios/ewe_platform/issues/1166)
