@@ -2097,3 +2097,10 @@ The package guides now point to the current browser frame and behaviour specific
 The browser guide runs the retained row and column checks and links to the old parity record.
 The JavaScript browser and component suites pass 175 tests. One legacy fixture stays excluded.
 [Issue 1176](https://github.com/ewe-studios/ewe_platform/issues/1176)
+
+## 2026-11-28 — Linux native bridge verification
+
+Strict Clippy passes for all targets of the default native package on Linux AMD64.
+The default integration suite passes all 11 tests and exits with status zero.
+The graphics crate also passes its Linux WebAssembly build check.
+[Issue 713](https://github.com/ewe-studios/ewe_platform/issues/713)

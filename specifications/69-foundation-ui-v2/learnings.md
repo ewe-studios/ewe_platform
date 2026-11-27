@@ -1567,3 +1567,8 @@ It closes the peer at end of input and continues reading after a blank line.
 The old two-writer parity target ran before the legacy writer was removed.
 Use the current browser suite for the retained row and column fixtures.
 Keep the earlier two-wire result in its migration record.
+
+## 2026-11-28 — Linux native bridge verification
+
+The Linux fallback reports an incompatible surface and consumes both of its inputs.
+Check that path with the Linux target. The Apple and Android builds use platform-specific surface code.
