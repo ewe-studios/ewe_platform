@@ -55,11 +55,12 @@ The create timeout has two causes.
    `Stream::Wait`. The iterator is a driving valtron stream: `Wait` means that the queue is
    empty and that it must run again. On the single-threaded wasm host that loop starved the
    event loop, so the create never finished and the Worker stopped answering. The service
-   now yields to the host with a self-wake and returns `Poll::Pending`; the executor polls
-   again. It does not wait on the injected timer: on the runner, the timer implementation
+   now parks on the injected timer for `SandboxLimits::create_poll_interval` (4 ms). The
+   Worker installs a JavaScript `setTimeout` timer in its `Ctx`: the executor's wasm timer
    drove the engine from inside the poll, re-entered the create task at
-   `WorkerContainer::running`, and crashed the wasm instance (`Critical error`, then
-   `Cannot invoke closure from previous WASM instance`). The test
+   `WorkerContainer::running`, and crashed the wasm instance on the runner (`Critical
+   error`, then `Cannot invoke closure from previous WASM instance`). A self-wake instead
+   wedged the local Worker, so the timer remains. The test
    `tests/control/service_create.rs` fails on the old code.
    The remote create uses the Worker's container boot deadline
    (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream. The runner's create took

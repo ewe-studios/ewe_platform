@@ -26,13 +26,15 @@ closed, not when its code compiles.
 - **The wide effect:** the loop held the whole isolate. A raw request that the entry
   refuses with no DO also timed out. This ruled out a simple "slow create" and named a
   synchronous loop as the cause.
-- **The fix:** yield to the host with `Waker::wake_by_ref` and `Poll::Pending` on `Wait`,
-  then pull again when the executor polls the stream. Do not wait on the injected timer
-  there: on the native runner the timer implementation (`sleep_until_async` through
-  `into_ready_future`) drove the engine from inside the poll, re-entered the create task at
-  `WorkerContainer::running`, and crashed the wasm instance (`Critical error`, then
-  `Cannot invoke closure from previous WASM instance`). The macOS run did not show that
-  crash. The remote create uses the Worker's container boot deadline
+- **The fix:** park on the injected timer for `create_poll_interval` (4 ms) on `Wait`,
+  then pull again. The timer must be a host timer. On the native runner the executor's wasm
+  timer (`sleep_until_async` through `into_ready_future`) drove the engine from inside the
+  poll, re-entered the create task at `WorkerContainer::running`, and crashed the wasm
+  instance (`Critical error`, then `Cannot invoke closure from previous WASM instance`).
+  The macOS run did not show that crash. `sandbox_worker::ctx` now installs a JavaScript
+  `setTimeout` timer, so a wait wakes from the host event loop and never drives the engine.
+  A self-wake instead wedged the local Worker, because the engine kept the task runnable.
+  The remote create uses the Worker's container boot deadline
   (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream; a runner create took
   23.8 s, so the unary `rpc_timeout` (5 s) or the spec `boot_timeout` (10 s) were too short.
 - **`fix/dst-wait-redrive` (#1116):** it changes the five parking stream-to-future
