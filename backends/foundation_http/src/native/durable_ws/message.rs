@@ -145,6 +145,15 @@ pub enum WsOp {
         /// The application writer sequence.
         #[serde(default)]
         stream_seq: Option<String>,
+        /// The producer identifier. It needs the epoch and the sequence.
+        #[serde(default)]
+        producer_id: Option<String>,
+        /// The producer epoch. It needs the identifier and the sequence.
+        #[serde(default)]
+        producer_epoch: Option<u64>,
+        /// The producer sequence. It needs the identifier and the epoch.
+        #[serde(default)]
+        producer_seq: Option<u64>,
         /// True to close the stream after the append.
         #[serde(default)]
         close: bool,

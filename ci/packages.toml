@@ -186,6 +186,19 @@ fmt = "enforce"
 [packages.durable_core_no_valtron]
 runs = [""]
 
+# Spec 71 handoff section 4.6. One Given/When/Then scenario suite runs on the
+# HTTP, WebSocket and ConnectRPC transports. Each driver is checked against the
+# model oracle, then against the other drivers. The crate's default feature set
+# is `multi`, which the native server and the WebSocket client need.
+#
+# Windows cannot run the tests: the native HTTP server and the platform
+# WebSocket client are Unix only (`foundation_http` gates its native server
+# modules on `cfg(unix)`). macOS is Unix and runs them.
+[packages.durable_transport_matrix]
+runs = [""]
+windows-tests = "none"
+windows-reason = "The native HTTP server and the WebSocket client are Unix only: foundation_http gates its native server modules on cfg(unix)."
+
 [packages.foundation_cedar]
 fmt = "enforce"
 

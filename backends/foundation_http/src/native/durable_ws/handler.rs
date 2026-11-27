@@ -32,8 +32,8 @@ use std::time::Duration;
 use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, BadRequestKind, Chunk, CloseRequest, ContentType, CreateSpec, DurableLimits,
-    DurableService, DurableStream, Expiry, ForkSpec, ReadFrom, ReadLimit, ReadRequest, StoreError,
-    StreamName, StreamSeq,
+    DurableService, DurableStream, Expiry, ForkSpec, Producer, ProducerId, ReadFrom, ReadLimit,
+    ReadRequest, StoreError, StreamName, StreamSeq,
 };
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::io::{DecodeStep, IncrementalDecoder};
@@ -673,9 +673,13 @@ async fn run_op(
             data,
             content_type,
             stream_seq,
+            producer_id,
+            producer_epoch,
+            producer_seq,
             close,
         } => {
             let name = StreamName::parse(&stream)?;
+            let producer = producer_from(producer_id, producer_epoch, producer_seq)?;
             let bytes = match data {
                 Some(text) if !text.is_empty() => decode(&text)?,
                 _ => Vec::new(),
@@ -689,7 +693,7 @@ async fn run_op(
                         &name,
                         CloseRequest {
                             final_chunk: None,
-                            producer: None,
+                            producer,
                         },
                     )
                     .await?;
@@ -707,7 +711,7 @@ async fn run_op(
                         chunk: Chunk::new(bytes),
                         content_type: Some(content_type),
                         stream_seq,
-                        producer: None,
+                        producer,
                         close,
                     },
                 )
@@ -794,6 +798,29 @@ fn read_from(offset: Option<&str>) -> Result<ReadFrom, StoreError> {
     match offset {
         None => Ok(ReadFrom::Start),
         Some(value) => parse_offset(value),
+    }
+}
+
+/// Build an optional producer from the three request fields.
+///
+/// All three fields are present or absent. A partial triple is a bad request.
+///
+/// # Errors
+/// Returns [`StoreError::BadRequest`] for a partial triple or an invalid
+/// identifier.
+fn producer_from(
+    id: Option<String>,
+    epoch: Option<u64>,
+    seq: Option<u64>,
+) -> Result<Option<Producer>, StoreError> {
+    match (id, epoch, seq) {
+        (None, None, None) => Ok(None),
+        (Some(id), Some(epoch), Some(seq)) => Ok(Some(Producer {
+            id: ProducerId::parse(&id)?,
+            epoch,
+            seq,
+        })),
+        _ => Err(StoreError::BadRequest(BadRequestKind::Producer)),
     }
 }
 

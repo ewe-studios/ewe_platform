@@ -1,0 +1,49 @@
+# The Durable Streams transport conformance matrix (spec 71, handoff section
+# 4.6). One Given/When/Then scenario suite runs on the HTTP, WebSocket and
+# ConnectRPC transports. Each driver is checked against the model oracle, then
+# against the other drivers.
+#
+# A new transport adds one driver and runs the same scenario list unchanged.
+[package]
+name = "durable_transport_matrix"
+version = "0.0.1"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+# The protocol core: the store, the client core and the wire offset codec.
+foundation_core = { path = "../../backends/foundation_core" }
+# The context bundle that carries the injected clock.
+foundation_context = { path = "../../backends/foundation_context" }
+# The native HTTP server, the Durable handler and the Durable WebSocket handler.
+foundation_http = { path = "../../backends/foundation_http" }
+# The native HTTP client transport and the platform WebSocket client.
+foundation_netio = { path = "../../backends/foundation_netio" }
+# The ConnectRPC service, the server adapters and the generated client.
+foundation_connectrpc = { path = "../../backends/foundation_connectrpc" }
+# The concrete RPC error trace, so the driver reads the RPC code.
+foundation_errstacks = { path = "../../backends/foundation_errstacks" }
+base64 = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+# The serial lock and the test timeout for the scenario functions.
+foundation_macros = { workspace = true }
+serial_test = { workspace = true }
+
+[features]
+# The native server and the platform client need the valtron multi-thread pool.
+default = ["multi"]
+multi = [
+  "foundation_core/multi",
+  "foundation_http/multi",
+  "foundation_netio/multi",
+  "foundation_connectrpc/rpc_multi",
+]
+
+[lints]
+workspace = true

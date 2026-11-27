@@ -4074,6 +4074,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "durable_transport_matrix"
+version = "0.0.1"
+dependencies = [
+ "base64 0.22.1",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_core",
+ "foundation_errstacks",
+ "foundation_http",
+ "foundation_macros",
+ "foundation_netio",
+ "serde_json",
+ "serial_test",
+]
+
+[[package]]
 name = "dyn-clone"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"

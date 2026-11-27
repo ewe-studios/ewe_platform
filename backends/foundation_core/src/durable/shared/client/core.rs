@@ -280,7 +280,7 @@ impl StreamHandle {
             .transport
             .send(self.request(HttpMethod::Put, "", &headers, data))
             .await?;
-        outcome(&self.path, &response)
+        outcome(&self.path, &response, false)
     }
 
     /// Append a message.
@@ -314,7 +314,7 @@ impl StreamHandle {
             .transport
             .send(self.request(HttpMethod::Post, "", &headers, data))
             .await?;
-        outcome(&self.path, &response)
+        outcome(&self.path, &response, producer.is_some())
     }
 
     /// Read stream metadata.
@@ -387,7 +387,7 @@ impl StreamHandle {
             .transport
             .send(self.request(HttpMethod::Post, "", &headers, data))
             .await?;
-        outcome(&self.path, &response)
+        outcome(&self.path, &response, false)
     }
 
     /// Start a read.
@@ -794,7 +794,15 @@ fn unexpected_open(status: u16, open: &super::transport::SseOpen) -> ClientError
     }
 }
 
-fn outcome(path: &str, response: &ClientResponse) -> Result<AppendResult, ClientError> {
+/// Build the result of a create, append or close.
+///
+/// `duplicate_on_204` is true only when the write carried a producer. A plain
+/// append answers `204` too, so its status cannot report a duplicate.
+fn outcome(
+    path: &str,
+    response: &ClientResponse,
+    duplicate_on_204: bool,
+) -> Result<AppendResult, ClientError> {
     let mut headers = BTreeMap::new();
     for (key, values) in &response.headers {
         if let Some(value) = values.first() {
@@ -805,7 +813,7 @@ fn outcome(path: &str, response: &ClientResponse) -> Result<AppendResult, Client
         status: response.status,
         offset: response.header("stream-next-offset").map(str::to_string),
         headers,
-        duplicate: response.status == 204,
+        duplicate: duplicate_on_204 && response.status == 204,
     };
     match response.status {
         200 | 201 | 204 => Ok(result),
