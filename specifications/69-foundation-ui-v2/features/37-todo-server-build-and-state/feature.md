@@ -63,7 +63,7 @@ Verify that the override requires no matching path edit in Todo.
 
 ### Proposed packaging closure sequence
 
-The owner approves step 1 for implementation on 2026-11-28. Steps 2 through 4 await owner approval.
+The owner approves steps 1 through 4 for implementation on 2026-11-28.
 This brief uses the existing Todo screen and browser controls.
 Use the existing [pending](../32-portable-view-targets/screenshots/chrome-pending.png) and
 [retry](../32-portable-view-targets/screenshots/chrome-retry.png) captures as visual references.
@@ -77,7 +77,7 @@ Use the existing [pending](../32-portable-view-targets/screenshots/chrome-pendin
    - Start the real Todo binary with its normal server settings and a scratch store.
    - Use six independent clients. Each reads each response fully and requests up to 100 scripts on the same connection.
    - Record status, response-header wait, route, and request number. Check the read buffer and wake registration only if the stall recurs.
-   - Test two attached Chromium tabs separately. Match events to their session and document. Check failed navigation and same-document navigation.
+   - Test two attached Chromium tabs separately. Match events to their session and document. Check failed navigation and same-document navigation. [Issue 1143](https://github.com/ewe-studios/ewe_platform/issues/1143)
    - Keep a server-side fix separate from a browser-driver fix. A passing driver test alone does not clear a server header stall.
 3. Resolve asset and service addresses from one project configuration. [Issue 839](https://github.com/ewe-studios/ewe_platform/issues/839)
    - Extend the generated browser configuration from the standard path settings above. Generate page links from the same values.

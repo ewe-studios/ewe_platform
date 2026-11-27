@@ -630,8 +630,8 @@ impl Reactor {
     /// WHAT: register `fd` under `token` with `interest`, and start tracking
     /// its readiness.
     ///
-    /// HOW: takes `reg_lock` to serialise selector mutation, registers, then
-    /// installs a zeroed cache entry and records the fd's live token.
+    /// Hold the cache write lock while the selector registers the file descriptor.
+    /// The drain loop waits for the cache entry before it processes the first event.
     ///
     /// # Errors
     /// Returns the selector's `io::Error` if registration fails; the cache entry
@@ -646,8 +646,9 @@ impl Reactor {
         interest: Interest,
     ) -> io::Result<()> {
         let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
+        let mut entries = self.entries.write().expect("entries lock poisoned");
         self.registry.register_fd(fd, token, interest)?;
-        self.entries.write().expect("entries lock poisoned").insert(
+        entries.insert(
             token,
             Entry {
                 fd,
@@ -657,6 +658,7 @@ impl Reactor {
                 tasks: Arc::new(ReadinessNotifier::new()),
             },
         );
+        drop(entries);
         // The latest `register` owns the number: replace any earlier mapping,
         // so a stale deregistration for the old token can no longer touch the
         // selector.
@@ -728,8 +730,10 @@ impl Reactor {
         interest: Interest,
     ) -> io::Result<bool> {
         let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
+        // An immediate receive can reach the drain loop during registration.
+        let mut entries = self.entries.write().expect("entries lock poisoned");
         let armed = self.poll.register_recv_fd(fd, token, interest)?;
-        self.entries.write().expect("entries lock poisoned").insert(
+        entries.insert(
             token,
             Entry {
                 fd,
@@ -739,6 +743,7 @@ impl Reactor {
                 tasks: Arc::new(ReadinessNotifier::new()),
             },
         );
+        drop(entries);
         // The latest `register_completion` owns the number, as in `register`.
         self.fd_tokens
             .lock()

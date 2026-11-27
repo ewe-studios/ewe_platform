@@ -19,6 +19,12 @@ The package target selects resources. A separate setting determines which build 
 Existing web callers keep their default publication behavior. An explicit destination publishes only to that destination.
 Issue #784 records both browser-driver event correlation and a response-header stall without a browser.
 Test the server and the driver separately. A driver change cannot establish that reused server connections work.
+A queued request remains in the server socket during a stall. The server send queue is empty.
+The selector can report a read event before the reactor adds its cache entry.
+The focused socket test records a read event for a token with no entry. The task never sees that event.
+Hold the cache write lock through selector registration and cache insertion. The drain loop then sees the entry.
+A proxy that only forwards `/todo/` returns the page. The page still points to the script, style, and icon at the root.
+The proxy returns 404 for the page's references and 200 for the prefixed assets.
 The package needs one mount-aware configuration for assets and services to pass a prefix-only proxy.
 
 ## Android drawing window replacement

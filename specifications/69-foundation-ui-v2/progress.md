@@ -16,7 +16,7 @@ Repeat the affected three-host paths on the final package. Record each command, 
 
 ### Todo browser package closure
 
-The owner approves step 1 in the [Feature 37 brief](features/37-todo-server-build-and-state/feature.md#proposed-packaging-closure-sequence).
+The owner approves steps 1 through 4 in the [Feature 37 brief](features/37-todo-server-build-and-state/feature.md#proposed-packaging-closure-sequence).
 Todo server builds publish resources beside the executable. Mobile-only builds stage resources for their own package.
 The independent Chromium fixture serves one script and compiles the browser module in both build orders.
 It checks a separate Apple payload and preserves published bytes after a rejected build.
@@ -24,7 +24,18 @@ A scratch Todo server returns the same script and WebAssembly module after a mob
 The response checks cover status, media type, and exact bytes. The mobile output contains the Todo icon and version.
 A browser build with a missing resource fails. The running scratch server still serves both files.
 The Todo builds use `cargo build --locked -p ui_todo --profile uat --bin ui_todo` and the mobile feature without defaults.
-The reused connection checks and application path configuration await owner approval.
+A scratch Todo server reproduces issue #784 independently of Chromium.
+Six clients repeat script requests. Across eight runs, 3,982 responses succeed and 16 requests wait five seconds for headers.
+The reactor keeps the cache write lock through registration so it retains the first read event.
+The socket regression fails before the repair. The reactor suite, check, and Clippy pass on macOS.
+All six connection correctness tests also pass on macOS.
+The reactor suite passes in the Linux continuous integration image on the AMD64 architecture.
+The cross-target check also builds the Linux input and output completion registration path.
+After the repair, 48 connections each complete 100 script requests. All return status 200 and the full 768,028-byte script.
+The rebuilt native server uses the same published browser resource tree. It uses a separate local store.
+The largest response-header wait is 1346 milliseconds.
+The subdirectory audit reproduces issue #839. The page loads at `/todo/` but sends its script, style, and icon requests to the root.
+The application path changes and final package checks run in the mounted package worktree.
 The shared Cargo run commands and the two-script output amendment remain separate proposals.
 
 ## Android Todo Server startup address
