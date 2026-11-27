@@ -2353,8 +2353,9 @@ Check the original archive checksum and the manifest from both checkout modes.
 
 The forced checkout regression reproduces the failure on macOS.
 The native integration suite passes all 29 tests with the fix.
-Keep the issue open for the next hosted Windows native test.
-[Issue 1204](https://github.com/ewe-studios/ewe_platform/issues/1204)
+The hosted Windows native task suite passes all 29 tests.
+The checksum regression passes in both checkout modes.
+[Windows native shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956/job/140785098550) · [Issue 1204](https://github.com/ewe-studios/ewe_platform/issues/1204)
 
 ## Native package preview follow-up
 
