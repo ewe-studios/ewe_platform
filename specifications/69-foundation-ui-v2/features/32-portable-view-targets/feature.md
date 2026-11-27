@@ -1,6 +1,6 @@
 # Feature 32. Target views and elements by name
 
-The framework placement stages and count migration are complete. The Todo agent owns the remaining target migration under issue #714.
+The framework, count, and Todo target migrations are complete. [Issue 714](https://github.com/ewe-studios/ewe_platform/issues/714)
 
 ## Glossary
 

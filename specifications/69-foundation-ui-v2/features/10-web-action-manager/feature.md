@@ -593,7 +593,15 @@ with `scope.action("notify", …)` and a mobile form compiled into the native co
 the reference `host:notify`.
 
 **The web-only page script.** One page script, `scroll_to_top`, has scope `web`. Only the web
-template binds it, with `on:tap="host:scroll_to_top"` on the list header. Feature 32 supersedes the original browser wrapper. The shared Todo renderer has one entry point.
+template binds it, with `on:tap="host:scroll_to_top"` on the Todo header.
+The shared Todo renderer has one entry point with a web surface and a native surface.
+The web surface uses the existing scoped-script hydration to register the action.
+The header keeps the current page title and accepts keyboard focus on the web.
+See the [existing Todo title](../32-portable-view-targets/screenshots/chrome-retry.png).
+
+Run the packaged server in Chromium with a scrollable Todo page.
+Activate the header with the keyboard. Verify scroll position zero and no server request.
+Decode the native initial frame. Verify that the script and binding are absent.
 
 **The tree.** The list behind an open dialog does not scroll: both dialogs carry the `DIALOG`
 behaviour and the list carries `SCROLL_LOCK` (feature 16). The open count sits inside a

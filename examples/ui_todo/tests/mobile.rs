@@ -4,7 +4,8 @@ use foundation_ui_native::{
     CoreConfig, CoreError, EventInput, HostTransport, NativeCore, NativePlatform,
 };
 use foundation_ui_wire::{
-    read_frame, writer::WriterConfig, EventId, NodeKind, UiOperationT, WireLimits,
+    read_frame, writer::WriterConfig, EventId, NodeKind, OperationT, UiOperationT, WebOperationT,
+    WireLimits,
 };
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
@@ -27,20 +28,21 @@ impl HostTransport for FailTransport {
 }
 
 fn operations(frame: &[u8]) -> Vec<UiOperationT> {
-    fn collect(op: UiOperationT, found: &mut Vec<UiOperationT>) {
-        match op {
+    fn collect(op: OperationT, found: &mut Vec<UiOperationT>) {
+        assert!(!matches!(op.web, WebOperationT::ScriptNode(_)));
+        match op.ui {
             UiOperationT::ReplaceSubtree(tree) => {
                 for child in tree.operations.unwrap_or_default() {
-                    collect(child.ui, found);
+                    collect(child, found);
                 }
             }
             UiOperationT::Place(tree) => {
                 for child in tree.operations.unwrap_or_default() {
-                    collect(child.ui, found);
+                    collect(child, found);
                 }
             }
             UiOperationT::LiveMount(_) => panic!("Unexpected live subscription"),
-            _ => found.push(op),
+            other => found.push(other),
         }
     }
     let frame = read_frame(frame, &WireLimits::default()).unwrap();
@@ -49,7 +51,7 @@ fn operations(frame: &[u8]) -> Vec<UiOperationT> {
     for message in body.messages.unwrap() {
         assert!(message.control.is_none(), "{:?}", message.control);
         if let Some(op) = message.operation {
-            collect(op.ui, &mut found);
+            collect(*op, &mut found);
         }
     }
     found
@@ -128,6 +130,11 @@ async fn dialogs_use_one_host_binding_and_cancel_without_transport() {
         let first = operations(&initial_todo_frame(core.clone()).await.unwrap());
         assert!(shows(&first, "0 open todos"));
         assert!(shows_control(&first, NodeKind::NAVIGATION_TITLE));
+        assert!(!first.iter().any(|op| matches!(
+            op,
+            UiOperationT::BindAction(binding)
+                if binding.action.as_deref() == Some("host:scroll_to_top")
+        )));
         assert!(shows_control(&first, NodeKind::SEGMENTED_CONTROL));
 
         let sheet = trigger(&core, &first, "host:open_add_dialog", "").await;
@@ -145,6 +152,9 @@ async fn dialogs_use_one_host_binding_and_cancel_without_transport() {
         let _ = binding(&sheet, "host:submit_todo");
         let closed = trigger(&core, &sheet, "host:close_dialog", "").await;
         assert!(!shows_control(&closed, NodeKind::MODAL));
+
+        let filtered = trigger(&core, &first, "host:filter_todos", "done").await;
+        assert!(shows_control(&filtered, NodeKind::SEGMENTED_CONTROL));
         assert_eq!(transport.0.load(Ordering::Relaxed), 0);
         let independent = create_local_todo_core(platform).unwrap();
         let other = operations(&initial_todo_frame(independent).await.unwrap());

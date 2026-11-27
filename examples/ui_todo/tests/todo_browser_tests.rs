@@ -6,6 +6,62 @@ use foundation_browser::{BrowserDriver, LaunchConfig};
 use foundation_context::Ctx;
 use foundation_ui_wire::writer::WriterConfig;
 
+/// WHY: The packaged Todo page must run its web action without using the server.
+/// WHAT: Activate the focused title and verify that its page script scrolls the viewport.
+#[test]
+fn packaged_todo_header_runs_a_local_page_script() {
+    with_browser_server(|driver, url, _| {
+        let page = driver.new_page().unwrap();
+        open_document(&page, url);
+        let header = page.locator("#todo-list-heading");
+        header.expect().to_be_visible().unwrap();
+        assert_eq!(
+            page.eval(
+                r##"(async () => {
+                while (!window.todoReady) await new Promise(requestAnimationFrame);
+                document.querySelector("#page").style.minHeight = "200vh";
+                document.querySelector("#todo-list-heading").focus();
+                const send = window.fetch.bind(window);
+                window.scrollActionRequests = 0;
+                window.fetch = (...args) => {
+                    window.scrollActionRequests++;
+                    return send(...args);
+                };
+                window.scrollTo(0, 300);
+                return window.scrollY > 0;
+            })()"##
+            )
+            .unwrap()
+            .as_bool(),
+            Some(true)
+        );
+        header.press(" ").unwrap();
+        assert_eq!(
+            page.eval(
+                r##"(async () => {
+                await new Promise(requestAnimationFrame);
+                const header = document.querySelector("#todo-list-heading");
+                return [window.scrollY, window.scrollActionRequests, document.activeElement.id,
+                    document.querySelector("#notice").value, header.getAttribute("primal:onclick")];
+            })()"##
+            )
+            .unwrap(),
+            serde_json::json!([0, 0, "todo-list-heading", "", "host:scroll_to_top"])
+        );
+
+        let done = r#"#todo-filter button[value="done"]"#;
+        page.locator(done).click().unwrap();
+        page.locator(&format!(r#"{done}[aria-pressed="true"]"#))
+            .expect()
+            .to_be_visible()
+            .unwrap();
+        assert_eq!(
+            page.eval("window.scrollActionRequests").unwrap().as_u64(),
+            Some(0)
+        );
+    });
+}
+
 #[test]
 fn server_and_host_actions_work() {
     with_browser_server(|driver, url, channel| {

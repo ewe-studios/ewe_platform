@@ -29,7 +29,7 @@ fn initial(req: ViewRequest) -> Result<Response, Error> {
     let feed = req.require::<TodoFeed>()?;
     let (state, cursor, retired_ids) = req.require::<TodoStore>()?.published_snapshot(&feed.0);
     let ctx = req.render_context();
-    let page = screens::page(&state, feed.0.stream_id(), cursor);
+    let page = screens::page(&state, ctx.surface(), feed.0.stream_id(), cursor);
     foundation_ui_runtime::view::full_view(&ctx, ctx.receiver(), &page, None::<&()>)?;
     crate::TodoDelivery::Snapshot {
         position: cursor,

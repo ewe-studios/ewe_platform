@@ -20,7 +20,7 @@ use foundation_ui_runtime::state::{
 };
 use foundation_ui_runtime::view::{full_view, template_types::Html, ViewIds};
 use foundation_ui_runtime::{action, html};
-use foundation_ui_wire::ErrorCode;
+use foundation_ui_wire::{ErrorCode, MountSurface};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
@@ -260,7 +260,12 @@ fn row(item: &Todo) -> Html {
 /// # Errors
 /// Returns a view or state serialization error.
 pub fn app(ctx: &Context, state: &TodoApp) -> ActionResult {
-    full_view(ctx, ctx.receiver(), &page_tree(state), None::<&()>)
+    full_view(
+        ctx,
+        ctx.receiver(),
+        &page_tree(state, ctx.surface()),
+        None::<&()>,
+    )
 }
 
 fn list(state: &TodoApp, query: &str) -> Html {
@@ -331,13 +336,29 @@ fn search_input(query: &str) -> Html {
     html! { <SearchInput id="todo-search" a11y_label="Search todos" placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
 }
 
-pub(crate) fn page_tree(state: &TodoApp) -> Html {
+pub(crate) fn page_tree(state: &TodoApp, surface: MountSurface) -> Html {
+    let (title, page_script) = if surface == MountSurface::Web {
+        let title = html! { <NavigationTitle>
+            <button id="todo-list-heading" type="button" aria-label="Todos, back to top"
+                on:tap="host:scroll_to_top">Todos</button>
+        </NavigationTitle> };
+        let script = html! { <script primal:script>r#"
+            function(scope) {
+                scope.action("scroll_to_top", () => {
+                    scope.parent().ownerDocument.defaultView.scrollTo(0, 0);
+                });
+            }
+        "#</script> };
+        (title, Some(script))
+    } else {
+        (html! { <NavigationTitle>Todos</NavigationTitle> }, None)
+    };
     let search = search_input("");
     let controls = filters(&state.filter);
     let rows = list(state, "");
     let footer = open_count(state.items.iter().filter(|item| !item.done).count());
     html! { <Stack>
-        <NavigationTitle>Todos</NavigationTitle>
+        {title}{page_script}
         <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
         <Button on:tap={open_mathalley}>Play Mathalley</Button>
         {countdown::button(false)}
