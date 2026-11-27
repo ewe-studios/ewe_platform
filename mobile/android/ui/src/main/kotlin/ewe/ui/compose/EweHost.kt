@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
@@ -159,10 +160,12 @@ private fun EweHost(
         else EweStartupView(status, modifier, onAction = { attempt += 1 })
     } else {
         Surface(modifier.fillMaxSize()) {
-            Column {
-                if (host.status.isNotEmpty()) {
-                    Text(host.status)
-                    if (host.store.recovery != null && host.status != loading) {
+            val status = host.status
+            val layout = if (status.isNotEmpty()) Modifier.statusBarsPadding() else Modifier
+            Column(layout) {
+                if (status.isNotEmpty()) {
+                    Text(status)
+                    if (host.store.recovery != null && status != loading) {
                         TextButton(onClick = { host.start { it.retryView() } }) { Text("Retry") }
                     }
                 }

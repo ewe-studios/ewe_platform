@@ -1698,3 +1698,10 @@ On the Android 36 ARM64 review device, the emulator output contains the Mathalle
 The game shows `SOUND OFF` after the mute tap. The captured signal drops about 40 decibels to the noise floor.
 The host capture measures digital output. A physical speaker check remains open.
 See [issue 1083](https://github.com/ewe-studios/ewe_platform/issues/1083).
+
+## 2026-11-28 — Android failure banner
+
+The Android host applies the status bar inset while it shows a live failure banner.
+The Android 36 test moves the banner from y=0 to y=128, below the status bar.
+After Retry, the normal Todo title uses its original bounds.
+See [issue 849](https://github.com/ewe-studios/ewe_platform/issues/849).

@@ -1340,3 +1340,10 @@ The alternative sound card leaves this Android image with no sound device.
 A private Core Audio tap captures the emulator output on the host.
 The capture contains the game's three intro notes when sound is on.
 The capture returns to its noise floor when the game shows `SOUND OFF`.
+
+## 2026-11-28 — Android failure banner inset
+
+Apply the inset to the parent of the live banner and the screen only while the banner is visible.
+The parent consumes the inset, so the screen's top app bar does not add it again.
+Test a live channel drop through a separate local proxy. Restore the proxy before tapping Retry.
+The default Hypertext Transfer Protocol (HTTP) action path recovers. WebSocket actions have a separate retry failure in [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).
