@@ -778,7 +778,8 @@ async fn prepare(
     let left = deadline.saturating_duration_since(now);
     let request = PrepareRequest {
         root,
-        workdir: spec.workdir.clone(),
+        // An empty workdir means the guest default (issue #1031).
+        workdir: spec.effective_workdir().to_string(),
         env: spec.env.clone(),
         mounts,
         dns: match spec.network {

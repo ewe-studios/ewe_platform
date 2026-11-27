@@ -67,6 +67,32 @@ fn every_subcommand_parses() {
     .expect("the exec command parses");
 }
 
+/// The `--workdir` path of `create` (issue #1031).
+#[test]
+fn workdir_argument_is_used() {
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "create",
+        "--rootfs",
+        "/images/root.ext4",
+        "--workdir",
+        "/tmp",
+    ])
+    .expect("the create command parses");
+    let SandboxCommand::Create(args) = cli.command else {
+        panic!("the command is not create");
+    };
+    assert_eq!(args.spec.workdir, "/tmp");
+
+    let cli =
+        SandboxCli::try_parse_from(["agent-sandbox", "create", "--rootfs", "/images/root.ext4"])
+            .expect("the create command parses");
+    let SandboxCommand::Create(args) = cli.command else {
+        panic!("the command is not create");
+    };
+    assert_eq!(args.spec.workdir, "/workspace");
+}
+
 #[test]
 fn listen_and_connect_forms() {
     assert!(matches!(

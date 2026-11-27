@@ -8,6 +8,18 @@ use crate::shared::driver::Capabilities;
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::limits::SandboxLimits;
 
+/// The work directory of a spec that does not name one.
+///
+/// It is the default of [`SandboxSpec::new`], the CLI default and the value
+/// that an empty `workdir` means (issue #1031). A program runs in this
+/// directory when it names no other one.
+pub const DEFAULT_WORKDIR: &str = "/workspace";
+
+/// The serde default of [`SandboxSpec::workdir`].
+fn default_workdir() -> String {
+    DEFAULT_WORKDIR.to_string()
+}
+
 /// The root file system of a sandbox.
 ///
 /// A path is a path on the machine that runs the control plane. A remote
@@ -109,6 +121,11 @@ pub struct SandboxSpec {
     /// The base environment of each command.
     pub env: Vec<(String, String)>,
     /// The working directory that the slave creates. Default `/workspace`.
+    ///
+    /// An empty value means the default. A remote caller and an older record
+    /// can carry an empty value; [`Self::effective_workdir`] gives the path
+    /// that the control plane sends in `Prepare`.
+    #[serde(default = "default_workdir")]
     pub workdir: String,
     /// Host directories that the guest sees.
     pub mounts: Vec<HostMount>,
@@ -133,10 +150,24 @@ impl SandboxSpec {
             network: NetworkMode::None,
             dns: vec!["1.1.1.1".to_string(), "8.8.8.8".to_string()],
             env: Vec::new(),
-            workdir: "/workspace".to_string(),
+            workdir: default_workdir(),
             mounts: Vec::new(),
             kernel: None,
             limits: SandboxLimits::default(),
+        }
+    }
+
+    /// The work directory that the control plane sends in `Prepare`.
+    ///
+    /// An empty `workdir` means the default, [`DEFAULT_WORKDIR`]. A remote
+    /// caller and an older record can carry an empty value. The slave refuses
+    /// an empty work directory, because it cannot start a program in it.
+    #[must_use]
+    pub fn effective_workdir(&self) -> &str {
+        if self.workdir.is_empty() {
+            DEFAULT_WORKDIR
+        } else {
+            &self.workdir
         }
     }
 
@@ -167,7 +198,9 @@ impl SandboxSpec {
             ));
         }
 
-        if !absolute_without_parent(Path::new(&self.workdir)) {
+        // An empty workdir means the default (issue #1031); a value that the
+        // caller gives must be absolute and must not leave the root.
+        if !self.workdir.is_empty() && !absolute_without_parent(Path::new(&self.workdir)) {
             return Err(invalid(
                 "workdir",
                 "workdir must be absolute and must not contain `..`",
