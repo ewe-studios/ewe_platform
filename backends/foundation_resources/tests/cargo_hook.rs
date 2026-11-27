@@ -29,6 +29,18 @@ fn cargo(package: &Path, target: &Path, expect_success: bool) {
     );
 }
 
+fn cargo_local(package: &Path, target: &Path) {
+    let output = command(package, target)
+        .args(["--features", "local-only"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
 #[test]
 fn cargo_tracks_directories_and_recovers_the_public_tree_after_failed_production() {
     let temp = tempfile::tempdir().unwrap();
@@ -78,30 +90,21 @@ fn main() -> std::io::Result<()> {
     fs::write(app.join("browser.js"), "boot").unwrap();
     fs::write(app.join("art/icon"), "first").unwrap();
     let public = target.join("package-check/public/resource_fixture");
-    let build_local = || {
-        let output = command(&app, &target)
-            .args(["--features", "local-only"])
-            .output()
-            .unwrap();
-        assert!(
-            output.status.success(),
-            "{}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    };
-    build_local();
+    cargo_local(&app, &target);
     assert!(!public.exists());
     cargo(&app, &target, true);
     // Change a tracked input so Cargo reruns the local build hook.
     fs::write(app.join("art/icon"), "native edit").unwrap();
-    build_local();
+    cargo_local(&app, &target);
     assert_eq!(fs::read(public.join("version")).unwrap(), b"generated");
     assert_eq!(fs::read(public.join("art/icon")).unwrap(), b"first");
     assert_eq!(fs::read(public.join("version")).unwrap(), b"generated");
     #[cfg(unix)]
     assert_eq!(
         fs::metadata(public.join("version")).unwrap().permissions(),
-        fs::metadata(public.join("browser.js")).unwrap().permissions()
+        fs::metadata(public.join("browser.js"))
+            .unwrap()
+            .permissions()
     );
     assert_eq!(fs::read(public.join("art/icon")).unwrap(), b"first");
     assert!(public.join("browser.js").is_file());

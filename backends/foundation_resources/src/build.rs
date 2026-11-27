@@ -473,13 +473,12 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
 /// # Errors
 /// Returns an error when Cargo variables or resource inputs are missing.
 pub fn stage_from_cargo() -> io::Result<Staged> {
-    stage_outputs(&[], true, None)
+    stage_outputs(&[], true)
 }
 
 pub(crate) fn stage_outputs(
     outputs: &[(String, PathBuf)],
     publish_dev_preview: bool,
-    asset_directory: Option<&str>,
 ) -> io::Result<Staged> {
     for key in [
         "EWE_RESOURCE_TARGET",
@@ -560,9 +559,6 @@ pub(crate) fn stage_outputs(
         );
     }
     write_provider(&generated, &staged)?;
-    if let Some(directory) = asset_directory {
-        println!("cargo:rustc-env=EWE_BROWSER_ASSET_DIRECTORY={directory}");
-    }
     let names = generated.join("ewe-resource-names");
     let content = staged.names.join("\n");
     let unchanged = match fs::metadata(&names) {

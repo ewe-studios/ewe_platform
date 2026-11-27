@@ -6,7 +6,7 @@ use std::{
     env,
     ffi::OsStr,
     fs,
-    io::{self, BufRead, BufReader, Read},
+    io::{self, BufRead, BufReader, Read, Write},
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
@@ -14,34 +14,7 @@ use std::{
 pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     let package = required("CARGO_MANIFEST_DIR")?.canonicalize()?;
     let output = required("OUT_DIR")?;
-    let asset_directory = options.page.map(|_| options.asset_directory);
-    if let Some(directory) = asset_directory {
-        crate::ResourceName::new(directory).map_err(io::Error::other)?;
-        if !directory
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || b"/-._~".contains(&byte))
-        {
-            return Err(io::Error::other(
-                "Asset directory must use URL path characters",
-            ));
-        }
-    }
-    let check_base = url::Url::parse("https://example.invalid/app/").map_err(io::Error::other)?;
-    let service = check_base
-        .join(options.service_base)
-        .map_err(io::Error::other)?;
-    if !options.service_base.ends_with('/')
-        || options.service_base.starts_with("//")
-        || !matches!(service.scheme(), "http" | "https")
-        || !service.username().is_empty()
-        || service.password().is_some()
-        || service.query().is_some()
-        || service.fragment().is_some()
-    {
-        return Err(io::Error::other(
-            "Expected an HTTP service directory without credentials, query, or fragment",
-        ));
-    }
+    let asset_directory = validate_layout(options)?;
     let target = output.join("browser-target");
     let cargo = required("CARGO")?;
     let manifest = package.join("Cargo.toml");
@@ -65,64 +38,11 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     println!("cargo:rerun-if-env-changed=WASM_BINDGEN");
     let private = tempfile::tempdir_in(&output)?;
     let mut artifacts = Vec::new();
-    if let (Some(template), Some(directory)) = (options.page, asset_directory) {
-        let source = crate::build::checked_source(&package, template)?;
-        println!("cargo:rerun-if-changed={}", source.display());
-        let page = fs::read_to_string(&source)?;
-        if !page.contains("{{ewe_assets}}") {
-            return Err(io::Error::other(
-                "Page template needs a {{ewe_assets}} marker",
-            ));
-        }
-        let index = private.path().join("index.html");
-        fs::write(&index, page.replace("{{ewe_assets}}", directory))?;
-        artifacts.push(("index.html".to_owned(), index));
+    if let Some((template, directory)) = options.page.zip(asset_directory) {
+        artifacts.push(write_page(&package, private.path(), template, directory)?);
     }
     let tree = private.path().join("modules");
-    if let Some(lock) = options.npm_lock {
-        npm_runtime(&package, lock, private.path(), &tree)?;
-    } else {
-        foundation_wasm_ui::build_hook::application_sources(&tree)?;
-    }
-    let entry = package.join(options.entry).canonicalize()?;
-    if !entry.starts_with(&package) {
-        return Err(io::Error::other("Application entry escapes its package"));
-    }
-    let parent = entry
-        .parent()
-        .ok_or_else(|| io::Error::other("Missing application directory"))?;
-    copy_sources(parent, &tree, parent, false)?;
-    let config = tree.join("ewe-app-config.js");
-    let mut config = fs::File::create_new(&config).map_err(|error| {
-        io::Error::new(
-            error.kind(),
-            format!("Create private module {}: {error}", config.display()),
-        )
-    })?;
-    use std::io::Write as _;
-    writeln!(
-        config,
-        "export const moduleUrl = new URL({}.split(\"/\").map(encodeURIComponent).join(\"/\"), import.meta.url).href;",
-        serde_json::to_string(options.module_path)?
-    )?;
-    writeln!(
-        config,
-        "export const assetBase = new URL('./', import.meta.url).href;
-const mount = new URL({}, assetBase);
-export const serviceBase = new URL({}, mount).href;
-export const serviceUrl = route => new URL(route.startsWith('/') && !route.startsWith('//') ? route.slice(1) : route, serviceBase).href;",
-        serde_json::to_string(&asset_directory.map_or_else(
-            || "./".to_owned(),
-            |directory| "../".repeat(directory.split('/').count()),
-        ))?,
-        serde_json::to_string(options.service_base)?,
-    )?;
-    drop(config);
-    let entry = tree.join(
-        entry
-            .file_name()
-            .ok_or_else(|| io::Error::other("Missing application entry name"))?,
-    );
+    let entry = stage_sources(options, &package, private.path(), &tree, asset_directory)?;
     let temporary = private.path().join("bindings");
     let app_stem = tools.produce(app, options.feature, "bundler", &temporary)?;
     fs::create_dir_all(tree.join("bindings"))?;
@@ -176,6 +96,117 @@ export const serviceUrl = route => new URL(route.startsWith('/') && !route.start
         options.publish_dev_preview,
         asset_directory,
     )
+}
+
+fn validate_layout<'a>(options: &BrowserPackage<'a>) -> io::Result<Option<&'a str>> {
+    let asset_directory = options.page.map(|_| options.asset_directory);
+    if let Some(directory) = asset_directory {
+        crate::ResourceName::new(directory).map_err(io::Error::other)?;
+        if !directory
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"/-._~".contains(&byte))
+        {
+            return Err(io::Error::other(
+                "Asset directory must use URL path characters",
+            ));
+        }
+    }
+    let check_base = url::Url::parse("https://example.invalid/app/").map_err(io::Error::other)?;
+    let service = check_base
+        .join(options.service_base)
+        .map_err(io::Error::other)?;
+    if !options.service_base.ends_with('/')
+        || options.service_base.starts_with("//")
+        || !matches!(service.scheme(), "http" | "https")
+        || !service.username().is_empty()
+        || service.password().is_some()
+        || service.query().is_some()
+        || service.fragment().is_some()
+    {
+        return Err(io::Error::other(
+            "Expected an HTTP service directory without credentials, query, or fragment",
+        ));
+    }
+    Ok(asset_directory)
+}
+
+fn write_page(
+    package: &Path,
+    private: &Path,
+    template: &Path,
+    directory: &str,
+) -> io::Result<(String, PathBuf)> {
+    let source = crate::build::checked_source(package, template)?;
+    println!("cargo:rerun-if-changed={}", source.display());
+    let page = fs::read_to_string(&source)?;
+    if !page.contains("{{ewe_assets}}") {
+        return Err(io::Error::other(
+            "Page template needs a {{ewe_assets}} marker",
+        ));
+    }
+    let index = private.join("index.html");
+    fs::write(&index, page.replace("{{ewe_assets}}", directory))?;
+    Ok(("index.html".to_owned(), index))
+}
+
+fn stage_sources(
+    options: &BrowserPackage<'_>,
+    package: &Path,
+    private: &Path,
+    tree: &Path,
+    asset_directory: Option<&str>,
+) -> io::Result<PathBuf> {
+    if let Some(lock) = options.npm_lock {
+        npm_runtime(package, lock, private, tree)?;
+    } else {
+        foundation_wasm_ui::build_hook::application_sources(tree)?;
+    }
+    let entry = package.join(options.entry).canonicalize()?;
+    if !entry.starts_with(package) {
+        return Err(io::Error::other("Application entry escapes its package"));
+    }
+    let parent = entry
+        .parent()
+        .ok_or_else(|| io::Error::other("Missing application directory"))?;
+    copy_sources(parent, tree, parent, false)?;
+    write_config(options, tree, asset_directory)?;
+    Ok(tree.join(
+        entry
+            .file_name()
+            .ok_or_else(|| io::Error::other("Missing application entry name"))?,
+    ))
+}
+
+fn write_config(
+    options: &BrowserPackage<'_>,
+    tree: &Path,
+    asset_directory: Option<&str>,
+) -> io::Result<()> {
+    let config = tree.join("ewe-app-config.js");
+    let mut config = fs::File::create_new(&config).map_err(|error| {
+        io::Error::new(
+            error.kind(),
+            format!("Create private module {}: {error}", config.display()),
+        )
+    })?;
+    writeln!(
+        config,
+        "export const moduleUrl = new URL({}.split(\"/\").map(encodeURIComponent).join(\"/\"), import.meta.url).href;",
+        serde_json::to_string(options.module_path)?
+    )?;
+    writeln!(
+        config,
+        "export const assetBase = new URL('./', import.meta.url).href;
+const mount = new URL({}, assetBase);
+export const serviceBase = new URL({}, mount).href;
+export const serviceUrl = route => new URL(route.startsWith('/') && !route.startsWith('//') ? route.slice(1) : route, serviceBase).href;",
+        serde_json::to_string(&asset_directory.map_or_else(
+            || "./".to_owned(),
+            |directory| "../".repeat(directory.split('/').count()),
+        ))?,
+        serde_json::to_string(options.service_base)?,
+    )?;
+    Ok(())
 }
 
 fn npm_runtime(package: &Path, lock: &Path, private: &Path, tree: &Path) -> io::Result<()> {
@@ -276,7 +307,11 @@ fn stage_artifacts(
         }
         generated.push((name, relative));
     }
-    stage_outputs(&generated, publish_dev_preview, asset_directory).map(drop)
+    stage_outputs(&generated, publish_dev_preview)?;
+    if let Some(directory) = asset_directory {
+        println!("cargo:rustc-env=EWE_BROWSER_ASSET_DIRECTORY={directory}");
+    }
+    Ok(())
 }
 
 fn add_companion(

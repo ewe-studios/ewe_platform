@@ -11,6 +11,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
+enum BrowserBuild {
+    IncludeApplication,
+    ResourcesOnly,
+}
+
 /// Package settings for a Cargo application that has a WebAssembly library target.
 pub struct BrowserPackage<'a> {
     entry: &'a Path,
@@ -20,7 +25,7 @@ pub struct BrowserPackage<'a> {
     resources: bool,
     companions: Vec<(&'a str, &'a str)>,
     generated: Vec<(&'a str, Vec<u8>)>,
-    browser: bool,
+    browser: BrowserBuild,
     publish_dev_preview: bool,
     npm_lock: Option<&'a Path>,
     page: Option<&'a Path>,
@@ -40,7 +45,7 @@ impl<'a> BrowserPackage<'a> {
             resources: false,
             companions: Vec::new(),
             generated: Vec::new(),
-            browser: true,
+            browser: BrowserBuild::IncludeApplication,
             publish_dev_preview: true,
             npm_lock: None,
             page: None,
@@ -117,7 +122,11 @@ impl<'a> BrowserPackage<'a> {
     /// Select whether this build needs the browser application in addition to manifest resources.
     #[must_use]
     pub fn browser_enabled(mut self, enabled: bool) -> Self {
-        self.browser = enabled;
+        self.browser = if enabled {
+            BrowserBuild::IncludeApplication
+        } else {
+            BrowserBuild::ResourcesOnly
+        };
         self
     }
 
@@ -205,8 +214,10 @@ impl<'a> BrowserPackage<'a> {
             file.write_all(bytes)?;
             file.persist(path)?;
         }
-        if !self.browser || env::var_os("EWE_RESOURCE_TARGET").is_some_and(|t| t != "web") {
-            return crate::build::stage_outputs(&[], self.publish_dev_preview, None).map(drop);
+        if matches!(self.browser, BrowserBuild::ResourcesOnly)
+            || env::var_os("EWE_RESOURCE_TARGET").is_some_and(|t| t != "web")
+        {
+            return crate::build::stage_outputs(&[], self.publish_dev_preview).map(drop);
         }
         for (_, folder) in &self.companions {
             ResourceName::new(folder).map_err(io::Error::other)?;

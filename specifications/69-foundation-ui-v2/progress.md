@@ -1911,3 +1911,8 @@ The automated double tap does not open the confirmation. Confirmation activation
 The pause test passes. VoiceOver speaks the pause title, the remaining seconds, and Input resumed.
 The test opens the pause with a direct tap before it enables VoiceOver.
 Its sampled focus stays in the modal while it is open.
+
+The resource build separates layout validation, page generation, and publication.
+All six staging tests and both runtime tests pass.
+Clippy passes with warnings denied for `foundation_resources` with `browser-package,server` and all targets.
+The rebuilt development Todo passes the mounted Chromium check again.
