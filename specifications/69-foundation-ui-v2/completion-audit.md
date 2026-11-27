@@ -83,9 +83,15 @@ See the [asset path contract](features/37-todo-server-build-and-state/feature.md
 - [Issue 691](https://github.com/ewe-studios/ewe_platform/issues/691) is closed. The Android emulator and Linux fixtures accept Vulkan aggregate records and reject a missing feature.
   These fixtures use device creation records without creating a physical device grant.
 - [Issue 713](https://github.com/ewe-studios/ewe_platform/issues/713) remains open while the current Linux native bridge tests and strict Clippy run.
-- Check migration fixture #712, wire lint #846, replay backlog #548, and missing-clock handling #619 against the final package gates.
-- Check the first-install timeout (#831) against the launcher verification. The reviewed launcher and #1074 are already delivered.
-- Track server idle activity (#673) and unused Todo server code (#789). Address each if it blocks an acceptance or warning gate.
+- The external Cargo target fixture reports the exact missing migration number. [Issue 712](https://github.com/ewe-studios/ewe_platform/issues/712)
+- The subscription constructors pass strict Clippy. All 96 wire tests pass. [Issue 846](https://github.com/ewe-studios/ewe_platform/issues/846)
+- The old failure limiter is absent from the active runtime. The signer reports missing host services through typed errors. [Issue 619](https://github.com/ewe-studios/ewe_platform/issues/619)
+- The pinned Android sample compiles Kotlin, builds the debug package, and passes manifest, archive, and signature checks. [Issue 615](https://github.com/ewe-studios/ewe_platform/issues/615)
+- A fresh simulator install shows the launch artwork under debugger pause and the ready Todo view on normal launch.
+  Issue 831 stays open for a physical iPhone repeat. No physical iPhone is available to this check. [Issue 831](https://github.com/ewe-studios/ewe_platform/issues/831)
+- The HTTP server closes an idle connection when the peer closes input. The real server stays idle after a starter Refresh.
+  The server-only Todo build now has no compiler warnings. [Issue 673](https://github.com/ewe-studios/ewe_platform/issues/673) [Issue 789](https://github.com/ewe-studios/ewe_platform/issues/789)
+- The [replay backlog scope](#replay-backlog-scope) explains the deferred general snapshot requirement.
 - Keep unrelated task commands and dependency cleanup outside this queue. Record an external dependency only when a named acceptance check needs it.
 
 ## Unsigned Feature 12, 14, and 16 checks

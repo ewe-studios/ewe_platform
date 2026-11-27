@@ -2039,3 +2039,54 @@ The three pixel samples match red, blue, and blue.
 Strict Clippy passes on Linux AMD64 for all graphics targets.
 The lease tests name the adapter options and device descriptor types in their default values.
 [Issue 701](https://github.com/ewe-studios/ewe_platform/issues/701)
+
+## Release and fixture follow-up checks
+
+The external Cargo target fixture uses a temporary package and separate migration files.
+It reports `migrations: group is missing migration number 2` on the current branch.
+Set `CARGO_TARGET_DIR` outside the checkout and run the `embed_migrations_rejects_a_gap` macro test.
+The fixture repair first appears in `067b4523e`. [Issue 712](https://github.com/ewe-studios/ewe_platform/issues/712)
+
+The wire constructors initialize the generated request and reply fields directly.
+The strict library check passes. The wire integration target passes all 96 tests.
+[Issue 846](https://github.com/ewe-studios/ewe_platform/issues/846)
+
+The retired failure limiter and its recording method are absent.
+The active state signer returns `StateError::MissingEnv` for a missing clock or random number generator.
+The missing-services test passes in the runtime integration target.
+[Issue 619](https://github.com/ewe-studios/ewe_platform/issues/619)
+
+The Android build proof uses the existing Kotlin pin alongside the Android Gradle Plugin (AGP).
+The pinned Gradle check compiles Kotlin with AGP 9.5.1 and Android platform 36.
+The application archive, manifest, and signature checks pass.
+Gradle reports no compatibility warning for `Configuration.setVisible`.
+[Issue 615](https://github.com/ewe-studios/ewe_platform/issues/615)
+
+### Fresh iPhone simulator launch
+
+Two newly signed scratch app identities use the same installed Todo server build.
+The debugger-paused launch command returns after 3.23 seconds.
+Its capture shows the launch screen title while the process waits for the debugger.
+The normal launch command returns after 0.58 seconds.
+Its later capture shows the full Todo view. SpringBoard records scene readiness.
+Neither capture run shows the earlier timeout in the filtered launch service logs.
+A physical iPhone is unavailable for this repeat. [Issue 831](https://github.com/ewe-studios/ewe_platform/issues/831)
+
+- [Debugger-paused launch](features/23-native-design-and-themes/design/ios-first-install-paused.png)
+- [Normal launch](features/23-native-design-and-themes/design/ios-first-install-ready.png)
+
+### Todo server idleness after a peer closes
+
+A fresh Chrome starter completes one Refresh against the scratch Todo server and exits.
+Before the fix, the process consumes 9.17 to 23.67 central processing unit (CPU) seconds per 12-second interval.
+After the fix, it consumes 0.02 to 0.03 CPU seconds per interval.
+The socket regression fails before the fix. All eight connection tests pass after the fix.
+
+A read that reaches the end of the peer input closes the handler.
+A blank line leaves the handler ready to check the next buffered request.
+The public reader retains its previous return values.
+
+Six clients repeat the response check over 48 reused connections.
+All 4,800 script responses have status 200 and contain 769,431 bytes.
+The largest header wait is 188.949 milliseconds.
+The scratch server uses a separate Todo store. [Issue 673](https://github.com/ewe-studios/ewe_platform/issues/673)

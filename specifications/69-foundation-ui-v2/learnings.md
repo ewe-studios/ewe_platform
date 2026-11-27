@@ -1554,3 +1554,10 @@ Private client state and helpers use the same compile selection as the client ac
 Check the Linux process status after the test summaries. The original shutdown failure occurred after the tests reported success.
 For the browser check, build and bind the library and the test module. The page imports both modules.
 Use the test profile for the Wasm build. The local Cranelift code generator cannot build this Wasm target.
+
+## Idle connections after the browser exits
+
+A macOS process sample shows the idle HTTP handler repeatedly registering a closed peer socket.
+The request parser also uses an empty public result for a tolerated leading blank line.
+The handler now receives separate internal results for the two cases.
+It closes the peer at end of input and continues reading after a blank line.
