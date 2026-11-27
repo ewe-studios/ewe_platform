@@ -105,8 +105,39 @@ follows the repository layout.
       metadata and group-commit coverage. The 8 tests in `tests/durable_file_vfs/` pass.
 - [x] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS
       metadata. Tests: `producer_state_survives_restart`, `stream_seq_state_survives_restart`.
-- [ ] **T6 — DO SQLite and D1 VFS.** Atomic producer state. Tests:
+- [ ] **T6 — DO SQLite VFS and D1 VFS.** Atomic producer state. Tests:
       `do_sqlite_vfs_passes_dst_scenario`, `d1_vfs_passes_dst_scenario`.
+
+      **Metadata is the VFS.** `DurableStreamVfs` stores the metadata record: content type,
+      length, closed, expiry, writer state (producers and `Stream-Seq`), fork, last access,
+      trim-from and version. The core store owns the semantics: producer checks, JSON encoding,
+      fork resolution and TTL decisions. A DO SQLite VFS therefore replaces the metadata bytes,
+      not the rules.
+
+      **DO design: SQLite hot path plus R2 cold tier.**
+
+      | Table | Holds |
+      |---|---|
+      | `stream_meta` | one row per stream: the metadata record above, plus `delivered_seq` |
+      | `pending_data` | appended chunks: stream, sequence, bytes, state (`pending` or `delivered`) |
+
+      - An append writes the chunk row and the metadata row in one SQLite transaction. The
+        server acknowledges after the commit, so the hot copy is durable.
+      - A batcher groups pending chunks per stream into one block up to `max_block_bytes`
+        (configuration), then PUTs the block to R2 under a deterministic key derived from the
+        stream and the first and last sequence. The block is immutable.
+      - After the PUT succeeds, the rows move to `delivered` and `stream_meta.delivered_seq`
+        advances. A vacuum removes delivered rows once `delivered_seq` is durable in R2.
+      - A read serves from SQLite while the rows are present. For a block already vacuumed, the
+        read fetches the block from R2 by range and decodes the chunk.
+      - A crash replays pending rows. The deterministic block key plus the starting sequence make
+        the PUT idempotent.
+      - `durability` is configuration: `hot` (ack after the SQLite commit) or `object` (ack after
+        the R2 PUT). `hot` is the default for a Durable Object.
+      - Block size, batch age, vacuum threshold and the retry bound are configuration, never
+        constants.
+      - This tiering builds on the R2 layout in feature 09. The SQLite VFS is the owner of both
+        tables; feature 09 owns the object format.
 - [ ] **T7 — oracles.** Crash and recovery, model, differential and resource oracles. Tests:
       `restart_preserves_stream`, `backends_match_model`, `read_is_bounded`.
 - [x] **T8 — no valtron or runtime.** The VFS and `DurableStream` build with valtron and sockets
