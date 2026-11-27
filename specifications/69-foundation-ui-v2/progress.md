@@ -2325,3 +2325,11 @@ The planner schedules that recipe. All 14 selected tests pass on macOS. The Wind
 The Feature 23 handoff gives the signed scratch install and both first-launch paths.
 Feature 32 gives the VoiceOver speech and focus checks. Feature 36 gives the physical sound and interruption checks.
 The results still need physical devices.
+
+## Windows generated wire fixture checkout
+
+The Windows test output differs from the generator only in line endings.
+The new Git attributes preserve line feed for the generated vocabulary and the native snapshot text.
+The automatic CRLF checkout check reproduces the old change and preserves all four tested files after the fix.
+The byte comparisons and binary wire fixtures stay the same.
+[Issue 1202](https://github.com/ewe-studios/ewe_platform/issues/1202)

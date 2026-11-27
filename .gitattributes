@@ -4,3 +4,9 @@
 *.sh text eol=lf
 *.j2 text eol=lf
 *.service text eol=lf
+
+# Generated wire checks compare these files with the generator output.
+backends/foundation_wasm_ui/runtimes/foundation-ui-vocab.js text eol=lf
+backends/foundation_ui_wire/fixtures/native/*.expected.json text eol=lf
+mobile/android/core/src/test/resources/native/*.expected.json text eol=lf
+mobile/ios/Tests/EweUITests/Fixtures/*.expected.json text eol=lf

@@ -1731,3 +1731,10 @@ The database test dependency keeps its default features. The proposed recipe lim
 A physical application launch uses its built-in server address outside the Xcode scheme.
 Keep the scratch server on loopback and use an approved device-reachable endpoint.
 Foreground changes and audio-session interruptions require separate records.
+
+## Generated wire fixture line endings
+
+Git can change a tracked text file during checkout.
+Use a line-feed attribute on the generated text files that tests compare by byte.
+The Windows log compares the same values with different line endings.
+An automatic CRLF checkout reproduces the difference without changing the source files.
