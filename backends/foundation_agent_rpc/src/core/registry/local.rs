@@ -443,7 +443,6 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                 guard,
                 abort,
                 self.ctx.clone(),
-                self.env.clone(),
                 &self.turns,
             ))
         })

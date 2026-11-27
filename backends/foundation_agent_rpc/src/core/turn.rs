@@ -19,7 +19,6 @@ use foundation_ai::agentic::{TurnEvent as ModelTurnEvent, TurnSummary};
 use foundation_ai::types::UserModelContent;
 use foundation_compact::{Duration, Instant};
 use foundation_context::env::timer::TimerFuture;
-use foundation_context::env::Env;
 use foundation_context::Ctx;
 use futures::Stream;
 
@@ -106,7 +105,6 @@ pub fn guarded_turn<E, G>(
     guard: G,
     abort: Arc<dyn Fn() + Send + Sync>,
     ctx: Ctx,
-    env: Env,
     limits: &TurnLimits,
 ) -> TurnEventStream
 where
@@ -120,7 +118,6 @@ where
         guard: Some(guard),
         abort,
         ctx,
-        env,
         idle_timeout: limits.idle_timeout,
         total_deadline: total,
         timer: None,
@@ -133,11 +130,6 @@ struct GuardedTurn<E, G> {
     guard: Option<G>,
     abort: Arc<dyn Fn() + Send + Sync>,
     ctx: Ctx,
-    /// The effects bundle. The turn now derives its timer from the context
-    /// ([`Ctx::timer`], spec 92), so this field is not read here; the registry
-    /// still passes it in the `guarded_turn` contract.
-    #[allow(dead_code)]
-    env: Env,
     idle_timeout: Duration,
     total_deadline: Option<Instant>,
     timer: Option<TimerFuture>,
@@ -153,8 +145,8 @@ where
         let now = self.ctx.clock().now();
         let idle = now + self.idle_timeout;
         let deadline = self.total_deadline.map_or(idle, |total| total.min(idle));
-        // Spec 92: the context derives the timer. The `Env` timer is only an
-        // override, so the turn no longer reads `self.env` for it.
+        // Spec 92: the context derives the timer. An `Env` timer is only an
+        // override, so the turn reads the timer from the context.
         self.timer = Some(self.ctx.timer().sleep_until(self.ctx.clone(), deadline));
     }
 
