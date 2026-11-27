@@ -26,10 +26,15 @@ closed, not when its code compiles.
 - **The wide effect:** the loop held the whole isolate. A raw request that the entry
   refuses with no DO also timed out. This ruled out a simple "slow create" and named a
   synchronous loop as the cause.
-- **The fix:** park on the injected timer for `create_poll_interval` (4 ms) on `Wait`,
-  then pull again. The event loop runs between the pulls. The remote create also uses the
-  create deadline `boot_timeout` (10 s) for the whole stream; the unary `rpc_timeout`
-  (5 s) was too short for a cold container start.
+- **The fix:** yield to the host with `Waker::wake_by_ref` and `Poll::Pending` on `Wait`,
+  then pull again when the executor polls the stream. Do not wait on the injected timer
+  there: on the native runner the timer implementation (`sleep_until_async` through
+  `into_ready_future`) drove the engine from inside the poll, re-entered the create task at
+  `WorkerContainer::running`, and crashed the wasm instance (`Critical error`, then
+  `Cannot invoke closure from previous WASM instance`). The macOS run did not show that
+  crash. The remote create uses the Worker's container boot deadline
+  (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream; a runner create took
+  23.8 s, so the unary `rpc_timeout` (5 s) or the spec `boot_timeout` (10 s) were too short.
 - **`fix/dst-wait-redrive` (#1116):** it changes the five parking stream-to-future
   adapters. It does not change this hand-written loop, so it would not fix this failure.
   It stays useful for the adapters. Its sibling issues #1128 and #1129 cover the

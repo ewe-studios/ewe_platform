@@ -55,11 +55,15 @@ The create timeout has two causes.
    `Stream::Wait`. The iterator is a driving valtron stream: `Wait` means that the queue is
    empty and that it must run again. On the single-threaded wasm host that loop starved the
    event loop, so the create never finished and the Worker stopped answering. The service
-   now parks on the injected timer for `SandboxLimits::create_poll_interval` (default 4 ms)
-   and then pulls again. The test `tests/control/service_create.rs` fails on the old code.
-   The remote create also uses `boot_timeout` (10 s), the create deadline, for the whole
-   stream instead of the unary `rpc_timeout` (5 s). A cold create takes about 3.5 s on the
-   local emulated container, so 5 s was too short.
+   now yields to the host with a self-wake and returns `Poll::Pending`; the executor polls
+   again. It does not wait on the injected timer: on the runner, the timer implementation
+   drove the engine from inside the poll, re-entered the create task at
+   `WorkerContainer::running`, and crashed the wasm instance (`Critical error`, then
+   `Cannot invoke closure from previous WASM instance`). The test
+   `tests/control/service_create.rs` fails on the old code.
+   The remote create uses the Worker's container boot deadline
+   (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream. The runner's create took
+   23.8 s, so the unary defaults (5 s, then 10 s) were too short.
 2. The slave did not detect the Cloudflare container runtime: the runtime writes neither
    `/.dockerenv` nor `/run/.containerenv`. The slave ran the virtual-machine boot duties,
    failed, and never listened on the slave port. It now also treats the `CLOUDFLARE_*`
