@@ -23,7 +23,7 @@ WebAssembly (wasm).
 | Client suite | 267 passed, 0 failed, 2 skipped of 269 | Recorded. |
 | Direction 3 cross-run | 6 scenarios pass | Recorded test target. |
 | Direction 4 cross-run | 5 scenarios pass | Recorded test target. |
-| Runtime matrix | 3 rows have a runtime proof, 1 row has a build proof, 2 rows are gaps | Section 5. |
+| Runtime matrix | 4 rows have a runtime proof, 1 row has a build proof, 1 row is a gap | Section 5. |
 | Clock parameter guard | 0 violations | Re-run in this change. |
 | Time source guard | 0 violations | Re-run in this change. |
 
@@ -125,7 +125,7 @@ own. The rows below show how the same core runs in each target.
 | Cloudflare Worker | The Worker fetch handler calls the core | `foundation_event_stream` wasm build, and `/run-d1` in the DO fixture | Runtime proof. |
 | Durable Object | DO SQLite storage and one fetch handler | `/run` in the DO fixture | Runtime proof. |
 | WebSocket server | Adapter events | No durable adapter or test | Gap. Issue #1077. |
-| `foundation_ai` Session | The core as the session log | No durable log driver or test | Gap. Issue #1079. |
+| `foundation_ai` Session | The core as the session log | `durable_session_store_tests` (6 tests) | Runtime proof. |
 
 ### 5.1 Local embedded
 
@@ -215,10 +215,37 @@ the exact missing piece and a likely fix.
 
 ### 5.6 `foundation_ai` Session
 
-This row is a gap. `AgentSession` uses `foundation_db::traits::DocumentStore` and
-`agentic::memory_store::MemoryStore`. No implementation of either trait uses a durable stream as
-the session log. There is no `session_uses_core` test. Issue #1079 records the missing driver and
-a likely fix.
+The session's ordered record log is a `DocumentStore`. `DurableDocumentStore` in
+`backends/foundation_ai/src/agentic/durable_store.rs` maps one collection key (a session id) to
+one durable stream. It stores one `SessionRecord` per JSON chunk. The stream offset is the log
+position. A read replays the chunks in append order. A branch uses
+`DurableDocumentStore::fork`, which creates a stream fork at the parent tail. The store takes
+`DurableStreams<DurableStream>` and `Ctx` from the host. It has no global and makes no HTTP call.
+
+```text
+cargo test -p foundation_ai --no-default-features --test durable_session_store_tests
+```
+
+Result: 6 passed. The tests prove:
+
+- append and replay round trip, and order preserved;
+- replay from a document id (`scan_from`);
+- a fork branch reads the parent prefix, then diverges; the parent stays unchanged;
+- a reopened store over the same VFS replays the session;
+- `session_uses_core`: `AgentSession` builds over the store with `with_doc_store`, and its
+  message API replays the log.
+
+The Wasm (wasm32) build is clean:
+
+```text
+cargo check -p foundation_ai --target wasm32-unknown-unknown --no-default-features
+```
+
+The store's compaction path is a one-document delete. It rewrites the stream and refuses when a
+fork still shares its history. The session has no automatic compaction or time-to-live (TTL)
+path, so the store adds none. The memory-tier cache stays the key-value `KvMemoryStore`; it is a
+cache, not the transcript. On a cold cache, `MemoryCoordinator` rebuilds the tiers from this
+durable audit log.
 
 ## 6. Skip register
 
@@ -243,7 +270,6 @@ The skip lines are present at the pinned reference commit
 | Issue | Severity | Subject | Matrix row |
 |---|---|---|---|
 | #1077 | medium | No WebSocket driver for the core or the client | WebSocket |
-| #1079 | medium | `foundation_ai` Session has no Durable Streams log driver | Session |
 | #1080 | low | No wasm32 runtime roundtrip test | wasm32 |
 | #1081 | medium | The gate builds the server with the valtron feature on | Gate |
 | #1082 | low | Two suite-forced client skips (`Swift implementation broken`) | Skip register |
@@ -264,13 +290,13 @@ and run the gate again.
 ## 9. What remains
 
 - **T6 — valtron suite.** Run the reader, writer, wait and wake tests as a separate step.
-- **T8 — runtime matrix.** Add the WebSocket driver (#1077), the Session log driver (#1079) and
-  the wasm32 runtime test (#1080).
-- **T9 — `foundation_ai` Session.** The same work as the Session row.
+- **T8 — runtime matrix.** Add the WebSocket driver (#1077) and the wasm32 runtime test
+  (#1080).
+- **T9 — `foundation_ai` Session.** Done: the Session row has a runtime proof (section 5.6).
 - **T11 to T21.** The behaviour-driven development (BDD) suite, the driver matrix, the model,
   differential, metamorphic, property, fault, crash, timing and VFS oracles.
 - **The valtron-disabled gate.** Decide the form of requirement 8 (#1081). The separate
   `durable_core_no_valtron` crate proves the core runs without valtron. The gate does not.
 
-The runtime matrix success criterion stays unticked until the WebSocket, Session and wasm32
-runtime rows pass.
+The runtime matrix success criterion stays unticked until the WebSocket and wasm32 runtime rows
+pass.

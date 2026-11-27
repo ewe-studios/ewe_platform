@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T9 `foundation_ai` Session log landed. `DurableDocumentStore` in
+  `backends/foundation_ai/src/agentic/durable_store.rs` maps one session id to one durable
+  stream and stores one `SessionRecord` per JSON chunk. It implements `DocumentStore`, so
+  `AgentSession::builder(..).with_doc_store(store)` runs the session log on the core. A branch
+  uses a stream fork at the parent tail. The store takes `DurableStreams<DurableStream>` and a
+  `Ctx` from the host; it has no global and makes no HTTP call. `tests/durable_session_store_tests.rs`
+  has 6 tests: append and replay round trip, order preserved, replay from a document id, fork
+  prefix and divergence, reopen over the same VFS, and `session_uses_core`. The wasm32 check
+  passes. Issue #1079 is closed.
+
 - 2026-11-27: feature 08 runtime matrix, skip register and report landed. The report is
   `specifications/71-durable-streams-in-valtron/features/08-conformance/report.md`. It holds the
   gate command, the four-direction matrix, the runtime matrix, the skip register, the open issues
@@ -577,7 +587,7 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all
   landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
-- **08-conformance** — 🟡 in progress (7/21 tasks ticked: T1 to T5, T7 and T10; T6, T8, T9 and
+- **08-conformance** — 🟡 in progress (8/21 tasks ticked: T1 to T5, T7, T9 and T10; T6, T8 and
   T11 to T21 open). The CI gate landed as a `[gates]` entry in `ci/packages.toml`:
   `foundation-ci run durable-conformance --step test` runs both reference suites, then the two
   cross-run test targets. `foundation-ci affected` selects the gate from the changed files, on a
@@ -586,10 +596,10 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   to our server, and the reference Rust client to our server. Our client runs 5 scenarios; the
   reference client runs 6, including the cursor check for #1065. The report is
   `features/08-conformance/report.md`. The runtime matrix has a runtime proof for embedded, the
-  Worker and the DO, and a build proof for wasm32. The WebSocket (#1077) and Session (#1079)
-  rows are gaps; the wasm32 runtime test is #1080. The skip register names the two suite-forced
-  client skips (issue #1082); the server suite has no skip. The valtron suite (T6), the BDD
-  suite, the driver matrix and the oracles remain.
+  Worker, the DO and the `foundation_ai` Session, and a build proof for wasm32. The WebSocket
+  row is a gap (#1077); the wasm32 runtime test is #1080. The skip register names the two
+  suite-forced client skips (issue #1082); the server suite has no skip. The valtron suite (T6),
+  the BDD suite, the driver matrix and the oracles remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

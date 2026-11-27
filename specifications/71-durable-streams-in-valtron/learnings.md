@@ -896,3 +896,28 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   rest of the crate tests do. Both use direct async calls and no transport. The second form
   proves the business API and `DurableService`; the first proves the core compiles and runs
   without valtron.
+
+## Feature 08 T9: the session log on the core (2026-11-27)
+
+- **The store must be concrete over `DurableStream`, not generic over `DurableDriver`.** The
+  `DocumentStore` trait uses `#[async_trait]`, whose futures must be `Send`. The
+  `DurableStreamStore` trait has native `async fn` methods with no `Send` bound on their
+  futures, so a generic implementation cannot prove that an awaited future is `Send`. The host
+  builds a `DurableStream` from its virtual file system (VFS), so a concrete store loses
+  nothing. Every driver in the tree is `DurableStream`.
+- **A JSON stream gives the record boundary for free.** The core writes one JSON message per
+  line and a read returns one chunk per message. One `SessionRecord` per chunk is enough, and
+  the store needs no length prefix.
+- **A fork target must not be re-created.** `ensure_stream` asks for the head first. A fork
+  stream has a different `VfsMeta.fork`, so a create with no fork returns `ConfigConflict`. The
+  store creates only when the stream is missing.
+- **Idempotent `append_with_id` needs the ids already in the stream.** The store keeps an
+  in-memory id set per collection key. A cold store replays the stream once. A retry after a
+  store reopen is still a no-op.
+- **Delete one document is a compaction.** A stream has no per-chunk delete. The store rewrites
+  the stream and refuses when a VFS list finds a fork that names the stream as its source.
+- **The local `dev` profile cannot test `catch_unwind`.** `mise.toml` sets
+  `CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift`, and Cranelift does not support `catch_unwind`.
+  The existing `tool_exec_tests::panicking_tool_is_contained_as_error` fails under `dev` for
+  that reason. Run the suite with `--profile uat` (LLVM) to test panic containment. This is an
+  environment property, not a code bug.

@@ -115,10 +115,12 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] **T8 — runtime matrix.** Run the core in a local embedded process, a DO, a Worker, a
       WebSocket server and wasm32. Tests: `embedded_core_roundtrip`, `do_core_roundtrip`,
       `worker_core_roundtrip`, `websocket_core_roundtrip`, `wasm_core_roundtrip`.
-      Status 2026-11-27: embedded, Worker and DO have proofs. wasm32 has a build proof only
-      (#1080). WebSocket (#1077) and the `foundation_ai` Session (#1079) are gaps.
-- [ ] **T9 — `foundation_ai` Session.** Back a Session with the core. Test: `session_uses_core`.
-      Gap: see issue #1079.
+      Status 2026-11-27: embedded, Worker, DO and the `foundation_ai` Session have proofs.
+      wasm32 has a build proof only (#1080). WebSocket (#1077) is a gap.
+- [x] **T9 — `foundation_ai` Session.** Back a Session with the core. Test:
+      `session_uses_core` in `backends/foundation_ai/tests/durable_session_store_tests.rs`.
+      The store is `DurableDocumentStore` in
+      `backends/foundation_ai/src/agentic/durable_store.rs`.
 - [x] **T10 — surface neutrality.** Call `DurableService` with no HTTP adapter. Test:
       `service_runs_without_http` in
       `backends/foundation_core/tests/durable/runtime_matrix.rs`.
