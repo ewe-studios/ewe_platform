@@ -61,6 +61,7 @@ mod stream_future;
 mod stream_iterators;
 #[cfg(not(target_family = "wasm"))]
 mod targeted_wake;
+mod wait_redrive;
 mod wake_registry;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
 #[cfg(target_family = "wasm")]
@@ -99,6 +100,10 @@ mod delayed_iterators;
 mod drain;
 #[cfg(not(target_family = "wasm"))]
 mod driven_stream_async_wake;
+#[cfg(feature = "testing")]
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod dst_hang_proof;
 mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]

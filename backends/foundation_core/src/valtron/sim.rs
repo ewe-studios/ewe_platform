@@ -44,6 +44,9 @@ impl SimRuntime {
     /// The single-threaded engine starts once per thread. A second call on the
     /// same thread keeps the first engine, so use [`SimRuntime::run`] for a
     /// second seed.
+    ///
+    /// # Panics
+    /// Panics when the seeded effect environment cannot be built.
     #[must_use]
     pub fn start(seed: u64, start: Duration) -> Self {
         let clock = Arc::new(SimulatedClock::new(start));

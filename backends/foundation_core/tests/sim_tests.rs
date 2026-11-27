@@ -3,10 +3,14 @@
 //! One seed gives one clock, one random stream, one identifier stream and one
 //! task order.
 
-// The runtime exists only with the `testing` feature and the single-threaded
-// engine. Without this gate the target tries to import a module that the
-// feature set does not build.
-#![cfg(all(feature = "testing", not(feature = "multi")))]
+// `valtron::sim` exists only in this tree (see `valtron/mod.rs`). Without this
+// gate the target fails to compile in the default, `multi`, `test-clock` and
+// wasm runs, which made the CI build and clippy steps red.
+#![cfg(all(
+    feature = "testing",
+    not(feature = "multi"),
+    not(target_family = "wasm")
+))]
 
 use std::time::Duration;
 
