@@ -1,5 +1,12 @@
 # Spec 69 progress
 
+## Android Todo Server startup address
+
+- Read the default address from the Android project settings.
+- Save a valid launch override in private app settings. Use it on the next launcher start.
+- Keep each address in its own namespace for pending input. [Issue 1071](https://github.com/ewe-studios/ewe_platform/issues/1071)
+- Verify a fresh configured start and a launcher restart with no address extra on the Android emulator.
+
 ## Shared web button styles
 
 - Restore secondary styles for Play Mathalley, Pause input, Retry pause, and Edit title.

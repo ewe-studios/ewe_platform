@@ -21,6 +21,7 @@ class ReplayCheck : Instrumentation() {
     private var resourceHash: String? = null
     private var gameSound = false
     private var dataOnly = false
+    private var serverEndpoint = false
     private var subscriptions = false
 
     override fun onCreate(arguments: Bundle?) {
@@ -29,6 +30,7 @@ class ReplayCheck : Instrumentation() {
         subscriptions = arguments?.getString("subscriptions") == "true"
         gameSound = arguments?.getString("gameSound") == "true"
         dataOnly = arguments?.getString("data") == "true"
+        serverEndpoint = arguments?.getString("serverEndpoint") == "true"
         echoEndpoint = arguments?.getString("socket_echo")
         resourceHash = arguments?.getString("resource_hash")
         start()
@@ -74,6 +76,11 @@ class ReplayCheck : Instrumentation() {
         val results = Bundle()
         try {
             runBlocking {
+                if (serverEndpoint) {
+                    verifyServerEndpoint(targetContext)
+                    results.putString("stream", "The server address survives reopening the private settings.")
+                    return@runBlocking
+                }
                 echoEndpoint?.let {
                     withTimeout(30000) { verifyIndependentSocket(base, it) }
                     results.putString("stream", "The action socket still returns the count.")
