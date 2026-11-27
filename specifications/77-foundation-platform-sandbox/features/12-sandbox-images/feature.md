@@ -455,6 +455,8 @@ cargo clippy -p foundation_sandbox --features "libkrun slave testing" --all-targ
 cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat images_ slave_unpack control_sim libkrun_sim
 cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat e2e_images -- --nocapture
 cargo build -p foundation_sandbox --no-default-features --features "slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl --profile agent
+file target/x86_64-unknown-linux-musl/agent/agent-slave   # a static ELF
+llvm-readelf -l target/x86_64-unknown-linux-musl/agent/agent-slave | grep INTERP   # no output
 ```
 
 ## 9. Done when
