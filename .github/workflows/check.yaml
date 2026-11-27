@@ -911,7 +911,9 @@ jobs:
         shell: bash
         env:
           MISE_LOCKED: "1"
-        run: mise run toolchain:android-build
+        run: |
+          unset ANDROID_SDK_ROOT
+          mise run toolchain:android-build
 
       - name: Install the pinned protoc
         # The build script of foundation_agent_rpc runs protoc. The Linux CI
