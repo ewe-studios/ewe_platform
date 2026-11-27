@@ -13,6 +13,12 @@
 
 name: Sandbox E2E
 
+# The workflow reads the repository and the workflow run. The Firecracker
+# tarball cache is restored and saved through the Actions cache.
+permissions:
+  contents: read
+  actions: read
+
 on:
   pull_request:
     paths:
