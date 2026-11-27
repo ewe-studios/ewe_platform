@@ -14,6 +14,9 @@ pub mod client;
 mod memory;
 mod service;
 pub mod sql;
+// The valtron wrappers build on the executors, so they are a feature. The
+// protocol core above compiles without them.
+#[cfg(feature = "valtron")]
 pub mod valtron;
 #[cfg(feature = "vfs-testkit")]
 pub mod vfs_testkit;

@@ -177,6 +177,15 @@ fmt = "enforce"
 [packages.ewe_platform_tests]
 fmt = "enforce"
 
+# Spec 71 feature 01 T4. This crate depends on `foundation_core` with
+# `default-features = false` and no `valtron` feature, so its build and test
+# prove that the durable protocol core has no valtron type, trait or executor.
+# It uses the default run and has no macOS or Windows opt-out: the test runs on
+# all three operating systems. `foundation_core`'s wasm run above
+# (`--no-default-features --features std`) covers wasm32 without valtron.
+[packages.durable_core_no_valtron]
+runs = [""]
+
 [packages.foundation_cedar]
 fmt = "enforce"
 

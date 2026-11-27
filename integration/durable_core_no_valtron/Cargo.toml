@@ -1,0 +1,26 @@
+# Proves the durable protocol core of `foundation_core` builds and runs
+# without the valtron task engine (spec 71 feature 01 task T4).
+#
+# The dependency turns the default features off and omits `valtron`. Run with:
+#   cargo test -p durable_core_no_valtron
+[package]
+name = "durable_core_no_valtron"
+version = "0.0.1"
+publish = false
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+# The crate under test. `valtron` stays off on purpose. A build of this crate
+# fails when the durable core reaches for a valtron type, trait or executor.
+foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["std", "alloc"] }
+# `Ctx` holds the injected clock that `DurableStream` reads.
+foundation_context = { path = "../../backends/foundation_context", version = "0.0.4" }
+# A small async executor for the test. It is not valtron.
+futures-lite = { workspace = true }
+
+[lints]
+workspace = true

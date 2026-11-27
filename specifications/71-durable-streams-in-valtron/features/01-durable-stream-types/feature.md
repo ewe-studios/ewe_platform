@@ -158,7 +158,7 @@ pub trait DurableStreamStore {
       verb and its errors.
 - [x] **T3 — module wiring.** `pub mod durable` in `foundation_core::lib.rs`. No valtron, socket
       or global runtime import.
-- [ ] **T4 — compile independence.** A test crate builds `foundation_core::durable::shared` with
+- [x] **T4 — compile independence.** A test crate builds `foundation_core::durable::shared` with
       valtron disabled, for native and wasm32.
 - [x] **T5 — driver.** `DurableDriver` and a mock driver. Test:
       `given_a_driver_when_the_store_is_used_then_the_business_api_sees_it`.
@@ -171,8 +171,8 @@ pub trait DurableStreamStore {
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
-- [ ] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
-- [ ] `foundation_core::durable::shared` has no valtron, socket or global runtime dependency.
+- [x] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
+- [x] `foundation_core::durable::shared` has no valtron, socket or global runtime dependency.
 - [ ] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
 - [ ] The specification and property oracles pass.
 - [ ] No `#[cfg(test)]` module in source files.

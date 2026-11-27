@@ -823,3 +823,27 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   so `cargo clippy --all-targets` failed before this change. The example put its `use` items
   after statements, the test header helper took a `SimpleHeader` by value, and the route test
   needed the owned request that its macro requires. Clear the debt before you trust the gate.
+
+## Feature 01 T4: valtron as a Cargo feature (2026-11-27)
+
+- **A `std` gate cannot prove a valtron-free core.** The module gate was
+  `#[cfg(feature = "std")]`, so every build with `std` compiled valtron. A test crate could not
+  turn it off. The fix adds a separate `valtron` feature. It implies `std` and stays on by
+  default.
+- **A feature that needs valtron must imply it.** `multi`, `test-clock`, `vfs-testkit`,
+  `js-wasmbindgen` and `js-foundation-wasm` all use valtron code. Each now implies `valtron`.
+  Without this, the CI trees for `multi` and `test-clock` would silently stop compiling the
+  thread pool and `SimulatedClock` that those trees exist to test.
+- **`vfs-testkit` needs `SimulatedClock`.** The clock lives in `valtron::ctx`, and its `advance`
+  method wakes parked executors. Making `vfs-testkit` imply `valtron` is smaller and safer than
+  moving the clock.
+- **`synca::mpp` and valtron form a cycle.** The channels park on `ReadinessNotifier`, and the
+  valtron executors use `mpp`. Both modules need the same feature gate.
+- **The proof needs a package boundary.** A workspace-wide build merges the features of every
+  member, so a `default-features = false` member still sees valtron when another member turns it
+  on. The proof holds in `cargo test -p durable_core_no_valtron`, which is how CI runs one
+  package.
+- **A new feature tree is a new lint tree.** Clippy with `std,alloc` found two old doc warnings
+  in `trace/mod.rs`: a bare URL and an empty line after a doc comment. The `standard` tree hid
+  them, because the item after the comment was disabled. An inner module doc comment and a
+  wrapped URL keep both trees clean.

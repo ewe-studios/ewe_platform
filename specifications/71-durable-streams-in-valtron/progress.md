@@ -2,6 +2,26 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 01 T4 landed. `foundation_core` now has a `valtron` Cargo feature. The
+  feature is on by default and implies `std`. The gates on `valtron`, `env` and `synca::mpp`
+  changed from `std` to `valtron`, and `durable::shared::valtron` has the same gate. `multi`,
+  `test-clock`, `vfs-testkit`, `js-wasmbindgen` and `js-foundation-wasm` now imply `valtron`,
+  so each existing tree compiles the same code. The new workspace member
+  `integration/durable_core_no_valtron` depends on `foundation_core` with
+  `default-features = false, features = ["std", "alloc"]`. Its test creates, appends and reads
+  through the business API and the memory virtual file system (VFS). A successful build of the
+  crate proves that the durable core has no valtron type, trait or executor.
+
+  Verified: `cargo build -p foundation_core --no-default-features --features std,alloc` passes;
+  the new crate test passes (1); `cargo check --target wasm32-unknown-unknown` passes with and
+  without valtron; the durable run is 146 tests; clippy for `multi,test-clock,vfs-testkit`
+  `--all-targets` is clean; `foundation-ci plan` selects `durable_core_no_valtron` with no macOS
+  or Windows opt-out; both guards report 0 violations. The no-valtron tree found two old doc
+  warnings in `trace/mod.rs`; the fix uses an inner module doc comment.
+
+  Still open for feature 01: the full `cargo test -p foundation_core` criterion. This change
+  runs the durable test filter only.
+
 - 2026-11-27: feature 08 T4 (CI) changed to run on every CI run. Owner rule: a protocol
   mismatch must fail on any change. The `durable-conformance` job in
   `.github/workflows/check.yaml` no longer has a changed-path filter step or step conditions.

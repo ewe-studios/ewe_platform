@@ -13,6 +13,7 @@ members = [
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
   # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/
   "tests",  # Workspace integration tests
+  "integration/*", # Standalone integration packages that prove a feature boundary
   "benches", # Workspace benchmarks
 ]
 
