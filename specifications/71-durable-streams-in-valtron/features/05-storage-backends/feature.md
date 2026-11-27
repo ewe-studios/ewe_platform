@@ -216,11 +216,43 @@ follows the repository layout.
 
 - [ ] `cargo test -p foundation_core`, `cargo test -p foundation_nativeapis` and
       `cargo test -p foundation_db` green.
-- [ ] The same DST scenario passes on memory, file, DO SQLite and D1. The S3/R2 VFS passes in
-      feature 09.
-- [ ] No VFS materialises a whole stream; reads are paged.
-- [ ] `DurableStream` wraps a boxed VFS; `Ctx` holds `Arc<DurableStream>`.
-- [ ] Swapping the VFS changes one construction line.
-- [ ] The VFS has no valtron, socket or global runtime dependency.
-- [ ] Each VFS lives in the crate that owns its environment and uses its full native capability.
-- [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
+      Open: the full `foundation_nativeapis` run (with `vfs-object-http`) and
+      `cargo test -p foundation_db` are recorded as green. The `foundation_core` run is the
+      durable filter only (146 tests). The full `cargo test -p foundation_core` run is not
+      recorded.
+- [x] The same DST scenario passes on memory, file, DO SQLite and D1. The S3/R2 VFS passes in
+      feature 09. Evidence: `vfs_testkit::run_all` runs the nine deterministic scenarios on
+      memory (`tests/durable/vfs_conformance.rs`), file (`tests/durable_file_vfs/oracle.rs`),
+      libsql (`sql_vfs_passes_conformance`) and DO SQLite and D1 (`integration/do_sql` routes
+      `/run` and `/run-d1`).
+- [x] No VFS materialises a whole stream; reads are paged. Tests:
+      `paged_reads_are_bounded_and_reassemble` (`tests/durable/property.rs`),
+      `sql_vfs_range_read_is_bounded` (`tests/durable/sql.rs`) and `read_is_bounded`
+      (`tests/durable_file_vfs/oracle.rs`).
+- [x] `DurableStream` wraps a boxed VFS; `Ctx` holds `Arc<DurableStream>`. Evidence:
+      `DurableStream { vfs: Arc<dyn DurableStreamVfs>, .. }`
+      (`foundation_core/src/durable/shared/mod.rs`); hosts store it with
+      `ctx.get_or_insert(DurableStream::...)` and read it with `ctx.get::<DurableStream>()`
+      (`foundation_http/src/native/durable.rs`).
+- [x] Swapping the VFS changes one construction line. Evidence:
+      `DurableStream::new(Arc::new(MemoryVfs::new()), &ctx)` and
+      `DurableStream::new(Arc::new(FileVfs::new(root)?), &ctx)` share the same
+      `DurableStreams<DurableStream>` type; only the VFS argument changes.
+- [x] The VFS has no valtron, socket or global runtime dependency. Evidence:
+      `given_the_durable_core_when_read_then_it_names_no_valtron_or_http_type`
+      (`tests/durable/architecture.rs`), and a `grep` of the SQL, file and shared VFS sources
+      finds no `valtron`, `tokio` or socket use.
+- [x] Each VFS lives in the crate that owns its environment and uses its full native capability.
+      Evidence: memory in `foundation_core/src/durable/shared/memory.rs`; file in
+      `foundation_nativeapis/src/native/vfs/durable_file.rs`; DO and D1 executors in
+      `foundation_db/src/wasm/wasm_storage/{do_sql_executor,d1_executor}.rs`.
+- [x] Every VFS crate runs the shared conformance suite and its own coverage tests. Evidence:
+      `every_vfs_runs_the_same_scenarios` (`tests/durable/vfs_conformance.rs`) plus the same
+      kit in the file, S3, R2, SQL and DO/D1 tests. Coverage tests:
+      `memory_vfs_covers_every_method`, `sql_vfs_covers_every_method`,
+      `file_vfs_covers_every_method`, `s3_vfs_coverage` and `r2_vfs_coverage`. The DO and D1
+      executor paths run through `integration/do_sql`.
+
+## 6. Open items
+
+1. Run the full `cargo test -p foundation_core` and record the result.

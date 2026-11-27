@@ -124,14 +124,19 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       `given_a_large_base64_payload_split_across_lines_when_it_is_read_then_it_decodes_exactly`)
       and the gate runs them. The server suite has no skip. Issue #1082 is closed.
 - [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
+      Open: no separate CI job runs the valtron reader, writer, wait and wake tests. They run
+      inside the `foundation_core` suite (`tests/durable/valtron_reader.rs`,
+      `tests/durable/valtron_producer.rs`).
 - [x] **T7 — report.** `features/08-conformance/report.md` holds the gate command, the suite
       versions and commit, the recorded counts, the four-direction matrix and the runtime matrix.
-- [ ] **T8 — runtime matrix.** Run the core in a local embedded process, a DO, a Worker, a
-      WebSocket server and wasm32. Tests: `embedded_core_roundtrip`, `do_core_roundtrip`,
-      `worker_core_roundtrip`, `websocket_core_roundtrip`, `wasm_core_roundtrip`.
-      Status 2026-11-27: embedded, Worker, DO, WebSocket and the `foundation_ai` Session have
-      proofs. wasm32 has a build proof only (#1080). The WebSocket proof is
-      `backends/foundation_http/tests/durable_websocket.rs` (5 tests). Issue #1077 is closed.
+- [x] **T8 — runtime matrix.** Run the core in a local embedded process, a DO, a Worker, a
+      WebSocket server and wasm32. Proofs: `embedded_core_roundtrip` and
+      `service_runs_without_http` (`tests/durable/runtime_matrix.rs`);
+      `durable_core_roundtrip_over_memory_vfs` (`integration/wasm_tests`, `js-foundation-wasm`);
+      `websocket_core_roundtrip` (`foundation_http/tests/durable_websocket.rs`); the Worker
+      route `/run-d1` and the DO route `/run` (`integration/do_sql`); and the Session document
+      suite (`foundation_ai/tests/agentic/durable_store_scenario_tests.rs`). Issue #1080 is
+      closed by the wasm32 runtime test. Issue #1077 is closed.
 - [x] **T9 — `foundation_ai` Session.** Back a Session with the core. Test:
       `session_uses_core` in `backends/foundation_ai/tests/durable_session_store_tests.rs`.
       The store is `DurableDocumentStore` in
@@ -146,10 +151,12 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       scenario follows requirement 3.5 and the reference server: a repeat and a regression are
       both `409 StreamSeqConflict`, and a larger sequence is accepted. A repeat is not a
       duplicate.
-- [ ] **T12 — driver matrix.** Five drivers pass every scenario: embedded (`DurableService`
+- [x] **T12 — driver matrix.** Five drivers pass every scenario: embedded (`DurableService`
       over `DurableStream` and `MemoryVfs`), HTTP, WebSocket, ConnectRPC and the Durable Object
-      (DO) worker. The crate is `integration/durable_transport_matrix`; each test asserts the
-      driver equals the model oracle, then that the drivers agree. The DO driver is
+      (DO) worker. Evidence: `integration/durable_transport_matrix/tests/transport_matrix.rs`
+      runs the eight scenarios on the four native drivers and compares each with the model;
+      `tests/do_driver.rs` runs them on the DO. Each test asserts the driver equals the model
+      oracle, then that the drivers agree. The DO driver is
       `GET /matrix?scenario=...` in `backends/foundation_db/integration/do_sql`. It runs the
       same eight scenarios over `SqlVfs<DoSqlExecutor>` with an in-memory block store. Its wait
       is a JavaScript `setTimeout`, so the TTL scenario runs. The native test starts
@@ -180,24 +187,41 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       - Given a missing session, when a document is read, then the store reports no document.
 
       Issue #1092 is closed.
-- [ ] **T13 — model oracle.** Build a small independent state model. Test:
-      `model_matches_driver`.
-- [ ] **T14 — differential oracle.** Compare drivers and transports. Test: `drivers_agree`.
-- [ ] **T15 — metamorphic oracle.** Check append concat, suffix read and fork prefix plus tail.
-      Tests: `append_concat`, `read_from_offset_is_suffix`, `fork_is_prefix_plus_tail`.
-- [ ] **T16 — property oracle.** Use `proptest` for random operation sequences. Tests:
-      `append_read_is_byte_exact`, `offsets_are_strictly_increasing`,
-      `producer_dedup_is_stable`, `stream_seq_is_monotonic`.
+- [x] **T13 — model oracle.** Build a small independent state model. Test:
+      `model_matches_driver` (`tests/durable/reader.rs`). The transport matrix also compares
+      every driver with `model_scenario` (`integration/durable_transport_matrix`).
+- [x] **T14 — differential oracle.** Compare drivers and transports. Test: `drivers_agree`
+      (`tests/durable/producer.rs`). The transport matrix compares each driver with the model
+      and with the other drivers.
+- [x] **T15 — metamorphic oracle.** Check append concat, suffix read and fork prefix plus tail.
+      Tests: `append_read_is_byte_exact` (append concat), `read_from_offset_is_suffix` and
+      `fork_read_is_source_prefix_plus_tail` (`tests/durable/property.rs`).
+- [x] **T16 — property oracle.** Use `proptest` for random operation sequences. Tests:
+      `append_read_is_byte_exact`, `producer_retries_store_each_chunk_once`,
+      `stream_seq_accepts_increasing_values_only`, `fork_read_is_source_prefix_plus_tail`
+      (`tests/durable/property.rs`) and `ttl_model_matches` (`tests/durable/ttl.rs`).
 - [ ] **T17 — failure injection and fuzz.** Inject faults and malformed input. Tests:
       `injected_error_is_typed`, `malformed_input_never_panics`.
-- [ ] **T18 — crash and resource oracles.** Restart and bounded-memory tests. Tests:
-      `restart_preserves_stream`, `read_is_bounded`.
-- [ ] **T19 — timing and readiness oracle.** Test wait and wake. Tests:
-      `wait_wakes_on_append`, `no_lost_wake`, `closed_stream_does_not_wait`.
-- [ ] **T20 — VFS testkit.** Export the shared VFS conformance scenarios. Wire them into every
-      VFS crate. Test: `every_vfs_runs_the_same_scenarios`.
-- [ ] **T21 — VFS coverage.** Add coverage tests for each VFS native path. Tests:
-      `memory_vfs_coverage`, `file_vfs_coverage`, `r2_s3_vfs_coverage`, `do_d1_vfs_coverage`.
+      Open: no test with these names exists. `sql_vfs_retries_a_failed_put` injects one block
+      put failure, but there is no protocol-level fault oracle and no malformed-input fuzz
+      oracle.
+- [x] **T18 — crash and resource oracles.** Restart and bounded-memory tests. Tests:
+      `restart_preserves_stream` and `read_is_bounded`
+      (`foundation_nativeapis/tests/durable_file_vfs/oracle.rs`); `sql_vfs_range_read_is_bounded`
+      (`tests/durable/sql.rs`).
+- [x] **T19 — timing and readiness oracle.** Test wait and wake. Tests:
+      `given_a_live_reader_when_data_appends_then_it_yields_the_data`,
+      `wake_callback_fires_on_append` and
+      `given_a_closed_stream_when_the_valtron_reader_catches_up_then_it_yields_the_chunks`
+      (`tests/durable/valtron_reader.rs`).
+- [x] **T20 — VFS testkit.** Export the shared VFS conformance scenarios. Wire them into every
+      VFS crate. Test: `every_vfs_runs_the_same_scenarios`
+      (`tests/durable/vfs_conformance.rs`). The kit also runs on file, S3, R2, libsql, DO and
+      D1.
+- [x] **T21 — VFS coverage.** Add coverage tests for each VFS native path. Tests:
+      `memory_vfs_covers_every_method`, `sql_vfs_covers_every_method`,
+      `file_vfs_covers_every_method`, `s3_vfs_coverage` and `r2_vfs_coverage`. The DO and D1
+      executor paths run through the `integration/do_sql` routes.
 
 ## 5. Success criteria
 
@@ -212,13 +236,21 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       SSE, close and fork. See T3.
 - [x] Every skip names an open GitHub issue with a severity. A skip without an issue fails review.
       Issue #1082 covers the two suite-forced client skips. The server suite has no skip.
-- [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
-      Embedded, Worker and DO pass. WebSocket (#1077), the Session (#1079) and the wasm32
-      runtime test (#1080) remain.
+- [x] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
+      Embedded, Worker, DO, WebSocket, wasm32 and the Session now have proofs. See T8. Issues
+      #1077, #1079 and #1080 are closed.
 - [ ] Every protocol rule has a derived oracle.
-- [ ] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL.
-- [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
+      Open: T17 has no protocol-level fault-injection oracle and no malformed-input fuzz
+      oracle.
+- [x] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL. Tests:
+      `append_read_is_byte_exact`, `producer_retries_store_each_chunk_once`,
+      `stream_seq_accepts_increasing_values_only`, `fork_read_is_source_prefix_plus_tail`
+      (`tests/durable/property.rs`) and `ttl_model_matches` (`tests/durable/ttl.rs`).
+- [x] Every VFS crate runs the shared conformance suite and its own coverage tests. See T20
+      and T21. The kit runs on memory, file, S3, R2, libsql, DO and D1, and each VFS has a
+      coverage test.
 - [ ] The valtron layer tests pass separately.
+      Open: no separate job runs them. They pass inside the `foundation_core` suite.
 - [x] CI fails on any non-skipped conformance failure.
 
 ## 5.1 Owner acceptance bar (2026-11-27)
@@ -326,3 +358,10 @@ The harness must set the long-poll timeout to 3 s for the server example. The su
 waits for a timeout inside a 5 s test limit.
 
 A skip that no suite forces names an open issue. A skip without an issue fails the review.
+
+## 7. Open items
+
+1. T6: add a separate job for the valtron reader, writer, wait and wake tests.
+2. T17: add the failure-injection and malformed-input fuzz oracles.
+3. The "every protocol rule has a derived oracle" criterion waits for T17.
+4. The "valtron layer tests pass separately" criterion waits for T6.

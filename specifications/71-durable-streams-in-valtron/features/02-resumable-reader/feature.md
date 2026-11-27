@@ -1,6 +1,6 @@
 ---
 feature: "Reader"
-status: "planned"
+status: "done"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
 crates: ["foundation_core"]

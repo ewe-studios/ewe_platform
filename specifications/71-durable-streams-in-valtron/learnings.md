@@ -1051,3 +1051,17 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The clippy command was red before this change.** `map(|a| match a { ... }).unwrap_or_default()`
   in the two Hugging Face providers trips `clippy::map_unwrap_or`. `Option::map_or_default`
   is the fix. Issue #1124 is closed.
+
+## Records reconciled with the code (2026-11-28)
+
+- **The client feature file promises more than the client core has.** Retry, producer
+  batching, epoch auto-claim, detach and dynamic headers live in
+  `foundation_netio/examples/durable_client_adapter.rs`, not in
+  `foundation_core::durable::client`. The reference client suite proves the adapter, not the
+  public core API. Issue #1135. Check the owner of a behaviour before you tick a core task.
+- **`DurableStream` and `Ctx` form an `Arc` cycle.** `DurableStream` stores a cloned `Ctx`.
+  A host inserts the same `DurableStream` into that `Ctx`. The context map and the store keep
+  each other alive. Issue #1134.
+- **The feature files name tests that do not exist under those names.** Many behaviours are
+  covered by Given/When/Then test names. Read the test file and cite the real name. Do not
+  tick a box from a name in the feature file alone.

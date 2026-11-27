@@ -1,6 +1,6 @@
 ---
 feature: "Durable Streams subscriptions"
-status: "planned"
+status: "done"
 priority: "high"
 depends_on: ["01-durable-stream-types", "06-http-rpc-surface"]
 crates: ["foundation_event_stream", "foundation_core", "foundation_auth"]

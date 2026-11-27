@@ -2,6 +2,29 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-28: feature records checked against the code and the tests. Status: 01 in progress,
+  02 done, 03 done, 04 done, 05 in progress, 06 in progress, 07 in progress, 08 in progress,
+  09 done, 10 done, 11 done.
+
+  Open items:
+  - 01: the full `cargo test -p foundation_core` run is not recorded. The BDD harness runs on
+    one mock driver only.
+  - 05: the full `cargo test -p foundation_core` run is not recorded. The
+    `foundation_nativeapis` and `foundation_db` runs are recorded.
+  - 06: T11 has no `injected_error_is_typed` or `security_headers_present` test. The full
+    `cargo test -p foundation_connectrpc` run has the pre-existing macOS failure #858. The
+    workspace-wide `cargo check` is not recorded.
+  - 07: the client core has no retry, producer, dynamic-header or clock API. Those behaviours
+    live only in the conformance adapter. T5, T6 and T12 stay open. Issue #1135.
+  - 08: no separate valtron job (T6). No protocol-level failure-injection or fuzz oracle (T17).
+    The "every rule has a derived oracle" and "valtron tests pass separately" criteria stay
+    open.
+  - Issue #1134 records the `Ctx` and `DurableStream` `Arc` cycle.
+
+  Ticked with evidence: 01 criteria 5 and 6; 05 criteria 2 to 8; 06 T8 and criterion 3; 07 T4;
+  08 T8, T12 to T16 and T18 to T21, plus the runtime, property and VFS conformance criteria.
+  Features 02, 03, 04 and 10 are done.
+
 - 2026-11-28: feature 08 T12 Session proof landed as a document scenario suite. The stream
   `Driver` trait in `integration/durable_transport_matrix` is not used for the Session.
   `DurableDocumentStore` is document oriented: one session id is one stream and one document
@@ -680,62 +703,29 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
 
 ## Feature status
 
-- **01-durable-stream-types** — 🟡 in progress (6/7). Core types, store trait, `DurableDriver`,
-  BDD harness, memory VFS, business API, property test and model comparison landed. 17 tests
-  pass. The wasm32 check passes. T4 (valtron-disabled build) remains.
-- **02-resumable-reader** — 🟢 done (10/10). Core page reader, state rules, closure discovery,
-  `offset=now`, the valtron catch-up reader, the live tail wait/notifier, wake forwarding under
-  `multi`, the `into_next_stream` bridge, trim refusal, the DST and the oracle matrix landed.
-- **03-idempotent-producer** — 🟢 done (8/8). Core writer, producer ladder, dedup/fencing,
-  `Stream-Seq`, versioned atomic append, the valtron producer task, restart dedup, the
-  core-independence guard and the oracle matrix landed.
-- **04-fork-and-retention** — 🟢 done (9/9). Fork read stitching, creation edge cases,
-  idempotent creation, soft-delete, cascading cleanup, sliding TTL, the full fork TTL table,
-  expiry with forks, retention, the valtron fork boundary and the oracle matrix landed.
-- **05-storage-backends** — 🟢 done (6/6). T1 to T10 are done. T6 landed the
-  SQL engine, the tiering, the D1 executor and the Durable Object SQLite
-  executor. Issue #1052 is closed. Both executors pass the shared VFS kit on
-  real local bindings under `wrangler dev --local`: `/run` on a SQLite-backed
-  Durable Object and `/run-d1` on D1.
-- **06-http-rpc-surface** — 🟡 in progress (10/12). `DurableService`/`DurableLimits`, JSON mode,
-  the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
-  request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff`, the full
-  server conformance run, the `ConnectRPC` service and the configurable body cap landed. `429`
-  and the oracles remain.
-- **07-durable-streams-client** — 🟢 done (11/11). The client core, transport injection,
-  catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
-  conformance run, batching, dynamic headers, validation features and the SSE head/stream all
-  landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
-- **08-conformance** — 🟡 in progress (8/21 tasks ticked: T1 to T5, T7, T9 and T10; T6, T8 and
-  T11 to T21 open). The CI gate landed as a `[gates]` entry in `ci/packages.toml`:
-  `foundation-ci run durable-conformance --step test` runs both reference suites, then the two
-  cross-run test targets. `foundation-ci affected` selects the gate from the changed files, on a
-  pull request and on a push. The nightly schedule and a manual dispatch run it in full. The
-  memory VFS conformance test runs in CI. T3 (cross-runs) landed in both directions: our client
-  to our server, and the reference Rust client to our server. Our client runs 5 scenarios; the
-  reference client runs 6, including the cursor check for #1065. The report is
-  `features/08-conformance/report.md`. The runtime matrix has a runtime proof for embedded, the
-  Worker, the DO, the WebSocket server and the `foundation_ai` Session, and a build proof for
-  wasm32. The wasm32 runtime test is #1080. The skip register names the two suite-forced client
-  skips (issue #1082); the server suite has no skip. The valtron suite (T6), the BDD suite, the
-  driver matrix and the oracles remain. The no-valtron protocol core is proven by
-  `durable_core_no_valtron` (11 tests). The HTTP server keeps the valtron executor for its
-  socket surface; issue #1081 is closed.
-- **09-s3-r2-vfs** — 🟢 done (16/16). The `ObjectStore` contract, the segmented and
-  append-only key layouts, the head manifest CAS, the local spool, the batcher, the read path
-  with range GETs, crash recovery, compaction and retention, the provider settings and the
-  delete results landed. Feature 11 adds the native transport and the live S3 run.
-- **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
-  transport-neutral engine, the native handlers and the webhook sender. The six server
-  conformance tests pass and the gate shows 0 skips.
-- **11-hosted-object-transports** — 🟢 done (7/7). `NetioObjectTransport` sends the shaped S3
-  request over `foundation_netio` and reads a bounded body; it skips the body of a HEAD, 204
-  or 304 response. `S3BlockStore` serves the SQL VFS block tier. The live MinIO run passes
-  the shared VFS kit, the two-writer CAS race, the restart replay and the SQL block tier
-  (53 tests, 4.56 s). The R2 binding gains a conditional put and a bare `etag`; `R2BlockStore`
-  passes the Worker route on local R2 and D1 under `wrangler dev --local`, and the wasm32
-  build check passes. The durable gate starts MinIO with `alpine/minio`
-  `RELEASE.2025-10-15T17-29-55Z` (the official `minio/minio` image is no longer public).
+- **01-durable-stream-types** — 🟡 in progress. All tasks are ticked. Open: the full
+  `cargo test -p foundation_core` run is not recorded, and the BDD harness runs on one driver
+  only.
+- **02-resumable-reader** — 🟢 done. All tasks and success criteria are ticked.
+- **03-idempotent-producer** — 🟢 done. All tasks and success criteria are ticked.
+- **04-fork-and-retention** — 🟢 done. All tasks and success criteria are ticked.
+- **05-storage-backends** — 🟡 in progress. All tasks are ticked. Open: the full
+  `cargo test -p foundation_core` run is not recorded. The other success criteria have evidence.
+- **06-http-rpc-surface** — 🟡 in progress. Open: T11 oracles (`injected_error_is_typed`,
+  `security_headers_present`), the full crate test runs (ConnectRPC has #858 on macOS) and the
+  workspace-wide `cargo check`.
+- **07-durable-streams-client** — 🟡 in progress. T4 is ticked. Open: T5 retry, T6 producer and
+  T12 oracles. The client core lacks the retry, producer, dynamic-header and clock APIs; those
+  live only in the conformance adapter. Issue #1135.
+- **08-conformance** — 🟡 in progress. T1 to T5, T7 to T16 and T18 to T21 are ticked. Open: T6
+  (no separate valtron job) and T17 (no protocol-level fault-injection or fuzz oracle). The
+  matching success criteria stay open. All other success criteria have evidence.
+- **09-s3-r2-vfs** — 🟢 done. All tasks and success criteria are ticked.
+- **10-subscriptions** — 🟢 done. All tasks and success criteria are ticked. The six server
+  subscription tests pass and the gate has 0 skips.
+- **11-hosted-object-transports** — 🟢 done. All tasks and success criteria are ticked.
+
+Issue #1134 records the `Ctx` and `DurableStream` `Arc` cycle found in this review.
 
 ## Next steps
 

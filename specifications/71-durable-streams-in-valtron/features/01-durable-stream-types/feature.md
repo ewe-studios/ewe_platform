@@ -1,6 +1,6 @@
 ---
 feature: "Core types and store trait"
-status: "planned"
+status: "in progress"
 priority: "high"
 depends_on: []
 crates: ["foundation_core"]
@@ -171,8 +171,22 @@ pub trait DurableStreamStore {
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
+      Open: the recorded run is the durable filter only (146 tests, 2026-11-27). The full
+      `cargo test -p foundation_core` run is not recorded.
 - [x] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
 - [x] `foundation_core::durable::shared` has no valtron, socket or global runtime dependency.
 - [ ] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
-- [ ] The specification and property oracles pass.
-- [ ] No `#[cfg(test)]` module in source files.
+      Open: the harness (`tests/durable/support/mod.rs`) runs on one mock driver in
+      `store_contract.rs`. No test runs the harness on two drivers. The transport matrix runs
+      five drivers, but it has its own `Scenario` type, not this harness.
+- [x] The specification and property oracles pass. Tests: `tests/durable/property.rs`
+      (`append_read_is_byte_exact`, `paged_reads_are_bounded_and_reassemble`,
+      `fork_read_is_source_prefix_plus_tail`) and `tests/durable/types.rs`. The recorded
+      durable run passed 146 tests.
+- [x] No `#[cfg(test)]` module in source files. Check: `grep -r cfg(test)
+      backends/foundation_core/src` finds no match.
+
+## 6. Open items
+
+1. Run the full `cargo test -p foundation_core` and record the result.
+2. Run the BDD harness on two drivers.

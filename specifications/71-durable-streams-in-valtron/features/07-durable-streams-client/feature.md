@@ -1,6 +1,6 @@
 ---
 feature: "Durable Streams client"
-status: "planned"
+status: "in progress"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
 crates: ["foundation_netio", "foundation_core"]
@@ -106,12 +106,20 @@ impl StreamHandle {
       Tests: `sse_decodes_base64`, `sse_ignores_unknown_event`, `auto_falls_back_to_long_poll`.
       The adapter announces `retryOptions`, `batchItems` and `strictZeroValidation` and the
       `validate` command rejects the same cases the suite checks.
-- [ ] **T4 — JSON and errors.** Parse arrays, `PARSE_ERROR`, error codes and path context.
-      Tests: `json_parse_error_is_typed`, `not_found_message_has_path`.
+- [x] **T4 — JSON and errors.** Parse arrays, `PARSE_ERROR`, error codes and path context.
+      Tests: `given_a_malformed_json_body_when_a_read_runs_then_the_error_is_a_parse_error`
+      and `given_a_missing_stream_when_delete_runs_then_the_error_names_the_path`
+      (`tests/durable/client.rs`). The core carries `ClientError::Parse` and
+      `ClientError::NotFound { path }`.
 - [ ] **T5 — retry.** `500`, `503`, `429`, exhaustion and no-retry rules. Tests:
       `retries_transient_errors`, `does_not_retry_404`, `retry_exhaustion_is_an_error`.
+      Open: the client core (`foundation_core/src/durable/shared/client/core.rs`) has no retry
+      policy or backoff. Retry exists only in the conformance adapter
+      `foundation_netio/examples/durable_client_adapter.rs`. Issue #1135.
 - [ ] **T6 — producer.** Batching, epoch, sequence, auto-claim, dedup, close and detach. Tests:
       `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`.
+      Open: the client core has no `ProducerBuilder`, batching, epoch, auto-claim or detach.
+      These exist only in the adapter example. Issue #1135.
 - [x] **T7 — dynamic headers and validation.** Per-request headers and config validation. Tests:
       `dynamic_header_counter`, `invalid_epoch_is_rejected`.
 - [x] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
@@ -127,6 +135,9 @@ impl StreamHandle {
       driver. Test: `wasm_client_roundtrip`.
 - [ ] **T12 — oracles.** Differential, conformance, property and failure injection oracles.
       Tests: `client_matches_reference`, `client_suite_passes`, `retry_is_bounded`.
+      Open: no test with these names exists. The reference client suite passes 267 of 269 with
+      2 suite-forced skips (feature 08). There is no retry-bound oracle because the core has no
+      retry.
 
 ## 5. Success criteria
 
@@ -134,3 +145,11 @@ impl StreamHandle {
 - [x] The client core has no valtron dependency.
 - [x] The client conformance suite passes with the adapter (267 pass, 2 suite-forced skips).
 - [x] The valtron wrapper tests pass with valtron enabled.
+
+## 6. Open items
+
+1. T5: move the retry policy and backoff into the client core, or record the adapter as the
+   owner. Issue #1135.
+2. T6: move the producer, batching, epoch, auto-claim and detach into the client core, or
+   record the adapter as the owner. Issue #1135.
+3. T12: add the client oracles, including a retry-bound oracle.

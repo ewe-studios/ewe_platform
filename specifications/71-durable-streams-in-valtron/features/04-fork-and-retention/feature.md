@@ -1,6 +1,6 @@
 ---
 feature: "Fork, TTL and retention"
-status: "planned"
+status: "done"
 priority: "medium"
 depends_on: ["02-resumable-reader", "03-idempotent-producer"]
 crates: ["foundation_core"]

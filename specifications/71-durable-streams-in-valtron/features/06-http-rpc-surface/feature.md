@@ -1,6 +1,6 @@
 ---
 feature: "HTTP and ConnectRPC adapters"
-status: "planned"
+status: "in progress"
 priority: "high"
 depends_on: ["02-resumable-reader", "03-idempotent-producer"]
 crates: ["foundation_http", "foundation_connectrpc", "foundation_netio"]
@@ -92,8 +92,11 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `sse_control_has_camel_case_fields`, `sse_binary_is_base64`, `sse_closes_after_closed`.
 - [x] **T7 — caching and cursor.** ETag, `304`, `Cache-Control`, cursor interval and jitter.
       Tests: `etag_varies_with_closure`, `if_none_match_is_304`, `cursor_is_monotonic`.
-- [ ] **T8 — security.** `nosniff`, CORP, CORS exposure and `429`. Tests:
-      `security_headers_on_all_responses`, `cors_exposes_stream_headers`.
+- [x] **T8 — security.** `nosniff`, CORP, CORS exposure and `429`. Implemented by
+      `base_headers` and `cors_preflight_headers` in `foundation_http/src/native/durable.rs`
+      and `status_for` in `foundation_http/src/shared/durable/status.rs`. Tests:
+      `given_a_preflight_when_it_runs_then_it_allows_the_protocol_headers` (CORS exposure) and
+      `given_a_rate_limit_error_when_the_headers_are_built_then_retry_after_is_present`.
 - [x] **T9 — ConnectRPC.** The eight methods and the live stream. The generated
       `ewe.durable.v1.DurableStreamService` maps create, append, read (one bounded page), head,
       close, delete and fork; `Subscribe` is the server stream. Test:
@@ -107,13 +110,29 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 - [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
       oracles. Tests: `status_table_matches`, `server_suite_passes`,
       `injected_error_is_typed`, `security_headers_present`.
+      Open: the status table and the reference server suite pass. No `injected_error_is_typed`
+      and no `security_headers_present` test exists for the HTTP adapter.
 
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc` green.
+      Open: the durable HTTP targets (30 adapter tests) and the 6 ConnectRPC service tests
+      pass. The full `cargo test -p foundation_connectrpc` run has one pre-existing macOS
+      failure, #858. The full `cargo test -p foundation_http` run is not recorded.
 - [x] The HTTP adapter has no valtron stream or task dependency. It uses only the
   injected-clock timer for the live-read timeout.
 - [x] The server conformance suite passes against `DurableHandler` (332 pass, 6 skip).
   Command: run `examples/durable_server` with `--features multi`, then run the reference suite.
-- [ ] Every `StoreError` variant maps to one documented status.
+- [x] Every `StoreError` variant maps to one documented status. Tests:
+      `given_a_core_refusal_when_it_maps_then_the_status_matches_the_contract`
+      (`tests/durable_status.rs`) and `the_status_table_covers_every_core_refusal`
+      (`foundation_connectrpc/tests/durable_stream_service_tests.rs`).
 - [ ] `cargo check --workspace --all-targets --profile dev` green.
+      Open: no recorded result for the workspace-wide check.
+
+## 6. Open items
+
+1. T11: add the `injected_error_is_typed` and `security_headers_present` oracles.
+2. Run the full `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc`.
+   Issue #858 is the known macOS failure in the ConnectRPC crate.
+3. Run `cargo check --workspace --all-targets --profile dev`.
