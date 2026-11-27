@@ -1,10 +1,9 @@
 //! Run a script in the selected guest through its loopback port.
 use super::{
-    Guest,
-    connection::{Connection, command},
-    failure,
+    connection::{command, Connection},
+    failure, Guest,
 };
-use crate::{CiEnvironment, workspace::capture_to};
+use crate::{workspace::capture_to, CiEnvironment};
 use clap::Args;
 use foundation_tasks::{TaskContext, TaskError, TaskResult};
 use std::{fs, io, path::PathBuf};

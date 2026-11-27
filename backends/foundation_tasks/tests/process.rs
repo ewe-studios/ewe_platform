@@ -441,8 +441,18 @@ async fn file_input_reopens_a_binary_file_for_each_child() {
     let command = fixture("archive").current_dir(root.path()).file_input(name);
     let process = NativeProcess::new(ProcessConfig::default());
     for _ in 0..2 {
-        process.run(command.clone(), Arc::new(Memory::default()), Cancellation::new()).await.unwrap();
+        process
+            .run(
+                command.clone(),
+                Arc::new(Memory::default()),
+                Cancellation::new(),
+            )
+            .await
+            .unwrap();
     }
     std::fs::remove_file(root.path().join(name)).unwrap();
-    assert!(process.run(command, Arc::new(Memory::default()), Cancellation::new()).await.is_err());
+    assert!(process
+        .run(command, Arc::new(Memory::default()), Cancellation::new())
+        .await
+        .is_err());
 }

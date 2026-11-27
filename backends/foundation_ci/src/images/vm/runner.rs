@@ -1,13 +1,12 @@
 //! Start and check the runner process in a guest through its loopback port.
 use super::{
-    Guest,
-    connection::{Connection, command},
-    failure,
+    connection::{command, Connection},
+    failure, Guest,
 };
 use crate::{
-    CiEnvironment,
     execution::sleep,
     workspace::{capture, capture_to},
+    CiEnvironment,
 };
 use clap::Args;
 use foundation_tasks::{OutputStream, TaskContext, TaskEnv, TaskError, TaskResult, TaskSet};

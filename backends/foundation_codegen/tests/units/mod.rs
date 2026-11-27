@@ -6,6 +6,6 @@ mod foundation_codegen_parser_tests;
 mod foundation_codegen_scanner_tests;
 mod foundation_codegen_types_tests;
 mod foundation_codegen_visitor_tests;
-mod module_path_tests;
 #[cfg(feature = "javascript")]
 mod javascript_tests;
+mod module_path_tests;

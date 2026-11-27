@@ -1,8 +1,7 @@
 //! Wait for a guest connection and its provisioning result.
 use super::{
-    Guest,
-    connection::{Connection, command},
-    state,
+    connection::{command, Connection},
+    state, Guest,
 };
 use crate::execution::sleep;
 use clap::Args;

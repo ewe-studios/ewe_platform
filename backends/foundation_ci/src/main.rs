@@ -1,4 +1,4 @@
-use foundation_tasks::{TaskResult, TaskRunner, task};
+use foundation_tasks::{task, TaskResult, TaskRunner};
 
 #[task]
 async fn main(mut runner: TaskRunner) -> TaskResult {

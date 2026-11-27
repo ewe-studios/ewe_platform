@@ -225,7 +225,10 @@ impl ProcessCommand {
         } = self;
         let (stdin, input) = match input {
             Some(CommandInput::File(path)) => {
-                let path = cwd.as_deref().unwrap_or_else(|| std::path::Path::new(".")).join(path);
+                let path = cwd
+                    .as_deref()
+                    .unwrap_or_else(|| std::path::Path::new("."))
+                    .join(path);
                 let file = std::fs::File::open(path).map_err(TaskError::operation)?;
                 (Stdio::from(file), None)
             }

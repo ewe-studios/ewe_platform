@@ -7,7 +7,7 @@ mod ready;
 mod runner;
 mod transfer;
 
-use crate::{CiEnvironment, workspace::capture};
+use crate::{workspace::capture, CiEnvironment};
 use clap::{Args, ValueEnum};
 use foundation_tasks::{
     OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskResult, TaskSet,

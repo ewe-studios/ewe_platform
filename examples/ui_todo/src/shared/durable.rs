@@ -1,7 +1,7 @@
 //! Store the creation receipt, current value or tombstone, and last sequence in one typed record.
 use super::{
-    mutations, CommitServices, CreationReceipt, Ctx, Deserialize, Mutex, RecordChange,
-    Serialize, StoreState, Todo, TodoId, TodoStore,
+    mutations, CommitServices, CreationReceipt, Ctx, Deserialize, Mutex, RecordChange, Serialize,
+    StoreState, Todo, TodoId, TodoStore,
 };
 use foundation_db::{KeyValueStore, LibsqlStore};
 use futures_util::StreamExt;

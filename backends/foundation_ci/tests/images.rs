@@ -338,16 +338,12 @@ esac
         assert_eq!(output.status.code(), Some(failed));
         assert!(!String::from_utf8_lossy(&output.stdout).contains("runner finished"));
     }
-    assert!(
-        !invoke(wait, "windows", "0", &["--timeout-ms", "0"])
-            .status
-            .success()
-    );
-    assert!(
-        invoke(wait, "macos", "sequence", &["--interval-ms", "1"])
-            .status
-            .success()
-    );
+    assert!(!invoke(wait, "windows", "0", &["--timeout-ms", "0"])
+        .status
+        .success());
+    assert!(invoke(wait, "macos", "sequence", &["--interval-ms", "1"])
+        .status
+        .success());
     let calls = fs::read_to_string(root.join("calls")).unwrap();
     assert!(calls.contains("key with spaces><-p><2345>"));
     assert!(calls.contains("<-l><ci user><127.0.0.1>"));
@@ -420,16 +416,12 @@ esac
             .output()
             .unwrap()
     };
-    assert!(
-        invoke("macos", "pending", "running", "0", &[])
-            .status
-            .success()
-    );
-    assert!(
-        invoke("windows", "", "running", "0", &["--ssh-only"])
-            .status
-            .success()
-    );
+    assert!(invoke("macos", "pending", "running", "0", &[])
+        .status
+        .success());
+    assert!(invoke("windows", "", "running", "0", &["--ssh-only"])
+        .status
+        .success());
     let failure = invoke("windows", "", "running", "3", &[]);
     assert!(String::from_utf8_lossy(&failure.stderr).contains("Provisioning failed"));
     let calls = fs::read_to_string(root.join("probes")).unwrap();
@@ -441,17 +433,13 @@ esac
             Some(code)
         );
     }
-    assert!(
-        !invoke("macos", "missing", "running", "0", &[])
-            .status
-            .success()
-    );
+    assert!(!invoke("macos", "missing", "running", "0", &[])
+        .status
+        .success());
     assert!(!invoke("macos", "", "exited", "0", &[]).status.success());
-    assert!(
-        fs::read_to_string(root.join("log-calls"))
-            .unwrap()
-            .contains(&format!("logs --tail 50 {original}"))
-    );
+    assert!(fs::read_to_string(root.join("log-calls"))
+        .unwrap()
+        .contains(&format!("logs --tail 50 {original}")));
     let timeout = invoke("macos", "", "running", "255", &["--timeout-ms", "0"]);
     assert!(String::from_utf8_lossy(&timeout.stderr).contains("SSH status 255"));
     fs::remove_file(root.join("polled")).unwrap();
@@ -587,22 +575,18 @@ exit "$RESULT"
     let push = ["--src", "src", "--dest", "a user's files"];
     assert!(run("images:vm-push", "macos", "0", &push).status.success());
     check_guest_archive(&root.join("archive"));
-    assert!(
-        run("images:vm-push", "windows", "0", &push)
-            .status
-            .success()
-    );
+    assert!(run("images:vm-push", "windows", "0", &push)
+        .status
+        .success());
     assert_eq!(
         run("images:vm-push", "windows", "37", &push).status.code(),
         Some(37)
     );
     let probes = fs::read_to_string(root.join("probes")).unwrap();
     assert!(probes.contains("a user'\\''s files") && probes.contains("a user''s files"));
-    assert!(
-        fs::read_to_string(root.join("copies"))
-            .unwrap()
-            .contains("127.0.0.1:ewe-guest-")
-    );
+    assert!(fs::read_to_string(root.join("copies"))
+        .unwrap()
+        .contains("127.0.0.1:ewe-guest-"));
     fs::create_dir_all(root.join("downloads/folder")).unwrap();
     fs::write(root.join("downloads/folder/readme"), "previous").unwrap();
     fs::write(root.join("downloads/folder/extra"), "keep").unwrap();
@@ -628,9 +612,8 @@ exit "$RESULT"
 
 #[cfg(unix)]
 fn check_guest_archive(path: &std::path::Path) {
-    let mut archive = tar::Archive::new(flate2::read::GzDecoder::new(
-        fs::File::open(path).unwrap(),
-    ));
+    let mut archive =
+        tar::Archive::new(flate2::read::GzDecoder::new(fs::File::open(path).unwrap()));
     let mut found = false;
     for entry in archive.entries().unwrap() {
         use std::io::Read;
@@ -713,17 +696,13 @@ exit "$INSTALL_STATUS"
     assert!(run("macos", "running", "0", "0").status.success());
     let manifest = fs::read_to_string(root.join("manifest")).unwrap();
     assert!(manifest.contains("guest/provision.sh") && manifest.contains("guest/layers/base"));
-    assert!(
-        fs::read_to_string(root.join("connection"))
-            .unwrap()
-            .contains("127.0.0.1\n")
-    );
+    assert!(fs::read_to_string(root.join("connection"))
+        .unwrap()
+        .contains("127.0.0.1\n"));
     assert!(run("macos", "running", "44", "0").status.success());
-    assert!(
-        !fs::read_to_string(root.join("manifest"))
-            .unwrap()
-            .contains("layers")
-    );
+    assert!(!fs::read_to_string(root.join("manifest"))
+        .unwrap()
+        .contains("layers"));
     assert_eq!(run("macos", "running", "36", "0").status.code(), Some(36));
     assert_eq!(run("macos", "running", "0", "42").status.code(), Some(42));
     assert!(!run("macos", "exited", "0", "0").status.success());
