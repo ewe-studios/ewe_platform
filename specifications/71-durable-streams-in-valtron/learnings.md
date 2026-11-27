@@ -429,3 +429,21 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **Building the wasm test crate updates its `Cargo.lock`.** The package has its own lock file.
   New `foundation_http` dependencies (`time`, `base64`) must reach it, or the next build rewrites
   it again.
+
+## Default wasm build with `multi`, issue #1030 (2026-11-27)
+
+- **Cargo merges features before it picks a target.** One dependency that asks for
+  `foundation_core/multi` turns it on for a wasm build of the graph. A `compile_error!` in the
+  crate cannot stop that. The feature must compile.
+- **Gate the native-only call, not the feature.** The `multi` executor called
+  `idle_wake::park_idle` without a target gate, and the module is native-only. The call now
+  has `cfg(not(target_family = "wasm"))`; wasm runs the plain wait. `cargo check -p
+  foundation_core --target wasm32-unknown-unknown --features multi` passes.
+- **Follow the feature, not the target, for the `Send` bound.** netio's
+  `ExchangeContinuation` added `+ Send` only on native. valtron adds the bound when `multi` is
+  on. The two conditions disagreed on wasm. The alias now follows `feature = "multi"`.
+- **A default-feature wasm run is the guard.** `ci/packages.toml` now runs the
+  `foundation_netio` wasm check with its default features, and `foundation_core` with
+  `--features std,multi`. The old run used `--no-default-features`, so it never saw this
+  failure.
+

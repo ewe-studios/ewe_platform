@@ -2214,14 +2214,15 @@ pub type ExchangeBodyObserver =
 ///
 /// The caller sends this to valtron — typically `valtron::send(task.map_ready(|_| ()))`.
 ///
-/// The `+ Send` bound is native-only: on wasm valtron runs single-threaded and the
-/// split machinery is non-sendable, so the boxed continuation is not `Send` there.
-#[cfg(not(target_family = "wasm"))]
+/// The `+ Send` bound follows valtron's own choice: the `multi` feature selects
+/// the sendable extension trait on every target, and its combinators require
+/// `Send`. Without `multi` the single-threaded machinery is not sendable.
+#[cfg(feature = "multi")]
 pub type ExchangeContinuation =
     Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending> + Send>;
 
-/// Unsent continuation from [`split_exchange`] (wasm — no `Send` bound).
-#[cfg(target_family = "wasm")]
+/// Unsent continuation from [`split_exchange`] (single-threaded — no `Send` bound).
+#[cfg(not(feature = "multi"))]
 pub type ExchangeContinuation =
     Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending>>;
 

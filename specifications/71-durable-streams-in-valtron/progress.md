@@ -2,6 +2,12 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: issue #1030 fixed. `foundation_core` compiles for wasm32 with `multi`. The
+  native `idle_wake` call in the `multi` executor now has a target gate, and netio's
+  `ExchangeContinuation` follows the `multi` feature for its `Send` bound. CI runs the
+  default-feature `foundation_netio` wasm check and a `foundation_core` `std,multi` wasm
+  check. The default-feature wasm check, the native `multi` tests and both clippy runs pass.
+
 - 2026-11-27: issue #1019 fixed, feature 07 T11. Both wasm bridges
   (`foundation_http/src/wasm/bridge/{cf,web}.rs`) now call `with_preserved_headers()` on the
   request builder, so a parsed fetch request keeps its wire `Content-Length` and gains no

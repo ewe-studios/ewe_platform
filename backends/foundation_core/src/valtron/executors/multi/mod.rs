@@ -1015,6 +1015,24 @@ impl ThreadYielder {
         }
         self.condvar.notify_all();
     }
+
+    /// Wait for `dur`, or until [`Self::interrupt`] notifies the condvar.
+    ///
+    /// `wait_timeout_while` returns the guard still locked, so this method
+    /// resets the state with that guard. A second lock would deadlock.
+    fn wait_once(&self, dur: std::time::Duration) {
+        let guard = self.wait_state.lock().unwrap();
+
+        // Wait while not notified (spurious wakeups are handled by re-checking)
+        let (mut guard, result) = self
+            .condvar
+            .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
+            .unwrap();
+        let _timed_out = result.timed_out();
+
+        // CRITICAL: Reset state using the guard returned by wait_timeout_while.
+        *guard = WaitState::Waiting;
+    }
 }
 
 impl Clone for ThreadYielder {
@@ -1055,23 +1073,20 @@ impl ProcessController for ThreadYielder {
 
         // A parked task becoming ready anywhere interrupts this wait
         // (a wake of a task parked on this worker), so it resumes at once.
-        let interrupter = self.clone();
-        crate::valtron::executors::idle_wake::park_idle(
-            std::sync::Arc::new(move || interrupter.interrupt()),
-            || {
-                let guard = self.wait_state.lock().unwrap();
+        // The idle-wake handle exists only where executor threads run. On wasm
+        // the `multi` feature stays additive: this code compiles and only the
+        // plain wait runs, because no executor thread can park there.
+        #[cfg(not(target_family = "wasm"))]
+        {
+            let interrupter = self.clone();
+            crate::valtron::executors::idle_wake::park_idle(
+                std::sync::Arc::new(move || interrupter.interrupt()),
+                || self.wait_once(dur),
+            );
+        }
 
-                // Wait while not notified (spurious wakeups are handled by re-checking)
-                let (mut guard, result) = self
-                    .condvar
-                    .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
-                    .unwrap();
-                let _timed_out = result.timed_out();
-
-                // CRITICAL: Reset state using the guard returned by wait_timeout_while.
-                *guard = WaitState::Waiting;
-            },
-        );
+        #[cfg(target_family = "wasm")]
+        self.wait_once(dur);
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))

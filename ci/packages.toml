@@ -337,9 +337,12 @@ clippy-deny-warnings = true
 wasm = "enforce"
 # The plain wasm build plus both JS backends: `js-foundation-wasm` is the owned
 # path (foundation_compact's `host-abi` time/entropy, no wasm-bindgen glue),
-# `js-wasmbindgen` the one Workers run.
+# `js-wasmbindgen` the one Workers run. The `multi` entry keeps the feature
+# additive on wasm32: Cargo merges features across the graph, so a wasm build
+# that leaves `multi` on must compile (issue #1030).
 wasm-runs = [
   "--no-default-features --features std",
+  "--no-default-features --features std,multi",
   "--no-default-features --features std,js-foundation-wasm",
   "--no-default-features --features std,js-wasmbindgen",
 ]
@@ -529,7 +532,10 @@ clippy-runs = ["", "quic"]
 # Both runs are at zero clippy warnings under `--all-targets`: a new one fails CI.
 clippy-deny-warnings = true
 wasm = "enforce"
-wasm-runs = ["--no-default-features --features wasm-fetch"]
+# The default feature set (which includes `multi`) plus the wasm-only minimal
+# set. The default run is the regression guard for issue #1030: a consumer that
+# adds `wasm-fetch` to the default features must build for wasm32.
+wasm-runs = ["", "--no-default-features --features wasm-fetch"]
 
 [packages.foundation_browser]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
