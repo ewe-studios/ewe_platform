@@ -33,7 +33,7 @@ Keep the release consumer checks and all final gates in the work order below.
 | 1. Keep Android Mathalley visible and interactive | 34–36 | The owner reports that the game flashes, then disappears. Identify the installed build. Distinguish a process crash, unexpected navigation, and a blank surface. Verify sustained visible play and input on first and repeat launch. This check is incomplete. [#1078](https://github.com/ewe-studios/ewe_platform/issues/1078): retire the old drawing surface in the shared host. Test a second consumer and two game visits in one process. Score on both visits and return to the original list. [#1083](https://github.com/ewe-studios/ewe_platform/issues/1083): test sound enabled and explicitly muted with the shared launcher. Check landscape input with side insets (#843). The earlier startup crash (#1074) has a separate verified fix. |
 | 2. Stabilize the browser package | 27, 37 | Fix subdirectory requests (#839). Check the staging collision when a mobile build follows a browser build (#1060). Diagnose the navigation stall (#784). Verify installation under a subdirectory before testing all hosts together. See the two-script decision below. |
 | 3. Close delivery and display defects | 11, 23, 25, 32, 33, 37 | Respect explicit dedicated native connections during replay (#1062). Verify failed asynchronous sends (#727), bounded pending reads (#726), and concurrent pending records (#728). Fix unreadable dark rows (#1069) and check the Android failure banner (#849). Reproduce the Android Back timeout (#692) and partial title (#737) before trusting those checks. |
-| 4. Verify public consumers | 17, 19, 21, 22, 24 | Check public release inputs (#845) now, while local repairs run. Verify matching Rust and Android packages. Build and run independent Apple and Android starters using published inputs. Record versions and the source commit. Local packages only prove local consumption. Check variant isolation (#800) and the pinned Android tool check (#615). |
+| 4. Verify public consumers | 17, 19, 21, 22, 24 | Check public release inputs (#845) now, while local repairs run. Verify matching Rust and Android packages. Build and run independent Apple and Android starters using published inputs. Record versions and the source commit. Local packages only prove local consumption. Variant isolation (#800) and the pinned Android tool check (#615) pass locally. |
 | 5. Complete acceptance evidence | 12, 14, 16, 20, 23, 32, 34–37 | Reconcile the unsigned Feature 12, 14 and 16 checks with tests and documented historical exceptions. Verify browser behavior parity and migration fixtures. Check spoken VoiceOver and TalkBack feedback. Record emulator, simulator and physical device coverage separately. Finish the Feature 37 table below. |
 | 6. Close the specification | All | Run affected package tests, strict lint, formatting, generation, toolchain checks, and documented examples. Record results for each required operating system. Check the shared frame fixture on Rust, TypeScript, Swift and Kotlin. Reconcile open issues with fixes. Update the feature index and reports before closing. |
 
@@ -311,3 +311,13 @@ The same application changes pass 14 server, seven native, and three Chromium te
 The native tests use the host core. The Chromium tests use the running Todo server.
 The three-operating-system package test run has its own pinned revision in this audit.
 [Todo lint results](progress.md#strict-todo-lint-check)
+
+
+### Android template variant isolation
+
+The generated on-device counter packages debug and release in both Gradle task orders.
+Each package contains the x86-64 library for its own build type.
+The native provider fixture also passes for the legacy path and preserves outputs after a failed rebuild.
+The Android library inputs come from a scratch publication of the current source.
+Feature 19 retains the public package installation gate.
+[Android variant results](progress.md#android-template-build-variants)

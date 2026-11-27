@@ -2197,3 +2197,25 @@ It also passes for the wire reference target and the browser UI tasks and build 
 The live channel suite passes ten tests. The vocabulary suite passes three tests.
 The reference integration suite passes 102 tests. Its portable target fixture still matches the saved bytes.
 [Issue 1187](https://github.com/ewe-studios/ewe_platform/issues/1187)
+
+## Android template build variants
+
+The current generator creates a fresh composed on-device Android counter.
+Gradle builds its debug and release application packages in both task orders.
+Each build uses a local 0.1.2 publication compiled from the current Android library sources.
+The package check uses the x86-64 Android target.
+
+The check compares each staged shared library with the corresponding Cargo output.
+It compares the executable section in each application package with that staged library.
+Both orders produce the same result for each build type.
+The debug and release executable sections differ.
+
+| Build type | Executable section hash |
+| --- | --- |
+| Debug | `5ad697a2b4694be1b0acbe227900da95ddb7997d158ee614548b7416ee800db4` |
+| Release | `50c7358bfc6acf2bc72c771f474f30118aa26506ac84a693a013aed71fad1e86` |
+
+Both native provider tests pass. The tests cover the legacy directory and a failed rebuild.
+The legacy test checks all four supported Android processor targets.
+The failed rebuild test confirms that both previously staged variants remain available.
+[Android variant issue](https://github.com/ewe-studios/ewe_platform/issues/800)

@@ -1642,3 +1642,14 @@ Keep formatter changes in a separate commit from fixes to validators and test fi
 Run strict lint against the configured feature variants and the test targets.
 The reference interpreter checks names before changing its view.
 Keep that check and the fixture rows independent from the code that applies the operations.
+
+## Android native library variant ownership
+
+Gradle can prepare one build type before it packages the other build type.
+A shared staging directory lets one preparation replace the files for the other package.
+Separate generated source directories keep the Kotlin and native files with their build type.
+
+The first local library fixture predates the current launch theme and its splash screen dependency.
+A fresh publication from the Android sources supplies both inputs.
+Gradle can strip symbols from a packaged shared library.
+The executable section comparison still identifies the exact Rust build type after stripping.
