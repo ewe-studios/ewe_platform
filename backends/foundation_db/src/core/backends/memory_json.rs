@@ -82,6 +82,22 @@ impl KeyValueStore for MemoryJsonStore {
         Ok(())
     }
 
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        let json = serde_json::to_string(&value)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let mut data = self.lock()?;
+        // One lock covers the lookup and the insert.
+        if data.contains_key(key) {
+            return Ok(false);
+        }
+        data.insert(key.to_string(), json);
+        Ok(true)
+    }
+
     fn take_is_atomic(&self) -> bool {
         true
     }

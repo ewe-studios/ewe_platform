@@ -15,11 +15,41 @@ first, then `LEARNINGS.md` (the handoff guide at the top) before touching code._
 | 01 — agent RPC model server | ✅ 10/10 + GGUF, landed as #126 | `bfff3326d` on master |
 | 02 — WASM lazy streaming | ✅ 5/5 | PR #124 (merged) |
 | 03 — agent RPC core | ✅ 4/4 | branch `spec83/f03-agent-rpc-core` |
-| 04 — native host and DST | ⏳ 0/2, design complete | — |
-| 05 — Worker host and web client | ⏳ 0/4 (T19 and the transport part of T21 moved to spec 85), design complete | — |
-| 06 — Cloudflare host | ⏳ 0/3 (T1 and T2 replaced by 05; T3 moved to spec 77; takes `&CloudflarePlatform`) | — |
+| 04 — native host and DST | 🔎 T17 and T18 done; pull request #909 open. The DST harness uses a scripted registry until #908 part (b) lands | `c9e6f1c85` |
+| 05 — Worker host and web client | 🔎 T20, T21, T22 and T26 done; pull request #990 | `973562c5d` |
+| 06 — Cloudflare host | 🔎 T4, T5 and T6 done; in pull request #1009 | `056c7ea74` |
 | 07 — pluggable agent RPC landing | ✅ landed (#126 on master); T0 complete | — |
-| 08 — key protection at rest | 📝 0/6, todo (last) | — |
+| 08 — key protection at rest | 🔎 K1 to K6 done, the `keys` commands wired; pull request #993 | `b5cddb07b` |
+
+## Feature 04 progress (2026-11-27)
+
+Task T17 is done on branch `spec83/f04-native-host-and-dst`: the native host modules
+(`host/native/{mod,config,security,listener,catalog,client}.rs`), two mTLS listeners, the
+operator keys with no key generation, and the tests `native_{config,e2e,revocation,shutdown}_tests.rs`.
+`foundation_http` `ServerConfig` derives `Clone`.
+
+Task T18 is complete: `foundation_core` `valtron::sim`, `foundation_connectrpc`
+`MemNetwork`/`MemTransport`, `foundation_db` `FaultyDocumentStore`, and the new package
+`foundation_agent_rpc_dst` with `ScriptedCatalog`, `TestWorld` and the 32-seed determinism
+test. The crate `foundation_agent_rpc` gains a `multi` feature, in `default`, so the harness
+gets the single-threaded engine.
+
+Issues #903 to #907 are closed by the change. #908 is split: part (a), the native build
+without `multi`, is fixed; part (b), the `TestWorld` on the real registry, waits on a
+cooperative event stream in `foundation_ai` (`agentic/turn.rs`), and the harness uses a
+scripted registry until then. The determinism guarantee holds; the registry code is not
+under test.
+
+## One combined pull request (2026-11-27)
+
+Features 04, 05, 06 and 08 are in pull request #1009 together with spec 77. The earlier
+separate pull requests are closed. The branch is `integration/spec77-spec83`.
+
+## Merged (2026-11-27)
+
+Pull request #1009 merged into `master` as `348620340`; it carries features 04, 05, 06 and 08.
+The full `packages=all` run on that head is the proof for the Worker, container and native
+paths.
 
 ## Branches and PRs
 

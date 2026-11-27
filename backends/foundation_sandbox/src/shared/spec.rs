@@ -1,12 +1,26 @@
 //! `SandboxSpec`: what a caller wants, and its validation rules.
 
 use std::path::{Component, Path, PathBuf};
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
 use crate::shared::driver::Capabilities;
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::limits::SandboxLimits;
+use crate::shared::serde_helpers::duration_millis_option;
+
+/// The work directory of a spec that does not name one.
+///
+/// It is the default of [`SandboxSpec::new`], the CLI default and the value
+/// that an empty `workdir` means (issue #1031). A program runs in this
+/// directory when it names no other one.
+pub const DEFAULT_WORKDIR: &str = "/workspace";
+
+/// The serde default of [`SandboxSpec::workdir`].
+fn default_workdir() -> String {
+    DEFAULT_WORKDIR.to_string()
+}
 
 /// The root file system of a sandbox.
 ///
@@ -34,6 +48,11 @@ pub enum RootMode {
     Overlay,
     /// Only `/tmp`, `/run` and the work directory are writable.
     ReadOnly,
+    /// The root file system is the image itself, mounted read-write.
+    ///
+    /// Only an [`RootFs::Ext4Image`] can use this mode. The driver holds an
+    /// exclusive lock on the image file, so one sandbox writes it at a time.
+    Writable,
 }
 
 /// The network mode of a sandbox.
@@ -64,6 +83,9 @@ pub enum KernelSource {
     Default,
     /// A kernel image file on the control plane's host.
     Path(PathBuf),
+    /// A pinned kernel manifest name of feature 03, such as
+    /// `firecracker-kernel-x86_64`.
+    Named(String),
 }
 
 /// A sandbox image reference of feature 12.
@@ -83,6 +105,17 @@ pub struct SandboxSpec {
     /// The driver to use, or `None` for the first usable driver in the
     /// configured order.
     pub driver: Option<crate::shared::ids::DriverId>,
+    /// The parent sandbox of a nested child (feature 11).
+    ///
+    /// It is `Some` exactly when `driver` is `Some(Nested)`. Each path of the
+    /// spec is a path in the parent container, because the inner control plane
+    /// runs there.
+    #[serde(default)]
+    pub parent: Option<crate::shared::ids::SandboxId>,
+    /// Whether this sandbox is a nested host: a container whose slave also
+    /// serves the control plane (feature 11). Default `false`.
+    #[serde(default)]
+    pub nested_host: bool,
     /// The root file system. Required.
     pub rootfs: RootFs,
     /// How writes to the root are handled. Default [`RootMode::Overlay`].
@@ -98,6 +131,11 @@ pub struct SandboxSpec {
     /// The base environment of each command.
     pub env: Vec<(String, String)>,
     /// The working directory that the slave creates. Default `/workspace`.
+    ///
+    /// An empty value means the default. A remote caller and an older record
+    /// can carry an empty value; [`Self::effective_workdir`] gives the path
+    /// that the control plane sends in `Prepare`.
+    #[serde(default = "default_workdir")]
     pub workdir: String,
     /// Host directories that the guest sees.
     pub mounts: Vec<HostMount>,
@@ -105,6 +143,13 @@ pub struct SandboxSpec {
     pub kernel: Option<KernelSource>,
     /// Every size and time limit.
     pub limits: SandboxLimits,
+    /// The time after which the sandbox stops, whatever it does.
+    ///
+    /// `None` (the default) gives no lifetime limit, so an older client that
+    /// sends no `ttl` gets today's behaviour. The control plane computes the
+    /// deadline once at create and stores it, so a restart does not move it.
+    #[serde(default, with = "duration_millis_option")]
+    pub ttl: Option<Duration>,
 }
 
 impl SandboxSpec {
@@ -113,6 +158,8 @@ impl SandboxSpec {
     pub fn new(rootfs: RootFs) -> Self {
         Self {
             driver: None,
+            parent: None,
+            nested_host: false,
             rootfs,
             root_mode: RootMode::Overlay,
             vcpus: 1,
@@ -120,10 +167,25 @@ impl SandboxSpec {
             network: NetworkMode::None,
             dns: vec!["1.1.1.1".to_string(), "8.8.8.8".to_string()],
             env: Vec::new(),
-            workdir: "/workspace".to_string(),
+            workdir: default_workdir(),
             mounts: Vec::new(),
             kernel: None,
             limits: SandboxLimits::default(),
+            ttl: None,
+        }
+    }
+
+    /// The work directory that the control plane sends in `Prepare`.
+    ///
+    /// An empty `workdir` means the default, [`DEFAULT_WORKDIR`]. A remote
+    /// caller and an older record can carry an empty value. The slave refuses
+    /// an empty work directory, because it cannot start a program in it.
+    #[must_use]
+    pub fn effective_workdir(&self) -> &str {
+        if self.workdir.is_empty() {
+            DEFAULT_WORKDIR
+        } else {
+            &self.workdir
         }
     }
 
@@ -145,17 +207,34 @@ impl SandboxSpec {
             return Err(invalid("memory_mib", "memory_mib must be at least 64"));
         }
 
-        if !absolute_without_parent(Path::new(&self.workdir)) {
+        // A child has a parent, and only a child has one (feature 11).
+        let nested = self.driver == Some(crate::shared::ids::DriverId::Nested);
+        if self.parent.is_some() != nested {
+            return Err(invalid(
+                "parent",
+                "parent is set exactly when driver is `nested`",
+            ));
+        }
+
+        // An empty workdir means the default (issue #1031); a value that the
+        // caller gives must be absolute and must not leave the root.
+        if !self.workdir.is_empty() && !absolute_without_parent(Path::new(&self.workdir)) {
             return Err(invalid(
                 "workdir",
-                "workdir must be absolute and must not contain `..`",
+                &format!(
+                    "workdir must be absolute and must not contain `..` (got {:?})",
+                    self.workdir
+                ),
             ));
         }
         for mount in &self.mounts {
             if !absolute_without_parent(Path::new(&mount.guest_path)) {
                 return Err(invalid(
                     "mounts",
-                    "every guest_path must be absolute and must not contain `..`",
+                    &format!(
+                        "every guest_path must be absolute and must not contain `..` (got {:?})",
+                        mount.guest_path
+                    ),
                 ));
             }
         }
@@ -179,6 +258,13 @@ impl SandboxSpec {
 
         if !self.rootfs_supported(caps) {
             return Err(SandboxError::UnsupportedRootFs.into());
+        }
+
+        if self.root_mode == RootMode::Writable && !matches!(self.rootfs, RootFs::Ext4Image(_)) {
+            return Err(invalid(
+                "root_mode",
+                "the writable root mode needs an ext4 image root",
+            ));
         }
 
         if !caps.root_modes.contains(&self.root_mode) {
@@ -317,6 +403,15 @@ impl GuestArch {
         #[cfg(not(target_arch = "aarch64"))]
         {
             Self::X86_64
+        }
+    }
+
+    /// The architecture name, as a host program file uses it.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::X86_64 => "x86_64",
+            Self::Aarch64 => "aarch64",
         }
     }
 }

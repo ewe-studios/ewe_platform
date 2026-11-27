@@ -13,8 +13,8 @@ keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 foundation_core = { path = "../foundation_core", version = "0.0.23" }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.16" }
-foundation_http = { path = "../foundation_http", version = "0.0.16" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
+foundation_http = { path = "../foundation_http", version = "0.0.17" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
@@ -43,6 +43,11 @@ tracing-subscriber.workspace = true
 # The SSE reload test drives the handler's async continuation on the
 # multi-threaded valtron executor, as a serving server does.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi", "test-clock"] }
+# The cf-agent-rpc case signs a bearer access secret with a test key.
+foundation_auth = { path = "../foundation_auth", default-features = false, features = ["secret"] }
+base64 = "0.22"
+# The Worker may compress a larger whole response; the test decodes it.
+flate2.workspace = true
 foundation_macros = { workspace = true }
 
 [lints]

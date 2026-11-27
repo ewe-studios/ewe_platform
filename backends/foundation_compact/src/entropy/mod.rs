@@ -43,6 +43,26 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     Ok(unsafe { util::slice_assume_init_mut(dest) })
 }
 
+/// A new array filled from the system's preferred random number source.
+///
+/// The array starts as uninitialized memory, so no zeroed buffer is made only
+/// to be overwritten.
+///
+/// # Errors
+///
+/// Returns [`Error`] if the platform entropy source is unavailable.
+#[inline]
+pub fn fill_new<const N: usize>() -> Result<[u8; N], Error> {
+    let mut bytes = MaybeUninit::<[u8; N]>::uninit();
+    // SAFETY: `[u8; N]` is contiguous, so its storage is `N` uninitialized
+    // bytes. `fill_uninit` fills every byte and returns the initialized view.
+    let slice =
+        unsafe { core::slice::from_raw_parts_mut(bytes.as_mut_ptr().cast::<MaybeUninit<u8>>(), N) };
+    fill_uninit(slice)?;
+    // SAFETY: the call above initialized every byte of `bytes`.
+    Ok(unsafe { bytes.assume_init() })
+}
+
 /// Get random `u32` from the system's preferred random number source.
 ///
 /// # Errors

@@ -184,9 +184,15 @@ impl RawStream {
     /// How you take the returned `RawStream` is up to you but this allows you more control
     /// on how exactly the request starts.
     pub fn from_connection(conn: Connection) -> crate::shared::errors::DataStreamResult<Self> {
-        let conn_addr = conn
-            .stream_addr()
-            .map_err(|_| DataStreamError::FailedToAcquireAddrs)?;
+        // A socket of another address family, such as `AF_VSOCK`, reports no
+        // `sockaddr_un` to the Unix-domain methods. The server uses the address
+        // for its log line only, so a placeholder keeps the connection.
+        let conn_addr = conn.stream_addr().unwrap_or_else(|_| {
+            DataStreamAddr::new(
+                SocketAddr::Tcp(std::net::SocketAddr::from(([0, 0, 0, 0], 0))),
+                None,
+            )
+        });
 
         let reader = BufferedReader::new(BufferedWriter::new(conn));
         Ok(Self::from_inner(RawStreamInner::Plain(reader, conn_addr)))

@@ -40,8 +40,8 @@ use bytes::Bytes;
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
 use foundation_core::valtron::{
-    self, BoxedSendableDataIterator, BoxedSendableIterator, CollectionState,
-    SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIterator, TaskIteratorExt,
+    self, BoxedSendableDataIterator, BoxedSendableIterator, CollectionState, EngineTask,
+    SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIteratorExt,
 };
 use serde::de::DeserializeOwned;
 
@@ -2214,17 +2214,13 @@ pub type ExchangeBodyObserver =
 ///
 /// The caller sends this to valtron — typically `valtron::send(task.map_ready(|_| ()))`.
 ///
-/// The `+ Send` bound follows valtron's own choice: the `multi` feature selects
-/// the sendable extension trait on every target, and its combinators require
-/// `Send`. Without `multi` the single-threaded machinery is not sendable.
-#[cfg(feature = "multi")]
+/// `EngineTask` carries the engine's own `Send` marker, so the box is `Send`
+/// exactly when this build uses the multi-threaded engine. It must not use this
+/// crate's `multi` feature: Cargo can unify `multi` into `foundation_core`
+/// without turning it on here, and the two must agree for `valtron::send` and
+/// `map_ready` to apply.
 pub type ExchangeContinuation =
-    Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending> + Send>;
-
-/// Unsent continuation from [`split_exchange`] (single-threaded — no `Send` bound).
-#[cfg(not(feature = "multi"))]
-pub type ExchangeContinuation =
-    Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending>>;
+    Box<dyn EngineTask<Ready = HttpExchange, Pending = HttpExchangePending>>;
 
 /// Split an unsent HTTP exchange into head + body observers plus a continuation.
 ///

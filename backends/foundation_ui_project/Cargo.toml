@@ -12,7 +12,7 @@ clap.workspace = true
 foundation_macros.workspace = true
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.10" }
-foundation_packager = { path = "../foundation_packager", version = "0.1.6" }
+foundation_packager = { path = "../foundation_packager", version = "0.1.7" }
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true

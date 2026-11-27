@@ -1979,7 +1979,11 @@ async fn do_unary_round_trip(
         // The bounded prefix holds the whole body for any realistic error.
         if let Ok(wire) = serde_json::from_slice::<crate::shared::error::WireError>(&prefix) {
             if let Some(code) = Code::from_str(&wire.code) {
-                return Err(ConnectError::wire(code, wire.message.unwrap_or_default()).into());
+                let mut error = ConnectError::wire(code, wire.message.unwrap_or_default());
+                for detail in wire.details.unwrap_or_default() {
+                    error.add_detail(detail.to_detail());
+                }
+                return Err(error.into());
             }
         }
         let error_body = if prefix.is_empty() {

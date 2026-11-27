@@ -152,6 +152,12 @@ pub enum SandboxError {
         /// The API message.
         message: String,
     },
+    /// The substrate API did not answer within the time limit.
+    #[display("the substrate API did not answer within {timeout_ms} ms")]
+    ApiTimeout {
+        /// The time limit in milliseconds.
+        timeout_ms: u64,
+    },
     /// The substrate did not reach the deadline.
     #[display("boot timeout at stage {stage}")]
     BootTimeout {
@@ -295,7 +301,9 @@ impl SandboxError {
             | Self::NotSigned
             | Self::UnsupportedCapability { .. }
             | Self::PlatformMismatch { .. } => Code::FailedPrecondition,
-            Self::BootTimeout { .. } | Self::ExecTimeout => Code::DeadlineExceeded,
+            Self::ApiTimeout { .. } | Self::BootTimeout { .. } | Self::ExecTimeout => {
+                Code::DeadlineExceeded
+            }
             Self::TooManySessions | Self::InputQueueFull => Code::ResourceExhausted,
             Self::SequenceGap => Code::OutOfRange,
             Self::StreamLost => Code::Aborted,
@@ -333,6 +341,7 @@ impl SandboxError {
             Self::SocketPathTooLong { .. } => "SocketPathTooLong",
             Self::SubstrateExited { .. } => "SubstrateExited",
             Self::SubstrateApi { .. } => "SubstrateApi",
+            Self::ApiTimeout { .. } => "ApiTimeout",
             Self::BootTimeout { .. } => "BootTimeout",
             Self::SlaveHandshake => "SlaveHandshake",
             Self::NotFound { .. } => "NotFound",

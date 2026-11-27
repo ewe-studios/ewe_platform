@@ -1,0 +1,34 @@
+name = "ewe-sandbox"
+main = "build/index.js"
+compatibility_date = "2026-05-12"
+
+[build]
+command = "worker-build --release"
+
+[[durable_objects.bindings]]
+name = "SANDBOX"
+class_name = "SandboxDo"
+
+[[durable_objects.bindings]]
+name = "SANDBOX_INDEX"
+class_name = "SandboxIndexDo"
+
+# The model slave of decision D16.
+[[durable_objects.bindings]]
+name = "SLAVE"
+class_name = "ModelSlaveDo"
+
+# The Cloudflare Model API. Only the `CloudflareAi` backend uses it.
+[ai]
+binding = "AI"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SandboxDo", "SandboxIndexDo", "ModelSlaveDo"]
+
+[[containers]]
+class_name = "SandboxDo"
+name = "ewe-sandbox"
+image = "./Dockerfile"
+max_instances = 10
+instance_type = "lite"

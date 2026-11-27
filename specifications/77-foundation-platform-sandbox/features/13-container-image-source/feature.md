@@ -293,7 +293,7 @@ agent-sandbox run --image <tag-or-key> [...] [-- <program> ...]     # with no pr
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "images docker testing slave" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat images_import slave_unpack cli_parse
+cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat
 cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat e2e_images -- --nocapture
 ```
 

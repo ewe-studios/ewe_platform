@@ -213,7 +213,7 @@ Feature: Docker driver
 
 | Fact | Source |
 |---|---|
-| `DockerClient` has `create_container`, `start_container`, `wait_container`, `stop_container`, `remove_container`, `inspect_container`. | `foundation_deployment_docker/src/client/mod.rs`, lines 752 to 853 |
+| `DockerClient` has `create_container`, `start_container`, `wait_container`, `stop_container`, `remove_container`, `inspect_container`. | `foundation_deployment_docker/src/client/mod.rs`, lines 766 to 876 |
 | `upload_to_container` puts a tar archive into a container path; `container_logs` reads logs. | `.../client/containers_lifecycle.rs`, lines 541 and 270 |
 | `image_pull` streams progress; `image_inspect` reads the configuration. | `.../client/images.rs`, lines 446 and 134 |
 | Exec in a container: `exec_create`, `exec_start`. | `.../client/exec.rs`, lines 36 and 69 |
@@ -463,7 +463,7 @@ The real-daemon tests run in the existing Docker CI workflow
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "docker testing" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "docker testing" --profile uat docker_sim native_host contract
+cargo test -p foundation_sandbox --features "docker testing" --profile uat
 mise run sandbox:slave
 EWE_SANDBOX_SLAVE=<slave path> cargo test -p foundation_sandbox --features "docker testing" --profile uat e2e_docker -- --nocapture
 infrastructure/sandbox_control_image/test/run.sh

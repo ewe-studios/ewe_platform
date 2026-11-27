@@ -1,6 +1,6 @@
 [package]
 name = "foundation_connectrpc"
-version = "0.0.16"
+version = "0.0.19"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -40,17 +40,20 @@ brotli = { version = "8", optional = true }
 # wasm code (its `ExchangeContinuation` drops the `+ Send` bound there), which
 # no longer type-checks.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.16" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17" }
+# The defaults are off so a consumer that must not link a C TLS library (the
+# static musl slave) can leave them off. The `netio-defaults` feature restores
+# them and is part of `rpc`, so every existing consumer keeps today's set.
+foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false }
 # The H2 client dials without blocking a valtron worker (feature 127):
 # `socket2` creates the TCP socket, sets it non-blocking and starts `connect(2)`.
 socket2 = "0.6"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.16", default-features = false, features = ["wasm"] }
+foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, features = ["wasm"] }
 # The fetch client is optional on wasm: the owned-harness test package turns it
 # off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false }
 # The streaming response sink holds a JS `Response` behind a `SendWrapper`.
 web-sys = { workspace = true, features = ["Response"] }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", optional = true, default-features = false, features = ["wasm"] }
@@ -64,7 +67,7 @@ foundation_reactor = { path = "../foundation_reactor", version = "0.0.5" }
 [dev-dependencies]
 # `test-clock` provides `SimulatedClock`, so a test can prove that a call
 # deadline follows the injected clock.
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi", "test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
 foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_errstacks = { path = "../foundation_errstacks", features = ["to_structured"] }
 serde_json = { workspace = true }
@@ -89,12 +92,22 @@ prost-types = { workspace = true }
 
 [features]
 default = ["rpc_multi"]
+# The in-memory network and transport for deterministic simulation tests.
+testing = []
 # `rpc` is the full single-threaded library surface: every codec, auth, and all
 # compressors. Consumers pick `rpc` (single-threaded) or `rpc_multi` (adds the
 # multi-threaded valtron executor); `default-features = false` + `rpc` keeps a
 # lean build. The individual flags below stay addressable for fine-grained use.
-rpc = ["arrow", "auth", "zstd", "brotli"]
-rpc_multi = ["rpc", "foundation_core/multi"]
+rpc = ["arrow", "auth", "zstd", "brotli", "netio-defaults"]
+rpc_multi = ["rpc", "foundation_core/multi", "foundation_http/multi"]
+
+# The HTTP server and client surface of `foundation_http` and
+# `foundation_netio`, without TLS. A consumer that must not link a C TLS
+# library, such as the static musl slave, enables this feature alone.
+netio-core = ["foundation_http/netio-core"]
+# The full default set of the two crates, with TLS. `rpc` enables it, so every
+# existing consumer keeps today's set.
+netio-defaults = ["netio-core", "foundation_http/netio-defaults", "foundation_netio/ssl"]
 
 # Arrow columnar codec (platform extension) — pulls foundation_arrow.
 arrow = ["dep:foundation_arrow"]

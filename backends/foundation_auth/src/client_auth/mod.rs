@@ -15,7 +15,9 @@ pub mod jwt;
 pub mod signed_secret;
 
 pub mod cloudflare;
-#[cfg(not(target_family = "wasm"))]
+/// The mutual-TLS providers of spec 87. They link `ring` through `rustls`, so
+/// the `mtls` feature names them.
+#[cfg(all(not(target_family = "wasm"), feature = "mtls"))]
 pub mod mtls;
 
 pub use any_of::AnyOf;
@@ -28,7 +30,7 @@ pub use jwt::JwtAuth;
 pub use signed_secret::{AccessPolicy, SignedSecretAuth};
 
 pub use cloudflare::{CfMtlsAuth, CfTlsClientAuth};
-#[cfg(not(target_family = "wasm"))]
+#[cfg(all(not(target_family = "wasm"), feature = "mtls"))]
 pub use mtls::{MtlsAuth, SeenErrorPolicy};
 
 // The auth primitives of spec 86, at the path that a provider user expects.

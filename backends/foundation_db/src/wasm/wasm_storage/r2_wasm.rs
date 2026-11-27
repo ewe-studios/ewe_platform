@@ -8,9 +8,13 @@ use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
     BlobListStream, BlobPutCondition, BlobRange, BlobStore, BlobStream,
 };
-use crate::wasm::bindgen::{R2Bucket, R2Object};
+use crate::wasm::bindgen::{R2Bucket, R2MultipartUpload, R2Object};
 use foundation_compact::SendWrapper;
-use js_sys::{ArrayBuffer, Uint8Array};
+use futures_core::Stream;
+use js_sys::{Array, ArrayBuffer, Uint8Array};
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::Arc;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
@@ -23,7 +27,19 @@ use wasm_bindgen_futures::JsFuture;
 pub struct R2WasmStorage {
     bucket: R2Bucket,
     prefix: String,
+    /// The smallest part of a streamed upload, in bytes.
+    part_size: usize,
+    /// Parts written by the last streamed upload (a test hook).
+    parts: Arc<AtomicU32>,
 }
+
+/// Default part size: 8 mebibytes (MiB). It is above the 5 MiB minimum of the
+/// R2 multipart upload, and it is the default part size of the Amazon Web
+/// Services (AWS) command-line tool.
+pub const DEFAULT_R2_PART_SIZE: usize = 8 * 1024 * 1024;
+
+/// The smallest part that R2 accepts, except the last: 5 MiB.
+pub const MIN_R2_PART_SIZE: usize = 5 * 1024 * 1024;
 
 impl R2WasmStorage {
     /// Create a new R2 storage instance.
@@ -32,7 +48,25 @@ impl R2WasmStorage {
         Self {
             bucket,
             prefix: prefix.to_string(),
+            part_size: DEFAULT_R2_PART_SIZE,
+            parts: Arc::new(AtomicU32::new(0)),
         }
+    }
+
+    /// Set the smallest part of a streamed upload, in bytes.
+    ///
+    /// A value below [`MIN_R2_PART_SIZE`] becomes that minimum. The last part
+    /// may be smaller.
+    #[must_use]
+    pub fn with_part_size(mut self, part_size: usize) -> Self {
+        self.part_size = part_size.max(MIN_R2_PART_SIZE);
+        self
+    }
+
+    /// The parts written by the last streamed upload.
+    #[must_use]
+    pub fn last_part_count(&self) -> u32 {
+        self.parts.load(Ordering::Acquire)
     }
 
     fn object_key(&self, key: &str) -> String {
@@ -214,11 +248,95 @@ impl R2WasmStorage {
     }
 }
 
+/// Upload one multipart part and return the `R2UploadedPart` object.
+async fn upload_one_part(
+    upload: &R2MultipartUpload,
+    number: u16,
+    bytes: Vec<u8>,
+) -> StorageResult<JsValue> {
+    let value: JsValue = Uint8Array::from(bytes.as_slice()).into();
+    let promise = upload.upload_part(number, &value);
+    SendWrapper::new(JsFuture::from(promise))
+        .await
+        .map_err(|error| {
+            StorageError::Backend(format!("R2 multipart part {number} failed: {error:?}"))
+        })
+}
+
 #[async_trait::async_trait]
 impl BlobStore for R2WasmStorage {
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await })
             .await
+    }
+
+    /// Upload a body in R2 multipart parts.
+    ///
+    /// The stream is read one chunk at a time into a buffer of `part_size`,
+    /// and each full part is uploaded before the next is read. The isolate
+    /// holds one part plus one chunk, never the body (issue #940).
+    async fn put_blob_stream(
+        &self,
+        key: &str,
+        _length: Option<u64>,
+        mut chunks: BlobStream,
+    ) -> StorageResult<()> {
+        let object_key = self.object_key(key);
+        let part_size = self.part_size;
+        let parts_count = Arc::clone(&self.parts);
+        SendWrapper::new(async move {
+            let promise = self.bucket.create_multipart_upload(&object_key);
+            let upload: R2MultipartUpload = SendWrapper::new(JsFuture::from(promise))
+                .await
+                .map_err(|error| {
+                    StorageError::Backend(format!("R2 multipart start failed: {error:?}"))
+                })?
+                .unchecked_into();
+            parts_count.store(0, Ordering::Release);
+
+            let mut parts = Array::new();
+            let mut buffer: Vec<u8> = Vec::with_capacity(part_size);
+            let mut number: u16 = 1;
+            loop {
+                let step = std::future::poll_fn(|cx| chunks.as_mut().poll_next(cx)).await;
+                match step {
+                    Some(Ok(chunk)) => {
+                        buffer.extend_from_slice(&chunk);
+                        while buffer.len() >= part_size {
+                            let part: Vec<u8> = buffer.drain(..part_size).collect();
+                            let uploaded = upload_one_part(&upload, number, part).await?;
+                            parts.push(&uploaded);
+                            parts_count.fetch_add(1, Ordering::AcqRel);
+                            number = number.checked_add(1).ok_or_else(|| {
+                                StorageError::Backend("too many multipart parts".to_string())
+                            })?;
+                        }
+                    }
+                    Some(Err(error)) => {
+                        let _ = SendWrapper::new(JsFuture::from(upload.abort())).await;
+                        return Err(error);
+                    }
+                    None => break,
+                }
+            }
+            if !buffer.is_empty() {
+                let uploaded = upload_one_part(&upload, number, buffer).await?;
+                parts.push(&uploaded);
+                parts_count.fetch_add(1, Ordering::AcqRel);
+            } else if parts.length() == 0 {
+                // An empty body has no valid multipart; abort and write it whole.
+                let _ = SendWrapper::new(JsFuture::from(upload.abort())).await;
+                return self.put_blob_async(key, &[]).await;
+            }
+            let promise = upload.complete(&parts.into());
+            SendWrapper::new(JsFuture::from(promise))
+                .await
+                .map_err(|error| {
+                    StorageError::Backend(format!("R2 multipart complete failed: {error:?}"))
+                })?;
+            Ok(())
+        })
+        .await
     }
 
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {

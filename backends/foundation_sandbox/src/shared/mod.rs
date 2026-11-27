@@ -8,16 +8,24 @@ pub mod command;
 pub mod container;
 pub mod control;
 pub mod driver;
+/// The drivers of the portable control plane (feature 11).
+#[cfg(feature = "control")]
+pub mod drivers;
 pub mod error;
 pub mod handles;
 pub mod host;
 pub mod ids;
+pub mod images;
+pub mod krun_config;
 pub mod limits;
+pub mod listen;
 pub mod platform;
 pub mod rpc;
 pub mod sequence;
 pub mod serde_helpers;
 pub mod spec;
+pub mod unpack;
+pub mod user;
 
 /// The Cloudflare part of the platform. Feature 07 fills this module.
 #[cfg(feature = "cloudflare")]

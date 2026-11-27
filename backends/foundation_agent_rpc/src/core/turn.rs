@@ -12,8 +12,9 @@
 //! wait.
 
 use std::pin::Pin;
-use std::sync::Arc;
-use std::task::{Context, Poll};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll, Waker};
 
 use foundation_ai::agentic::{TurnEvent as ModelTurnEvent, TurnSummary};
 use foundation_ai::types::UserModelContent;
@@ -25,6 +26,73 @@ use futures::Stream;
 use crate::core::config::TurnLimits;
 use crate::core::registry::TurnEventStream;
 use crate::proto::v1 as pb;
+
+/// The shutdown signal of the running turns.
+///
+/// WHY: a graceful shutdown must end each running turn with one terminal
+/// event, not with a dropped connection. The signal wakes every turn stream so
+/// the stream can emit `TurnFailed("server shutting down")`.
+///
+/// WHAT: `fire` (set the flag and wake every registered turn), `is_fired` and
+/// `register` (the stream registers its waker while it waits).
+#[derive(Clone, Default)]
+pub struct TurnShutdown {
+    inner: Arc<TurnShutdownInner>,
+}
+
+#[derive(Default)]
+struct TurnShutdownInner {
+    fired: AtomicBool,
+    wakers: Mutex<Vec<Waker>>,
+}
+
+impl std::fmt::Debug for TurnShutdown {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TurnShutdown")
+            .field("fired", &self.is_fired())
+            .finish()
+    }
+}
+
+impl TurnShutdown {
+    /// Fire the signal once and wake every waiting turn.
+    pub fn fire(&self) {
+        if self.inner.fired.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        let mut wakers = self
+            .inner
+            .wakers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        for waker in wakers.drain(..) {
+            waker.wake();
+        }
+    }
+
+    /// True after [`fire`](Self::fire).
+    #[must_use]
+    pub fn is_fired(&self) -> bool {
+        self.inner.fired.load(Ordering::SeqCst)
+    }
+
+    /// Register a waiting turn. A signal that fires before the registration
+    /// wakes the waker at once.
+    pub fn register(&self, waker: &Waker) {
+        if self.is_fired() {
+            waker.wake_by_ref();
+            return;
+        }
+        let mut wakers = self
+            .inner
+            .wakers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if !wakers.iter().any(|existing| existing.will_wake(waker)) {
+            wakers.push(waker.clone());
+        }
+    }
+}
 
 /// A turn event on the wire. Progress hints are not part of the contract.
 #[must_use]
@@ -104,6 +172,7 @@ pub fn guarded_turn<E, G>(
     events: E,
     guard: G,
     abort: Arc<dyn Fn() + Send + Sync>,
+    shutdown: TurnShutdown,
     ctx: Ctx,
     limits: &TurnLimits,
 ) -> TurnEventStream
@@ -117,6 +186,7 @@ where
         events: Box::pin(events),
         guard: Some(guard),
         abort,
+        shutdown,
         ctx,
         idle_timeout: limits.idle_timeout,
         total_deadline: total,
@@ -129,6 +199,7 @@ struct GuardedTurn<E, G> {
     events: Pin<Box<E>>,
     guard: Option<G>,
     abort: Arc<dyn Fn() + Send + Sync>,
+    shutdown: TurnShutdown,
     ctx: Ctx,
     idle_timeout: Duration,
     total_deadline: Option<Instant>,
@@ -184,6 +255,9 @@ where
             if this.finished {
                 return Poll::Ready(None);
             }
+            if this.shutdown.is_fired() {
+                return Poll::Ready(Some(Ok(this.fail("server shutting down"))));
+            }
             if this.timer.is_none() {
                 this.arm_timer();
             }
@@ -211,7 +285,10 @@ where
                         .as_mut()
                         .expect("the timer is armed before a poll");
                     match timer.as_mut().poll(cx) {
-                        Poll::Pending => return Poll::Pending,
+                        Poll::Pending => {
+                            this.shutdown.register(cx.waker());
+                            return Poll::Pending;
+                        }
                         Poll::Ready(()) => {
                             this.timer = None;
                             let now = this.ctx.clock().now();

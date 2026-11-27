@@ -13,10 +13,15 @@
 //! trait that a host implements. The handlers read the checked caller from
 //! the request extension that the auth interceptor sets.
 
+#[cfg(any(feature = "multi", feature = "worker"))]
+pub mod archive;
 pub mod bootstrap;
+pub mod browser;
 pub mod config;
+pub mod cors;
 pub mod enroll;
 pub mod model;
 pub mod registry;
 pub mod service;
+#[cfg(any(feature = "multi", feature = "worker"))]
 pub mod turn;

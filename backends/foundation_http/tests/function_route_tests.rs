@@ -1,9 +1,11 @@
 //! Test function and struct registration through the same native router.
 
 #![cfg(not(target_family = "wasm"))]
-// The route macros pass the request by value, so the handlers need the owned
-// form. `create` is async on purpose, to test the async route branch.
-#![allow(clippy::needless_pass_by_value, clippy::unused_async)]
+// A routed handler keeps the async signature of a real handler even when this
+// case has nothing to await.
+#![allow(clippy::unused_async)]
+// A routed handler signature takes the request by value, as the router calls it.
+#![allow(clippy::needless_pass_by_value)]
 
 mod fake_overlay;
 
@@ -24,6 +26,9 @@ fn catalog(_ctx: Ctx, req: SimpleIncomingRequest, _conn: Connection) -> Connecti
 }
 
 #[foundation_http::post("/catalog/new")]
+// The handler signature stays async to match a real handler; this case has
+// nothing to await.
+#[allow(clippy::unused_async)]
 async fn create(_ctx: Ctx, _req: SimpleIncomingRequest, _conn: Connection) -> ServeOutcome {
     ServeOutcome::Take
 }

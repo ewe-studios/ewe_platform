@@ -1,6 +1,6 @@
 [build-dependencies.foundation_codegentools]
 path = "../foundation_codegentools"
-version = "0.1.7"
+version = "0.1.8"
 
 [dependencies]
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
@@ -13,6 +13,13 @@ workspace = true
 # `workers` module builds.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.derive_more]
 workspace = true
+
+# Native only: the deploy adapters carry a secret value to the API without
+# printing it (`Secret` of spec 86).
+[target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_auth]
+path = "../foundation_auth"
+version = "0.0.16"
+default-features = false
 
 # Native only: used by `dns_ops.rs` and `types.rs`.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_core]
@@ -50,7 +57,7 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.17"
+version = "0.0.19"
 
 # Native: `types.rs` and `dns_ops.rs`. The wasm32 entries (optional, enabled by the
 # `workers` feature) are in the wasm table below.

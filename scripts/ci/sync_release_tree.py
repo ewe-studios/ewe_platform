@@ -41,7 +41,11 @@ import tomllib
 SKIP_PARTS = {"target", "node_modules", ".git", ".worktrees", ".claude", "tools", "patches"}
 TEMPLATE_GLOB = "backends/foundation_ui_project/templates/*/Cargo.toml.template"
 INLINE_DEP = re.compile(r"^([A-Za-z0-9_-]+)[ \t]*=[ \t]*\{([^}\n]*)\}[ \t]*$", re.M)
-TABLE_DEP = re.compile(r"^\[((?:dev-|build-)?dependencies)\.([A-Za-z0-9_-]+)\]\n((?:(?!\[).*\n?)*)", re.M)
+TABLE_DEP = re.compile(
+    r"^\[((?:target\.(?:'[^']+'|\"[^\"]+\")\.)?(?:dev-|build-)?dependencies)\."
+    r"([A-Za-z0-9_-]+)\]\n((?:(?!\[).*\n?)*)",
+    re.M,
+)
 VERSION = re.compile(r'(version\s*=\s*)"[^"]+"')
 
 
@@ -173,6 +177,18 @@ def stale_paths(root: pathlib.Path, versions: dict[str, str]) -> list[str]:
             found = re.search(r'version\s*=\s*"([^"]+)"', body)
             if found and found.group(1) != want:
                 stale.append(f"{manifest.relative_to(root)}: {name} {found.group(1)} -> {want}")
+        # Table forms, including the target-gated ones.
+        for match in TABLE_DEP.finditer(text):
+            table, name, body = match.group(1), match.group(2), match.group(3)
+            want = versions.get(name)
+            if want is None or "path" not in body:
+                continue
+            found = re.search(r'^version\s*=\s*"([^"]+)"', body, re.M)
+            if found and found.group(1) != want:
+                stale.append(
+                    f"{manifest.relative_to(root)}: [{table}.{name}] "
+                    f"{found.group(1)} -> {want}"
+                )
     return stale
 
 

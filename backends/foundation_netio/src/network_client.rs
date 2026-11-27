@@ -220,6 +220,16 @@ impl HttpClientBuilder {
         self
     }
 
+    /// Refuse a redirect from `https` to another scheme (default `false`).
+    ///
+    /// A caller that downloads code sets this, so a server cannot move the
+    /// request to plain `http`.
+    #[must_use]
+    pub fn refuse_https_downgrade(mut self, refuse: bool) -> Self {
+        self.config.redirect.refuse_https_downgrade = refuse;
+        self
+    }
+
     /// Control whether the client follows non-standard redirect responses
     /// (i.e. not 301/302/303/307/308).
     #[must_use]
@@ -422,6 +432,50 @@ impl HttpClientBuilder {
     #[must_use]
     pub fn unix_socket(mut self, path: impl Into<std::path::PathBuf>) -> Self {
         self.config.unix_socket = Some(path.into());
+        self
+    }
+
+    /// Write `preamble` after each new Unix-domain socket connection, then read
+    /// one line of at most `max_reply` bytes that must start with `expect`.
+    ///
+    /// WHY: Firecracker forwards a host connection to a guest port only after
+    /// the host writes `CONNECT <port>\n` and reads `OK <number>\n`. The line is
+    /// part of the connection, not of the HTTP request, so it belongs in the
+    /// transport.
+    ///
+    /// WHAT: The bytes go out once per new connection, before the first HTTP
+    /// byte. A Unix socket is never pooled by this client, so every connection
+    /// gets the preamble. A reply that is not a line, that does not start with
+    /// `expect`, or that ends before the line fails the connection with a
+    /// connect error.
+    ///
+    /// HOW: The preamble rides in [`ClientConfig::unix_preamble`] and the UDS
+    /// connect path applies it.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn unix_socket_preamble(
+        mut self,
+        preamble: Vec<u8>,
+        expect: Vec<u8>,
+        max_reply: usize,
+    ) -> Self {
+        self.config.unix_preamble = Some(crate::shared::client::UnixSocketPreamble {
+            preamble,
+            expect,
+            max_reply,
+        });
+        self
+    }
+
+    /// Set the read timeout on a Unix-domain socket connection.
+    ///
+    /// Default 5 s. It is separate from [`Self::read_timeout`], which sets the
+    /// HTTP read timeouts, because a Unix socket connection can wait in the
+    /// connect and in the preamble read.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn unix_read_timeout(mut self, timeout: Duration) -> Self {
+        self.config.unix_read_timeout = timeout;
         self
     }
 

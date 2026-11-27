@@ -68,7 +68,7 @@ impl std::fmt::Debug for PrivateKey {
             .field("kid", &self.kid)
             .field(
                 "public_key_sha256",
-                &crate::fingerprint::sha256_hex(&self.public_key),
+                &crate::fingerprint::public_fingerprint_hex(&self.public_key),
             )
             .finish_non_exhaustive()
     }
@@ -92,8 +92,34 @@ impl PrivateKey {
         source: &KeySource,
         files: &F,
     ) -> Result<Self, KeyLoadError> {
+        Self::parse(&Self::read_source(source, files).await?)
+    }
+
+    /// Reads and parses an encrypted key with its passphrase.
+    ///
+    /// It reads the key the same way as [`PrivateKey::load`], then decrypts an
+    /// OpenSSH key (`bcrypt-pbkdf`) or an encrypted PKCS#8 key (PBES2). An
+    /// unencrypted key ignores the passphrase.
+    ///
+    /// # Errors
+    /// The errors of [`PrivateKey::load`], [`KeyLoadError::BadPassphrase`]
+    /// when the passphrase is wrong, and
+    /// [`KeyLoadError::UnsupportedFormat`].
+    pub async fn load_with_passphrase<F: AsyncVfsFileSystem>(
+        source: &KeySource,
+        files: &F,
+        passphrase: &str,
+    ) -> Result<Self, KeyLoadError> {
+        Self::parse_with_passphrase(&Self::read_source(source, files).await?, passphrase)
+    }
+
+    /// Read the key text over the injected file system.
+    async fn read_source<F: AsyncVfsFileSystem>(
+        source: &KeySource,
+        files: &F,
+    ) -> Result<SecureBytes, KeyLoadError> {
         match source {
-            KeySource::Inline(text) => Self::parse(text.as_slice()),
+            KeySource::Inline(text) => Ok(text.clone()),
             KeySource::File(path) => {
                 let metadata = files
                     .stat_async(path.clone())
@@ -115,7 +141,7 @@ impl PrivateKey {
                             other => KeyLoadError::Io(format!("{path}: {other}")),
                         }
                     })?;
-                Self::parse(&text)
+                Ok(SecureBytes::new(text))
             }
         }
     }
@@ -127,6 +153,16 @@ impl PrivateKey {
     /// [`KeyLoadError::Encrypted`], [`KeyLoadError::UnsupportedFormat`].
     pub fn parse(text: &[u8]) -> Result<Self, KeyLoadError> {
         let parsed = parse::parse(text)?;
+        Ok(Self::from_parsed(parsed))
+    }
+
+    /// Parses an encrypted key with its passphrase.
+    ///
+    /// # Errors
+    /// [`KeyLoadError::BadPassphrase`] when the passphrase is wrong, and the
+    /// errors of [`PrivateKey::parse`].
+    pub fn parse_with_passphrase(text: &[u8], passphrase: &str) -> Result<Self, KeyLoadError> {
+        let parsed = parse::parse_with_passphrase(text, passphrase)?;
         Ok(Self::from_parsed(parsed))
     }
 
@@ -216,6 +252,19 @@ impl VerifyingKey {
     }
 }
 
+/// A place a passphrase comes from, for an encrypted key file.
+///
+/// The passphrase sources of the key encryption key (KEK) module implement it:
+/// the terminal prompt and the environment variable. A secret file with a
+/// passphrase is not a KEK, so the host reads it as the KEK itself.
+pub trait PassphraseSource: Send + Sync {
+    /// The passphrase, zeroed on drop.
+    ///
+    /// # Errors
+    /// [`KeyLoadError::PassphraseUnavailable`] when the source has no value.
+    fn passphrase(&self) -> Result<zeroize::Zeroizing<String>, KeyLoadError>;
+}
+
 /// Every way a key can fail to load.
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::Display, derive_more::Error)]
 pub enum KeyLoadError {
@@ -231,6 +280,12 @@ pub enum KeyLoadError {
     /// The key has a passphrase.
     #[display("the key has a passphrase; the proof of concept reads only keys made with -N \"\"")]
     Encrypted,
+    /// The passphrase does not decrypt the key.
+    #[display("the key passphrase is wrong")]
+    BadPassphrase,
+    /// No passphrase is available for an encrypted key.
+    #[display("no passphrase for the key: {_0}")]
+    PassphraseUnavailable(#[error(not(source))] String),
     /// The format is not one that this build reads.
     #[display("unsupported key format: {_0}")]
     UnsupportedFormat(#[error(not(source))] String),

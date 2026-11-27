@@ -838,8 +838,13 @@ pub enum SimpleHeader {
 }
 
 impl SimpleHeader {
+    /// A header that has no named variant.
+    ///
+    /// The name is lowercase, because a header name is case-insensitive and a
+    /// JavaScript `Headers` object always gives lowercase names. Two spellings
+    /// of one name must compare equal.
     pub fn custom<S: Into<String>>(value: S) -> Self {
-        Self::Custom(value.into())
+        Self::Custom(value.into().to_ascii_lowercase())
     }
 }
 
@@ -940,7 +945,8 @@ impl From<String> for SimpleHeader {
             "CONNECT-TIMEOUT-MS" => Self::CONNECT_TIMEOUT_MS,
             "CONNECT-CONTENT-ENCODING" => Self::CONNECT_CONTENT_ENCODING,
             "CONNECT-ACCEPT-ENCODING" => Self::CONNECT_ACCEPT_ENCODING,
-            _ => Self::Custom(value),
+            // A header name is case-insensitive; keep one canonical spelling.
+            _ => Self::Custom(value.to_ascii_lowercase()),
         }
     }
 }

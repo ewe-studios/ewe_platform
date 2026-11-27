@@ -10,8 +10,9 @@
 //! paths).
 //!
 //! HOW: both need `protoc` (`PROTOC` env var, else `protoc` on PATH). The
-//! `.proto` file stays in `backends/foundation_proxy/proto`; this crate reads
-//! the same file, so there is no second copy to keep in sync.
+//! canonical file is `backends/foundation_proxy/proto`. A package tarball
+//! carries only its own files, so this crate keeps a copy under `proto/` and
+//! `tests/proto_copy_tests.rs` fails when the two differ (issue #877).
 
 use prost::Message;
 use prost_types::FileDescriptorSet;
@@ -20,7 +21,7 @@ const PROTO: &str = "ewe/proxy/registration/v1/registration.proto";
 
 fn main() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
-    let root = format!("{manifest}/../foundation_proxy/proto");
+    let root = format!("{manifest}/proto");
     let file = format!("{root}/{PROTO}");
 
     buffa_build::Config::new()

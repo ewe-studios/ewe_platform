@@ -663,8 +663,9 @@ plus:
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox -p foundation_netio --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_netio --profile uat unix_socket_preamble
-cargo test -p foundation_sandbox --features testing --profile uat firecracker_sim native_host
-cargo build -p agent_slave --profile agent --target x86_64-unknown-linux-musl   # the program of feature 06
+cargo test -p foundation_sandbox --features testing --profile uat firecracker_sim
+cargo test -p foundation_sandbox --features testing --profile uat native_host
+cargo build -p foundation_sandbox --bin agent-slave --profile agent --target x86_64-unknown-linux-musl   # the program of feature 06
 EWE_SANDBOX_SLAVE=<slave path> EWE_FIRECRACKER=<firecracker path> \
   cargo test -p foundation_sandbox --features testing --profile uat e2e_firecracker -- --nocapture
 ```

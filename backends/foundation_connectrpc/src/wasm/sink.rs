@@ -52,6 +52,12 @@ fn frame_capacity() -> usize {
 struct SinkState {
     response: Option<SendWrapper<web_sys::Response>>,
     sender: Option<futures::channel::mpsc::Sender<Vec<u8>>>,
+    /// The caller waits for the response head while the handler keeps
+    /// producing frames. `start` wakes this waker once the head is ready.
+    response_waker: Option<std::task::Waker>,
+    /// Whether dispatch has ended. A waiter stops with `None` only after this
+    /// flag is set and no head was written.
+    finished: bool,
 }
 
 /// A [`ResponseSink`] that streams its reply to a JS `Response`.
@@ -89,6 +95,8 @@ impl ConnectSink {
             inner: Arc::new(Mutex::new(SinkState {
                 response: None,
                 sender: None,
+                response_waker: None,
+                finished: false,
             })),
             capacity: capacity.max(1),
         }
@@ -127,7 +135,22 @@ impl ConnectSink {
             .map_err(|_| io::Error::other("response sink lock poisoned"))?;
         state.response = Some(SendWrapper::new(response));
         state.sender = Some(sender);
+        if let Some(waker) = state.response_waker.take() {
+            waker.wake();
+        }
         Ok(())
+    }
+
+    /// A handle to the response this sink builds.
+    ///
+    /// The handle stays valid while the sink produces frames. A caller that
+    /// must return the response before the handler ends (a Worker or a page)
+    /// awaits [`ConnectSinkHandle::wait_response`].
+    #[must_use]
+    pub fn handle(&self) -> ConnectSinkHandle {
+        ConnectSinkHandle {
+            inner: Arc::clone(&self.inner),
+        }
     }
 
     /// The frame sender, cloned out of the lock so it can be used across an
@@ -193,16 +216,76 @@ impl Default for ConnectSink {
     }
 }
 
+/// The bytes of a whole response body.
+///
+/// A whole response is complete by definition, so it is read into memory once
+/// and carried in a buffered `web_sys::Response`. A unary reply is bounded by
+/// the host's `max_unary_reply_bytes`; a stream uses `open`/`chunk` instead.
+async fn whole_body_bytes(body: SendSafeBody) -> io::Result<Vec<u8>> {
+    use foundation_core::valtron::Stream;
+    let mut iter = SendSafeBodyBytesIterator::new(body);
+    let mut out = Vec::new();
+    loop {
+        match iter.next() {
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
+                out.extend_from_slice(&bytes);
+            }
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(error))) => {
+                return Err(io::Error::other(format!(
+                    "response body read failed: {error}"
+                )));
+            }
+            Some(Stream::Wait) => {
+                return Err(io::Error::other(
+                    "a whole response body must be ready; it streamed instead",
+                ));
+            }
+            Some(_) => {}
+            None => return Ok(out),
+        }
+    }
+}
+
+/// Build a buffered `web_sys::Response`.
+fn buffered_response(
+    status: u16,
+    headers: &SimpleHeaders,
+    body: Vec<u8>,
+) -> io::Result<web_sys::Response> {
+    let init = web_sys::ResponseInit::new();
+    init.set_status(status);
+    let web_headers = web_sys::Headers::new()
+        .map_err(|error| io::Error::other(format!("failed to create headers: {error:?}")))?;
+    for (name, values) in headers {
+        for value in values {
+            let _ = web_headers.append(&name.to_string(), value);
+        }
+    }
+    init.set_headers(&web_headers);
+    let mut body = body;
+    web_sys::Response::new_with_opt_u8_array_and_init(Some(&mut body), &init)
+        .map_err(|error| io::Error::other(format!("failed to build a response: {error:?}")))
+}
+
 impl ResponseSink for ConnectSink {
     fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
         Box::pin(async move {
             let status: usize = response.status.clone().into();
-            let body = response.body;
-            self.start(status, &response.headers)?;
-            if let Some(body) = body {
-                self.send_body(body).await?;
+            let status = u16::try_from(status).unwrap_or(500);
+            let body = match response.body {
+                Some(body) => whole_body_bytes(body).await?,
+                None => Vec::new(),
+            };
+            let web = buffered_response(status, &response.headers, body)?;
+            // Store the complete response last, so a waiter never sees a
+            // response whose body is still being written.
+            if let Ok(mut state) = self.inner.lock() {
+                state.response = Some(SendWrapper::new(web));
+                state.sender = None;
+                if let Some(waker) = state.response_waker.take() {
+                    waker.wake();
+                }
             }
-            self.close();
             Ok(())
         })
     }
@@ -240,6 +323,42 @@ impl ConnectSinkHandle {
             .ok()
             .and_then(|mut state| state.response.take())
             .map(SendWrapper::into_inner)
+    }
+
+    /// Wait for the response head and take it.
+    ///
+    /// The head is ready when the handler writes it. The handler then keeps
+    /// sending frames into the response body, so the caller can hand the
+    /// response to the runtime at once and the body keeps streaming. Returns
+    /// `None` when the sink is dropped before a head is written.
+    pub async fn wait_response(self) -> Option<web_sys::Response> {
+        std::future::poll_fn(|cx| {
+            let Ok(mut state) = self.inner.lock() else {
+                return std::task::Poll::Ready(None);
+            };
+            if let Some(response) = state.response.take() {
+                return std::task::Poll::Ready(Some(SendWrapper::into_inner(response)));
+            }
+            if state.finished {
+                // The handler ended before it opened a stream, and it wrote
+                // no whole response either.
+                return std::task::Poll::Ready(None);
+            }
+            state.response_waker = Some(cx.waker().clone());
+            std::task::Poll::Pending
+        })
+        .await
+    }
+}
+
+impl Drop for ConnectSink {
+    fn drop(&mut self) {
+        if let Ok(mut state) = self.inner.lock() {
+            state.finished = true;
+            if let Some(waker) = state.response_waker.take() {
+                waker.wake();
+            }
+        }
     }
 }
 

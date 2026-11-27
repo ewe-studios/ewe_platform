@@ -19,7 +19,7 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.10", optional 
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", optional = true, default-features = false, features = ["std"] }
 foundation_db = { path = "../foundation_db", version = "0.0.11", optional = true, default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", optional = true }
 foundation_vfs = { workspace = true, optional = true }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
 
@@ -98,7 +98,7 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23" }
 
 # Native-only storage backends — excluded on wasm32 because the local engine
 # (turso_core) does not compile without a host filesystem.
@@ -367,6 +367,10 @@ required-features = ["vfs-sqlite"]
 [features]
 # Default: full platform-native stack.
 default = ["native", "signal"]
+
+# Multi-threaded executor: a default build keeps it; a deterministic simulation
+# build leaves it off.
+multi = ["foundation_core/multi"]
 
 # I/O readiness layer — extracted from mio
 poll = []

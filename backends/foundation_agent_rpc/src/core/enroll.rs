@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use foundation_auth::fingerprint::sha256;
+use foundation_auth::fingerprint::public_fingerprint;
 use foundation_auth::secret::{
     ClientPublicKey, SecretError, SecretIssuer, SecretRequest, SecretVerifier, VerifiedSecret,
 };
@@ -252,7 +252,7 @@ impl EnrollmentService {
         };
         self.spend_and_record(verified, record, &cert.cert_pem)
             .await?;
-        let proof_key = sha256(csr.as_bytes());
+        let proof_key = public_fingerprint(csr.as_bytes());
         let proof = self.server_proof(verified, nonce, &proof_key, client_id)?;
         Ok(EnrollResponse {
             client_cert_pem: cert.cert_pem,
@@ -282,6 +282,28 @@ impl EnrollmentService {
             .await
             .map_err(|e| trust_error(&e))?;
         Ok(())
+    }
+
+    /// The trusted-client store (list, revoke).
+    #[must_use]
+    pub fn trusted_clients(&self) -> &Arc<TrustedClients> {
+        &self.trust
+    }
+
+    /// Issue one enrollment secret, valid for `validity`.
+    /// The secret names this host's audience, so only this host accepts it.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Config`] when the issuer cannot make the secret.
+    pub fn issue_enroll_secret(
+        &self,
+        validity: foundation_compact::Duration,
+    ) -> AgentRpcResult<foundation_auth::secret::SignedSecret> {
+        let mut request = SecretRequest::enroll(validity);
+        request.audience = self.verifier.audience().map(str::to_string);
+        self.signer
+            .issue(&request)
+            .map_err(|error| secret_error(&error))
     }
 
     /// A new access secret for an enrolled client-key client.

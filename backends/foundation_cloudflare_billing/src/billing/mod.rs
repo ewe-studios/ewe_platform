@@ -541,14 +541,18 @@ pub type PayPerCrawlPublisherCreateStripeConfigArgs = super::shared::AccountIdAr
 pub type PayPerCrawlPublisherDeleteStripeConfigArgs = super::shared::AccountIdArgs;
 
 /// Arguments for [`pay-per-crawl.setZonesCanBeEnabled_request`].
-///
-/// Same shape as `super::shared::AccountIdArgs`.
-pub type PayPerCrawlSetZonesCanBeEnabledArgs = super::shared::AccountIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PayPerCrawlSetZonesCanBeEnabledArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Request body.
+    pub body: PayPerCrawlZonesCanBeEnabledPayload,
+}
 
 /// Arguments for [`pay-per-crawl.queryZonesCanBeEnabled_request`].
 ///
-/// Same shape as `super::shared::AccountIdArgs`.
-pub type PayPerCrawlQueryZonesCanBeEnabledArgs = super::shared::AccountIdArgs;
+/// Same shape as `PayPerCrawlSetZonesCanBeEnabledArgs`.
+pub type PayPerCrawlQueryZonesCanBeEnabledArgs = PayPerCrawlSetZonesCanBeEnabledArgs;
 
 /// Arguments for [`account-subscriptions-list-subscriptions_request`].
 ///
@@ -1196,6 +1200,10 @@ where
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -1241,6 +1249,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

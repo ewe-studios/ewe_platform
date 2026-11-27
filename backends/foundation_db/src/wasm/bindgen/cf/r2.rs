@@ -45,7 +45,39 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = list)]
     pub fn list(this: &R2Bucket, opts: &JsValue) -> js_sys::Promise;
+
+    /// Start a multipart upload (issue #940).
+    #[wasm_bindgen(method, js_name = createMultipartUpload)]
+    pub fn create_multipart_upload(this: &R2Bucket, key: &str) -> js_sys::Promise;
 }
+
+/// An R2 multipart upload in progress.
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(extends = Object)]
+    #[derive(Clone, Debug)]
+    pub type R2MultipartUpload;
+
+    /// Upload one part. `part_number` starts at 1.
+    #[wasm_bindgen(method, js_name = uploadPart)]
+    pub fn upload_part(
+        this: &R2MultipartUpload,
+        part_number: u16,
+        value: &JsValue,
+    ) -> js_sys::Promise;
+
+    /// Finish the upload with the parts that `uploadPart` returned.
+    #[wasm_bindgen(method, js_name = complete)]
+    pub fn complete(this: &R2MultipartUpload, uploaded_parts: &JsValue) -> js_sys::Promise;
+
+    /// Abandon the upload.
+    #[wasm_bindgen(method, js_name = abort)]
+    pub fn abort(this: &R2MultipartUpload) -> js_sys::Promise;
+}
+
+/// # Safety: `Send` and `Sync` on wasm32.
+unsafe impl Send for R2MultipartUpload {}
+unsafe impl Sync for R2MultipartUpload {}
 
 impl R2Bucket {
     /// Extract an R2Bucket from the CF env object.

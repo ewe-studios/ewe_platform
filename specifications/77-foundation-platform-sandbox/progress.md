@@ -43,7 +43,8 @@ ASD-STE100.
   products. Feature 16 (the driver for Docker Sandboxes, through the `sbx` program) and
   feature 17 (support for the Cloudflare Sandbox product: product images and a plain HTTP
   way in) were added. Requirements section 2.3 was rewritten. Decisions D10 to D13 record
-  the answers; questions Q1 and Q3 are closed. `agent-slave` stays in `bin/agent_slave`.
+  the answers; questions Q1 and Q3 are closed. `agent-slave` stays in `bin/agent_slave`
+  (superseded on 2026-11-25: decision D11 puts it in `foundation_sandbox/src/bin/`).
 
 - 2026-11-12: the owner made feature 16 (Docker Sandboxes product) a draft that is not a
   must have, because the product is not ready (decision D14). It is out of the lane order.
@@ -155,29 +156,475 @@ Two corrections from the owner changed the design.
 3. **A Cloudflare slave may be another Durable Object (DO).** That DO answers
    `SlaveService` with agent turns against OpenRouter or the Cloudflare Model API. The
    driver id is `cloudflare-do`. It gives no operating-system isolation. Decision D16,
-   feature 07 section 6.10, and feature 08's Worker hosts both DO classes.
+   feature 07 section 6.10, and feature 08's Worker hosts the class `ModelSlaveDo` beside
+   `SandboxDo` and `SandboxIndexDo`.
+
+## Feature 01: the slave core (2026-11-25)
+
+Feature 01 is on the branch `spec77/f01-slave-core`, stacked on the crate rename
+(`spec77/rename-foundation-sandbox`, pull request #824).
+
+The crate gains `src/native/slave/` behind `#[cfg(all(target_os = "linux", feature =
+"slave"))]`: `mod.rs` (`Slave`, `SlaveArgs`, `run`), `serve.rs` (UDS, TCP and vsock
+acceptors, the HTTP/1.1 Connect server), `state.rs`, `pid1.rs`, `root.rs`, `exec.rs`,
+`reaper.rs`, `files.rs` and `sys.rs`. `shared/host.rs` gains `SlaveHost`, `GuestMounts`
+and `GuestPower`.
+
+The `slave` feature links no C TLS library. The dependency change is in
+`learnings.md` section 12.1: `foundation_http`, `foundation_connectrpc`, `foundation_iogate`,
+`foundation_auth` and `foundation_db` gain a TLS-free feature set, and their default sets
+keep today's behaviour. `foundation_netio` now compiles without a TLS provider, and
+`Connection::from_stream_fd` wraps an accepted vsock descriptor.
+
+The tests are `tests/slave/` in the crate's single test binary: the scenarios and the
+property tests of feature section 7. They need Linux; `ci/packages.toml` runs them there
+with `runs = ["", "slave"]` and keeps the contract tests on macOS and Windows.
+
+Checks on the macOS host: see the pull request. The Linux test run is the pull request's
+CI job.
+
+## Feature 02: the control-plane core (2026-11-25)
+
+Feature 02 is on the branch `spec77/f02-control-plane-core`, stacked on feature 01
+(`spec77/f01-slave-core`, pull request #848) and, through it, on the crate rename
+(`spec77/rename-foundation-sandbox`, pull request #824).
+
+`src/shared/control/` is now a directory. `mod.rs` keeps the feature-00 interface and
+adds one method, `SandboxHandle::run`, which captures the output of a command. The
+`control` feature adds:
+
+- `manager.rs`: `SandboxManager`, `ManagerConfig`, the registry, the driver choice,
+  `restore` and `containers`.
+- `create.rs`: the `#[task]` create state machine, the one deadline and the fault
+  table of section 6.4.
+- `record.rs`: `SandboxRecord`, the state machine, `RecordStore` and
+  `MemoryRecordStore`.
+- `slave_client.rs`: `SlaveClient`, the typed client of `SlaveService`.
+- `handle.rs`: `exec_session`, `run_capture`, `write_file_stream`, `read_file_stream`,
+  `LocalSandboxOps`, `RemoteSandboxOps` and the scoped `ExecFileCalls` client.
+- `stop.rs`: the stop and kill stories and the watcher.
+- `service.rs`: `ControlService`, `SandboxRpcClient` and `authorize`.
+- `testing.rs` (feature `testing`): `SimDriver`, `ScriptedSlave`, `in_memory_connector`,
+  `in_memory_control_transport` and the counting and failing stores.
+
+The tests are `tests/control/` in the crate's single test binary. They run the real
+slave client, codec and router in the same process with no socket. They need the
+`testing` feature; the default `cargo test` builds them but runs none, so CI runs
+`cargo test -p foundation_sandbox --features testing control_`. The wasm32 check
+passes with the default features and with no default features.
+
+Checks on the macOS host pass: `cargo check` for native, with `slave`, and for
+wasm32 with and without the default features; `cargo test` (25 contract tests);
+`cargo test --features testing control_` (62 control tests); `cargo fmt --check`;
+and `cargo clippy --no-deps --all-targets` with `-D warnings`, with and without
+`testing`. `ci/packages.toml` adds `testing` to the Linux, macOS and Windows runs.
+
+The real slave process tests of feature section 7 (`control_slave_process_*`) are not
+in this change: they need Linux with the `slave` feature, and this host is macOS. They
+stay for the Linux CI job that feature 06 adds.
+
+The review added two tests: `state_machine_model` (a small proptest of the state table
+with `Exec`, `Stop`, `Kill`, substrate exit and lookup steps) and
+`store_error_after_ready_is_logged` (a store that fails after `Ready`; the stop result
+does not change and the manager stays usable).
+
+Issue [#852](https://github.com/ewe-studios/ewe_platform/issues/852) (severity: high)
+recorded the dropped-create defect: dropping the create receiver did not drop the pool
+task, so the create guard of section 6.4 did not run at the drop. It is fixed in this
+branch by a receiver-owned `CreateGuard`. Dropping the create stream or the create
+future cancels the task, kills and cleans up any launched substrate, and removes the
+record. `drop_create_receiver_cancels` and `drop_create_future_cancels` prove it: both
+fail on `befb4397d` and pass after the fix.
+
+## Feature 01 Linux CI fixes (2026-11-26)
+
+The first Linux run of the slave tests (job of run 45541929114, commit `3c3eb07fa`) failed
+in three groups. The branch now carries:
+
+- #850 (`21c254bfe`), which rebuilds the wire details of a server error on the client.
+  Every typed-error check passes without a slave change.
+
+- The slave process of the tests is `tests/support/slave_main.rs`, a `[[bin]]` target
+  (`test = false`, `required-features = ["slave"]`). Its `main` blocks `SIGCHLD` before
+  any thread starts. A libtest test cannot be the slave: the harness runs it on a spawned
+  thread and leaves the process main thread's mask clear, so `SIGCHLD` went there and the
+  `signalfd` missed every child.
+
+- A descriptor's readiness is cleared in the caller, before the I/O attempt, not before
+  the wait. The shared selector is edge-triggered, so the old order erased the edge that
+  the wake carried; a pending `SIGCHLD` or end of file then never woke the task. The
+  output pump drains its pipe to `WouldBlock` before it parks.
+
+- The exit watch no longer wakes on a finished output stream while the exit status is
+  absent; that condition made it spin on one worker.
+
+- A finished `exec_id` is remembered before the session leaves the table, so a signal
+  that arrives just after `Exit` is accepted. `signal_bad_number` drops its stream
+  instead of draining a one-minute program.
+
+Residual pass on 2026-11-26:
+
+- `stream_drop_kills` passes now. The HTTP/1.1 transport in `foundation_connectrpc`
+  ends the exchange when the caller drops the response body (`StopOnDrop` sets a
+  `ResumeSignal`, `StopDrive` ends the drive task and adds the signal to every wait).
+  The exchange drops, the connection closes, the server sees the hangup, and the
+  handler stream drops with the `Drop` that sends `SIGKILL`. Fail-then-pass: 1.67 s
+  FAILED without the change, 0.42 s ok with it, Linux container. The crate goes from
+  0.0.18 to 0.0.19 and every pin follows.
+
+- Issue #866 (severity: medium) records the intermittent lost wake
+  (`exec_output_property`, `input_model`). The branch does not close it.
+
+- The full Linux run with `--test-threads=1` hangs at the first slave test,
+  `slave::exec::drain_timeout`. The hang is pre-existing: it reproduces on
+  `8ee13b8db` without this change, and the test passes alone in 0.87 s. Issue
+  #867 (severity: medium) records it. The slave module alone (`-- slave::`) runs
+  to the end: 35 pass; the ten `slave::files` cases fail for the missing
+  `openat2` of this host, and `slave::input::input_model` hit #866 once.
+
+- `slave::lifecycle::no_blocking_calls` failed: the source scan matched
+  `Files::read`, a domain method, not a blocking descriptor read. The method is
+  now `Files::read_file`. Issue #868 (severity: high) records it, and this change
+  closes it.
+
+- The real Linux job (run 45676172618) failed on two input tests:
+  - `input_model` compared a repeat before the first chunk with an idempotent
+    repeat. The slave applies `seq 0` there, as `Sequence::accept` says. The model
+    now follows it, the case has its own test, and the seed is committed in
+    `tests/slave/input.proptest-regressions`.
+  - `input_queue_full_then_retry` depended on a one-second sleep in the child.
+    `SlaveLimits::input_pipe_bytes` (default 64 KiB) now bounds the input pipe
+    with `F_SETPIPE_SZ`, and the test stops the reader, fills the bounded storage
+    by one chunk, and retries on a `Stdout` event, with no sleep.
+
+  In the Linux container: the seven input tests pass; the queue test passes five
+  times in a row (0.78 to 0.84 s each), and `input_model` passes three times.
+
+Open: the lost wake of #866 stays intermittent; it is a wake race in the shared
+HTTP/1.1 streaming path (`learnings.md` section 13.5). The two named stalls and every
+typed-error check pass.
+## Feature 03: the guest artifacts (2026-11-25)
+
+Feature 03 is on the branch `spec77/f03-guest-artifacts`, stacked on feature 02
+(`spec77/f02-control-plane-core`, pull request #851) and, through it, on feature 01
+(`spec77/f01-slave-core`, pull request #848) and the crate rename (pull request #824).
+
+`src/native/artifacts/` holds the store:
+
+- `mod.rs`: `ArtifactStore`, `ArtifactSpec`, `ArtifactKind`, `ArtifactProgress`,
+  `ArtifactUpdate`, `ArtifactStream` and the `Job` that both `ensure` and
+  `ensure_with_progress` drive. The cache is `<cache_dir>/<kind>/<hash prefix 16>/` with a
+  `.ready` marker, a `<entry>.tmp-<random>` build and a rename as the commit.
+- `manifest.rs`: the pinned Alpine 3.22.8, Firecracker CI `v1.15` kernel 6.1.155 and
+  Ubuntu 24.04 squashfs entries for both architectures.
+- `fetch.rs`: the streamed download with a SHA-256 check, the status check first, the
+  bounded error body, the download limit and the idle deadline from `ctx`.
+- `tarball.rs`: the streamed unpack with the `..`/absolute check, the symbolic-link
+  defence, the mode copy, the device skip and the byte and entry limits.
+- `cpio.rs`: the deterministic `newc` writer.
+
+`src/native/host.rs` adds `NativeFs`, the real `HostFs`. `HostFs` gains `rename` and
+`create_file`. `HostConfig` gains `artifact_limits` (`ArtifactLimits`), and the `artifacts`
+feature is in the default set. The native `foundation_netio` dependency keeps its base
+features and takes TLS through `foundation_netio?/ssl`, so the musl slave build stays free
+of a C TLS library.
+
+The tests are `tests/artifacts/` in the crate's single test binary, with the fixtures under
+`tests/fixtures/artifacts/`. They cover every row of feature section 7:
+`cpio_golden` (checked one time with `cpio -tv`), `cpio_read_by_gnu_cpio`,
+`cpio_is_deterministic`, `fetch_checks_hash`, `fetch_stops_at_limit`,
+`fetch_reads_bounded_error`, `fetch_streams` (64 MiB with a recording writer),
+`store_is_atomic`, `store_reuses_entry`, `store_concurrent_ensure`, `tar_rejects_escape`,
+`tar_stops_at_limits`, `alpine_dir_real` and `ci_rootfs_real`. Two tests start every test
+binary from one pool (`tests/pool/mod.rs`); the two support modules had started it twice
+and the second start blocked.
+
+The download uses the streamed exchange of `foundation_netio`. Two client defects appeared
+during the work: `send_async` ended a large HTTPS body early (issue #861, the store does not
+use it), and the exchange task pooled a `Connection: close` socket (issue #860, fixed in
+this change). `learnings.md` section 14 has the details.
+
+The real x86_64 Alpine 3.22.8 archive, with its pinned hash, unpacked through the store on
+macOS: `bin/busybox` is a `0755` file and `usr/bin/yes` links to `/bin/busybox`. The two
+real-download tests skipped on this host because the content delivery networks measured 13 to
+17 KiB/s on 2026-11-25; `learnings.md` section 14.9 records the bounded probe. The Linux run
+and a full-link run of the network tests are the pull request's CI job.
+
+## Feature 04: the Firecracker API client (2026-11-26)
+
+Feature 04 is on the branch `spec77/f04-firecracker-api-client`, stacked on feature 03
+(`spec77/f03-guest-artifacts`, pull request #863) and, through it, on features 02 and 01
+and the crate rename.
+
+- `backends/foundation_sandbox/specs/firecracker-v1.19.yaml`: the vendored Firecracker
+  Swagger 2.0 file, commit `778a26c`, API version `1.19.0-dev`, with `specs/README.md`.
+- `artefacts/cloud_providers/firecracker/openapi.json`: the OpenAPI 3 form.
+- `scripts/openapi/swagger2openapi.py`: the shared Swagger 2.0 converter. The Docker script
+  is now a thin wrapper, so one implementation converts both specifications.
+- `backends/foundation_sandbox/build.rs`: the generator declaration and the staleness
+  check. On a stale tree it regenerates `src/native/firecracker/generated/`.
+- The generator gained three opt-in rules: inline string enums with renames, optional
+  fields that are absent when `None`, and error-response schemas. The rules are off by
+  default, so the other providers keep their committed output.
+- `src/native/firecracker/client.rs`: `FirecrackerClient` and `FirecrackerLimits` over a
+  Unix domain socket. Each call races the generated request with the injected timer at
+  `rpc_timeout`. A non-2xx answer becomes `SubstrateApi` with the vendor `fault_message`;
+  a silent server becomes the new `ApiTimeout` error.
+
+The tests are `tests/firecracker/` in the crate's single test binary. They use a mock HTTP
+server on a Unix socket. The time-out test uses `SimulatedClock`; no real sleep bounds a
+call. `generator_is_stable` is `scripts/sandbox/check-firecracker-gen.sh`: it hashes the
+generated tree, runs the build script again and compares the hash.
+
+Checks on the macOS host pass: `cargo check` for native, with `firecracker`, for wasm32,
+with no default features and with `--no-default-features --features libkrun`; `cargo test`
+(66 tests); `cargo test --features testing` (128 tests); `cargo fmt --check`; and clippy
+with `-D warnings` for `foundation_sandbox`, `foundation_openapi` and
+`foundation_codegentools`. The generator script passes.
+
+`types_match_real_firecracker` needs the `firecracker` program and `/dev/kvm`; this host has
+neither, so the test prints a skip message. The Linux CI job runs it. All other tests run on
+macOS and Linux. Windows compiles the generated module but not the client.
+
+The change also moves three crate versions: `foundation_openapi` 0.0.8 to 0.0.9,
+`foundation_codegentools` 0.1.7 to 0.1.8 and `foundation_sandbox` 0.0.5 to 0.0.6.
+
+Issue [#864](https://github.com/ewe-studios/ewe_platform/issues/864) (severity: low) records
+a finding: the committed Docker OpenAPI artefact is stale relative to its script and YAML.
+The shared-script move is behaviour-preserving; the stale value predates this change.
+
+## Feature 05: the Firecracker driver (2026-11-26)
+
+Feature 05 is on the branch `spec77/f05-firecracker-driver`, stacked on feature 04
+(`spec77/f04-firecracker-api-client`, pull request #865) and, through it, on #863, #848 and
+merged #824.
+
+- `src/native/firecracker/driver.rs`: `FirecrackerDriver`, `FcPlan`, the launch state
+  machine `FcLaunch`, `ConfigStep`, `FcHandle`, the boot argument builder, the host probe,
+  the stale run-directory sweep and the `FirecrackerApi` trait with its factory. The module
+  is behind the `firecracker` feature and `cfg(target_os = "linux")`.
+- `src/native/host.rs`: `NativeProcessSpawner` (one dedicated thread, `PR_SET_PDEATHSIG`,
+  empty environment, `/dev/null` input, log files), `NativeConnector` (Unix, TCP and the
+  Firecracker vsock with the `CONNECT <port>` preamble), `SandboxHost::native` and
+  `HostConfig::discover` with the documented source order.
+- `src/native/platform.rs`: `NativePlatform` and `dyn Platform::as_native`.
+- `foundation_netio`: `HttpClientBuilder::unix_socket_preamble`, the preamble step in the
+  Unix connect path, `HttpClientBuilder::unix_read_timeout`, and three tests.
+- `ci/sandbox.toml`: `min_firecracker_version = "1.15.0"`, the version of the CI artifact prefix; the build script reads it into
+  `FOUNDATION_SANDBOX_MIN_FIRECRACKER_VERSION`.
+- Tests: `tests/firecracker/driver.rs` (23 simulation tests), `tests/firecracker/e2e.rs`
+  (the real microVM tests, Linux with KVM) and `tests/native_host/` (7 tests on macOS and
+  Linux, 2 more Linux-only).
+
+Checks on the macOS host pass: `cargo check` (default, with `firecracker`, for
+wasm32-unknown-unknown and with no default features), `cargo test` (73 tests), `cargo test
+--features testing` (135 tests), `cargo fmt --check`, clippy with `-D warnings` for
+`foundation_sandbox` and `foundation_netio`, and the three `foundation_netio`
+`unix_socket_preamble` tests. The driver is Linux only, so the macOS test run does not
+compile it; during development it ran with a temporary `cfg(unix)` gate and its 23
+simulation tests passed. The Linux continuous integration (CI) image compiles the driver and
+its tests, clippy with `-D warnings` passes for all targets with the `testing` feature, and
+the 33 driver and native side-effect tests pass there, the two Linux-only process tests
+included.
+
+The real microVM tests need Linux with `/dev/kvm`, the `firecracker` program and the slave
+program. This host has no `/dev/kvm`, so those tests print a skip message. The CI job of
+feature 06 runs them and records the boot time and the oldest Firecracker version.
+
+The change moves two crate versions: `foundation_netio` 0.0.18 to 0.0.19 and
+`foundation_sandbox` 0.0.6 to 0.0.7, with every consumer.
+
+Issue [#872](https://github.com/ewe-studios/ewe_platform/issues/872) (severity: medium)
+records that the generic `SandboxSpec::validate` does not enforce
+`Capabilities::max_vcpus`; the Firecracker driver checks the value in its `Prepare` state.
+
+## The chain merges and the decision-16 correction (2026-11-26)
+
+Features 00 to 05 and the two fixes merged into `master`:
+
+- `5329c1c46` merge `fix/sync-target-tables`;
+- `9928e2aea` merge `spec77/f01-slave-core`;
+- `9a6f64274` merge `spec77/f03-guest-artifacts`;
+- `d1d79a0cf` merge `spec77/f04-firecracker-api-client`;
+- `6fc3b8c34` merge `spec77/f05-firecracker-driver`;
+- `7ba24e558` merge `fix/registrar-proto-reuse`.
+
+`scripts/ci/sync_release_tree.py` then set every path requirement to the tree version and
+regenerated 28 nested lock files (`5f1c6362e`).
+
+The full check of the merged tree is the `check.yaml` run with `packages=all`. A run
+cancelled by a newer push is not a failure (specifications rule 2). The run of the final
+commit is the record.
+
+The feature 07 and feature 08 documents now agree with decision D16. One part was not
+written down before: where each piece lives.
+
+| Piece | Owner |
+|---|---|
+| `DoSlaveConnector`, `ModelSlave`, `ModelClient`, `CloudflareDoDriver`, `SlaveEndpoint::CloudflareDo` | feature 07 library, `shared/cloudflare/` |
+| `ModelSlaveDo` (the `#[durable_object]` wrapper), `WorkerModelClient`, the `SLAVE` and `AI` bindings | feature 08 Worker |
+
+The other corrections:
+
+- `DoControlPlane::open` builds the manager with **two** drivers and one connector that
+  dispatches on the endpoint. Before, it named one driver and one `PortConnector`.
+- The `CloudflareAi` backend uses the `AI` binding and needs no key. Only `OpenRouter`
+  reads a key, from the `Ctx` environment entry that `ModelConfig.api_key_entry` names.
+- The model tests use a local fake model server. A model key is not in CI.
+
+Issue [#880](https://github.com/ewe-studios/ewe_platform/issues/880) (severity: low)
+records that `worker` has nine crate-local declarations, no `[workspace.dependencies]`
+entry, and a lock at 0.8.5 while the latest stable is 0.9.0.
+
+## Feature 06: the programs, the RPC server and the Provider (2026-11-27)
+
+Feature 06 is on the branch `spec77/f06-programs-rpc-provider`, from `master` at
+`35cd63630`, as pull request #881. Commits `4b9e2de92` and `22cff605a`.
+
+- `src/bin/agent_sandbox.rs` and `src/bin/agent_slave.rs`; the slave binary needs only
+  `slave,cli`.
+- `src/cli/`: `SandboxCli`, `SlaveCli`, `run(ctx, cli) -> i32`, `parse_listen`,
+  `parse_connect`, exit codes 64, 69, 125 and 1, signal handling, progress lines.
+- `src/native/serve.rs`: `SandboxService` on a Unix domain socket (mode 0600, stale-file
+  handling, path limit) and on TCP (constant-time bearer check, no start without a token).
+  `bind_control`, `serve_bound` and `serve_control_with` let a test read the port that the
+  kernel gives.
+- `src/native/connect.rs`: `ConnectAddr` and `SandboxRpcClient::connect` for `unix:`,
+  `tcp:` and `http(s)://`.
+- `src/providers/` behind the `provider` feature.
+- `foundation_deployment_platform`: `ProviderId::Firecracker` and the `sandbox` feature.
+- `sandbox-e2e.yaml` (Firecracker 1.15.0, KVM, mise slave build, `EWE_SANDBOX_E2E_REQUIRED=1`),
+  `ci/packages.toml` runs, the `agent` profile, the `sandbox:slave` task, `docs/sandbox.md`.
+- Versions: `foundation_sandbox` 0.0.8 and `foundation_deployment_platform` 0.1.9.
+
+The checks on the macOS host pass: 149 tests with `cli,provider,testing`, clippy with
+`-D warnings`, the wasm32 check, both musl checks, and `sync_release_tree.py --check`.
+
+The agent did not update this file, because the coordinator held uncommitted edits here and
+asked for explicit paths only. This section is that update.
+
+**Not done, and why:**
+
+| Item | Reason |
+|---|---|
+| `rpc_create_dropped_cleans_up`, `rpc_input_duplicate_and_gap` over a real Unix domain socket | The simulation half exists in feature 02. The real-socket half needs a Linux run. |
+| `token_never_logged` | No tracing-capture dev-dependency. A source scan is a cheaper proof. |
+| `cli_remote_flow`, `cli_run_*`, `provider_e2e_firecracker` | They need Linux with KVM. |
+| `agent_sandbox_cli.rs` as the test path | The tests live in `foundation_sandbox/tests/`, where the binary is built. |
+| The musl static-link `file` check | Only `cargo check` for both musl targets ran on macOS. `mise run sandbox:slave` runs it on Linux. |
+
+The source scan of invariant I12 treats `src/cli/` as a boundary, because
+`cli::sandbox::run` is the body of the `agent-sandbox` main function. The test documents
+this.
+
+## The Durable Streams study and feature 18 (2026-11-27)
+
+`research.md` records how `durable-streams-cloudflare` keeps its Cloudflare bill low. Two
+findings shape our design:
+
+1. A DO has one alarm. The project sets it to an absolute time for the expiry of a session.
+   Our idle deadline uses the only alarm, so a second deadline must share it.
+2. Every dollar figure in that project is an arithmetic model. The hit rates are measured;
+   the totals are not. The techniques are tested; the saving is an estimate.
+
+Feature 18 adopts two techniques: a lifetime limit that shares the alarm, and a
+`stream_max_duration` bound on an open `Exec` stream. Hibernation behind a WebSocket is not
+adopted, because `SandboxService` is RPC over HTTP. The edge cache of `Probe` and `List`, the
+Analytics Engine view and in-isolate coalescing wait for a later feature.
+
+## Feature 08: the Worker and the deployment (2026-11-27)
+
+Feature 08 is on branch `spec77/f08-cloudflare-worker`, from feature 07, with feature 06
+merged in. Commit `02fb725e4` is the first complete state.
+
+- Routing: `shared/cloudflare/routing.rs` with the property test.
+- Deployment: `foundation_deployment_cloudflare/src/deploy/{mod,plan,host,foundation,wrangler}.rs`,
+  both adapters, and `tests/deploy_plan.rs` (8 tests).
+- Provider: `ProviderId::CloudflareContainer` and `SandboxDeploymentProvider::cloudflare`.
+- Worker: `infrastructure/sandbox_worker/` with the entry, three DO classes, the model client,
+  `wrangler.toml`, the image, the README and `test/run.sh`. `worker-build --release` succeeds.
+- End to end: `tests/e2e_cloudflare/` (they print the reason and return without a URL).
+- CI: the `sandbox-cloudflare` job in `sandbox-e2e.yaml`.
+
+Local checks: 69 sandbox tests, 12 deployment tests, 4 provider tests, clippy clean, the wasm
+check clean.
+
+The review and two fix rounds closed thirteen issues: #910 (the multipart upload body),
+#911 (the container-application operations), #912 (the container route), #914 to #921, #933
+(the parallel test hang) and #934 (the route and deployment request shapes). The change is
+pull request #936.
+
+#913 is fixed here: the specification named the `ewe_deployables::cloudflare` module that
+spec 70 feature 22 removed. #935 records that a promoted Worker URL needs the account
+subdomain.
+
+## Feature 06: the end-to-end job timeout (2026-11-27)
+
+The `sandbox-e2e` job of pull request #881 ran its full 60 minutes and was cancelled. The
+job now allows 90 minutes and caches the musl slave build under a key that names the
+operating system and the `agent` profile (`611e7a77c`). No test changed. A cancelled run is
+not a failure (specifications rule 2).
+
+## One combined pull request (2026-11-27)
+
+The owner asked for one pull request instead of twelve. Branch `integration/spec77-spec83`
+merges features 06, 07, 08, 09, 10, 11, 12, 13, 17 and 18 (and the spec 83 branches below)
+into `master`. It is pull request #1009. The twelve earlier pull requests are closed with a
+pointer to it.
+
+The integration resolved the conflicts between the feature branches: one `ProviderId` and one
+`DriverId` union, one `Cargo.toml` per crate with every feature, one `ci/packages.toml` with
+every run, and the later `extract_path` that accepts a full URL. It also found and fixed a
+test that expected the old 404 and a nested-driver timer that used the native module.
+
+Checks on the branch: 302 sandbox tests, the agent-rpc suites (including 17 Cloudflare tests
+and the 4 simulation tests), the deployment and keystore suites, the wasm checks, and the
+lockfile checks. The CI matrix is the proof for the real Firecracker, Docker, Cloudflare and
+image-import paths.
+
+## Merged (2026-11-27)
+
+The owner merged the combined pull request #1009 into `master` as `348620340`, and the
+dependency pull request #1040 as `811d4682b`. Spec 77 features 00 to 15 and spec 83 features
+00 to 08 are on master. Feature 16 stays a draft.
+
+The full `check.yaml` run with `packages=all` on `348620340` is the proof for the real
+Firecracker, Docker, Cloudflare and image-import paths; its failures, if any, are routed by
+component.
+
+## Feature 16 is rejected (2026-11-27)
+
+The owner rejected the Docker Sandboxes product driver (`sbx`) and closed it out: the
+feature file says `status: rejected`, the requirements table and the graph drop it, and
+decision D18 records the reason. The Docker Sandboxes product stays unsupported.
 
 ## In progress
 
-**Feature 00 (contract)** is complete (2026-11-24), on the branch `spec77/f00-contract`.
-The crate `backends/foundation_sandbox` holds the domain types, the typed error,
-the limits as configuration, the two RPC service definitions and the traits. It is in
-`ci/packages.toml`.
+Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for
+issues #885 to #891 (the streaming handler, the port deadline, the CI feature gate, the
+container service calls, the error cap and the exec id). Both wait on continuous
+integration (CI).
 
-The checks pass: `cargo check` for native and wasm32, `cargo test` (25 tests),
-`cargo fmt --check`, and clippy with `-D warnings`. The no-default-features build passes
-for native and wasm32. The musl check was not run because the target is not installed on
-this host.
+Features 00 to 05 are on `master` and their tests pass in CI.
 
 ## Next
 
-1. Features 01, 02, 03 and 04 in parallel (one agent each).
-2. Feature 05, then feature 06: MVP-A (Firecracker).
-3. Feature 07 in parallel with 05 and 06 (it needs only 01 and 02); then feature 08:
-   MVP-B (Cloudflare).
-4. Phase 2: features 09 (libkrun), 10 (Docker), 11 (nested), 17 (Cloudflare Sandbox
-   product). Feature 17 needs 08.
-5. Phase 3: features 12 to 15 (images).
+1. Feature 07 (the Cloudflare control plane, library): pull request #901, in review.
+2. Feature 08 (the Worker, the deployment and the end-to-end path): MVP-B, pull request
+   #936.
+3. Feature 09 (the libkrun driver): pull request #925, in review.
+4. Feature 18 (the lifetime deadline and the stream bound): pull request #964.
+5. Spec 83 feature 04: pull request #909, in review.
+6. Feature 10 (the Docker driver): pull request #946, in review. The real engine subset passes.
+7. Feature 17 (the Cloudflare Sandbox product): pull request #962.
+8. Feature 11 (nested sandboxes): on branch `spec77/f11-nested-sandboxes`, from feature 10.
+9. Feature 12 (sandbox images): pull request #982.
+10. Feature 13 (container image source): on branch `spec77/f13-container-image-source`, from
+    feature 12, with feature 10 merged.
+11. Feature 14 (the Sandboxfile builder): branch `spec77/f14-sandboxfile-builder`, merged
+    into pull request #1009.
+12. Feature 15 (registry pull): branch `spec77/f15-registry-pull`, merged into pull request
+    #1009. No spec 77 feature branch remains.
 
 ## Milestones
 
@@ -185,7 +632,7 @@ this host.
 |---|---|---|---|
 | MVP-A: a command runs in a Firecracker microVM through `agent-sandbox`, the library, RPC and a `Provider` | 00 to 06 | 4 (00, then one of 01 to 04, then 05, then 06) | not started |
 | MVP-B: the same calls work against a Cloudflare Worker | 07, 08 | 2 more (07 can start after 01 and 02; 08 also needs 06) | not started |
-| Phase 2: libkrun, Docker, nested sandboxes, Cloudflare Sandbox product | 09, 10, 11, 17 | 1 to 2 more each | not started |
+| Phase 2: libkrun, Docker, nested sandboxes, Cloudflare Sandbox product, lifetime and stream cost | 09, 10, 11, 17, 18 | 1 to 2 more each | not started |
 | Draft, not scheduled: Docker Sandboxes product | 16 | 1 more after 10 | draft |
 | Phase 3: sandbox images | 12, 13, 14, 15 | 4 more | not started |
 
@@ -227,10 +674,11 @@ scenario sections with letters (A to D) between "1. Goal" and their numbered tec
 sections; the other features use the nine numbered sections of the skill. The content is
 the same. A renumber is a mechanical edit for a later pass.
 
-Requirements section 10.2: Q2 (`foundation_platform_docker` or the existing
-`foundation_deployment_docker`) remains. Q1 and Q3 are closed (decisions D10 and D11). Q5 is
-closed: the 2026-11-14 pass added the `start.md` files. Q4 is closed by decisions D15 and D17: a signed
-secret or Cloudflare's own mTLS, through the `Secret` of spec 86 and the `CfMtlsAuth` of spec 87.
+Requirements section 10.2: every question is closed. Q2 is decided: the Docker client stays
+`foundation_deployment_docker`, and a rename is a separate change. Q1 and Q3 are closed
+(decisions D10 and D11). Q5 is closed: the 2026-11-14 pass added the `start.md` files. Q4 is
+closed by decisions D15 and D17: a signed secret or Cloudflare's own mTLS, through the
+`Secret` of spec 86 and the `CfMtlsAuth` of spec 87.
 
 - 2026-11-15 (sixth note): "the core idea is `DynNetClient` is the platform agnostic way",
   and "and connectrpc already builds on it". So `RuntimeFetch` leaves this specification

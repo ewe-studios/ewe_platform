@@ -1,6 +1,6 @@
 ---
 feature: "Docker Sandboxes product driver"
-status: "draft"
+status: "rejected"
 priority: "low"
 model: "sonnet"
 phase: "later"
@@ -20,6 +20,10 @@ Notation (JSON); Transmission Control Protocol (TCP); application programming in
 development (BDD); AeroSpace and Defence Industries Association of Europe (ASD), the owner
 of the STE standard ASD-STE100.
 
+> **Rejected (owner decision, 2026-11-27).** The owner rejected this feature. The Docker
+> Sandboxes product stays unsupported, and no agent gets this work. The earlier draft note
+> is kept below for history.
+>
 > **Draft, not a must have (owner decision D14, 2026-11-12).** The Docker Sandboxes product
 > is not ready. This feature is not scheduled and no agent gets it. No other feature
 > depends on it. Before it is scheduled, read the product documents again and update

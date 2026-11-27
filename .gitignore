@@ -221,6 +221,9 @@ backends/foundation_connectrpc/integration/wasm/integrations/
 __pycache__/
 *.pyc
 
+codex-session-*
 # Local Swift package binary input
 /.build-inputs/
-codex-session-*
+
+# The localgcp release binary and its data (a local GCP emulator).
+/.localgcp/

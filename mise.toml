@@ -22,7 +22,7 @@ ANDROID_NDK = "27.0.12077973"
 XCODE_MIN = "26.2"
 # The wrangler the Cloudflare integration tests run. Pinned: they use its local
 # explorer REST API (/cdn-cgi/local/explorer/api), which is beta and may change.
-# `package.json` carries an older wrangler for other uses.
+# `package.json` carries its own wrangler for other uses.
 WRANGLER_VERSION = "4.156.2"
 # Dev builds on Cranelift (fast compiles; needs the pinned nightly and its
 # rustc-codegen-cranelift component). Kept out of Cargo.toml/.cargo/config.toml
@@ -1192,6 +1192,110 @@ run = "cargo run --locked --profile uat -p foundation_ci -- task run workspace:d
 [tasks.sandbox]
 description = "Run ewe_platform sandbox binary"
 run = "cargo run --profile dev --bin ewe_platform sandbox"
+
+[tasks."sandbox:krun"]
+description = "Build the libkrun runner and sign it on macOS"
+run = """
+set -euo pipefail
+cargo build -p foundation_sandbox --profile uat --features libkrun-runner --bin sandbox-krun
+mkdir -p target/sandbox
+cp target/uat/sandbox-krun target/sandbox/sandbox-krun
+if [ "$(uname -s)" = "Darwin" ]; then
+  codesign --entitlements backends/foundation_sandbox/hvf-entitlements.plist --force -s - target/sandbox/sandbox-krun
+fi
+"""
+
+[tasks."sandbox:slave"]
+description = "Build agent-slave as a static program for both musl targets"
+# The slave has the control and firecracker features, so a slave in a nested
+# host can also serve the control plane (spec 77 feature 11, section 6.1). The
+# build has no TLS provider: artifacts-remote is off.
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+mkdir -p target/sandbox
+for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
+  RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
+    cargo build -p foundation_sandbox --bin agent-slave --profile agent \
+      --no-default-features --features slave,cli,control,firecracker --target "$target"
+done
+cp target/x86_64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-x86_64
+cp target/aarch64-unknown-linux-musl/agent/agent-slave target/sandbox/agent-slave-aarch64
+"""
+
+[tasks."sandbox:worker-image"]
+description = "Build the static slave and copy the amd64 program into the Worker image context"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+mise run sandbox:slave
+# Cloudflare containers are linux/amd64.
+cp target/sandbox/agent-slave-x86_64 infrastructure/sandbox_worker/agent-slave
+"""
+
+[tasks."sandbox:slave-image"]
+description = "Build the one-file donor image from the static amd64 slave"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+mise run sandbox:slave
+version=$(python3 -c "import tomllib; print(tomllib.load(open('backends/foundation_sandbox/Cargo.toml', 'rb'))['package']['version'])")
+build_dir=$(mktemp -d)
+trap 'rm -rf "${build_dir}"' EXIT
+cp target/sandbox/agent-slave-x86_64 "${build_dir}/agent-slave"
+docker build --platform linux/amd64 \
+  -f infrastructure/sandbox_worker/images/agent-slave/Dockerfile \
+  -t "ewe/agent-slave:${version}" \
+  "${build_dir}"
+docker image inspect "ewe/agent-slave:${version}" >/dev/null
+echo "ewe/agent-slave:${version}"
+"""
+
+[tasks."sandbox:product-dockerfile"]
+description = "Write Dockerfile.product from the template and the two pinned images"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+tools=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['cloudflare_sandbox_tools_image'])")
+base=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['product_base_image'])")
+version=$(python3 -c "import tomllib; print(tomllib.load(open('backends/foundation_sandbox/Cargo.toml', 'rb'))['package']['version'])")
+python3 - "${tools}" "${base}" <<'PY'
+import re
+import sys
+
+for name, value in zip(
+    ("cloudflare_sandbox_tools_image", "product_base_image"), sys.argv[1:]
+):
+    if not re.search(r"@sha256:[0-9a-f]{64}$", value):
+        sys.exit(
+            f"ci/sandbox.toml: {name} has no digest; resolve it with "
+            "`docker buildx imagetools inspect`"
+        )
+PY
+sed \
+  -e "s|@SANDBOX_TOOLS_IMAGE@|${tools}|g" \
+  -e "s|@SLAVE_IMAGE@|ewe/agent-slave:${version}|g" \
+  -e "s|@BASE_IMAGE@|${base}|g" \
+  infrastructure/sandbox_worker/Dockerfile.product.in \
+  > infrastructure/sandbox_worker/Dockerfile.product
+echo "infrastructure/sandbox_worker/Dockerfile.product"
+"""
+
+[tasks."sandbox:nested-image"]
+description = "Build the nested host image with the versions of ci/sandbox.toml"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+version=$(grep -E '^firecracker_version = ' ci/sandbox.toml | cut -d '"' -f 2)
+sha=$(grep -E '^firecracker_x86_64_sha256 = ' ci/sandbox.toml | cut -d '"' -f 2)
+docker build \
+  --platform linux/amd64 \
+  --build-arg "FIRECRACKER_VERSION=${version}" \
+  --build-arg "FIRECRACKER_SHA256=${sha}" \
+  -t ewe/sandbox-nested:latest \
+  infrastructure/sandbox_nested_image
+"""
 
 [tasks.bacon]
 description = "Start bacon with bacon-ls job for IDE integration"

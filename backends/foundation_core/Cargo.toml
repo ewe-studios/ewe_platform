@@ -104,6 +104,9 @@ multi = ["std", "alloc", "valtron"]  # Multi-threaded executor requires std
 # Test-only `SimulatedClock` for deterministic time control. It lives in the
 # valtron `Ctx`, so it needs `std` and the `valtron` feature.
 test-clock = ["std", "valtron"]
+# The deterministic simulation runtime (`valtron::sim`). It needs the
+# single-threaded engine, so it is absent when `multi` is on.
+testing = ["test-clock", "alloc"]
 
 # A shared conformance kit for `DurableStreamVfs` implementations. A VFS crate
 # enables it in its dev-dependencies and runs the same scenarios. It needs

@@ -254,8 +254,8 @@ the document shows them with `curl`:
 
 | Call kind | Request | Answer |
 |---|---|---|
-| Unary (`Create`, `Get`, `List`, `Stop`, `ExecInput`, the file calls except `FileRead`) | `POST <base>/ewe.sandbox.control.v1.SandboxService/<Method>`; `Content-Type: application/json`; `Authorization: Bearer <token>`; the body is the request message as JSON | `200` and the answer message as JSON; or an HTTP error status and `{"code": "...", "message": "..."}` |
-| Server stream (`Exec`, `FileRead`, `CreateWithProgress`) | the same path; `Content-Type: application/connect+json`; the body is one envelope: 1 byte of flags (0), 4 bytes of length (big-endian), the JSON message | `200`; a stream of envelopes; the last one has the flag `0x02` and holds `{}` or `{"error": {..}}` |
+| Unary (`Get`, `List`, `Stop`, `ExecInput`, the file calls except `FileRead`) | `POST <base>/ewe.sandbox.control.v1.SandboxService/<Method>`; `Content-Type: application/json`; `Authorization: Bearer <token>`; the body is the request message as JSON | `200` and the answer message as JSON; or an HTTP error status and `{"code": "...", "message": "..."}` |
+| Server stream (`Create`, `Exec`, `FileRead`) | the same path; `Content-Type: application/connect+json`; the body is one envelope: 1 byte of flags (0), 4 bytes of length (big-endian), the JSON message | `200`; a stream of envelopes; the last one has the flag `0x02` and holds `{}` or `{"error": {..}}` |
 
 The document has one complete example for each row, with the real field names of
 feature 00, and a TS example of 20 lines or fewer that reads the `Exec` stream with
@@ -298,7 +298,7 @@ feature 08):
    `EWE_SHIM_SHA256`.
 4. Start `wrangler dev --local -c wrangler.product.toml` and save its PID. Stop it by
    that PID at the end.
-5. Run `cargo test -p foundation_sandbox --features testing --profile uat e2e_cf_product`
+5. Run `cargo test -p foundation_sandbox --features testing --profile uat e2e_cf`
    with `EWE_SANDBOX_URL` and the token.
 
 Faults:
@@ -312,11 +312,11 @@ Faults:
 
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
-| I1, the first scenario, the shared scenarios | `e2e_cf_product_acceptance` | `tests/e2e_cf_product.rs` (through `SandboxRpcClient`; returns with a message when `EWE_SANDBOX_URL` is not set) | the shared scenarios |
+| I1, the first scenario, the shared scenarios | `e2e_cf_product_acceptance` | `tests/e2e_cf_product/` (through `SandboxRpcClient`; returns with a message when `EWE_SANDBOX_URL` is not set) | the shared scenarios |
 | I2, "The shim is still there" | `e2e_cf_product_shim_intact` | the same | identity (SHA-256) |
 | "The image's own command does not run" | `e2e_cf_product_pid1_is_slave` | the same | expected outcome |
 | I3, "The donor image has one file" | step 2 of `product.sh` | the script | example |
-| I6, the two JSON scenarios | `e2e_cf_json_unary`, `e2e_cf_json_stream`, `e2e_cf_json_no_token` (they use the HTTP client of `foundation_netio` with hand-made bodies, not `SandboxRpcClient`; the stream is read as a stream) | `tests/e2e_cf_product.rs` | identity with the `SandboxRpcClient` answer |
+| I6, the two JSON scenarios | `e2e_cf_json_unary`, `e2e_cf_json_stream`, `e2e_cf_json_no_token` (they use the HTTP client of `foundation_netio` with hand-made bodies, not `SandboxRpcClient`; the stream is read as a stream) | `tests/e2e_cf_product/` | identity with the `SandboxRpcClient` answer |
 | the fault row "no slave" | `e2e_cf_product_no_slave` | the same | fault |
 | I4, I5 | `no_shim_reference` (a search of the crate sources for `sandbox-shim` and `@cloudflare/sandbox` finds only documents) | `product.sh`, with `grep` | expected outcome |
 | Product deploy plan | `product_deploy_plan` (the plan names `./Dockerfile.product`, the same Worker and bindings; both adapters accept it) | `foundation_deployment_cloudflare/tests/deploy_product.rs` | identity |

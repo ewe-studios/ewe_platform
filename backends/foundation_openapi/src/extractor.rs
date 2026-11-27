@@ -100,6 +100,25 @@ impl EndpointExtractor {
         endpoints
     }
 
+    /// The request body of `operation`, with its `$ref` resolved.
+    fn resolve_request_body(
+        &self,
+        body: Option<&crate::spec::RequestBody>,
+    ) -> Option<crate::spec::RequestBody> {
+        let body = body?;
+        if body.content.is_some() {
+            return Some(body.clone());
+        }
+        let reference = body.ref_path.as_ref()?;
+        let name = reference.rsplit('/').next()?;
+        self.spec
+            .components
+            .as_ref()?
+            .request_bodies
+            .get(name)
+            .cloned()
+    }
+
     /// Recursively extract endpoints from GCP resources.
     fn extract_resources_recursive(
         resources: &BTreeMap<String, crate::spec::Resource>,
@@ -158,32 +177,39 @@ impl EndpointExtractor {
             param_path.clone_from(&path_params);
         }
 
+        // A shared request body is named with a `$ref` (the Cloudflare Worker
+        // upload does this), so resolve it first.
+        let request_body = self.resolve_request_body(operation.request_body.as_ref());
+
         // Extract request type - handle arrays by wrapping in Vec<>
-        let request_type = operation
-            .request_body
+        let request_type = request_body
             .as_ref()
             .and_then(|rb| rb.content.as_ref())
             .and_then(|content| content.get("application/json"))
             .and_then(|media| media.schema.as_ref())
             .and_then(|schema| self.resolver.resolve_request_body_type(schema));
 
-        // A body with no JSON form is sent raw (a tar archive, plain text).
-        // Form and multipart bodies are structured, not raw bytes, and are left
-        // to their own handling.
-        let raw_request_body = operation.request_body.as_ref().and_then(|rb| {
+        // A body with no JSON form is sent raw (a tar archive, plain text), or
+        // built from named parts when it is `multipart/form-data`.
+        let raw_request_body = request_body.as_ref().and_then(|rb| {
             let content = rb.content.as_ref()?;
             if content.contains_key("application/json") {
                 return None;
             }
+            if content.contains_key("multipart/form-data") {
+                return Some(RawRequestBody {
+                    media_type: "multipart/form-data".to_string(),
+                    required: rb.required,
+                    multipart: true,
+                });
+            }
             content
                 .keys()
-                .find(|media_type| {
-                    media_type.as_str() != "application/x-www-form-urlencoded"
-                        && !media_type.starts_with("multipart/")
-                })
+                .find(|media_type| media_type.as_str() != "application/x-www-form-urlencoded")
                 .map(|media_type| RawRequestBody {
                     media_type: media_type.clone(),
                     required: rb.required,
+                    multipart: false,
                 })
         });
 

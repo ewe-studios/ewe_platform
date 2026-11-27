@@ -1,0 +1,5 @@
+# The programs and the token are build inputs, not source.
+agent-sandbox
+agent-slave-x86_64
+agent-slave-aarch64
+sandbox_token

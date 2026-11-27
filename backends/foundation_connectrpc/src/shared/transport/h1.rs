@@ -13,12 +13,19 @@
 //!
 //! HOW: `PreparedRequestBuilder` → `self.client.open_exchange(prepared)` →
 //! `.split_collect_until_map(head)` → `.split_collector_map(body)` →
-//! `body_cont.map_ready(|_| ())` → `valtron::send()`.
+//! `StopDrive(body_cont.map_ready(|_| ()))` → `valtron::send()`. A dropped
+//! response body sets the stop signal, so the drive task ends and with it the
+//! exchange and the connection.
 
+use std::pin::Pin;
 use std::sync::Arc;
+use std::task::{Context, Poll};
 
 use bytes::Bytes;
-use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
+use foundation_core::valtron::{
+    self, AnyReadiness, CollectionState, Ctx, EventReadinessPtr, Pipe, ResumeSignal,
+    StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+};
 use foundation_netio::shared::client::request_task::HttpExchange;
 #[cfg(target_family = "wasm")]
 use foundation_netio::shared::http::SendSafeBody;
@@ -122,7 +129,16 @@ impl H1Transport {
         // chunks must not be buffered a second time into an undrained delivery queue
         // (F45 Resolution 8). This is the only task spawned; the two observers are
         // drained by the caller through the erased `HeadStream`/`BodyStream`.
-        let drive = body_cont.map_ready(|_| ());
+        //
+        // The body observer sets `stop` when the caller drops it (see
+        // [`StopOnDrop`]), and the drive task ends on that signal (see
+        // [`StopDrive`]). A dropped response body therefore drops the exchange,
+        // which closes the connection, and the peer learns that the caller left.
+        let stop = Arc::new(ResumeSignal::new(false));
+        let drive = StopDrive {
+            inner: body_cont.map_ready(|_| ()),
+            stop: Arc::clone(&stop),
+        };
         valtron::send(drive)
             .map_err(|e| TransportError::Connect(Arc::new(std::io::Error::other(e.to_string()))))?;
 
@@ -133,7 +149,10 @@ impl H1Transport {
         // `CollectionState::Close(true)` closes the head observer once the head is
         // delivered, so `head` yields the one head then ends.
         let head: HeadStream = Box::pin(head_obs.into_next_stream());
-        let recv_body: BodyStream = Box::pin(body_obs.into_next_stream());
+        let recv_body: BodyStream = Box::pin(StopOnDrop {
+            inner: Box::pin(body_obs.into_next_stream()),
+            stop,
+        });
 
         // HTTP/1.1 has no trailing headers — close immediately.
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
@@ -316,4 +335,73 @@ fn request_url_string(req: &RequestDescriptor) -> String {
 
 fn http_to_transport_error(e: HttpClientError) -> TransportError {
     TransportError::Connect(Arc::new(e))
+}
+
+/// The response body handed to the caller, which stops the exchange on drop.
+///
+/// WHY: when the caller drops the response body, nobody will read the rest of
+/// the response. Without this signal the drive task keeps the exchange alive,
+/// the connection stays open, and the peer never learns that the caller left —
+/// a streaming server can wait forever for a consumer that has gone.
+///
+/// WHAT: sets the shared stop signal when it drops.
+///
+/// HOW: the signal is the one [`StopDrive`] checks.
+struct StopOnDrop {
+    inner: BodyStream,
+    stop: Arc<ResumeSignal>,
+}
+
+impl futures::Stream for StopOnDrop {
+    type Item = Result<Bytes, TransportError>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        self.get_mut().inner.as_mut().poll_next(cx)
+    }
+}
+
+impl Drop for StopOnDrop {
+    fn drop(&mut self) {
+        self.stop.set(true);
+    }
+}
+
+/// The exchange drive task, which ends when the response body is dropped.
+///
+/// WHY: the drive task owns the HTTP exchange, and with it the connection. It
+/// must end when the caller drops the response body, so the exchange drops, the
+/// connection closes, and the peer sees the hangup.
+///
+/// WHAT: stops at once when the shared signal is set, and adds that signal to
+/// every wait of the inner task so a parked drive task wakes when the body
+/// drops.
+///
+/// HOW: checks the signal before each step, and wraps each `Depends` in an
+/// [`AnyReadiness`] of the inner signal and the stop signal.
+struct StopDrive<I> {
+    inner: I,
+    stop: Arc<ResumeSignal>,
+}
+
+impl<I> TaskIterator for StopDrive<I>
+where
+    I: TaskIterator,
+{
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        if self.stop.get() {
+            return None;
+        }
+        match self.inner.next_status(ctx) {
+            Some(TaskStatus::Depends(signal)) => {
+                let stop = Arc::clone(&self.stop);
+                let stop: EventReadinessPtr = stop;
+                let combined: EventReadinessPtr = Arc::new(AnyReadiness::either(signal, stop));
+                Some(TaskStatus::Depends(combined))
+            }
+            other => other,
+        }
+    }
 }

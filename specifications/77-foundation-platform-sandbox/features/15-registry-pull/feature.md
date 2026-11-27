@@ -363,7 +363,7 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "images testing slave" --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "images testing slave" --profile uat oci_ images_import build_sim
+cargo test -p foundation_sandbox --features "images testing slave" --profile uat
 cargo test -p foundation_sandbox --features "images docker testing slave" --profile uat e2e_images -- --nocapture
 ```
 

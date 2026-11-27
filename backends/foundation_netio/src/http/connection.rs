@@ -283,12 +283,16 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
+    #[allow(
+        dead_code,
+        reason = "the no-TLS twin of the TLS function; a caller that needs TLS gets NotSupported at run time"
+    )]
     fn upgrade_to_tls(
         _connection: Connection,
         _host: &str,
         _port: u16,
         _timeout: Option<Duration>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -304,7 +308,7 @@ impl HttpClientConnection {
         _port: u16,
         _timeout: Option<Duration>,
         _tls_connector: Option<&SSLConnector>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -617,7 +621,7 @@ impl HttpClientConnection {
         _port: u16,
         _resolver: &R,
         _timeout: Option<Duration>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -1207,7 +1211,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         _target_host: &str,
         _target_port: u16,
         _timeout: Option<Duration>,
-        ctx: &Ctx,
+        _ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
@@ -1239,9 +1243,44 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         read_timeout: Duration,
         ctx: &Ctx,
     ) -> Result<HttpClientConnection, HttpClientError> {
+        self.create_connection_unix_with_preamble(url, socket_path, read_timeout, None, ctx)
+    }
+
+    /// Establish an HTTP connection over a Unix domain socket and apply a
+    /// preamble first.
+    ///
+    /// WHY: Firecracker forwards a host connection to a guest port only after
+    /// the host writes `CONNECT <port>\n` and reads `OK <number>\n`. The line
+    /// belongs to the connection, so it must go out before the first HTTP byte.
+    ///
+    /// WHAT: Dials `socket_path`, applies `read_timeout` to the socket, writes
+    /// the preamble and reads its reply when one is configured, then wraps the
+    /// stream as an `HttpClientConnection`.
+    ///
+    /// HOW: [`Connection::connect_unix`] → [`Connection::apply_unix_preamble`]
+    /// → [`RawStream::from_connection`] → [`SharedByteBufferStream`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError::ConnectionFailed`] if the socket cannot be
+    /// dialed, a preamble reply fails, or the stream cannot be wrapped.
+    #[cfg(unix)]
+    pub fn create_connection_unix_with_preamble(
+        &self,
+        url: &Uri,
+        socket_path: &std::path::Path,
+        read_timeout: Duration,
+        preamble: Option<&crate::shared::client::UnixSocketPreamble>,
+        ctx: &Ctx,
+    ) -> Result<HttpClientConnection, HttpClientError> {
         let host = url.host_str().unwrap_or_else(|| "localhost".to_string());
-        let connection = Connection::connect_unix(socket_path, read_timeout, ctx)
+        let mut connection = Connection::connect_unix(socket_path, read_timeout, ctx)
             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
+        if let Some(preamble) = preamble {
+            connection
+                .apply_unix_preamble(&preamble.preamble, &preamble.expect, preamble.max_reply)
+                .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?;
+        }
         let stream = SharedByteBufferStream::rwrite(
             RawStream::from_connection(connection)
                 .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,

@@ -13,9 +13,10 @@
 //! drop.
 
 use std::collections::BTreeMap;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{Arc, Condvar, Mutex, RwLock};
+use std::time::{Duration, Instant};
 
 use foundation_ai::agentic::{AgentConfig, AgentSession, KvMemoryStore, MemoryStore};
 use foundation_ai::types::SessionId;
@@ -31,7 +32,7 @@ use crate::core::registry::{
     decode_page_token, encode_page_token, Caller, InstanceInfo, InstanceRegistry, InstanceSpec,
     Page, Scope, TurnEventStream,
 };
-use crate::core::turn::guarded_turn;
+use crate::core::turn::{guarded_turn, TurnShutdown};
 use crate::error::{AgentRpcError, AgentRpcResult};
 
 /// Makes the two stores of a new session.
@@ -198,6 +199,71 @@ where
     }
 }
 
+/// The count of running turns, for a graceful shutdown.
+#[derive(Default)]
+struct TurnActivity {
+    count: Mutex<usize>,
+    idle: Condvar,
+}
+
+impl TurnActivity {
+    fn enter(self: &Arc<Self>) -> TurnActive {
+        let mut count = self
+            .count
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *count += 1;
+        TurnActive {
+            activity: Arc::clone(self),
+        }
+    }
+
+    /// Wait until no turn runs, or until `grace` real seconds pass.
+    ///
+    /// The wait reads real time: shutdown grace is the time that a process
+    /// gets after `SIGTERM` (Kubernetes `terminationGracePeriodSeconds`), not
+    /// simulated time. It runs only at the host shutdown boundary.
+    fn wait_idle(&self, grace: Duration) -> bool {
+        let deadline = Instant::now() + grace;
+        let mut count = self
+            .count
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        while *count > 0 {
+            let now = Instant::now();
+            if now >= deadline {
+                return false;
+            }
+            let remaining = deadline.saturating_duration_since(now);
+            let (guard, _) = self
+                .idle
+                .wait_timeout(count, remaining)
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            count = guard;
+        }
+        true
+    }
+}
+
+/// One running turn's count. It decrements on drop.
+struct TurnActive {
+    activity: Arc<TurnActivity>,
+}
+
+impl Drop for TurnActive {
+    fn drop(&mut self) {
+        let mut count = self
+            .activity
+            .count
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *count = count.saturating_sub(1);
+        if *count == 0 {
+            self.activity.idle.notify_all();
+        }
+    }
+}
+
 /// The table of live instances, keyed by scope and name.
 type InstanceTable<D, M> = BTreeMap<(Scope, String), InstanceHandle<D, M>>;
 
@@ -210,7 +276,41 @@ pub struct LocalInstanceRegistry<S: SessionStores = InMemoryStores> {
     instances: RwLock<InstanceTable<S::Doc, S::Mem>>,
     config: RegistryConfig,
     turns: TurnLimits,
+    shutdown: TurnShutdown,
+    activity: Arc<TurnActivity>,
+    /// Runs before `destroy` removes an instance. The Durable Object uploads
+    /// the history here; an error stops the destroy and keeps the storage
+    /// (invariant I5).
+    destroy_hook: Option<DestroyHookFn>,
+    /// Runs after `create` inserts an instance. The Durable Object records the
+    /// instance and its session here, so a new object can restore them.
+    create_hook: Option<CreateHookFn>,
 }
+
+/// The future of one [`DestroyHook`].
+pub type DestroyHookFuture =
+    Pin<Box<dyn std::future::Future<Output = AgentRpcResult<()>> + Send + 'static>>;
+
+/// Runs before an instance is destroyed.
+///
+/// The hook receives the checked caller, the instance facts and the session
+/// identifier. It reads the session's history from the same storage and
+/// uploads it. When it returns an error, the registry keeps the instance and
+/// its storage, so no history is lost.
+pub type DestroyHookFn =
+    Arc<dyn Fn(Caller, InstanceInfo, SessionId) -> DestroyHookFuture + Send + Sync + 'static>;
+
+/// Runs after an instance is created.
+///
+/// It receives the checked caller, the instance facts, the session identifier
+/// and the spec. A Durable Object uses it to record the instance in its SQL
+/// storage. An error removes the new instance and fails the create.
+pub type CreateHookFn = Arc<
+    dyn Fn(Caller, InstanceInfo, SessionId, InstanceSpec) -> DestroyHookFuture
+        + Send
+        + Sync
+        + 'static,
+>;
 
 impl<S: SessionStores> std::fmt::Debug for LocalInstanceRegistry<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -244,7 +344,71 @@ impl<S: SessionStores> LocalInstanceRegistry<S> {
             instances: RwLock::new(BTreeMap::new()),
             config,
             turns,
+            shutdown: TurnShutdown::default(),
+            activity: Arc::new(TurnActivity::default()),
+            destroy_hook: None,
+            create_hook: None,
         })
+    }
+
+    /// Run `hook` before an instance is destroyed.
+    ///
+    /// The Durable Object uses it to upload the session history to R2. The
+    /// hook runs before the instance leaves the table; an error keeps the
+    /// instance and its storage (invariant I5).
+    #[must_use]
+    pub fn with_destroy_hook(mut self, hook: DestroyHookFn) -> Self {
+        self.destroy_hook = Some(hook);
+        self
+    }
+
+    /// Run `hook` after an instance is created.
+    ///
+    /// The Durable Object uses it to record the instance and its session in
+    /// SQL, so a new object can restore the instance. An error removes the new
+    /// instance and fails the create.
+    #[must_use]
+    pub fn with_create_hook(mut self, hook: CreateHookFn) -> Self {
+        self.create_hook = Some(hook);
+        self
+    }
+
+    /// Rebuild one instance from its recorded facts.
+    ///
+    /// A Durable Object calls this after a restart for every record that its
+    /// SQL storage holds. The session keeps its identifier, so its history
+    /// stays. An instance that is already in the table is left as it is.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::ModelSelection`] when the model is gone, and
+    /// [`AgentRpcError::Storage`] when a store cannot open.
+    pub async fn restore(
+        &self,
+        caller: &Caller,
+        info: &InstanceInfo,
+        session_id: SessionId,
+        spec: &InstanceSpec,
+    ) -> AgentRpcResult<()> {
+        let key = (caller.scope.clone(), info.name.clone());
+        if self.table().contains_key(&key) {
+            return Ok(());
+        }
+        let model = self.catalog.resolve(&spec.model).await?;
+        let (doc, memory) = self.stores.open(&session_id)?;
+        let session =
+            build_session(&model, spec, session_id, doc, memory, self.ctx.clone()).await?;
+        let handle = InstanceHandle {
+            inner: Arc::new(InstanceInner {
+                name: info.name.clone(),
+                model,
+                session,
+                busy: AtomicBool::new(false),
+                turns: AtomicU64::new(info.turns),
+                created_unix_ms: info.created_unix_ms,
+            }),
+        };
+        self.table_mut().insert(key, handle);
+        Ok(())
     }
 
     /// The configuration.
@@ -257,6 +421,51 @@ impl<S: SessionStores> LocalInstanceRegistry<S> {
     #[must_use]
     pub fn turn_limits(&self) -> &TurnLimits {
         &self.turns
+    }
+
+    /// How many instances the table holds.
+    #[must_use]
+    pub fn instance_count(&self) -> usize {
+        self.table().len()
+    }
+
+    /// Stop the running turns and abort their sessions.
+    ///
+    /// The method waits up to `grace` for the turns to end on their own. The
+    /// turns that still run then get [`TurnShutdown::fire`], so each one emits
+    /// its terminal `TurnFailed("server shutting down")` and drops. A second
+    /// bounded wait gives them time to flush.
+    pub fn shutdown(&self, grace: Duration) {
+        if self.activity.wait_idle(grace) {
+            return;
+        }
+        self.shutdown.fire();
+        let _ = self.activity.wait_idle(grace.min(Duration::from_secs(2)));
+        let table = self.table();
+        for handle in table.values() {
+            handle.session().abort();
+        }
+    }
+
+    /// End every session and empty the table.
+    ///
+    /// # Errors
+    /// [`AgentRpcError::Inference`] when a session cannot end. The table is
+    /// emptied either way.
+    pub async fn end_all(&self) -> AgentRpcResult<()> {
+        let handles: Vec<InstanceHandle<S::Doc, S::Mem>> = self.table().values().cloned().collect();
+        let mut result = Ok(());
+        for handle in &handles {
+            handle.session().abort();
+            if let Err(error) = handle.session().end().await {
+                result = Err(ErrorTrace::new(AgentRpcError::Inference(format!(
+                    "ending instance {}: {error}",
+                    handle.name()
+                ))));
+            }
+        }
+        self.table_mut().clear();
+        result
     }
 
     fn table(&self) -> std::sync::RwLockReadGuard<'_, InstanceTable<S::Doc, S::Mem>> {
@@ -312,19 +521,7 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
             let (doc, memory) = self.stores.open(&session_id)?;
             let session =
                 build_session(&model, &spec, session_id, doc, memory, self.ctx.clone()).await?;
-            let mut table = self.table_mut();
             let key = (caller.scope.clone(), spec.name.clone());
-            if table.contains_key(&key) {
-                return Err(AgentRpcError::InstanceExists(spec.name).into());
-            }
-            if table
-                .keys()
-                .filter(|(scope, _)| scope == &caller.scope)
-                .count()
-                >= self.config.max_instances
-            {
-                return Err(AgentRpcError::InstanceLimit(self.config.max_instances).into());
-            }
             let handle = InstanceHandle {
                 inner: Arc::new(InstanceInner {
                     name: spec.name.clone(),
@@ -336,10 +533,33 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                         .unwrap_or(0),
                 }),
             };
-            table.insert(key, handle.clone());
-            drop(table);
+            let info = handle.info();
+            let session_id = handle.session().session_id().clone();
+            {
+                let mut table = self.table_mut();
+                if table.contains_key(&key) {
+                    return Err(AgentRpcError::InstanceExists(spec.name).into());
+                }
+                if table
+                    .keys()
+                    .filter(|(scope, _)| scope == &caller.scope)
+                    .count()
+                    >= self.config.max_instances
+                {
+                    return Err(AgentRpcError::InstanceLimit(self.config.max_instances).into());
+                }
+                table.insert(key.clone(), handle.clone());
+            }
+            if let Some(hook) = &self.create_hook {
+                if let Err(error) =
+                    hook(caller.clone(), info.clone(), session_id, spec.clone()).await
+                {
+                    let _ = self.table_mut().remove(&key);
+                    return Err(error);
+                }
+            }
             tracing::info!(instance = %spec.name, model = %handle.model().name(), "instance created");
-            Ok(handle.info())
+            Ok(info)
         })
     }
 
@@ -392,9 +612,22 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
 
     fn destroy<'a>(&'a self, caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()> {
         Box::pin(async move {
-            let removed = self
-                .table_mut()
-                .remove(&(caller.scope.clone(), name.to_string()));
+            let key = (caller.scope.clone(), name.to_string());
+            let handle = {
+                let table = self.table();
+                table.get(&key).cloned()
+            };
+            let Some(handle) = handle else {
+                return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
+            };
+            // The history archive runs before the instance leaves the table.
+            // Its error keeps the instance and its storage (invariant I5).
+            if let Some(hook) = &self.destroy_hook {
+                let info = handle.info();
+                let session = handle.session().session_id().clone();
+                hook(caller.clone(), info, session).await?;
+            }
+            let removed = self.table_mut().remove(&key);
             let Some(handle) = removed else {
                 return Err(AgentRpcError::InstanceNotFound(name.to_string()).into());
             };
@@ -432,6 +665,7 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                     .ok_or_else(|| AgentRpcError::InstanceNotFound(name.to_string()))?
             };
             let guard = instance.begin_turn()?;
+            let active = self.activity.enter();
             let turn = instance
                 .session()
                 .run_turn_stream(prompt)
@@ -440,8 +674,9 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
             let abort: Arc<dyn Fn() + Send + Sync> = Arc::new(move || session.abort());
             Ok(guarded_turn(
                 turn.events(),
-                guard,
+                (guard, active),
                 abort,
+                self.shutdown.clone(),
                 self.ctx.clone(),
                 &self.turns,
             ))

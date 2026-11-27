@@ -196,6 +196,27 @@ impl KeyValueStore for JsonFileStorage {
         self.flush_to_disk()
     }
 
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        let bytes =
+            serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        // One lock covers the lookup and the insert; the flush follows.
+        if data.contains_key(key) {
+            return Ok(false);
+        }
+        data.insert(key.to_string(), Zeroizing::new(bytes));
+        drop(data);
+        self.flush_to_disk()?;
+        Ok(true)
+    }
+
     fn take_is_atomic(&self) -> bool {
         true
     }

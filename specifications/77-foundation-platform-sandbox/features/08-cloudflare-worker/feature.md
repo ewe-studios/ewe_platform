@@ -20,7 +20,7 @@ Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100
 
 ## 1. Goal
 
-Give the Cloudflare control plane its boundary: a Rust Worker crate with two DO classes and
+Give the Cloudflare control plane its boundary: a Rust Worker crate with three DO classes and
 a container image, and prove the whole path with the same acceptance scenarios as
 Firecracker.
 
@@ -39,6 +39,11 @@ sandbox.stop().await?;
 This is MVP-B: the control plane runs in a DO, the slave runs in the DO's container, and
 the caller uses the same `SandboxProvider` API as on a host.
 
+The second substrate of decision D16 shares this Worker. `ModelSlaveDo` answers the same
+`SlaveService` with one model turn for each `exec`. A `SandboxSpec` with the driver
+`cloudflare-do` starts no container; its calls reach the slave DO through the `SLAVE` service
+binding. The library part is feature 07, section 6.10.
+
 This feature owns the two supported Cloudflare deployment paths. The Rust deployer in
 `foundation_deployment_cloudflare` is the primary path. The manual `wrangler` adapter is a
 supported fallback. Both apply the same deployment plan. Spec 83 feature 06 uses this
@@ -56,6 +61,8 @@ deployment surface; it does not own one.
   by `wrangler`."
 - **S7**: "A caller with a `Provider` starts a Cloudflare sandbox."
 - **S8**: "The two deploy paths apply the same plan and give the same Worker."
+- **S9**: "A caller creates a sandbox whose slave is a model DO; no container starts, and a
+  command answers with one model turn."
 
 | # | Use case | Actor | Trigger | Result |
 |---|---|---|---|---|
@@ -67,10 +74,11 @@ deployment surface; it does not own one.
 | U6 | Deploy | operator | `CloudflareDeployer::deploy`, or `npx wrangler deploy` | The Worker, the DO classes, the image and the routes exist. |
 | U7 | Provider | orchestration code | `SandboxDeploymentProvider::cloudflare(control)` | A `SandboxDeploymentHandle`. |
 | U8 | Check a deploy | operator | `CloudflareDeployer::status` | The deployment state and the Worker URL. |
+| U9 | Route a model sandbox | Worker | `Create` with driver `cloudflare-do` | `SandboxDo` launches no container; the slave is the `SLAVE` binding. |
 
 ## 3. Bounded context
 
-**Inside this feature:** the Worker entry, routing a call to a DO, the token check, the two
+**Inside this feature:** the Worker entry, routing a call to a DO, the token check, the three
 DO classes as wrappers, the index, the container image, the deployment plan and its two
 adapters, the end-to-end tests, the Cloudflare `Provider` constructor.
 
@@ -82,6 +90,8 @@ adapters, the end-to-end tests, the Cloudflare `Provider` constructor.
 | Worker entry | The `fetch` handler. | `infrastructure/sandbox_worker/src/lib.rs` |
 | `SandboxDo` | The DO class of one sandbox. Holds a `DoControlPlane`. | `src/sandbox_do.rs` (wrapper only) |
 | `SandboxIndexDo` | One DO (name `index`) with the list of sandboxes. | `src/index_do.rs` |
+| `ModelSlaveDo` | The DO class of one model slave (decision D16). Holds a `ModelSlave` of feature 07. | `src/model_slave_do.rs` (wrapper only) |
+| Model key | The secret that one model API call uses. | the operator, through a `SecretRef` in the plan |
 | Index entry | Sandbox ID to `SandboxInfo`. | `SandboxIndexDo` storage |
 | Worker token | The secret `SANDBOX_TOKEN`. | the operator |
 | Container image | The image with `agent-slave`. | `infrastructure/sandbox_worker/Dockerfile` |
@@ -156,11 +166,12 @@ Links to other entities: the deployed Worker's bindings and DO migrations equal 
 | I11 | `FoundationCloudflareDeployer` is the primary path. `WranglerCloudflareDeployer` is a supported fallback. The deploy task selects the foundation path when no adapter is named. |
 | I12 | The plan holds secret names and sources, never secret values. A printed plan has no credential. |
 | I13 | A failed deploy leaves the previous Worker live. `rollback` is idempotent. |
+| I14 | A `SandboxSpec` with the driver `cloudflare-do` starts no container. Every plan names the `SLAVE` binding and the `ModelSlaveDo` class. The model slave gives no operating-system isolation, and the README says so. |
 
 ### 4.3 Must have
 
-- `infrastructure/sandbox_worker` with `SandboxDo`, `SandboxIndexDo`, the entry, the
-  `wrangler.toml`, the `Dockerfile`, the README.
+- `infrastructure/sandbox_worker` with `SandboxDo`, `SandboxIndexDo`, `ModelSlaveDo`, the
+  entry, the `wrangler.toml`, the `Dockerfile`, the README.
 - `shared::cloudflare::routing`.
 - `ProviderId::CloudflareContainer` and `SandboxDeploymentProvider::cloudflare`.
 - `CloudflareDeployer`, `DeploymentPlan`, `DeploymentOutcome`, `DeploymentStatus`,
@@ -262,6 +273,18 @@ Feature: Cloudflare Worker
     Given a plan with a SecretRef
     When the plan is printed
     Then the secret value is absent
+
+  Scenario: A model sandbox starts no container
+    Given a client that creates a sandbox with the driver cloudflare-do
+    When the sandbox is created and a command runs
+    Then no container starts for that sandbox
+    And "docker ps" names no container that the sandbox created
+
+  Scenario: A model slave runs one turn
+    Given the Worker points the model backend at the local fake model server
+    When the caller runs ["echo", "hello"] in a model sandbox
+    Then stdout is the answer of the fake model server
+    And the exit code is 0
 ```
 
 ## 6. Technical breakdown
@@ -304,6 +327,8 @@ explicit line; add the line if the pattern does not cover it).
 | `src/lib.rs` | The `fetch` entry. |
 | `src/sandbox_do.rs` | `#[durable_object] pub struct SandboxDo`. |
 | `src/index_do.rs` | `#[durable_object] pub struct SandboxIndexDo`. |
+| `src/model_slave_do.rs` | `#[durable_object] pub struct ModelSlaveDo`: builds `WorkerStorage`, `WorkerModelClient` and `ModelSlave`, and calls `ModelSlave::handle`. |
+| `src/model_client.rs` | `WorkerModelClient`: `CloudflareAi` calls the `AI` binding; `OpenRouter` sends one streaming HTTP request to `base_url` with the key from the `Ctx` environment entry. |
 | `wrangler.toml` | Section 6.5. |
 | `Dockerfile` | Section 6.6. |
 | `README.md` | Deploy and token steps. |
@@ -337,14 +362,28 @@ request it builds `CloudflareHost::from_state(&state, index)` (feature 07,
 `src/cloudflare/`), where `index` is a `SandboxIndex` that calls the index DO, and
 `DoControlPlane::open(ctx, host, Some(id), limits)` with `id` from the request header
 below. `fetch` converts
-the `worker::Request` to the request type of `foundation_http::wasm`, calls
-`control.handle(..)`, and converts the response back. `alarm` calls `DoControlPlane::open(ctx, host, None, limits)` when the cell is empty (the
+the `worker::Request` to `SimpleIncomingRequest`, calls `control.handle(..)`, and maps the
+`HttpResponseParts` back to a Worker response. The body is a `BoxByteStream`: the mapping
+builds the response `ReadableStream` from it and holds it for the life of the response, so an
+`Exec` frame reaches the client before the command ends. The pipe depth is
+`CloudflareConfig::stream_queue_len` (default 4). `alarm` calls `DoControlPlane::open(ctx, host, None, limits)` when the cell is empty (the
 ID comes from storage; feature 07, section 6.6), then `on_alarm()`.
 Nothing else.
+
+`DoControlPlane` registers both drivers of feature 07: `CloudflareContainerDriver` and
+`CloudflareDoDriver`. The `SandboxSpec` decides which one launches the sandbox (feature 02).
+The token check of the Worker entry covers both.
 
 The DO name is not in `worker::State` directly; the Worker entry sends it in the header
 `x-ewe-sandbox-id` on each forwarded request, and the DO checks that it parses as a
 `SandboxId`.
+
+**`ModelSlaveDo`.** Holds `state`, `env` and a `OnceCell<ModelSlave>`. On the first request
+it builds `WorkerStorage` from the state, a `WorkerModelClient` from `env` and the
+`ModelConfig` that the deployed plan gives, and a `ModelSlave` (feature 07, section 6.10);
+then it calls `ModelSlave::handle(request)`. Its DO name is the sandbox id of the control DO
+that uses it, so one sandbox has one model slave. `alarm` does nothing: a model slave has
+no timer.
 
 **`SandboxIndexDo`.** Storage keys `sbx:<id>` with the JSON `SandboxInfo`. It serves three
 internal paths (not part of `SandboxService`): `PUT /index/<id>` (body: `SandboxInfo`),
@@ -376,9 +415,11 @@ with no storage.
 ### 6.4 The `Provider`
 
 `foundation_deployment_platform`: `ProviderId::CloudflareContainer`
-(`cloudflare-container`); `SandboxDeploymentProvider::cloudflare(control)` is
-`SandboxDeploymentProvider::new(control, DriverId::CloudflareContainer)`. No other code: the facade
-of feature 06 works on any `SandboxProvider`.
+(`cloudflare-container`). `foundation_sandbox::providers` (feature 06):
+`SandboxDeploymentProvider::cloudflare(control)` is
+`SandboxDeploymentProvider::new(control, DriverId::CloudflareContainer)`. No other code: the
+facade of feature 06 works on any `SandboxProvider`. Decision D1 moved the facades into
+`foundation_sandbox`; the `Provider` trait stays in the deployment crate.
 
 ### 6.5 `wrangler.toml`
 
@@ -398,9 +439,18 @@ class_name = "SandboxDo"
 name = "SANDBOX_INDEX"
 class_name = "SandboxIndexDo"
 
+# The model slave of decision D16.
+[[durable_objects.bindings]]
+name = "SLAVE"
+class_name = "ModelSlaveDo"
+
+# The Cloudflare Model API. Only the `CloudflareAi` backend uses it.
+[ai]
+binding = "AI"
+
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["SandboxDo", "SandboxIndexDo"]
+new_sqlite_classes = ["SandboxDo", "SandboxIndexDo", "ModelSlaveDo"]
 
 [[containers]]
 class_name = "SandboxDo"
@@ -422,6 +472,9 @@ the value of the Cloudflare minimal example, `instance: "lite"`); `SandboxSpec.v
 
 The token: `npx wrangler secret put SANDBOX_TOKEN`; for `wrangler dev`, a `.dev.vars` file
 that is in `.gitignore`.
+
+The `SLAVE` class starts no container. The `CloudflareAi` backend uses the `AI` binding and
+no key. A Worker with the `OpenRouter` backend also sets `MODEL_API_KEY`.
 
 ### 6.6 The image
 
@@ -445,12 +498,12 @@ images; the image features 12 to 15 are for the microVM drivers.
 
 ### 6.7 Deploy
 
-The Worker, its two DO classes, its container and its routes come from one `DeploymentPlan`.
+The Worker, its three DO classes, its container and its routes come from one `DeploymentPlan`.
 Two adapters apply that plan:
 
 | Adapter | How it works | When to use it |
 |---|---|---|
-| `FoundationCloudflareDeployer` | The Rust path. It uses `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare` (the generated Worker, Durable Object, D1/KV/R2 and container types). It builds the Worker, builds and pushes the image, uploads a Worker version with the bindings and DO migrations, sets the secrets and routes, and promotes the version. | The default. CI and an operator with the Rust toolchain. |
+| `FoundationCloudflareDeployer` | The Rust path. It uses `foundation_deployment_cloudflare` and its generated types (Worker, Durable Object, D1/KV/R2 and container operations; the old `ewe_deployables::cloudflare` module was removed in spec 70 feature 22). It builds the Worker, builds and pushes the image, uploads a Worker version with the bindings and DO migrations, sets the secrets and routes, and promotes the version. | The default. CI and an operator with the Rust toolchain. |
 | `WranglerCloudflareDeployer` | The manual path. It writes the same plan as a temporary `wrangler.toml`, copies the Dockerfile, runs `npx wrangler deploy`, and reads the Worker URL from the output. It is native-only and uses an injected `CommandRunner`. | A fallback when the foundation crate is not available, and the documented manual procedure. |
 
 The foundation path is the priority. A deploy run with no adapter selected uses it. The
@@ -583,10 +636,11 @@ the Docker client, the command runner (wrangler only), the secret store and the 
 missing entry is `HostNotConfigured`. Tests use fakes.
 
 **The sandbox plan.** `DeploymentPlan::sandbox_worker()` returns the plan of sections 6.5
-and 6.6: Worker `ewe-sandbox`, bindings `SANDBOX` and `SANDBOX_INDEX`, the two DO classes,
-the `containers` entry with class `SandboxDo`, image `./Dockerfile`, `max_instances 10`,
-`instance_type "lite"`, and the `SANDBOX_TOKEN` secret. `wrangler.toml` is a view of this
-plan for the manual path; the plan is the source of truth.
+and 6.6: Worker `ewe-sandbox`, bindings `SANDBOX`, `SANDBOX_INDEX`, `SLAVE` and `AI`, the
+three DO classes, the `containers` entry with class `SandboxDo`, image `./Dockerfile`,
+`max_instances 10`, `instance_type "lite"`, and the `SANDBOX_TOKEN` secret. The
+`MODEL_API_KEY` secret is in the plan only when the model backend is `OpenRouter`.
+`wrangler.toml` is a view of this plan for the manual path; the plan is the source of truth.
 
 **The agent-rpc plan.** Spec 83 feature 06 builds its own `DeploymentPlan` with its Worker
 name, bindings, DO migrations and container class, and calls the same `CloudflareDeployer`.
@@ -603,10 +657,10 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
-| I2, I3, the routing table | `route_table` (each method), `route_bad_id`, `route_unknown_method`; `route_property` (any valid id in a scoped body routes to that id) | `foundation_sandbox/tests/cloudflare_routing.rs` (native) | example, identity |
+| I2, I3, the routing table | `route_table` (each method), `route_bad_id`, `route_unknown_method`; `route_property` (any valid id in a scoped body routes to that id) | `foundation_sandbox/tests/cloudflare/routing.rs` (native) | example, identity |
 | I1 | `check_bearer_cases` (missing, wrong scheme, wrong token, right token) | the same | expected outcome |
 | I7 | `worker_has_no_logic` (a source scan of `infrastructure/sandbox_worker/src` for `SandboxState`, `boot_timeout`, `retry`) | `foundation_sandbox/tests/boundary_scan.rs` | example |
-| I8, "A command runs ...", "The shared acceptance scenarios pass" | `e2e_cloudflare_acceptance` | `foundation_sandbox/tests/e2e_cloudflare.rs` | the shared scenarios |
+| I8, "A command runs ...", "The shared acceptance scenarios pass" | `e2e_cloudflare_acceptance` | `foundation_sandbox/tests/e2e_cloudflare/` | the shared scenarios |
 | I1, "Every call needs the token" | `e2e_cloudflare_token` | the same | expected outcome |
 | I5, "An unknown sandbox is NotFound", "A bad sandbox id ..." | `e2e_cloudflare_not_found`, `e2e_cloudflare_bad_id` | the same | expected outcome |
 | I6, "List shows live sandboxes only" | `e2e_cloudflare_list` | the same | expected outcome |
@@ -617,6 +671,8 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 | I4 | `e2e_cloudflare_large_stream` (20 MB of output arrives in order with flat client memory) | the same | identity |
 | "Stop destroys the container" | `e2e_cloudflare_stop` (checks `docker ps` for the container that `wrangler dev` made) | the same | conservation |
 | I9, "The slave and the Worker have the same version" | `e2e_cloudflare_versions` | the same | identity |
+| I14, "A model sandbox starts no container", "A model slave runs one turn" | `e2e_cloudflare_model_sandbox`: create with the driver `cloudflare-do`; `docker ps` shows no new container; `["echo", "hello"]` answers the text of the fake model server; `write_file` and `read_file` work; a restart of `wrangler dev` finds the file table | the same | expected outcome, conservation |
+| I14, the token check on the slave path | `e2e_cloudflare_model_token`: a client with no token and a model sandbox | the same | expected outcome |
 | restart of a DO | `e2e_cloudflare_restart`: create; stop and start `wrangler dev` with the same state directory (`--persist-to`); then `Get`. The test reads `docker ps` first to know which case it is in: the container survived (then `Get` must give `Ready`, and a new command must work, with no second `Prepare` in the slave) or it did not (then `Get` must give `NotFound`, and `List` must be empty). Each case has one exact expected result. | the same | expected outcome |
 | "A provider starts a Cloudflare sandbox" | `provider_e2e_cloudflare` | `backends/foundation_sandbox/tests/provider/` | example |
 | I10, "Both deployers apply one plan" | `deploy_plan_parity` (both adapters receive the same `DeploymentPlan`; their recorded calls name the same Worker, bindings, migrations, container class and routes) | `foundation_deployment_cloudflare/tests/deploy_plan.rs` | identity |
@@ -626,6 +682,12 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 | plan validation | `deploy_plan_invalid` (two mains, a duplicate binding, a missing migration tag) | the same | expected outcome |
 | foundation adapter | `foundation_deploy_mock` (a fake API and Docker client; each step in order) | the same | example |
 | wrangler adapter | `wrangler_deploy_command_lines` (a fake `CommandRunner`; the generated `wrangler.toml`, the deploy command and the secret commands) | the same | example |
+
+The model tests need no model key. `test/run.sh` starts a local fake model server: one small
+HTTP server that answers each request with a fixed text. The test plan sets
+`ModelBackend::OpenRouter { base_url }` to that server. This fake is the only local form of
+the model service; a real model API is a manual step, as the real-network deploy is. Record
+the date and the result in `progress.md`.
 
 The `e2e_cloudflare` tests need `wrangler`, `worker-build` and Docker. They read
 `EWE_SANDBOX_WORKER_URL` and `EWE_SANDBOX_WORKER_TOKEN`; when the URL is not set they print
@@ -648,7 +710,7 @@ result in `progress.md`.
 ```bash
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features testing --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features testing --profile uat cloudflare_routing boundary_scan
+cargo test -p foundation_sandbox --features "testing cloudflare" --profile uat cloudflare:: boundary_scan
 ( cd infrastructure/sandbox_worker && cargo fmt --check && cargo clippy --target wasm32-unknown-unknown -- -D warnings )
 mise run sandbox:worker-image
 infrastructure/sandbox_worker/test/run.sh
@@ -661,9 +723,11 @@ cargo test -p foundation_deployment_cloudflare --profile uat deploy_
 - Each scenario of section 5 and each row of section 7 passes in `wrangler dev`, and the CI
   job `sandbox-cloudflare` is green.
 - The shared acceptance scenarios give the same results on Firecracker and on Cloudflare.
-- The Worker crate has only the entry, the two DO wrappers and the `worker` type
+- The Worker crate has only the entry, the three DO wrappers and the `worker` type
   conversions.
 - The README tells an operator how to deploy and how to set the token.
 - Both deploy paths apply one plan. The foundation path is the default; the `wrangler` path
   is a tested fallback.
+- A model sandbox of the driver `cloudflare-do` runs with no container and answers each
+  `exec` with one model turn (decision D16, feature 07 section 6.10).
 - `progress.md` records MVP-B and the manual deploy result.

@@ -35,8 +35,8 @@ tracing = { workspace = true }
 foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.16" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.17", features = ["multi"] }
+foundation_http = { path = "../foundation_http", version = "0.0.17" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", features = ["multi"] }
 
 [lints]
 workspace = true

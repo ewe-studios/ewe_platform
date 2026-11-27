@@ -1,0 +1,217 @@
+# Sandbox end-to-end tests (spec 77 features 06 and 11)
+#
+# Runs the real Firecracker tests on a GitHub-hosted `ubuntu-latest` runner.
+# That runner has `/dev/kvm` (`.github/workflows/platform-images-vm.yaml` uses
+# it for QEMU). The job builds the static `agent-slave` program for the target
+# architecture, downloads the pinned Firecracker release, builds the nested
+# host image (feature 11), and runs the `foundation_sandbox` tests.
+# `EWE_SANDBOX_E2E_REQUIRED=1` turns a skipped microVM test into a failure, so
+# CI cannot pass by skipping.
+#
+# Triggers: a pull request that changes the sandbox crates, a push to master,
+# the nightly schedule and a manual run.
+
+name: Sandbox E2E
+
+# The workflow reads the repository and the workflow run. The Firecracker
+# tarball cache is restored and saved through the Actions cache.
+permissions:
+  contents: read
+  actions: read
+
+on:
+  pull_request:
+    paths:
+      - 'backends/foundation_sandbox/**'
+      - 'backends/foundation_api_common/**'
+      - 'backends/foundation_netio/**'
+      - 'backends/foundation_http/**'
+      - 'backends/foundation_connectrpc/**'
+      - 'backends/foundation_deployment_cloudflare/**'
+      - 'infrastructure/sandbox_worker/**'
+      - 'ci/sandbox.toml'
+      - 'mise.toml'
+      - '.github/workflows/sandbox-e2e.yaml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'backends/foundation_sandbox/**'
+      - 'backends/foundation_api_common/**'
+      - 'backends/foundation_netio/**'
+      - 'backends/foundation_deployment_cloudflare/**'
+      - 'infrastructure/sandbox_worker/**'
+      - 'ci/sandbox.toml'
+      - 'mise.toml'
+      - '.github/workflows/sandbox-e2e.yaml'
+  schedule:
+    - cron: '23 2 * * *'  # 2:23 UTC nightly
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  sandbox-e2e:
+    runs-on: ubuntu-latest
+    # The job builds the static slave, builds the nested host image and runs
+    # the real microVM tests. It reached 90 minutes and was cancelled, not
+    # failed, so allow 150 minutes.
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          # The job builds only the sandbox crates. They use no submodule.
+          # A recursive checkout of tools/dawn failed with
+          # "fatal: Failed to recurse into submodule path 'tools/dawn'"
+          # and stopped the job (run 45859043290).
+          submodules: false
+
+      - name: Enable KVM access for the runner user
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' \
+            | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger
+
+      - name: Install the pinned toolchain and the musl targets
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          # rustfmt is required: the build script of foundation_sandbox runs it on
+          # the generated Firecracker code. A minimal profile leaves it out.
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          rustup target add --toolchain "$toolchain" x86_64-unknown-linux-musl aarch64-unknown-linux-musl
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          # `mise run sandbox:slave` writes the two musl slave programs to
+          # target/<triple>/agent/ and copies them to target/sandbox/, so both
+          # live inside the cached `target` directory. The key names the runner
+          # OS and the `agent` Cargo profile, so a cache from another OS or
+          # profile never restores here.
+          key: sandbox-e2e-${{ runner.os }}-agent
+
+      - name: Read the pinned Firecracker version
+        id: firecracker
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['firecracker_version'])")
+          sha=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['firecracker_x86_64_sha256'])")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the pinned Firecracker tarball
+        uses: actions/cache@v4
+        with:
+          path: .cache/firecracker.tgz
+          # The key names the release version and the published asset checksum
+          # from ci/sandbox.toml, so the tarball is downloaded once per release.
+          key: firecracker-${{ runner.os }}-${{ steps.firecracker.outputs.version }}-${{ steps.firecracker.outputs.sha }}
+
+      - name: Download the pinned Firecracker release
+        run: |
+          version="${{ steps.firecracker.outputs.version }}"
+          sha="${{ steps.firecracker.outputs.sha }}"
+          mkdir -p .cache
+          if [ ! -f .cache/firecracker.tgz ]; then
+            url="https://github.com/firecracker-microvm/firecracker/releases/download/v${version}/firecracker-v${version}-x86_64.tgz"
+            curl -fsSL "$url" -o .cache/firecracker.tgz
+          fi
+          echo "$sha  .cache/firecracker.tgz" | sha256sum -c -
+          tar -xzf .cache/firecracker.tgz -C /tmp
+          sudo install "/tmp/release-v${version}-x86_64/firecracker-v${version}-x86_64" \
+            /usr/local/bin/firecracker
+          firecracker --version
+
+      - name: Install mise
+        uses: jdx/mise-action@v5.3.0
+        with:
+          install: false
+
+      - name: Build the static slave program
+        run: |
+          mise trust --yes mise.toml
+          mise run sandbox:slave
+
+      - name: Build the nested host image
+        # Feature 11: one container that holds many micro virtual machines
+        # (VMs). The image pins Firecracker, the kernel and the CI root image.
+        run: |
+          mise trust --yes mise.toml
+          mise run sandbox:nested-image
+
+      - name: Run the sandbox tests
+        env:
+          EWE_SANDBOX_E2E_REQUIRED: "1"
+          EWE_SANDBOX_SLAVE: ${{ github.workspace }}/target/sandbox/agent-slave-x86_64
+          EWE_FIRECRACKER: /usr/local/bin/firecracker
+        run: |
+          cargo test -p foundation_sandbox \
+            --features "cli testing slave docker firecracker" \
+            --profile uat -- --nocapture
+
+  # The Cloudflare path (spec 77 feature 08). `wrangler dev` runs the Worker,
+  # its three Durable Objects and the Docker container on the runner. The job
+  # is green only when the real end-to-end tests run and pass.
+  sandbox-cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          submodules: false
+
+      - name: Install the pinned toolchain and the wasm and musl targets
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          # rustfmt is required: the build script of foundation_sandbox runs it.
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          rustup target add --toolchain "$toolchain" \
+            x86_64-unknown-linux-musl aarch64-unknown-linux-musl wasm32-unknown-unknown
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          # Key the cache on the head revision: a stale Worker bundle built
+          # from an older head must never be reused (issue #1039).
+          key: cloudflare-${{ github.sha }}
+
+      - name: Install Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install the pinned wrangler and worker-build
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['wrangler_version'])")
+          npm install -g "wrangler@${version}"
+          build=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['worker_build_version'])")
+          cargo install worker-build --version "${build}"
+          wrangler --version
+          worker-build --version
+
+      - name: Install mise
+        uses: jdx/mise-action@v5.3.0
+        with:
+          install: false
+
+      - name: Build the image context
+        run: |
+          mise trust --yes mise.toml
+          mise run sandbox:worker-image
+
+      - name: Run the Cloudflare end-to-end tests
+        env:
+          EWE_SANDBOX_E2E_REQUIRED: "1"
+        run: infrastructure/sandbox_worker/test/run.sh
+
+      # The Cloudflare Sandbox product path (spec 77 feature 17). The step
+      # builds the donor image and the product image, then runs the product
+      # tests and the no-slave fault test against two local Workers.
+      - name: Run the Cloudflare Sandbox product end-to-end tests
+        env:
+          EWE_SANDBOX_E2E_REQUIRED: "1"
+        run: infrastructure/sandbox_worker/test/product.sh

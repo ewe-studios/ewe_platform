@@ -1,6 +1,6 @@
 [package]
 name = "foundation_netio"
-version = "0.0.17"
+version = "0.0.19"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -121,7 +121,7 @@ foundation_testing = { path = "../foundation_testing" }
 
 serial_test = { workspace = true }
 tracing-subscriber = "0.3"
-reqwest = { version = "0.12.15", features = ["blocking"] }
+reqwest = { version = "0.13.3", default-features = false, features = ["blocking", "form"] }
 futures-lite = "2"
 ntest = { workspace = true }
 smol = "2"

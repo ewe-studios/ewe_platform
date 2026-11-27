@@ -22,6 +22,14 @@ pub mod secret;
 #[cfg(feature = "secret")]
 pub mod keys;
 
+/// The key store and sealed key records (spec 83 feature 08).
+///
+/// A private key is always encrypted at rest. The module builds on the operator
+/// key parsers (`keys`) and on the signed-secret keys (`secret`), so it needs
+/// the `secret` feature.
+#[cfg(feature = "secret")]
+pub mod keystore;
+
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
@@ -96,10 +104,12 @@ pub use server_credential::{
 };
 
 // Mutual TLS (spec 87): the certificate authority, the trust store, the rustls
-// verifier and the native mTLS provider.
-#[cfg(not(target_family = "wasm"))]
+// verifier and the native mTLS provider. The `mtls` feature names them: they
+// link `ring`, which has C code, so a consumer that must stay free of C code
+// leaves the feature off.
+#[cfg(all(not(target_family = "wasm"), feature = "mtls"))]
 pub mod mtls;
-#[cfg(not(target_family = "wasm"))]
+#[cfg(all(not(target_family = "wasm"), feature = "mtls"))]
 pub mod pki;
 pub mod trust;
 

@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "3"
 depends_on: ["06-programs-rpc-provider", "09-libkrun-driver"]
-crates: ["foundation_sandbox", "sandbox_krun"]
+crates: ["foundation_sandbox"]
 ---
 
 # Feature 12: Sandbox images (the image form, a writable root, and unpack)
@@ -325,7 +325,7 @@ held by the substrate handle until `cleanup`.
 
 ### 6.5 ext4 on libkrun
 
-Runner (`bin/sandbox_krun`): `KrunRunnerConfig` gets
+Runner (`src/bin/sandbox_krun.rs`): `KrunRunnerConfig` gets
 `disks: Vec<KrunDisk { id: String, path: PathBuf, read_only: bool }>`. For each, after
 call 6 of feature 09's sequence: `krun_add_disk2(ctx, id, path, 0 /* RAW */, read_only)`.
 The symbol is resolved only when `disks` is not empty; missing: exit code 71. The runner's
@@ -445,16 +445,18 @@ Property tests (`proptest`, from the workspace dependency list, with a fixed see
 | I1, "A committed image does not change" | `e2e_image_not_changed` | the same | conservation |
 | I10, "A command runs as the image user" | `user_parse` (each form, unknown name), `e2e_exec_user` | sim and e2e | expected outcome |
 | fault table | `fill_fault_matrix` (simulation: each row) | `tests/control_sim_*.rs` | fault |
-| libkrun | `krun_config_disks`, `probe_reports_blk` | `tests/libkrun_sim_*.rs`, `bin/sandbox_krun/tests/` | example |
+| libkrun | `krun_config_disks`, `probe_reports_blk` | `tests/libkrun_sim_*.rs`, `tests/libkrun_runner/` | example |
 
 ## 8. Verify
 
 ```bash
 cargo fmt --all --check
-cargo clippy -p foundation_sandbox -p sandbox_krun --features "libkrun slave testing" --all-targets --profile uat --no-deps -- -D warnings
+cargo clippy -p foundation_sandbox --features "libkrun slave testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat images_ slave_unpack control_sim libkrun_sim
 cargo test -p foundation_sandbox --features "libkrun slave testing" --profile uat e2e_images -- --nocapture
-cargo check -p agent_slave --target x86_64-unknown-linux-musl --profile uat
+cargo build -p foundation_sandbox --no-default-features --features "slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl --profile agent
+file target/x86_64-unknown-linux-musl/agent/agent-slave   # a static ELF
+llvm-readelf -l target/x86_64-unknown-linux-musl/agent/agent-slave | grep INTERP   # no output
 ```
 
 ## 9. Done when

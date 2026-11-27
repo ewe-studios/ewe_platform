@@ -72,6 +72,14 @@ shape. The runtime substrate of each shape is a spec 77 surface.
   Cloudflare. Spec 77 feature 10 owns them on Docker. This feature uses the handle to start
   the agent-rpc server and to send it commands.
 
+### A Durable Object name includes the scope
+
+A Durable Object is addressed by instance name only (issue #987). Two owners that choose the
+same instance name would reach one object, and the object and its storage would be shared. The
+Worker therefore names each object `"<scope>/<name>"` with `id_from_name`, and the D1 index
+keys the same string. One test: two owners, one instance name, two objects, and neither sees
+the other's history.
+
 ## Dependency on spec 77
 
 ```mermaid
@@ -229,7 +237,7 @@ _The diagram shows the two Cloudflare shapes and the two spec 77 surfaces that s
 |---|-------|--------|----------------|------|
 | 1 | `foundation_agent_rpc` | Add the `wasm` feature and the cdylib target for the thin orchestrator | New build target | 05 T21 |
 | 2 | `foundation_http` | None (use the existing code) | `wasm::{serve_cf, dispatch_cf}` already exist | 05 T21 |
-| 3 | `foundation_connectrpc` | Implement `shared/transport/wasm.rs` (the F24 fetch transport) | A capabilities stub (`shared/transport/wasm.rs:1-5`) | 05 T19 |
+| 3 | `foundation_connectrpc` | No change: spec 85 landed the wasm transport (`H1Transport` over `DynNetClient`); the F24 items are met. | — | spec 85 T2 and T5 |
 | 4 | `foundation_netio` | None (use the existing code) | `FetchHttpClient` and `HttpClientBuilder` already exist (wired by `00-foundation`) | 05 T19 |
 | 5 | `foundation_deployment_cloudflare` | **None.** Call the spec 77 deployer. | The deployer and the plan are in spec 77 feature 08 | T6 |
 | 6 | `foundation_sandbox` | **None.** Call the spec 77 handle. | `ContainerControl` and `ContainerHandle` are in spec 77 feature 00 | T6 |
@@ -362,15 +370,13 @@ pub fn agent_rpc_plan(config: &AgentRpcConfig) -> DeploymentPlan;
 
 ### Files to Create/Modify
 
-- `backends/foundation_agent_rpc/Cargo.toml` and `src/wasm.rs`: the thin orchestrator cdylib
-  entry.
-- `backends/foundation_connectrpc/src/shared/transport/wasm.rs`: implement F24.
+- `backends/foundation_agent_rpc/Cargo.toml` and `src/host/worker/orchestrator.rs`: the thin
+  orchestrator cdylib entry, behind the `worker` feature (the same gate as feature 05).
 - `backends/foundation_agent_rpc/src/cloudflare/container.rs`: `AgentContainer` over the spec
   77 handle.
 - `backends/foundation_agent_rpc/src/cloudflare/plan.rs`: `agent_rpc_plan`.
-- `backends/foundation_agent_rpc/tests/wasm_orchestrator_tests.rs`,
-  `backends/foundation_agent_rpc/tests/cloudflare_plan_tests.rs`,
-  `backends/foundation_agent_rpc/tests/agent_container_tests.rs`.
+- `backends/foundation_agent_rpc/tests/cloudflare/{orchestrator,plan,container}.rs`, modules of
+  the crate's one test binary, registered in `tests/mod.rs` (root rule 7).
 
 This feature adds no file to `foundation_deployment_cloudflare`. Spec 77 owns that crate.
 
@@ -380,7 +386,7 @@ This feature adds no file to `foundation_deployment_cloudflare`. Spec 77 owns th
       Connect and gRPC-Web (miniflare locally, then Cloudflare). This task is built on feature
       05 T21. The red test is the whole chain.
 - [ ] **T5: end to end, remote agent-rpc over F24.** The thin orchestrator calls a remote
-      native agent-rpc as a Connect client. This task is built on feature 05 T19. The red test
+      native agent-rpc as a Connect client. This task is built on spec 85's transport. The red test
       is the full round-trip.
 - [ ] **T6: end to end, native agent-rpc in a Cloudflare container.** Deploy the agent-rpc
       Worker with the spec 77 deployer. Start the native server with the spec 77 handle. The
@@ -426,18 +432,16 @@ T1 and T2 were replaced by feature 05 T21 and T19. T3 moved to spec 77 feature 0
 
 ### Test files
 
-- `backends/foundation_agent_rpc/tests/wasm_orchestrator_tests.rs`
-- `backends/foundation_agent_rpc/tests/cloudflare_plan_tests.rs`
-- `backends/foundation_agent_rpc/tests/agent_container_tests.rs`
+- `backends/foundation_agent_rpc/tests/cloudflare/orchestrator.rs`
+- `backends/foundation_agent_rpc/tests/cloudflare/plan.rs`
+- `backends/foundation_agent_rpc/tests/cloudflare/container.rs`
 
 ### Local run commands
 
 ```bash
 rustup target add wasm32-unknown-unknown   # one time
-cargo check --target wasm32-unknown-unknown -p foundation_agent_rpc --features wasm
-cargo test -p foundation_agent_rpc --test wasm_orchestrator_tests --profile uat
-cargo test -p foundation_agent_rpc --test cloudflare_plan_tests --profile uat
-cargo test -p foundation_agent_rpc --test agent_container_tests --profile uat
+cargo check -p foundation_agent_rpc --no-default-features --features worker --target wasm32-unknown-unknown
+cargo test -p foundation_agent_rpc --features testing --profile uat cloudflare::
 ```
 
 ## Success Criteria

@@ -149,8 +149,10 @@ impl MockAcme {
         let der = rustls_pki_types::CertificateSigningRequestDer::from(csr_der);
         let csr_params = rcgen::CertificateSigningRequestParams::from_der(&der)
             .map_err(|e| format!("parse csr: {e}"))?;
+        let issuer = rcgen::Issuer::from_ca_cert_der(self.ca_cert.der(), &self.ca_key)
+            .map_err(|e| format!("build issuer: {e}"))?;
         let issued = csr_params
-            .signed_by(&self.ca_cert, &self.ca_key)
+            .signed_by(&issuer)
             .map_err(|e| format!("sign csr: {e}"))?;
         *self.issued.lock().unwrap() = Some(issued.pem());
         Ok(())

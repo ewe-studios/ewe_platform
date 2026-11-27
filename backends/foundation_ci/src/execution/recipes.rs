@@ -285,6 +285,40 @@ fn gate_commands(recipe: GateRecipe, profile: &str, step: &str) -> Vec<CommandSt
     }
 }
 
+/// The checks of the sandbox Worker, a self-contained wasm32 workspace.
+///
+/// `cargo check`, `cargo clippy` and `cargo fmt` run with the nested
+/// workspace's own `Cargo.toml`, because the root workspace excludes it.
+fn sandbox_worker_commands(root: &Path, pkg: &Package, step: &str) -> Vec<CommandStep> {
+    let manifest = root.join(&pkg.dir).join("Cargo.toml");
+    let manifest = manifest.to_string_lossy().to_string();
+    let mut out = Vec::new();
+    match step {
+        "fmt" => out.push(cargo(&["fmt", "--manifest-path", &manifest, "--check"])),
+        "build" => out.push(cargo(&[
+            "check",
+            "--target",
+            "wasm32-unknown-unknown",
+            "--manifest-path",
+            &manifest,
+        ])),
+        "clippy" => out.push(cargo(&[
+            "clippy",
+            "--target",
+            "wasm32-unknown-unknown",
+            "--all-targets",
+            "--no-deps",
+            "--manifest-path",
+            &manifest,
+            "--",
+            "-D",
+            "warnings",
+        ])),
+        _ => {}
+    }
+    out
+}
+
 pub(super) fn commands(
     root: &Path,
     pkg: &Package,
@@ -324,6 +358,9 @@ pub(super) fn commands(
     }
     if pkg.recipe == Some(GroupRecipe::ExampleApplications) {
         return example_commands(root, pkg, profile, step);
+    }
+    if pkg.recipe == Some(GroupRecipe::SandboxWorker) {
+        return Ok(sandbox_worker_commands(root, pkg, step));
     }
     match step {
         "fmt" => out.push(cargo(&["fmt", "-p", name, "--check"])),

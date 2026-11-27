@@ -1335,3 +1335,24 @@ Other facts that cost time:
   `..Default::default()`.
 - The new trait methods made `foundation_auth` a breaking change for a `TrustStore`
   implementor. The version is 0.0.16, and every workspace consumer names it.
+
+## A `Send` bound must follow the engine, not one crate (2026-11-27)
+
+The `multi` split broke `bin/ewe_ui`. The error was `error[E0599]` in
+`foundation_netio/src/shared/client/body_reader.rs`: `map_ready` needed `Send`, and the box it
+was called on was not `Send`.
+
+The cause was a feature-graph mismatch:
+
+- `ExchangeContinuation` took its `Send` bound from `foundation_netio`'s own `multi` feature.
+- `valtron::send` and `TaskIteratorExt` take theirs from `foundation_core`'s `multi` feature.
+- Cargo can enable `foundation_core`'s `multi` without `foundation_netio`'s (the path through
+  `foundation_ui_native` and `foundation_repl` does exactly that).
+
+**The fix.** A type in `foundation_core`, `EngineTask`, is `TaskIterator + Send` when the
+engine is multi and `TaskIterator` alone otherwise. `ExchangeContinuation` is
+`Box<dyn EngineTask<...>>`, so the bound follows the engine in every consumer's graph.
+
+**The rule.** A `Send` bound belongs to the crate that owns the engine and its feature. A
+second crate must not define its own copy of that switch. A feature name is not a global
+contract; Cargo unifies it per crate.

@@ -20,7 +20,9 @@ use crate::shared::ids::ExecId;
 use crate::shared::rpc::messages::{
     ExecInputRequest, ExecInputResponse, ExecRequest, ExecSignalRequest, FileReadRequest,
     FileWriteAbortRequest, FileWriteBeginRequest, FileWriteBeginResponse, FileWriteChunkRequest,
-    FileWriteChunkResponse, FileWriteCommitRequest, FileWriteCommitResponse,
+    FileWriteChunkResponse, FileWriteCommitRequest, FileWriteCommitResponse, UnpackAbortRequest,
+    UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest, UnpackChunkResponse,
+    UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::{BoxFuture, ExecEventStream, FileChunkStream};
 
@@ -64,6 +66,27 @@ pub trait ExecFileCalls: Send + Sync + 'static {
 
     /// Reads one file.
     fn file_read(&self, request: FileReadRequest) -> BoxFuture<'_, SandboxResult<FileChunkStream>>;
+
+    /// Starts an image unpack (feature 12).
+    fn unpack_begin(
+        &self,
+        request: UnpackBeginRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackBeginResponse>>;
+
+    /// Writes one chunk of the tar stream.
+    fn unpack_chunk(
+        &self,
+        request: UnpackChunkRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackChunkResponse>>;
+
+    /// Ends the tar stream and applies the archive.
+    fn unpack_commit(
+        &self,
+        request: UnpackCommitRequest,
+    ) -> BoxFuture<'_, SandboxResult<UnpackCommitResponse>>;
+
+    /// Ends an unpack without applying it.
+    fn unpack_abort(&self, request: UnpackAbortRequest) -> BoxFuture<'_, SandboxResult<()>>;
 }
 
 /// The operations behind one [`ExecHandle`].
@@ -85,6 +108,13 @@ pub trait ExecHandleOps: Send + Sync + 'static {
 
     /// Waits for the program and reads and discards its output.
     fn wait(&self) -> BoxFuture<'_, SandboxResult<ExitStatus>>;
+
+    /// Whether the command passed its time limit.
+    ///
+    /// The default is `false` for a handle that has no timer.
+    fn timed_out(&self) -> bool {
+        false
+    }
 }
 
 /// A handle to one running program.
@@ -139,6 +169,12 @@ impl ExecHandle {
     /// passed its time limit, or the error of the slave call.
     pub async fn wait(self) -> SandboxResult<ExitStatus> {
         self.ops.wait().await
+    }
+
+    /// Whether the command passed its time limit.
+    #[must_use]
+    pub fn timed_out(&self) -> bool {
+        self.ops.timed_out()
     }
 }
 

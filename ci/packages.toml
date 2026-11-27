@@ -109,6 +109,14 @@ directory = "backends/foundation_core/integration/wasm_tests"
 recipe = "wasm-runtime-tests"
 build-members = []
 
+# The sandbox Cloudflare Worker (spec 77 feature 08). It is a self-contained
+# wasm32 workspace, so cargo metadata never lists it; the recipe runs its
+# check, clippy and fmt with its own Cargo.toml.
+[groups.sandbox_worker]
+directory = "infrastructure/sandbox_worker"
+recipe = "sandbox-worker"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
@@ -135,6 +143,8 @@ timeout-minutes = 60
 #   vfs-fuse                      FUSE (needs /dev/fuse and libfuse)
 #   vfs-preload                   LD_PRELOAD shim (a Linux shared object)
 #   vms                           QEMU/KVM virtual machines
+#   slave                         the sandbox guest program (fork, signalfd,
+#                                 mount and the process identifier 1 duties)
 linux-only-features = [
   "uring",
   "native-linux",
@@ -144,6 +154,7 @@ linux-only-features = [
   "vfs-fuse",
   "vfs-preload",
   "vms",
+  "slave",
 ]
 # macOS and Windows jobs are shards: one job tests several packages in a row with
 # one target directory, so dependencies that packages share build once. More
@@ -351,13 +362,14 @@ windows-reason = "Known bug on Windows: #522: timing tests fail on the slower ru
 # The last run adds the VFS conformance kit (`vfs-testkit`), so
 # `tests/durable/vfs_conformance.rs` runs in CI. It uses the thread-pool
 # executor and the simulated clock, the same set the spec 71 handoff runs.
-runs = ["", "multi", "test-clock", "multi,test-clock,vfs-testkit"]
+# The `testing` run is the deterministic simulation runtime.
+runs = ["", "multi", "test-clock", "testing", "multi,test-clock,vfs-testkit"]
 # The executors differ by feature, so lint both trees: the `multi` tree compiles
 # `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
 # the single-threaded executor. `test-clock` compiles `SimulatedClock`, which
 # exists in no other tree. The kit tree lints `durable/shared/vfs_testkit.rs`,
 # which no other tree compiles.
-clippy-runs = ["", "multi", "test-clock", "multi,test-clock,vfs-testkit"]
+clippy-runs = ["", "multi", "test-clock", "testing", "multi,test-clock,vfs-testkit"]
 # At zero clippy warnings in both trees: a new one fails CI (spec 70 feature 116).
 clippy-deny-warnings = true
 wasm = "enforce"
@@ -399,6 +411,12 @@ clippy-deny-warnings = true
 # against the CPU build of llama.cpp.
 runs = ["", "gguf"]
 
+[packages.foundation_agent_rpc_dst]
+# The deterministic simulation tests open no socket, read no real clock and
+# use no SQLite, so they run on Linux, macOS and Windows.
+runs = [""]
+clippy-deny-warnings = true
+
 [packages.foundation_jsonschema]
 # 14 pedantic warnings; clear them and delete this override (#441).
 clippy-deny-warnings = false
@@ -424,12 +442,14 @@ windows-tests = "none"
 windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # VM orchestration (QEMU/UTM) is behind the non-default `vms` feature; its
 # tests (moved here from foundation_testbed with the code, spec-53 F11) only
-# compile with it, so test that configuration as well.
-runs = ["", "vms"]
+# compile with it, so test that configuration as well. The `sandbox` run proves
+# the `Provider` facade that spec 77 feature 06 adds over the trait in this
+# crate.
+runs = ["", "vms", "sandbox"]
 # The `vms` run is in `linux-only-features`: macOS and Windows run the default set.
 # Lint both feature trees: a warning in `vms` code must fail CI too
 # (spec 70 feature 79).
-clippy-runs = ["", "vms"]
+clippy-runs = ["", "vms", "sandbox"]
 # At zero clippy warnings in both feature trees: a new one fails CI.
 clippy-deny-warnings = true
 
@@ -531,8 +551,9 @@ wasm-runs = ["--no-default-features --features wasm"]
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123). Remove this opt-out when the issue is fixed."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
-runs = ["", "libsql"]
-clippy-runs = ["", "libsql"]
+# `testing` adds the fault-injecting storage wrappers (spec 83 feature 04).
+runs = ["", "libsql", "testing"]
+clippy-runs = ["", "libsql", "testing"]
 # At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
 clippy-deny-warnings = true
 wasm = "enforce"
@@ -732,7 +753,9 @@ macos-reason = "Known bug on macOS: #466: the blackhole dial test needs a full l
 windows-tests = "none"
 windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
 # `h3` adds the HTTP/3 suites (tests/h3_*), which no run compiled before.
-runs = ["", "h3"]
+# `testing` adds the in-memory network and transport (spec 83 feature 04).
+runs = ["", "h3", "testing"]
+clippy-runs = ["", "testing"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
 # Spec 70 feature 128: the rpc wasm build is at zero warnings, and the gate
@@ -748,6 +771,16 @@ macos-runs = ["", "device"]
 
 # ---------------------------------------------------------------------------
 # Example workspaces
+
+[packages.sandbox_worker]
+macos-tests = "none"
+windows-tests = "none"
+reason = "The sandbox Worker is a wasm32-only workspace; its checks run on the Linux Cloudflare job."
+fmt = "enforce"
+build = "enforce"
+clippy = "enforce"
+test = "off"
+wasm = "off"
 
 [packages.examples]
 macos-tests = "none"
@@ -849,9 +882,45 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 
 [packages.foundation_sandbox]
 # The contract compiles on every target. `control` and `firecracker` are the
-# default features; their code lands in features 02 and 05.
+# default features. The control-plane tests need the `testing` helpers and run
+# on every operating system. The slave tests start the real slave process, so
+# they run on Linux with the `slave` feature. The `cli` run parses the two
+# programs and serves the control plane; the `provider` run proves the
+# `Provider` facade (spec 77 feature 06).
 wasm = "enforce"
-wasm-runs = ["", "--no-default-features"]
+wasm-runs = ["", "--no-default-features", "--no-default-features --features control cloudflare"]
+runs = [
+    "",
+    "slave",
+    "testing",
+    "slave cli testing",
+    "cli provider testing",
+    "cloudflare testing",
+    "libkrun libkrun-runner testing",
+    # The Docker driver and the nested driver tests (features 10 and 11): the
+    # fake Engine starts no container.
+    "docker testing",
+    # The image import (feature 13): the fake Engine starts no container.
+    "images docker testing slave",
+    "images docker testing slave cli",
+]
+# Lint each feature tree of this phase: a warning in the CLI, the slave, the
+# provider, the Cloudflare part, the libkrun driver or the Docker driver must
+# fail CI too.
+clippy-runs = ["", "slave cli testing", "cli provider testing", "cloudflare testing", "libkrun libkrun-runner testing", "docker testing"]
+clippy-deny-warnings = true
+# The slave tests are Linux only: "the slave is a Linux guest program". It calls
+# fork, signalfd, mount and the process identifier 1 duties, which no other
+# operating system has. macOS and Windows run the contract, control, CLI,
+# provider and Cloudflare tests. The libkrun driver tests run on Linux and macOS.
+# They start no virtual machine: the real-machine tests return with a report when
+# libkrun is absent. The image import tests (spec 77 feature 13) run on Linux and
+# macOS: their end-to-end rows print a reason and return when the host has no KVM,
+# no Firecracker program or no `mkfs.ext4` (issues #994 and #996). Windows keeps
+# the contract, control and CLI runs: the import needs Docker and the image store
+# is Unix only.
+macos-runs = ["", "testing", "cli testing", "cloudflare testing", "libkrun libkrun-runner testing", "images docker testing slave", "images docker testing slave cli"]
+windows-runs = ["", "testing", "cli testing", "cloudflare testing"]
 
 [packages.foundation_event_stream]
 # The shared subscription core is the Cloudflare Worker surface, so it must
