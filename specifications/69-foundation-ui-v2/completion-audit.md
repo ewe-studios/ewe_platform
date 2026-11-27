@@ -280,3 +280,11 @@ Feature 37 repeats synchronized delivery with a bounded channel.
 The legacy stream still retains all frames.
 Issue 548 remains open for general snapshot replacement.
 [Issue 548](https://github.com/ewe-studios/ewe_platform/issues/548)
+
+### Strict Todo lint
+
+The Feature 37 server and nested browser builds pass strict Clippy on macOS.
+The same application changes pass 14 server, seven native, and three Chromium tests.
+The native tests use the host core. The Chromium tests use the running Todo server.
+The three-operating-system package test run has its own pinned revision in this audit.
+[Todo lint results](progress.md#strict-todo-lint-check)

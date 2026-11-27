@@ -1607,3 +1607,15 @@ The hosted macOS runner exports its own Android Software Development Kit (SDK) p
 The tool manager sets the pinned path in ANDROID_HOME.
 Clear ANDROID_SDK_ROOT in the Android sample step before Gradle reads both values.
 This step runs in the macOS build job. The package test shards run separately.
+
+## Strict lint across Todo build roles
+
+The server build starts separate Cargo builds for the transport, the Todo browser client, and the Mathalley client.
+The first transport failure can hide later Todo warnings.
+Run the same top-level command after each repair to reach all build roles.
+
+The pending record batch completes immediately in the in-memory store.
+It still uses the same future interface as the native and browser stores.
+A ready future keeps that interface without another scheduler step.
+The countdown request keeps the serialized field name `request`.
+An unused state flag has no reader. Expiry still clears the pending request.

@@ -2153,3 +2153,16 @@ Gradle reports different SDK paths from the runner and the pinned configuration.
 The workflow clears the deprecated SDK variable for the sample.
 The shell check confirms that the pinned path reaches the sample command.
 The next scoped run verifies the hosted sample. [Issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185)
+
+## Strict Todo lint check
+
+The strict Todo check passes for the server and both nested WebAssembly builds.
+It uses `cargo clippy --locked --profile uat -p ui_todo --lib --bins --no-deps -j1 -- -D warnings`.
+The server action suite passes 14 tests. The native client suite passes seven tests.
+Chromium passes three tests for countdown expiry, imported records, and pending changes across tabs.
+The browser suite takes 72.81 seconds.
+
+The browser transport now documents the errors from its three fallible entry points.
+The Todo changes keep the serialized request and the same state transitions.
+[Todo lint issue](https://github.com/ewe-studios/ewe_platform/issues/1175)
+[Transport documentation issue](https://github.com/ewe-studios/ewe_platform/issues/1183)
