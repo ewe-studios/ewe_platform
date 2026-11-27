@@ -792,10 +792,24 @@ impl ProtocolClient for ConnectClient {
         read_max_bytes: usize,
     ) -> ConnectResult<Bytes> {
         // Connect unary: bare body, compressed via `content-encoding`.
-        match response_decompressor(head, &["content-encoding"], compression)? {
-            Some(compressor) => Ok(Bytes::from(compressor.decompress(&body, read_max_bytes)?)),
-            None => Ok(body),
+        let mut wire = match response_decompressor(head, &["content-encoding"], compression)? {
+            Some(compressor) => Bytes::from(compressor.decompress(&body, read_max_bytes)?),
+            None => body,
+        };
+        // A proxy in front of the server can compress the body and leave
+        // `Content-Encoding` off, or compress an encoded response a second time
+        // (issue #1141). A JSON or protobuf message never starts with the gzip
+        // magic, so read it and decode at most two more layers.
+        for _ in 0..2 {
+            if !wire.starts_with(&[0x1f, 0x8b]) {
+                break;
+            }
+            let Some(gzip) = compression.get("gzip") else {
+                break;
+            };
+            wire = Bytes::from(gzip.decompress(&wire, read_max_bytes)?);
         }
+        Ok(wire)
     }
 
     fn new_conn(
