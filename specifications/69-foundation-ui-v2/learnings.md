@@ -1727,6 +1727,8 @@ A failure in the JSON path does not prevent a direct libSQL test recipe.
 The package runner accepts named test files in `windows-runs`. The plan records only the package that runs.
 The audit must name the selected tests when the package has partial coverage.
 The database test dependency keeps its default features. The proposed recipe limits the test files that run.
+The libSQL 0.10 preview stops while it reads generated bindings from a verbatim Windows path.
+The check must verify that the generated file exists before it assigns the cause to path syntax.
 
 A physical application launch uses its built-in server address outside the Xcode scheme.
 Keep the scratch server on loopback and use an approved device-reachable endpoint.

@@ -2313,12 +2313,19 @@ The source selects libSQL 0.10.0 for all workspace consumers and keeps the Todo 
 On macOS, 14 Todo actions, 15 SQLite virtual file system tests, and 24 vector tests pass.
 The new Todo server reopens a test database from the old package. The initial response contains the original completed item.
 The database crate also passes its default build check and strict lint for both libSQL feature sets.
-The Windows test uses a temporary Todo database with spaces and a Unicode letter in its name.
+The Windows Todo and vector packages stop before their tests. The compiler cannot read the generated `libsql-ffi` bindings path.
+The path has a Windows verbatim drive prefix. Issue 1205 tracks the failure.
+The Todo reopen test with a Unicode file name remains pending.
 
 Issue 519 tracks the separate JSON file-state store. The old Windows suite passes the plain-key compare-and-set test.
 The namespaced test fails. A name with a slash becomes a file name with a colon.
 The full database package remains excluded on Windows. A proposed recipe selects four local libSQL test files.
-The planner schedules that recipe. All 14 selected tests pass on macOS. The Windows result still needs a run.
+The planner schedules that recipe. All 14 selected tests pass on macOS.
+The [next Windows run](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956) tests the partial recipe at preview commit `47cfbf6f4`.
+It checks for the generated binding and compares native and mixed path forms.
+It also runs ordinary Cargo from a new short-path checkout.
+The batch test reopens a database with a space and Unicode letter in its name.
+Issue 519 still records the excluded full database suite.
 
 ### Physical phone handoff
 
