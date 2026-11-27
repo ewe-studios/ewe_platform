@@ -1503,3 +1503,10 @@ The native Todo tests can build the browser server package during setup.
 A WebAssembly build can finish before binding generation starts.
 Install the locked binding command in the same environment as both Todo test suites.
 See [issue 1166](https://github.com/ewe-studios/ewe_platform/issues/1166).
+
+## 2026-11-28 — Android full-resolution landscape replay
+
+A landscape frame can appear while Android changes focus.
+Wait for the accessibility controls in the game dialog before the replay sends the touch.
+Wait for the round result before restoring portrait. The input command only reports that its own work completed.
+The previous focus timeout did not recur. These runs verify the result and the replay order.
