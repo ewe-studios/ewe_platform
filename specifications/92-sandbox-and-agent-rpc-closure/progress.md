@@ -41,8 +41,11 @@ Branch `fix/sandbox-follow-ups`, pull request #1111. It closes the rows of this 
 that do not need a Linux host with KVM.
 
 - The first change closed #935, #966, #969, #970, #972, #1013, #1022 and #1023. It also
-  added the watchdog for the serve token tests (#1104) and fixed a dead export variant
-  (#1106).
+  fixed the serve token test hang (#1104) with a watchdog and the host clock, and fixed a
+  dead export variant (#1106). The Linux run then showed the root cause of the hang: the
+  slave test support leaked a second valtron pool's lifecycle guard, so every later
+  `crate::pool::pool()` blocked. The slave tests now use the one shared test pool, and the
+  serve token tests pass on Linux.
 - The second change closes #977. `UnpackBegin` reads the `ready` line as a readiness
   future, and `UnpackChunk` and `UnpackCommit` write and read through non-blocking pipes
   that park on writability. `tests/slave/unpack.rs` fills every task worker with writers

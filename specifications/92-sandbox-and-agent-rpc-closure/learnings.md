@@ -31,9 +31,15 @@ closed, not when its code compiles.
   simulated clock that no thread advanced. They now use the host clock and close the client
   before shutdown. A 30 s watchdog exits the test binary, so a wedged stream fails the job
   in seconds instead of after the job timeout.
-- **The serve hang is in the executor, not the test.** The root cause is the
-  `foundation_core` `Stream::Wait` re-drive: a would-block response read parks and never
-  resumes. Issue #1104 stays open until `fix/dst-wait-redrive` lands.
+- **Two pools in one test process deadlock.** The slave tests started a second valtron
+  pool and leaked its process-wide lifecycle guard. Every later `crate::pool::pool()` call
+  then blocked on the gate, so the serve token tests and the new unpack test waited until
+  the job was cancelled. The slave tests now use the one shared test pool with
+  `block_on_future`, and the serve tests pass (issue #1104).
+- **A test timeout hides the cause.** The first Linux run of the branch showed the compile
+  error and then a hang. The hang was the leaked pool gate, not a slow test. A test that
+  waits on a shared gate needs a report that names the gate, or the log shows only
+  "running for over 60 seconds".
 - **A pipe write must park.** The unpack child writes to a pipe. A blocking `write_all`
   holds a valtron worker for the whole unpack. The fix uses `FdReadiness` and a readiness
   future, and reads the `ready` line the same way. The multi pool has at least two task
