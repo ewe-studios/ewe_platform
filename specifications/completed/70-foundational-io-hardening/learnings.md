@@ -2612,3 +2612,11 @@ The slow-client binary has two tests. Its synchronous test does not use the Valt
 The client sleeps after each byte read. Host scheduling affects the total runtime.
 The repeated local runs finish between 6.25 and 7.73 seconds.
 The historical timeout does not occur in the local runs.
+
+
+## Windows server tests use Unix readiness
+
+The original Windows log shows missing Unix readiness types and methods in the writer and HTTP/2 server.
+The shared router, reader, and context remain available to native Windows clients.
+Test code that starts the Unix server needs the same target condition as the server.
+Test the shared routes through their shared context constructor on either target.

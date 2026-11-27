@@ -1738,3 +1738,17 @@ Git can change a tracked text file during checkout.
 Use a line-feed attribute on the generated text files that tests compare by byte.
 The Windows log compares the same values with different line endings.
 An automatic CRLF checkout reproduces the difference without changing the source files.
+
+
+## Windows native HTTP boundary
+
+The original Windows log contains unresolved descriptor readiness imports in the server writer.
+It also records missing readiness methods in the writer and the HTTP/2 server.
+The current code makes these server modules available on Unix.
+
+The native Todo server uses those modules for asset routes and live delivery.
+The shared application builder and router have no independent Windows TCP server.
+Feature 37 names the browser, iPhone, and Android for its synchronized mutations.
+That check uses a native server on a supported host.
+The Windows compiler check and driver tests do not establish Windows Todo serving.
+[Original Windows log](https://github.com/ewe-studios/ewe_platform/actions/runs/43132412804/job/130900138730)

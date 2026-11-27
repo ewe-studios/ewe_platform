@@ -2333,3 +2333,18 @@ The new Git attributes preserve line feed for the generated vocabulary and the n
 The automatic CRLF checkout check reproduces the old change and preserves all four tested files after the fix.
 The byte comparisons and binary wire fixtures stay the same.
 [Issue 1202](https://github.com/ewe-studios/ewe_platform/issues/1202)
+
+
+## Windows browser and HTTP scope
+
+The review candidate keeps the portable browser driver and its existing direct tests on Windows.
+The browser test server and its served fixtures require Unix.
+The Windows dependency graph excludes the HTTP server and live-stream dependencies.
+
+The macOS browser suite passes 40 tests with the live browser feature.
+The macOS HTTP suite passes 178 default tests and 181 tests with `multi,quic`.
+The Windows HTTP client library cross-check passes without TLS, with and without the multi-threaded engine.
+
+The intended Windows package command needs the Windows C headers for the `ring` build.
+Run the prepared Windows recipes on a Windows runner before removing the shared test exclusions.
+[Windows package follow-up](https://github.com/ewe-studios/ewe_platform/issues/1203)

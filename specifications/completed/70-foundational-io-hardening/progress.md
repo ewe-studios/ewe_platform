@@ -2782,3 +2782,14 @@ The continuous integration (CI) plan selects the HTTP test package on macOS.
 Windows remains tracked in issue 531.
 The hosted macOS run remains the confirmation for the old timeout.
 [Hosted follow-up](https://github.com/ewe-studios/ewe_platform/issues/546)
+
+
+## Windows portable HTTP test preparation
+
+The candidate separates native server tests from portable router, reader, and context tests.
+The Unix server assertions keep their existing checks and feature settings.
+The HTTP client library cross-check passes for the Windows target without the TLS features.
+The multi-threaded variant still reports the tracked Windows network library warnings.
+[Network warnings](https://github.com/ewe-studios/ewe_platform/issues/489)
+The ordinary Windows test recipe waits for a Windows runner with its platform headers.
+[Windows HTTP and browser test issue](https://github.com/ewe-studios/ewe_platform/issues/1203)
