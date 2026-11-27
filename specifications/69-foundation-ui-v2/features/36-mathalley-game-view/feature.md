@@ -91,6 +91,38 @@ Each host plays the same score through its sound session.
 
 The owner approves the audio extension for implementation. The existing game and its controls use the approved visual design.
 
+## Shared Android surface lifecycle
+
+The Android host supplies a window for each drawing surface. Android can replace that window while the application runs.
+The framework must prevent a frame for an old window from reaching its replacement.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Ready: Attach window
+    Ready --> Drawing: Accept frame
+    Drawing --> Ready: Finish frame
+    Ready --> Closing: Close view
+    Drawing --> Closing: Stop accepting frames
+    Closing --> Detached: Finish pending work and release surface
+    Detached --> Ready: Attach new window
+```
+
+Each window has its own drawing lifetime.
+
+- Put native frame coordination in the framework. Connect the shared Android component, `EweDrawingSurface`, to that coordination.
+- Give applications a shared way to submit a draw and close a surface. Keep game rules and navigation in the application.
+- Handle Back, view disposal, and window loss. Reject stale callbacks and handle duplicate close requests.
+- Keep the Android main thread responsive while the last draw finishes. Release the surface once.
+- Preserve existing callers. Check all drawing surface consumers and test a simple framework consumer independent of Mathalley.
+- Move emulator sound policy into the shared Android launch task. Enable sound by default and support explicit mute.
+- Keep emulator driver settings in the existing native graphics host. Read application endpoint defaults from project configuration.
+- Test two game visits in one process. On each visit, draw Train, answer a question, and return to the same Todo list.
+- Test window replacement during a draw. Check that a second surface can draw after the first closes.
+- Test both sound settings. Check playback with sound enabled. Record the device and the observation.
+
+Use the existing [Android Train](screenshots/android-game.png) and [Todo return](screenshots/android-return.png) images for both visits.
+The owner approves this extension for implementation.
+
 ## Verification record
 
 
