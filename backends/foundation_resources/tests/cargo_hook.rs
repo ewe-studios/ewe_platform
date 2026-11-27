@@ -46,6 +46,8 @@ name = "resource_fixture"
 version = "0.1.0"
 edition = "2021"
 [workspace]
+[features]
+local-only = []
 [profile.package-check]
 inherits = "dev"
 [build-dependencies]
@@ -59,10 +61,14 @@ foundation_resources = {{ path = '{provider}', default-features = false, feature
         app.join("build.rs"),
         r#"
 fn main() -> std::io::Result<()> {
-    foundation_resources::package::BrowserPackage::new(std::path::Path::new("web/app.js"))
-        .browser_enabled(false)
-        .with_generated("revision", "generated")
-        .build()
+    let package =
+        foundation_resources::package::BrowserPackage::new(std::path::Path::new("web/app.js"))
+            .browser_enabled(false);
+    if cfg!(feature = "local-only") {
+        package.with_generated("revision", "native").with_dev_preview(false).build()
+    } else {
+        package.with_generated("revision", "generated").build()
+    }
 }
 "#,
     )
@@ -72,7 +78,25 @@ fn main() -> std::io::Result<()> {
     fs::write(app.join("browser.js"), "boot").unwrap();
     fs::write(app.join("art/icon"), "first").unwrap();
     let public = target.join("package-check/public/resource_fixture");
+    let build_local = || {
+        let output = command(&app, &target)
+            .args(["--features", "local-only"])
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    };
+    build_local();
+    assert!(!public.exists());
     cargo(&app, &target, true);
+    // Change a tracked input so Cargo reruns the local build hook.
+    fs::write(app.join("art/icon"), "native edit").unwrap();
+    build_local();
+    assert_eq!(fs::read(public.join("version")).unwrap(), b"generated");
+    assert_eq!(fs::read(public.join("art/icon")).unwrap(), b"first");
     assert_eq!(fs::read(public.join("version")).unwrap(), b"generated");
     #[cfg(unix)]
     assert_eq!(
@@ -103,6 +127,7 @@ fn main() -> std::io::Result<()> {
 
     let stage = temp.path().join("apple");
     let output = command(&app, &target)
+        .args(["--features", "local-only"])
         .env("EWE_RESOURCE_TARGET", "apple")
         .env("EWE_RESOURCE_DEST", &stage)
         .env("EWE_RESOURCE_PAYLOAD", "EweResources")
@@ -114,7 +139,7 @@ fn main() -> std::io::Result<()> {
         String::from_utf8_lossy(&output.stderr)
     );
     let payload = stage.join("EweResources");
-    assert_eq!(fs::read(payload.join("version")).unwrap(), b"generated");
+    assert_eq!(fs::read(payload.join("version")).unwrap(), b"native");
     assert!(!payload.join("browser.js").exists());
     assert!(!payload.join(".ewe-resource-index").exists());
     assert!(stage.join(".ewe-resource-index").is_file());

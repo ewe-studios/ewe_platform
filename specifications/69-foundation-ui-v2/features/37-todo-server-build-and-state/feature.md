@@ -63,7 +63,8 @@ Verify that the override requires no matching path edit in Todo.
 
 ### Proposed packaging closure sequence
 
-This brief awaits owner approval. It uses the existing Todo screen and browser controls.
+The owner approves step 1 for implementation on 2026-11-28. Steps 2 through 4 await owner approval.
+This brief uses the existing Todo screen and browser controls.
 Use the existing [pending](../32-portable-view-targets/screenshots/chrome-pending.png) and
 [retry](../32-portable-view-targets/screenshots/chrome-retry.png) captures as visual references.
 

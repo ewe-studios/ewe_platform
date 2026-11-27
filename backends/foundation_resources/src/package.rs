@@ -21,6 +21,7 @@ pub struct BrowserPackage<'a> {
     companions: Vec<(&'a str, &'a str)>,
     generated: Vec<(&'a str, Vec<u8>)>,
     browser: bool,
+    publish_dev_preview: bool,
     npm_lock: Option<&'a Path>,
 }
 
@@ -37,6 +38,7 @@ impl<'a> BrowserPackage<'a> {
             companions: Vec::new(),
             generated: Vec::new(),
             browser: true,
+            publish_dev_preview: true,
             npm_lock: None,
         }
     }
@@ -81,6 +83,16 @@ impl<'a> BrowserPackage<'a> {
     #[must_use]
     pub fn browser_enabled(mut self, enabled: bool) -> Self {
         self.browser = enabled;
+        self
+    }
+
+    /// Control publication beside the development server executable.
+    ///
+    /// Publication is enabled by default for Web staging without an explicit destination.
+    /// Package-local staging and explicit destinations use the same target in both settings.
+    #[must_use]
+    pub fn with_dev_preview(mut self, enabled: bool) -> Self {
+        self.publish_dev_preview = enabled;
         self
     }
 
@@ -159,7 +171,7 @@ impl<'a> BrowserPackage<'a> {
             file.persist(path)?;
         }
         if !self.browser || env::var_os("EWE_RESOURCE_TARGET").is_some_and(|t| t != "web") {
-            return crate::build::stage_from_cargo().map(drop);
+            return crate::build::stage_outputs(&[], self.publish_dev_preview).map(drop);
         }
         for (_, folder) in &self.companions {
             ResourceName::new(folder).map_err(io::Error::other)?;
