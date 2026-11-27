@@ -185,9 +185,12 @@ pub const CORE_CSS: &str = "\
 .ewe-spacer{flex:1 1 auto}
 .ewe-drawing-surface{width:300px;height:150px}
 .ewe-navigation-title,.ewe-sheet-title{font-family:system-ui,sans-serif;line-height:1.2;letter-spacing:-.025em;margin:.3em 0}
-.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}
+.ewe-button,.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}
 .ewe-toolbar-button,.ewe-submit-button{align-self:flex-start;background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText))}
-.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}
+.ewe-button,.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}
+.ewe-button:not(:where(.ewe-segmented-control button)){align-self:flex-start}
+.ewe-button:not(:where(.ewe-segmented-control button)):disabled{color:GrayText;cursor:not-allowed}
+.ewe-button:not(:where(.ewe-segmented-control button)):focus-visible{outline:2px solid Highlight;outline-offset:2px}
 .ewe-destructive-button{background:Canvas;color:var(--color-error,#a51f26)}
 .ewe-segmented-control,.ewe-checklist-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45em}
 .ewe-segmented-control{margin-block:.75em}

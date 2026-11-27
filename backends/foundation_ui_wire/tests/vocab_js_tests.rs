@@ -143,7 +143,14 @@ fn web_tables_cover_all_kinds_and_events() {
         &EventId::ENUM_VALUES[1..],
     );
     for row in WEB_KINDS {
-        if [NodeKind::OVERLAY, NodeKind::MODAL, NodeKind::BOTTOM_SHEET].contains(&row.kind) {
+        if [
+            NodeKind::BUTTON,
+            NodeKind::OVERLAY,
+            NodeKind::MODAL,
+            NodeKind::BOTTOM_SHEET,
+        ]
+        .contains(&row.kind)
+        {
             assert!(CORE_CSS.contains(row.class));
         }
     }

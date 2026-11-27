@@ -1,5 +1,12 @@
 # Spec 69 progress
 
+## Shared web button styles
+
+- Restore secondary styles for Play Mathalley, Pause input, Retry pause, and Edit title.
+- Keep the controls at their content width. Show keyboard focus and the disabled state.
+- Retain the appearance of the Add, filter, completion, and delete controls. [Issue 1067](https://github.com/ewe-studios/ewe_platform/issues/1067)
+- Verify both theme preferences with populated rows. Verify the dark browser surface with a test setting.
+
 ## Feature 32 — Todo input pause
 
 - Add a named input pause control and modal to the shared Todo view.
