@@ -227,3 +227,13 @@ Keep the existing theme token values and controls.
 3. Use the keyboard to reach the filter and dialog controls. Check that you can see the focus outline.
 4. Complete a Todo. Check its state, count, and filter placement.
 5. Capture the list and open dialog in each appearance.
+
+The row title contrast is 7.47 to 1 in light appearance and 12.90 to 1 in dark appearance.
+The filter focus outline contrast is 5.98 to 1 in light and 10.76 to 1 in dark.
+The dialog text contrast is 21 to 1 in light and 18.73 to 1 in dark.
+Keyboard focus remains inside the dialog. Complete moves the row to Done and updates the open count.
+
+- [Light list](design/browser-light-list.png)
+- [Light dialog](design/browser-light-dialog.png)
+- [Dark list](design/browser-dark-list.png)
+- [Dark dialog](design/browser-dark-dialog.png)
