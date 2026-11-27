@@ -2125,3 +2125,9 @@ The generated regular and minified bundles match.
 The JavaScript suites pass 176 tests and skip one legacy fixture.
 The WebAssembly testbed passes both integration tests, including the isolated staged runtime.
 [Issue 1177](https://github.com/ewe-studios/ewe_platform/issues/1177)
+
+## 2026-11-28 — Search input guide
+
+The search input example imports the template macro and supplies a query and host action name.
+The runtime guide passes 12 documentation tests. Two existing examples stay excluded.
+[Issue 1182](https://github.com/ewe-studios/ewe_platform/issues/1182)

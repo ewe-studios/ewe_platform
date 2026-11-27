@@ -1588,3 +1588,8 @@ The Android Debug Bridge (ADB) raw report gives the result text and success code
 A browser server can serve the connection module without exposing the missing dependency in the embedded runtime.
 Run an import in a directory that contains only the embedded runtime.
 Put the connection implementation in that runtime. Re-export the same constructor from the connection module.
+
+## 2026-11-28 — Search input guide
+
+The runtime includes its guide in its Rust documentation.
+A runnable block needs its own imports and values. A named host binding can refer to an action that the application registers.
