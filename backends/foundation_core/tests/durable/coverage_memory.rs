@@ -243,14 +243,12 @@ fn memory_vfs_soft_deletes_and_cascades() {
                 .await,
             Err(VfsError::Gone)
         ));
-        // A soft-deleted source stays readable at the VFS layer, because a fork
-        // reads through it. The store refuses it at `meta`.
-        assert_eq!(
-            vfs.read_at(&source, &VfsOffset(0), 8)
-                .await
-                .expect("soft-deleted source is readable for its forks"),
-            b"abc"
-        );
+        // A direct read of a soft-deleted entry reports Gone. A fork reads the
+        // source data through its own chain.
+        assert!(matches!(
+            vfs.read_at(&source, &VfsOffset(0), 8).await,
+            Err(VfsError::Gone)
+        ));
         assert!(matches!(vfs.touch(&source, 1).await, Err(VfsError::Gone)));
         assert!(matches!(
             vfs.trim(&source, VfsOffset(0)).await,

@@ -26,6 +26,8 @@ mod retention;
 mod scenarios;
 #[cfg(not(target_arch = "wasm32"))]
 mod service;
+#[cfg(not(target_arch = "wasm32"))]
+mod soft_delete_read;
 mod store_contract;
 mod support;
 #[cfg(not(target_arch = "wasm32"))]

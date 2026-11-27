@@ -7,6 +7,7 @@
 
 mod coverage;
 mod oracle;
+mod soft_delete_read;
 
 use foundation_core::durable::{
     ContentType, DurableStreamVfs, ForkInfo, StreamName, VfsError, VfsFuture, VfsMeta, VfsOffset,

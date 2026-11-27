@@ -541,6 +541,9 @@ producer, `Stream-Seq`, TTL access time, fork edges and soft-delete. It stores t
 the VFS metadata records. The offset scheme is private. Do not materialise a whole stream. Reads
 are paged.
 
+A direct `read_at` on a soft-deleted entry returns `VfsError::Gone`. The internal fork chain
+still reads a soft-deleted source, because a living fork depends on its data.
+
 | VFS | Crate | Status |
 |---|---|---|
 | Memory | `foundation_core` | first |

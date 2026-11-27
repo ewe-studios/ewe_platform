@@ -170,6 +170,10 @@ impl FileVfs {
         file.metadata().map(|meta| meta.len()).map_err(io_error)
     }
 
+    /// Walk the fork chain and return the bytes at `at`.
+    ///
+    /// The chain reads a soft-deleted source on purpose. A living fork depends
+    /// on that data.
     fn read_chain(
         &self,
         name: &StreamName,

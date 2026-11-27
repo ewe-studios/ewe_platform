@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: fixed #1042 (low). A direct `read_at` on a soft-deleted entry returns
+  `VfsError::Gone` on both VFS implementations. `MemoryVfs::read_at` checks the entry before the
+  chain; the internal fork chain still reads a soft-deleted source. The contract sentence is in
+  `requirements.md` section 3.7. New tests: `durable::soft_delete_read` (2) and file
+  `soft_delete_read` (2). Counts: core durable 115 pass, file VFS 17 pass. The time source guard
+  reports 0 violations. The changed files add no clippy lints. Issue #1043 already records the 19
+  pre-existing clippy lints in the durable module.
+
 - 2026-11-27: feature 08 CI wiring landed. `.github/workflows/check.yaml` has a
   `durable-conformance` job. It runs `ci/durable_conformance.sh` on a runner with Rust and
   Node 20 when a pull request touches a durable path, and on every full run. The job sets a

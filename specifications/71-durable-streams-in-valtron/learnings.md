@@ -504,10 +504,11 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The store clock is the wall clock.** `DurableStream` reads `ctx.clock().wall_now()`. A test
   that moves `SimulatedClock` must call `advance_wall`, not `advance`; the monotonic offset does
   not change the time-to-live (TTL) window.
-- **The two VFS implementations differ on a soft-deleted `read_at`.** `MemoryVfs::read_at` reads
-  through a soft-deleted entry; `FileVfs::read_at` returns `Gone`. A fork reads its source through
-  the internal chain on both, and the store checks `meta` first, so the protocol never sees the
-  difference. Issue #1042 records it for one documented contract.
+- **A direct `read_at` of a soft-deleted entry is `Gone` on every VFS.** The memory VFS used to
+  read through a soft-deleted entry; the file VFS returned `Gone`. Both now refuse the direct
+  read, and the memory check sits at `read_at` before the chain. The internal fork chain still
+  reads a soft-deleted source on purpose, because a living fork depends on that data. Issue
+  #1042.
 - **The kit lives behind a feature, not in a test module.** `vfs-testkit` enables `std` and
   `test-clock`, so a VFS crate adds one dev-dependency line. The module is `pub` under that
   feature and is absent from a normal build.

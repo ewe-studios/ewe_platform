@@ -119,6 +119,10 @@ impl MemoryVfs {
     }
 }
 
+/// Read through the fork chain.
+///
+/// The chain reads a soft-deleted source on purpose. A living fork depends on
+/// that data.
 fn read_chain(
     entries: &BTreeMap<StreamName, MemoryEntry>,
     name: &StreamName,
@@ -263,9 +267,14 @@ impl DurableStreamVfs for MemoryVfs {
         Box::pin(async move { result })
     }
 
+    /// A direct read of a soft-deleted entry returns `Gone`. The internal chain
+    /// still reads a soft-deleted source, because a living fork depends on it.
     fn read_at(&self, name: &StreamName, at: &VfsOffset, limit: usize) -> VfsFuture<'_, Vec<u8>> {
         let entries = self.lock();
-        let result = read_chain(&entries, name, at.0, limit, 0);
+        let result = match entries.get(name) {
+            Some(entry) if entry.soft_deleted => Err(VfsError::Gone),
+            _ => read_chain(&entries, name, at.0, limit, 0),
+        };
         Box::pin(async move { result })
     }
 
