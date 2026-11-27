@@ -1793,3 +1793,20 @@ flattened field wins. The Docker driver sets both fields (issue #966).
 **Finding.** The Firecracker probe of a nested host reports `kvm` false, and
 `SlaveInfo.can_control` is then false. A child create fails with `DriverUnavailable`, as
 invariant I2 says. No second code path is needed.
+
+## 26. A log match needs plain text (2026-11-27)
+
+The Cloudflare harness waited for the Worker build with a pattern on the `wrangler dev` log.
+It failed twice, and the second failure was not the pattern's spacing: the log carried ANSI
+colour codes between `[custom build]` and `Finished`, so no whitespace rule could match. The
+harness waited the whole 900 s deadline and killed a Worker that had built in 1 min 20 s.
+
+**Rule.** A script that matches a build log does three things:
+
+1. Start the tool with `CARGO_TERM_COLOR=never`, `NO_COLOR=1` and `CLICOLOR=0`.
+2. Strip escape sequences before the match, for example
+   `sed -E 's/\x1B\[[0-9;]*[mK]//g'`.
+3. Keep a tolerant pattern (`\[custom build\].*Finished`) as the second line of defence.
+
+A pattern that depends on the exact spacing of a human-facing line is a trap. Match the words,
+and read plain text.
