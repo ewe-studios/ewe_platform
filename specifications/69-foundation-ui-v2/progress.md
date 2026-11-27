@@ -2340,3 +2340,8 @@ The Windows native task test builds its templates and runs the release tests.
 Two checkouts can return different manifest line endings for one checksum commit.
 Read the manifest blob from the selected Git revision.
 Check the original archive checksum and the manifest from both checkout modes.
+
+The forced checkout regression reproduces the failure on macOS.
+The native integration suite passes all 29 tests with the fix.
+Keep the issue open for the next hosted Windows native test.
+[Issue 1204](https://github.com/ewe-studios/ewe_platform/issues/1204)

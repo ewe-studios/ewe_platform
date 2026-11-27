@@ -378,7 +378,11 @@ async fn check_swift_revision(
 ) -> TaskResult {
     let url = "https://example.invalid/release.zip";
     let original = "1".repeat(64);
-    let updated = "2".repeat(64);
+    let archive = tempfile::NamedTempFile::new().unwrap();
+    let bytes = b"archive fixture\r\n\x00raw bytes";
+    std::fs::write(archive.path(), bytes).unwrap();
+    let updated = tasks::stage::digest(archive.path()).await?;
+    assert_eq!(updated, hex::encode(Sha256::digest(bytes)));
     let path = args.source.join("Package.swift");
     let before = std::fs::read_to_string(&path).unwrap();
     let (same, manifest) =
@@ -389,18 +393,32 @@ async fn check_swift_revision(
         tasks::swift_release_manifest(&ctx, &args.source, &args.base, url, &updated).await?;
     assert_ne!(revision.0, args.base);
     assert_eq!(revision.1, before.replace(&original, &updated));
-    let temp = tempfile::tempdir().unwrap();
-    ctx.exec(
-        ProcessCommand::new("git")
-            .args(["clone", "--quiet"])
-            .arg(&args.source)
-            .arg(temp.path()),
-    )
-    .await?;
-    assert_eq!(
-        tasks::swift_release_manifest(&ctx, temp.path(), &args.base, url, &updated).await?,
-        revision
-    );
+    for autocrlf in ["false", "true"] {
+        let temp = tempfile::tempdir().unwrap();
+        ctx.exec(
+            ProcessCommand::new("git")
+                .args(["clone", "--quiet", "--config"])
+                .arg(format!("core.autocrlf={autocrlf}"))
+                .arg(&args.source)
+                .arg(temp.path()),
+        )
+        .await?;
+        let checkout = std::fs::read_to_string(temp.path().join("Package.swift")).unwrap();
+        let expected = if autocrlf == "true" {
+            before.replace('\n', "\r\n")
+        } else {
+            before.clone()
+        };
+        assert_eq!(checkout, expected);
+        assert_eq!(
+            tasks::swift_release_manifest(&ctx, temp.path(), &args.base, url, &original).await?,
+            (args.base.clone(), before.clone())
+        );
+        assert_eq!(
+            tasks::swift_release_manifest(&ctx, temp.path(), &args.base, url, &updated).await?,
+            revision
+        );
+    }
     assert_eq!(std::fs::read_to_string(path).unwrap(), before);
     Ok(())
 }
@@ -437,6 +455,7 @@ fn swift_release_reproduces_the_checksum_commit_in_an_independent_clone() {
         String::from_utf8(output.stdout).unwrap().trim().to_owned()
     };
     git(&["init", "--quiet"]);
+    git(&["config", "core.autocrlf", "false"]);
     let checksum = "1".repeat(64);
     std::fs::write(root.join("Package.swift"),format!(".binaryTarget(name: \"Archive\", url: \"https://example.invalid/release.zip\", checksum: \"{checksum}\")\n")).unwrap();
     git(&["add", "Package.swift"]);

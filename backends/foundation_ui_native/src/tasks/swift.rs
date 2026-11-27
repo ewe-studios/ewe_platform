@@ -92,7 +92,8 @@ pub(super) async fn commit(
     if !changed {
         return Ok(source.into());
     }
-    ctx.exec(git().args(["add", "--", "Package.swift"])).await?;
+    ctx.exec(git().args(["-c", "core.autocrlf=false", "add", "--", "Package.swift"]))
+        .await?;
     let time = query(ctx, git().args(["show", "-s", "--format=%ct", source])).await?;
     let date = format!(
         "{} +0000",
@@ -130,7 +131,8 @@ pub(super) async fn commit(
 
 /// Return the reproducible release revision and the Swift package manifest.
 ///
-/// The source checkout stays clean. A changed checksum creates a commit in a temporary clone.
+/// Read manifest bytes from the Git revision. Keep the source checkout clean.
+/// A changed checksum creates a commit in a temporary clone.
 ///
 /// # Errors
 /// Returns an error if the manifest has no unique archive URL or Git cannot reproduce the revision.
@@ -141,10 +143,15 @@ pub async fn release(
     url: &str,
     checksum: &str,
 ) -> Result<(String, String), TaskError> {
-    let path = root.join("Package.swift");
-    let original = blocking::unblock(move || fs::read_to_string(path))
-        .await
-        .map_err(TaskError::operation)?;
+    let original = query(
+        ctx,
+        ProcessCommand::new("git")
+            .current_dir(root)
+            .args(["cat-file", "blob"])
+            .arg(format!("{source}:Package.swift")),
+    )
+    .await?;
+    let original = String::from_utf8(original).map_err(TaskError::operation)?;
     let pattern = Regex::new(&format!(
         r#"(url:\s*"{}",\s*checksum:\s*")[a-f0-9]{{64}}(")"#,
         regex::escape(url)

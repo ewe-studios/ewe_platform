@@ -1738,3 +1738,9 @@ Git can change a tracked text file during checkout.
 Use a line-feed attribute on the generated text files that tests compare by byte.
 The Windows log compares the same values with different line endings.
 An automatic CRLF checkout reproduces the difference without changing the source files.
+
+## Swift release manifest bytes
+
+Git can change line endings in a working copy without changing the selected commit.
+Read the tracked manifest from Git. Set its checksum from the original archive bytes.
+The regression checks the same source and generated revisions in both checkout modes.
