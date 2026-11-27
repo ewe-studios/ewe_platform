@@ -1820,10 +1820,10 @@ impl ClientSender for NoopClientSender {
 /// already passed, fail before the call is polled, so it sends no request and
 /// reads no response.
 ///
-/// HOW: the injected environment timer when the context has one, else
-/// `foundation_core::valtron::sleep_async`, so the same code runs on native and
-/// on wasm (no thread and no OS timer). Call setup and every later facade wait
-/// use this helper, so a new transport or facade cannot forget the bound.
+/// HOW: `foundation_core::valtron::sleep_async` is the only timer, so the same
+/// code runs on native and on wasm (no thread and no OS timer). Call setup and
+/// every later facade wait use this helper, so a new transport or facade
+/// cannot forget the bound.
 async fn with_deadline_at<T>(
     deadline: Option<Instant>,
     cancel: Option<&CancelSignal>,
@@ -1845,16 +1845,7 @@ async fn with_deadline_at<T>(
     }
 
     let call = Box::pin(call);
-    // A host timer wakes from the host event loop. The valtron sleeper runs the
-    // engine inside the poll; a wasm task that waits on it re-enters the engine
-    // and can reach a binding from a stale instance (issue #1125). Keep the
-    // valtron sleeper only when the context has no environment.
-    let sleeper: std::pin::Pin<Box<dyn Future<Output = ()> + Send>> = match ctx.require_env() {
-        Ok(env) => env.timer().sleep_until(ctx.clone(), deadline),
-        Err(_) => Box::pin(foundation_compact::SendWrapper::new(valtron::sleep_async(
-            remaining, &ctx,
-        ))),
-    };
+    let sleeper = Box::pin(valtron::sleep_async(remaining, &ctx));
     match futures::future::select(call, sleeper).await {
         futures::future::Either::Left((result, _sleeper)) => result,
         futures::future::Either::Right(((), call)) => {
