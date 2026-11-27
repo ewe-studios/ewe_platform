@@ -1,5 +1,6 @@
 //! The Cloudflare drivers: one for the container and one for the model slave.
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -102,6 +103,7 @@ impl CloudflareContainerDriver {
                 connector: Arc::clone(&self.connector),
                 endpoint,
                 created_unix_ms,
+                stopped: Arc::new(AtomicBool::new(false)),
             }),
             calls: None,
             slave: None,
@@ -246,6 +248,7 @@ fn substrate_of(
             connector,
             endpoint,
             created_unix_ms,
+            stopped: Arc::new(AtomicBool::new(false)),
         }),
         calls: None,
         slave: None,
@@ -322,6 +325,11 @@ struct CloudflareSubstrateHandle {
     connector: Arc<dyn SlaveConnector>,
     endpoint: SlaveEndpoint,
     created_unix_ms: u64,
+    /// Whether this handle already destroyed the container.
+    ///
+    /// A stop can destroy the container and then call `cleanup`. The flag keeps
+    /// the second call from asking the host about a container that is gone.
+    stopped: Arc<AtomicBool>,
 }
 
 impl CloudflareSubstrateHandle {
@@ -348,6 +356,7 @@ impl SubstrateHandle for CloudflareSubstrateHandle {
     fn terminate(&self, grace: Duration) -> BoxFuture<'_, SandboxResult<SubstrateExit>> {
         let ctx = self.ctx.clone();
         let container = Arc::clone(&self.host.container);
+        let stopped = Arc::clone(&self.stopped);
         Box::pin(async move {
             let deadline = ctx.clock().now() + grace;
             let exit = container.wait_for_exit();
@@ -357,6 +366,7 @@ impl SubstrateHandle for CloudflareSubstrateHandle {
                 futures::future::Either::Right((_timer, _exit)) => true,
             };
             let _ = container.destroy().await;
+            stopped.store(true, Ordering::SeqCst);
             Ok(SubstrateExit {
                 code: None,
                 signal: None,
@@ -367,8 +377,10 @@ impl SubstrateHandle for CloudflareSubstrateHandle {
 
     fn kill(&self) -> BoxFuture<'_, SandboxResult<SubstrateExit>> {
         let container = Arc::clone(&self.host.container);
+        let stopped = Arc::clone(&self.stopped);
         Box::pin(async move {
             let _ = container.destroy().await;
+            stopped.store(true, Ordering::SeqCst);
             Ok(SubstrateExit {
                 code: None,
                 signal: None,
@@ -385,9 +397,17 @@ impl SubstrateHandle for CloudflareSubstrateHandle {
 
     fn cleanup(&self) -> BoxFuture<'_, SandboxResult<()>> {
         let container = Arc::clone(&self.host.container);
+        let stopped = Arc::clone(&self.stopped);
         Box::pin(async move {
-            if container.running() {
-                container.destroy().await?;
+            // Do not ask `running`: the container may already be gone, and the
+            // Cloudflare host throws `Critical error` instead of answering false
+            // (issue #1125). A container that a stop already destroyed needs no
+            // second destroy; a failed destroy of a gone container is logged and
+            // does not fail the stop.
+            if !stopped.swap(true, Ordering::SeqCst) {
+                if let Err(error) = container.destroy().await {
+                    tracing::warn!(error = %error, "the container cleanup did not finish");
+                }
             }
             Ok(())
         })

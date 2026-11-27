@@ -74,6 +74,7 @@ impl Flag {
 /// A fake container.
 pub struct FakeContainer {
     running: AtomicBool,
+    running_panics: AtomicBool,
     start: Mutex<Option<ContainerStart>>,
     start_count: AtomicUsize,
     start_error: Mutex<Option<String>>,
@@ -92,6 +93,7 @@ impl FakeContainer {
     pub fn new() -> Self {
         Self {
             running: AtomicBool::new(false),
+            running_panics: AtomicBool::new(false),
             start: Mutex::new(None),
             start_count: AtomicUsize::new(0),
             start_error: Mutex::new(None),
@@ -180,6 +182,12 @@ impl FakeContainer {
         self.destroy_count.load(Ordering::SeqCst)
     }
 
+    /// Makes `running` panic, as the Cloudflare host does after a container
+    /// stopped: it throws `Critical error` instead of answering `false`.
+    pub fn panic_on_running(&self) {
+        self.running_panics.store(true, Ordering::SeqCst);
+    }
+
     /// The last signal, when one arrived.
     #[must_use]
     pub fn last_signal(&self) -> Option<i32> {
@@ -218,6 +226,10 @@ impl Default for FakeContainer {
 
 impl ContainerApi for FakeContainer {
     fn running(&self) -> bool {
+        assert!(
+            !self.running_panics.load(Ordering::SeqCst),
+            "the container is gone; the host throws instead of answering false"
+        );
         self.running.load(Ordering::SeqCst)
     }
 
