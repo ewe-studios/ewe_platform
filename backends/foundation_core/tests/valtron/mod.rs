@@ -134,6 +134,10 @@ mod valtron_macro_tests;
 mod wakeable_stream;
 #[cfg(not(target_family = "wasm"))]
 mod waker_identity;
+// The issue is about the thread pool's `PoolGuard`, which has a `Drop` impl
+// only under `multi`; the single-threaded guard is a no-op.
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+mod timeout_guard_unwind;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
 #[cfg(feature = "multi")]
