@@ -3,12 +3,12 @@
 use std::sync::Arc;
 
 use foundation_errstacks::ErrorTrace;
-use libsql::Connection;
+use libsql_backend::Connection;
 
 use super::types;
 use crate::shared::vfs::error::{VfsError, VfsResult};
 
-fn le(e: libsql::Error) -> ErrorTrace<VfsError> {
+fn le(e: libsql_backend::Error) -> ErrorTrace<VfsError> {
     ErrorTrace::new(types::libsql_err(e))
 }
 
