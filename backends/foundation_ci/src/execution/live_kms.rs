@@ -332,6 +332,80 @@ async fn ensure_gcp_key(ctx: &TaskContext, project: &str, location: &str, key: &
     }
 }
 
+/// Make sure the key has one enabled version (#1113).
+///
+/// WHY: Google Cloud keeps the key entry after a version is destroyed, so a
+/// second run finds the key, tolerates `ALREADY_EXISTS`, and then cannot
+/// encrypt: every version is `DESTROY_SCHEDULED`. A version takes a day to
+/// finish destruction, so the task is not repeatable without this step.
+///
+/// WHAT/HOW: list the versions; when none is `ENABLED`, create one. The first
+/// run creates version 1 with the key and this returns at once.
+async fn ensure_gcp_version(
+    ctx: &TaskContext,
+    project: &str,
+    location: &str,
+    key: &str,
+) -> TaskResult {
+    let listed = capture(
+        ctx,
+        gcloud(
+            project,
+            location,
+            &[
+                "kms",
+                "keys",
+                "versions",
+                "list",
+                "--key",
+                key,
+                "--keyring",
+                RING,
+                "--format=value(state)",
+            ],
+        ),
+        Mode::Echo,
+    )
+    .await?;
+    if !listed.ok {
+        return Err(TaskError::operation(format!(
+            "gcloud key {key} versions: {}",
+            listed.stderr.trim()
+        )));
+    }
+    if listed.stdout.lines().any(|line| line.trim() == "ENABLED") {
+        return Ok(());
+    }
+    println!("live-kms: creating a GCP key version for {key}: no version is enabled");
+    let created = capture(
+        ctx,
+        gcloud(
+            project,
+            location,
+            &[
+                "kms",
+                "keys",
+                "versions",
+                "create",
+                "--key",
+                key,
+                "--keyring",
+                RING,
+            ],
+        ),
+        Mode::Echo,
+    )
+    .await?;
+    if created.ok {
+        Ok(())
+    } else {
+        Err(TaskError::operation(format!(
+            "gcloud key version {key}: {}",
+            created.stderr.trim()
+        )))
+    }
+}
+
 /// The access token. `GCP_ACCESS_TOKEN` wins, then `gcloud auth
 /// print-access-token`. The token never enters the log.
 async fn access_token(
@@ -574,6 +648,8 @@ async fn prove(
     ensure_keyring(ctx, project, location).await?;
     ensure_gcp_key(ctx, project, location, GCP_KEY).await?;
     ensure_gcp_key(ctx, project, location, GCP_WRONG_KEY).await?;
+    ensure_gcp_version(ctx, project, location, GCP_KEY).await?;
+    ensure_gcp_version(ctx, project, location, GCP_WRONG_KEY).await?;
     let full_name = |key: &str| {
         format!("projects/{project}/locations/{location}/keyRings/{RING}/cryptoKeys/{key}")
     };
@@ -739,7 +815,7 @@ impl Resources {
                         key,
                         "--keyring",
                         RING,
-                        "--format=value(name)",
+                        "--format=value(name,state)",
                     ],
                 ),
                 Mode::Echo,
@@ -749,8 +825,17 @@ impl Resources {
                 failures.push(format!("{label} {key} versions: {}", listed.stderr.trim()));
                 continue;
             }
-            for version in listed.stdout.lines().filter(|line| !line.trim().is_empty()) {
-                let version_id = version.rsplit('/').next().unwrap_or(version).trim();
+            for line in listed.stdout.lines().filter(|line| !line.trim().is_empty()) {
+                // A version of an earlier run is already scheduled for
+                // destruction; destroying it again is not an error (#1113).
+                let mut fields = line.split('\t');
+                let name = fields.next().unwrap_or_default().trim();
+                let state = fields.next().unwrap_or_default().trim();
+                if matches!(state, "DESTROY_SCHEDULED" | "DESTROYED") {
+                    println!("live-kms: {label} {key} version {name}: already {state}");
+                    continue;
+                }
+                let version_id = name.rsplit('/').next().unwrap_or(name).trim();
                 let destroyed = capture(
                     ctx,
                     gcloud(
