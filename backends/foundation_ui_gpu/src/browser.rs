@@ -65,7 +65,11 @@ impl BrowserGraphics {
             stopped,
         };
         wasm_bindgen_futures::spawn_local(async move {
-            let mut owner = GpuService::owner(config, std::sync::Arc::new(crate::SystemDevice));
+            let mut owner = GpuService::owner(
+                config,
+                std::sync::Arc::new(crate::SystemDevice),
+                wgpu::InstanceFlags::default(),
+            );
             // Every service clone can close the shared queue while the browser still holds its canvas sender.
             let shared = stream::unfold((work, ui.clone()), |(work, ui)| async move {
                 match work.recv().await {

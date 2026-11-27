@@ -21,6 +21,12 @@ Repeat the affected three-host paths on the final package. Record each command, 
 - Keep each address in its own namespace for pending input. [Issue 1071](https://github.com/ewe-studios/ewe_platform/issues/1071)
 - Verify a fresh configured start and a launcher restart with no address extra on the Android emulator.
 
+## Browser graphics build
+
+The browser canvas owner supplies the default graphics instance flags.
+The WebAssembly target builds the graphics crate. The Android Ranchu flag policy stays in the native host.
+Issue [1085](https://github.com/ewe-studios/ewe_platform/issues/1085) records the build failure.
+
 ## Shared web button styles
 
 - Restore secondary styles for Play Mathalley, Pause input, Retry pause, and Edit title.
