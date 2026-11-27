@@ -84,17 +84,25 @@ The three follow-up defects are fixed on the same branch.
 - #1142: the sandbox Durable Object builds its model configuration from `MODEL_*`, so a
   model spec reaches the model driver.
 
-The end-to-end suite on the rebased branch reports 6 passed and 11 failed on this macOS
-host. The passed tests are `bad_id`, `model_token`, `not_found`, `token` and the two
-restart tests. The failing tests are `acceptance`, `container_route`, `large_stream`,
-`list`, `model_sandbox`, `no_internet`, `stale_index`, `stop`, `two_sandboxes`,
-`versions` and `index_put_delete_list`.
+A second runner run (job `140770667220`) passed 7 tests: creates, `Exec` and the
+container `Get` work, and the closure errors are gone. Two failures remained.
 
-Every failure is a create or a stop on the emulated amd64 container under heavy machine
-load. The container misses the 5 s `Info` call deadline (`transport connect failure:
-Timeout occurred`), so the create now retries an `Info` timeout until the boot deadline
-(#1157). `two_sandboxes` needs a contract decision on a relative file path (#1154). The
-native amd64 CI runner must confirm the timings that this host cannot.
+- A stop crash: `cleanup` asked `ContainerApi::running` on a container that had stopped.
+  The Cloudflare host throws `Critical error` instead of answering false, and the Durable
+  Object went down. The substrate handle now remembers that it destroyed the container,
+  destroys at most once, and never reads the host state. A fake container that panics on
+  `running` proves the old code fails.
+- The 5 s call deadline: the runner's first `Exec` stream ended at 5.1 s because the
+  transport read timeout was `rpc_timeout`, and `FileWriteBegin` answered 504 at 5.0 s
+  because the slave call used `rpc_timeout`. `CloudflareConfig::call_timeout` (default
+  30 s) is now the deadline for one call; the Durable Object applies it and the remote
+  client uses it for `rpc_timeout`.
+
+The end-to-end suite on this macOS host now reports 7 passed and 10 failed. Every local
+failure is the same one: `the substrate exited during the start (code None)` on the
+emulated amd64 container. The local host does not show the runner's stop crash or the
+5 s call failures. The native Cloudflare suite passes (92 tests). The native amd64 CI
+runner must confirm the runner-only fixes.
 
 ## Feature 04 result (2026-11-28)
 

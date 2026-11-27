@@ -37,8 +37,6 @@ closed, not when its code compiles.
   The remote create uses the Worker's container boot deadline
   (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream; a runner create took
   23.8 s, so the unary `rpc_timeout` (5 s) or the spec `boot_timeout` (10 s) were too short.
-  A call deadline in `foundation_connectrpc` now also uses the environment timer when the
-  context has one, so a client wait inside a task does not drive the engine either.
 - **`fix/dst-wait-redrive` (#1116):** it changes the five parking stream-to-future
   adapters. It does not change this hand-written loop, so it would not fix this failure.
   It stays useful for the adapters. Its sibling issues #1128 and #1129 cover the
@@ -66,6 +64,16 @@ closed, not when its code compiles.
 - **A relative file path has no agreed owner.** The e2e writes `tmp/a` and the slave
   refuses it, because it requires an absolute guest path. Either the slave joins the
   workdir or the API says that the path is absolute (#1154).
+- **A stopped container must not be asked whether it runs.** `cleanup` called
+  `WorkerContainer::running` after the container had stopped. The host throws
+  `Critical error` instead of answering false, and the Durable Object went down; that was
+  the second runner crash (job `140770667220`). The handle now remembers that it destroyed
+  the container, destroys at most once, and never reads the host state.
+- **One call to a cold container or Durable Object needs more than 5 s.** On the runner,
+  the first Exec stream ended at 5.1 s because the transport read timeout was
+  `rpc_timeout`, and a `FileWriteBegin` answered 504 at 5.0 s because the slave call used
+  the same 5 s. `CloudflareConfig::call_timeout` (default 30 s) now bounds one call; the
+  Durable Object applies it, and the remote client uses it for `rpc_timeout`.
 
 ## The DST turn hang is a `Wait` re-drive (2026-11-27)
 
