@@ -52,12 +52,19 @@ fn a_phone_surface_presents_after_an_oversized_resize_is_rejected() {
     use foundation_context::Ctx;
     use foundation_ui_gpu::{wgpu, GpuService, RenderHost};
     use objc2::{class, msg_send, rc::Retained, runtime::AnyObject};
-    use std::ffi::c_void;
+    use std::{
+        ffi::c_void,
+        sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc,
+        },
+    };
 
     struct MetalLayer {
         layer: Retained<AnyObject>,
         width: u32,
         height: u32,
+        live: Arc<AtomicBool>,
     }
     impl RenderHost for MetalLayer {
         fn create_surface(
@@ -75,6 +82,9 @@ fn a_phone_surface_presents_after_an_oversized_resize_is_rejected() {
         fn size(&self) -> (u32, u32) {
             (self.width, self.height)
         }
+        fn is_live(&self) -> bool {
+            self.live.load(Ordering::Acquire)
+        }
     }
     fn layer(width: u32, height: u32) -> MetalLayer {
         // SAFETY: CAMetalLayer is a system class. The host releases one reference.
@@ -85,6 +95,7 @@ fn a_phone_surface_presents_after_an_oversized_resize_is_rejected() {
             layer,
             width,
             height,
+            live: Arc::new(AtomicBool::new(true)),
         }
     }
 
@@ -93,10 +104,9 @@ fn a_phone_surface_presents_after_an_oversized_resize_is_rejected() {
         let presented = service
             .run(|owner| {
                 Box::pin(async move {
-                    let phone = match owner
-                        .attach("phone".into(), Box::new(layer(1206, 2241)))
-                        .await
-                    {
+                    let first = layer(1206, 2241);
+                    let live = first.live.clone();
+                    let phone = match owner.attach("phone".into(), Box::new(first)).await {
                         Ok(id) => id,
                         // A host without an adapter cannot exercise this path.
                         Err(GpuError::Unavailable(reason)) => {
@@ -116,7 +126,26 @@ fn a_phone_surface_presents_after_an_oversized_resize_is_rejected() {
                     let oversized = owner.resize(phone.clone(), beyond, 1).await;
                     assert!(matches!(oversized, Err(GpuError::ExtentUnsupported { .. })));
                     owner.resize(phone.clone(), 800, 600).await?;
-                    owner.clear(phone, wgpu::Color::BLACK).await?;
+                    owner.clear(phone.clone(), wgpu::Color::BLACK).await?;
+
+                    let duplicate = owner
+                        .attach("phone".into(), Box::new(layer(800, 600)))
+                        .await;
+                    assert!(matches!(duplicate, Err(GpuError::Operation(_))));
+                    let retired = owner
+                        .present(phone.clone(), |_, _, _| {
+                            live.store(false, Ordering::Release);
+                            Ok(())
+                        })
+                        .await;
+                    assert!(matches!(retired, Err(GpuError::StaleSurface)));
+                    let resize = owner.resize(phone.clone(), 800, 600).await;
+                    assert!(matches!(resize, Err(GpuError::StaleSurface)));
+                    let replacement = owner
+                        .attach("phone".into(), Box::new(layer(800, 600)))
+                        .await?;
+                    assert!(matches!(owner.detach(&phone), Err(GpuError::StaleSurface)));
+                    owner.clear(replacement, wgpu::Color::BLACK).await?;
                     Ok(true)
                 })
             })

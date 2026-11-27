@@ -10,11 +10,16 @@ pub trait RenderHost {
     fn create_surface(&self, instance: &wgpu::Instance)
         -> Result<wgpu::Surface<'static>, GpuError>;
     fn size(&self) -> (u32, u32);
+
+    /// Return whether this window still accepts drawing operations.
+    fn is_live(&self) -> bool {
+        true
+    }
 }
 
 struct Registered {
     surface: wgpu::Surface<'static>,
-    _host: Box<dyn RenderHost>,
+    host: Box<dyn RenderHost>,
     config: wgpu::SurfaceConfiguration,
     suspended: bool,
 }
@@ -84,14 +89,23 @@ impl GpuOwner {
         name: String,
         host: Box<dyn RenderHost>,
     ) -> Result<SurfaceId, GpuError> {
-        if self.surfaces.names.contains_key(&name) {
-            return Err(GpuError::Operation(
-                "Surface name already registered".into(),
-            ));
+        if !host.is_live() {
+            return Err(GpuError::StaleSurface);
+        }
+        if let Some(existing) = self.named_surface(&name) {
+            if self.surfaces.slots[&existing.0].host.is_live() {
+                return Err(GpuError::Operation(
+                    "Surface name already registered".into(),
+                ));
+            }
+            self.detach(&existing)?;
         }
         let surface = host.create_surface(&self.instance)?;
         let (width, height) = host.size();
         let graphics = self.device().await?;
+        if !host.is_live() {
+            return Err(GpuError::StaleSurface);
+        }
         validate_extent(&graphics.device, width, height)?;
         if !graphics.adapter.is_surface_supported(&surface) {
             return Err(GpuError::IncompatibleSurface);
@@ -100,8 +114,14 @@ impl GpuOwner {
             .get_default_config(&graphics.adapter, width.max(1), height.max(1))
             .ok_or(GpuError::IncompatibleSurface)?;
         let suspended = width == 0 || height == 0;
+        if !host.is_live() {
+            return Err(GpuError::StaleSurface);
+        }
         if !suspended {
             surface.configure(&graphics.device, &config);
+        }
+        if !host.is_live() {
+            return Err(GpuError::StaleSurface);
         }
         let id = self
             .surfaces
@@ -113,7 +133,7 @@ impl GpuOwner {
             id,
             Registered {
                 surface,
-                _host: host,
+                host,
                 config,
                 suspended,
             },
@@ -149,6 +169,9 @@ impl GpuOwner {
             .slots
             .get_mut(&id.0)
             .ok_or(GpuError::StaleSurface)?;
+        if !slot.host.is_live() {
+            return Err(GpuError::StaleSurface);
+        }
         validate_extent(&device, width, height)?;
         slot.suspended = width == 0 || height == 0;
         if !slot.suspended {
@@ -174,6 +197,9 @@ impl GpuOwner {
             .slots
             .get_mut(&id.0)
             .ok_or(GpuError::StaleSurface)?;
+        if !slot.host.is_live() {
+            return Err(GpuError::StaleSurface);
+        }
         if slot.suspended {
             return Err(GpuError::Suspended);
         }
@@ -189,12 +215,18 @@ impl GpuOwner {
                 return Err(GpuError::Suspended)
             }
             wgpu::CurrentSurfaceTexture::Outdated | wgpu::CurrentSurfaceTexture::Lost => {
+                if !slot.host.is_live() {
+                    return Err(GpuError::StaleSurface);
+                }
                 slot.surface.configure(&graphics.device, &slot.config);
                 return Err(GpuError::Suspended);
             }
             wgpu::CurrentSurfaceTexture::Validation => return Err(GpuError::IncompatibleSurface),
         };
         let result = draw(graphics, &frame.texture, slot.config.format)?;
+        if !slot.host.is_live() {
+            return Err(GpuError::StaleSurface);
+        }
         graphics.queue.present(frame);
         Ok(result)
     }

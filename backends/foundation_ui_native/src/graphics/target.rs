@@ -41,7 +41,11 @@ impl Target {
 #[cfg(any(target_vendor = "apple", target_os = "android"))]
 fn lower(target: Target) -> u64 {
     <super::NativeDrawingTarget as uniffi::FfiConverterArc<crate::UniFfiTag>>::lower(
-        std::sync::Arc::new(super::NativeDrawingTarget { target }),
+        std::sync::Arc::new(super::NativeDrawingTarget {
+            target,
+            #[cfg(target_os = "android")]
+            retired: false.into(),
+        }),
     )
     .as_raw()
 }
@@ -81,7 +85,30 @@ mod apple {
 #[cfg(target_os = "android")]
 mod android {
     use super::{lower, Target};
-    use std::ffi::c_void;
+    use crate::graphics::NativeDrawingTarget;
+    use std::{ffi::c_void, sync::atomic::Ordering};
+    use uniffi::FfiConverterArc;
+
+    /// Invalidate a retained Java Surface without waiting for the graphics owner.
+    ///
+    /// # Safety
+    /// The handle is an owned clone of the live target binding.
+    #[no_mangle]
+    pub unsafe extern "system" fn Java_ewe_ui_android_GpuTargetBridge_retire(
+        _: *mut c_void,
+        _: *mut c_void,
+        handle: i64,
+    ) {
+        let Some(handle) = (unsafe { uniffi::Handle::from_raw(handle.cast_unsigned()) }) else {
+            return;
+        };
+        if let Ok(target) =
+            <NativeDrawingTarget as FfiConverterArc<crate::UniFfiTag>>::try_lift(handle)
+        {
+            target.retired.store(true, Ordering::Release);
+        }
+    }
+
     /// Transfer a Java Surface through its native window reference.
     ///
     /// # Safety

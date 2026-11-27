@@ -85,6 +85,8 @@ impl NativeGraphics {
 #[derive(uniffi::Object)]
 pub struct NativeDrawingTarget {
     target: target::Target,
+    #[cfg(target_os = "android")]
+    retired: std::sync::atomic::AtomicBool,
 }
 #[derive(uniffi::Object)]
 pub struct NativeDrawingSurface {
@@ -101,6 +103,14 @@ impl RenderHost for DrawingHost {
     fn size(&self) -> (u32, u32) {
         (self.width, self.height)
     }
+    #[cfg(target_os = "android")]
+    fn is_live(&self) -> bool {
+        !self
+            .target
+            .retired
+            .load(std::sync::atomic::Ordering::Acquire)
+    }
+
     fn create_surface(
         &self,
         instance: &wgpu::Instance,
