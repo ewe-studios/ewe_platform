@@ -124,6 +124,3 @@ mod serde_impl {
         }
     }
 }
-
-#[cfg(feature = "serde")]
-pub use serde_impl::*;
