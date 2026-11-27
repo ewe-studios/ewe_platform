@@ -2219,3 +2219,13 @@ Both native provider tests pass. The tests cover the legacy directory and a fail
 The legacy test checks all four supported Android processor targets.
 The failed rebuild test confirms that both previously staged variants remain available.
 [Android variant issue](https://github.com/ewe-studios/ewe_platform/issues/800)
+
+### Final acceptance review
+
+The [remaining closure gates](completion-audit.md#remaining-closure-gates-28-november-2026) account for all 36 features.
+Issue 1190 tracks the served Todo web-only page action. The existing shared and remote actions pass.
+The native wire suite passes 19 writer tests. The native writer removes both `HtmlMorph` and `ScriptNode`.
+The focused Swift host suite passes six renderer tests. It uses a local Mac archive and excludes the unrelated Todo bridge.
+The new test checks the next row after an unknown node and one exact capabilities callback.
+Both native behaviour matrix checks and the Python test pass. The browser suite passes 176 tests with one recorded legacy skip.
+The integration test module declaration removes the Node warning in issue 1191.

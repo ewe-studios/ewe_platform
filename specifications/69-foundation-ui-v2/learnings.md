@@ -1653,3 +1653,10 @@ The first local library fixture predates the current launch theme and its splash
 A fresh publication from the Android sources supplies both inputs.
 Gradle can strip symbols from a packaged shared library.
 The executable section comparison still identifies the exact Rust build type after stripping.
+
+### Final acceptance review
+
+A passing three-host Todo run does not cover the page-script action in the served browser application.
+The page script needs its own browser gesture and network result. Issue 1190 tracks this requirement.
+Historical commit limits and permitted source edits require evidence from the original change.
+A new test can retain a runtime result. The original commit count and source edits stay part of the review.

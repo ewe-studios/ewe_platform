@@ -1,6 +1,30 @@
 # Specification 69 completion audit
 
-## Closure checklist, 27 November 2026
+## Remaining closure gates, 28 November 2026
+
+The review covers all 36 features. The package and mobile tables cover 33.
+The separate acceptance ledgers cover 14, 16, and 37. Number 18 is reserved.
+The review uses the [specification-wide criteria](requirements.md#9-success-criteria-spec-wide).
+The checkpoints below this section retain the results and assignments at their recorded revisions.
+
+| Gate | Current evidence and remaining action |
+|---|---|
+| Todo action examples | Feature 37 passes its twelve checks at `b22d81cd0`. D48 also needs a web-only page script in the served Todo app. Feature 10 names `host:scroll_to_top`. Verify actual scrolling with no action request, the shared filter, and the absence of the web binding in native. [Issue 1190](https://github.com/ewe-studios/ewe_platform/issues/1190) |
+| Hosted platform and toolchain checks | Collect actual test results and the pinned toolchain check for all supported operating systems. The scoped run uses `89fde9934`. The revision coverage table identifies which recipes need a later result. The older macOS build job failed, and the older Windows check skipped. Track the actual package shards and their setup. [Scoped run](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113) [Runner issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185) |
+| Configured test exclusions | Keep excluded recipes visible until their issues close and tests pass. The current plan excludes macOS HTTP, Windows browser and HTTP recipes, and Windows database tests. [Issue 546](https://github.com/ewe-studios/ewe_platform/issues/546) [Issue 531](https://github.com/ewe-studios/ewe_platform/issues/531) [Issue 519](https://github.com/ewe-studios/ewe_platform/issues/519) |
+| Workspace-wide checks | The changed Specification 69 Rust files match the formatter at `5ae7b4aa0`. The configured local UI lint variants pass at `673e2a7ef`. The workspace formatter and time-source check still fail outside this scope. [Formatting issue 1189](https://github.com/ewe-studios/ewe_platform/issues/1189) [Time-source issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180) |
+| Historical criteria | Feature 12 records more than four commits, 42 ignored tests, and reduced HTTP coverage. Feature 16 preserves all 14 logic bodies across `dd15675cf`, with other source edits in the same change. The original commit, no-skip, and marker-only clauses remain unsigned. Record an explicit owner decision before marking those clauses complete. Finish the specification checklist review against the linked scenario ledgers. |
+| Apple renderer package | Feature 21 replaces the sibling package path in Feature 14 with the integrated package. The earlier Mac host suite passes 25 tests. The simulator runs both Todo applications. Use the clean starter preview and then verify the approved public package route. |
+| Native publication and public starters | Features 19, 21, 22, and 24 share this dependency. The version 0.1.2 preview stages both starters and both Android applications. Release approval and the public artifacts are still required. Resolve clean consumers from public inputs, check versions and digests, and run both generated host modes. Local release tests cover partial publication and conflict handling against a test registry. [Issue 845](https://github.com/ewe-studios/ewe_platform/issues/845) [Candidate run](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598) |
+| Physical iPhone checks | The simulator records speech and first-launch results. Confirm first launch, VoiceOver Delete activation, and countdown cadence on a phone. [Issue 831](https://github.com/ewe-studios/ewe_platform/issues/831) [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168) |
+| Native graphics and Mathalley | Features 34 and 35 record simulator, emulator, and desktop hardware results. The mobile records identify the limits of that coverage. Feature 36 still needs physical speaker and interruption checks. Android digital output records the game notes and about 40 decibels of mute attenuation. The old blank surface is fixed. Two full-resolution landscape runs score and return. The original intermittent focus timeout stays under observation. [Surface issue 1078](https://github.com/ewe-studios/ewe_platform/issues/1078) [Focus issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146) |
+
+The portable-target fixture has results in Rust, TypeScript, Swift, and Kotlin.
+The native writer tests cover web message filtering. Live mount tests cover stream and typed data updates.
+Swift and Kotlin recover a failed native send and confirm its retry with a correlated reply.
+The integrated native socket contract confirms from the server reply after a socket write.
+
+## Earlier closure checkpoint, 27 November 2026
 
 The audit uses `resume/combined` at `71466b255`. The specification contains 36 feature documents. Number 18 is reserved.
 Use this checklist before the older findings below. Start no new feature until Specification 69 closes.

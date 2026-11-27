@@ -6,9 +6,9 @@ use foundation_ui_wire::{
     },
     BehaviourId, BindActionT, CreateNodeT, EventId, HtmlMorphT, MessageT, MobileBehaviourT,
     MobileOperation, MobileOperationT, MountSurface, NativeCommandId, NativeCommandT, NodeKind,
-    Operation, OperationT, Platform, PropId, ReplaceSubtreeT, SetPropT, SetTextT, UiBehaviourT,
-    UiOperationT, UnbindActionT, WebAddClassT, WebAddListenerT, WebBehaviourId, WebBehaviourT,
-    WebElementT, WebOperation, WebOperationT, WebPropertyT, WebRemoveAttributeT,
+    Operation, OperationT, Platform, PropId, ReplaceSubtreeT, ScriptNodeT, SetPropT, SetTextT,
+    UiBehaviourT, UiOperationT, UnbindActionT, WebAddClassT, WebAddListenerT, WebBehaviourId,
+    WebBehaviourT, WebElementT, WebOperation, WebOperationT, WebPropertyT, WebRemoveAttributeT,
     WebRemoveListenerT, WebSetAttributeT, WebStyleT, WireLimits,
 };
 
@@ -139,18 +139,25 @@ fn web_client_gets_no_mobile_field() {
 
 #[test]
 fn web_only_message_is_removed_for_native() {
+    let script = Web::ScriptNode(Box::new(table!(ScriptNodeT {
+        node_id: 2,
+        parent_id: 1,
+        body: Some("void 0".into()),
+    })));
     let result = write(
-        vec![message(table!(OperationT { web: morph() }))],
+        vec![
+            message(table!(OperationT { web: morph() })),
+            message(table!(OperationT { web: script })),
+        ],
         &native(),
     );
     assert_eq!(result.0, []);
     assert_eq!(
         result.1.filtered,
-        [removed(
-            0,
-            FilteredPart::Message,
-            FilterReason::OtherPlatform
-        )]
+        [
+            removed(0, FilteredPart::Message, FilterReason::OtherPlatform),
+            removed(1, FilteredPart::Message, FilterReason::OtherPlatform),
+        ]
     );
 }
 

@@ -26,9 +26,10 @@ private func textFrame(_ sequence: UInt64, _ label: String, node: UInt32 = 42, a
 
 @MainActor private final class CapturingCore: ActionCore {
   var events: [EventInput] = []
+  var capabilities: [Data] = []
   var invoked: (() -> Void)?
   var fail = false
-  func applyCapsFrame(_ frame: Data) throws {}
+  func applyCapsFrame(_ frame: Data) throws { capabilities.append(frame) }
   func trigger(reference: String, event: EventInput) async throws -> Data? {
     events.append(event)
     invoked?()
@@ -132,6 +133,38 @@ final class RendererTests: XCTestCase {
     XCTAssertEqual(event.parentNode, 40)
     XCTAssertEqual(event.value, "hello")
     XCTAssertTrue(event.checked)
+  }
+
+  @MainActor func testUnknownRowPreservesTheNextOperationAndDeliversCapabilitiesOnce() throws {
+    let store = NodeStore()
+    let core = CapturingCore()
+    _ = EventBridge(store: store, core: core)
+    let record = try XCTUnwrap(store.make(42, .text, 0))
+    var builder = FlatBufferBuilder()
+    func textRow(_ id: UInt32, _ label: String) -> Offset {
+      let string = builder.create(string: label)
+      let text = ewe_ui_SetText.createSetText(&builder, nodeId: id, textOffset: string)
+      let operation = ewe_ui_Operation.createOperation(&builder, uiType: .settext, uiOffset: text)
+      return ewe_ui_Message.createMessage(&builder, operationOffset: operation)
+    }
+    let unknown = textRow(99, "missing")
+    let known = textRow(42, "kept")
+    let caps = ewe_ui_ServerCaps.createServerCaps(
+      &builder, status: .ok, schemaVersion: 1, vocabularyVersion: 13, streamId: 9)
+    let control = ewe_ui_Control.createControl(&builder, capsOffset: caps)
+    let capability = ewe_ui_Message.createMessage(&builder, controlOffset: control)
+    let rows = builder.createVector(ofOffsets: [unknown, known, capability])
+    let body = ewe_ui_FrameMessage.createFrameMessage(&builder, messagesVectorOffset: rows)
+    let frame = ewe_ui_Frame.createFrame(
+      &builder, schemaVersion: 1, streamId: 9, sequenceId: 0, kindType: .framemessage,
+      kindOffset: body)
+    ewe_ui_Frame.finish(&builder, end: frame)
+    let bytes = Data(builder.sizedByteArray)
+
+    XCTAssertTrue(store.receive(bytes))
+    XCTAssertEqual(store.reports, [Report(code: "UnknownNode", row: 0, node: 99)])
+    XCTAssertEqual(record.text, "kept")
+    XCTAssertEqual(core.capabilities, [bytes])
   }
 
   @MainActor func testMalformedFramesAndUnknownNode() async throws {
