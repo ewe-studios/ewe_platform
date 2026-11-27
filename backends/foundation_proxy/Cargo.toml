@@ -54,7 +54,7 @@ chrono.workspace = true
 # (also already present via rustls/boringtun) so no new C crypto library.
 p256 = { version = "0.13", features = ["ecdsa", "pem"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
-rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+rcgen = { version = "0.14", default-features = false, features = ["ring", "pem", "x509-parser"] }
 # Drive the ACME provisioning future to completion at startup (its client I/O
 # and DNS wait are async, and block_on re-polls after each yield).
 futures-lite = "2"

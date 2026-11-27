@@ -136,12 +136,12 @@ ipnet = { version = "2.12", features = ["serde"] }
 
 # Transport Layer Security (TLS) and X.509 support. Spec 87 moves these with the
 # certificate authority, the trust store and the verifier into foundation_auth.
-rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+rcgen = { version = "0.14", default-features = false, features = ["ring", "pem", "x509-parser"] }
 rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
 rustls-pemfile = "2"
-# rcgen 0.13.2 depends on x509-parser 0.16. Declare the same major so Cargo.lock
-# keeps one version of the parser.
-x509-parser = "0.16"
+# rcgen 0.14 depends on x509-parser 0.18. Declare the same major so the direct
+# users share one parser. webauthn-rs-core still uses 0.16.
+x509-parser = "0.18"
 time = "0.3"
 
 # Virtual file system (VFS) traits and shared types. `foundation_nativeapis`
