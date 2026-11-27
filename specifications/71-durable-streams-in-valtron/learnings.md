@@ -806,3 +806,14 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **`close()` with an empty body still sends a content type.** The reference client always adds
   `Content-Type`; our server ignores it when the body is empty and treats the request as a
   close. The scenario passes.
+- **The SSE cursor is a string and needs a fallback on read (#1065).** `sse_control_json`
+  inserted a `u64` with `cursor.into()`, so the wire form was a number. The reference client
+  reads `as_str`, so it ignored the cursor. Our client read `as_u64`, so self-tests stayed
+  green. The fix writes `cursor.to_string()` and reads `as_str` first, then `as_u64` for an old
+  peer. A data event arrives before its control event, so the first reference
+  `next_chunk` call has no cursor. The new test reads the second chunk (the control event) and
+  asserts `chunk.cursor` and `reader.cursor()`.
+- **The foundation_http durable files carried pedantic clippy debt.** The crate denies warnings,
+  so `cargo clippy --all-targets` failed before this change. The example put its `use` items
+  after statements, the test header helper took a `SimpleHeader` by value, and the route test
+  needed the owned request that its macro requires. Clear the debt before you trust the gate.

@@ -379,7 +379,7 @@ fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk
             sse("data", "hello"),
             sse(
                 "control",
-                r#"{"streamNextOffset":"00ff","streamCursor":7,"upToDate":true}"#,
+                r#"{"streamNextOffset":"00ff","streamCursor":"7","upToDate":true}"#,
             ),
         ]);
         let read = handle(transport)
@@ -395,6 +395,33 @@ fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk
         assert_eq!(result.next_offset.as_deref(), Some("00ff"));
         assert_eq!(result.cursor.as_deref(), Some("7"));
         assert!(result.up_to_date);
+    });
+}
+
+#[test]
+fn given_a_numeric_cursor_from_an_old_peer_when_a_read_runs_then_it_still_reports_it() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let transport = MockTransport::with(vec![]);
+        transport.events.lock().expect("events").extend([
+            sse("data", "hello"),
+            sse(
+                "control",
+                r#"{"streamNextOffset":"00ff","streamCursor":7,"upToDate":true}"#,
+            ),
+        ]);
+        let read = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .open_sse()
+            .await
+            .expect("sse");
+        let result = drain(read).await;
+
+        assert_eq!(
+            result.cursor.as_deref(),
+            Some("7"),
+            "a numeric cursor from an old peer is still read"
+        );
     });
 }
 

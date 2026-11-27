@@ -209,6 +209,61 @@ fn given_a_binary_stream_when_the_reference_client_reads_sse_then_base64_data_de
 #[test]
 #[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
+fn given_the_reference_client_reads_sse_when_the_control_event_arrives_then_the_cursor_is_a_string()
+{
+    let _guard = initialize_pool(42, Some(5));
+    let (addr, shutdown) = start_server(durable_app());
+    let client = reference_client(addr);
+
+    runtime().block_on(async {
+        let stream = client.stream("/ref/sse-cursor");
+        stream.create().await.expect("create");
+        stream.append("hello").await.expect("append");
+
+        let mut sse = stream
+            .read()
+            .offset(Offset::Beginning)
+            .live(LiveMode::Sse)
+            .build()
+            .expect("SSE reader");
+        // The data event arrives first. The next call reads its control event.
+        let data = sse
+            .next_chunk()
+            .await
+            .expect("SSE step")
+            .expect("one data event");
+        assert_eq!(&data.data[..], b"hello", "the data event comes first");
+        let control = sse
+            .next_chunk()
+            .await
+            .expect("SSE control step")
+            .expect("one control event");
+        assert!(control.up_to_date, "the control event marks the tail");
+
+        // The reference client reads `streamCursor` with `as_str`, so a value
+        // here proves that PROTOCOL.md section 5.8's string form went on the
+        // wire.
+        let cursor = control
+            .cursor
+            .as_deref()
+            .expect("the control event carries a cursor");
+        assert!(
+            cursor.parse::<u64>().is_ok(),
+            "the cursor keeps the server's decimal text, got {cursor:?}"
+        );
+        assert_eq!(
+            sse.cursor(),
+            Some(cursor),
+            "the reader keeps the cursor across the control event"
+        );
+    });
+
+    shutdown.turn_on();
+}
+
+#[test]
+#[foundation_macros::timeout(120_000)]
+#[serial(http_test)]
 fn given_the_reference_client_closes_a_stream_then_a_read_reports_the_closure() {
     let _guard = initialize_pool(42, Some(5));
     let (addr, shutdown) = start_server(durable_app());

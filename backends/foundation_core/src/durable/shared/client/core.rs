@@ -717,7 +717,16 @@ impl SseRead {
         let value = serde_json::from_str::<serde_json::Value>(data)
             .map_err(|error| ClientError::Parse(error.to_string()))?;
         self.next_offset = value["streamNextOffset"].as_str().map(str::to_string);
-        self.cursor = value["streamCursor"].as_u64().map(|value| value.to_string());
+        // PROTOCOL.md section 5.8 gives the cursor as a string. A number is
+        // tolerated for older peers that sent one.
+        self.cursor = value["streamCursor"]
+            .as_str()
+            .map(str::to_string)
+            .or_else(|| {
+                value["streamCursor"]
+                    .as_u64()
+                    .map(|value| value.to_string())
+            });
         self.up_to_date = value["upToDate"].as_bool().unwrap_or(false);
         self.closed = value["streamClosed"].as_bool().unwrap_or(false);
         Ok(())

@@ -85,7 +85,7 @@ fn status_code(status: Status) -> u16 {
     u16::try_from(status.into_usize()).expect("a status code fits u16")
 }
 
-fn header(response: &SimpleResponse<SendSafeBody>, name: SimpleHeader) -> Option<String> {
+fn header(response: &SimpleResponse<SendSafeBody>, name: &SimpleHeader) -> Option<String> {
     let wanted = name.to_string();
     response
         .get_headers_ref()
@@ -114,7 +114,7 @@ fn given_a_durable_server_when_a_client_creates_appends_and_reads_then_it_round_
     // The adapter makes the relative Location absolute for the request host,
     // which the reference conformance suite requires.
     assert_eq!(
-        header(&created, SimpleHeader::LOCATION).as_deref(),
+        header(&created, &SimpleHeader::LOCATION).as_deref(),
         Some("http://testserver/events")
     );
 
@@ -127,8 +127,7 @@ fn given_a_durable_server_when_a_client_creates_appends_and_reads_then_it_round_
         )
         .unwrap();
     assert_eq!(status_code(appended.get_status()), 204);
-    let next = header(&appended, SimpleHeader::custom("stream-next-offset"))
-        .expect("next offset");
+    let next = header(&appended, &SimpleHeader::custom("stream-next-offset")).expect("next offset");
 
     let read = client
         .send(
@@ -139,7 +138,7 @@ fn given_a_durable_server_when_a_client_creates_appends_and_reads_then_it_round_
         .unwrap();
     assert_eq!(status_code(read.get_status()), 200);
     assert_eq!(
-        header(&read, SimpleHeader::custom("stream-up-to-date")).as_deref(),
+        header(&read, &SimpleHeader::custom("stream-up-to-date")).as_deref(),
         Some("true")
     );
 
@@ -152,7 +151,7 @@ fn given_a_durable_server_when_a_client_creates_appends_and_reads_then_it_round_
         .unwrap();
     assert_eq!(status_code(head.get_status()), 200);
     assert_eq!(
-        header(&head, SimpleHeader::custom("stream-next-offset")).as_deref(),
+        header(&head, &SimpleHeader::custom("stream-next-offset")).as_deref(),
         Some(next.as_str())
     );
 
@@ -377,7 +376,7 @@ fn body_at_the_limit_passes() {
 }
 
 #[test]
-#[foundation_macros::timeout(120000)]
+#[foundation_macros::timeout(120_000)]
 #[serial(http_test)]
 fn given_many_put_get_pairs_on_one_connection_when_they_run_then_every_read_is_200() {
     use std::io::{BufRead, BufReader, Read, Write};

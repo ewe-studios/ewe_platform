@@ -1,6 +1,9 @@
 //! Test function and struct registration through the same native router.
 
 #![cfg(not(target_family = "wasm"))]
+// The route macros pass the request by value, so the handlers need the owned
+// form. `create` is async on purpose, to test the async route branch.
+#![allow(clippy::needless_pass_by_value, clippy::unused_async)]
 
 mod fake_overlay;
 

@@ -598,7 +598,9 @@ fn given_a_control_step_when_it_is_rendered_then_it_carries_the_offset_and_curso
     let next = StreamOffset::from_bytes(4_u64.to_be_bytes().to_vec());
     let json = sse_control_json(&next, Some(7), true, false);
     assert!(json.contains(&format!("\"streamNextOffset\":\"{}\"", encode_offset(&next))));
-    assert!(json.contains("\"streamCursor\":7"));
+    // PROTOCOL.md section 5.8 gives the cursor as a string, not a number.
+    assert!(json.contains("\"streamCursor\":\"7\""));
+    assert!(!json.contains("\"streamCursor\":7"));
     assert!(json.contains("\"upToDate\":true"));
     assert!(!json.contains("streamClosed"));
 
@@ -628,7 +630,7 @@ fn given_a_rate_limit_error_when_the_headers_are_built_then_retry_after_is_prese
         .any(|(key, value)| key.to_string().eq_ignore_ascii_case("retry-after") && value == "5"));
 
     let none = error_headers(&StoreError::RateLimited { retry_after: None });
-    assert!(none.is_empty());
+    assert_eq!(none.len(), 0);
 }
 
 #[test]

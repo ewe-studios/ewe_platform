@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: closed #1065 (medium). The SSE control event now writes `streamCursor` as a JSON
+  string (for example `"streamCursor":"123"`), as PROTOCOL.md section 5.8 requires. Before, it
+  wrote a number (for example `"streamCursor":123`). The reference client reads the field with
+  `as_str`, so it dropped the cursor. Our client reads a string and still accepts a number
+  from an old peer. The HTTP `Stream-Cursor` header did not change. `durable_adapter` asserts
+  the quoted form, and a client test keeps the number fallback. `durable_reference_cross_run`
+  has a sixth test: it reads the control event and asserts that the reference client keeps the
+  cursor.
+
+  The clippy gate also found 26 pre-existing pedantic lints in the `foundation_http` durable
+  files. The fix clears them. The example moves its `use` items to the top of `main`, the test
+  header helper takes `&SimpleHeader`, the route test allows the owned request its macro
+  requires, and the adapter test compares the length. Counts: `foundation_http` durable tests
+  30 + 5 + 6 + 7 + 4 pass, `foundation_core` durable tests 146 pass, clippy is clean in all six
+  CI trees, and both guards report 0 violations.
+
 - 2026-11-27: feature 08 T3 (cross-runs) landed. Two tests drive our in-process `HttpServer`
   with the Durable handler over the memory VFS. `foundation_http/tests/durable_cross_client.rs`
   runs our `DurableClient` over `NetioTransport`; `foundation_http/tests/durable_reference_cross_run.rs`
@@ -507,8 +523,9 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
 - **08-conformance** — 🟡 in progress. The CI gate landed: a Linux job runs both suites on a
   durable change and on full runs, and the memory VFS conformance test runs in CI. T3
   (cross-runs) landed in both directions: our client to our server, and the reference Rust
-  client to our server, 5 scenarios each. The valtron suite, the skip register, the report, the
-  runtime matrix and the T1/T2 harness tasks remain.
+  client to our server. Our client runs 5 scenarios; the reference client runs 6, including the
+  cursor check for #1065. The valtron suite, the skip register, the report, the runtime matrix
+  and the T1/T2 harness tasks remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

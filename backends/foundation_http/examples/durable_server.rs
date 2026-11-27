@@ -16,16 +16,6 @@ fn main() {
 
 #[cfg(unix)]
 fn main() {
-    // `DURABLE_LOG` turns on tracing. The value names the log level, for example
-    // `DURABLE_LOG=warn` or `DURABLE_LOG=trace`. The server logs nothing unless
-    // the variable is set.
-    if let Ok(filter) = std::env::var("DURABLE_LOG") {
-        tracing_subscriber::fmt()
-            .with_env_filter(filter)
-            .with_target(false)
-            .init();
-    }
-
     use foundation_core::durable::{DurableLimits, DurableStream, DurableStreamVfs, MemoryVfs};
     use foundation_core::valtron::initialize_pool;
     use foundation_event_stream::native::{NetioWebhookSender, SubscriptionHandler};
@@ -38,6 +28,16 @@ fn main() {
     use foundation_http::shared::context::Ctx;
     use foundation_http::ShutdownSignal;
     use std::sync::Arc;
+
+    // `DURABLE_LOG` turns on tracing. The value names the log level, for example
+    // `DURABLE_LOG=warn` or `DURABLE_LOG=trace`. The server logs nothing unless
+    // the variable is set.
+    if let Ok(filter) = std::env::var("DURABLE_LOG") {
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .with_target(false)
+            .init();
+    }
 
     let _guard = initialize_pool(42, Some(4));
     let addr = std::env::var("DURABLE_ADDR").unwrap_or_else(|_| "127.0.0.1:4437".to_string());
@@ -85,7 +85,7 @@ fn main() {
         while !tick_shutdown.probe() {
             std::thread::sleep(std::time::Duration::from_millis(500));
             let ticker = ticker.clone();
-            let _ = foundation_core::valtron::block_on_future(async move {
+            foundation_core::valtron::block_on_future(async move {
                 ticker.tick().await;
             });
         }

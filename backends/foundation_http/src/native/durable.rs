@@ -1122,7 +1122,12 @@ pub fn sse_control_json(
         serde_json::Value::String(offset_text(next)),
     );
     if let Some(cursor) = cursor {
-        object.insert("streamCursor".to_string(), cursor.into());
+        // PROTOCOL.md section 5.8 gives the cursor as a string. The reference
+        // client reads it with `as_str`, so a number would drop it.
+        object.insert(
+            "streamCursor".to_string(),
+            serde_json::Value::String(cursor.to_string()),
+        );
     }
     if up_to_date {
         object.insert("upToDate".to_string(), true.into());
