@@ -194,3 +194,36 @@ fn a_drop_of_the_live_registration_still_deregisters() {
         .deregister(fd, token_after)
         .expect("deregister the re-registration");
 }
+
+/// A socket can report readiness as soon as the reactor registers it.
+/// Check that the reactor keeps this first event when data is already queued.
+#[test]
+fn registration_keeps_the_initial_readable_event() {
+    let _serial = serial();
+    let reactor = Reactor::get().expect("reactor");
+    let (mut socket, mut peer) = UnixStream::pair().expect("socketpair");
+    socket.set_nonblocking(true).expect("nonblocking socket");
+    let fd = socket.as_raw_fd();
+
+    for iteration in 0..10_000 {
+        // Queue one byte before registration. A second write could send a new
+        // edge and conceal the loss of the first event.
+        peer.write_all(b"x").expect("write before registration");
+        let token = next_token();
+        reactor
+            .register(fd, token, Interest::READABLE)
+            .expect("register readable socket");
+        wait_for_token(
+            &reactor,
+            token,
+            fd,
+            &format!("initial event, iteration {iteration}"),
+        );
+        let mut byte = [0];
+        socket.read_exact(&mut byte).expect("read the queued byte");
+        assert_eq!(&byte, b"x");
+        reactor
+            .deregister(fd, token)
+            .expect("deregister the socket");
+    }
+}
