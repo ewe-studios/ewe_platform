@@ -15,6 +15,15 @@ pub const CHILD: &str = "matrix/child";
 pub const MISSING: &str = "matrix/missing";
 /// The media type of every scenario stream.
 pub const CONTENT_TYPE: &str = "application/octet-stream";
+/// The sliding time to live (TTL) of the TTL scenario, in milliseconds.
+///
+/// The HTTP surface carries `Stream-TTL` in whole seconds, so a whole second
+/// keeps every transport on the same deadline.
+pub const TTL_MS: u64 = 1_000;
+/// How long the TTL scenario waits before it reads the expired stream.
+///
+/// The wait is short and bounded. The margin covers scheduler delay.
+pub const TTL_WAIT_MS: u64 = 1_500;
 
 /// One behaviour of the protocol.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -36,12 +45,18 @@ pub enum Scenario {
     /// Given a producer, when it retries the same sequence, then the stream
     /// holds one chunk and the append reports a duplicate.
     ProducerRetry,
+    /// Given a stream sequence, when it repeats or regresses, then the store
+    /// refuses and accepts a new sequence.
+    StreamSeq,
+    /// Given a stream with a TTL, when the TTL passes, then a read reports not
+    /// found.
+    TtlExpiry,
 }
 
 impl Scenario {
     /// Every scenario, in the order the specification lists them.
     #[must_use]
-    pub fn all() -> [Self; 6] {
+    pub fn all() -> [Self; 8] {
         [
             Self::CreateAppendRead,
             Self::ReadFromFirstNextOffset,
@@ -49,6 +64,8 @@ impl Scenario {
             Self::ForkAtTail,
             Self::ReadMissing,
             Self::ProducerRetry,
+            Self::StreamSeq,
+            Self::TtlExpiry,
         ]
     }
 
@@ -74,6 +91,12 @@ impl Scenario {
             Self::ProducerRetry => {
                 "given_a_producer_when_it_retries_the_same_sequence_then_the_stream_holds_one_chunk_and_reports_a_duplicate"
             }
+            Self::StreamSeq => {
+                "given_a_stream_seq_when_it_repeats_or_regresses_then_the_store_refuses_and_accepts_a_new_sequence"
+            }
+            Self::TtlExpiry => {
+                "given_a_stream_with_a_ttl_when_the_ttl_passes_then_a_read_reports_not_found"
+            }
         }
     }
 }
@@ -87,13 +110,15 @@ pub async fn run_scenario<D: Driver>(driver: &mut D, scenario: Scenario) -> Vec<
         Scenario::ForkAtTail => fork_at_tail(driver).await,
         Scenario::ReadMissing => read_missing(driver).await,
         Scenario::ProducerRetry => producer_retry(driver).await,
+        Scenario::StreamSeq => stream_seq(driver).await,
+        Scenario::TtlExpiry => ttl_expiry(driver).await,
     }
 }
 
 /// Create, append two chunks, then run a catch-up read.
 async fn create_append_read<D: Driver>(driver: &mut D) -> Vec<Observation> {
     let mut log = Vec::new();
-    log.push(driver.create(STREAM, CONTENT_TYPE).await.observation);
+    log.push(driver.create(STREAM, CONTENT_TYPE, None).await.observation);
     for chunk in [b"hello ".as_slice(), b"world".as_slice()] {
         log.push(
             driver
@@ -109,7 +134,7 @@ async fn create_append_read<D: Driver>(driver: &mut D) -> Vec<Observation> {
 /// Append twice, then read from the first append's next offset.
 async fn read_from_first_next_offset<D: Driver>(driver: &mut D) -> Vec<Observation> {
     let mut log = Vec::new();
-    log.push(driver.create(STREAM, CONTENT_TYPE).await.observation);
+    log.push(driver.create(STREAM, CONTENT_TYPE, None).await.observation);
     let first = driver
         .append(STREAM, b"first", CONTENT_TYPE, None, None, false)
         .await;
@@ -128,7 +153,7 @@ async fn read_from_first_next_offset<D: Driver>(driver: &mut D) -> Vec<Observati
 /// Close a stream, read it, then retry an append.
 async fn close_read_and_refused_append<D: Driver>(driver: &mut D) -> Vec<Observation> {
     let mut log = Vec::new();
-    log.push(driver.create(STREAM, CONTENT_TYPE).await.observation);
+    log.push(driver.create(STREAM, CONTENT_TYPE, None).await.observation);
     log.push(
         driver
             .append(STREAM, b"a", CONTENT_TYPE, None, None, false)
@@ -149,7 +174,7 @@ async fn close_read_and_refused_append<D: Driver>(driver: &mut D) -> Vec<Observa
 /// Fork a source at its tail, append to the fork, then read both.
 async fn fork_at_tail<D: Driver>(driver: &mut D) -> Vec<Observation> {
     let mut log = Vec::new();
-    log.push(driver.create(SOURCE, CONTENT_TYPE).await.observation);
+    log.push(driver.create(SOURCE, CONTENT_TYPE, None).await.observation);
     let appended = driver
         .append(SOURCE, b"0123", CONTENT_TYPE, None, None, false)
         .await;
@@ -180,7 +205,7 @@ async fn producer_retry<D: Driver>(driver: &mut D) -> Vec<Observation> {
         seq: 0,
     };
     let mut log = Vec::new();
-    log.push(driver.create(STREAM, CONTENT_TYPE).await.observation);
+    log.push(driver.create(STREAM, CONTENT_TYPE, None).await.observation);
     for _ in 0..2 {
         log.push(
             driver
@@ -189,6 +214,50 @@ async fn producer_retry<D: Driver>(driver: &mut D) -> Vec<Observation> {
                 .observation,
         );
     }
+    log.push(driver.read(STREAM, None).await.observation);
+    log
+}
+
+/// Append with `Stream-Seq`: a repeat and a regression are refused, then a
+/// larger sequence is accepted.
+async fn stream_seq<D: Driver>(driver: &mut D) -> Vec<Observation> {
+    let mut log = Vec::new();
+    log.push(driver.create(STREAM, CONTENT_TYPE, None).await.observation);
+    for (chunk, seq) in [
+        (b"a".as_slice(), "b"),
+        (b"b".as_slice(), "b"),
+        (b"c".as_slice(), "a"),
+        (b"d".as_slice(), "c"),
+    ] {
+        log.push(
+            driver
+                .append(STREAM, chunk, CONTENT_TYPE, None, Some(seq), false)
+                .await
+                .observation,
+        );
+    }
+    log.push(driver.read(STREAM, None).await.observation);
+    log
+}
+
+/// Create with a short TTL, append, wait for the deadline, then read.
+async fn ttl_expiry<D: Driver>(driver: &mut D) -> Vec<Observation> {
+    let mut log = Vec::new();
+    log.push(
+        driver
+            .create(STREAM, CONTENT_TYPE, Some(TTL_MS))
+            .await
+            .observation,
+    );
+    log.push(
+        driver
+            .append(STREAM, b"ttl", CONTENT_TYPE, None, None, false)
+            .await
+            .observation,
+    );
+    driver
+        .wait(core::time::Duration::from_millis(TTL_WAIT_MS))
+        .await;
     log.push(driver.read(STREAM, None).await.observation);
     log
 }

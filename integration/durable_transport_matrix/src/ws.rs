@@ -35,7 +35,7 @@ fn error_kind(name: &str) -> ErrorKind {
         "not_found" => ErrorKind::NotFound,
         "gone" => ErrorKind::Gone,
         "closed" => ErrorKind::Closed,
-        "config_conflict" | "content_type_mismatch" => ErrorKind::Conflict,
+        "config_conflict" | "content_type_mismatch" | "stream_seq_conflict" => ErrorKind::Conflict,
         "bad_request" => ErrorKind::BadRequest,
         "unsupported" => ErrorKind::Unsupported,
         other => ErrorKind::Other(other.to_string()),
@@ -148,12 +148,21 @@ fn reply_step(reply: &Value) -> StepResult {
 // shape across transports.
 #[allow(clippy::unused_async_trait_impl)]
 impl Driver for WsDriver {
-    async fn create(&mut self, stream: &str, content_type: &str) -> StepResult {
-        let reply = self.request(json!({
+    async fn create(
+        &mut self,
+        stream: &str,
+        content_type: &str,
+        ttl_ms: Option<u64>,
+    ) -> StepResult {
+        let mut message = json!({
             "op": "create",
             "stream": stream,
             "content_type": content_type,
-        }));
+        });
+        if let Some(ttl) = ttl_ms {
+            message["ttl_ms"] = json!(ttl);
+        }
+        let reply = self.request(message);
         reply_step(&reply)
     }
 
@@ -217,5 +226,10 @@ impl Driver for WsDriver {
         }
         let reply = self.request(message);
         reply_step(&reply)
+    }
+
+    async fn wait(&mut self, duration: core::time::Duration) {
+        foundation_core::valtron::timer::sleep_for(duration, &foundation_context::Ctx::host())
+            .await;
     }
 }

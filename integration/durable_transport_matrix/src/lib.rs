@@ -19,6 +19,7 @@
 #![cfg(unix)]
 
 pub mod driver;
+pub mod embedded;
 pub mod http;
 pub mod model;
 pub mod rpc;
@@ -27,6 +28,7 @@ pub mod server;
 pub mod ws;
 
 pub use driver::{Driver, ErrorKind, Observation, Outcome, Producer, StepResult};
+pub use embedded::EmbeddedDriver;
 pub use http::HttpDriver;
 pub use model::model_scenario;
 pub use rpc::RpcDriver;

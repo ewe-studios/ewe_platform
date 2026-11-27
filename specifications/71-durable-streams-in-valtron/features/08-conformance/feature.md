@@ -136,10 +136,22 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [x] **T10 — surface neutrality.** Call `DurableService` with no HTTP adapter. Test:
       `service_runs_without_http` in
       `backends/foundation_core/tests/durable/runtime_matrix.rs`.
-- [ ] **T11 — BDD suite.** Write the Given/When/Then scenarios for create, append, read, close,
-      producer, `Stream-Seq`, fork and TTL.
-- [ ] **T12 — driver matrix.** Run every scenario on the embedded, HTTP, WebSocket, DO and
-      Session drivers. Test: `same_scenario_every_driver`.
+- [x] **T11 — BDD suite.** The Given/When/Then scenarios for create, append, read, close,
+      producer, `Stream-Seq`, fork and TTL live in `integration/durable_transport_matrix`.
+      `Scenario::all()` lists eight scenarios. One test function per scenario runs the same
+      steps on every driver. The list test proves the count and the names. The `Stream-Seq`
+      scenario follows requirement 3.5 and the reference server: a repeat and a regression are
+      both `409 StreamSeqConflict`, and a larger sequence is accepted. A repeat is not a
+      duplicate.
+- [ ] **T12 — driver matrix.** Four drivers pass every scenario: embedded (`DurableService`
+      over `DurableStream` and `MemoryVfs`), HTTP, WebSocket and ConnectRPC. The crate is
+      `integration/durable_transport_matrix`; each test asserts the driver equals the model
+      oracle, then that the drivers agree. Remaining:
+      - DO: it needs wasm32 and wrangler, so it cannot run in the native test process. The
+        matrix does not fake it. See #1091.
+      - Session: `DurableDocumentStore` is a document store over a stream, not the stream
+        operations. A `Driver` mapping would rewrite the payload and hide the outcomes, which
+        is a fake. See #1092.
 - [ ] **T13 — model oracle.** Build a small independent state model. Test:
       `model_matches_driver`.
 - [ ] **T14 — differential oracle.** Compare drivers and transports. Test: `drivers_agree`.

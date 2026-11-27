@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T11 and T12 (transport matrix).
+  `integration/durable_transport_matrix` holds one Given/When/Then list of eight scenarios:
+  create, append and read; read from the first next offset; close and a refused append; fork at
+  the tail; a missing read; a producer retry; a `Stream-Seq` repeat and regression; and a TTL
+  expiry. One test function per scenario runs the same steps on four drivers. Each driver is
+  checked against the model oracle first, then the drivers are checked against each other.
+  Drivers: embedded (`DurableService` over `DurableStream` and `MemoryVfs`), HTTP, WebSocket and
+  ConnectRPC. The model takes its `Ctx` in the constructor and reads the wall clock and the timer
+  from that bundle. The TTL scenario uses a 1 s TTL and a bounded 1.5 s wait. T11 is done. T12 is
+  open for two runtime drivers: the DO needs wasm32 and wrangler (#1091), and
+  `DurableDocumentStore` is a document API, so a Session driver would be a fake (#1092). The
+  package is in `ci/packages.toml`. `cargo test --profile uat -p durable_transport_matrix` runs
+  9 tests: 8 scenarios and the list test. Clippy is clean and `foundation-ci plan` lists the
+  crate.
 - 2026-11-27: issue #1028 closed (medium). Webhook delivery leaves the append path. A create, a
   confirm, an append, an acknowledgement and a lease change only record the wake and put the
   subscription identifier in a bounded first-in-first-out (FIFO) queue. `SubscriptionEngine::tick`

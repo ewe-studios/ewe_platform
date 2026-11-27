@@ -2,15 +2,17 @@
 //! suite.
 //!
 //! One test function per Given/When/Then scenario. Each function runs the same
-//! steps on the HTTP, WebSocket and `ConnectRPC` drivers. It compares every driver
-//! with the model oracle first, then with the other drivers.
+//! steps on the embedded, HTTP, WebSocket and `ConnectRPC` drivers. It compares
+//! every driver with the model oracle first, then with the other drivers.
 
 #![cfg(unix)]
 
 use durable_transport_matrix::{
-    model_scenario, run_scenario, Environment, HttpDriver, RpcDriver, Scenario, WsDriver,
+    model_scenario, run_scenario, EmbeddedDriver, Environment, HttpDriver, RpcDriver, Scenario,
+    WsDriver,
 };
 
+use foundation_context::Ctx;
 use foundation_core::valtron::{block_on_future_scoped, initialize_pool};
 use serial_test::serial;
 
@@ -20,6 +22,8 @@ fn assert_matrix(scenario: Scenario) {
 
     let expected = block_on_future_scoped(model_scenario(scenario));
 
+    let mut embedded = EmbeddedDriver::new(Ctx::host());
+    let embedded_log = block_on_future_scoped(run_scenario(&mut embedded, scenario));
     let mut http: HttpDriver = environment.http_driver();
     let http_log = block_on_future_scoped(run_scenario(&mut http, scenario));
     let mut ws: WsDriver = environment.ws_driver();
@@ -27,11 +31,18 @@ fn assert_matrix(scenario: Scenario) {
     let mut rpc: RpcDriver = environment.rpc_driver();
     let rpc_log = block_on_future_scoped(run_scenario(&mut rpc, scenario));
 
+    drop(embedded);
     drop(http);
     drop(ws);
     drop(rpc);
     environment.stop();
 
+    assert_eq!(
+        embedded_log,
+        expected,
+        "{}: the embedded driver must match the model",
+        scenario.name()
+    );
     assert_eq!(
         http_log,
         expected,
@@ -48,6 +59,12 @@ fn assert_matrix(scenario: Scenario) {
         rpc_log,
         expected,
         "{}: the ConnectRPC driver must match the model",
+        scenario.name()
+    );
+    assert_eq!(
+        embedded_log,
+        http_log,
+        "{}: embedded and HTTP must agree",
         scenario.name()
     );
     assert_eq!(
@@ -68,7 +85,7 @@ fn assert_matrix(scenario: Scenario) {
 #[test]
 fn the_scenario_list_is_the_bdd_specification() {
     let scenarios = Scenario::all();
-    assert_eq!(scenarios.len(), 6, "the suite has six scenarios");
+    assert_eq!(scenarios.len(), 8, "the suite has eight scenarios");
     for scenario in scenarios {
         assert!(
             scenario.name().starts_with("given_"),
@@ -132,4 +149,21 @@ fn given_a_producer_when_it_retries_the_same_sequence_then_the_stream_holds_one_
 ) {
     let _guard = initialize_pool(42, Some(8));
     assert_matrix(Scenario::ProducerRetry);
+}
+
+#[test]
+#[foundation_macros::timeout(120_000)]
+#[serial(durable_transport_matrix)]
+fn given_a_stream_seq_when_it_repeats_or_regresses_then_the_store_refuses_and_accepts_a_new_sequence(
+) {
+    let _guard = initialize_pool(42, Some(8));
+    assert_matrix(Scenario::StreamSeq);
+}
+
+#[test]
+#[foundation_macros::timeout(120_000)]
+#[serial(durable_transport_matrix)]
+fn given_a_stream_with_a_ttl_when_the_ttl_passes_then_a_read_reports_not_found() {
+    let _guard = initialize_pool(42, Some(8));
+    assert_matrix(Scenario::TtlExpiry);
 }

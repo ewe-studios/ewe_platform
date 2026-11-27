@@ -6,6 +6,7 @@
 //! encoding: the offset text may differ, so it records presence, not text.
 
 use core::fmt;
+use core::time::Duration;
 
 /// A producer identity and position in one epoch.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -180,8 +181,10 @@ impl StepResult {
 /// [`ErrorKind::Unsupported`]; it does not fake a success.
 #[allow(async_fn_in_trait)]
 pub trait Driver {
-    /// Create a stream.
-    async fn create(&mut self, stream: &str, content_type: &str) -> StepResult;
+    /// Create a stream with an optional sliding time to live (TTL) in
+    /// milliseconds.
+    async fn create(&mut self, stream: &str, content_type: &str, ttl_ms: Option<u64>)
+        -> StepResult;
 
     /// Append one chunk.
     async fn append(
@@ -202,4 +205,10 @@ pub trait Driver {
 
     /// Create a fork at `at`. `None` forks at the source tail.
     async fn fork(&mut self, child: &str, source: &str, at: Option<&str>) -> StepResult;
+
+    /// Wait on the injected timer.
+    ///
+    /// The model and every host read the same clock, so a test can advance the
+    /// wall clock with one bounded wait.
+    async fn wait(&mut self, duration: Duration);
 }

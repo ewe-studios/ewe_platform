@@ -51,7 +51,9 @@ fn rpc_error(error: &ErrorTrace<ConnectError>) -> StepResult {
     let kind = match error.current_context().code() {
         Code::NotFound => ErrorKind::NotFound,
         Code::FailedPrecondition => ErrorKind::Closed,
-        Code::AlreadyExists => ErrorKind::Conflict,
+        // `AlreadyExists` is a configuration conflict. `SequenceGap` and
+        // `StreamSeqConflict` both map to `Aborted`.
+        Code::AlreadyExists | Code::Aborted => ErrorKind::Conflict,
         Code::InvalidArgument => ErrorKind::BadRequest,
         Code::Unimplemented => ErrorKind::Unsupported,
         other => ErrorKind::Other(other.as_str().to_string()),
@@ -82,10 +84,16 @@ fn append_step(duplicate: bool, cursor: Option<&pb::Cursor>) -> StepResult {
 }
 
 impl Driver for RpcDriver {
-    async fn create(&mut self, stream: &str, content_type: &str) -> StepResult {
+    async fn create(
+        &mut self,
+        stream: &str,
+        content_type: &str,
+        ttl_ms: Option<u64>,
+    ) -> StepResult {
         let request = pb::CreateRequest {
             name: stream.to_string(),
             content_type: Some(content_type.to_string()),
+            ttl_ms,
             ..Default::default()
         };
         match self
@@ -195,5 +203,9 @@ impl Driver for RpcDriver {
             Ok(response) => create_step(response.msg.created, response.msg.head.as_option()),
             Err(error) => rpc_error(&error),
         }
+    }
+
+    async fn wait(&mut self, duration: core::time::Duration) {
+        foundation_core::valtron::timer::sleep_for(duration, &Ctx::host()).await;
     }
 }

@@ -58,10 +58,18 @@ fn error_step(error: ClientError) -> StepResult {
 }
 
 impl Driver for HttpDriver {
-    async fn create(&mut self, stream: &str, content_type: &str) -> StepResult {
+    async fn create(
+        &mut self,
+        stream: &str,
+        content_type: &str,
+        ttl_ms: Option<u64>,
+    ) -> StepResult {
+        // The HTTP surface carries `Stream-TTL` in whole seconds. Round up so
+        // the deadline is never shorter than the requested TTL.
+        let ttl_seconds = ttl_ms.map(|value| value.div_ceil(1_000));
         match self
             .handle(stream)
-            .create(Some(content_type), None, None, false, Vec::new())
+            .create(Some(content_type), ttl_seconds, None, false, Vec::new())
             .await
         {
             Ok(result) => {
@@ -169,5 +177,10 @@ impl Driver for HttpDriver {
             }
             Err(error) => error_step(error),
         }
+    }
+
+    async fn wait(&mut self, duration: core::time::Duration) {
+        foundation_core::valtron::timer::sleep_for(duration, &foundation_context::Ctx::host())
+            .await;
     }
 }
