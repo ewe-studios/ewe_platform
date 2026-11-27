@@ -2,10 +2,12 @@
 
 ## Goal
 
-Choose a renderer for the Foundation desktop host and record what the host must implement. Use source evidence to choose the first prototype. Require platform evidence before production adoption.
+Prototype the Foundation desktop host with the Zed GPUI snapshot that GPUI Kit uses and the unstyled Base controls. Require platform evidence before production adoption.
 
 | Term | Meaning |
 | --- | --- |
+| Accessibility bridge | Code that sends control roles, names, states and actions to the operating system. |
+| AccessKit | A library that carries accessibility data to platform services. |
 | Base | The unstyled control behavior and infrastructure in `gpui-base`. |
 | Kit | Longbridge GPUI Kit and its selectable layers. |
 | Input method editor (IME) | An operating system service that composes text from input. |
@@ -58,15 +60,16 @@ The update operation preserves names and parent links across a rejected frame. C
 
 ### Source evidence
 
-The source review uses local checkouts. It verifies paths and declared dependencies. It does not measure performance or verify a platform build.
+The review uses local source and manifests. Platform support below describes source paths and candidate release graphs. Build, install, performance and interactive results remain open.
 
 | Checkout | Revision and useful locations |
 | --- | --- |
-| Ewe `resume/combined` | `4ecc48a908715358169570a369583f4198e1753b`. See `backends/foundation_ui_native/src/{core,host,sink,resources}.rs` and `backends/foundation_ui_wire/schema/{common,ops,hello}.fbs`. |
+| Ewe `resume/combined` | `02bd32ef0b980c36e26e30c70f281aabc0f49c78`. See `backends/foundation_ui_native/src/{core,host,sink,resources}.rs` and `backends/foundation_ui_wire/schema/{common,ops,hello}.fbs`. |
 | `/Volumes/Outside/GitSources/src.Rust/src.gpui/gpui-kit` | `b7b66f5a1613b4d237f4909228d30a1d28bd8759`. See `Cargo.toml`, `Cargo.lock`, `crates/{kit,base,component,assets,webview,shell}/Cargo.toml`, `crates/base/src` and `crates/component/src`. |
 | Sibling `gpui-fast` | `79e15aa26a71a1ce32cca3ddc8a06981d0a65a72`. See `UPSTREAM`, `Cargo.toml`, `crates/gpui_platform/Cargo.toml`, `crates/gpui/src/window.rs`, `docs/releasing.md` and `release.toml`. |
 | Sibling `zed` | `46375fbf64574f01dc08fd2d2998aa7bbb7f0377`. See `crates/gpui`, `crates/gpui_platform` and the platform crates. It is a separate checkout from the fork's declared import. |
 | Sibling `gpui` | `8d31300b294f6acc0c5809888bd2ff29e0bb7648`. The checkout contains a redirect README and has no Cargo manifest. |
+| `/Volumes/Outside/GitSources/src.Rust/src.iced/iced` | `98bd48fe011efc0ec5819fee0fa7673a7169ff11` (`0.15.0-dev`). The local `0.14.0` release tag identifies `3997291f318a8bc06fa522f5579836fb3feb94df`. |
 
 `gpui-fast/UPSTREAM` names Zed commit `f126950f9d3b62666f97437ae5d4ccac2272c4db` and fork import `9d120903587a1359c2fe1262c84d165be9dd5ddf`. Kit's release job records the Zed revision for each snapshot. The reviewed Kit lockfile identifies registry packages. It does not establish which Zed commit produced snapshot `0.3.14`.
 
@@ -81,6 +84,23 @@ Use `Desktop` and `Native` when the desktop contract is ready.
 Reject unsupported operations explicitly and document any negotiation change in the implementation plan.
 See `backends/foundation_ui_wire/src/writer/config.rs` and `schema/hello.fbs`. Use the shared core and contract. Keep the desktop window, node store and backend-specific objects in a desktop Rust host.
 
+### Engine and platform comparison
+
+| Criterion | Zed GPUI and GPUI Fast | Iced |
+| --- | --- | --- |
+| Window and graphics | GPUI has AppKit and Metal for macOS, Direct3D and DirectWrite for Windows, and wgpu for X11 and Wayland. See the Zed and Fast manifests under `crates/gpui_{macos,windows,linux}`. Fast adds retained layers and native surface composition. | Iced has a winit window shell and wgpu graphics. The development checkout includes a Vello CPU renderer. Release tag `0.14.0` includes a tiny-skia software renderer. See the root manifests and `renderer/src/lib.rs`. |
+| Platform test evidence | Kit and Fast declare macOS, Windows and Linux jobs in `.github/workflows/ci.yml`. The jobs supply compile and library test coverage. Session parity and the selected Foundation artifact need their own checks. | `.github/workflows/test.yml` declares all three operating systems with the Vello CPU test backend. `build.yml` builds the todos example. Those jobs provide a release reference. Interactive graphics, text and accessibility checks remain separate. |
+| Text input | Zed and Fast expose the platform text input handler. Zed source shows macOS marked text, Windows composition, X11 input methods and the Wayland text-input path. Base implements marked text, committed text and selection in `crates/base/src/input/base/state.rs`. | The winit conversion and window code handle composition updates, commit and candidate window geometry. Text input and editor widgets consume those events. See `winit/src/{conversion,window}.rs` and `widget/src/{text_input,text_editor}.rs`. The development editor handles preedit and commit in `core/src/text/editor.rs`. |
+| Accessibility | Both engines have AccessKit tree and platform adapters in `crates/gpui/src/window/a11y.rs`, the macOS and Windows window code and the X11 and Wayland window code. Base gives input, button and dialog control semantics. Confirm the selected snapshot exports the same hooks and services in the packaged host. | Searches of Rust source and manifests in both revisions found no AccessKit integration or equivalent widget-to-platform accessibility bridge. Keyboard support and focus commands exist. A supported accessibility bridge or a verified upstream release is necessary for the screen-reader gate. |
+| Stock controls | Bare GPUI provides layout, painting, hit testing, focus, text and input hooks. Base adds editing, control semantics and interaction. Styled Component and Assets add a visual catalog. | `widget/src` supplies buttons, toggles, text input, editors, scroll areas, lists with selection, popovers and keyed columns. Foundation must supply modal focus, accessible roles and actions, and the mappings for its own node vocabulary. |
+| Frame and action model | Apply Foundation updates on the window thread and invalidate affected GPUI entities. Keep control state with each live Foundation node. Route callbacks to the instance's binding. | Receive each Foundation frame as a message through a subscription. Apply it in `update` and build the view from the committed tree. Use keyed containers and operation identifiers to retain widget state. See `src/{application,daemon}.rs` and `widget/src/keyed/column.rs`. |
+| Release graph | The Zed workspace sets `publish = false`. Use the matching registry snapshots for the first prototype. GPUI Fast has its own registry release graph and source substitutions. | The development checkout uses registry wgpu 30 and a revision of the Iced winit fork. The local `0.14.0` tag uses registry winit 0.30 and wgpu 27. Using its graphics default would add a wgpu major version to Ewe. Confirm resolution and the software backend option before pricing a release integration. Iced declares the MIT license. |
+
+A successful window launch proves the shell and graphics path. A usable control also needs keyboard behavior, composition, an accessible role and action dispatch.
+Both model styles can preserve Foundation frame order and identity. Neither style removes the work in the Foundation node store and adapter.
+For Iced, a bridge would need to publish tree updates, carry stable control identifiers and send assistive actions back to widget state.
+It would also need platform glue for focus and editable text. The prototype decision does not assume that bridge exists.
+
 ### Control and behavior coverage
 
 | Area | GPUI or Kit supplies | Foundation must supply or verify |
@@ -89,7 +109,7 @@ See `backends/foundation_ui_wire/src/writer/config.rs` and `schema/hello.fbs`. U
 | Basic controls | Base provides button, checkbox, switch, radio, slider, toggle and labeled control behavior. Component adds styled versions. | Map Foundation node kinds and typed properties. Translate enabled, hidden, selected and disabled states. |
 | Text and editing | Base has input, selection, undo and history. Component adds input and higher-level editor behavior. | Connect focus, composition and editor value to Foundation event semantics. Check IME, selection, clipboard and Unicode on each platform. |
 | Lists and overlays | Base has virtual lists, tables, select, tabs, dialog, focus trap, tooltip, popover and toast. Component adds styled variants, lists, native menu helpers and notifications. | Route by declared names and receiving views. Preserve keyed identity, modal focus, overlay order and scroll state after updates. Distinguish in-app notices from system notifications. |
-| Accessibility | GPUI Fast has AccessKit integration in the window and platform crates. Kit has roles, names, states, actions and integration tests. | Map Foundation accessible names and states. Verify screen-reader output on each platform and modal focus restoration. |
+| Accessibility | Zed GPUI and GPUI Fast have AccessKit integration in their window and platform crates. Base supplies roles, names, states and actions. | Map Foundation accessible names and states. Verify screen-reader output on each platform and modal focus restoration. |
 | Foundation state and updates | GPUI provides entity state, event callbacks and a local executor. | Apply the Foundation operations, preserve binding and signed-state semantics, dispatch actions and route replies in sequence. GPUI entity state is a presentation cache. |
 | Embedded surfaces and native commands | The optional Kit WebView wrapper uses Wry. GPUI Fast has lower-level composition interfaces. | Evaluate the existing Specification 69 WebView contract separately. Add desktop capability mappings only after there is proof for each operation. |
 | Packaging | Kit includes examples and a separate script shell with bundling code. | Use Ewe's application resource, signing and release tasks. The Kit shell adds a script runtime with its own policy and distribution path. |
@@ -128,17 +148,23 @@ Use the vocabulary from `backends/foundation_ui_wire/schema/common.fbs` and the 
 | Distribution | Prefer registry releases for a package that Ewe publishes. A local path cannot ship as an external dependency. Verify the selected graph with `cargo package`, then install and launch packages on clean desktop systems. |
 | License and assets | Kit software, GPUI crates and the fork declare Apache-2.0. Kit has a separate documentation license statement. Keep Apache license text and upstream notices. If using default icons, record `crates/assets/LICENSE-LUCIDE`. Audit all resolved platform and asset licenses before distribution. |
 
-### Candidate comparison and recommendation
+### Decision and dependency scope
 
-| Candidate | Advantages | Cost and decision |
-| --- | --- | --- |
-| Use styled Kit controls directly | Fastest route to full control behavior. Includes themes, overlays, collections, editor behavior and access roles. | Foundation must translate all typed operations and events. The styled catalog adds dependencies, assets and another source of style and state rules. Use it as a reference or for a demonstrated gap. |
-| Thin Foundation adapter on GPUI | Keeps window, paint and input in GPUI. Use Base for controls where its state and events map to Foundation. Draw basic elements directly when their behavior is simple. | The adapter owns mapping, stable identity and lifecycle. Start with registry Kit Base and one engine. Use the harness to compare the fork where it solves a measured problem. |
-| Thin adapter on the local GPUI Fast fork | Adds retained rendering, scroll layers and native-surface composition. A pinned revision allows targeted changes. | Carry fork sync and a different dependency graph. The registry build can differ from the local build. Promote only for a measured benefit or a required platform behavior that clears the release gate. |
-| Create Foundation primitives | Gives Foundation direct control of presentation and dependency choices. Shared custom drawing can reuse a small graphics layer and Ewe resources. | The team must own windowing, input, text, access, layout, clipping, scale and graphics recovery. Native controls through AppKit, WinUI and GTK reduce drawing work. They require separate hosts and parity tests. |
-| Reuse Tauri desktop and the web renderer | Uses the existing desktop shell and the shared web renderer. Can serve applications that accept browser controls. | Has a separate platform and browser distribution burden. It covers a web surface. It does not complete the Foundation desktop control contract. |
+**Use GPUI Kit Base with the Zed GPUI snapshot for the first prototype.** Use one registry engine. The reviewed Kit version uses `gpui-base` 0.11.0 and `gpui-pre` with `gpui-pre-platform` at `=0.3.14`. Verify those packages before adopting the graph.
 
-**Recommendation.** After Specification 69 closes, approve a small prototype of a thin Foundation adapter with a single pinned engine. Use `gpui-pre` with Kit Base as the baseline. Compare available GPUI Fast releases against the same test cases where rendering or composition makes a difference. Keep the application and frame fixtures identical. Prefer the registry package that meets the acceptance gates. Reject a source fork if its required modifications cannot ship through the normal release process. If both engines fail a required platform case, price the native-control adapter against the failing case before choosing a fallback.
+Screen-reader output and editable text composition are release gates. Zed GPUI provides the platform hooks, and Base provides control semantics and editing behavior. Bare GPUI requires Foundation to supply that behavior. Iced supplies editing and standard widgets. The reviewed Iced revisions still need a widget-to-platform accessibility bridge.
+
+| Layer | Use in the prototype |
+| --- | --- |
+| Engine and platform | Use `gpui-pre` for windows and rendering. Use `gpui-pre-platform` with X11 and Wayland. Start with the macOS features in the reviewed Kit manifest. |
+| Base behavior | Depend on `gpui-base` directly with the `gpui-pre` feature. Initialize Base key bindings and control services with `gpui_base::init`. Use Base input, buttons, selection and modal focus behavior. |
+| Window root | Keep the Foundation node store in the host. Use the Base `Root` helper if the chosen dialogs and focus layers require it. Wrap the Foundation root view with it in that case. |
+| Foundation presentation | Use GPUI primitives for layout, text and images. Apply Foundation styles, resources and labels in the adapter. |
+| Optional Kit packages | Omit the `gpui-kit` facade, `gpui-component`, `gpui-kit-assets`, WebView and shell. Evaluate a styled component only for a specific behavior that Base cannot supply. |
+
+Base is the smallest reviewed Kit package that supplies the required behavior. Its package still brings text, markup and platform support dependencies. Inspect the resolved graph of the proposed host before approval to adopt it.
+
+**Fallback.** If the baseline fails a required engine or package check, reproduce that case with the registry GPUI Fast engine and the same Base controls. Keep the fixtures and application identical. Verify that the released package includes the required fix. Use Fast only if it resolves the failure and passes the full platform gate. If both GPUI graphs fail, report the error and price the native-control adapter against that case. Reopen Iced when a release provides a usable accessibility bridge or when the owner approves the cost of maintaining one. Use the existing Tauri web shell for applications that accept a browser surface.
 
 ### Adapter flow
 
@@ -170,17 +196,17 @@ The boundary needs one Foundation node store per window and one renderer view pe
 
 ### Work and effort
 
-Estimates are engineering days for one engineer familiar with Foundation and Rust. Assume one example, current desktop platforms, standard controls and existing release flows. Estimate excludes a new WebView, rich editor, full native menu suite and custom graphics widgets.
+Estimates are engineering days for one engineer familiar with Foundation and Rust. All candidates use the same example, standard controls, focus and accessibility scenarios, and packaged desktop checks. Scope excludes embedded web content, rich editing, full system menus and custom graphics surfaces.
 
-| Phase | Styled Kit | Thin adapter with selective Base | Own primitives or native controls |
+| Phase | Zed snapshot with Base | Bare GPUI | Iced |
 | --- | --- | --- | --- |
-| Resolve features and run the window, text and accessibility prototype | 2–4 days | 3–5 days | 5–10 days |
-| Implement frame, node, resource and action integration with the example | 6–10 days | 7–12 days | 10–18 days |
-| Complete standard controls, focus, accessibility and platform parity | 5–9 days | 7–12 days | 20–40 days |
-| Install, sign, package and integrate platform CI | 5–9 days | 5–9 days | 8–15 days |
-| Total | 18–32 days | 22–38 days | 43–83 days |
+| Resolve features and run the window, text and accessibility prototype | 3–5 days | 3–5 days | 6–10 days |
+| Implement the Foundation node, resource, frame and action adapter | 7–12 days | 7–12 days | 7–12 days |
+| Complete standard controls, composition, focus and accessibility | 7–12 days | 16–28 days | 15–30 days |
+| Package, install and integrate platform tests | 5–9 days | 5–9 days | 6–10 days |
+| Total | 22–38 days | 31–54 days | 34–62 days |
 
-Allow another 3–7 days to qualify a fork source or registry substitution. Treat ongoing fork sync and per-platform regressions as recurring maintenance. Re-estimate once the prototype identifies its platform package and access requirements.
+Bare GPUI includes in-house single-line editing, selection and dialog behavior. Iced includes a provisional allowance for an accessibility bridge. The Iced range assumes the adapter can use existing platform hooks. Re-estimate if that work requires a maintained toolkit fork. Qualifying GPUI Fast with the same Base graph adds 3–7 days to the first column. A native-control adapter remains a 43–83 day comparison if both GPUI engines fail. Carry snapshot updates, fork synchronization and platform regressions as ongoing maintenance.
 
 ## Tests
 
@@ -190,12 +216,16 @@ Allow another 3–7 days to qualify a fork source or registry substitution. Trea
 | I1 and A2 | Enter text using keyboard and IME. Trigger a local action and a service reply. | The recorded Foundation event contains the committed value. The expected update appears once. |
 | I2 and A3 | Apply ordered frames, then inject an invalid operation. | The valid frames remain in order. The error appears and the prior tree is identical. |
 | I3 and A5 | Send an unsupported operation and reproduce a failed package start. | The host reports an operation error. The release decision stays open. |
-| I4 and A5 | Inspect dependency graphs and install release artifacts on clean systems. | Only the desktop target brings in GPUI. Each desktop artifact starts with its declared dependencies. |
+| I4 and A5 | Inspect dependency graphs and install release artifacts on clean systems. | Only the desktop target brings in the selected renderer. Each desktop artifact starts with its declared dependencies. |
 | I5 | Review the implementation handoff and plan history. | Specification 69 is closed and the owner approval covers the updated plan. |
 | I6 and A4 | Close while an action or subscription can still deliver. | The closed window receives zero updates. Other windows continue. |
 | A6 | Run keyboard and screen-reader checks on each platform. | Focus order, dialog role, title, control roles, names and restored focus match the fixture. |
 
-Use desktop tests under the owning crate's `tests/` directory. Run the same minimal example on macOS, Windows and Linux. Linux coverage includes X11 and Wayland. Record the input method, desktop environment, screen reader and display scale. Preserve startup, repaint and scroll measurements across candidate revisions. Record hardware and build profile with those measurements.
+Use desktop tests under the owning crate's `tests/` directory. Run the same minimal example on macOS, Windows and Linux. Linux coverage includes X11 and Wayland. Record the input method, desktop environment, screen reader and display scale.
+Test VoiceOver on macOS, Narrator on Windows and Orca on both Linux sessions.
+Check composition commit and cancellation. Move a named control during composition and verify its identity and text state.
+Check focus restoration and assistive activation after a modal closes.
+Install each artifact on a clean target and check that its resource and platform dependencies resolve. Preserve startup, repaint and scroll measurements across candidate revisions. Record hardware and build profile with those measurements.
 
 ## Verify
 

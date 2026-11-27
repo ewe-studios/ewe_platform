@@ -22,7 +22,9 @@ related_specs: ["69-foundation-ui-v2", "52-tauri-foundation-platform", "91-windo
 
 ## Goal and scope
 
-Select a renderer for macOS, Windows and Linux after Specification 69 closes. Support the same Foundation UI application and action model on desktop.
+Select the Zed GPUI snapshot with GPUI Kit Base for the first macOS, Windows and Linux prototype. Support the same Foundation UI application and action model on desktop.
+
+Use one registry engine and the Base controls. Use GPUI Fast with the same Base controls if it fixes a required platform failure. Require the same release checks before adopting either engine.
 
 The owner needs a desktop host that opens a window, applies Foundation UI frames, and sends events to the same Rust actions. The owner needs a support decision and cost comparison before the host takes a dependency on an external renderer. When a candidate fails a required platform check, the owner needs the failing case and the cost of the available fallback.
 
