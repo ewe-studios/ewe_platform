@@ -1524,3 +1524,9 @@ The current plan output does not establish a passing test on those platforms.
 The time modules implement serialization traits without exporting any items.
 Their two glob reexports match no public items and emit warnings.
 The implementations remain available after removing the reexports.
+
+## 2026-11-28 — Vulkan aggregate device features
+
+Vulkan permits a device to enable promoted features in an aggregate record.
+The record can store the same flags at different offsets from the individual structures.
+Compare the named fields. An enabled aggregate record alone does not show that each required feature is enabled.

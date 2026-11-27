@@ -1,6 +1,8 @@
 //! Test the graphics service through the same context handle that actions use.
 mod leases;
 mod surfaces;
+#[cfg(any(target_os = "android", target_os = "linux"))]
+mod vulkan;
 use foundation_context::Ctx;
 use foundation_ui_gpu::{wgpu::InstanceFlags, GpuConfig, GpuError, GpuService, OwnedInstanceFlags};
 

@@ -4,6 +4,7 @@ use ash::vk;
 use std::ffi::CStr;
 use wgpu::hal::{self, api::Vulkan};
 mod features;
+pub use features::includes_required_device_features;
 
 /// Keep the original Vulkan instance alive until all grants finish.
 pub struct VulkanPlan {
@@ -168,7 +169,9 @@ impl VulkanPlan {
         .map(|name| unsafe { CStr::from_ptr(*name) })
         .collect::<Vec<_>>();
         if self.extensions.iter().any(|e| !enabled.contains(e))
-            || !self.requirements(|needed| unsafe { features::contains(creation, needed) })?
+            || !self.requirements(|needed| unsafe {
+                includes_required_device_features(creation, needed)
+            })?
         {
             return Err(LeaseError::Incompatible);
         }
