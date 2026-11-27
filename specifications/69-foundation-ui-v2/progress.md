@@ -2145,3 +2145,11 @@ The runtime guide passes 12 runnable examples and retains two existing exclusion
 The audit lists the package gates for features 01 through 13, 17, 20, and 27 through 31.
 The global time source guard reports two agent shutdown calls. The clock parameter guard passes.
 [Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180)
+
+## macOS audit Android toolchain sample
+
+The scoped run passes its plan job. Its separate macOS build job stops before the Android sample compiles.
+Gradle reports different SDK paths from the runner and the pinned configuration.
+The workflow clears the deprecated SDK variable for the sample.
+The shell check confirms that the pinned path reaches the sample command.
+The next scoped run verifies the hosted sample. [Issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185)

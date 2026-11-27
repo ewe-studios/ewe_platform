@@ -1600,3 +1600,10 @@ Use the standalone examples with their own Cargo manifests and profiles.
 Install the locked JavaScript dependencies before checking generated wire bindings.
 Verify each WebAssembly entropy backend at runtime. The compact probes check both a working host and an absent entropy source.
 The time source guard now runs through the repository's Rust check command.
+
+## Hosted audit SDK path
+
+The hosted macOS runner exports its own Android Software Development Kit (SDK) path.
+The tool manager sets the pinned path in ANDROID_HOME.
+Clear ANDROID_SDK_ROOT in the Android sample step before Gradle reads both values.
+This step runs in the macOS build job. The package test shards run separately.
