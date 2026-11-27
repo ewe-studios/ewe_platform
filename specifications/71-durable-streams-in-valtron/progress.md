@@ -27,6 +27,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 - 2026-11-27: feature 08 records the verified conformance commands and their results in its
   feature file. The server run is 332 pass, 6 skip, 0 fail. The client run is 198 pass, 0 fail,
   71 skip. The harness task remains.
+- 2026-11-27: queued issue #1019 after feature 10. The wasm bridge must preserve the parsed
+  request headers when it builds a streamed fetch body. Close the issue with the fix and a wasm
+  test.
 - 2026-11-27: process update. The handoff lives in `handoff.md` in this spec. A fresh agent
   continues from it. The file VFS first implementation is in
   `foundation_nativeapis/src/native/vfs/durable_file.rs` and compiles under `vfs-native`; it has

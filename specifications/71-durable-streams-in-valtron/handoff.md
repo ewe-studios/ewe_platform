@@ -77,6 +77,10 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
    `foundation_core::durable` as `foundation_event_stream::durable`, and reuses
    `foundation_auth::shared::jwks` for signing keys and the JWKS endpoint. The six skipped server
    tests must pass, and the gate must set `subscriptions: true`.
+5a. Issue #1019, after feature 10: the wasm bridge builds a parsed fetch request with a `Stream`
+   body without `with_preserved_headers`, so it drops `Content-Length`. The native parser already
+   sets the flag. Fix `foundation_netio/src/wasm/bridge/{cf,web}.rs`, add a wasm test, close the
+   issue in the same change.
 6. Feature 08: the CI wiring. `ci/durable_conformance.sh` is the command to call.
 6. The wider oracle matrix: differential, crash and recovery, deterministic simulation testing
    (DST) across VFS implementations.
