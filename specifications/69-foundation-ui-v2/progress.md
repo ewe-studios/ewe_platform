@@ -2333,3 +2333,10 @@ The new Git attributes preserve line feed for the generated vocabulary and the n
 The automatic CRLF checkout check reproduces the old change and preserves all four tested files after the fix.
 The byte comparisons and binary wire fixtures stay the same.
 [Issue 1202](https://github.com/ewe-studios/ewe_platform/issues/1202)
+
+## Canonical Swift release manifest
+
+The Windows native task test builds its templates and runs the release tests.
+Two checkouts can return different manifest line endings for one checksum commit.
+Read the manifest blob from the selected Git revision.
+Check the original archive checksum and the manifest from both checkout modes.
