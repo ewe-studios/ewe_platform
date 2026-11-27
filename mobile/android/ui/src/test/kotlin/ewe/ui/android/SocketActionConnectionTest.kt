@@ -9,6 +9,7 @@ import ewe.ui.runtime.SubscriptionFrames
 import java.io.IOException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.jupiter.api.Assertions.*
@@ -86,6 +87,28 @@ class SocketActionConnectionTest {
             val late = acknowledge(15u, 2u)
             fixture.socket.events.deliver(late)
             assertArrayEquals(late, fixture.delivered.single())
+            assertTrue(fixture.failures.isEmpty())
+        }
+    }
+
+    @Test fun cancellationReleasesTheActionWait() = runBlocking {
+        val fixture = Fixture()
+        fixture.action().use { connection ->
+            val hello = async(start = CoroutineStart.UNDISPATCHED) {
+                connection.send(SubscriptionFrames.hello(connection.requestTag))
+            }
+            fixture.socket.events.deliver(capabilities(15u, connection.requestTag))
+            hello.await()
+
+            val action = request(15u, 2u)
+            val pending = async(start = CoroutineStart.UNDISPATCHED) { connection.send(action) }
+            assertArrayEquals(action, fixture.socket.requests.last())
+            pending.cancelAndJoin()
+            assertTrue(pending.isCancelled)
+
+            val reply = acknowledge(15u, 2u)
+            fixture.socket.events.deliver(reply)
+            assertArrayEquals(reply, fixture.delivered.single())
             assertTrue(fixture.failures.isEmpty())
         }
     }
