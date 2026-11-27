@@ -15,6 +15,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ewe.ui.compose.EweDrawingSurface
+import ewe.ui.compose.EweDrawingSurfaceControl
 import ewe.ui.runtime.NodeStore
 import io.github.ewe_studios.ewe.core.NativeCore
 import io.github.ewe_studios.ewe.core.NativeDrawingSurface
@@ -56,6 +57,9 @@ class MathalleyRoute(private val seed: () -> ULong) {
                 confirmButton = { TextButton(onClick = close) { Text("Back to Todos") } })
             return
         }
+        val drawing = remember { EweDrawingSurfaceControl() }
+        val scope = rememberCoroutineScope()
+        var closing by remember { mutableStateOf(false) }
         var presented by remember { mutableStateOf(false) }
         var surface by remember { mutableStateOf<NativeDrawingSurface?>(null) }
         var sound by remember { mutableStateOf(false) }
@@ -75,17 +79,22 @@ class MathalleyRoute(private val seed: () -> ULong) {
             onDispose { if (sound && foreground) manager.abandonAudioFocusRequest(focus) }
         }
         fun close() {
-            game.active(false)
-            store?.unregisterView("mathalley")
-            visible = false
+            if (closing) return
+            closing = true
+            scope.launch {
+                drawing.close()
+                store?.unregisterView("mathalley")
+                visible = false
+            }
         }
         DisposableEffect(game) { onDispose { game.stopSound(); game.close() } }
-        LaunchedEffect(surface, foreground, error) {
-            game.active(foreground)
-            val target = surface ?: return@LaunchedEffect
+        LaunchedEffect(surface, foreground, error, closing) {
+            game.active(foreground && !closing)
+            if (surface == null || closing) return@LaunchedEffect
             if (foreground && error == null) try {
                 while (isActive) {
-                    game.draw(target, withFrameNanos { it.toULong() })
+                    val time = withFrameNanos { it.toULong() }
+                    if (!drawing.draw { game.draw(it, time) }) break
                     presented = true
                 }
             } catch (cancel: CancellationException) { throw cancel }
@@ -121,12 +130,13 @@ class MathalleyRoute(private val seed: () -> ULong) {
         Dialog(onDismissRequest = ::close, properties = DialogProperties(usePlatformDefaultWidth = false)) {
             Surface(Modifier.fillMaxSize()) {
                 Column(Modifier.safeDrawingPadding()) {
-                    TextButton(onClick = ::close) { Text("Back to Todos") }
+                    TextButton(onClick = ::close, enabled = !closing) { Text("Back to Todos") }
                     audioError?.let { Text("Sound unavailable. " + it) }
                     if (error != null) Text(error.orEmpty())
                     else EweDrawingSurface(
                         "mathalley", graphics, { error = it.message },
                         contentDescription = if (presented) "Mathalley game" else "Loading Mathalley",
+                        control = drawing,
                         modifier = Modifier.fillMaxSize().pointerInput(game) {
                             detectTapGestures { p ->
                                 game.tap(p.x, p.y, size.width.toFloat(), size.height.toFloat())

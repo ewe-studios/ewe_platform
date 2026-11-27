@@ -1640,3 +1640,17 @@ The same Todo installation opens Mathalley, presents Train, and accepts an answe
 The score changes from zero to 100. Back returns to the same Todo list.
 The application keeps its endpoint and application data during the update.
 A second game visit shows a blank surface in the same process. Issue [1078](https://github.com/ewe-studios/ewe_platform/issues/1078) tracks this separate failure.
+
+## Shared Android drawing window lifetime
+
+The shared Android drawing view retires its window before it asks the graphics owner to release it.
+Mathalley waits for release before it closes the dialog. The native owner keeps the graphics device for the next window.
+A replacement can reuse the name of a retired window. A live duplicate still returns an error.
+The native and graphics tests pass on macOS. The Compose framework test and Todo Debug package build for Android.
+The Android 16 Ranchu emulator opens the title through the ordinary Todo launcher and keeps it visible.
+The Todo list, application identifier, and data directory stay the same after the in-place update.
+Both game visits in one process show a stable title, draw Train, and accept a correct answer.
+Back restores the same Todo list after each visit. Android records no crash for that process.
+Three Android framework tests pass on the same emulator.
+The replacement test verifies a red frame on the new window and rejects the old frame callback.
+The other tests verify two independent windows and a Vulkan device that the host owns.

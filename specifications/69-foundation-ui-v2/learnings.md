@@ -1,5 +1,14 @@
 # Spec 69 learnings
 
+## Android drawing window replacement
+
+The Android window can close while the graphics owner works on a frame.
+Canceling a Kotlin wait does not stop graphics work that has already started.
+The Android bridge marks the window as retired before it starts asynchronous cleanup.
+The graphics owner checks that mark before drawing, recovery, and presentation.
+The view publishes an attached surface only while it owns that window.
+A new window can reuse the name of a retired window. It keeps the same graphics device.
+
 ## Android Todo Server startup address
 
 The launcher starts the activity without the custom server extra. Port forwarding does not supply that extra.
