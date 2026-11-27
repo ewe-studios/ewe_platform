@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-28: feature 01, 05, 06, 07 and 08 gaps closed. #1134: `DurableStream` stores the
+  clock, not the `Ctx`, so the `Arc` cycle is gone; the leak test proves the VFS drops.
+  #1135: retry, producer, dynamic headers and the injected clock live in the client core; the
+  adapter uses them. #858: the connectrpc `build.rs` emits the Cranelift cfg, so the panic test
+  runs under LLVM and is ignored only under Cranelift. #1155/#1024: netio clippy is clean.
+  #1153: the feature 07 record names the real test. Feature 08 T6: a `durable-valtron` gate with
+  one job per group (reader, writer, wait, wake). T17: fault-injection and malformed-input fuzz
+  oracles. Full core suite: 1,046 passed with default features and 1,134 with
+  `test-clock,multi`; both 0 failed, 0 ignored. Feature 06 T11 stays open: no golden oracle
+  (#1167). Open follow-ups: #1152, #1160, #1162.
 - 2026-11-28: feature records checked against the code and the tests. Status: 01 in progress,
   02 done, 03 done, 04 done, 05 in progress, 06 in progress, 07 in progress, 08 in progress,
   09 done, 10 done, 11 done.
