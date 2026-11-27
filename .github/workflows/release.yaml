@@ -157,7 +157,7 @@ jobs:
           submodules: false
 
       - name: Download
-        uses: actions/download-artifact@v8.0.2
+        uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true

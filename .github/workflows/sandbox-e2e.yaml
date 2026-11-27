@@ -126,7 +126,7 @@ jobs:
           firecracker --version
 
       - name: Install mise
-        uses: jdx/mise-action@v5.2.10
+        uses: jdx/mise-action@v5.3.0
         with:
           install: false
 
@@ -180,7 +180,7 @@ jobs:
           key: cloudflare-${{ github.sha }}
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
 
@@ -194,7 +194,7 @@ jobs:
           worker-build --version
 
       - name: Install mise
-        uses: jdx/mise-action@v5.2.10
+        uses: jdx/mise-action@v5.3.0
         with:
           install: false
 
