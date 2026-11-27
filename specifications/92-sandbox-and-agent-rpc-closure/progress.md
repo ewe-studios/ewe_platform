@@ -1,6 +1,6 @@
 # Spec 92 Progress: closing specs 77 and 83
 
-_Last updated: 2026-11-27._
+_Last updated: 2026-11-28._
 
 ## Status at a glance
 
@@ -8,7 +8,7 @@ _Last updated: 2026-11-27._
 |---|---|
 | 00 Live proof on the real services | not started |
 | 01 DST fidelity: the real registry | not started |
-| 02 Sandbox follow-ups | not started |
+| 02 Sandbox follow-ups | in progress: 11 of 12 issues closed; #1095 left |
 | 03 GCP KMS over gRPC | not started |
 | 04 Live cloud resources with OpenTofu | not started |
 
@@ -35,9 +35,38 @@ Local stack verified on this host: moto serves AWS KMS (create, encrypt, decrypt
 alias) on port 5055; Vault serves Transit on 8200 with its engine enabled by an init service;
 localgcp v0.6.0 serves Cloud KMS on h2c `:8091` and is not yet wired to a client.
 
+## Feature 02 (2026-11-28)
+
+Branch `fix/sandbox-follow-ups`, pull request #1111. It closes the rows of this feature
+that do not need a Linux host with KVM.
+
+- The first change closed #935, #966, #969, #970, #972, #1013, #1022 and #1023. It also
+  added the watchdog for the serve token tests (#1104) and fixed a dead export variant
+  (#1106).
+- The second change closes #977. `UnpackBegin` reads the `ready` line as a readiness
+  future, and `UnpackChunk` and `UnpackCommit` write and read through non-blocking pipes
+  that park on writability. `tests/slave/unpack.rs` fills every task worker with writers
+  to a probe child that reads nothing for one second, then shows that a queued task runs;
+  one writer streams a 100 MiB archive. The test compiles and runs on Linux only.
+- The third change closes #978 as a design decision. Spec 77 feature 12 section 6.6 now
+  names the `exec` child form and the reason, with the decision date 2026-11-27.
+- The fourth change closes #1008. It clears the pedantic lints of `foundation_jsonschema`
+  and of `foundation_compact` in its wasm runs, and removes the `clippy-deny-warnings`
+  override of `foundation_jsonschema` from `ci/packages.toml`. `foundation_compact` has no
+  override.
+- #1095 (a Firecracker guest network) is left for its own change. It needs a Linux host
+  with KVM, and this machine has none.
+
+Verified on this host: format, clippy and tests of `foundation_sandbox`,
+`foundation_deployment_docker`, `foundation_deployment_cloudflare`,
+`foundation_compact` and `foundation_jsonschema`. The Linux-only test targets could not be
+compiled here because no Linux cross C compiler is installed; the `sandbox-e2e` job
+proves them.
+
 ## Next
 
-1. Feature 00, task T2 first: make `sandbox-cloudflare` green. The red run's log names the
+1. Feature 02, #1095: the Firecracker guest network on a Linux host with KVM.
+2. Feature 00, task T2 first: make `sandbox-cloudflare` green. The red run's log names the
    step and now prints the failing value.
-2. Feature 00, task T1: one live run against the owner's account, recorded here.
-3. Feature 00, tasks T3 to T6: the KMS and WebCrypto tests.
+3. Feature 00, task T1: one live run against the owner's account, recorded here.
+4. Feature 00, tasks T3 to T6: the KMS and WebCrypto tests.
