@@ -10,7 +10,7 @@ use crate::shared::durable::parse::{
     decode_offset, encode_offset, parse_expires_at, parse_offset, parse_producer,
     parse_stream_closed, parse_stream_seq, parse_sub_offset, parse_ttl,
 };
-use crate::shared::durable::status::{header, status_for};
+use crate::shared::durable::status::{error_kind, header, status_for};
 use crate::shared::serve::ServeOutcome;
 use base64::Engine as _;
 use foundation_compact::rng::Rng;
@@ -244,12 +244,19 @@ impl Serve for DurableHandler {
         conn: SharedByteBufferStream<RawStream>,
     ) -> crate::shared::serve::ConnectionResult {
         let Some(service) = self.service.clone() else {
-            return crate::native::writer::send_text(
-                conn,
-                500,
-                "durable store is not in the context",
-                &ctx,
-            );
+            let mut headers = base_headers();
+            headers.push((
+                SimpleHeader::CONTENT_TYPE,
+                "text/plain; charset=utf-8".to_string(),
+            ));
+            let response = DurableResponse {
+                status: 500,
+                headers,
+                body: b"durable store is not in the context".to_vec(),
+            };
+            return crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
+                respond(conn, &ctx, response).await
+            }));
         };
 
         let method = req.method.clone();
@@ -483,10 +490,11 @@ async fn refuse_body(
     status: u16,
     message: &str,
 ) -> ServeOutcome {
-    let headers = vec![(
+    let mut headers = base_headers();
+    headers.push((
         SimpleHeader::CONTENT_TYPE,
         "text/plain; charset=utf-8".to_string(),
-    )];
+    ));
     if let Ok(head) = render_head(status, &headers, message.len()) {
         let mut writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
         let _ = writer.write_all(&head).await;
@@ -573,27 +581,35 @@ async fn linger_drain(mut body: AsyncSendSafeBody, config: DurableHttpConfig, ct
     }
 }
 
+/// The wire response for one store refusal.
+///
+/// The status comes from the status table. `X-Error-Kind` carries the stable
+/// error name. The body carries the readable message.
+#[must_use]
+pub fn error_response(error: &StoreError) -> DurableResponse {
+    let mut headers = base_headers();
+    headers.extend(error_headers(error));
+    headers.push((
+        SimpleHeader::custom(header::ERROR_KIND),
+        error_kind(error).to_string(),
+    ));
+    headers.push((
+        SimpleHeader::CONTENT_TYPE,
+        "text/plain; charset=utf-8".to_string(),
+    ));
+    DurableResponse {
+        status: status_for(error),
+        headers,
+        body: error.to_string().into_bytes(),
+    }
+}
+
 async fn respond_error(
     conn: SharedByteBufferStream<RawStream>,
     ctx: &Ctx,
     error: &StoreError,
 ) -> ServeOutcome {
-    let mut headers = base_headers();
-    headers.extend(error_headers(error));
-    headers.push((
-        SimpleHeader::CONTENT_TYPE,
-        "text/plain; charset=utf-8".to_string(),
-    ));
-    respond(
-        conn,
-        ctx,
-        DurableResponse {
-            status: status_for(error),
-            headers,
-            body: error.to_string().into_bytes(),
-        },
-    )
-    .await
+    respond(conn, ctx, error_response(error)).await
 }
 
 /// The protocol headers an error response must carry.
@@ -644,10 +660,11 @@ fn base_headers() -> Vec<(SimpleHeader, String)> {
             SimpleHeader::custom("cross-origin-resource-policy"),
             "cross-origin".to_string(),
         ),
-        // A browser client reads the protocol headers on a cross-origin read.
+        // A browser client reads the protocol and error headers on a
+        // cross-origin response.
         (
             SimpleHeader::custom("access-control-expose-headers"),
-            "Stream-Next-Offset, Stream-Cursor, Stream-Up-To-Date, Stream-Closed, ETag, Location"
+            "Stream-Next-Offset, Stream-Cursor, Stream-Up-To-Date, Stream-Closed, ETag, Location, X-Error-Kind"
                 .to_string(),
         ),
     ]

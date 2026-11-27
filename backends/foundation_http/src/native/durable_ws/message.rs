@@ -431,25 +431,9 @@ impl WsReply {
 }
 
 /// The stable error name for a store refusal.
-#[must_use]
-pub fn error_kind(error: &StoreError) -> &'static str {
-    match error {
-        StoreError::NotFound => "not_found",
-        StoreError::Gone => "gone",
-        StoreError::Trimmed => "trimmed",
-        StoreError::Fenced { .. } => "fenced",
-        StoreError::InvalidEpochSeq { .. } => "invalid_epoch_seq",
-        StoreError::SequenceGap { .. } => "sequence_gap",
-        StoreError::StreamSeqConflict { .. } => "stream_seq_conflict",
-        StoreError::ContentTypeMismatch { .. } => "content_type_mismatch",
-        StoreError::ConfigConflict => "config_conflict",
-        StoreError::Closed { .. } => "closed",
-        StoreError::BadRequest(_) => "bad_request",
-        StoreError::RateLimited { .. } => "rate_limited",
-        StoreError::Unsupported => "unsupported",
-        StoreError::Storage(_) => "storage",
-    }
-}
+///
+/// Every transport adapter shares one table, so the names cannot drift apart.
+pub use crate::shared::durable::status::error_kind;
 
 /// Encode bytes as standard base64 with padding.
 #[must_use]

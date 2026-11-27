@@ -21,8 +21,34 @@ pub fn status_for(error: &StoreError) -> u16 {
     }
 }
 
+/// The stable error name for a store refusal.
+///
+/// Every transport adapter reports the same names, so a client that reads one
+/// wire form can match a refusal from another.
+#[must_use]
+pub fn error_kind(error: &StoreError) -> &'static str {
+    match error {
+        StoreError::NotFound => "not_found",
+        StoreError::Gone => "gone",
+        StoreError::Trimmed => "trimmed",
+        StoreError::Fenced { .. } => "fenced",
+        StoreError::InvalidEpochSeq { .. } => "invalid_epoch_seq",
+        StoreError::SequenceGap { .. } => "sequence_gap",
+        StoreError::StreamSeqConflict { .. } => "stream_seq_conflict",
+        StoreError::ContentTypeMismatch { .. } => "content_type_mismatch",
+        StoreError::ConfigConflict => "config_conflict",
+        StoreError::Closed { .. } => "closed",
+        StoreError::BadRequest(_) => "bad_request",
+        StoreError::RateLimited { .. } => "rate_limited",
+        StoreError::Unsupported => "unsupported",
+        StoreError::Storage(_) => "storage",
+    }
+}
+
 /// The protocol header names.
 pub mod header {
+    /// The machine-readable error name on an error response.
+    pub const ERROR_KIND: &str = "X-Error-Kind";
     /// The next offset for a read.
     pub const STREAM_NEXT_OFFSET: &str = "Stream-Next-Offset";
     /// The CDN collapsing cursor.

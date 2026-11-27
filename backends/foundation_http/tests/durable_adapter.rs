@@ -8,17 +8,19 @@
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_context::Ctx;
 use foundation_core::durable::{
     DurableService, DurableStream, MemoryVfs, StoreError, StreamName, StreamOffset,
 };
 use foundation_http::native::durable::{
-    dispatch, error_headers, inline_body_len, live_mode, short_body, sse_control_event,
-    sse_control_json, sse_data_event, stream_name_from_path, DurableRequest, DurableResponse,
-    LiveMode,
+    dispatch, error_headers, error_response, inline_body_len, live_mode, short_body,
+    sse_control_event, sse_control_json, sse_data_event, stream_name_from_path, DurableRequest,
+    DurableResponse, LiveMode,
 };
 use foundation_http::shared::durable::parse::encode_offset;
+use foundation_http::shared::durable::status::status_for;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 
 fn service() -> DurableService<DurableStream> {
@@ -768,4 +770,154 @@ fn given_producer_errors_when_the_headers_are_built_then_the_contract_fields_are
     assert!(fenced
         .iter()
         .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-epoch") && value == "5"));
+}
+
+/// A durable response always carries the two baseline security headers.
+fn assert_baseline_security_headers(response: &DurableResponse) {
+    assert_eq!(
+        response.header("x-content-type-options"),
+        Some("nosniff"),
+        "status {} lost X-Content-Type-Options",
+        response.status
+    );
+    assert_eq!(
+        response.header("cross-origin-resource-policy"),
+        Some("cross-origin"),
+        "status {} lost Cross-Origin-Resource-Policy",
+        response.status
+    );
+}
+
+#[test]
+fn security_headers_present() {
+    smol::block_on(async {
+        let service = service();
+        let created = send(&service, SimpleMethod::PUT, "secure", headers(&[]), None, "abc")
+            .await
+            .expect("create");
+        let appended = send(&service, SimpleMethod::POST, "secure", headers(&[]), None, "def")
+            .await
+            .expect("append");
+        let read = send(&service, SimpleMethod::GET, "secure", headers(&[]), None, "")
+            .await
+            .expect("read");
+        let tag = read.header("ETag").expect("etag").to_string();
+        let not_modified = send(
+            &service,
+            SimpleMethod::GET,
+            "secure",
+            headers(&[("if-none-match", &tag)]),
+            None,
+            "",
+        )
+        .await
+        .expect("conditional read");
+        let headed = send(&service, SimpleMethod::HEAD, "secure", headers(&[]), None, "")
+            .await
+            .expect("head");
+        let unsupported = send(&service, SimpleMethod::PATCH, "secure", headers(&[]), None, "")
+            .await
+            .expect("unsupported method");
+        let preflight = send(&service, SimpleMethod::OPTIONS, "secure", headers(&[]), None, "")
+            .await
+            .expect("preflight");
+        let deleted = send(&service, SimpleMethod::DELETE, "secure", headers(&[]), None, "")
+            .await
+            .expect("delete");
+
+        // Refusals use the same baseline headers as a success.
+        let not_found = error_response(&StoreError::NotFound);
+        let rate_limited = error_response(&StoreError::RateLimited {
+            retry_after: Some(Duration::from_secs(5)),
+        });
+
+        for response in [
+            &created,
+            &appended,
+            &read,
+            &not_modified,
+            &headed,
+            &unsupported,
+            &preflight,
+            &deleted,
+            &not_found,
+            &rate_limited,
+        ] {
+            assert_baseline_security_headers(response);
+        }
+
+        assert_eq!(not_modified.status, 304);
+        assert_eq!(unsupported.status, 405);
+
+        // The 429 path is implemented: the status table maps a rate limit and
+        // the error response carries the retry delay.
+        assert_eq!(rate_limited.status, 429);
+        assert_eq!(rate_limited.header("retry-after"), Some("5"));
+
+        // The preflight exposes every protocol header a browser client reads.
+        let exposed = preflight
+            .header("access-control-expose-headers")
+            .expect("preflight exposes response headers");
+        for name in [
+            "Stream-Next-Offset",
+            "Stream-Cursor",
+            "Stream-Up-To-Date",
+            "Stream-Closed",
+            "ETag",
+            "Location",
+            "X-Error-Kind",
+        ] {
+            assert!(exposed.contains(name), "preflight does not expose {name}");
+        }
+        assert_eq!(preflight.header("access-control-allow-headers"), Some("*"));
+    });
+}
+
+#[test]
+fn injected_error_is_typed() {
+    smol::block_on(async {
+        let service = service();
+        send(&service, SimpleMethod::PUT, "typed", headers(&[]), None, "abc")
+            .await
+            .expect("create");
+        send(
+            &service,
+            SimpleMethod::POST,
+            "typed",
+            headers(&[("stream-closed", "true")]),
+            None,
+            "",
+        )
+        .await
+        .expect("close");
+
+        // The store refuses an append after a close. The adapter maps the
+        // refusal with its own status table, not a new one.
+        let error = send(&service, SimpleMethod::POST, "typed", headers(&[]), None, "def")
+            .await
+            .expect_err("append after close must be refused");
+        assert!(matches!(error, StoreError::Closed { .. }));
+        let response = error_response(&error);
+        assert_eq!(response.status, status_for(&error));
+        assert_eq!(response.status, 409);
+        assert_eq!(response.header("x-error-kind"), Some("closed"));
+        assert!(!response.body.is_empty(), "the error body names the fault");
+        assert_baseline_security_headers(&response);
+
+        // A missing stream is a store refusal too.
+        let missing = send(&service, SimpleMethod::GET, "absent", headers(&[]), None, "")
+            .await
+            .expect_err("a missing stream must be refused");
+        let response = error_response(&missing);
+        assert_eq!(response.status, 404);
+        assert_eq!(response.header("x-error-kind"), Some("not_found"));
+
+        // A failed backend is a typed 500, so a transient fault never looks
+        // like a protocol refusal.
+        let storage = StoreError::Storage(Box::new(std::io::Error::other("injected fault")));
+        let response = error_response(&storage);
+        assert_eq!(response.status, 500);
+        assert_eq!(response.header("x-error-kind"), Some("storage"));
+        assert_baseline_security_headers(&response);
+    });
 }

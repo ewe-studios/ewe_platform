@@ -574,7 +574,7 @@ fn given_a_rejected_body_when_the_client_stops_sending_then_the_server_closes_at
     assert_eq!(status, 413, "expected 413 for an oversized body");
 
     // Stop sending. The discard times out and the server closes.
-    let started = std::time::Instant::now();
+    let started = Ctx::host().clock().now();
     let mut tail = [0_u8; 64];
     let read = stream.read(&mut tail).expect("read the close");
     assert_eq!(read, 0, "expected an end-of-stream after the timeout");
