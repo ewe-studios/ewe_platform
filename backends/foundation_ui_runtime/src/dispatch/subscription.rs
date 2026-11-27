@@ -31,8 +31,14 @@ impl Drop for FeedLease {
 pub trait ReplayFeed: Send + Sync {
     fn stream_id(&self) -> u64;
     /// Sends future updates until the receiver closes.
+    ///
+    /// # Errors
+    /// Returns an error if the feed rejects the client or cannot open a listener.
     fn listen(&self, caps: &ClientCaps, send: LiveSink) -> Result<FeedLease, ReplayError>;
     /// Reads retained updates after the requested sequence.
+    ///
+    /// # Errors
+    /// Returns an error if the cursor expires or the feed cannot supply updates.
     fn replay(&self, caps: &ClientCaps, after: u64) -> Result<Vec<Arc<[u8]>>, ReplayError>;
 }
 
@@ -55,6 +61,7 @@ impl SubscriptionReplay {
     {
         Self(Arc::new(select))
     }
+    #[must_use]
     pub fn feeds(&self, ctx: &Ctx, caps: &ClientCaps) -> Vec<Arc<dyn ReplayFeed>> {
         (self.0)(ctx, caps)
     }

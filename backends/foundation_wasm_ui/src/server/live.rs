@@ -471,6 +471,9 @@ impl LivePublication {
     }
 
     /// Deliver the prepared frame after the external transaction commits.
+    ///
+    /// # Panics
+    /// Panics if internal code removes the reserved channel or frame before publication.
     pub fn publish(mut self) {
         let channel = self.channel.take().expect("reservation owns its channel");
         let mut inner = channel.lock();

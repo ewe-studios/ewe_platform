@@ -1605,3 +1605,9 @@ The time source guard now runs through the repository's Rust check command.
 
 Compare the staged Rust bytes with the formatter output before committing.
 Keep formatter changes in a separate commit from fixes to validators and test fixtures.
+
+## 2026-11-28 — Strict Foundation UI package lint
+
+Run strict lint against the configured feature variants and the test targets.
+The reference interpreter checks names before changing its view.
+Keep that check and the fixture rows independent from the code that applies the operations.

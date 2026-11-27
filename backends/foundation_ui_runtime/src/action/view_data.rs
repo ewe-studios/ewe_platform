@@ -1,4 +1,4 @@
-//! Route typed MessagePack data to the receiving view.
+//! Route typed `MessagePack` data to the receiving view.
 use foundation_errstacks::ErrorTrace;
 use foundation_ui_wire::ErrorCode;
 use serde::{de::DeserializeOwned, Serialize};

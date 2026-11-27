@@ -457,6 +457,46 @@ impl RefStore {
         }
     }
 
+    fn validate_placement_names(
+        &self,
+        place: &crate::PlaceT,
+        scope: Option<u32>,
+        id: u32,
+        row: usize,
+    ) -> Result<(), &'static str> {
+        let mut names: std::collections::BTreeSet<_> = self
+            .nodes
+            .values()
+            .filter(|n| {
+                scope.is_some_and(|root| self.inside(n.id, root))
+                    && !(place.kind == crate::PlacementKind::Swap && self.inside(n.id, id))
+            })
+            .filter_map(|n| n.props.get("ID").cloned())
+            .collect();
+        for op in place.operations.iter().flatten() {
+            let columns = op
+                .columnar
+                .as_ref()
+                .map(|b| crate::writer::decode_batch(b, row))
+                .transpose()
+                .map_err(|_| "BadFrame")?;
+            for item in std::iter::once(&op.ui).chain(columns.as_deref().unwrap_or_default()) {
+                if let UiOperationT::SetProp(p) = item {
+                    if p.prop != crate::PropId::ID {
+                        continue;
+                    }
+                    let name = prop_text(&p.value)
+                        .filter(|s| crate::vocab::valid_name(s))
+                        .ok_or("InvalidName")?;
+                    if !names.insert(name) {
+                        return Err("DuplicateName");
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn place(&mut self, place: crate::PlaceT, row: usize) {
         use crate::PlacementKind as K;
         if place.kind == K::FullView {
@@ -473,7 +513,9 @@ impl RefStore {
             self.insert(root, place.root_node, None, row);
             return;
         }
-        let Some(target) = place.target else { return };
+        let Some(target) = place.target.as_deref() else {
+            return;
+        };
         let scope = if target.kind == crate::SelectorKind::View {
             self.views
                 .get(target.text.as_deref().unwrap_or_default())
@@ -481,48 +523,16 @@ impl RefStore {
         } else {
             self.scope()
         };
-        let id = match self.target(&target, scope) {
+        let id = match self.target(target, scope) {
             Ok(id) => id,
             Err(code) => {
                 self.reports.push(json!({"code":code,"row":row}));
                 return;
             }
         };
-        let mut names: std::collections::BTreeSet<_> = self
-            .nodes
-            .values()
-            .filter(|n| {
-                scope.is_some_and(|root| self.inside(n.id, root))
-                    && !(place.kind == K::Swap && self.inside(n.id, id))
-            })
-            .filter_map(|n| n.props.get("ID").cloned())
-            .collect();
-        for op in place.operations.iter().flatten() {
-            let columns = op
-                .columnar
-                .as_ref()
-                .map(|b| crate::writer::decode_batch(b, row))
-                .transpose();
-            let Ok(columns) = columns else {
-                self.reports.push(json!({"code":"BadFrame","row":row}));
-                return;
-            };
-            for item in std::iter::once(&op.ui).chain(columns.as_deref().unwrap_or_default()) {
-                if let UiOperationT::SetProp(p) = item {
-                    if p.prop != crate::PropId::ID {
-                        continue;
-                    }
-                    let Some(name) = prop_text(&p.value).filter(|s| crate::vocab::valid_name(s))
-                    else {
-                        self.reports.push(json!({"code":"InvalidName","row":row}));
-                        return;
-                    };
-                    if !names.insert(name) {
-                        self.reports.push(json!({"code":"DuplicateName","row":row}));
-                        return;
-                    }
-                }
-            }
+        if let Err(code) = self.validate_placement_names(&place, scope, id, row) {
+            self.reports.push(json!({"code":code,"row":row}));
+            return;
         }
         if self.node(id, row).is_none() {
             return;

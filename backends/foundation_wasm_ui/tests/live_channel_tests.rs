@@ -351,7 +351,7 @@ fn reserved_frames_publish_after_commit_and_disappear_after_cancellation() {
     );
     assert_eq!(channel.last_sequence(), 0);
     drop(abandoned);
-    assert!(reader.sequences().is_empty());
+    assert_eq!(reader.sequences(), Vec::<u64>::new());
     let committed = sender.reserve(make).unwrap();
     assert_eq!(committed.position(), 1);
     let next_reader = Recorder::default();
