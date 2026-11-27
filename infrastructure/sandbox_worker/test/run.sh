@@ -104,9 +104,10 @@ start_wrangler() {
             exit 1
         fi
         # `grep -c` reads the whole tail, so `pipefail` cannot see a SIGPIPE
-        # from an early `grep -q` exit.
+        # from an early `grep -q` exit. The build log pads the tag with spaces,
+        # as in `[custom build]     Finished`, so match any whitespace run.
         if [ "$(tail -n "+$((start_line + 1))" "${log}" 2>/dev/null \
-            | grep -c '\[custom build\] Finished')" -gt 0 ]; then
+            | grep -cE '\[custom build\][[:space:]]+Finished')" -gt 0 ]; then
             built=1
             break
         fi
