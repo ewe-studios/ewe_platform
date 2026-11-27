@@ -85,7 +85,11 @@ pub fn set() -> Result<TaskSet, TaskError> {
         android::install,
     )?;
     tasks.expose("android", &["toolchain-android"])?;
-    tasks.add("android-lock", "Verify and lock Android tool archives", android_lock::run)?;
+    tasks.add(
+        "android-lock",
+        "Verify and lock Android tool archives",
+        android_lock::run,
+    )?;
     tasks.expose("android-lock", &["toolchain-android-lock"])?;
     tasks.add(
         "android-build",
