@@ -18,6 +18,10 @@ members = [
 
 exclude = [
   "artefacts/*",
+  # backends/foundation_agent_rpc_dst is its own workspace root: the
+  # deterministic simulation build must not inherit `multi` from the root
+  # workspace's feature unification (#1048).
+  "backends/foundation_agent_rpc_dst",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
   # infrastructure/sandbox_worker is its own workspace root: it builds for
@@ -29,6 +33,9 @@ exclude = [
   # The nested host image holds a Dockerfile, not a Rust crate (spec 77
   # feature 11).
   "infrastructure/sandbox_nested_image",
+  # The local AWS KMS emulator runner holds a shell script, not a Rust crate
+  # (spec 92 feature 00, task T3).
+  "infrastructure/kms",
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",

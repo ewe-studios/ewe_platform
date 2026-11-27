@@ -1447,6 +1447,12 @@ where
         }
     }
 
+    fn drives_its_producer(&self) -> bool {
+        // `next()` runs the engine, so a `Wait` can mean "run it again". The
+        // parking adapters re-drive it with a bounded budget on every engine.
+        true
+    }
+
     fn announce(&mut self) {
         // Forward the idempotent async-consumer announcement down to the waking
         // terminal, so its first empty pull answers `Wait` at once too.

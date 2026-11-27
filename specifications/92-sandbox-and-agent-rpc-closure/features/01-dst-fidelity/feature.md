@@ -104,6 +104,17 @@ under the simulator. Stage B needs code that does not compile today (section 5).
 |---|---|---|
 | T4 | Compile `core::registry::local` without `multi`, and add a deterministic model provider without `multi`; then replace the `ScriptedRegistry` in `foundation_agent_rpc_dst` with the real registry; keep the 32-seed determinism test and the injected storage failure | #908 |
 
+### Stage C: the nested drive and the other control states
+
+Stage B closed #908, and it found two defects in `foundation_core`. Both are
+`severity: high`, so they are fixed now.
+
+| Task | Work | Closes |
+|---|---|---|
+| T5 | `run_until` counts the task that is running, so a drive from inside an engine task never returns. Exclude the running task from the runnable count. Test: a task drives a nested `run_until` and returns | #1128 |
+| T6 | The five parking adapters re-drive a driving stream on `Pending` and `Init`, not only on `Wait`; `Delayed` keeps its timer | #1129 |
+| T7 | Route the DST turn through the real RPC client when T5 lands, and remove the `TurnItems` workaround in `foundation_ai` | — |
+
 ### The redrive policy in code
 
 The adapter cannot see the engine. It can see whether the stream drives its own
