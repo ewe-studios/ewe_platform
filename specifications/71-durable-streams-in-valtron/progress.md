@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 CI wiring landed. `.github/workflows/check.yaml` has a
+  `durable-conformance` job. It runs `ci/durable_conformance.sh` on a runner with Rust and
+  Node 20 when a pull request touches a durable path, and on every full run. The job sets a
+  concurrency group, cancels a superseded pull request run, and has a 20-minute timeout.
+  The gate parses the reporter output. The server suite must be 338 passed (338) with no
+  skip. The client suite must be 267 passed, 0 failed and 2 suite-forced Swift skips.
+  `foundation_core` adds `multi,test-clock,vfs-testkit` to `runs` and `clippy-runs`, so the
+  memory VFS conformance test runs in CI. The wasm checks from issue #1030
+  (`foundation_netio` default and `wasm-fetch`; `foundation_core` `std,multi`) were already
+  in `ci/packages.toml`, and the plan accepts them.
+
 - 2026-11-27: feature 05 T7, T9 and T10 landed. The shared kit lives in
   `foundation_core::durable::vfs_testkit` behind the `vfs-testkit` feature. It runs nine scenarios:
   create, append, read byte-exact, bounded pages, fork prefix, fork append, soft-delete and
@@ -228,7 +239,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all
   landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
-- **08-conformance** — ⏳ not started (0/7)
+- **08-conformance** — 🟡 in progress. The CI gate landed: a Linux job runs both suites on a
+  durable change and on full runs, and the memory VFS conformance test runs in CI. The
+  valtron suite, the cross-runs, the skip register, the report and the runtime matrix remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

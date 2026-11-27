@@ -514,3 +514,25 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **A coverage test can record what it does not reach.** The fork-depth limits, the I/O error
   branches and the malformed-metadata parser need a fault injection or a deep chain. Naming them
   in `progress.md` is better than a silent gap.
+
+## Conformance CI wiring (2026-11-27)
+
+- **A job cannot filter its own pull request paths.** `paths` sits on the workflow trigger, so it
+  would skip every other check. Use a first step that diffs the base and writes an output, then
+  put `if:` on the later steps. The job stays green when no durable path changes.
+- **The server count line is the gate.** Vitest prints `Tests  338 passed (338)` only when the
+  run has no skip. A skip changes the line to `338 passed | 1 skipped (339)`. Match the full
+  `338 passed (338)` text; do not parse the number alone.
+- **The client runner prints a summary and one line per skip.** The summary is `Total:`,
+  `Passed:`, `Failed:` and `Skipped:`. Each skip prints `(skipped: <reason>)`. Gate on the
+  summary and on the reason of every skip line.
+- **Do not end a pipeline with `grep -q` under `pipefail`.** When grep exits early, the writer
+  takes `SIGPIPE` and the pipeline status becomes nonzero even after a match. Read every line
+  into a variable with `grep -v` instead.
+- **The VFS conformance file is behind a feature.** `tests/durable/vfs_conformance.rs` compiles
+  only with `vfs-testkit`. Add the feature to `runs` and `clippy-runs`; no other tree compiles
+  the kit file.
+- **A fork-safe job needs no CI image.** A runner with the pinned Rust toolchain and Node 20
+  runs the gate. The image path needs registry credentials, so a fork takes the artifact path.
+- **The wasm checks from #1030 were already wired.** `foundation_netio` checks its default set
+  and `wasm-fetch`; `foundation_core` checks `std,multi`. `foundation-ci plan` accepts both.

@@ -85,7 +85,12 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] **T2 — client suite harness.** Build the adapter and run the client suite against the
       reference server.
 - [ ] **T3 — cross-runs.** Our client to our server. Reference client to our server.
-- [ ] **T4 — CI.** Add the Linux jobs. Fail on a non-skipped failure.
+- [x] **T4 — CI.** The `durable-conformance` job in `.github/workflows/check.yaml` runs
+      `ci/durable_conformance.sh` on a runner with Rust and Node 20. It runs when a pull request
+      touches a durable path, and on every full run. The script fails on a non-skipped failure
+      and on a count other than 338 server passes or 267 client passes with 2 suite-forced skips.
+      The `foundation_core` test run with `multi,test-clock,vfs-testkit` runs the memory VFS
+      conformance test in CI.
 - [ ] **T5 — skip register.** Record every skip and its reason. Get owner approval for each.
 - [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
 - [ ] **T7 — report.** Publish the counts and the reference commit with each run.
@@ -129,7 +134,7 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL.
 - [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
 - [ ] The valtron layer tests pass separately.
-- [ ] CI fails on any non-skipped conformance failure.
+- [x] CI fails on any non-skipped conformance failure.
 
 ## 5.1 Owner acceptance bar (2026-11-27)
 
