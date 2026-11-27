@@ -1660,3 +1660,14 @@ A passing three-host Todo run does not cover the page-script action in the serve
 The page script needs its own browser gesture and network result. Issue 1190 tracks this requirement.
 Historical commit limits and permitted source edits require evidence from the original change.
 A new test can retain a runtime result. The original commit count and source edits stay part of the review.
+
+## Todo browser page action route
+
+The initial view already receives the negotiated mount surface.
+The shared Todo tree can include the script and binding only for the browser.
+Scoped script hydration registers the function through the existing browser action registry.
+The application boot path uses the same framework startup.
+
+The driver submits Space as a keyboard activation for the browser title.
+Its Enter path keeps focus but does not activate the button in this test.
+[Driver follow-up](https://github.com/ewe-studios/ewe_platform/issues/1192)

@@ -9,7 +9,7 @@ The checkpoints below this section retain the results and assignments at their r
 
 | Gate | Current evidence and remaining action |
 |---|---|
-| Todo action examples | Feature 37 passes its twelve checks at `b22d81cd0`. D48 also needs a web-only page script in the served Todo app. Feature 10 names `host:scroll_to_top`. Verify actual scrolling with no action request, the shared filter, and the absence of the web binding in native. [Issue 1190](https://github.com/ewe-studios/ewe_platform/issues/1190) |
+| Todo action examples | Feature 37 passes its twelve checks at `b22d81cd0`. The packaged browser runs the D48 host page script and the shared filter with no server request. Seven native host tests verify the shared filter and exclude the web script and its binding. [Issue 1190](https://github.com/ewe-studios/ewe_platform/issues/1190) |
 | Hosted platform and toolchain checks | Collect actual test results and the pinned toolchain check for all supported operating systems. The scoped run uses `89fde9934`. The revision coverage table identifies which recipes need a later result. The older macOS build job failed, and the older Windows check skipped. Track the actual package shards and their setup. [Scoped run](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113) [Runner issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185) |
 | Configured test exclusions | Keep excluded recipes visible until their issues close and tests pass. The current plan excludes macOS HTTP, Windows browser and HTTP recipes, and Windows database tests. [Issue 546](https://github.com/ewe-studios/ewe_platform/issues/546) [Issue 531](https://github.com/ewe-studios/ewe_platform/issues/531) [Issue 519](https://github.com/ewe-studios/ewe_platform/issues/519) |
 | Workspace-wide checks | The changed Specification 69 Rust files match the formatter at `5ae7b4aa0`. The configured local UI lint variants pass at `673e2a7ef`. The workspace formatter and time-source check still fail outside this scope. [Formatting issue 1189](https://github.com/ewe-studios/ewe_platform/issues/1189) [Time-source issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180) |
@@ -345,3 +345,21 @@ The native provider fixture also passes for the legacy path and preserves output
 The Android library inputs come from a scratch publication of the current source.
 Feature 19 retains the public package installation gate.
 [Android variant results](progress.md#android-template-build-variants)
+
+
+### Physical device checklist for Todo
+
+The available device inventory contains five iPhone simulator entries and one Android emulator.
+No physical test device is available.
+
+- Install a fresh scratch Todo Server bundle on a physical iPhone. Record normal cold launch and debugger-paused first launch. Compare the captured title, scene readiness, and system launch logs. [Issue 831](https://github.com/ewe-studios/ewe_platform/issues/831)
+- On a physical iPhone, activate Delete from VoiceOver Actions and verify the confirmation. Record the automatic countdown speech and verify focus returns to the pause control. [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
+
+### Candidate and local package coverage
+
+The native preview at `8ce2352b9` builds candidate starters and the separate Todo applications.
+It precedes the current Android template split and the Todo lint and header changes.
+The local Android package test covers both build orders with the updated template and provider.
+The local Todo checks cover the lint and header changes.
+The public package gate remains in Feature 19.
+[Native preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598)

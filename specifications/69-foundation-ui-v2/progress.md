@@ -2229,3 +2229,15 @@ The focused Swift host suite passes six renderer tests. It uses a local Mac arch
 The new test checks the next row after an unknown node and one exact capabilities callback.
 Both native behaviour matrix checks and the Python test pass. The browser suite passes 176 tests with one recorded legacy skip.
 The integration test module declaration removes the Node warning in issue 1191.
+
+## Todo browser page action
+
+The packaged Chromium page handles `host:scroll_to_top` on the Todo title.
+The test moves the page down 300 pixels and presses Space.
+The viewport returns to zero. The title keeps focus. The action sends no request.
+The same test selects the Done filter with no request.
+The existing browser server and host action suite also passes.
+
+All seven native host tests pass. The first frame contains no web script or scroll binding.
+The native filter stays local. The strict Todo Clippy check passes.
+[Page action issue](https://github.com/ewe-studios/ewe_platform/issues/1190)
