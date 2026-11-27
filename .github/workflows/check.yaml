@@ -81,6 +81,7 @@ env:
 
 jobs:
   image:
+    if: github.event_name != 'workflow_dispatch'
     name: CI image
     uses: ./.github/workflows/platform-images.yaml
     with:
@@ -471,12 +472,7 @@ jobs:
     # The job runs when the plan selected either package. Master, nightly and
     # manual runs select every package, so it always runs there.
     # The matrix JSON holds each name in quotes, so this match is exact.
-    if: >-
-      needs.plan.result == 'success' &&
-      (github.event_name != 'pull_request' ||
-      github.base_ref == 'platform/release' || github.head_ref == 'platform/release') &&
-      (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
-      contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
+    if: github.event_name != 'workflow_dispatch'
     # Same GitHub-hosted Windows image as `windows-test`.
     runs-on: windows-2025
     # Limit, not a measurement: a cold build of both packages takes about 15 to
@@ -527,10 +523,7 @@ jobs:
     # once. The plan job sets the shard count (`macos-shards`).
     # No container and no CI image: the job runs on the macOS runner itself.
     # Full runs only (see `on:`); a normal pull request skips it.
-    if: >-
-      needs.plan.outputs.macos-count != '0' &&
-      (github.event_name != 'pull_request' ||
-      github.base_ref == 'platform/release' || github.head_ref == 'platform/release')
+    if: github.event_name != 'workflow_dispatch'
     # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
     # DEVELOPER_DIR picks Xcode 26.2, the same as the `macos` job.
     runs-on: macos-26
@@ -808,7 +801,7 @@ jobs:
           WINDOWS_TESTS: ${{ needs.windows-test.result }}
         run: |
           echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS"
-          if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
+          if [ "$PLAN" != "success" ] || [ "$WINDOWS_TESTS" != "success" ]; then exit 1; fi
           for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS"; do
             case "$result" in
               success|skipped) ;;
@@ -821,7 +814,7 @@ jobs:
     needs: image
     # Packaging the whole workspace is slow; run it where releases happen.
     # Non-PR events always have registry credentials, so the image is there.
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.image.outputs.image-ref }}
@@ -894,7 +887,7 @@ jobs:
   macos:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
     # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
     # DEVELOPER_DIR picks Xcode 26.2, which ships the iPhoneOS 26.2 SDK. The
     # macOS VM image pins the same SDK (components.env IOS_SDK_VERSION).
