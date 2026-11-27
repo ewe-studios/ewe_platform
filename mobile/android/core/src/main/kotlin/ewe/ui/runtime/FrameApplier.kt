@@ -136,7 +136,7 @@ internal class FrameApplier(internal val store: NodeStore, private val bytes: In
                 }
             UiOperation.UiBehaviour ->
                 (op.ui(UiBehaviour()) as UiBehaviour).let {
-                    store.behaviour(it.nodeId, Names.behaviourId[it.behaviour] ?: "UNKNOWN", row)
+                    store.behaviour(it.nodeId, Names.behaviourId[it.behaviour] ?: it.behaviour.toString(), row)
                 }
             UiOperation.Place -> place(op.ui(Place()) as Place, row)
             else -> store.report("UnknownOp", row)

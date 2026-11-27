@@ -2001,6 +2001,8 @@ See [issue 691](https://github.com/ewe-studios/ewe_platform/issues/691).
 
 ## Unknown behaviour on Kotlin
 
-The Android renderer scenario requires the original unknown numeric identifier in its report.
-Add a frame test for an unknown identifier and an unknown custom name.
-Keep the node and apply the valid row that follows both reports.
+The Android renderer reports the original unknown numeric identifier and unknown custom name.
+The public frame test verifies both reports, the retained node, and the following text update.
+The test fails with UNKNOWN before the fix and passes with 999 after it.
+The Kotlin core suite passes 20 tests.
+[Issue 1171](https://github.com/ewe-studios/ewe_platform/issues/1171)

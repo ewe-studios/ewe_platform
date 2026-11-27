@@ -3,6 +3,7 @@ package ewe.ui.runtime
 import ewe.ui.*
 import ewe.ui.flatbuffers.FlatBufferBuilder
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -384,6 +385,46 @@ class RuntimeTest {
             observer.stop()
             observer.clear()
         }
+    }
+
+    @Test
+    fun unknownBehaviourReportsPreserveNamesAndApplyTheNextRow() {
+        val store = NodeStore(Clock())
+        assertTrue(
+            store.receive(
+                frame(
+                    shared(UiOperation.CreateNode) {
+                        CreateNode.createCreateNode(it, 40u, NodeKind.TEXT)
+                    },
+                    shared(UiOperation.AppendChild) { AppendChild.createAppendChild(it, 1u, 40u) },
+                )
+            )
+        )
+        val unknownNumeric = shared(UiOperation.UiBehaviour) {
+            UiBehaviour.createUiBehaviour(it, 40u, 999u, 0)
+        }
+        val unknownName = mobile(MobileOperation.MobileBehaviour) {
+            val name = it.createString("fixture_unregistered")
+            MobileBehaviour.createMobileBehaviour(it, 40u, MobileBehaviourId.UNKNOWN, name, 0)
+        }
+        val validText = shared(UiOperation.SetText) {
+            SetText.createSetText(it, 40u, it.createString("Still visible"))
+        }
+
+        assertTrue(store.receive(frame(unknownNumeric, unknownName, validText)))
+        val reports = store.reports.map { report ->
+            listOf("code", "row", "node", "name").map { report.getValue(it).jsonPrimitive.content }
+        }
+        assertEquals(
+            listOf(
+                listOf("UnknownBehaviour", "0", "40", "999"),
+                listOf("UnknownBehaviour", "1", "40", "fixture_unregistered"),
+            ),
+            reports,
+        )
+        assertEquals(listOf(40u), store.record(1u)!!.children)
+        assertEquals("Still visible", store.record(40u)!!.text)
+        assertTrue(store.record(40u)!!.behaviours.isEmpty())
     }
 
     @Test

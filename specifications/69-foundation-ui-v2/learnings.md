@@ -1530,3 +1530,14 @@ The implementations remain available after removing the reexports.
 Vulkan permits a device to enable promoted features in an aggregate record.
 The record can store the same flags at different offsets from the individual structures.
 Compare the named fields. An enabled aggregate record alone does not show that each required feature is enabled.
+
+## Unknown behaviour on Kotlin
+
+The Android name table has no entry for a newer shared behaviour identifier.
+Use the original numeric value as the diagnostic name. A custom mobile behaviour keeps its text name.
+Test the public frame receiver with both forms followed by a valid row.
+This verifies Feature 16 rejection and continuation. Feature 15 also specifies the exact report value.
+
+The original Feature 16 comparison mentions a marker-only change.
+The historical script bodies match. Their delimiters, imports and cleanup wrappers have separate changes.
+The original acceptance line stays open for review.
