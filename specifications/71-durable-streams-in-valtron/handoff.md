@@ -166,8 +166,12 @@ Every transport surface runs the same scenario suite: HTTP, WebSocket, ConnectRP
 transport added later. The upstream suites remain the HTTP gate. A transport without an upstream
 suite must replicate the scenarios and pass them.
 
-- One driver-based test crate runs each scenario through each transport and compares the results.
-- A new transport is not done until its driver passes the suite.
+- The scenarios are the BDD specification, named `given_..._when_..._then_...`. One test
+  function per scenario drives every transport with the same steps.
+- Each driver is checked against the model oracle first, then against the other drivers.
+  Agreement alone is not proof.
+- A new transport adds one driver and runs the same scenario list unchanged. It is not done
+  until its driver passes the suite.
 - A transport may change the encoding, never the protocol outcome.
 
 ## 5. Rules that matter here
