@@ -771,3 +771,38 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **One durable run failed one test under host load.** Thirty later runs passed and the name was
   not captured. The likely cause is a `valtron_test` 5 s timeout under load, not an assertion.
   A failure capture on the next run will name it.
+
+## Feature 08 T3: cross-implementation runs (2026-11-27)
+
+- **The reference Rust client is not on crates.io.** The published `durable-streams` crate is
+  the Rust *server* (`description = "High-performance Durable Streams server (Rust)"`). The
+  client package in `packages/client-rust` also has the name `durable-streams`, but it is
+  unpublished. A registry dependency would fetch the wrong crate. The honest form is a public
+  git dependency pinned by commit.
+- **A git dependency resolves a package below the repository root.** The reference repository
+  has no root `Cargo.toml`, but Cargo still found `packages/client-rust/Cargo.toml` by package
+  name. The pin is `461b40267aabd644558f9b19dbb9507dd5f691cf`, the checkout HEAD on 2026-11-27.
+- **The dependency adds no second version.** `reqwest 0.12.28`, `tokio 1.53.1`, `bytes`,
+  `base64 0.22`, `parking_lot`, `serde_json` and `thiserror 2` were already in the workspace
+  lock. Cargo unified every requirement except `wasm-streams`, which is new.
+- **The two clients need different sync boundaries.** Our client runs under
+  `block_on_future_scoped` with a valtron pool for the netio tasks. The reference client needs a
+  tokio runtime with I/O and timers, because it uses reqwest. Two runtimes in one test process
+  do not interfere.
+- **The server address differs by client.** Our netio client can use `resolve_to` and a fake
+  host (`http://testserver`). Reqwest resolves domain names itself, so the reference client must
+  use the real `http://127.0.0.1:<port>` base URL. The Durable handler reads only the path, so
+  this changes nothing else.
+- **The SSE body type is chosen by an exact content-type match.** `foundation_netio` builds
+  `SendSafeBody::SseStream` only when a response content-type equals `text/event-stream` after
+  lowercasing. The server sends exactly that value, so `send_async` returns the event iterator.
+- **Long-poll tests need a second writer.** Both test files start the read first, then sleep
+  100 ms in another thread (or tokio task) and append. This proves the server wakes the read.
+  The read data is asserted, not only the status.
+- **The cross-run found a wire defect (issue #1065).** The SSE control event writes
+  `streamCursor` as a JSON number. The protocol and the reference server use a string, and the
+  reference client reads `as_str()`, so it silently ignores our cursor. Both of our sides read a
+  number, so self-tests stay green. This is why the cross-implementation run is worth its cost.
+- **`close()` with an empty body still sends a content type.** The reference client always adds
+  `Content-Type`; our server ignores it when the body is empty and treats the request as a
+  close. The scenario passes.

@@ -2,6 +2,27 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T3 (cross-runs) landed. Two tests drive our in-process `HttpServer`
+  with the Durable handler over the memory VFS. `foundation_http/tests/durable_cross_client.rs`
+  runs our `DurableClient` over `NetioTransport`; `foundation_http/tests/durable_reference_cross_run.rs`
+  runs the reference Rust client from `packages/client-rust`. Each file has 5 tests: create and
+  append, byte-exact catch-up read, long-poll after an append, base64 Server-Sent Events (SSE),
+  close and a read that reports the closure, fork creation and read. The 10 tests pass.
+
+  The reference client is a dev-dependency on the public git repository, pinned to commit
+  `461b40267aabd644558f9b19dbb9507dd5f691cf`, because the crate is not published on crates.io.
+  `tokio` moved to `[workspace.dependencies]` (rule 17); `foundation_core` and
+  `foundation_testbed` use the workspace entry.
+
+  Verified: both cross-run test binaries pass (5 + 5), the other durable HTTP tests pass
+  (`durable_adapter`, `durable_server`, `durable_parse`, `durable_status`,
+  `durable_router_fallback`), `foundation_core` durable client tests pass (27), clippy reports no
+  warning from the two new files, and both guards report 0 violations. The cross-run found issue
+  #1065 (medium): the SSE control event sends `streamCursor` as a JSON number, and the reference
+  client reads a string, so it ignores the cursor. Reads still pass. The full category matrix
+  remains with the conformance suites (T1, T2 and the CI gate); the valtron suite, the skip
+  register, the report and the runtime matrix are still open.
+
 - 2026-11-27: features 02, 03 and 04 closed. The remaining tasks landed: `offset=now`, the
   multi-thread wake forwarding, the deterministic simulation test (DST), the full fork
   time-to-live (TTL) table and the oracle matrix. The wake test registers a `WakeCallback` on
@@ -484,8 +505,10 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all
   landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
 - **08-conformance** — 🟡 in progress. The CI gate landed: a Linux job runs both suites on a
-  durable change and on full runs, and the memory VFS conformance test runs in CI. The
-  valtron suite, the cross-runs, the skip register, the report and the runtime matrix remain.
+  durable change and on full runs, and the memory VFS conformance test runs in CI. T3
+  (cross-runs) landed in both directions: our client to our server, and the reference Rust
+  client to our server, 5 scenarios each. The valtron suite, the skip register, the report, the
+  runtime matrix and the T1/T2 harness tasks remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

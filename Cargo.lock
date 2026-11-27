@@ -4050,6 +4050,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
+name = "durable-streams"
+version = "0.1.0"
+source = "git+https://github.com/durable-streams/durable-streams?rev=461b40267aabd644558f9b19dbb9507dd5f691cf#461b40267aabd644558f9b19dbb9507dd5f691cf"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "parking_lot",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "tokio",
+]
+
+[[package]]
 name = "dyn-clone"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6335,6 +6350,7 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "concurrent-queue",
+ "durable-streams",
  "foundation_compact",
  "foundation_context",
  "foundation_core",
@@ -6360,6 +6376,7 @@ dependencies = [
  "sha2 0.11.1",
  "smol",
  "time",
+ "tokio",
  "tracing",
  "tracing-subscriber",
  "tracing-test",
@@ -8651,6 +8668,7 @@ dependencies = [
  "tokio",
  "tokio-rustls 0.26.4",
  "tower-service",
+ "webpki-roots 1.0.12",
 ]
 
 [[package]]
@@ -13293,6 +13311,8 @@ dependencies = [
  "native-tls",
  "percent-encoding",
  "pin-project-lite",
+ "quinn",
+ "rustls 0.23.40",
  "rustls-pki-types",
  "serde",
  "serde_json",
@@ -13300,13 +13320,17 @@ dependencies = [
  "sync_wrapper 1.0.2",
  "tokio",
  "tokio-native-tls",
+ "tokio-rustls 0.26.4",
+ "tokio-util",
  "tower 0.5.3",
  "tower-http 0.6.11",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams 0.4.2",
  "web-sys",
+ "webpki-roots 1.0.12",
 ]
 
 [[package]]
@@ -17905,6 +17929,19 @@ checksum = "724fccfd4f3c24b7e589d333fc0429c68042897a7e8a5f8694f31792471841e7"
 dependencies = [
  "leb128fmt",
  "wasmparser 0.236.1",
+]
+
+[[package]]
+name = "wasm-streams"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15053d8d85c7eccdbefef60f06769760a563c7f0a9d6902a13d35c7800b0ad65"
+dependencies = [
+ "futures-util",
+ "js-sys",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

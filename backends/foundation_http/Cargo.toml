@@ -85,6 +85,12 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 # The Durable Streams example mounts the subscription control handler beside the
 # stream handler (spec 71 feature 10).
 foundation_event_stream = { path = "../foundation_event_stream" }
+# Cross-implementation run (spec 71 feature 08 T3): the reference Rust client
+# from `packages/client-rust` of the public durable-streams repository. The
+# client is not published on crates.io, so the public commit is pinned.
+durable-streams = { git = "https://github.com/durable-streams/durable-streams", rev = "461b40267aabd644558f9b19dbb9507dd5f691cf" }
+# The reference client runs on the tokio runtime.
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time", "net"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
 async-trait = "0.1"

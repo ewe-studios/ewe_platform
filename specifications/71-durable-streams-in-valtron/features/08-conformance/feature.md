@@ -84,7 +84,14 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       Record every failure with a finding ID.
 - [ ] **T2 — client suite harness.** Build the adapter and run the client suite against the
       reference server.
-- [ ] **T3 — cross-runs.** Our client to our server. Reference client to our server.
+- [x] **T3 — cross-runs.** Our client to our server, and the reference Rust client to our
+      server. Tests: `foundation_http/tests/durable_cross_client.rs` (5 scenarios) and
+      `foundation_http/tests/durable_reference_cross_run.rs` (5 scenarios). The scenarios are
+      create, append, byte-exact catch-up read, long-poll after an append, base64 Server-Sent
+      Events (SSE), close and a read that reports the closure, and fork creation and read. The
+      reference client is a pinned public git dependency because the crate is not on crates.io.
+      The full category matrix still belongs to the conformance suites (T1, T2 and the CI gate);
+      this task proves the two directions on the core scenarios.
 - [x] **T4 — CI.** The `durable-conformance` job in `.github/workflows/check.yaml` runs
       `ci/durable_conformance.sh` on a runner with Rust and Node 20. It runs when a pull request
       touches a durable path, and on every full run. The script fails on a non-skipped failure
@@ -127,7 +134,8 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 
 - [ ] The server suite passes against `HttpAdapter` with valtron disabled.
 - [ ] The client suite passes with the Rust adapter.
-- [ ] Both cross-runs pass.
+- [x] Both cross-runs pass. Each direction runs 5 scenarios: create, append, catch-up read,
+      long-poll, SSE, close and fork. See T3.
 - [ ] Every skip names an open GitHub issue with a severity. A skip without an issue fails review.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
 - [ ] Every protocol rule has a derived oracle.
@@ -154,12 +162,20 @@ in both directions:
 |---|---|---|
 | Our server | TypeScript server suite | passes (332 of 338; subscriptions open) |
 | Our client | TypeScript reference server | passes (208 of 269; SSE open) |
-| Our server | Reference Rust client, `packages/client-rust` | to build |
+| Our server | Reference Rust client, `packages/client-rust` | passes (5 cross-run scenarios; `foundation_http/tests/durable_reference_cross_run.rs`) |
 | Our client | Reference server (TypeScript now; Rust server when available) | to build |
 
 - The reference Rust client exists at
   `/Volumes/Outside/GitSources/src.Electric/durable-streams/packages/client-rust` and ships a
   conformance adapter (`run-conformance-adapter.sh`).
+- The cross-run pins the public commit `461b40267aabd644558f9b19dbb9507dd5f691cf` of
+  `https://github.com/durable-streams/durable-streams`. The Rust client is not published on
+  crates.io, so the pin is the only reproducible form. The commit is the checkout HEAD on
+  2026-11-27.
+- The cross-run found issue #1065 (severity medium). Our SSE control event sends `streamCursor`
+  as a JSON number, and the reference client reads a string, so it ignores the collapsing
+  cursor. Reads still pass. The fix changes the field to a string in the server and in the
+  client core.
 - This checkout has no Rust server package. If a Rust server exists on another branch or
   repository, the owner supplies its path. Until then the server side uses the TypeScript server.
 - The runnable harness lives in `foundation_event_stream` (owner instruction) as a

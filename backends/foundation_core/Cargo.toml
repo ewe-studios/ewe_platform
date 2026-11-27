@@ -74,7 +74,7 @@ libc = "0.2"
 # already builds libsql for foundation_db; this crate reuses the same version.
 libsql = "0.6"
 serial_test = { workspace = true }
-tokio = { version = "1", features = ["macros", "rt"] }
+tokio = { workspace = true, features = ["macros", "rt"] }
 smol = "2"
 
 [features]
