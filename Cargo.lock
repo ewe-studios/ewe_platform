@@ -7120,7 +7120,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_ui_gpu"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "ash",
  "async-channel",
@@ -7192,6 +7192,7 @@ dependencies = [
  "futures-lite",
  "futures-util",
  "hex",
+ "libc",
  "ndk",
  "objc2",
  "objc2-metal",

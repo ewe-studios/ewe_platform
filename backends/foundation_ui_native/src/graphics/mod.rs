@@ -50,6 +50,28 @@ pub struct NativeGraphics {
     service: GpuService,
 }
 
+#[cfg(target_os = "android")]
+pub(crate) fn configure_android_host(ctx: &Ctx) {
+    use foundation_ui_gpu::OwnedInstanceFlags;
+    use std::ffi::CStr;
+
+    fn property_is(name: &CStr, expected: &CStr) -> bool {
+        let mut value = [0; libc::PROP_VALUE_MAX as usize];
+        // SAFETY: Android writes at most PROP_VALUE_MAX bytes, with a final zero.
+        let length = unsafe { libc::__system_property_get(name.as_ptr(), value.as_mut_ptr()) };
+        // SAFETY: A positive length means Android wrote a zero-terminated value.
+        length > 0 && unsafe { CStr::from_ptr(value.as_ptr()) } == expected
+    }
+
+    // Ranchu can fail when wgpu names Vulkan objects through VK_EXT_debug_utils.
+    // Keep validation and omit that extension for the affected emulator only.
+    let flags = OwnedInstanceFlags(wgpu::InstanceFlags::default()).for_android(
+        property_is(c"ro.hardware", c"ranchu"),
+        property_is(c"ro.boot.qemu", c"1"),
+    );
+    drop(ctx.get_or_insert(flags));
+}
+
 impl NativeGraphics {
     pub(crate) fn from_context(ctx: &Ctx) -> Result<Arc<Self>, GraphicsError> {
         let service = match ctx.get::<GpuService>() {

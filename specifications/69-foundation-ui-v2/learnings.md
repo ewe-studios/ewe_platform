@@ -1251,3 +1251,13 @@ See [issue 1060](https://github.com/ewe-studios/ewe_platform/issues/1060).
 The iPhone test runner can address the installed application by its bundle identifier.
 Keep device results separate from tests that inspect frames only.
 The headless Android emulator can return a black screenshot. Its accessibility tree still identifies the visible controls and messages.
+
+## Ranchu Vulkan debug utilities
+
+The exact installed library maps the crash to the Vulkan debug object-name call during device creation.
+The Vulkan backend requests the debug utility extension when the instance sets the debug flag.
+The host removes that flag only when Android reports Ranchu hardware and an active emulator.
+Other device flags and explicit host policy keep their values.
+Discarding hardware abstraction layer labels would suppress this object name. It would leave the Vulkan extension enabled.
+After the first game closes, Android reports an abandoned surface queue. The second game does not present a frame.
+The lost surface handler tries to configure the surface again. It may delay later work on the graphics worker.

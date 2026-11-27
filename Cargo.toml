@@ -86,7 +86,7 @@ objc2-metal = { version = "0.3.2", default-features = false, features = ["std"] 
 rand_core = { version = "0.10.1", default-features = false }
 wgpu = { version = "30.0.2", default-features = false, features = ["std", "wgsl"] }
 foundation_ui_http = { path = "backends/foundation_ui_http", version = "0.1.1" }
-foundation_ui_gpu = { path = "backends/foundation_ui_gpu", version = "0.1.1" }
+foundation_ui_gpu = { path = "backends/foundation_ui_gpu", version = "0.1.2" }
 # The browser ABI, test runner, and CLI use the same release.
 wasm-bindgen = "=0.2.130"
 wasm-bindgen-test = "=0.3.80"
