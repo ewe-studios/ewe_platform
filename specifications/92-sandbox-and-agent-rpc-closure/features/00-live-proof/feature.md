@@ -25,14 +25,35 @@ Prove the paths that no local stub can prove, and make the jobs that carry them 
 
 | Task | Work | Closes |
 |---|---|---|
-| T1 | Run the live Cloudflare test from the owner's machine: create, run one command in the container, read the stream, stop. Record the date, the account, the Worker name and the result in `progress.md` | Spec 83 feature 00 T7 |
-| T2 | Make `sandbox-cloudflare` green. Read the locked log of the red run, fix the cause, and keep the readiness probe and the spec print | The red check |
+| T1 | Run the live Cloudflare path from a local machine: deploy the sandbox Worker to the owner's account, set `SANDBOX_TOKEN`, wait for `Probe` 200, then run the end-to-end suite against that URL. Record the date, the account, the Worker name and the result in `progress.md` | Spec 83 feature 00 T7 |
+| T2 | Make the `sandbox-cloudflare` GitHub Actions job green. It runs `wrangler dev --local` with local containers on the runner, so it needs no Cloudflare account. Read the red run's log, fix the cause, keep the readiness probe and the spec print | The red check |
 | T3 | AWS KMS: add an ignored-by-default test for `AwsKmsBackend`. It creates a key with the given policy, seals and opens, refuses a wrong key, and schedules deletion in a `finally` block. A workflow runs it when the `AWS_ROLE_ARN` secret exists | #984 (AWS half) |
 | T4 | GCP KMS: the same test for `GcpKmsBackend` with a key ring and a key. The workflow runs it through workload identity federation | #984 (GCP half) |
 | T5 | Run the Vault Transit test in the normal `sandbox-e2e` job (Docker is present there), not only by hand | #984 note |
 | T6 | WebCrypto: a `wasm-bindgen-test` in the browser job that seals and opens with `WebCryptoSealer`, and proves `exportKey` on its key fails | #985 |
 
-## 3. What each task needs
+## 3. Where each test runs
+
+**Local first.** Every test runs on a developer machine with the real service. The live
+Cloudflare test deploys to the owner's account, runs the suite against the deployed Worker,
+and records the result. Nothing waits for CI.
+
+**A missing credential skips, it does not fail.** Each test reads its value from the
+environment. When the value is absent it prints which value is missing and returns. A skip
+is a skip, not a pass: the run says so in its output.
+
+**CI is opt-in.** The live Cloudflare test and the two KMS tests get a workflow that runs
+them only when the repository holds the secret:
+
+1. A `preflight` job reads `secrets.CLOUDFLARE_API_TOKEN` (and the KMS secrets) into its
+   environment and writes one `has-live-credentials` output.
+2. The live job has `if: needs.preflight.outputs.has-live-credentials == 'true'`.
+3. The preflight job prints which values are missing, so a skipped live run is visible.
+
+The owner adds the secrets when the live run is wanted in CI. Until then the job does not
+run, and the local script is the proof.
+
+## 4. What each task needs
 
 | Task | Credential or tool | When it is absent |
 |---|---|---|
@@ -45,7 +66,7 @@ Prove the paths that no local stub can prove, and make the jobs that carry them 
 A test that skips must say which value is missing. A skip is not a pass; the workflow that is
 meant to run it fails when the value is absent and the run is a release run.
 
-## 4. Tests
+## 5. Tests
 
 | Test | Where | Oracle |
 |---|---|---|
@@ -56,7 +77,7 @@ meant to run it fails when the value is absent and the run is a release run.
 | Vault Transit | `foundation_auth/tests/kms/vault_transit_tests.rs` | the sealer contract |
 | WebCrypto runtime | `foundation_auth/tests/wasm/webcrypto_sealer_tests.rs` | the sealer contract plus a refused export |
 
-## 5. Verify
+## 6. Verify
 
 ```bash
 cargo test -p foundation_auth --features testing --profile uat kms
@@ -67,7 +88,7 @@ cargo test -p foundation_sandbox --features "testing slave cloudflare" --profile
 The two real-cloud tests run only with their credentials. The job that runs them reports
 `sandbox-cloudflare`, `kms-aws` and `kms-gcp` as separate checks, so a skip is visible.
 
-## 6. Done when
+## 7. Done when
 
 - The live Cloudflare run is recorded with its date and result.
 - `sandbox-cloudflare` is green on `master`.

@@ -49,10 +49,14 @@ Out of scope:
 3. A secret never enters the repository, a log, a plan or a test fixture. Read it from the
    environment; the owner keeps `CLOUDFLARE_ACCOUNT_ID` and
    `CLOUDFLARE_WORKERS_AI_API_TOKEN` in the shell and in `~/.userenv`.
-4. A change that needs a new credential names the exact scope in its task. The operator
+4. **Local first.** A test that needs a real service runs on a developer machine against that
+   service. A missing credential makes the test print which value is missing and return; it
+   never makes the test fail, and a skip is not a pass. CI runs such a test only when the
+   owner adds the secret; the workflow gates on it and says when it did not run.
+5. A change that needs a new credential names the exact scope in its task. The operator
    grants the least privilege.
-5. Keep the spec's `progress.md` and `learnings.md` current (spec 77 rule 10).
-6. Every bug found becomes an issue with a severity (spec 77 rule 9).
+6. Keep the spec's `progress.md` and `learnings.md` current (spec 77 rule 10).
+7. Every bug found becomes an issue with a severity (spec 77 rule 9).
 
 ## 4. Credentials the features need
 
