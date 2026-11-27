@@ -1862,3 +1862,18 @@ Run `cargo test --locked --profile uat -p ui_todo --features browser-tests` for 
 The three targets are `browser_pending`, `browser_resources`, and `todo_browser_tests`.
 Set `PRIMAL_TEST_CHROMIUM_BIN` to Chromium and use one test thread.
 The separate live shared-count case needs three connected hosts.
+
+## 2026-11-28 — Native socket action recovery
+
+Android and iOS wait for an action reply with the same stream identifier and sequence number.
+A connection failure or timeout returns control to the pending operation.
+The view loader waits for fresh connection capabilities, which include the stream identifier.
+
+An Android proxy drops the first Add action before it reaches the server.
+The pending row shows Try again. The connection banner offers Retry.
+The proxy holds the new capabilities for 10.49 seconds. Banner Retry completes after the proxy releases them.
+Row Try again saves one confirmed Todo. The isolated database contains one matching record.
+
+The Android core and user interface suites pass 19 and 5 tests. The Swift suite passes 28 tests.
+The Swift checks use a test channel on macOS.
+See [issue 727](https://github.com/ewe-studios/ewe_platform/issues/727) and [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).

@@ -1446,3 +1446,11 @@ Interception tests compare the URL path. A raw string comparison does not match 
 An input click can bring a Chromium tab to the front. The app then refreshes its countdown over Connect.
 The Connect test opens the local dialog without changing tab visibility.
 It counts requests before and after submission, once the page is ready.
+
+## 2026-11-28 — Native socket action recovery
+
+A WebSocket send queues a message for transfer. An action reply shows that the server processed the action.
+The sequence number identifies the reply within one stream. Include the stream identifier when matching replies.
+A reply can arrive after the local timeout. Deliver it through the existing reply path so it can confirm the pending operation.
+A reconnect can open the socket before it receives the new capabilities. Wait for those capabilities before loading the view.
+On Android, answer a peer close frame. A callback for completed closure alone can leave recovery waiting for that answer.

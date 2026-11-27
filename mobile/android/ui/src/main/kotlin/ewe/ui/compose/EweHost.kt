@@ -66,7 +66,10 @@ fun RemoteEweScreen(
         val manager = connections ?: factory.connectionManager().also { host.onClose(it::close) }
         val socket = (transport as? ActionTransport.WebSocket)?.let { socketTransport ->
             SocketActionConnection(manager, socketTransport.path, { host.apply(it, "action reply") },
-                { host.store.onError?.invoke("Transport", it.message.orEmpty()) }).also { host.onClose(it::close) }
+                { host.store.onError?.invoke("Transport", it.message.orEmpty()) }).also {
+                host.onClose(it::close)
+                host.awaitActionConnection = it::awaitReady
+            }
         }
         val sender = if (transport !is ActionTransport.Connect) socket ?: connection else {
             val network = NativeHttpClient(OkHttpRpcClient(client))
@@ -178,6 +181,7 @@ private fun EweHost(
 private class ScreenHost(val store: NodeStore, private val loading: String) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val cleanup = mutableListOf<() -> Unit>(store::close)
+    var awaitActionConnection: suspend () -> Unit = {}
     var ready by mutableStateOf(false)
         private set
     var status by mutableStateOf(loading)
@@ -258,7 +262,10 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
     }
 
     suspend fun loadView(onInstalled: () -> Unit, load: suspend () -> ByteArray) {
-        val loader = store.registerLoader(scope, load = load)
+        val loader = store.registerLoader(scope) {
+            awaitActionConnection()
+            load()
+        }
         loader.onInstalled = {
             ready = true
             status = ""
