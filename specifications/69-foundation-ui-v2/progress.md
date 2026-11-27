@@ -1874,6 +1874,12 @@ The pending row shows Try again. The connection banner offers Retry.
 The proxy holds the new capabilities for 10.49 seconds. Banner Retry completes after the proxy releases them.
 Row Try again saves one confirmed Todo. The isolated database contains one matching record.
 
-The Android core and user interface suites pass 19 and 5 tests. The Swift suite passes 28 tests.
-The Swift checks use a test channel on macOS.
+The iPhone simulator repeats the dropped Add with the native socket.
+Reconnect waits while the proxy holds its capabilities for 4.45 seconds.
+Row Try again removes the pending status and confirms one Todo. The isolated database contains one matching record.
+The simulator user interface test passes.
+
+The Android core and user interface suites pass 19 and 6 tests. The Swift suite passes 29 tests on macOS.
+The native channel tests cover rejected, missing, late, mismatched, and cancelled replies.
+The Android shared channel test also restores two streams with separate capability replies.
 See [issue 727](https://github.com/ewe-studios/ewe_platform/issues/727) and [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).
