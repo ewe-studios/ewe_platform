@@ -1,3 +1,7 @@
+import { copyFile, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ConnectionManager } from "../../runtimes/foundation-ui-connections.js";
@@ -60,4 +64,19 @@ test("custom adapters discard callbacks from a closed connection", () => {
   manager.acquire({...options, shared: true}, {receive() { count++; }}).close();
   opened[0].events.deliver(Uint8Array.of(7));
   assert.equal(count, 0);
+});
+
+test("the embedded UI runtime loads without companion modules", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "ewe-ui-runtime-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const copy = join(directory, "foundation-wasm-ui.mjs");
+  await copyFile(new URL("../../runtimes/foundation-wasm-ui.js", import.meta.url), copy);
+
+  const standalone = await import(pathToFileURL(copy));
+  const shared = await import("../../runtimes/foundation-wasm-ui.js");
+  assert.equal(shared.ConnectionManager, ConnectionManager);
+  assert.ok(shared.frameConnections() instanceof ConnectionManager);
+  const manager = standalone.frameConnections();
+  assert.ok(manager instanceof standalone.ConnectionManager);
+  manager.close();
 });

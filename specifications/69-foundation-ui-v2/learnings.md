@@ -1582,3 +1582,9 @@ Retain the layout checks above the keyboard.
 The Android task and its instrumentation must use the same result text.
 The instrumentation sends two delete requests and checks the missing record after each request.
 The Android Debug Bridge (ADB) raw report gives the result text and success code.
+
+## 2026-11-28 — Standalone browser runtime
+
+A browser server can serve the connection module without exposing the missing dependency in the embedded runtime.
+Run an import in a directory that contains only the embedded runtime.
+Put the connection implementation in that runtime. Re-export the same constructor from the connection module.

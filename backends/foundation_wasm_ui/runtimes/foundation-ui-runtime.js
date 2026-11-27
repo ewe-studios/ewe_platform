@@ -9713,143 +9713,6 @@
         "data"
     ]);
     const CORE_CSS = "[primal-id][hidden]{display:none!important}\n.ewe-stack{display:flex;flex-direction:column}\n.ewe-list{display:flex;flex-direction:column}\n.ewe-scroll{overflow:auto}\n.ewe-spacer{flex:1 1 auto}\n.ewe-drawing-surface{width:300px;height:150px}\n.ewe-navigation-title,.ewe-sheet-title{font-family:system-ui,sans-serif;line-height:1.2;letter-spacing:-.025em;margin:.3em 0}\n.ewe-button,.ewe-toolbar-button,.ewe-submit-button,.ewe-cancel-button,.ewe-destructive-button,.ewe-checkmark-button,.ewe-segmented-control button{font:inherit;border:1px solid color-mix(in srgb,CanvasText 25%,Canvas);border-radius:.5em;padding:.45em .85em;cursor:pointer}\n.ewe-toolbar-button,.ewe-submit-button{align-self:flex-start;background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText))}\n.ewe-button,.ewe-cancel-button,.ewe-checkmark-button,.ewe-segmented-control button{background:Canvas;color:CanvasText}\n.ewe-button:not(:where(.ewe-segmented-control button)){align-self:flex-start}\n.ewe-button:not(:where(.ewe-segmented-control button)):disabled{color:GrayText;cursor:not-allowed}\n.ewe-button:not(:where(.ewe-segmented-control button)):focus-visible{outline:2px solid Highlight;outline-offset:2px}\n.ewe-destructive-button{background:Canvas;color:var(--color-error,#a51f26)}\n.ewe-segmented-control,.ewe-checklist-row{display:flex;align-items:center;flex-wrap:wrap;gap:.45em}\n.ewe-segmented-control{margin-block:.75em}\n.ewe-checklist-row{padding-block:.6em;border-block-end:1px solid color-mix(in srgb,CanvasText 15%,Canvas)}\n.ewe-checklist-row>.ewe-text{flex:1 1 auto}\n.ewe-inset-list{padding-inline-start:0;list-style:none;margin-block:.5em}\n.ewe-list-footer{font-size:.9em}\n.ewe-segmented-control button[aria-pressed=true]{background:var(--color-primary,ButtonText);color:Canvas;color:contrast-color(var(--color-primary,ButtonText));font-weight:600}\n.ewe-confirmation-dialog,.ewe-modal{font:inherit;color:CanvasText;background:Canvas;border:1px solid ButtonBorder;border-radius:.75em}\n.ewe-confirmation-dialog::backdrop,.ewe-modal::backdrop{background:rgb(0 0 0 / .35)}\n.ewe-confirmation-dialog>.ewe-sheet-title{margin-block-end:.8em}\n.ewe-overlay{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;pointer-events:none}\n.ewe-overlay[popover]{margin:0;border:0;padding:0;inline-size:auto;block-size:auto;overflow:visible;background:transparent;color:inherit}\n.ewe-overlay[popover]:not(:popover-open){display:none}\n.ewe-overlay>*{pointer-events:auto}\n.ewe-modal{max-block-size:100dvh;box-sizing:border-box}\n.ewe-modal:has(>.ewe-bottom-sheet){inset:auto 0 0;margin:0;inline-size:100%;max-inline-size:none;padding:0;border:0}\n.ewe-bottom-sheet{display:flex;flex-direction:column;margin-block-start:auto;max-block-size:100dvh;overflow:auto;padding-block-end:env(safe-area-inset-bottom);box-sizing:border-box;background:Canvas;color:CanvasText}\n.ewe-bottom-sheet:has(>.ewe-submit-button){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8em;padding:1.25em max(1.25em,calc((100% - 36em)/2)) max(1.25em,env(safe-area-inset-bottom))}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>*{grid-column:1/-1}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-cancel-button{grid-column:1;justify-self:end}\n.ewe-bottom-sheet:has(>.ewe-submit-button)>.ewe-submit-button{grid-column:2}\n.ewe-bottom-sheet>.ewe-text-input{font:inherit;padding:.65em .8em;border:1px solid GrayText;border-radius:.5em}\n";
-    class ConnectionManager {
-        #adapters = new Map();
-        #connections = new Set();
-        #closed = false;
-        #tag = 0n;
-        nextTag() {
-            if (this.#tag === 0xffffffffffffffffn) throw new Error("Connection identifiers exhausted");
-            return ++this.#tag;
-        }
-        supports(transport) {
-            return this.#adapters.has(transport);
-        }
-        register(transport, open) {
-            if (this.#closed || this.#adapters.has(transport)) throw new Error("Connection adapter is unavailable");
-            this.#adapters.set(transport, open);
-            return this;
-        }
-        acquire(options, listener = {}) {
-            if (this.#closed) throw new Error("Connection manager is closed");
-            const { transport, endpoint, shared = transport === "websocket", keepAlive = false, settings = null, authority = null, protocol = "frame" } = options;
-            const url = new URL(endpoint, options.base ?? globalThis.location?.href);
-            if (url.username || url.password) throw new Error("Use the connection authentication context");
-            url.hash = "";
-            if (transport === "websocket") {
-                if (url.protocol === "https:") url.protocol = "wss:";
-                if (url.protocol === "http:") url.protocol = "ws:";
-            }
-            let entry = shared && Array.from(this.#connections).find((c)=>c.shared && c.transport === transport && c.address === url.href && c.settings === settings && c.authority === authority && c.protocol === protocol);
-            const handle = {
-                ...listener
-            };
-            if (!entry) {
-                const open = this.#adapters.get(transport);
-                if (!open) throw new Error("Unknown connection transport: " + transport);
-                entry = {
-                    shared,
-                    address: url.href,
-                    settings,
-                    authority,
-                    transport,
-                    protocol,
-                    retainers: new Set(),
-                    handles: new Set([
-                        handle
-                    ])
-                };
-                this.#connections.add(entry);
-                try {
-                    entry.connection = open({
-                        ...options,
-                        endpoint: url.href
-                    }, {
-                        listening: ()=>[
-                                ...entry.handles
-                            ].some((h)=>h.receive),
-                        deliver: (bytes)=>{
-                            if (!this.#connections.has(entry)) return;
-                            if (options.isContext?.(bytes)) {
-                                entry.context = new Uint8Array(bytes).slice();
-                                for (const h of [
-                                    ...entry.handles
-                                ])h.onContext?.(entry.context.slice());
-                                return;
-                            }
-                            const delivered = new Set();
-                            for (const h of [
-                                ...entry.handles
-                            ]){
-                                if (!entry.handles.has(h) || !h.receive || h.owner && delivered.has(h.owner)) continue;
-                                try {
-                                    const copy = new Uint8Array(bytes).slice();
-                                    if (h.accept && !h.accept(copy)) continue;
-                                    h.receive(copy);
-                                    if (h.owner) delivered.add(h.owner);
-                                } catch (cause) {
-                                    h.onError?.(cause);
-                                }
-                            }
-                        },
-                        opened: ()=>{
-                            entry.opened = true;
-                            for (const h of [
-                                ...entry.handles
-                            ])h.onOpen?.();
-                        },
-                        disconnected: (cause)=>{
-                            entry.opened = false;
-                            entry.context = null;
-                            for (const h of [
-                                ...entry.handles
-                            ])h.onError?.(cause);
-                        }
-                    });
-                } catch (cause) {
-                    this.#connections.delete(entry);
-                    throw cause;
-                }
-            } else {
-                entry.handles.add(handle);
-                if (entry.opened || entry.context) queueMicrotask(()=>{
-                    if (!entry.handles.has(handle)) return;
-                    if (entry.opened) handle.onOpen?.();
-                    if (entry.context) handle.onContext?.(entry.context.slice());
-                });
-            }
-            const retention = {};
-            if (keepAlive) entry.retainers.add(retention);
-            const releaseUnused = ()=>{
-                if (!entry.handles.size && !entry.retainers.size) this.#close(entry);
-            };
-            return {
-                send: async (bytes)=>{
-                    if (!entry.handles.has(handle) || !entry.connection?.send) throw new Error("Connection cannot send");
-                    await entry.connection.send(bytes);
-                },
-                close: ()=>{
-                    entry.handles.delete(handle);
-                    releaseUnused();
-                },
-                releaseRetention: ()=>{
-                    entry.retainers.delete(retention);
-                    releaseUnused();
-                }
-            };
-        }
-        #close(entry) {
-            if (!this.#connections.delete(entry)) return;
-            entry.handles.clear();
-            entry.connection?.close();
-        }
-        close() {
-            this.#closed = true;
-            for (const entry of [
-                ...this.#connections
-            ])this.#close(entry);
-        }
-    }
     const RESERVED = Object.freeze({
         HEAD: 0,
         BODY: 1,
@@ -10979,6 +10842,143 @@
             }
         }
     }
+    class ConnectionManager {
+        #adapters = new Map();
+        #connections = new Set();
+        #closed = false;
+        #tag = 0n;
+        nextTag() {
+            if (this.#tag === 0xffffffffffffffffn) throw new Error("Connection identifiers exhausted");
+            return ++this.#tag;
+        }
+        supports(transport) {
+            return this.#adapters.has(transport);
+        }
+        register(transport, open) {
+            if (this.#closed || this.#adapters.has(transport)) throw new Error("Connection adapter is unavailable");
+            this.#adapters.set(transport, open);
+            return this;
+        }
+        acquire(options, listener = {}) {
+            if (this.#closed) throw new Error("Connection manager is closed");
+            const { transport, endpoint, shared = transport === "websocket", keepAlive = false, settings = null, authority = null, protocol = "frame" } = options;
+            const url = new URL(endpoint, options.base ?? globalThis.location?.href);
+            if (url.username || url.password) throw new Error("Use the connection authentication context");
+            url.hash = "";
+            if (transport === "websocket") {
+                if (url.protocol === "https:") url.protocol = "wss:";
+                if (url.protocol === "http:") url.protocol = "ws:";
+            }
+            let entry = shared && Array.from(this.#connections).find((c)=>c.shared && c.transport === transport && c.address === url.href && c.settings === settings && c.authority === authority && c.protocol === protocol);
+            const handle = {
+                ...listener
+            };
+            if (!entry) {
+                const open = this.#adapters.get(transport);
+                if (!open) throw new Error("Unknown connection transport: " + transport);
+                entry = {
+                    shared,
+                    address: url.href,
+                    settings,
+                    authority,
+                    transport,
+                    protocol,
+                    retainers: new Set(),
+                    handles: new Set([
+                        handle
+                    ])
+                };
+                this.#connections.add(entry);
+                try {
+                    entry.connection = open({
+                        ...options,
+                        endpoint: url.href
+                    }, {
+                        listening: ()=>[
+                                ...entry.handles
+                            ].some((h)=>h.receive),
+                        deliver: (bytes)=>{
+                            if (!this.#connections.has(entry)) return;
+                            if (options.isContext?.(bytes)) {
+                                entry.context = new Uint8Array(bytes).slice();
+                                for (const h of [
+                                    ...entry.handles
+                                ])h.onContext?.(entry.context.slice());
+                                return;
+                            }
+                            const delivered = new Set();
+                            for (const h of [
+                                ...entry.handles
+                            ]){
+                                if (!entry.handles.has(h) || !h.receive || h.owner && delivered.has(h.owner)) continue;
+                                try {
+                                    const copy = new Uint8Array(bytes).slice();
+                                    if (h.accept && !h.accept(copy)) continue;
+                                    h.receive(copy);
+                                    if (h.owner) delivered.add(h.owner);
+                                } catch (cause) {
+                                    h.onError?.(cause);
+                                }
+                            }
+                        },
+                        opened: ()=>{
+                            entry.opened = true;
+                            for (const h of [
+                                ...entry.handles
+                            ])h.onOpen?.();
+                        },
+                        disconnected: (cause)=>{
+                            entry.opened = false;
+                            entry.context = null;
+                            for (const h of [
+                                ...entry.handles
+                            ])h.onError?.(cause);
+                        }
+                    });
+                } catch (cause) {
+                    this.#connections.delete(entry);
+                    throw cause;
+                }
+            } else {
+                entry.handles.add(handle);
+                if (entry.opened || entry.context) queueMicrotask(()=>{
+                    if (!entry.handles.has(handle)) return;
+                    if (entry.opened) handle.onOpen?.();
+                    if (entry.context) handle.onContext?.(entry.context.slice());
+                });
+            }
+            const retention = {};
+            if (keepAlive) entry.retainers.add(retention);
+            const releaseUnused = ()=>{
+                if (!entry.handles.size && !entry.retainers.size) this.#close(entry);
+            };
+            return {
+                send: async (bytes)=>{
+                    if (!entry.handles.has(handle) || !entry.connection?.send) throw new Error("Connection cannot send");
+                    await entry.connection.send(bytes);
+                },
+                close: ()=>{
+                    entry.handles.delete(handle);
+                    releaseUnused();
+                },
+                releaseRetention: ()=>{
+                    entry.retainers.delete(retention);
+                    releaseUnused();
+                }
+            };
+        }
+        #close(entry) {
+            if (!this.#connections.delete(entry)) return;
+            entry.handles.clear();
+            entry.connection?.close();
+        }
+        close() {
+            this.#closed = true;
+            for (const entry of [
+                ...this.#connections
+            ])this.#close(entry);
+        }
+    }
     function frameConnections(config = {}) {
         const manager = new ConnectionManager();
         for (const transport of [
@@ -11683,6 +11683,7 @@
         ChunkedTransport: ChunkedTransport,
         WorkerTransport: WorkerTransport,
         Transport: Transport,
+        ConnectionManager: ConnectionManager,
         frameConnections: frameConnections,
         decodeEnvelopeFrame: decodeEnvelopeFrame,
         JsonHandler: JsonHandler,
