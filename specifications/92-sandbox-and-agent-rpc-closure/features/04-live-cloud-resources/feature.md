@@ -1,5 +1,5 @@
 ---
-feature: "Live cloud resources with OpenTofu"
+feature: "Live cloud resources with the cloud CLI"
 status: "pending"
 priority: "high"
 model: "sonnet"
@@ -8,46 +8,47 @@ depends_on: ["00-live-proof"]
 crates: ["foundation_auth"]
 ---
 
-# Feature 04: Live cloud resources with OpenTofu
+# Feature 04: Live cloud resources with the cloud CLI
 
 _Written in ASD-STE100 Simplified Technical English (STE)._
 
-**Abbreviations.** Key Management Service (KMS); OpenTofu (`tofu`); workload identity
-federation (WIF); OpenID Connect (OIDC); Identity and Access Management (IAM); infrastructure
-as code (IaC).
+**Abbreviations.** Key Management Service (KMS); command-line interface (CLI); workload
+identity federation (WIF); OpenID Connect (OIDC); Identity and Access Management (IAM).
 
 ## 1. Goal
 
 Prove AWS KMS and GCP KMS against the real services, with the test resources created and
-destroyed by **OpenTofu**, so a run is repeatable and leaves nothing behind.
+destroyed by the cloud command-line Interface (CLI), so a run is repeatable and leaves nothing
+behind.
 
-The tests do not create infrastructure by hand. One `tofu apply` makes a key, the test uses
-it, and one `tofu destroy` removes it. The state file lives in a temporary directory and
-never enters the repository.
+The owner chose the CLI over OpenTofu: both CLIs are already authenticated on the machine, the
+resources are two keys and one key ring, and a CLI script has no state file to leak or drift.
+The script creates the resources, runs the tests, and deletes them in a `trap`, pass or fail.
 
 ## 2. The resources
 
-`ci/live-kms/` holds one root module with two providers.
+The task `foundation-ci live-kms` makes the resources with the CLI. It lives in `foundation_ci` on the task system (`foundation_tasks` `TaskSet`), like every other CI task, so one command runs the same steps locally and in CI. A shell script is not allowed in its place.
 
-| Provider | Resource | Output |
+| Cloud | Command | Result |
 |---|---|---|
-| `aws` | `aws_kms_key` (symmetric, `ENCRYPT_DECRYPT`, rotation on) and `aws_kms_alias` `alias/ewe-live-test` | `aws_key_arn`, `aws_region` |
-| `aws` | `aws_kms_key` for the "wrong key" case | `aws_wrong_key_arn` |
-| `google` | `google_project_service` for `cloudkms.googleapis.com`, then `google_kms_key_ring` and `google_kms_crypto_key` | `gcp_key_name`, `gcp_project`, `gcp_location` |
+| AWS | `aws kms create-key` twice, then `aws kms create-alias` | two ARNs: `alias/ewe-live-test`, `alias/ewe-live-test-wrong` |
+| AWS teardown | `aws kms schedule-key-deletion --pending-window-in-days 7`, `aws kms delete-alias` | the key is deleted at the window's end; it costs nothing before that |
+| GCP | `gcloud kms keyrings create ewe-live-test`, then `gcloud kms keys create ewe-live-test` | one key name |
+| GCP teardown | `gcloud kms keys versions destroy`, `gcloud kms keys destroy` | the key is `DESTROY_SCHEDULED`; its versions are gone |
 
-Every resource carries the tag or label `purpose = "ewe-live-test"` and
-`created-by = "tofu"`. A sweep task finds resources with that label, so an interrupted run is
-still cleanable.
+Every resource carries the tag or label `purpose=ewe-live-test`. A key ring cannot be deleted
+in Google Cloud; it costs nothing and stays listed. A scratch project is the way to remove it
+completely, and the script says so in its header.
 
 ## 3. Tasks
 
 | Task | Work |
 |---|---|
-| T1 | The module above, with variables `region`, `project`, `location` and `ttl_days` (default 1). A key policy that allows only the caller's principal. No secret in variables or outputs. |
-| T2 | `mise` tasks: `live:up` runs `tofu init -input=false` and `tofu apply -auto-approve` in a temporary state directory and prints the outputs; `live:down` runs `tofu destroy -auto-approve`; `live:sweep` lists resources with the label and removes them. |
-| T3 | A script `ci/live-kms/run-tests.sh`: `live:up`, export the outputs, run the four gated tests (AWS seal/open, AWS wrong key, GCP seal/open, GCP wrong key), then `live:down` in a `trap`, and print the result. It exits non-zero if a test fails; it destroys the resources either way. |
+| T1 | The create and delete commands of section 2, with `region`, `project` and `location` read from the environment. A key policy that allows only the caller's principal. No secret in a variable, an output or a log. |
+| T2 | The script's `up` and `down` steps are the CLI commands of section 2; `sweep` lists keys with the `purpose=ewe-live-test` tag or label and schedules their deletion. |
+| T3 | `foundation-ci live-kms` in `backends/foundation_ci/src/execution/live_kms.rs`: create the resources, export the values, run the four gated tests (AWS seal/open, AWS wrong key, GCP seal/open, GCP wrong key), then delete the resources from a guard, and print the result. A failed test still runs the teardown; `--keep` is the only skip. Every process goes through `ctx.exec`. |
 | T4 | The gated tests read `AWS_KMS_KEY_ARN`, `AWS_WRONG_KEY_ARN`, `GCP_KMS_KEY_NAME`, `GCP_KMS_PROJECT`, `GCP_KMS_LOCATION` and the credentials. A missing value prints its name and the test returns. |
-| T5 | Optional CI: one workflow that runs `run-tests.sh` when the repository holds the AWS role and GCP WIF secrets, and says plainly when it did not run. |
+| T5 | Optional CI: one workflow that runs `foundation-ci live-kms` when the repository holds the AWS role and GCP WIF secrets, and says plainly when it did not run. |
 
 ## 4. What the operator provides
 
@@ -70,14 +71,13 @@ A scratch account or project is enough. The resources cost near zero and are des
 ## 6. Verify
 
 ```bash
-tofu -chdir=ci/live-kms fmt -check
-tofu -chdir=ci/live-kms validate
-ci/live-kms/run-tests.sh      # with the credentials of the table
+cargo run --locked --profile uat -p foundation_ci -- list | grep live-kms
+cargo run --locked --profile uat -p foundation_ci -- live-kms   # with the credentials of the table
 ```
 
 ## 7. Done when
 
-- `run-tests.sh` creates the resources, passes the four tests and destroys the resources.
+- `foundation-ci live-kms` creates the resources, passes the four tests and deletes the resources.
 - The resources are gone after the run, and `live:sweep` finds nothing.
 - The result is recorded in `progress.md` with the date, the region, the project and the
   location.

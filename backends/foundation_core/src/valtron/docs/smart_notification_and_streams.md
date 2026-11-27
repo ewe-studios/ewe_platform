@@ -71,6 +71,27 @@ The consumer *cannot* park the executor because the consumer **depends on the
 executor to produce the data it's waiting for**. The producer and the executor
 are the same thing.
 
+### A driving stream re-drives
+
+A stream whose `next()` runs its producer reports `drives_its_producer()` as
+`true` (for example `DrivenStreamIterator`). For that stream the parking
+adapters do not park on `Wait`. They call `next()` again.
+
+A driving stream that is parked on a readiness signal or a timer reports
+`can_make_progress()` as `false`. The adapter then parks with the old behaviour,
+because a re-poll would sleep out the driver's budget and change nothing.
+
+The re-poll is bounded. Each parking adapter has a `wait_redrive_budget` field,
+and its default is `DEFAULT_WAIT_REDRIVE_BUDGET`. The native value is 100 and
+the wasm value is 1. A `Next`, `Spread` or `Ignore` resets the budget to the
+full value. When the budget reaches zero, the adapter registers the caller's
+waker, wakes itself, and returns `Poll::Pending`. This fallback stops a stream
+that never makes progress from spinning.
+
+A queue-backed stream reports `false`. The adapter keeps the old
+register-then-recheck-then-park behaviour for that stream. `Pending`, `Delayed`
+and `Init` keep the old behaviour for every stream.
+
 ## The WASM / JS exception
 
 In a JS environment (wasm32 with `js-wasmbindgen` or `js-foundation-wasm`),
