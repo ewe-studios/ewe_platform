@@ -70,16 +70,15 @@ Local result on macOS with `wrangler dev --local`: a create returns `Created` in
 7 passed and 10 failed. The passed tests include `bad_id`, `not_found`, `token` and
 `model_token`, which all need a live Worker.
 
-The job still needs three independent fixes, each with an issue:
+The three follow-up defects are fixed on the same branch.
 
-- #1140: a streaming scoped call (`Exec`, `FileRead`) reaches the route check as a Connect
-  envelope and is refused.
-- #1141: a unary response arrives with `Content-Encoding: gzip` and the client decodes the
-  compressed bytes as JSON.
-- #1142: the sandbox Durable Object never builds the model configuration, so a model
-  sandbox create is refused.
-
-The create fix alone cannot make `sandbox-cloudflare` green.
+- #1140: the Worker route reads the sandbox identifier from one Connect envelope, so
+  `Exec` and `FileRead` reach the Durable Object. A unary call keeps its bare JSON body.
+- #1141: the Connect client decodes a gzip unary body that carries no `Content-Encoding`,
+  and a body that a proxy compressed twice. The edge that fronts the local Worker
+  compresses a chunked body and omits the header.
+- #1142: the sandbox Durable Object builds its model configuration from `MODEL_*`, so a
+  model spec reaches the model driver.
 
 ## Feature 04 result (2026-11-28)
 

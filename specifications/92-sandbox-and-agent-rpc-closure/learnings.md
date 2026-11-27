@@ -39,9 +39,17 @@ closed, not when its code compiles.
   boot duties in a container and died. It now also checks the `CLOUDFLARE_*` environment
   (issue #1133).
 - **The next layer:** the create fix alone cannot make the job green. The end-to-end suite
-  now exposes three independent defects: the streaming route reads a Connect envelope as
-  JSON (#1140), the HTTP client does not decompress gzip (#1141), and the sandbox DO has no
-  model configuration (#1142).
+  then exposed three independent defects, now fixed on the same branch:
+  - A server-streaming scoped call sends a Connect envelope (a flag byte and a length), so
+    the route check read the envelope as JSON and refused `Exec` and `FileRead` (#1140).
+    The route now skips one whole envelope. A unary call keeps its bare body.
+  - The edge that fronts the local Worker compresses a unary body and omits
+    `Content-Encoding`; it also compresses an encoded response a second time (the request
+    advertised gzip). A client cannot decode by the header alone, so the Connect client
+    reads the gzip magic and decodes at most two more layers (#1141).
+  - The sandbox Durable Object built `CloudflareConfig::default()`, so its model
+    configuration was empty and every model create was `UnsupportedCapability` (#1142).
+    The object now reads `MODEL_*` once and passes the result.
 
 ## The DST turn hang is a `Wait` re-drive (2026-11-27)
 
