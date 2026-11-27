@@ -13,6 +13,10 @@ Prototype the Foundation desktop host with the Zed GPUI snapshot that GPUI Kit u
 | Input method editor (IME) | An operating system service that composes text from input. |
 | Continuous integration (CI) | The service that builds and tests repository changes. |
 | Desktop session | A real or virtual login that can open and interact with windows. |
+| WebView | An operating system browser control that runs web content inside an application window. |
+| WebAssembly (Wasm) | A portable binary format that a browser or a separate runtime can execute. |
+| Inter-process communication (IPC) | Messages between the WebView and the Rust host. |
+| Content Security Policy (CSP) | Rules that restrict the content and scripts a document can load or run. |
 | Root | The top-level Foundation view in a desktop window. |
 
 ## Story
@@ -32,7 +36,7 @@ Prototype the Foundation desktop host with the Zed GPUI snapshot that GPUI Kit u
 | Node tree, names and binding state | Foundation desktop host | Apply validated operations and resolve input to a binding. |
 | Frame format, negotiation and actions | Foundation UI runtime and wire crates | Validate, negotiate and dispatch. |
 | Mobile renderers and WebView control | Specification 69 | Continue under their approved plans. |
-| Existing desktop WebView shell | Specification 52 | Continue under its existing contract. |
+| Existing desktop WebView shell | Specification 52 | Supply Tauri window, route, asset and capability services for the web-backed option. |
 
 ## Rules
 
@@ -42,6 +46,8 @@ Prototype the Foundation desktop host with the Zed GPUI snapshot that GPUI Kit u
 - I4. The desktop renderer dependency and platform libraries remain in the desktop build.
 - I5. The owner approves a refreshed plan after Specification 69 closes and before prototype code starts.
 - I6. The host removes focus, subscriptions and callbacks when the owning window closes.
+
+- I7. For a Web mount, the Rust host grants native capabilities only to the approved local application context.
 
 The update operation preserves names and parent links across a rejected frame. Closing a window removes its sender and drops later work for that window. Foundation owns each binding through the life of its node. A different incarnation receives its own render identity.
 
@@ -55,12 +61,14 @@ The update operation preserves names and parent links across a rejected frame. C
 | A4. Close while work waits | A window owns a pending reply | The user closes it before the reply arrives | The host drops the late update and the event loop stays responsive. |
 | A5. Block candidate adoption | The release package cannot start in a required desktop session | The maintainer records the failure | The gate stays open and the owner receives the failed case and fallback. |
 | A6. Observe accessibility | A dialog has a title, an input and a close button | A keyboard and screen reader user opens and closes it | The user hears the control names, can reach each control and returns to the opening control. |
+| A7. Install the web-backed host offline | A clean target has the required offline package and no network | The user installs and starts the example, then invokes a local action | The packaged assets load and the local action applies its reply. |
+| A8. Restrict a native capability | The local app can request the approved service | A WebView with an untrusted origin requests that service | The host rejects the request and the service state stays unchanged. |
 
 ## Technical breakdown
 
 ### Source evidence
 
-The review uses local source and manifests. Platform support below describes source paths and candidate release graphs. Build, install, performance and interactive results remain open.
+The review uses local source, manifests and the linked Tauri version 2 documentation. Platform support below describes source paths and candidate release graphs. Build, install, performance and interactive results remain open.
 
 | Checkout | Revision and useful locations |
 | --- | --- |
@@ -68,6 +76,7 @@ The review uses local source and manifests. Platform support below describes sou
 | `/Volumes/Outside/GitSources/src.Rust/src.gpui/gpui-kit` | `b7b66f5a1613b4d237f4909228d30a1d28bd8759`. See `Cargo.toml`, `Cargo.lock`, `crates/{kit,base,component,assets,webview,shell}/Cargo.toml`, `crates/base/src` and `crates/component/src`. |
 | Sibling `gpui-fast` | `79e15aa26a71a1ce32cca3ddc8a06981d0a65a72`. See `UPSTREAM`, `Cargo.toml`, `crates/gpui_platform/Cargo.toml`, `crates/gpui/src/window.rs`, `docs/releasing.md` and `release.toml`. |
 | Sibling `zed` | `46375fbf64574f01dc08fd2d2998aa7bbb7f0377`. See `crates/gpui`, `crates/gpui_platform` and the platform crates. It is a separate checkout from the fork's declared import. |
+| Tauri registry source in the local Cargo cache | Ewe's root lockfile at `ff8dcea530eef6c3261d7155be0b08495531805d` resolves Tauri `2.11.6`, Tauri Runtime Wry `2.11.4`, Wry `0.55.1` and Tao `0.35.3`. The Android example's lockfile resolves Tauri `2.11.5`. Review the root lock and staged packages for desktop. |
 | Sibling `gpui` | `8d31300b294f6acc0c5809888bd2ff29e0bb7648`. The checkout contains a redirect README and has no Cargo manifest. |
 | `/Volumes/Outside/GitSources/src.Rust/src.iced/iced` | `98bd48fe011efc0ec5819fee0fa7673a7169ff11` (`0.15.0-dev`). The local `0.14.0` release tag identifies `3997291f318a8bc06fa522f5579836fb3feb94df`. |
 
@@ -101,7 +110,38 @@ Both model styles can preserve Foundation frame order and identity. Neither styl
 For Iced, a bridge would need to publish tree updates, carry stable control identifiers and send assistive actions back to widget state.
 It would also need platform glue for focus and editable text. The prototype decision does not assume that bridge exists.
 
-### Control and behavior coverage
+### Tauri with the Foundation browser renderer
+
+Tauri can deliver the same application in a desktop window with the existing browser renderer.
+Tauri supplies the native window and platform services. The system WebView renders the page and its controls.
+The host uses `foundation_platform` for window management, asset routes and access to native services.
+The browser uses `foundation_wasm_ui` for frame application and action dispatch.
+See `backends/foundation_platform/src/{builder,ewe}.rs` and `backends/foundation_wasm_ui/runtimes/foundation-ui-{frames,actions,behaviours}.js`.
+
+| Area | Reuse and remaining work |
+| --- | --- |
+| Frame and action model | Use browser frames in the Web mount and the existing `ClientCaps::web_current()` path. Keep the Foundation action and service contract. Use browser state and element identity for presentation. Prove rejected frames preserve the prior tree. Check that updates preserve text composition and late replies cannot restore a closed window. A Desktop platform tag with a Web mount needs separate negotiation proof if selected. |
+| Native shell | Reuse the window and session services in `PlatformBuilder`. Tauri can supply menus, dialogs, window actions and selected platform services through the Rust host or plugins. The plan must name the services that the example needs. A native file dialog does not change how the WebView renders the page controls. [Tauri architecture](https://v2.tauri.app/concept/architecture/) |
+| IPC and security | Keep state changes and sensitive operations in the Rust core. Reuse the existing capability and IPC interfaces only where required. Limit privileged commands to trusted local windows and origins. Apply a CSP that permits the bundled renderer and the required Wasm paths. Validate route, origin, sender and payload in the host. Check custom protocol origin behavior on all three engines. Prove untrusted navigation cannot retain privileged command access. [Tauri process model](https://v2.tauri.app/concept/process-model/) · [Tauri capabilities](https://v2.tauri.app/security/capabilities/) · [Tauri CSP](https://v2.tauri.app/security/csp/) |
+| Standard controls and accessibility | Browser controls and correctly labeled custom elements can use the WebView accessibility tree. The browser runtime also has dialog behavior. Verify role, name, value, focus order and assistive activation in the installed shell. Check that tree updates and modal close preserve focus. A canvas needs separate accessible controls when it carries interactive content. [Microsoft WebView2 API overview](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/overview-features-apis) |
+| Input method | The WebView handles editable text and composition. Foundation still controls when a change or submit event becomes an action. Check composition commit, cancel, candidate placement, selection and clipboard. Move a named input during composition and verify that frame updates do not replace its live edit state. |
+| Wasm and graphics | The basic web controls use the document object model (DOM) and need no WebGPU. Test actual bundled Wasm loading, headers and origin on each packaged engine. Confirm thread or shared-memory support if the application needs it. The Foundation graphics bridge requires a secure context, a WebGPU adapter and the required device features. Test each on the minimum runtime before declaring graphics support. The standard-control estimate excludes graphics widgets. [Foundation graphics bridge](../../../../backends/foundation_ui_gpu/README.md) · [WebKit WebGPU release notes](https://webkit.org/blog/17333/webkit-features-in-safari-26-0/) |
+| Maintenance | Reuse the browser renderer and its fixtures. Maintain three WebView runtime baselines, release assets, the IPC boundary and the signing and update flow. Record engine versions with failing tests. The Rust lockfile fixes wrapper versions. System WebViews can change independently. [Tauri WebView versions](https://v2.tauri.app/reference/webview-versions/) |
+
+| Target | Runtime and distribution gate |
+| --- | --- |
+| Windows | WebView2 uses Chromium. The normal installer can download the runtime. For disconnected installation, stage an offline installer or fixed runtime and test on a clean offline guest. Track runtime security updates if Ewe distributes a fixed runtime. Test the signed installer, WebView start, graphics probe and Narrator. [Tauri Windows installer](https://v2.tauri.app/distribute/windows-installer/) |
+| macOS | WKWebView follows the operating system WebKit. Set a minimum macOS version and test it as well as a current release. Sign and notarize a direct-download package. Test VoiceOver and the packaged application origin. A Safari feature announcement alone gives no proof for the selected WKWebView host. [Tauri WebView versions](https://v2.tauri.app/reference/webview-versions/) · [Tauri distribution](https://v2.tauri.app/distribute/) |
+| Linux | WebKitGTK support follows the distribution and its packages. The cached Tauri Runtime Wry source uses GTK container construction for ordinary Linux WebViews. Wry documents the GTK route for X11 and Wayland. Test both sessions with Orca on the selected minimum distribution. Verify WebKitGTK runtime dependencies in the chosen package format. Test the full offline install on a clean guest. [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) · [Tauri AppImage packaging](https://v2.tauri.app/distribute/appimage/) |
+
+Bundle application scripts, Wasm, fonts, icons and seed resources locally. Confirm the example launches and its local action works with the network disabled.
+Record which service actions require connectivity. Offline app packaging and offline server behavior have separate acceptance checks.
+The existing Android example config shows bundled resources and an `ewe` start route. It supplies no desktop package result.
+Use [Specification 91](../../../91-windows-resource-staging/requirements.md) for the Windows resource staging check.
+If the distribution uses Tauri's updater, sign and verify update artifacts. Prove upgrade and refusal of an invalid update.
+Use a versioned installer or staged package for disconnected updates. [Tauri updater](https://v2.tauri.app/plugin/updater/)
+
+### GPUI control and behavior coverage
 
 | Area | GPUI or Kit supplies | Foundation must supply or verify |
 | --- | --- | --- |
@@ -164,7 +204,8 @@ Screen-reader output and editable text composition are release gates. Zed GPUI p
 
 Base is the smallest reviewed Kit package that supplies the required behavior. Its package still brings text, markup and platform support dependencies. Inspect the resolved graph of the proposed host before approval to adopt it.
 
-**Fallback.** If the baseline fails a required engine or package check, reproduce that case with the registry GPUI Fast engine and the same Base controls. Keep the fixtures and application identical. Verify that the released package includes the required fix. Use Fast only if it resolves the failure and passes the full platform gate. If both GPUI graphs fail, report the error and price the native-control adapter against that case. Reopen Iced when a release provides a usable accessibility bridge or when the owner approves the cost of maintaining one. Use the existing Tauri web shell for applications that accept a browser surface.
+**Fallback.** If the baseline fails a required engine or package check, reproduce that case with the registry GPUI Fast engine and the same Base controls. Keep the fixtures and application identical. Verify that the released package includes the required fix. Use Fast only if it resolves the failure and passes the full platform gate. If both GPUI graphs fail, report the error and price the native-control adapter against that case. Reopen Iced when a release provides a usable accessibility bridge or when the owner approves the cost of maintaining one. Choose Tauri first if the owner accepts the Web mount for the desktop application. Reusing the browser renderer costs less for the standard-control example. It also replaces the native renderer requirement with a browser compatibility requirement.
+Keep GPUI Base as the recommendation for the Native mount. Tauri is a separate desktop delivery path and an available fallback if the owner accepts the Web mount.
 
 ### Adapter flow
 
@@ -181,7 +222,17 @@ sequenceDiagram
     Runtime-->>Host: Deliver the reply frame
 ```
 
-The desktop host sends frame updates to the UI thread and sends bound input back to the runtime.
+The native desktop host sends frame updates to the UI thread and sends bound input back to the runtime.
+
+```mermaid
+flowchart LR
+    App[Foundation app and actions] <-->|Web frames and actions| Browser[Foundation browser renderer]
+    Browser --> Page[Page controls in system WebView]
+    Browser <-->|Approved native requests| Shell[Tauri Rust host]
+    Shell --> System[Native platform services]
+```
+
+The web-backed host keeps page controls and native services on separate paths.
 
 The host accepts validated frame bytes through a listener or shared runtime adapter. It carries frame order across the UI queue. It stages each node change against the current tree and commits after it validates the full update. It maps generated operation types to private desktop control state. It keeps public application calls on the existing contract.
 
@@ -198,15 +249,17 @@ The boundary needs one Foundation node store per window and one renderer view pe
 
 Estimates are engineering days for one engineer familiar with Foundation and Rust. All candidates use the same example, standard controls, focus and accessibility scenarios, and packaged desktop checks. Scope excludes embedded web content, rich editing, full system menus and custom graphics surfaces.
 
-| Phase | Zed snapshot with Base | Bare GPUI | Iced |
-| --- | --- | --- | --- |
-| Resolve features and run the window, text and accessibility prototype | 3–5 days | 3–5 days | 6–10 days |
-| Implement the Foundation node, resource, frame and action adapter | 7–12 days | 7–12 days | 7–12 days |
-| Complete standard controls, composition, focus and accessibility | 7–12 days | 16–28 days | 15–30 days |
-| Package, install and integrate platform tests | 5–9 days | 5–9 days | 6–10 days |
-| Total | 22–38 days | 31–54 days | 34–62 days |
+| Phase | Zed snapshot with Base | Bare GPUI | Iced | Tauri with browser renderer |
+| --- | --- | --- | --- | --- |
+| Resolve features and run the window, text and accessibility prototype | 3–5 days | 3–5 days | 6–10 days | 3–5 days |
+| Implement the Foundation node, resource, frame and action adapter | 7–12 days | 7–12 days | 7–12 days | 3–6 days |
+| Complete standard controls, composition, focus and accessibility | 7–12 days | 16–28 days | 15–30 days | 4–8 days |
+| Package, install and integrate platform tests | 5–9 days | 5–9 days | 6–10 days | 6–11 days |
+| Total | 22–38 days | 31–54 days | 34–62 days | 16–30 days |
 
 Bare GPUI includes in-house single-line editing, selection and dialog behavior. Iced includes a provisional allowance for an accessibility bridge. The Iced range assumes the adapter can use existing platform hooks. Re-estimate if that work requires a maintained toolkit fork. Qualifying GPUI Fast with the same Base graph adds 3–7 days to the first column. A native-control adapter remains a 43–83 day comparison if both GPUI engines fail. Carry snapshot updates, fork synchronization and platform regressions as ongoing maintenance.
+Tauri assumes the existing browser controls meet the scenarios with limited changes. Its cost includes a restricted IPC bridge, clean offline install and one signed update or installer upgrade path.
+The Tauri estimate covers the same user-facing scenarios on a Web mount. It provides no estimate for a new Native mount renderer.
 
 ## Tests
 
@@ -220,12 +273,16 @@ Bare GPUI includes in-house single-line editing, selection and dialog behavior. 
 | I5 | Review the implementation handoff and plan history. | Specification 69 is closed and the owner approval covers the updated plan. |
 | I6 and A4 | Close while an action or subscription can still deliver. | The closed window receives zero updates. Other windows continue. |
 | A6 | Run keyboard and screen-reader checks on each platform. | Focus order, dialog role, title, control roles, names and restored focus match the fixture. |
+| A7 | Run the installer, launch and exercise a local action with networking disabled. | No asset request uses the network. The local reply appears once. |
+| I7 and A8 | Invoke the approved service from the trusted local page and an untrusted origin. | The local request succeeds. The untrusted request has no native side effect. |
 
 Use desktop tests under the owning crate's `tests/` directory. Run the same minimal example on macOS, Windows and Linux. Linux coverage includes X11 and Wayland. Record the input method, desktop environment, screen reader and display scale.
 Test VoiceOver on macOS, Narrator on Windows and Orca on both Linux sessions.
 Check composition commit and cancellation. Move a named control during composition and verify its identity and text state.
 Check focus restoration and assistive activation after a modal closes.
-Install each artifact on a clean target and check that its resource and platform dependencies resolve. Preserve startup, repaint and scroll measurements across candidate revisions. Record hardware and build profile with those measurements.
+Install each artifact on a clean target and check that its resource and platform dependencies resolve. For Tauri, use the same application actions and match expected outcomes across the Native and Web vocabularies. Send each host its own frame vocabulary.
+Add packaged offline launch, origin and command permission tests. Record the WebView version and package format for every result.
+Preserve startup, repaint and scroll measurements across candidate revisions. Record hardware and build profile with those measurements.
 
 ## Verify
 

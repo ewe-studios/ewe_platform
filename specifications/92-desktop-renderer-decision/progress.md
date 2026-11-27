@@ -4,3 +4,4 @@
 - Select the Zed snapshot with Base for the first prototype. Record the GPUI Fast fallback and Iced accessibility gap.
 - Verify documentation links, source paths and the specification number.
 - Defer the desktop prototype and renderer until Specification 69 closes and the owner approves the updated plan.
+- Compare Tauri as a desktop delivery option with the Web mount. Record the shell reuse, package checks and WebView gates.

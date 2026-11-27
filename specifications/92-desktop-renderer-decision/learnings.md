@@ -9,3 +9,6 @@
 - The Iced checkout and its local release tag have text composition support. The reviewed source has no widget accessibility bridge.
 - Iced development uses a Git windowing dependency and wgpu 30. The reviewed release tag uses registry windowing and wgpu 27.
 - Base is a standalone crate. The prototype can use Base behavior with Foundation styles and its own desktop host.
+- Tauri can reuse the Foundation browser frame applicator and action manager. The Web mount has its own operation vocabulary.
+- The Tauri lockfile pins Rust wrapper versions. The WebView runtime and its accessibility and graphics behavior follow the target system.
+- Bundled web assets enable an offline launch. A clean Windows install also needs an offline WebView2 plan.

@@ -17,6 +17,7 @@ related_specs: ["69-foundation-ui-v2", "52-tauri-foundation-platform", "91-windo
 | Graphics processing unit (GPU) | The processor that draws the desktop scene. |
 | GPUI | The name of the Rust UI framework from Zed. |
 | Renderer | The part that turns Foundation UI frame operations into visible desktop controls. |
+| Mount | The surface that applies a frame. Native uses toolkit controls. Web uses page controls inside a browser. |
 | Adapter | The code that translates between the Foundation UI model and the chosen renderer. |
 | Capability | An operation or control that the desktop host can apply and can declare during negotiation. |
 
@@ -25,6 +26,9 @@ related_specs: ["69-foundation-ui-v2", "52-tauri-foundation-platform", "91-windo
 Select the Zed GPUI snapshot with GPUI Kit Base for the first macOS, Windows and Linux prototype. Support the same Foundation UI application and action model on desktop.
 
 Use one registry engine and the Base controls. Use GPUI Fast with the same Base controls if it fixes a required platform failure. Require the same release checks before adopting either engine.
+
+Use Tauri with the existing browser renderer if the owner accepts a Web mount. This option reuses the application actions and the browser frame applicator.
+The Native mount still uses the GPUI decision. See [Specification 52](../completed/52-tauri-foundation-platform/requirements.md) for the shell.
 
 The owner needs a desktop host that opens a window, applies Foundation UI frames, and sends events to the same Rust actions. The owner needs a support decision and cost comparison before the host takes a dependency on an external renderer. When a candidate fails a required platform check, the owner needs the failing case and the cost of the available fallback.
 
