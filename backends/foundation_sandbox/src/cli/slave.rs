@@ -100,7 +100,7 @@ fn listen_from_cmdline() -> Option<String> {
 /// the only way to ask a guest slave for the control role.
 #[cfg(target_os = "linux")]
 fn control_from_cmdline() -> bool {
-    std::fs::read_to_string("/proc/cmdline").is_some_and(|text| {
+    std::fs::read_to_string("/proc/cmdline").is_ok_and(|text| {
         text.split_ascii_whitespace()
             .any(|word| word == "ewe.control=1")
     })
