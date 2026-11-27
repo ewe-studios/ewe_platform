@@ -1,13 +1,13 @@
 # Spec 92 Progress: closing specs 77 and 83
 
-_Last updated: 2026-11-27._
+_Last updated: 2026-11-28._
 
 ## Status at a glance
 
 | Feature | State |
 |---|---|
 | 00 Live proof on the real services | not started |
-| 01 DST fidelity: the real registry | stage A in review |
+| 01 DST fidelity: the real registry | stage B in review |
 | 02 Sandbox follow-ups | not started |
 | 03 GCP KMS over gRPC | not started |
 | 04 Live cloud resources with OpenTofu | not started |
@@ -22,8 +22,22 @@ The owner rejected spec 77 feature 16 (Docker Sandboxes, `sbx`) on 2026-11-27; d
 The owner confirms that `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_WORKERS_AI_API_TOKEN` are in
 the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 task T7.
 
-## Work in review (2026-11-27)
+## Work in review (2026-11-28)
 
+- **Feature 01, stage B (the real registry in the DST)** is branch `feat/dst-real-registry`.
+  `foundation_ai` splits `testing` into `testing-mock` (the substrate, no thread pool) and
+  `testing` (the substrate and `multi`, the old contract). `foundation_agent_rpc` gains `dst`
+  (the local registry, the guarded turn and the mocks, and no `multi`, SQLite or TLS). The DST
+  `TestWorld` runs `LocalInstanceRegistry<InMemoryStores>` and `AgentSession`;
+  `ScriptedCatalog` is the only fake and returns a real `ModelHandle` over
+  `MockModelProvider`. The four DST tests pass, and the 32-seed trace test passes with
+  identical traces.
+  Two defects appeared under the simulator. (1) The `foundation_core` parking adapter parks on
+  `Stream::Pending`/`Init` from a driving stream; `foundation_ai` now drives past them in
+  `TurnItems` (#1129). (2) The single-threaded `foundation_core` `run_until` counts the task
+  that is executing, so a turn driven from inside the client reader task never returns
+  (#1128). The DST calls the real registry directly for a turn as a workaround; the client
+  transport still serves enrollment, health, create, list and destroy.
 - **Feature 01, stage A (the DST `Wait` hang)** is branch `fix/dst-wait-redrive`. Cause:
   `Stream::Wait` means "the queue is empty; run the producer and check again". The parking
   adapters in `stream_future.rs` treated it as `Pending` and parked on a wake that a

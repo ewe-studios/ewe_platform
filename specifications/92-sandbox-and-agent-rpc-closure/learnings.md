@@ -39,3 +39,34 @@ Two traps:
 3. `foundation_core`'s default and `multi` CI steps were already red (#1108, #1109): the
    `sim_tests` target imported a module gated on `testing`, and `SimRuntime::start` had no
    `# Panics` section. Run clippy on the crate you change, not only on your own targets.
+
+## The real registry needs two more driving-stream fixes (2026-11-28)
+
+Stage B made the DST run the real `LocalInstanceRegistry` and `AgentSession`. Feature wiring
+was the small part: `testing-mock` separates the `foundation_ai` mock substrate from `multi`,
+and `foundation_agent_rpc/dst` builds the registry, the guarded turn and the mocks with no
+thread pool, SQLite or TLS.
+
+Two defects then appeared, and both come from the same rule: on a single-threaded engine the
+consumer must drive the producer.
+
+1. **A progress item is not a reason to park.** `StreamParkingFutureStream` parked on
+   `Stream::Pending` and `Stream::Init` from a driving stream. The agent loop reports progress
+   between ready records, so the turn stalled after its first hint. `foundation_ai` now wraps
+   the turn's driven iterator in `TurnItems`, which skips progress and re-drives `Wait` with
+   the adapter budget. The root fix belongs in the adapter (#1129).
+2. **The engine counts its own caller as runnable.** `ExecutorState::has_runnable_work` counts
+   the task that is executing (a parked slot stays in `active_slots`). On the RPC client path
+   the response reader is an engine task, and the turn is driven inside it. When the turn ends
+   the engine reports `NoWork` with one active task, and `run_until` loops forever (#1128).
+   The DST calls the real registry directly for a turn to keep the client reader out of the
+   engine. The rest of the calls still go through the transport.
+
+Two traps for the next stage:
+
+1. `SimRuntime::block_on` is not needed. A plain driver that polls the client future and calls
+   `SimRuntime::run_until_complete` between polls shows the engine's failure directly and does
+   not hide it behind an extra task.
+2. A trace of the agent loop states is the fastest way to separate a producer stall (no
+   `Ready` records) from a consumer stall (`Ready` records but no `TURNITEMS` item). Both
+   hangs look the same from the outside.
