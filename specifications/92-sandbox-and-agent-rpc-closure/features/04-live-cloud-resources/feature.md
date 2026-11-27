@@ -27,7 +27,7 @@ The script creates the resources, runs the tests, and deletes them in a `trap`, 
 
 ## 2. The resources
 
-`ci/live-kms/run-tests.sh` makes the resources with the CLI.
+The task `foundation-ci live-kms` makes the resources with the CLI. It lives in `foundation_ci` on the task system (`foundation_tasks` `TaskSet`), like every other CI task, so one command runs the same steps locally and in CI. A shell script is not allowed in its place.
 
 | Cloud | Command | Result |
 |---|---|---|
@@ -46,9 +46,9 @@ completely, and the script says so in its header.
 |---|---|
 | T1 | The create and delete commands of section 2, with `region`, `project` and `location` read from the environment. A key policy that allows only the caller's principal. No secret in a variable, an output or a log. |
 | T2 | The script's `up` and `down` steps are the CLI commands of section 2; `sweep` lists keys with the `purpose=ewe-live-test` tag or label and schedules their deletion. |
-| T3 | `ci/live-kms/run-tests.sh`: create the resources, export the values, run the four gated tests (AWS seal/open, AWS wrong key, GCP seal/open, GCP wrong key), then delete the resources in a `trap`, and print the result. It exits non-zero if a test fails; it deletes the resources either way. |
+| T3 | `foundation-ci live-kms` in `backends/foundation_ci/src/execution/live_kms.rs`: create the resources, export the values, run the four gated tests (AWS seal/open, AWS wrong key, GCP seal/open, GCP wrong key), then delete the resources from a guard, and print the result. A failed test still runs the teardown; `--keep` is the only skip. Every process goes through `ctx.exec`. |
 | T4 | The gated tests read `AWS_KMS_KEY_ARN`, `AWS_WRONG_KEY_ARN`, `GCP_KMS_KEY_NAME`, `GCP_KMS_PROJECT`, `GCP_KMS_LOCATION` and the credentials. A missing value prints its name and the test returns. |
-| T5 | Optional CI: one workflow that runs `run-tests.sh` when the repository holds the AWS role and GCP WIF secrets, and says plainly when it did not run. |
+| T5 | Optional CI: one workflow that runs `foundation-ci live-kms` when the repository holds the AWS role and GCP WIF secrets, and says plainly when it did not run. |
 
 ## 4. What the operator provides
 
@@ -71,13 +71,13 @@ A scratch account or project is enough. The resources cost near zero and are des
 ## 6. Verify
 
 ```bash
-bash -n ci/live-kms/run-tests.sh
-ci/live-kms/run-tests.sh      # with the credentials of the table
+cargo run --locked --profile uat -p foundation_ci -- list | grep live-kms
+cargo run --locked --profile uat -p foundation_ci -- live-kms   # with the credentials of the table
 ```
 
 ## 7. Done when
 
-- `run-tests.sh` creates the resources, passes the four tests and deletes the resources.
+- `foundation-ci live-kms` creates the resources, passes the four tests and deletes the resources.
 - The resources are gone after the run, and `live:sweep` finds nothing.
 - The result is recorded in `progress.md` with the date, the region, the project and the
   location.
