@@ -87,7 +87,10 @@ start_wrangler() {
     if [ -f "${log}" ]; then
         start_line=$(wc -l < "${log}")
     fi
-    npx wrangler dev --local --port "${WORKER_PORT}" --persist-to "${STATE_DIR}" \
+    # Ask the worker build and cargo for plain output. The readiness check
+    # strips colour codes too, because a tool may ignore these variables.
+    CARGO_TERM_COLOR=never NO_COLOR=1 CLICOLOR=0 \
+        npx wrangler dev --local --port "${WORKER_PORT}" --persist-to "${STATE_DIR}" \
         >>"${log}" 2>&1 &
     WRANGLER_PID=$!
 
@@ -104,10 +107,10 @@ start_wrangler() {
             exit 1
         fi
         # `grep -c` reads the whole tail, so `pipefail` cannot see a SIGPIPE
-        # from an early `grep -q` exit. The build log pads and colours the line,
-        # as in `[custom build] ^[[1m^[[92m    Finished`, so allow anything
-        # between the tag and the word.
+        # from an early `grep -q` exit. Strip ANSI colour codes before the
+        # match, and keep a tolerant pattern for a tool that colours anyway.
         if [ "$(tail -n "+$((start_line + 1))" "${log}" 2>/dev/null \
+            | sed -E 's/\x1B\[[0-9;]*[mK]//g' \
             | grep -cE '\[custom build\].*Finished')" -gt 0 ]; then
             built=1
             break
