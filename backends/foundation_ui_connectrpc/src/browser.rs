@@ -48,6 +48,11 @@ fn task<T: Send + 'static>(
 /// Holds a shared Fetch session on the browser event loop.
 pub struct FetchClient(u32);
 impl FetchClient {
+    /// Register a Fetch function for this browser session.
+    ///
+    /// # Errors
+    ///
+    /// Return a JavaScript error if no session identifiers remain.
     pub fn new(fetcher: Function) -> Result<Self, JsValue> {
         register(fetcher).map(Self)
     }
@@ -128,6 +133,11 @@ pub struct BrowserConnectSender(ConnectActionTransport);
 
 #[wasm_bindgen]
 impl BrowserConnectSender {
+    /// Create an action sender for the base address and Fetch function.
+    ///
+    /// # Errors
+    ///
+    /// Return an error if context creation, Fetch registration, or client setup fails.
     #[wasm_bindgen(constructor)]
     pub fn new(base_url: &str, fetcher: Function) -> Result<Self, JsValue> {
         let ctx =
@@ -143,6 +153,11 @@ impl BrowserConnectSender {
         )))
     }
 
+    /// Send an action frame and return the optional response frame.
+    ///
+    /// # Errors
+    ///
+    /// Return a JavaScript error if the action transport fails.
     pub async fn exchange(&self, bytes: Vec<u8>) -> Result<Option<Vec<u8>>, JsValue> {
         self.0
             .send(bytes)
