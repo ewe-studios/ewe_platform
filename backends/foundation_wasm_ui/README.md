@@ -63,9 +63,8 @@ foundation_wasm_ui = { workspace = true }
 
 ---
 
-Design history, gap analyses, and per-feature verification live in
-[`specifications/39-foundation-wasm-ui/`](../../specifications/39-foundation-wasm-ui/)
-and [`specifications/42-ui-component/`](../../specifications/42-ui-component/).
+See the [browser frame specification](../../specifications/69-foundation-ui-v2/features/09-web-frame-applicator/feature.md)
+and the [behaviour matrix](../../specifications/69-foundation-ui-v2/features/16-behaviour-matrix/feature.md).
 
 ## Browser actions
 
@@ -197,12 +196,12 @@ frames.receive(builder.asUint8Array());
 Only `AttachState` writes the reserved `primal::state` attribute. It copies the signer's bytes to the specified element.
 The browser uses unpadded base64url so the attribute can carry any byte sequence.
 
-The Rust fixture test encodes all 19 document operations with both writers.
-It also writes the shared operations as individual rows and as one column batch.
-The browser tests read the saved bytes and compare the resulting nodes, properties and registry entries.
+The browser test applies the shared operations as individual rows and as one column batch.
+It compares the resulting nodes, properties and registry entries.
+The suite also checks all message forms and the receiving view.
+See the [legacy parity record](../../specifications/69-foundation-ui-v2/features/12-legacy-wire-retirement/feature.md#verification-record).
 
 ```sh
-UPDATE_FRAME_FIXTURES=1 cargo test -p foundation_wasm_ui --test frame_parity_fixtures_tests
 mise run ui-web:test
 ```
 

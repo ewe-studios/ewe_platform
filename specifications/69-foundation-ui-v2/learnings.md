@@ -1561,3 +1561,9 @@ A macOS process sample shows the idle HTTP handler repeatedly registering a clos
 The request parser also uses an empty public result for a tolerated leading blank line.
 The handler now receives separate internal results for the two cases.
 It closes the peer at end of input and continues reading after a blank line.
+
+## 2026-11-28 — Browser verification instructions
+
+The old two-writer parity target ran before the legacy writer was removed.
+Use the current browser suite for the retained row and column fixtures.
+Keep the earlier two-wire result in its migration record.
