@@ -46,8 +46,14 @@ protocol core runs on memory, a file, R2/S3, DO SQLite or D1.
    I/O stays at `blocking_boundary!`.
 5. **Protocol state.** `DurableStream` owns producer state, `Stream-Seq`, TTL access time, fork
    edges, reference counts and soft-delete. It stores that state through VFS metadata records.
-6. **Later VFS.** DO SQLite and D1 implement the VFS. They may also implement the store directly
-   if the VFS does not fit. The S3/R2 VFS is feature 09.
+6. **DO SQLite, D1 and the R2 tier.** DO SQLite and D1 implement the VFS. They may also implement
+   the store directly if the VFS does not fit. The S3/R2 VFS is feature 09.
+   - The metadata record belongs to the VFS. The protocol rules stay in the core store.
+   - A Durable Object keeps `stream_meta` and `pending_data` in SQLite. A batcher sends immutable
+     blocks to R2 and marks the rows delivered. A vacuum removes them after the block is durable.
+   - The acknowledge point is configuration: after the SQLite commit (default) or after the R2
+     PUT. Block size, batch age, vacuum threshold and the retry bound are configuration.
+   - See task T6 for the tables and the read, crash and recovery paths.
 7. **Paged reads.** A read returns a bounded page. No VFS materialises a whole stream.
 8. **Async and runtime.** The VFS methods are async. The VFS has no transport, HTTP, valtron or
    global runtime.
