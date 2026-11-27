@@ -16,18 +16,22 @@ pub fn resume_subscription(
     stream: NonZeroU64,
     after: u64,
 ) -> Result<Vec<u8>, WireError> {
-    let mut value = ResumeSubscriptionT::default();
-    value.delivery_session = session.get();
-    value.subscription_id = subscription.get();
-    value.stream_id = stream.get();
-    value.after = after;
-    let mut request = FrameRequestT::default();
-    request.resume = Some(Box::new(value));
-    let mut frame = FrameT::default();
-    frame.schema_version = SCHEMA_VERSION;
-    frame.stream_id = session.get();
-    frame.kind = FrameKindT::FrameRequest(Box::new(request));
-    finish_frame(&frame)
+    let value = ResumeSubscriptionT {
+        delivery_session: session.get(),
+        subscription_id: subscription.get(),
+        stream_id: stream.get(),
+        after,
+    };
+    let request = FrameRequestT {
+        resume: Some(Box::new(value)),
+        ..Default::default()
+    };
+    finish_frame(&FrameT {
+        schema_version: SCHEMA_VERSION,
+        stream_id: session.get(),
+        kind: FrameKindT::FrameRequest(Box::new(request)),
+        ..Default::default()
+    })
 }
 
 /// Returns a replay frame for one subscriber. Keeps the stream sequence and operation order.
@@ -66,19 +70,27 @@ pub fn replay_expired(
     stream: NonZeroU64,
     after: u64,
 ) -> Result<Vec<u8>, WireError> {
-    let mut expired = ReplayExpiredT::default();
-    expired.stream_id = stream.get();
-    expired.after = after;
-    let mut control = ControlT::default();
-    control.replay_expired = Some(Box::new(expired));
-    let mut message = MessageT::default();
-    message.control = Some(Box::new(control));
-    let mut body = FrameMessageT::default();
-    body.messages = Some(vec![message]);
-    body.subscription_id = id.get();
-    let mut frame = FrameT::default();
-    frame.schema_version = SCHEMA_VERSION;
-    frame.stream_id = stream.get();
-    frame.kind = FrameKindT::FrameMessage(Box::new(body));
-    finish_frame(&frame)
+    let expired = ReplayExpiredT {
+        stream_id: stream.get(),
+        after,
+    };
+    let control = ControlT {
+        replay_expired: Some(Box::new(expired)),
+        ..Default::default()
+    };
+    let message = MessageT {
+        control: Some(Box::new(control)),
+        ..Default::default()
+    };
+    let body = FrameMessageT {
+        messages: Some(vec![message]),
+        subscription_id: id.get(),
+        ..Default::default()
+    };
+    finish_frame(&FrameT {
+        schema_version: SCHEMA_VERSION,
+        stream_id: stream.get(),
+        kind: FrameKindT::FrameMessage(Box::new(body)),
+        ..Default::default()
+    })
 }
