@@ -2175,3 +2175,10 @@ The next valid resize presents. Readback finds both expected colors.
 The handoff tests use the original Metal queue and texture and check host refusal.
 The Android 36 Arm emulator passes both owned surface tests and the borrowed Vulkan test.
 [Issue 1186](https://github.com/ewe-studios/ewe_platform/issues/1186)
+
+## 2026-11-28 — Mobile, release, and graphics audit
+
+The audit maps features 15, 19, 21 through 26, and 32 through 36 to their evidence.
+It records device tests, public package checks, and the available local package results.
+The Android lending guide describes the accepted Vulkan aggregate records.
+[Issue 1188](https://github.com/ewe-studios/ewe_platform/issues/1188)

@@ -324,9 +324,9 @@ Pass your Vulkan instance, physical device, application programming interface (A
 The instance API must cover the adapter API up to Vulkan 1.3. Use the version from the instance creation record.
 Use `ewe_ui_gpu_vulkan_requirements` to read the required logical device features and extensions before you create a device.
 For an existing device, retain its actual creation records to check that it meets these requirements.
-Supply the separate Vulkan feature structures returned by the plan in the device creation chain.
-The bridge rejects aggregate Vulkan 1.1, 1.2, or 1.3 structures when they replace a required separate structure.
-See [issue 691](https://github.com/ewe-studios/ewe_platform/issues/691) for aggregate feature support.
+Keep every required device extension in the creation record. The feature chain must enable every required feature.
+For promoted features, the bridge accepts the matching enabled fields in Vulkan 1.1, 1.2, and 1.3 aggregate records.
+See the [aggregate feature verification](https://github.com/ewe-studios/ewe_platform/issues/691).
 
 Register a local Rust action on the core that accepts `GraphicsReady`.
 Install the Kotlin provider with that action reference.

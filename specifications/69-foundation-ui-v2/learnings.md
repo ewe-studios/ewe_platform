@@ -1625,3 +1625,9 @@ An unused state flag has no reader. Expiry still clears the pending request.
 The native bridge reports an oversized extent as `GraphicsError.IncompatibleSurface`.
 The Swift test checks that public error and presents again on the same graphics owner.
 Keep the borrowed device and the owned surface checks in one simulator run.
+
+## 2026-11-28 — Mobile, release, and graphics audit
+
+The device creation record lists extensions separately from the feature chain.
+The guide describes which promoted fields the lease validator can read.
+The staged package tests verify native consumption. Public consumption requires published package artifacts.

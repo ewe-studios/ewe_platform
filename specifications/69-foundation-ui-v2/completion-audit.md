@@ -192,6 +192,29 @@ The hosted plan passes. The example checks below include local results and earli
 The exact retired wire comparisons stay in the historical feature records.
 Physical device checks require their own results.
 
+
+## Mobile, release, and graphics evidence
+
+| Feature | Evidence | Remaining gate |
+|---|---|---|
+| 15. Android renderer | The Kotlin conformance reader matches six shared fixtures. The Android 36 emulator verifies repeated delete, and Feature 37 verifies the live list and actions. | The native preview checks the packaged renderer. |
+| 19. Native releases | The version 0.1.2 preview builds both starters on Apple and installs both Todo applications on Android. [Hosted preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46060536936) | Public registry and release artifacts were absent at the dependency check. Publication requires release approval and the public consumer replay. [Issue 845](https://github.com/ewe-studios/ewe_platform/issues/845) |
+| 21. Apple package | The Apple preview builds the staged package and independent starters. The iPhone simulator runs offline and server Todo paths. | Public resolution and the physical device checks have their own release gates. |
+| 22. Android package | The preview uses native provider outputs for both Android architectures. It assembles, installs, and checks both Todo applications. [Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) | Resolve the starter from the public Maven package after publication. |
+| 23. Themes | The feature record keeps the mobile theme captures. The Android recording checks Add, filters, Complete, Reopen, and Delete with TalkBack. The iPhone recording checks the spoken modal and resume controls. | Confirm physical VoiceOver Delete activation and countdown cadence. [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168) |
+| 24. Templates | The platform generator produces four projects. Both generated on-device counters advance with networking disabled. The package-only starters run against the staged packages. | Verify a clean public install with the release packages. |
+| 25. WebSocket actions | The independent native socket check exchanges text and binary messages and closes its socket. The action socket still receives the rendered count. Both native apps recover a dropped Add. | The preview checks the packaged native hosts. |
+| 26. Connect transport | The transport tests check split exchanges and independent failures. The browser sends its remote call without a request for the local dialog. Both native Feature 37 fixtures receive the typed value and error. | The hosted native and browser UI jobs cover the consumers. The direct transport package uses its nightly job. |
+| 32. Named targets | The Todo migration uses named targets. The Android test checks countdown focus, a live peer update during the pause, persistence across restart, and resumed input. [Issue 714](https://github.com/ewe-studios/ewe_platform/issues/714) | Physical speech verification stays with issue 1168. |
+| 33. Replay recovery | Chrome, the iPhone simulator, and the Android emulator recover a discarded history with one replacement snapshot. All three apply the next committed update. The native apps also recover a live socket drop and confirm the pending action. | The hosted browser, native, and Todo package jobs cover their respective recovery tests. |
+| 34. Rust-owned graphics | The Android emulator and iPhone simulator present two targets. The iPhone test rejects an oversized extent before the next valid presentation. Chrome verifies rendered pixels on the Apple Metal 3 adapter. | Physical phone presentation still needs a device. |
+| 35. Host-owned graphics | The iPhone simulator and Android emulator process the host texture on its original device. Chrome delays the completion fence. The Linux graphics tests cover cancellation, lost devices, stale generations, and returned leases. | A physical mobile device grant still needs its own run. |
+| 36. Mathalley | Chrome, the iPhone simulator, and the Android emulator verify input and Todo updates during play. The Android digital output contains the game notes and measures about 40 decibels of attenuation when muted. The 2400 by 1080 replay scores and returns to Todos. | The intermittent Android focus timeout remains under issue 1146. Physical speaker playback and interruption checks still need a phone. |
+
+The mobile graphics rechecks each pass three tests. The Android recheck uses the previously built isolated framework package.
+The iPhone simulator recheck uses the current Swift fixture and the staged native archive.
+The [current preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598) covers the next native candidate.
+
 ## Historical audit
 
 ## Scope
