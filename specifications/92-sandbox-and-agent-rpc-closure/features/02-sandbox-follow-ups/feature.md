@@ -31,6 +31,7 @@ The order is severity first, then effort. No row changes a public API unless it 
 | T8 | #1023 | The differential shell listing never ran and may miss busybox tools | Run it on the Linux host, with forms busybox has, or list through the harness | medium |
 | T9 | #972 | The no-KVM scenario has no CI proof | Add **both** forms: (a) start the parent without the `/dev/kvm` device and with `--control`, then probe it (runs on today's KVM runner); (b) the real no-KVM daemon form, which runs on a Mac (Docker there has no `/dev/kvm`) and on any runner without the device | low |
 | T10 | #1008 | A clippy run without `--no-deps` stops in `foundation_compact` and `foundation_jsonschema` | Clear the 19 pedantic lints | low |
+| T11 | #1095 | A Firecracker guest has no network | Add an Ethernet-mode smoltcp device over a TAP in a private network namespace, reusing `foundation_nativeapis::dataplane`; then `NetworkMode::Host` works without host NAT | medium |
 
 ## 3. Design decisions this feature records
 
