@@ -1685,3 +1685,11 @@ The native task tests compile and exercise the same embedded templates.
 A Todo server test also builds its browser assets.
 Use the shard's package list to install the pinned browser binding program before that test.
 The separate macOS build job and native preview have their own setup.
+
+## Macro test dependency and publication
+
+The workspace database dependency adds a version to a development dependency.
+Cargo keeps the versioned dependency when it packages the macro crate.
+The database crate uses the macro crate, so the publish order has a cycle.
+The path-only development entry preserves the local test and removes the dependency from the archive.
+Build the package in a normal clone to verify the normalized manifest.

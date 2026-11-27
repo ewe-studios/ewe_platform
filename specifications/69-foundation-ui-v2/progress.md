@@ -2260,3 +2260,11 @@ The workflow uses the planner's package names to select the tool setup.
 The Windows Todo shard also installs the WebAssembly target.
 The local plan selects the correct shards. The local setup exports wasm-bindgen 0.2.130.
 The next hosted run verifies the selected setup. [Issue 1195](https://github.com/ewe-studios/ewe_platform/issues/1195)
+
+## Release archive cycle check
+
+The pinned Rust 1.98.0 workspace cycle check passes.
+The macro crate uses a path-only database dependency in its migration tests.
+The normalized macro archive omits that development dependency.
+The locked migration fixture passes its expected gap rejection.
+[Publication cycle issue](https://github.com/ewe-studios/ewe_platform/issues/1196)
