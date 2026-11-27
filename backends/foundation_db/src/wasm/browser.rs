@@ -44,15 +44,18 @@ pub struct BrowserStore {
     backend: BrowserBackend,
     namespace: String,
     page_size: NonZeroU32,
+    legacy_limit: NonZeroU32,
 }
 
 impl BrowserStore {
     /// Open a namespace. Key streams fetch 100 names per page by default.
+    /// Limit legacy records to one mebibyte, as for native legacy files.
     pub fn new(backend: BrowserBackend, namespace: impl Into<String>) -> Self {
         Self {
             backend,
             namespace: namespace.into(),
             page_size: const { NonZeroU32::new(100).unwrap() },
+            legacy_limit: const { NonZeroU32::new(1024 * 1024).unwrap() },
         }
     }
 
@@ -63,10 +66,17 @@ impl BrowserStore {
         self
     }
 
+    /// Set the maximum encoded size of a legacy record before it enters WebAssembly.
+    #[must_use]
+    pub fn with_legacy_limit(mut self, bytes: NonZeroU32) -> Self {
+        self.legacy_limit = bytes;
+        self
+    }
+
     /// Read an unscoped `localStorage` record written by an earlier application.
     ///
     /// # Errors
-    /// Return an access or decoding error.
+    /// Return an access, size, or decoding error.
     pub async fn legacy_record<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
         let value = self.request("legacy", key, None, None).await?;
         value
@@ -136,6 +146,11 @@ impl BrowserStore {
         value: Option<String>,
         after: Option<String>,
     ) -> StorageResult<JsValue> {
+        let limit = if op == "legacy" {
+            self.legacy_limit
+        } else {
+            self.page_size
+        };
         SendWrapper::new(operation(
             matches!(self.backend, BrowserBackend::IndexedDb),
             &self.namespace,
@@ -143,7 +158,7 @@ impl BrowserStore {
             key,
             value,
             after,
-            self.page_size.get(),
+            limit.get(),
         ))
         .await
         .map_err(|error| {

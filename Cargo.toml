@@ -69,7 +69,7 @@ foundation_ui_project = { path = "backends/foundation_ui_project", version = "0.
 quick-xml = "0.42.0"
 tar = "0.4.46"
 flate2 = "1.1.11"
-foundation_db = { path = "backends/foundation_db", version = "0.0.12", default-features = false }
+foundation_db = { path = "backends/foundation_db", version = "0.0.13", default-features = false }
 # Keep the dependency name distinct from the replica feature in foundation_db.
 libsql_backend = { package = "libsql", version = "0.6", default-features = false }
 swc_bundler = { version = "59", default-features = false }

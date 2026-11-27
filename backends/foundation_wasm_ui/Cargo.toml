@@ -38,7 +38,7 @@ tracing = { version = "0.1", default-features = false }
 [target.'cfg(target_family = "wasm")'.dependencies]
 # Only the browser uses the JavaScript event loop. Native commands park host threads.
 foundation_core = { workspace = true, features = ["js-foundation-wasm"] }
-foundation_db = { path = "../foundation_db", version = "0.0.12", default-features = false, features = ["browser-storage"], optional = true }
+foundation_db = { workspace = true, features = ["browser-storage"], optional = true }
 serde = { workspace = true, optional = true }
 wasm-bindgen-futures = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }

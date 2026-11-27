@@ -1431,3 +1431,10 @@ An accessibility label does not prove that a screen reader speaks the label.
 Enable touch exploration and use the emulator touch device. Confirm that the target app has focus before recording.
 Keep speech recordings separate from accessibility tree results.
 On the countdown check, use a second client with its own session. Capture the peer update before the modal closes.
+
+## Legacy browser record size
+
+Local storage returns a string measured in 16-bit code units.
+The browser counts its encoded bytes before it passes the string across the Wasm boundary.
+The size test uses accented text and an emoji. Chromium rejects a seven-byte limit and accepts eight bytes.
+The second read confirms that the first read leaves the source record in place.

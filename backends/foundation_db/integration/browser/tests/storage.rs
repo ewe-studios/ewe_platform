@@ -58,6 +58,8 @@ use wasm_bindgen::prelude::*;
 extern "C" {
     #[wasm_bindgen(catch, js_name = verifyTabs)]
     async fn verify_tabs() -> Result<(), JsValue>;
+    #[wasm_bindgen(js_name = writeLegacy)]
+    fn write_legacy(key: &str, value: Option<&str>);
 }
 
 #[wasm_bindgen_test]
@@ -90,4 +92,21 @@ async fn import_preserves_destination_and_confirmed_records() {
         .await
         .unwrap();
     assert!(!store.exists("pending/add:b").await.unwrap());
+}
+
+#[wasm_bindgen_test]
+async fn legacy_read_checks_encoded_bytes_and_keeps_the_record() {
+    let key = "test:legacy:byte-bound";
+    let store = BrowserStore::new(BrowserBackend::IndexedDb, "legacy-bound");
+    write_legacy(key, Some("\"é😀\""));
+
+    let narrow = store.clone().with_legacy_limit(7.try_into().unwrap());
+    let result = narrow.legacy_record::<String>(key).await;
+
+    let exact = store.with_legacy_limit(8.try_into().unwrap());
+    let original = exact.legacy_record::<String>(key).await;
+    write_legacy(key, None);
+
+    assert!(result.unwrap_err().to_string().contains("exceeds 7 bytes"));
+    assert_eq!(original.unwrap().as_deref(), Some("é😀"));
 }

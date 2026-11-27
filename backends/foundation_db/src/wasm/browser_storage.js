@@ -108,8 +108,24 @@ function localOperation(namespace, operation, key, value, after, limit) {
     }
 }
 
+function legacyRecord(key, limit) {
+    const record = globalThis.localStorage.getItem(key);
+    if (record === null) return null;
+
+    // Count bytes without making a second copy of the record.
+    let bytes = record.length;
+    for (const character of record) {
+        if (bytes > limit) break;
+        const code = character.codePointAt(0);
+        if (code >= 0x800) bytes += 2;
+        else if (code >= 0x80) bytes += 1;
+    }
+    if (bytes > limit) throw new RangeError("Legacy record exceeds " + limit + " bytes");
+    return record;
+}
+
 export async function browserOperation(indexed, namespace, operation, key, value, after, limit) {
-    if (operation === "legacy") return globalThis.localStorage.getItem(key);
+    if (operation === "legacy") return legacyRecord(key, limit);
     const run = indexed ? indexedOperation : localOperation;
     return run(namespace, operation, key, value, after, limit);
 }

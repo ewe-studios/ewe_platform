@@ -218,6 +218,10 @@ The browser origin identifies the scheme, host, and port of the page that writes
 
 Import these records into the Todo server namespace for that origin. Keep their operation identifiers.
 
+Set the browser legacy read limit on the storage provider. Use one mebibyte by default, as for the native file.
+Count the encoded bytes in the browser before it copies the record into WebAssembly.
+On refusal, keep the source and destination records intact. [Issue 726](https://github.com/ewe-studios/ewe_platform/issues/726)
+
 1. Read the old map during startup. Validate every entry before writing any records.
 2. Check an import receipt for each operation identifier inside one IndexedDB transaction.
 3. For an identifier without a receipt, keep its existing destination record or insert the old record.

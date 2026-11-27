@@ -78,3 +78,8 @@ export async function verifyTabs() {
         URL.revokeObjectURL(pageUrl);
     }
 }
+
+export function writeLegacy(key, value) {
+    if (value === undefined) globalThis.localStorage.removeItem(key);
+    else globalThis.localStorage.setItem(key, value);
+}

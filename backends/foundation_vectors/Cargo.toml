@@ -76,7 +76,7 @@ futures-lite = "2"
 # The migration test seeds an old-shape table through libsql directly.
 libsql_backend = { workspace = true, features = ["default"] }
 foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
-foundation_db = { path = "../foundation_db", features = ["turso", "libsql"] }
+foundation_db = { workspace = true, features = ["turso", "d1", "r2", "libsql"] }
 foundation_netio = { path = "../foundation_netio" }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

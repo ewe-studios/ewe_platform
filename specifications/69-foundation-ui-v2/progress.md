@@ -1820,3 +1820,11 @@ The accessibility tree hides the background controls while the modal is open.
 An independent client adds a Todo during the pause. The Android app shows it behind the modal.
 A restart preserves the pause. Input returns after 67.82 seconds, including polling.
 The countdown check uses the rendered frame and accessibility tree.
+
+## Bounded legacy Todo records
+
+The browser checks the encoded size of the old Todo record before it sends that record to WebAssembly (Wasm).
+The default limit is one mebibyte. The browser store accepts an override.
+An oversized record reports an error and stays in local storage.
+The native file provider already checks the file size and reads through a bounded reader.
+[Issue 726](https://github.com/ewe-studios/ewe_platform/issues/726)
