@@ -611,5 +611,16 @@ Five new fixture tests pass: the write and stream path, a write failure, an empt
 All 40 `foundation_ci` tests pass. Strict Clippy reports no warning.
 Native Windows and macOS guest runs remain open; the local fixtures use a fake SSH client.
 
+## Guest transfer, logs, wait, and shutdown verification
+
+The Nushell wrappers delegate `push`, `pull`, `wait-runner`, `logs`, and `down` to the typed tasks.
+The wrapper calls are in `ci/platform-images/scripts/vm.nu` at lines 138, 149, 162, 176, and 184.
+The full `foundation_ci` suite passes 40 integration tests and zero doc tests.
+Strict Clippy passes for all targets with `-D warnings`.
+The fixture suite verifies binary transfer, failed download preservation, runner timeout, log preservation, and container cleanup.
+The current macOS host has Docker, Nushell, Secure Shell (SSH), and Xcode.
+It has no `/dev/kvm` device and no Windows guest.
+Native Windows and hardware-accelerated guest verification remain unavailable here.
+
 A stale path requirement blocked every locked Cargo command before this work.
 `foundation_sandbox` asked for `foundation_netio 0.0.18` while the crate was `0.0.19`. The requirement now matches.

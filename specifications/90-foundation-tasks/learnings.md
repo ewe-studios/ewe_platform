@@ -415,3 +415,11 @@ A second run used the browser debugging protocol to read the page. All three scr
 PowerShell escapes a single quote inside a single-quoted string by doubling it. A POSIX shell closes, escapes, and reopens the quote instead. One quoting rule would break one guest.
 An SSH client reports a connection failure as status 255. Map it back to 255 so the caller can separate a connection fault from a guest command fault.
 The scheduled caller needs the task runner on PATH. Install it once in the workflow job; the composite actions then use it.
+
+The typed guest transfer, wait, log, and shutdown tasks pass the complete local `foundation_ci` suite.
+The suite has 40 integration tests and no doc tests.
+Strict Clippy passes for all targets with warnings denied.
+The Nushell wrappers call the typed tasks directly for push, pull, wait-runner, logs, and down.
+Local fixtures prove binary transfer, failed download preservation, runner status handling, log preservation, and container removal.
+The macOS ARM64 host has Docker, Nushell, SSH, and Xcode.
+It lacks `/dev/kvm` and a Windows guest, so native guest verification needs another host.
