@@ -798,7 +798,7 @@ impl KmsBackend for AwsKmsBackend {
             // `KeyId` binds the call to this backend's key. Without it, AWS
             // KMS decrypts with the key named inside the ciphertext blob, so a
             // blob sealed under another key would open. With it, a blob from
-            // another key fails with `InvalidCiphertextException`.
+            // another key fails with `IncorrectKeyException`.
             let body = serde_json::json!({
                 "KeyId": self.key_id,
                 "CiphertextBlob": B64_STD.encode(wrapped_dek),
