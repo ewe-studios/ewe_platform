@@ -167,7 +167,7 @@ pub type IssueConfig = CertificateRequest;
 /// Issues the server certificate and signs client certificate signing requests
 /// (CSRs).
 pub struct CertificateAuthority {
-    cert: rcgen::Certificate,
+    cert_der: rustls::pki_types::CertificateDer<'static>,
     cert_pem: String,
     key: CaKey,
     clock: Arc<dyn Clock>,
@@ -213,14 +213,10 @@ impl CertificateAuthority {
     ) -> Result<(Self, Option<String>), PkiError> {
         if let Some(existing) = existing_cert_pem {
             if certificate_matches_key(existing, &key)? {
-                let params = CertificateParams::from_ca_cert_pem(existing)
-                    .map_err(|e| PkiError::Ca(format!("parsing the CA certificate: {e}")))?;
-                let cert = params
-                    .self_signed(key.pair())
-                    .map_err(|e| PkiError::Ca(format!("loading the CA: {e}")))?;
+                let cert_der = certificate_der_from_pem(existing)?;
                 return Ok((
                     Self {
-                        cert,
+                        cert_der,
                         cert_pem: existing.to_string(),
                         key,
                         clock: ctx.clock(),
@@ -247,9 +243,10 @@ impl CertificateAuthority {
             .self_signed(key.pair())
             .map_err(|e| PkiError::Ca(format!("signing the CA certificate: {e}")))?;
         let cert_pem = cert.pem();
+        let cert_der = cert.der().clone();
         Ok((
             Self {
-                cert,
+                cert_der,
                 cert_pem: cert_pem.clone(),
                 key,
                 clock: ctx.clock(),
@@ -268,7 +265,7 @@ impl CertificateAuthority {
     /// The CA certificate in Distinguished Encoding Rules (DER) form.
     #[must_use]
     pub fn ca_cert_der(&self) -> &rustls::pki_types::CertificateDer<'static> {
-        self.cert.der()
+        &self.cert_der
     }
 
     /// The CA private key in Privacy-Enhanced Mail (PEM) form. Treat the result
@@ -291,7 +288,7 @@ impl CertificateAuthority {
     pub fn root_store(&self) -> Result<rustls::RootCertStore, PkiError> {
         let mut roots = rustls::RootCertStore::empty();
         roots
-            .add(self.cert.der().clone())
+            .add(self.cert_der.clone())
             .map_err(|e| PkiError::Ca(format!("CA root store: {e}")))?;
         Ok(roots)
     }
@@ -319,8 +316,10 @@ impl CertificateAuthority {
         params.key_usages = vec![KeyUsagePurpose::DigitalSignature];
         params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ServerAuth];
         set_validity(&mut params, &self.ctx(), &self.config, lifetime)?;
+        let issuer = rcgen::Issuer::from_ca_cert_der(&self.cert_der, self.key.pair())
+            .map_err(|e| PkiError::Ca(format!("loading the CA issuer: {e}")))?;
         let cert = params
-            .signed_by(server_key.pair(), &self.cert, self.key.pair())
+            .signed_by(server_key.pair(), &issuer)
             .map_err(|e| PkiError::Ca(format!("signing the server certificate: {e}")))?;
         let cert_der = cert.der().clone();
         let fingerprint_sha256 = sha256_hex(cert_der.as_ref());
@@ -359,8 +358,10 @@ impl CertificateAuthority {
         params.key_usages = vec![KeyUsagePurpose::DigitalSignature];
         params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ClientAuth];
         let not_after = set_validity(&mut params, &self.ctx(), &self.config, lifetime)?;
+        let issuer = rcgen::Issuer::from_ca_cert_der(&self.cert_der, self.key.pair())
+            .map_err(|e| PkiError::Ca(format!("loading the CA issuer: {e}")))?;
         let cert = params
-            .signed_by(&request.public_key, &self.cert, self.key.pair())
+            .signed_by(&request.public_key, &issuer)
             .map_err(|e| PkiError::Ca(format!("signing the client certificate: {e}")))?;
         Ok(IssuedCertificate {
             fingerprint_sha256: sha256_hex(cert.der().as_ref()),
@@ -478,6 +479,19 @@ fn offset_datetime(time: SystemTime) -> Result<time::OffsetDateTime, PkiError> {
 /// Clamp a duration to the whole-seconds range that `time` accepts.
 fn clamp_seconds(duration: Duration) -> i64 {
     i64::try_from(duration.as_secs()).unwrap_or(i64::MAX / 2)
+}
+
+/// The first certificate in `cert_pem`, in Distinguished Encoding Rules (DER) form.
+fn certificate_der_from_pem(
+    cert_pem: &str,
+) -> Result<rustls::pki_types::CertificateDer<'static>, PkiError> {
+    let mut reader = std::io::Cursor::new(cert_pem.as_bytes());
+    let Some(cert) = rustls_pemfile::certs(&mut reader).next() else {
+        return Err(PkiError::Ca(
+            "the CA certificate PEM holds no certificate".into(),
+        ));
+    };
+    cert.map_err(|e| PkiError::Ca(format!("parsing the CA certificate: {e}")))
 }
 
 /// Whether the public key in `cert_pem` is the public key of `key`.
