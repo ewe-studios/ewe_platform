@@ -1393,3 +1393,9 @@ A later accessibility read shows the same partial text when the replay starts in
 Touchscreen keyboard input writes and saves the full title on the same Connect path.
 Wait for the editor and keyboard before sending input. Read the focused editor value before permitting submission.
 See [issue 737](https://github.com/ewe-studios/ewe_platform/issues/737).
+
+## 2026-11-28 — Android side inset acceptance
+
+Test the same display size as the reported failure.
+At 1560 by 720, the existing detector finds the 83-pixel left inset.
+Verify the score before and after the landscape tap. The presence of a rendered frame alone cannot verify input.
