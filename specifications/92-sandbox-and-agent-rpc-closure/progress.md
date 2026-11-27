@@ -1,6 +1,6 @@
 # Spec 92 Progress: closing specs 77 and 83
 
-_Last updated: 2026-11-27._
+_Last updated: 2026-11-28._
 
 ## Status at a glance
 
@@ -9,7 +9,7 @@ _Last updated: 2026-11-27._
 | 00 Live proof on the real services | not started |
 | 01 DST fidelity: the real registry | not started |
 | 02 Sandbox follow-ups | not started |
-| 03 GCP KMS over gRPC | not started |
+| 03 GCP KMS over gRPC | in review: pull request #1121 |
 | 04 Live cloud resources with the cloud CLI | done: pull request #1103; four live tests passed on 2026-11-28 |
 
 ## What is already true
@@ -22,7 +22,7 @@ The owner rejected spec 77 feature 16 (Docker Sandboxes, `sbx`) on 2026-11-27; d
 The owner confirms that `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_WORKERS_AI_API_TOKEN` are in
 the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 task T7.
 
-## Work in review (2026-11-27)
+## Work in review (2026-11-28)
 
 - **Feature 00, task T3 (AWS KMS locally)** is pull request #1055. It adds the endpoint
   override (`AWS_ENDPOINT_URL_KMS`), the moto test, `mise run kms:moto` and the free CI job
@@ -33,7 +33,56 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 
 Local stack verified on this host: moto serves AWS KMS (create, encrypt, decrypt, data key,
 alias) on port 5055; Vault serves Transit on 8200 with its engine enabled by an init service;
-localgcp v0.6.0 serves Cloud KMS on h2c `:8091` and is not yet wired to a client.
+localgcp v0.6.0 serves Cloud KMS on h2c `:8091`.
+
+## Feature 03: GCP KMS over gRPC, tested on localgcp
+
+State: in review. Branch `feat/kms-grpc`, based on `feat/live-kms`.
+
+### What landed
+
+| Piece | Where |
+|---|---|
+| The vendored Cloud KMS protos, their source commit and sha256 | `backends/foundation_gcp_kms/proto/` |
+| The build script that generates the messages with `buffa-build` | `backends/foundation_gcp_kms/build.rs` |
+| `GcpKmsGrpcBackend` and `GcpKmsGrpcConfig` | `backends/foundation_gcp_kms/src/backend.rs` |
+| The `services localgcp` and `services localgcp-stop` tasks | `backends/foundation_ci/src/services/localgcp.rs` |
+| `StartedService::pid` | `backends/foundation_tasks/src/process.rs` |
+| The gated tests and the proto manifest check | `backends/foundation_gcp_kms/tests/` |
+| The CI workflow `kms-gcp-local` | `.github/workflows/kms-gcp-local.yaml` |
+| The `KeyStoreError::Config` variant | `backends/foundation_auth/src/keystore/mod.rs` |
+
+The feature is a new crate, not a feature of `foundation_auth`, because Cargo rejects the
+cycle `foundation_auth -> foundation_connectrpc -> foundation_auth` (#1107). See
+`learnings.md`.
+
+### The gRPC calls on localgcp
+
+| Call | Result on localgcp v0.6.0 |
+|---|---|
+| `CreateKeyRing` | served |
+| `CreateCryptoKey` | served |
+| `GetCryptoKey` | served |
+| `Encrypt` | served; it ignores `additional_authenticated_data` |
+| `Decrypt` | served; a wrong key returns garbage, not an error (#1117) |
+| `GetCryptoKeyVersion` | served |
+| `DestroyCryptoKeyVersion` | served; the version keeps the `DESTROYED` state |
+| `DeleteCryptoKey` | not implemented: `unimplemented: method DeleteCryptoKey not implemented` |
+| `GenerateDataKey` | not a Cloud KMS v1 method: `unimplemented: unknown method GenerateDataKey for service google.cloud.kms.v1.KeyManagementService` |
+| `ScheduleKeyDeletion` | not a Cloud KMS v1 method: `unimplemented: unknown method ScheduleKeyDeletion for service google.cloud.kms.v1.KeyManagementService` |
+
+### Open issues from this feature
+
+- #1107, severity high: the `foundation_connectrpc` optional `foundation_auth` dependency
+  closes a cycle. The feature works around it; the layering fix is open.
+- #1117, severity low: localgcp does not authenticate `Decrypt` and ignores the associated
+  data.
+- #1119, severity low: the feature's task table names two AWS methods.
+- #1120, severity medium: the pinned toolchain reported formatting drift in `foundation_ci`
+  and `foundation_tasks`; the base branch formats `foundation_ci` and this change formats
+  `foundation_tasks`, so the issue is closed.
+- #1122, severity medium: the h2c transport has no TLS, so the gRPC path reaches a local
+  emulator only. Feature 04's live proof stays on the REST path.
 
 ## Feature 04 result (2026-11-28)
 
@@ -60,7 +109,9 @@ Two findings from the runs:
 
 ## Next
 
-1. Feature 00, task T2 first: make `sandbox-cloudflare` green. The red run's log names the
-   step and now prints the failing value.
-2. Feature 00, task T1: one live run against the owner's account, recorded here.
-3. Feature 00, tasks T3 to T6: the KMS and WebCrypto tests.
+1. Merge pull request #1103 (`feat/live-kms`) first, then #1121 (`feat/kms-grpc`).
+2. Read the `kms-gcp-local` workflow result on pull request #1121.
+3. Feature 04 uses the REST path on the real project. The gRPC path is local only until
+   #1122 adds a TLS transport; localgcp does not serve `DeleteCryptoKey`, so only the live
+   test proves it.
+4. The owner decides whether to take #1107's layering fix, which also fixes #756.
