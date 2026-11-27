@@ -23,7 +23,7 @@ WebAssembly (wasm).
 | Client suite | 267 passed, 0 failed, 2 skipped of 269 | Recorded. |
 | Direction 3 cross-run | 6 scenarios pass | Recorded test target. |
 | Direction 4 cross-run | 5 scenarios pass | Recorded test target. |
-| Runtime matrix | 4 rows have a runtime proof, 1 row has a build proof, 1 row is a gap | Section 5. |
+| Runtime matrix | 5 rows have a runtime proof, 1 row has a build proof, 0 rows are gaps | Section 5. |
 | Clock parameter guard | 0 violations | Re-run in this change. |
 | Time source guard | 0 violations | Re-run in this change. |
 
@@ -124,7 +124,7 @@ own. The rows below show how the same core runs in each target.
 | wasm32 | The core compiles for the wasm32 target | Six `cargo check` commands pass | Build proof only. Issue #1080. |
 | Cloudflare Worker | The Worker fetch handler calls the core | `foundation_event_stream` wasm build, and `/run-d1` in the DO fixture | Runtime proof. |
 | Durable Object | DO SQLite storage and one fetch handler | `/run` in the DO fixture | Runtime proof. |
-| WebSocket server | Adapter events | No durable adapter or test | Gap. Issue #1077. |
+| WebSocket server | The adapter maps JSON text frames to `DurableService` | `durable_websocket` (5 tests) | Runtime proof. |
 | `foundation_ai` Session | The core as the session log | `durable_session_store_tests` (6 tests) | Runtime proof. |
 
 ### 5.1 Local embedded
@@ -207,11 +207,34 @@ The same recorded run and the same caveat as section 5.3 apply.
 
 ### 5.5 WebSocket server
 
-This row is a gap. `foundation_netio::websocket` has a server and a client.
-`foundation_http::native::upgrade::accept_websocket` completes the upgrade. No code maps a
-WebSocket message to `DurableService` or to the client transport. There is no
-`websocket_core_roundtrip` test and no WebSocket entry in the driver matrix. Issue #1077 records
-the exact missing piece and a likely fix.
+The transport lives above the core, in `foundation_http`, the crate that owns the WebSocket
+upgrade. `foundation_http/src/native/durable_ws/` holds the JSON message schema and
+`DurableWsHandler`. The handler upgrades a GET request with
+`foundation_http::native::upgrade::accept_websocket`, then serves `create`, `append`, `close`,
+`head`, `delete`, `fork` and `read` over JSON text frames through `DurableService`. A live `read`
+pushes a `read` frame for its first page, a `data` frame for each later page and an `end` frame
+when the client sends `cancel` or the stream closes. The frame size cap is
+`DurableWsConfig::max_frame_bytes`, default 8 MiB. The core has no WebSocket type.
+
+```text
+cargo test -p foundation_http --features multi --test durable_websocket
+```
+
+Result: 5 passed. The tests start an in-process `HttpServer` with the handler on `GET /ws` and
+drive it with the platform WebSocket client:
+
+- `websocket_core_roundtrip`: create, two appends, a byte-exact read, head, fork, delete, close,
+  a read that reports the closure, and a typed `closed` refusal after the close.
+- `live_read_receives_an_append_after_open`: a second connection appends while the first is live;
+  the live read receives the page; `cancel` ends it with `cancelled`.
+- `live_read_ends_when_the_stream_closes`: a final append closes the stream; the live read sends
+  its data frame, then `end` with `closed`.
+- `frame_cap_is_configuration`: a 64-byte cap refuses an oversized request with WebSocket code
+  1009.
+- `schema_round_trips`: the public request and reply types parse and render as JSON.
+
+The behaviour-driven development (BDD) driver matrix entry (T12) stays open with
+`same_scenario_every_driver`, which has no test yet.
 
 ### 5.6 `foundation_ai` Session
 
@@ -269,7 +292,6 @@ The skip lines are present at the pinned reference commit
 
 | Issue | Severity | Subject | Matrix row |
 |---|---|---|---|
-| #1077 | medium | No WebSocket driver for the core or the client | WebSocket |
 | #1080 | low | No wasm32 runtime roundtrip test | wasm32 |
 | #1081 | medium | The gate builds the server with the valtron feature on | Gate |
 | #1082 | low | Two suite-forced client skips (`Swift implementation broken`) | Skip register |
@@ -290,13 +312,12 @@ and run the gate again.
 ## 9. What remains
 
 - **T6 — valtron suite.** Run the reader, writer, wait and wake tests as a separate step.
-- **T8 — runtime matrix.** Add the WebSocket driver (#1077) and the wasm32 runtime test
-  (#1080).
+- **T8 — runtime matrix.** Done: the WebSocket row has a runtime proof (section 5.5). Add the
+  wasm32 runtime test (#1080).
 - **T9 — `foundation_ai` Session.** Done: the Session row has a runtime proof (section 5.6).
 - **T11 to T21.** The behaviour-driven development (BDD) suite, the driver matrix, the model,
   differential, metamorphic, property, fault, crash, timing and VFS oracles.
 - **The valtron-disabled gate.** Decide the form of requirement 8 (#1081). The separate
   `durable_core_no_valtron` crate proves the core runs without valtron. The gate does not.
 
-The runtime matrix success criterion stays unticked until the WebSocket and wasm32 runtime rows
-pass.
+The runtime matrix success criterion stays unticked until the wasm32 runtime row passes.

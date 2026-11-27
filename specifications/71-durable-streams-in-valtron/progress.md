@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T8 WebSocket row landed. The transport is in
+  `backends/foundation_http/src/native/durable_ws/`, above the core. `DurableWsHandler` upgrades
+  a GET request and serves create, append, close, head, delete, fork and read over JSON text
+  frames through `DurableService`. A live read pushes one frame per page and ends on `cancel` or
+  when the stream closes. The frame size cap is `DurableWsConfig::max_frame_bytes`, default
+  8 MiB. `tests/durable_websocket.rs` has 5 tests: `websocket_core_roundtrip`,
+  `live_read_receives_an_append_after_open`, `live_read_ends_when_the_stream_closes`,
+  `frame_cap_is_configuration` and `schema_round_trips`. The core keeps no WebSocket type. The
+  clock-parameter and time-source guards report 0 violations. Issue #1077 is closed. The BDD
+  driver matrix entry (T12) stays open, because `same_scenario_every_driver` has no test yet.
+
 - 2026-11-27: feature 08 T9 `foundation_ai` Session log landed. `DurableDocumentStore` in
   `backends/foundation_ai/src/agentic/durable_store.rs` maps one session id to one durable
   stream and stores one `SessionRecord` per JSON chunk. It implements `DocumentStore`, so
@@ -596,10 +607,10 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   to our server, and the reference Rust client to our server. Our client runs 5 scenarios; the
   reference client runs 6, including the cursor check for #1065. The report is
   `features/08-conformance/report.md`. The runtime matrix has a runtime proof for embedded, the
-  Worker, the DO and the `foundation_ai` Session, and a build proof for wasm32. The WebSocket
-  row is a gap (#1077); the wasm32 runtime test is #1080. The skip register names the two
-  suite-forced client skips (issue #1082); the server suite has no skip. The valtron suite (T6),
-  the BDD suite, the driver matrix and the oracles remain.
+  Worker, the DO, the WebSocket server and the `foundation_ai` Session, and a build proof for
+  wasm32. The wasm32 runtime test is #1080. The skip register names the two suite-forced client
+  skips (issue #1082); the server suite has no skip. The valtron suite (T6), the BDD suite, the
+  driver matrix and the oracles remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

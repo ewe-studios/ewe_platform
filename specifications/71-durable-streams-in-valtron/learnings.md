@@ -921,3 +921,37 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   The existing `tool_exec_tests::panicking_tool_is_contained_as_error` fails under `dev` for
   that reason. Run the suite with `--profile uat` (LLVM) to test panic containment. This is an
   environment property, not a code bug.
+
+## Feature 08 T8: the WebSocket transport (2026-11-27)
+
+- **The WebSocket surface is split over two crates.** `foundation_netio::websocket` owns the
+  frames, the client and the incremental decoder. `foundation_http` owns the request handler,
+  the upgrade (`accept_websocket`), the async response writer and every durable adapter. The
+  durable WebSocket transport therefore belongs in `foundation_http`, not in netio and not in
+  the core. The core stays free of every WebSocket type.
+- **One reactor registration per fd.** The reactor keys its selector entry by fd number, and the
+  latest `FdReadiness::register` owns that number. A `ReadWait` held open while a
+  `ResponseWriter` has a write registration replaces it. When the `ReadWait` drops, the writer's
+  token no longer receives readiness, and a blocked write waits out its full send timeout. Build
+  a fresh `ResponseWriter` for each frame and drop it before the read park, so only one
+  registration exists at a time.
+- **The incremental decoder cannot see end of file.** `AccumulatingBuffer::fill_from` maps both
+  `WouldBlock` and `read() == 0` to `Ok(0)`, so `WebSocketFrameDecoder::step` reports `Pending`
+  on a closed socket. Calling `SharedByteBufferStream::probe` first separates the cases:
+  `Err(WouldBlock)` means wait, and `Ok(0)` means the peer closed. Without that check an idle
+  live read would spin on a hang-up that always looks readable.
+- **A notifier-less store turns a one-shot wake into a busy loop.** The Hypertext Transfer
+  Protocol (HTTP) adapter fires `AppendWait` at once when a store has no notifier, so a long
+  poll answers without data. A live read that re-read a page on that signal would never park.
+  The WebSocket live wait uses the signal only when `notifier` returns one, and otherwise parks
+  on read readiness plus a timer at the configured fallback interval.
+- **Register the wake before the page read.** The notifier is one-shot and fires on an append or
+  a close. A registration made after the page read loses an append that lands in between. The
+  SSE loop already does this; the WebSocket live loop copies it.
+- **Close publishes the same wake as append.** `MemoryVfs::close` calls `notify`, and the store
+  close calls the VFS. A live read wakes on a close, reads the final page with `cursor.closed`,
+  sends its last data frame, then sends `end`. No separate close signal is needed.
+- **Client frames arrive masked; check it explicitly.** The incremental decoder unmasks a frame
+  but does not enforce RFC 6455 section 5.3. The server must reject an unmasked client frame
+  with code 1002. The old `WebSocketServerConnection::recv_frame` did this; a new decoder path
+  must do it too.
