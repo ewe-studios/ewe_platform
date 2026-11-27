@@ -1700,3 +1700,15 @@ A generated source directory can use a symlink in the Cargo target path.
 Resolve the root and compare it with the resolved file.
 Copy the same resolved file after that check.
 The mixed package fixture covers a valid companion and a nested link outside the source directory.
+
+## Native consumer package identity
+
+Cargo distinguishes a Git package from a registry package even when their names and versions match.
+The former mobile generator selected the resource crate from both sources.
+The native release tag already supplies the source for the native core.
+
+The earlier registry resource path needs 16 absent versions.
+Two available immutable crates require an older macro version than the current workspace.
+The scratch Git mirror confirms the single resource source.
+The full Git probe spends 9.0 GiB on recursive checkout before it reaches dependency resolution.
+[Git checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1200)

@@ -2284,3 +2284,15 @@ The uploaded candidate contains the unsigned 0.1.2 archives for source revision 
 Both archive digests match the downloaded build record.
 The Android preview runner remains queued.
 [Verified candidate artifact](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598/artifacts/15234251065)
+
+## Native release source alignment
+
+The installed application generator passes all eight tests.
+A generated mobile project uses one native Git tag for the native core and resource provider.
+A mixed browser target selects that same source for browser packaging.
+The web-only path keeps its existing registry requirement.
+
+The scratch Git consumer locks one resource package for the native and mixed browser roles.
+The lock checks retain the expected feature sets.
+The public release still requires the approved version and source, the protected environment, and published inputs.
+[Release prerequisites](features/19-native-package-releases/release-prerequisites.md)

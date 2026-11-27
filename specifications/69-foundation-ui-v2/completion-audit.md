@@ -363,3 +363,14 @@ The local Android package test covers both build orders with the updated templat
 The local Todo checks cover the lint and header changes.
 The public package gate remains in Feature 19.
 [Native preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598)
+
+### Native release prerequisites
+
+The generated mobile application now uses one native release Git source.
+The scratch resolver checks the native and mixed browser locks and their feature sets.
+A normal clone produces all 26 archives in the former registry resource graph.
+The archive consumer stages Android launch and application assets.
+
+The 0.1.2 publication approval, protected environment, and public starter checks remain pending.
+The scratch mirror shows source resolution. The full checkout cost and public tags have separate evidence.
+[Exact crate inventory and release steps](features/19-native-package-releases/release-prerequisites.md)
