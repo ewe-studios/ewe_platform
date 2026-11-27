@@ -36,11 +36,11 @@ The order is severity first, then effort. No row changes a public API unless it 
 
 - **#978 is decided: the code stays on `exec`.** The unpack child is an `exec` of
   `agent-slave --unpack-child`, not `fork` plus `chroot`. The owner decided this on
-  2026-11-27. Feature 12's design text changes to the `exec` form; no code change is made. A threaded process cannot call `fork` and run arbitrary code safely:
-  the child may allocate, lock a mutex that another thread held, or call into code that is not
-  async-signal-safe. The `exec` form starts with one clean thread and a fresh address space,
-  which is the only safe way to change the root. Feature 12's design text changes to the
-  `exec` form; the code stays.
+  2026-11-27. A threaded process cannot call `fork` and run arbitrary code safely: the child
+  may allocate, lock a mutex that another thread held, or call into code that is not
+  async-signal-safe. `exec` starts one clean thread and a fresh address space, which is the
+  only safe way to change the root. Feature 12's design text changes to the `exec` form; no
+  code change is made.
 - **#1013 is coverage, not a capability.** The Firecracker guest has no network, so the
   network case belongs to libkrun with block support. The test keeps a skip reason for every
   host that cannot run it.

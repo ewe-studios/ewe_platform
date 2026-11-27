@@ -44,7 +44,7 @@ completely, and the script says so in its header.
 
 | Task | Work |
 |---|---|
-| T1 | The module above, with variables `region`, `project`, `location` and `ttl_days` (default 1). A key policy that allows only the caller's principal. No secret in variables or outputs. |
+| T1 | The create and delete commands of section 2, with `region`, `project` and `location` read from the environment. A key policy that allows only the caller's principal. No secret in a variable, an output or a log. |
 | T2 | The script's `up` and `down` steps are the CLI commands of section 2; `sweep` lists keys with the `purpose=ewe-live-test` tag or label and schedules their deletion. |
 | T3 | `ci/live-kms/run-tests.sh`: create the resources, export the values, run the four gated tests (AWS seal/open, AWS wrong key, GCP seal/open, GCP wrong key), then delete the resources in a `trap`, and print the result. It exits non-zero if a test fails; it deletes the resources either way. |
 | T4 | The gated tests read `AWS_KMS_KEY_ARN`, `AWS_WRONG_KEY_ARN`, `GCP_KMS_KEY_NAME`, `GCP_KMS_PROJECT`, `GCP_KMS_LOCATION` and the credentials. A missing value prints its name and the test returns. |
