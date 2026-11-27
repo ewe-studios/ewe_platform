@@ -3,7 +3,7 @@
 //! The tests use the fake registry, the simulated driver and the scripted
 //! slave, so no registry, no Docker daemon and no virtual machine run.
 
-use std::io::Write as _;
+use std::io::{Read as _, Write as _};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -33,7 +33,7 @@ use foundation_sandbox::shared::limits::{ArtifactLimits, ImageLimits};
 use foundation_sandbox::shared::spec::GuestArch;
 use serde_json::{json, Value};
 
-use super::registry_server::{sha256_repeat, BlobBody, FakeRegistry};
+use super::registry_server::{BlobBody, FakeRegistry};
 use super::support::TempDir;
 
 /// The media type of an uncompressed layer.
@@ -573,15 +573,40 @@ fn fault_unpack() {
 
 // ── the streaming bound (invariant I3) ────────────────────────────────────
 
+/// One gzip layer whose unpacked payload is `payload` repeated bytes.
+///
+/// The tar holds one regular file of `payload` bytes, and the gzip stream
+/// compresses that repeated content, so the served blob stays small while the
+/// decoded layer is large.
+fn repeated_gzip_layer(payload: u64) -> Vec<u8> {
+    let mut encoder =
+        flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
+    {
+        let mut builder = tar::Builder::new(&mut encoder);
+        let mut header = tar::Header::new_gnu();
+        header.set_path("blob").expect("the header path is set");
+        header.set_size(payload);
+        header.set_mode(0o644);
+        header.set_cksum();
+        builder
+            .append(&header, std::io::repeat(0x5a).take(payload))
+            .expect("the repeated payload goes into the tar");
+        builder.finish().expect("the tar is complete");
+    }
+    encoder.finish().expect("the layer compresses")
+}
+
 #[test]
 fn layer_streams() {
-    // A 200 MiB layer arrives in 64 KiB pieces; the client's largest write is
-    // one piece, not the whole layer.
+    // One real gzip layer arrives in 64 KiB pieces; the client's largest write
+    // is one piece, not the whole blob, and the cached bytes decode to every
+    // byte of the repeated payload.
     let registry = FakeRegistry::start();
-    let chunk = vec![0x5a_u8; 64 * 1024];
-    let total = 200 * 1024 * 1024_u64;
-    let digest = format!("sha256:{}", sha256_repeat(&chunk, total));
-    registry.add_blob_at(&digest, BlobBody::Repeat { chunk, total });
+    let payload = 200 * 1024 * 1024_u64;
+    let layer = repeated_gzip_layer(payload);
+    let total = u64::try_from(layer.len()).expect("the compressed layer fits");
+    let digest = format!("sha256:{}", sha256_hex(&layer));
+    registry.add_blob_at(&digest, BlobBody::Bytes(layer));
     let directory = TempDir::new("oci-layer-streams");
     let ctx = crate::control::support::ctx(0x521).0;
     let fs = RecordingFs::new();
@@ -598,7 +623,7 @@ fn layer_streams() {
     let reference = OciReference::parse(&format!("{}/test/image:1", registry.address()))
         .expect("the reference parses");
     let descriptor = OciDescriptor {
-        media_type: PLAIN_LAYER.to_string(),
+        media_type: GZIP_LAYER.to_string(),
         digest,
         size: total,
     };
@@ -615,6 +640,26 @@ fn layer_streams() {
         fs.written() >= total,
         "the writer saw every byte: {}",
         fs.written()
+    );
+
+    // The same cached bytes decode to the tar header, the repeated payload and
+    // the two end blocks, so the gzip path of the import reads the layer.
+    let file = std::fs::File::open(&path).expect("the cached layer opens");
+    let mut decoder =
+        flate2::read::GzDecoder::new(std::io::BufReader::new(file));
+    let mut buffer = vec![0_u8; 64 * 1024];
+    let mut decoded = 0_u64;
+    loop {
+        let read = decoder.read(&mut buffer).expect("the layer decodes");
+        if read == 0 {
+            break;
+        }
+        decoded = decoded.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
+    }
+    assert_eq!(
+        decoded,
+        512 + payload + 1024,
+        "the decoded layer is the tar header, the payload and the end blocks"
     );
 }
 
