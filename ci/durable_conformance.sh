@@ -173,4 +173,11 @@ rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
 cargo test --profile uat -p durable_transport_matrix --features do-driver --test do_driver
 echo "DO transport matrix: all eight scenarios match the model and the embedded driver"
 
+echo "== local Cloudflare R2 block store =="
+# `wrangler dev --local` gives a real local R2 bucket through Miniflare, so the
+# wasm block store runs with no Cloudflare account. The test also checks the
+# bare-etag `onlyIf` semantics, because older Miniflare versions reversed them.
+cargo test --profile uat -p foundation_nativeapis --features r2-wrangler --test r2_wrangler
+echo "local R2: the block store round trip passed under wrangler"
+
 echo "== done: server 338 passed (338), client 267 passed, 0 failed, 2 suite-forced skips =="

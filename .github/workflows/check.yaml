@@ -790,7 +790,9 @@ jobs:
     # anonymous `/data` volume is not writable by its default user.
     services:
       minio:
-        image: alpine/minio:RELEASE.2025-10-15T17-29-55Z
+        # Pin the digest as well as the release tag: the image is a community
+        # rebuild, because the official `minio/minio` image is no longer public.
+        image: alpine/minio:RELEASE.2025-10-15T17-29-55Z@sha256:cf23643a6cf9ce159c57643ceb88279e431262282428c9e0bf3a7ef1a97e84b4
         env:
           MINIO_ROOT_USER: ewetest
           MINIO_ROOT_PASSWORD: ewetest123
