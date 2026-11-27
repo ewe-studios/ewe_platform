@@ -1,24 +1,24 @@
 // Tests build the effect sources on purpose (spec 84, section 6, item 2).
 #![allow(clippy::disallowed_methods)]
 
-//! Failing evidence for the deterministic simulation test (DST) turn hang
-//! (spec 92 feature 01, issue #908).
+//! Evidence for the deterministic simulation test (DST) turn hang (spec 92
+//! feature 01, issue #908).
 //!
 //! WHY: on the single-threaded simulation engine a turn over the real registry
-//! never finishes. This module proves the layer: the stream-to-future adapter,
-//! not the readiness harness.
+//! never finished. The `Stream::Wait` arm of the stream-to-future adapter
+//! parked on a producer wake that only another thread could send.
 //!
 //! WHAT:
-//! - [`wait_arm_never_repolls_single_threaded`] shows the `Stream::Wait` arm
-//!   parks on a producer wake that a single thread never sends.
+//! - [`wait_redrives_a_driving_stream`] proves the fix: a driving stream that
+//!   yields `Wait` twice finishes in one poll on one thread.
 //! - [`wait_arm_completes_with_a_producer_thread`] is the control: the same
 //!   adapter completes when a producer thread sends the wake.
 //! - [`sim_honours_depends_readiness`] probes the harness: a task parked on an
 //!   injected readiness resumes when a push fires it.
 //!
 //! HOW: the tests run in [`SimRuntime`], the same single-threaded engine as the
-//! DST. A bounded watchdog or step counter reports the defect in seconds; no
-//! test can hang the continuous integration (CI) run.
+//! DST. A bounded watchdog reports a hang in seconds; no test can hang the
+//! continuous integration (CI) run.
 
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -39,16 +39,10 @@ const START: Duration = Duration::from_secs(1_700_000_000);
 /// How long a test may wait for a completion before its watchdog fails it.
 const WATCHDOG: Duration = Duration::from_secs(5);
 
-/// The most polls a single-threaded driver gives a future without a self-wake.
-/// The bound is a step counter, not a timer: the test ends in milliseconds.
-const MAX_POLLS: usize = 32;
-
 /// A waker that counts how often it is woken.
 ///
-/// WHY: the single-threaded driver re-polls a pending future only when its
-/// waker fired (the rule `FutureTask::next_status` applies: a `Pending` poll
-/// with no self-wake parks on `Depends`). The counter lets the test show that
-/// nothing re-polled the adapter.
+/// WHY: a `Wait` bug shows up as a `Pending` with no self-wake, and the count
+/// reports how often the adapter woke the executor.
 #[derive(Default)]
 struct WakeCounter(AtomicUsize);
 
@@ -72,130 +66,60 @@ impl WakeCount {
         self.counter.0.load(Ordering::SeqCst)
     }
 
-    fn reset(&self) {
-        self.counter.0.store(0, Ordering::SeqCst);
-    }
-
     fn waker(&self) -> Waker {
         Waker::from(Arc::clone(&self.counter))
     }
 }
 
 // ============================================================================
-// wait_arm_never_repolls_single_threaded
+// wait_redrives_a_driving_stream
 // ============================================================================
 
-/// A producer that advances one step per pull.
+/// A task that yields `Wait` twice, then `Ready(7)`.
 ///
-/// WHY: in the real turn, one `DrivenStreamIterator::next` call drives the
-/// single-threaded engine one step. A re-poll of the adapter makes one more
-/// step of progress. The stream therefore yields `Wait` until its producer has
-/// taken `steps_needed` steps.
+/// WHY: `execute()` wraps the task in a driving stream, whose `next()` runs the
+/// single-threaded engine. The engine makes progress on each call, so a `Wait`
+/// means "run the producer again", not "wait for another thread".
 ///
-/// WHAT: each `next()` advances the producer one step. It returns `Next` only
-/// at the last step.
-///
-/// HOW: `wake_send` stores the callback and reports `Successful`, like a
-/// queue-backed stream. Only a producer can fire that callback; the adapter
-/// does not self-wake, so nothing re-polls it on a single thread.
-struct StepStream {
-    advanced: Arc<AtomicUsize>,
-    steps_needed: usize,
-    producer_wakes: Arc<Mutex<Vec<SendWakeCallback>>>,
+/// WHAT: the two `Wait` statuses need two more `next()` calls before the task
+/// is ready.
+struct WaitTwiceThenReady {
+    calls: usize,
 }
 
-impl StepStream {
-    fn new(steps_needed: usize) -> (Self, Arc<AtomicUsize>, Arc<Mutex<Vec<SendWakeCallback>>>) {
-        let advanced = Arc::new(AtomicUsize::new(0));
-        let wakes = Arc::new(Mutex::new(Vec::new()));
-        (
-            Self {
-                advanced: Arc::clone(&advanced),
-                steps_needed,
-                producer_wakes: Arc::clone(&wakes),
-            },
-            advanced,
-            wakes,
-        )
-    }
-}
+impl TaskIterator for WaitTwiceThenReady {
+    type Ready = u32;
+    type Pending = ();
 
-impl Iterator for StepStream {
-    type Item = Stream<u32, ()>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let step = self.advanced.fetch_add(1, Ordering::SeqCst) + 1;
-        if step >= self.steps_needed {
-            Some(Stream::Next(7))
-        } else {
-            Some(Stream::Wait)
+    fn next_status(&mut self, _ctx: foundation_context::Ctx) -> Option<TaskStatus<u32, ()>> {
+        self.calls += 1;
+        match self.calls {
+            1 | 2 => Some(TaskStatus::Wait),
+            _ => Some(TaskStatus::Ready(7)),
         }
     }
 }
 
-impl WakeableStream for StepStream {
-    fn wake(&mut self, _cb: WakeCallback) -> WakeResult {
-        WakeResult::NotSupported
-    }
-
-    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
-        self.producer_wakes
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .push(cb);
-        WakeResult::Successful
-    }
-}
-
-/// RED TODAY: the `Wait` arm registers a producer wake and parks. On one
-/// thread nothing advances the producer, so the future stays `Pending` and no
-/// executor re-poll ever happens.
+/// The real driver: `execute()` wraps the task in a driving stream. One poll of
+/// the parking adapter must re-drive the two `Wait` statuses and return the
+/// `Next(7)` on a single-threaded engine.
 #[test]
-fn wait_arm_never_repolls_single_threaded() {
-    // The same engine as the DST: one thread, one simulated clock.
+fn wait_redrives_a_driving_stream() {
     SimRuntime::run(42, START, |_sim| {
-        let steps_needed = 5;
-        let (stream, steps, producer_wakes) = StepStream::new(steps_needed);
-        let mut stream = stream.into_future_stream();
+        let mut stream = execute(WaitTwiceThenReady { calls: 0 }, None)
+            .expect("the engine is initialized")
+            .into_future_stream();
         let counter = WakeCount::default();
         let waker = counter.waker();
         let mut cx = Context::from_waker(&waker);
 
-        let mut polls = 0;
-        let mut outcome = None;
-        // A single-threaded driver re-polls only when the future woke itself.
-        loop {
-            counter.reset();
-            polls += 1;
-            let poll = Pin::new(&mut stream).poll_next(&mut cx);
-            match poll {
-                Poll::Ready(item) => {
-                    outcome = Some(item);
-                    break;
-                }
-                Poll::Pending => {
-                    if counter.count() == 0 || polls >= MAX_POLLS {
-                        break;
-                    }
-                }
-            }
-        }
-
-        let advanced = steps.load(Ordering::SeqCst);
-        let registered = producer_wakes
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .len();
-        let completed = matches!(outcome, Some(Some(Stream::Next(7))));
+        let poll = Pin::new(&mut stream).poll_next(&mut cx);
 
         assert!(
-            completed,
-            "watchdog: wait_arm_never_repolls_single_threaded: the future stayed Pending \
-             after {polls} poll(s); the producer advanced {advanced} of {steps_needed} steps, \
-             and the adapter registered {registered} producer wake(s) that only a producer \
-             could fire. A single-threaded engine sends no such wake, and the adapter did not \
-             wake itself, so nothing re-polled it. The re-poll that would take the producer \
-             to step {steps_needed} never came."
+            matches!(poll, Poll::Ready(Some(Stream::Next(7)))),
+            "a driving stream must re-drive `Wait` on one thread and finish in one poll; \
+             got {poll:?} after {} self-wake(s)",
+            counter.count()
         );
     });
 }
