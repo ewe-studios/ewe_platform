@@ -436,15 +436,25 @@ impl ImageImporter {
         let sandbox = self.start_fill(size_mib, fill).await?;
         let max = self.host.config.image_limits.max_archive_bytes;
         for (index, (descriptor, kind)) in plan.layers.iter().enumerate() {
+            let mut reported = 0_u64;
             let path = plan
                 .client
                 .fetch_blob(&plan.reference, descriptor, &mut |done| {
-                    progress.progress(ImportProgress::Pulling {
-                        done,
-                        total: Some(descriptor.size),
-                    });
+                    // One progress value per MiB, so a large layer does not
+                    // fill the stream with one value for each chunk.
+                    if done.saturating_sub(reported) >= PROGRESS_STEP {
+                        reported = done;
+                        progress.progress(ImportProgress::Pulling {
+                            done,
+                            total: Some(descriptor.size),
+                        });
+                    }
                 })
                 .await?;
+            progress.progress(ImportProgress::Pulling {
+                done: descriptor.size,
+                total: Some(descriptor.size),
+            });
             let reader = self.layer_reader(&path, *kind)?;
             let stream = file_stream(reader, max, progress.clone());
             sandbox
