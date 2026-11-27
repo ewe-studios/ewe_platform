@@ -25,8 +25,8 @@ path = "../foundation_context"
 version = "0.0.4"
 
 [dependencies.foundation_db]
-path = "../foundation_db"
-version = "0.0.12"
+workspace = true
+features = ["turso", "d1", "r2"]
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"

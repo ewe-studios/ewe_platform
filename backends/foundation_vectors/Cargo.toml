@@ -28,15 +28,13 @@ tracing = { workspace = true, optional = true }
 # which does not build single-threaded; there the portable SQL store needs only
 # the shared `QueryStore`/`DataValue` core, so the default features are off.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_db]
-path = "../foundation_db"
-version = "0.0.12"
+workspace = true
+features = ["turso", "d1", "r2"]
 optional = true
 
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_db]
-path = "../foundation_db"
-version = "0.0.12"
+workspace = true
 optional = true
-default-features = false
 
 # foundation_netio (the `turbopuffer` HTTP client) is target-gated, as in
 # foundation_ai: native takes the native client (`multi`, plus the default TLS,
