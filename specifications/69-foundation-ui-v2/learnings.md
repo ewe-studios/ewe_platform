@@ -1671,3 +1671,7 @@ The application boot path uses the same framework startup.
 The driver submits Space as a keyboard activation for the browser title.
 Its Enter path keeps focus but does not activate the button in this test.
 [Driver follow-up](https://github.com/ewe-studios/ewe_platform/issues/1192)
+
+The Linux `foundation_core` build recipe runs the repository time-source guard.
+The scoped Specification 69 plan omits that recipe. Its failing calls belong to the Agent RPC shutdown path.
+The wait uses real elapsed time. A simulated request clock must not extend its host shutdown budget.

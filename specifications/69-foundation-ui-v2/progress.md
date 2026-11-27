@@ -2241,3 +2241,10 @@ The existing browser server and host action suite also passes.
 All seven native host tests pass. The first frame contains no web script or scroll binding.
 The native filter stays local. The strict Todo Clippy check passes.
 [Page action issue](https://github.com/ewe-studios/ewe_platform/issues/1190)
+
+### Workspace formatter and time-source guard
+
+The pinned workspace formatter passes at `d735d249a`. The formatter changes 23 Rust files.
+The CI package passes 40 tests. The task package passes 19 tests.
+Issue 1189 is closed. The clock-parameter guard reports no violations.
+Issue 1180 remains open for the Linux `foundation_core` build recipe.
