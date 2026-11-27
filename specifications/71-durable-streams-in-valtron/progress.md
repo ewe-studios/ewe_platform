@@ -2,6 +2,34 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 runtime matrix, skip register and report landed. The report is
+  `specifications/71-durable-streams-in-valtron/features/08-conformance/report.md`. It holds the
+  gate command, the four-direction matrix, the runtime matrix, the skip register, the open issues
+  and the environment caveat.
+
+  Proofs added or confirmed:
+  - Embedded: the new `backends/foundation_core/tests/durable/runtime_matrix.rs` has
+    `embedded_core_roundtrip` and `service_runs_without_http` (2 pass). The separate
+    `durable_core_no_valtron` crate runs its 1 test without the `valtron` feature.
+  - wasm32: eight `cargo check --target wasm32-unknown-unknown` commands pass for
+    `foundation_core` (`std`, `std,multi`, `std,js-foundation-wasm`), `foundation_event_stream`,
+    `foundation_http` (`wasm`), `foundation_db` (`do-sql`, `wasm-bindgen-storage`) and
+    `foundation_netio` (`wasm-fetch`).
+  - Worker and DO: the recorded `wrangler dev --local` result in
+    `backends/foundation_db/integration/do_sql/` returns all nine VFS kit scenarios on the
+    top-level Worker route `/run-d1` (D1) and in the DO route `/run` (DO SQLite). The `/rollback`
+    route passes. This change did not re-run the fixture.
+  - Guard checks: `check-clock-params` and `check-time-sources` report 0 violations.
+
+  Gaps: no WebSocket driver (#1077, medium), no `foundation_ai` Session log driver (#1079,
+  medium) and no wasm32 runtime roundtrip test (#1080, low). The gate builds the server with the
+  valtron feature on (#1081, medium). The two suite-forced client skips have issue #1082 (low).
+
+  Tasks ticked: T1, T2, T5, T7 and T10. T6, T8, T9 and T11 to T21 stay open. The strict gate
+  numbers stay as recorded: server 338 passed (338), 0 skip; client 267 passed, 0 failed, 2
+  suite-forced skips. This change did not re-run the gate because the host load was 169. The
+  report marks the counts as recorded evidence.
+
 - 2026-11-27: feature 01 T4 landed. `foundation_core` now has a `valtron` Cargo feature. The
   feature is on by default and implies `std`. The gates on `valtron`, `env` and `synca::mpp`
   changed from `std` to `valtron`, and `durable::shared::valtron` has the same gate. `multi`,
@@ -549,15 +577,19 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all
   landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
-- **08-conformance** — 🟡 in progress. The CI gate landed as a `[gates]` entry in
-  `ci/packages.toml`: `foundation-ci run durable-conformance --step test` runs both reference
-  suites, then the two cross-run test targets. `foundation-ci affected` selects the gate from
-  the changed files, on a pull request and on a push. The nightly schedule and a manual dispatch
-  run it in full. The memory VFS conformance test runs in CI. T3 (cross-runs) landed in both
-  directions: our client to our server, and the reference Rust client to our server. Our client
-  runs 5 scenarios; the reference client runs 6, including the cursor check for #1065. The
-  valtron suite, the skip register, the report, the runtime matrix and the T1/T2 harness tasks
-  remain.
+- **08-conformance** — 🟡 in progress (7/21 tasks ticked: T1 to T5, T7 and T10; T6, T8, T9 and
+  T11 to T21 open). The CI gate landed as a `[gates]` entry in `ci/packages.toml`:
+  `foundation-ci run durable-conformance --step test` runs both reference suites, then the two
+  cross-run test targets. `foundation-ci affected` selects the gate from the changed files, on a
+  pull request and on a push. The nightly schedule and a manual dispatch run it in full. The
+  memory VFS conformance test runs in CI. T3 (cross-runs) landed in both directions: our client
+  to our server, and the reference Rust client to our server. Our client runs 5 scenarios; the
+  reference client runs 6, including the cursor check for #1065. The report is
+  `features/08-conformance/report.md`. The runtime matrix has a runtime proof for embedded, the
+  Worker and the DO, and a build proof for wasm32. The WebSocket (#1077) and Session (#1079)
+  rows are gaps; the wasm32 runtime test is #1080. The skip register names the two suite-forced
+  client skips (issue #1082); the server suite has no skip. The valtron suite (T6), the BDD
+  suite, the driver matrix and the oracles remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

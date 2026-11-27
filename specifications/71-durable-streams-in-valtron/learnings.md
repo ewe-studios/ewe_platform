@@ -857,3 +857,42 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   `foundation_wasm_ui` therefore marked `foundation_core` as a dependent and selected the gate
   through an unrelated crate. Reading the file owners of the change keeps the gate on the
   packages that the owner named.
+
+## Feature 08 runtime matrix and skip register (2026-11-27)
+
+- **The DO fixture is also the Worker proof.** `backends/foundation_db/integration/do_sql/`
+  serves `GET /run-d1` from its top-level `#[event(fetch)]` handler. That route runs the VFS kit
+  over `D1Executor` in the Worker context. The `GET /run` route forwards to `DoSqlObject` and
+  runs the same kit over DO SQLite. One fixture proves both rows. A DO-only fixture would not
+  prove the Worker row.
+- **A wasm build is not a wasm run.** The CI wasm gate catches feature-gate drift. It found
+  #1030 and #1056. It cannot find an event-loop fault. The `integration/wasm_tests` crate runs
+  valtron executor cases on Deno, not the durable core. Issue #1080 records the missing
+  roundtrip. Do not call the build a runtime test.
+- **No WebSocket durable driver exists.** `foundation_netio::websocket` is a frame transport.
+  `foundation_http::native::upgrade::accept_websocket` completes the upgrade. Neither maps a
+  message to `DurableService` or to the client transport. The spec names a driver that no code
+  implements. Issue #1077 records the missing piece.
+- **`AgentSession` is not backed by a stream.** It uses `foundation_db::traits::DocumentStore`
+  and `agentic::memory_store::MemoryStore`. No implementation of either trait names a durable
+  stream. `SessionRecord` is the log element, but the log storage is not a stream. Issue #1079
+  records the missing driver.
+- **The conformance gate compiles the valtron feature.** `ci/durable_conformance.sh` builds
+  `foundation_http --features multi`. `multi` implies `foundation_core/multi`, which implies
+  `valtron`. The example server also calls `initialize_pool` and mounts the subscription
+  handler. The protocol path uses `DurableService`, not the valtron reader or writer. Requirement
+  8 says the gate does not enable the valtron layer. The gate does. Issue #1081 records the
+  variance. The separate `durable_core_no_valtron` package is the real no-valtron proof.
+- **The npm package does not carry its git commit.** The two skip lines are in
+  `read-sse-base64.yaml`. To name the author and commit, fetch the file from the upstream
+  repository at the pinned commit and search its history. Both skips were present in
+  `82a566ace620b1b8d0d43cdf181356e6a6f6f4aa` by Valter Balegas. The pinned checkout
+  `461b40267aabd644558f9b19dbb9507dd5f691cf` has the same two lines at lines 55 and 367.
+- **Spec test names can be aspirational.** A search for `websocket_core_roundtrip`,
+  `session_uses_core` and `wasm_core_roundtrip` found no test. A name in a task list is not
+  evidence. The report marks each missing name as a gap with an issue.
+- **The embedded row has two forms.** `durable_core_no_valtron` runs with `futures-lite` and no
+  valtron feature. `durable::runtime_matrix` runs under the valtron test harness, because the
+  rest of the crate tests do. Both use direct async calls and no transport. The second form
+  proves the business API and `DurableService`; the first proves the core compiles and runs
+  without valtron.

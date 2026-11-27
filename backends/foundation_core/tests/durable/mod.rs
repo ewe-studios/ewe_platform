@@ -25,6 +25,8 @@ mod reader;
 #[cfg(not(target_arch = "wasm32"))]
 mod retention;
 #[cfg(not(target_arch = "wasm32"))]
+mod runtime_matrix;
+#[cfg(not(target_arch = "wasm32"))]
 mod scenarios;
 #[cfg(not(target_arch = "wasm32"))]
 mod service;

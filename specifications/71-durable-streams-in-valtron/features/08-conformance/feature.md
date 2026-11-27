@@ -1,6 +1,6 @@
 ---
 feature: "Conformance"
-status: "planned"
+status: "in progress"
 priority: "high"
 depends_on: ["02-resumable-reader", "03-idempotent-producer", "04-fork-and-retention", "05-storage-backends", "06-http-rpc-surface", "07-durable-streams-client", "09-s3-r2-vfs"]
 crates: ["foundation_core", "foundation_http", "foundation_netio"]
@@ -80,10 +80,13 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 
 ## 4. Tasks
 
-- [ ] **T1 — server suite harness.** Start the in-memory server and run the reference suite.
-      Record every failure with a finding ID.
-- [ ] **T2 — client suite harness.** Build the adapter and run the client suite against the
-      reference server.
+- [x] **T1 — server suite harness.** `ci/durable_conformance.sh` starts the example server on
+      `127.0.0.1:4437` and runs the reference server suite with `subscriptions: true`. The gate
+      fails on a non-skipped failure. The recorded run has no failure. See
+      `features/08-conformance/report.md`.
+- [x] **T2 — client suite harness.** `ci/durable_conformance.sh` builds
+      `durable_client_adapter` and runs the client suite against the reference server. See
+      `features/08-conformance/report.md`.
 - [x] **T3 — cross-runs.** Our client to our server, and the reference Rust client to our
       server. Tests: `foundation_http/tests/durable_cross_client.rs` (5 scenarios) and
       `foundation_http/tests/durable_reference_cross_run.rs` (6 scenarios). The scenarios are
@@ -102,15 +105,23 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       failure and on a count other than 338 server passes or 267 client passes with 2
       suite-forced skips. The `foundation_core` test run with `multi,test-clock,vfs-testkit`
       runs the memory VFS conformance test in CI.
-- [ ] **T5 — skip register.** Record every skip and its reason. Get owner approval for each.
+- [x] **T5 — skip register.** The register in the report names both suite-forced client skips
+      (`read-sse-base64.yaml`, `Swift implementation broken`) with the suite package, author and
+      commit. The server suite has no skip. No skip comes from our code. Issue #1082 tracks the
+      two upstream skips.
 - [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
-- [ ] **T7 — report.** Publish the counts and the reference commit with each run.
+- [x] **T7 — report.** `features/08-conformance/report.md` holds the gate command, the suite
+      versions and commit, the recorded counts, the four-direction matrix and the runtime matrix.
 - [ ] **T8 — runtime matrix.** Run the core in a local embedded process, a DO, a Worker, a
       WebSocket server and wasm32. Tests: `embedded_core_roundtrip`, `do_core_roundtrip`,
       `worker_core_roundtrip`, `websocket_core_roundtrip`, `wasm_core_roundtrip`.
+      Status 2026-11-27: embedded, Worker and DO have proofs. wasm32 has a build proof only
+      (#1080). WebSocket (#1077) and the `foundation_ai` Session (#1079) are gaps.
 - [ ] **T9 — `foundation_ai` Session.** Back a Session with the core. Test: `session_uses_core`.
-- [ ] **T10 — surface neutrality.** Call `DurableService` with no HTTP adapter. Test:
-      `service_runs_without_http`.
+      Gap: see issue #1079.
+- [x] **T10 — surface neutrality.** Call `DurableService` with no HTTP adapter. Test:
+      `service_runs_without_http` in
+      `backends/foundation_core/tests/durable/runtime_matrix.rs`.
 - [ ] **T11 — BDD suite.** Write the Given/When/Then scenarios for create, append, read, close,
       producer, `Stream-Seq`, fork and TTL.
 - [ ] **T12 — driver matrix.** Run every scenario on the embedded, HTTP, WebSocket, DO and
@@ -136,13 +147,17 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 
 ## 5. Success criteria
 
-- [ ] The server suite passes against `HttpAdapter` with valtron disabled.
-- [ ] The client suite passes with the Rust adapter.
+- [ ] The server suite passes against `HttpAdapter` with valtron disabled. The suite passes.
+      The gate builds the server with `multi`, which turns the valtron feature on. See #1081.
+- [x] The client suite passes with the Rust adapter.
 - [x] Both cross-runs pass. Our client to our server runs 5 scenarios; the reference Rust
       client to our server runs 6. The categories are create, append, catch-up read, long-poll,
       SSE, close and fork. See T3.
-- [ ] Every skip names an open GitHub issue with a severity. A skip without an issue fails review.
+- [x] Every skip names an open GitHub issue with a severity. A skip without an issue fails review.
+      Issue #1082 covers the two suite-forced client skips. The server suite has no skip.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
+      Embedded, Worker and DO pass. WebSocket (#1077), the Session (#1079) and the wasm32
+      runtime test (#1080) remain.
 - [ ] Every protocol rule has a derived oracle.
 - [ ] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL.
 - [ ] Every VFS crate runs the shared conformance suite and its own coverage tests.
