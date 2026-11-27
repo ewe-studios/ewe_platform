@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T12 (Durable Object CI fixes). The gate uses the project wrangler pin,
+  `npx --yes wrangler@4.156.2` (`WRANGLER_VERSION` in `mise.toml`), not a global npm install.
+  `tests/do_driver.rs` resolves `WRANGLER_BIN`, then `npx --yes wrangler@<version>`, then
+  `wrangler` on `PATH`. `worker-build` 0.8.7 installs with `cargo binstall` when present and
+  `cargo install` otherwise. The readiness wait is 240 s and prints the tail of the wrangler log
+  on failure. Measured `bash ci/durable_conformance.sh` on this host: 231.91 s real (3 min 52 s),
+  exit 0, server 338 passed, client 267 passed, and the DO driver 1 test in 18.00 s. The
+  20-minute job limit holds.
 - 2026-11-27: feature 08 T12 (Durable Object driver, #1091 closed). The transport matrix has
   five drivers: embedded, HTTP, WebSocket, ConnectRPC and a Durable Object worker. The shared
   code (`driver`, `model`, `scenario`) builds for wasm32; the native drivers sit behind the

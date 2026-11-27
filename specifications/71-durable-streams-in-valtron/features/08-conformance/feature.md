@@ -151,8 +151,11 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       same eight scenarios over `SqlVfs<DoSqlExecutor>` with an in-memory block store. Its wait
       is a JavaScript `setTimeout`, so the TTL scenario runs. The native test starts
       `wrangler dev --local` and compares the reply with the model and the embedded driver. The
-      run lives in `ci/durable_conformance.sh`, which installs wrangler 4.144.0 and
-      worker-build when they are missing and adds the wasm32 target (#1091 is closed). Command:
+      run lives in `ci/durable_conformance.sh`. It starts the pinned wrangler with
+      `npx --yes wrangler@4.156.2` (`WRANGLER_VERSION` in `mise.toml`), installs
+      `worker-build` 0.8.7 with `cargo binstall` when present and `cargo install` otherwise, and
+      adds the wasm32 target (#1091 is closed). The full gate measured 231.91 s (3 min 52 s) on
+      this host, under the 20-minute job limit. Command:
       `cargo test --profile uat -p durable_transport_matrix --features do-driver --test do_driver`.
       Remaining:
       - Session: `DurableDocumentStore` is a document store over a stream, not the stream

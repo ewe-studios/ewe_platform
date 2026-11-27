@@ -41,6 +41,7 @@ struct MatrixReply {
 struct Wrangler {
     child: Child,
     port: u16,
+    log_path: std::path::PathBuf,
 }
 
 impl Wrangler {
@@ -49,43 +50,55 @@ impl Wrangler {
         let port = free_port();
         let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../../backends/foundation_db/integration/do_sql");
-        let child = Command::new("wrangler")
-            .args([
-                "dev",
-                "--local",
-                "--ip",
-                "127.0.0.1",
-                "--port",
-                &port.to_string(),
-            ])
-            .current_dir(&fixture)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .expect("spawn wrangler");
-        let mut wrangler = Self { child, port };
+        let log_path = std::env::temp_dir().join(format!("durable-do-wrangler-{port}.log"));
+        let child = spawn_wrangler(&fixture, port, &log_path);
+        let mut wrangler = Self {
+            child,
+            port,
+            log_path,
+        };
         wrangler.wait_ready();
         wrangler
     }
 
-    /// Wait until the worker answers, or fail after ten minutes.
+    /// Wait until the worker answers, or fail after 240 s with the log tail.
     fn wait_ready(&mut self) {
-        // A bounded count, not a clock read: 1 200 tries at 500 ms.
-        for _ in 0..1_200 {
+        // A bounded count, not a clock read: 480 tries at 500 ms.
+        for _ in 0..480 {
             if http_get(self.port, "/").is_ok() {
                 return;
             }
             if let Ok(Some(status)) = self.child.try_wait() {
-                panic!("wrangler exited before it was ready: {status}");
+                panic!(
+                    "wrangler exited before it was ready: {status}\n{}",
+                    self.log_tail()
+                );
             }
             std::thread::sleep(Duration::from_millis(500));
         }
-        panic!("wrangler did not become ready within ten minutes");
+        panic!(
+            "wrangler did not become ready within 240 s\n{}",
+            self.log_tail()
+        );
     }
 
     /// The port the worker listens on.
     fn port(&self) -> u16 {
         self.port
+    }
+
+    /// The last part of the wrangler log, for a failure message.
+    fn log_tail(&self) -> String {
+        std::fs::read_to_string(&self.log_path).map_or_else(
+            |_| String::from("(no wrangler log)"),
+            |text| {
+                let mut start = text.len().saturating_sub(20_000);
+                while start < text.len() && !text.is_char_boundary(start) {
+                    start += 1;
+                }
+                text[start..].to_string()
+            },
+        )
     }
 }
 
@@ -93,7 +106,63 @@ impl Drop for Wrangler {
     fn drop(&mut self) {
         let _ = self.child.kill();
         let _ = self.child.wait();
+        let _ = std::fs::remove_file(&self.log_path);
     }
+}
+
+/// Resolve the wrangler command in the order `WRANGLER_BIN`, `npx` with the
+/// pinned version, then `wrangler` on `PATH`.
+///
+/// The pinned version follows the project: `WRANGLER_VERSION`, else the
+/// `foundation_testbed` default 4.156.2.
+fn spawn_wrangler(fixture: &Path, port: u16, log_path: &Path) -> Child {
+    if let Ok(bin) = std::env::var("WRANGLER_BIN") {
+        if !bin.is_empty() {
+            return launch(&bin, &[], fixture, port, log_path)
+                .unwrap_or_else(|error| panic!("start WRANGLER_BIN: {error}"));
+        }
+    }
+    let version = std::env::var("WRANGLER_VERSION").unwrap_or_else(|_| String::from("4.156.2"));
+    let prefix = ["--yes".to_string(), format!("wrangler@{version}")];
+    match launch("npx", &prefix, fixture, port, log_path) {
+        Ok(child) => child,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            launch("wrangler", &[], fixture, port, log_path).unwrap_or_else(|error| {
+                let tail = std::fs::read_to_string(log_path).unwrap_or_default();
+                panic!("start wrangler: {error}\n{tail}")
+            })
+        }
+        Err(error) => panic!("start npx wrangler: {error}"),
+    }
+}
+
+/// Launch one wrangler program with its output written to the log file.
+///
+/// The output goes to a file, not a pipe: `npx` starts wrangler, which starts
+/// workerd, and the descendants keep the pipe's write end open after a kill.
+fn launch(
+    program: &str,
+    prefix: &[String],
+    fixture: &Path,
+    port: u16,
+    log_path: &Path,
+) -> io::Result<Child> {
+    let log = std::fs::File::create(log_path)?;
+    let stderr = log.try_clone()?;
+    Command::new(program)
+        .args(prefix)
+        .args([
+            "dev",
+            "--local",
+            "--ip",
+            "127.0.0.1",
+            "--port",
+            &port.to_string(),
+        ])
+        .current_dir(fixture)
+        .stdout(Stdio::from(log))
+        .stderr(Stdio::from(stderr))
+        .spawn()
 }
 
 /// Pick a free loopback port.

@@ -22,6 +22,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${DURABLE_CONFORMANCE_PORT:-4437}"
 SERVER_URL="http://127.0.0.1:${PORT}"
+# The pinned wrangler version for the Durable Object driver. `mise.toml` sets
+# the same value; keep the fallback in step with it.
+WRANGLER_VERSION="${WRANGLER_VERSION:-4.156.2}"
+export WRANGLER_VERSION
 TMP="$(mktemp -d)"
 SERVER_PID=""
 SERVER_LOG="$TMP/server-conformance.log"
@@ -129,13 +133,15 @@ if [ -n "$bad_skips" ]; then
 fi
 
 echo "== Durable Object transport matrix =="
-# The DO driver needs Node, wrangler and worker-build. Install them when the
-# gate image does not have them. The fixture has its own Cargo.lock.
-if ! command -v wrangler >/dev/null 2>&1; then
-  npm install -g wrangler@4.144.0
-fi
+# The DO driver needs Node, wrangler and worker-build. Use the pinned wrangler
+# through npx; the fixture builds with worker-build. The fixture has its own
+# Cargo.lock. A binary install of worker-build is faster than a source build.
 if ! command -v worker-build >/dev/null 2>&1; then
-  cargo install worker-build --version 0.8.7 --locked
+  if command -v cargo-binstall >/dev/null 2>&1; then
+    cargo binstall --no-confirm worker-build@0.8.7
+  else
+    cargo install worker-build --version 0.8.7 --locked
+  fi
 fi
 rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
 cargo test --profile uat -p durable_transport_matrix --features do-driver --test do_driver
