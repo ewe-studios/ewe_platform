@@ -109,16 +109,16 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       failure and skip. Do not close the feature until it passes.
 - [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
       oracles. Tests: `status_table_matches`, `server_suite_passes`,
-      `injected_error_is_typed`, `security_headers_present`.
-      Open: the status table and the reference server suite pass. No `injected_error_is_typed`
-      and no `security_headers_present` test exists for the HTTP adapter.
+      `injected_error_is_typed`, `security_headers_present`. The status table, the reference
+      server suite, the failure-injection oracle and the security oracle pass. Open: no golden
+      oracle exists (#1167).
 
 ## 5. Success criteria
 
 - [ ] `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc` green.
-      Open: the durable HTTP targets (30 adapter tests) and the 6 ConnectRPC service tests
-      pass. The full `cargo test -p foundation_connectrpc` run has one pre-existing macOS
-      failure, #858. The full `cargo test -p foundation_http` run is not recorded.
+      Open: the durable HTTP targets pass, including the full `cargo test -p foundation_http
+      --features multi` run. `foundation_connectrpc` has one pre-existing failure,
+      `conn_io_fallback_polls_instead_of_unsupported` (#1160, medium).
 - [x] The HTTP adapter has no valtron stream or task dependency. It uses only the
   injected-clock timer for the live-read timeout.
 - [x] The server conformance suite passes against `DurableHandler` (332 pass, 6 skip).
@@ -132,7 +132,6 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 
 ## 6. Open items
 
-1. T11: add the `injected_error_is_typed` and `security_headers_present` oracles.
-2. Run the full `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc`.
-   Issue #858 is the known macOS failure in the ConnectRPC crate.
+1. T11: add the golden oracle (#1167).
+2. Run `cargo test -p foundation_connectrpc` after the pre-existing failure #1160 is fixed.
 3. Run `cargo check --workspace --all-targets --profile dev`.
