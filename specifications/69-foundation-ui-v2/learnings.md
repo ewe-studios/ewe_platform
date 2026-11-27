@@ -1340,3 +1340,11 @@ The alternative sound card leaves this Android image with no sound device.
 A private Core Audio tap captures the emulator output on the host.
 The capture contains the game's three intro notes when sound is on.
 The capture returns to its noise floor when the game shows `SOUND OFF`.
+
+## Native dedicated connections during replay
+
+The server can offer subscription replay to the whole view.
+A mount with no sharing choice can use that capability to select a managed connection.
+An explicit dedicated mount uses its own stream cursor and a direct connection by default.
+Keep-alive is a separate policy. The manager can retain a dedicated connection without sharing it.
+Two retained dedicated mounts at the same endpoint must open two connections.

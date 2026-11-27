@@ -1698,3 +1698,12 @@ On the Android 36 ARM64 review device, the emulator output contains the Mathalle
 The game shows `SOUND OFF` after the mute tap. The captured signal drops about 40 decibels to the noise floor.
 The host capture measures digital output. A physical speaker check remains open.
 See [issue 1083](https://github.com/ewe-studios/ewe_platform/issues/1083).
+
+## Native dedicated connections during replay
+
+Android and iOS use the dedicated connection for an explicit dedicated mount after replay negotiation.
+A dedicated connection resumes from its own stream cursor.
+A keep-alive request retains a separate connection for each dedicated mount at the same endpoint.
+The Android core suite passes 19 tests. The Swift host suite passes 25 tests.
+Both suites reproduce the wrong connection selection before the fix.
+[Issue 1062](https://github.com/ewe-studios/ewe_platform/issues/1062)
