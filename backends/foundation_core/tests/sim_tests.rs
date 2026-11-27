@@ -3,6 +3,15 @@
 //! One seed gives one clock, one random stream, one identifier stream and one
 //! task order.
 
+// `valtron::sim` exists only in this tree (see `valtron/mod.rs`). Without this
+// gate the target fails to compile in the default, `multi`, `test-clock` and
+// wasm runs, which made the CI build and clippy steps red.
+#![cfg(all(
+    feature = "testing",
+    not(feature = "multi"),
+    not(target_family = "wasm")
+))]
+
 use std::time::Duration;
 
 use foundation_compact::rng::Rng;
