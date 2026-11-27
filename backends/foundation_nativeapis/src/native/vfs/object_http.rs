@@ -4,7 +4,8 @@
 //! the responses to [`ObjectStore`] results. The transport is injected through
 //! [`ObjectTransport`], so the request shaping and the signature are testable
 //! without a socket, and the host owns Transmission Control Protocol (TCP) and
-//! Transport Layer Security (TLS).
+//! Transport Layer Security (TLS). A host supplies a transport with its own
+//! socket client; this module does not open a connection.
 //!
 //! # Provider settings
 //!

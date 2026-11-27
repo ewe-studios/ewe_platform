@@ -2,10 +2,9 @@
 //!
 //! R2 is S3-compatible. The R2 VFS is the shared object-store core with R2's
 //! explicit settings: region `auto`, path-style addressing and CRC32
-//! checksums. The constructor rejects any other region, because R2 signs with
-//! `auto` only. A host may still test another region with a local emulator by
-//! calling [`R2Settings::with_region`] and reading the warning in the feature
-//! document; the default and the recommended value is `auto`.
+//! checksums. The real R2 service signs with `auto`. A local emulator may
+//! change the region with [`R2Settings::with_region`]; keep the default against
+//! the real service.
 
 use crate::shared::vfs::durable::vfs::{
     CompactionReport, FlushReport, LifecycleReport, ObjectVfs, ProbeReport, ProviderCapabilities,
@@ -44,8 +43,8 @@ impl Default for R2Settings {
 impl R2Settings {
     /// Set the region.
     ///
-    /// The R2 service ignores a different value, but it signs with `auto`. A
-    /// local emulator can use another value.
+    /// The real R2 service expects `auto`. A local emulator can use another
+    /// value.
     #[must_use]
     pub fn with_region(mut self, region: impl Into<String>) -> Self {
         self.region = region.into();
