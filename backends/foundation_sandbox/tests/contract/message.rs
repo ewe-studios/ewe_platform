@@ -9,6 +9,7 @@ use foundation_connectrpc::Router;
 use foundation_sandbox::shared::command::{Command, ExecEvent, ExecOutput, ExitStatus, StdinMode};
 use foundation_sandbox::shared::control::{ExitReport, SandboxInfo, SandboxState};
 use foundation_sandbox::shared::driver::{Capabilities, CreateProgress, HostCheck, HostReport};
+use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::ids::DriverId;
 use foundation_sandbox::shared::limits::SandboxLimits;
 use foundation_sandbox::shared::rpc::messages::{
@@ -32,6 +33,70 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use super::common;
+
+/// Issue #1031: the exact wire path of a create.
+///
+/// The client encodes `CreateRequest`, the server decodes it, and `validate`
+/// runs on the result. This proves what the crate sends and what it accepts.
+#[test]
+fn create_request_workdir_survives_the_json_hop() {
+    let spec = SandboxSpec::new(RootFs::ContainerImage("sandbox".to_string()));
+    let request = CreateRequest { spec };
+
+    let json = serde_json::to_string(&request).expect("encode to JSON");
+    assert!(
+        json.contains("\"workdir\":\"/workspace\""),
+        "the wire JSON carries /workspace: {json}"
+    );
+    let decoded: CreateRequest = serde_json::from_str(&json).expect("decode from JSON");
+    assert_eq!(decoded.spec.workdir, "/workspace");
+    decoded
+        .spec
+        .validate(&capabilities())
+        .expect("the decoded spec validates");
+
+    // A body with no `workdir` gets the serde default.
+    let mut value = serde_json::to_value(&request).expect("to value");
+    value["spec"]
+        .as_object_mut()
+        .expect("the spec is an object")
+        .remove("workdir");
+    let decoded: CreateRequest = serde_json::from_value(value).expect("decode without workdir");
+    assert_eq!(decoded.spec.workdir, "/workspace");
+    decoded
+        .spec
+        .validate(&capabilities())
+        .expect("the default validates");
+
+    // An empty workdir means the default too.
+    let mut value = serde_json::to_value(&request).expect("to value");
+    value["spec"]["workdir"] = serde_json::Value::String(String::new());
+    let decoded: CreateRequest = serde_json::from_value(value).expect("decode empty workdir");
+    assert_eq!(decoded.spec.effective_workdir(), "/workspace");
+    decoded
+        .spec
+        .validate(&capabilities())
+        .expect("an empty workdir validates");
+
+    // A relative value is refused, and the reason names the value.
+    let mut value = serde_json::to_value(&request).expect("to value");
+    value["spec"]["workdir"] = serde_json::Value::String("workspace".to_string());
+    let decoded: CreateRequest = serde_json::from_value(value).expect("decode relative workdir");
+    let error = decoded
+        .spec
+        .validate(&capabilities())
+        .expect_err("a relative workdir fails");
+    match error.current_context() {
+        SandboxError::InvalidSpec { field, reason } => {
+            assert_eq!(field, "workdir");
+            assert!(
+                reason.contains("workspace"),
+                "the reason names the value: {reason}"
+            );
+        }
+        other => panic!("expected InvalidSpec, got {other:?}"),
+    }
+}
 
 /// Encodes and decodes one value, and checks that nothing changed.
 fn roundtrip<T>(value: &T)

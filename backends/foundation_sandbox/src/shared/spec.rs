@@ -203,14 +203,20 @@ impl SandboxSpec {
         if !self.workdir.is_empty() && !absolute_without_parent(Path::new(&self.workdir)) {
             return Err(invalid(
                 "workdir",
-                "workdir must be absolute and must not contain `..`",
+                &format!(
+                    "workdir must be absolute and must not contain `..` (got {:?})",
+                    self.workdir
+                ),
             ));
         }
         for mount in &self.mounts {
             if !absolute_without_parent(Path::new(&mount.guest_path)) {
                 return Err(invalid(
                     "mounts",
-                    "every guest_path must be absolute and must not contain `..`",
+                    &format!(
+                        "every guest_path must be absolute and must not contain `..` (got {:?})",
+                        mount.guest_path
+                    ),
                 ));
             }
         }
