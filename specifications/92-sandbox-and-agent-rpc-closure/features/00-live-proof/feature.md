@@ -28,7 +28,7 @@ Prove the paths that no local stub can prove, and make the jobs that carry them 
 | T1 | Run the live Cloudflare path from a local machine: deploy the sandbox Worker to the owner's account, set `SANDBOX_TOKEN`, wait for `Probe` 200, then run the end-to-end suite against that URL. Record the date, the account, the Worker name and the result in `progress.md` | Spec 83 feature 00 T7 |
 | T2 | Make the `sandbox-cloudflare` GitHub Actions job green. It runs `wrangler dev --local` with local containers on the runner, so it needs no Cloudflare account. Read the red run's log, fix the cause, keep the readiness probe and the spec print | The red check |
 | T3 | AWS KMS: add an endpoint override (`AWS_ENDPOINT_URL_KMS`) and a local test against **moto**, which runs on every machine and in a free CI job with no secret. The same test runs against the real service when `AWS_ROLE_ARN` exists. It creates a key, seals and opens, refuses a wrong key, and schedules deletion in a `finally` block | #984 (AWS half) |
-| T4 | GCP KMS: the test for `GcpKmsBackend` with a key ring and a key, gated on a real project through workload identity federation. No emulator fits (section 5) | #984 (GCP half) |
+| T4 | GCP KMS: add the gRPC path to `GcpKmsBackend` (generated Cloud KMS protos, h2c endpoint) and the test with a key ring and a key against localgcp; the same test runs against the real project through workload identity federation when that credential exists | #984 (GCP half) |
 | T5 | Run the Vault Transit test in the normal `sandbox-e2e` job (Docker is present there), not only by hand | #984 note |
 | T6 | WebCrypto: a `wasm-bindgen-test` in the browser job that seals and opens with `WebCryptoSealer`, and proves `exportKey` on its key fails | #985 |
 
@@ -60,12 +60,21 @@ run, and the local script is the proof.
 | AWS KMS | **moto** (`motoserver/moto`, Apache-2.0) | **Yes** | REST API with the real SigV4 shape; implements create, describe, encrypt, decrypt, generate-data-key and schedule-deletion; free; one container |
 | AWS KMS | LocalStack | Yes, with a licence | KMS is available from LocalStack's paid Hobby plan, not the free community edition |
 | GCP KMS | official `gcloud` emulators | **No** | The official emulator groups are bigtable, datastore, firestore, pubsub and spanner. Cloud KMS has none |
-| GCP KMS | **localgcp** (MIT) | **Not yet** | It emulates Cloud KMS, but over **gRPC only** (`:8091`). `GcpKmsBackend` calls the REST API. The client and the emulator speak different protocols |
+| GCP KMS | **localgcp** (MIT, v0.6.0) | **Yes, with a gRPC client** | It emulates Cloud KMS over gRPC on `:8091`, in process, no credential. `foundation_connectrpc` already has the h2c transport (`native/transport/h2.rs`) and a protobuf codec (`shared/codec/proto.rs`). The missing pieces are the generated Cloud KMS protos and a protocol choice in `GcpKmsBackend` |
 
-The decision: moto for AWS KMS, locally and in a free CI job with no secret; the real AWS
-service behind the same test when the role exists. GCP KMS stays a gated real-project test.
-Revisit localgcp when it exposes a REST (gRPC-gateway) face for KMS; then one endpoint
-variable makes T4 local too.
+The decision:
+
+1. **AWS KMS:** moto, locally and in a free CI job with no secret; the real AWS service behind
+   the same test when the role exists.
+2. **GCP KMS:** add a **gRPC path** to `GcpKmsBackend` and run it against localgcp, locally
+   and in a free CI job. The stack already speaks gRPC: the h2c transport and the buffa
+   protobuf codec exist. The work is the generated Cloud KMS protos and the protocol choice,
+   not a new transport. The real GCP project stays the gated proof, over REST or gRPC with
+   workload identity federation.
+3. **localgcp runs as a binary**, not a container: its ghcr.io image needs a login, but the
+   project publishes signed release binaries for Linux, macOS and Windows (v0.6.0). A mise
+   task downloads the pinned release, checks the checksum, starts it, saves the PID and stops
+   it the same way the other harness scripts do.
 
 ## 5. What each task needs
 
