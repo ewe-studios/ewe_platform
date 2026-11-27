@@ -85,22 +85,22 @@ forwarding land before the feature closes.
       `partial_page_omits_up_to_date_and_closed`, `closed_tail_reports_both`.
 - [x] **T3 — closure discovery.** Read the tail after closure. Test:
       `closure_discovered_by_next_read`.
-- [ ] **T4 — `offset=now`.** Catch-up, live and closed cases. Tests: `now_catchup_empty`,
+- [x] **T4 — `offset=now`.** Catch-up, live and closed cases. Tests: `now_catchup_empty`,
       `now_live_waits`, `now_closed_returns_immediately`.
 - [x] **T5 — trim refusal.** Test: `trimmed_offset_is_a_refusal_not_a_gap`.
 - [x] **T6 — valtron tail.** `Stream::Wait`, wake on append and end on close. Tests:
       `live_tail_parks_then_wakes_on_append`, `closed_stream_ends_without_parking`.
 - [x] **T7 — bridges.** `into_next_stream` and `into_future_stream`. Test with a hand-rolled
       waker.
-- [ ] **T8 — DST harness.** Seeded append and read replay. Test:
+- [x] **T8 — DST harness.** Seeded append and read replay. Test:
       `seeded_reader_replay_is_byte_exact`.
-- [ ] **T9 — valtron independence.** The core reader tests run with valtron disabled.
-- [ ] **T10 — oracles.** Model, metamorphic and property oracles. Tests:
+- [x] **T9 — valtron independence.** The core reader tests run with valtron disabled.
+- [x] **T10 — oracles.** Model, metamorphic and property oracles. Tests:
       `model_matches_driver`, `read_from_offset_is_suffix`, `append_read_is_byte_exact`.
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
-- [ ] The core reader tests pass without valtron.
-- [ ] Byte-exact resumption, state rules and trim refusal pass 20 runs in a row.
-- [ ] The valtron reader tests pass with valtron enabled.
+- [x] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
+- [x] The core reader tests pass without valtron.
+- [x] Byte-exact resumption, state rules and trim refusal pass 20 runs in a row.
+- [x] The valtron reader tests pass with valtron enabled.

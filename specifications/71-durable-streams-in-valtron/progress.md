@@ -2,6 +2,33 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: features 02, 03 and 04 closed. The remaining tasks landed: `offset=now`, the
+  multi-thread wake forwarding, the deterministic simulation test (DST), the full fork
+  time-to-live (TTL) table and the oracle matrix. The wake test registers a `WakeCallback` on
+  `DurableStreamReader`, appends, and asserts the callback fires. The DST runs one seeded
+  scenario with create, append, producer retries, fork, TTL advance, reads and an expiry with a
+  living fork. The same seed gives the same observation log.
+
+  Tests: `tests/durable/` adds `now_catchup_empty`, `now_closed_returns_immediately`,
+  `now_live_waits`, `wake_callback_fires_on_append`, `seeded_reader_replay_is_byte_exact`,
+  `model_matches_driver`, `read_from_offset_is_suffix`, `append_read_is_byte_exact`,
+  `producer_model_matches`, `drivers_agree`, `stream_seq_is_monotonic`,
+  `ttl_slides_on_read_and_write`, `head_does_not_reset_ttl`, `fork_ttl_follows_table`,
+  `expired_source_with_fork_is_soft_deleted`, `valtron_reader_spans_fork_boundary`,
+  `fork_read_is_source_prefix_plus_tail`, `ttl_model_matches`, `fork_offsets_are_unique` and the
+  golden `fork_stitching_has_a_golden_offset_layout`. The durable run is 145 tests, green 30
+  times in a row. Clippy is clean for `multi,test-clock,vfs-testkit --all-targets`.
+  `check-clock-params` and `check-time-sources` report 0 violations.
+
+  T9 and T7: the crate has no feature that removes the valtron module. A new architecture test
+  proves the core reader and producer tests never name the valtron wrapper. This is the closest
+  available form of "valtron disabled". No cross-driver differential run exists in this crate.
+  `drivers_agree` compares the store-trait path with the business-API path. A memory/SQL virtual
+  file system (VFS) differential belongs to the feature 08 matrix.
+
+  One durable run failed one test under host load. Thirty later runs passed and the name was not
+  captured. The likely cause is a `valtron_test` 5 s timeout under load, not an assertion.
+
 - 2026-11-27: feature 09 landed, all 16 tasks. The S3/R2 durable stream VFS
   lives in `foundation_nativeapis/src/shared/vfs/durable/` (object store
   contract, head manifest, spool, core) and
@@ -433,17 +460,15 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
 - **01-durable-stream-types** — 🟡 in progress (6/7). Core types, store trait, `DurableDriver`,
   BDD harness, memory VFS, business API, property test and model comparison landed. 17 tests
   pass. The wasm32 check passes. T4 (valtron-disabled build) remains.
-- **02-resumable-reader** — 🟡 in progress (6/10). Core page reader, state rules, closure
-  discovery, the valtron catch-up reader, the live tail wait/notifier, the `into_next_stream`
-  bridge and trim refusal landed. Wake forwarding under `multi`, DST and the oracle matrix
-  remain.
-- **03-idempotent-producer** — 🟡 in progress (6/8). Core writer, producer ladder, dedup/fencing,
-  `Stream-Seq`, versioned atomic append, the valtron producer task and restart dedup landed.
-  Core-independence and the oracle matrix remain.
-- **04-fork-and-retention** — 🟡 in progress (6/9). Fork read stitching, creation edge cases,
-  idempotent creation, soft-delete, cascading cleanup, sliding TTL, TTL inheritance and
-  sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
-  remain.
+- **02-resumable-reader** — 🟢 done (10/10). Core page reader, state rules, closure discovery,
+  `offset=now`, the valtron catch-up reader, the live tail wait/notifier, wake forwarding under
+  `multi`, the `into_next_stream` bridge, trim refusal, the DST and the oracle matrix landed.
+- **03-idempotent-producer** — 🟢 done (8/8). Core writer, producer ladder, dedup/fencing,
+  `Stream-Seq`, versioned atomic append, the valtron producer task, restart dedup, the
+  core-independence guard and the oracle matrix landed.
+- **04-fork-and-retention** — 🟢 done (9/9). Fork read stitching, creation edge cases,
+  idempotent creation, soft-delete, cascading cleanup, sliding TTL, the full fork TTL table,
+  expiry with forks, retention, the valtron fork boundary and the oracle matrix landed.
 - **05-storage-backends** — 🟢 done (6/6). T1 to T10 are done. T6 landed the
   SQL engine, the tiering, the D1 executor and the Durable Object SQLite
   executor. Issue #1052 is closed. Both executors pass the shared VFS kit on

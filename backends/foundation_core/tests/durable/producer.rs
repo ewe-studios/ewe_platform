@@ -2,9 +2,11 @@
 
 use foundation_context::Ctx;
 use foundation_core::durable::{
-    AppendKind, AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs,
-    Producer, ProducerId, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamSeq,
+    AppendKind, AppendOutcome, AppendRequest, Chunk, CreateSpec, DurableDriver, DurableStream,
+    DurableStreamStore, DurableStreams, MemoryVfs, Producer, ProducerId, ReadFrom, ReadLimit,
+    ReadRequest, StoreError, StreamName, StreamSeq,
 };
+use proptest::prelude::*;
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
@@ -286,5 +288,176 @@ fn given_two_producers_when_they_are_independent_then_each_keeps_its_state() {
             .append(append(b"c", None, Some(producer("a", 0, 1))))
             .await
             .expect("a1");
+    });
+}
+
+/// The decision a producer ladder step makes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Decision {
+    Created,
+    Duplicate(u64),
+    Fenced(u64),
+    InvalidEpochSeq(u64),
+    Gap(u64, u64),
+}
+
+/// Reduce a producer append result to its decision.
+fn decision(result: Result<AppendOutcome, StoreError>) -> Decision {
+    match result {
+        Ok(outcome) => match outcome.kind {
+            AppendKind::Created => Decision::Created,
+            AppendKind::Duplicate => {
+                Decision::Duplicate(outcome.producer_seq.expect("a duplicate has a sequence"))
+            }
+        },
+        Err(StoreError::Fenced { current_epoch }) => Decision::Fenced(current_epoch),
+        Err(StoreError::InvalidEpochSeq { seq }) => Decision::InvalidEpochSeq(seq),
+        Err(StoreError::SequenceGap { expected, received }) => Decision::Gap(expected, received),
+        Err(other) => panic!("unexpected producer error: {other:?}"),
+    }
+}
+
+/// The small state model for one producer identifier.
+#[derive(Default)]
+struct ProducerModel {
+    state: Option<(u64, u64)>,
+}
+
+impl ProducerModel {
+    fn step(&mut self, epoch: u64, seq: u64) -> Decision {
+        match self.state {
+            None => {
+                if seq != 0 {
+                    return Decision::Gap(0, seq);
+                }
+                self.state = Some((epoch, 0));
+                Decision::Created
+            }
+            Some((current_epoch, last_seq)) => {
+                if epoch < current_epoch {
+                    Decision::Fenced(current_epoch)
+                } else if epoch > current_epoch {
+                    if seq != 0 {
+                        return Decision::InvalidEpochSeq(seq);
+                    }
+                    self.state = Some((epoch, 0));
+                    Decision::Created
+                } else if seq <= last_seq {
+                    Decision::Duplicate(last_seq)
+                } else if seq == last_seq + 1 {
+                    self.state = Some((epoch, seq));
+                    Decision::Created
+                } else {
+                    Decision::Gap(last_seq + 1, seq)
+                }
+            }
+        }
+    }
+}
+
+proptest! {
+    #[test]
+    fn producer_model_matches(ops in prop::collection::vec((0_u64..3, 0_u64..4), 1..16)) {
+        let (actual, expected, created, read) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = streams();
+            let name = StreamName::parse("producer/model").expect("valid");
+            create(&streams, &name).await;
+            let handle = streams.stream(name.clone());
+
+            let mut model = ProducerModel::default();
+            let mut actual = Vec::new();
+            let mut expected = Vec::new();
+            let mut created = 0_usize;
+            for (epoch, seq) in ops {
+                let result = handle
+                    .append(append(b"x", None, Some(producer("p", epoch, seq))))
+                    .await;
+                let decided = decision(result);
+                if decided == Decision::Created {
+                    created += 1;
+                }
+                actual.push(decided);
+                expected.push(model.step(epoch, seq));
+            }
+            let read = read_all(&streams, &name).await.len();
+            (actual, expected, created, read)
+        });
+
+        prop_assert_eq!(actual, expected);
+        prop_assert_eq!(read, created);
+    }
+}
+
+proptest! {
+    #[test]
+    fn stream_seq_is_monotonic(values in prop::collection::vec(1_u64..1_000, 1..10)) {
+        foundation_core::valtron::block_on_future_scoped(async {
+            let streams = streams();
+            let name = StreamName::parse("seq/monotonic").expect("valid");
+            create(&streams, &name).await;
+            let handle = streams.stream(name);
+
+            // `StreamSeq` orders by bytes, so pad each value to one width.
+            let mut ordered: Vec<String> =
+                values.iter().map(|value| format!("{value:04}")).collect();
+            ordered.sort_unstable();
+            ordered.dedup();
+
+            let mut last_accepted: Option<u64> = None;
+            for value in &ordered {
+                handle
+                    .append(append(b"x", Some(value.as_str()), None))
+                    .await
+                    .expect("an increasing value is accepted");
+                let parsed = value.parse::<u64>().expect("decimal");
+                assert!(
+                    last_accepted.is_none_or(|last| parsed > last),
+                    "the accepted value never decreases"
+                );
+                last_accepted = Some(parsed);
+
+                let error = handle
+                    .append(append(b"x", Some(value.as_str()), None))
+                    .await
+                    .expect_err("a repeated value is a conflict");
+                assert!(matches!(error, StoreError::StreamSeqConflict { .. }));
+            }
+        });
+    }
+}
+
+#[test]
+fn drivers_agree() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let streams = streams();
+        let direct = StreamName::parse("producer/direct").expect("valid");
+        let business = StreamName::parse("producer/business").expect("valid");
+        create(&streams, &direct).await;
+        create(&streams, &business).await;
+
+        // The store-trait path and the business-API path must give one result.
+        for seq in 0..4 {
+            let request = append(b"x", None, Some(producer("p", 0, seq)));
+            let by_store = streams
+                .driver()
+                .store()
+                .append(&direct, request.clone())
+                .await
+                .expect("store append");
+            let by_business = streams
+                .stream(business.clone())
+                .append(request)
+                .await
+                .expect("business append");
+
+            assert_eq!(by_store.kind, by_business.kind);
+            assert_eq!(by_store.producer_seq, by_business.producer_seq);
+            assert_eq!(by_store.cursor, by_business.cursor);
+        }
+
+        assert_eq!(
+            read_all(&streams, &direct).await,
+            read_all(&streams, &business).await
+        );
     });
 }

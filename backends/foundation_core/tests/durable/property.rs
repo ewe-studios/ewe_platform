@@ -3,14 +3,18 @@
 use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs, ReadFrom,
-    ReadLimit, ReadRequest, StreamName,
+    ReadLimit, ReadRequest, StreamName, StreamOffset,
 };
 use proptest::prelude::*;
 use std::sync::Arc;
 
+fn offset(value: u64) -> StreamOffset {
+    StreamOffset::from_bytes(value.to_be_bytes())
+}
+
 proptest! {
     #[test]
-    fn append_then_read_is_byte_exact(
+    fn append_read_is_byte_exact(
         chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..64), 1..20),
     ) {
         let (bytes, model) = foundation_core::valtron::block_on_future_scoped(async {
@@ -287,6 +291,133 @@ proptest! {
 
         prop_assert_eq!(collected, model);
         prop_assert!(pages >= 1);
+    }
+}
+
+proptest! {
+    /// Metamorphic oracle: a fork reads the source prefix at its offset, then its own tail.
+    #[test]
+    fn fork_read_is_source_prefix_plus_tail(
+        prefix in prop::collection::vec(any::<u8>(), 1..32),
+        after in prop::collection::vec(any::<u8>(), 0..32),
+        tail in prop::collection::vec(any::<u8>(), 1..32),
+        at in 0_usize..32,
+    ) {
+        let at = at.min(prefix.len());
+        let (fork_bytes, source_bytes) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let source = streams.stream(StreamName::parse("fork/prefix-source").expect("name"));
+            source.create(CreateSpec::default()).await.expect("create");
+            source
+                .append(AppendRequest::new(Chunk::new(prefix.clone())))
+                .await
+                .expect("append prefix");
+
+            let fork = streams.stream(StreamName::parse("fork/prefix-target").expect("name"));
+            fork.create(CreateSpec {
+                fork: Some(foundation_core::durable::ForkSpec {
+                    source: StreamName::parse("fork/prefix-source").expect("source"),
+                    at: Some(offset(at as u64)),
+                    sub_offset: 0,
+                }),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("fork");
+
+            // A source append after the fork point is invisible to the fork.
+            source
+                .append(AppendRequest::new(Chunk::new(after.clone())))
+                .await
+                .expect("append after");
+            fork.append(AppendRequest::new(Chunk::new(tail.clone())))
+                .await
+                .expect("append tail");
+
+            let read = |page: foundation_core::durable::ReadPage| {
+                page.chunks
+                    .into_iter()
+                    .flat_map(|chunk| chunk.as_bytes().to_vec())
+                    .collect::<Vec<u8>>()
+            };
+            let fork_page = fork
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("fork read");
+            let source_page = source
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("source read");
+            (read(fork_page), read(source_page))
+        });
+
+        let mut expected_fork = prefix[..at].to_vec();
+        expected_fork.extend_from_slice(&tail);
+        prop_assert_eq!(fork_bytes, expected_fork);
+
+        let mut expected_source = prefix;
+        expected_source.extend_from_slice(&after);
+        prop_assert_eq!(source_bytes, expected_source);
+    }
+}
+
+proptest! {
+    /// Property oracle: append cursors are unique, and a fork starts exactly at its offset.
+    #[test]
+    fn fork_offsets_are_unique(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..12), 1..8),
+    ) {
+        let (offsets, fork_tails) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let source = streams.stream(StreamName::parse("fork/offset-source").expect("name"));
+            source.create(CreateSpec::default()).await.expect("create");
+
+            let mut offsets = Vec::new();
+            let mut length = 0_u64;
+            for chunk in &chunks {
+                length += chunk.len() as u64;
+                let outcome = source
+                    .append(AppendRequest::new(Chunk::new(chunk.clone())))
+                    .await
+                    .expect("append");
+                assert_eq!(outcome.cursor.next, offset(length));
+                offsets.push(outcome.cursor.next);
+            }
+
+            let mut fork_tails = Vec::new();
+            for (index, at) in offsets.iter().enumerate() {
+                let fork = streams.stream(
+                    StreamName::parse(&format!("fork/offset-target-{index}")).expect("name"),
+                );
+                fork.create(CreateSpec {
+                    fork: Some(foundation_core::durable::ForkSpec {
+                        source: StreamName::parse("fork/offset-source").expect("source"),
+                        at: Some(at.clone()),
+                        sub_offset: 0,
+                    }),
+                    ..CreateSpec::default()
+                })
+                .await
+                .expect("fork");
+                fork_tails.push(fork.head().await.expect("fork head").tail);
+            }
+            (offsets, fork_tails)
+        });
+
+        for pair in offsets.windows(2) {
+            prop_assert!(pair[0] < pair[1], "append offsets strictly increase");
+        }
+        prop_assert_eq!(fork_tails, offsets);
     }
 }
 

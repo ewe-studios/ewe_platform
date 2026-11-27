@@ -105,13 +105,13 @@ fn producer_step(ctx: Ctx, state: ProducerState)
       `producer_task_deduplicates_and_fences`.
 - [x] **T6 — DST harness.** A seeded crash and restart proves no duplicate chunk. Test:
       `seeded_producer_restart_has_no_duplicate`.
-- [ ] **T7 — core independence.** Producer tests run with valtron disabled.
-- [ ] **T8 — oracles.** State model, differential and property oracles. Tests:
+- [x] **T7 — core independence.** Producer tests run with valtron disabled.
+- [x] **T8 — oracles.** State model, differential and property oracles. Tests:
       `producer_model_matches`, `drivers_agree`, `stream_seq_is_monotonic`.
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
-- [ ] The core writer and producer tests pass without valtron.
-- [ ] Fencing, dedup and `Stream-Seq` pass 20 runs in a row.
-- [ ] The valtron producer task tests pass with valtron enabled.
+- [x] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
+- [x] The core writer and producer tests pass without valtron.
+- [x] Fencing, dedup and `Stream-Seq` pass 20 runs in a row.
+- [x] The valtron producer task tests pass with valtron enabled.

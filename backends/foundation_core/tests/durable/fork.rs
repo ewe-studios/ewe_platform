@@ -361,6 +361,63 @@ fn given_a_sub_offset_past_the_end_then_it_is_refused() {
 }
 
 #[test]
+fn fork_stitching_has_a_golden_offset_layout() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let streams = streams();
+        let source = StreamName::parse("fork/golden-source").expect("valid");
+        let fork = StreamName::parse("fork/golden-target").expect("valid");
+        create(&streams, &source).await;
+
+        let source_tail = streams
+            .stream(source.clone())
+            .append(AppendRequest::new(Chunk::new(b"abc".to_vec())))
+            .await
+            .expect("append source")
+            .cursor
+            .next;
+        assert_eq!(source_tail, offset(3));
+
+        let fork_head = streams
+            .stream(fork.clone())
+            .fork(ForkSpec {
+                source: source.clone(),
+                at: Some(offset(2)),
+                sub_offset: 0,
+            })
+            .await
+            .expect("fork")
+            .head
+            .tail;
+        assert_eq!(fork_head, offset(2));
+
+        let after_x = streams
+            .stream(fork.clone())
+            .append(AppendRequest::new(Chunk::new(b"X".to_vec())))
+            .await
+            .expect("append fork")
+            .cursor
+            .next;
+        assert_eq!(after_x, offset(3));
+        assert_eq!(read_all(&streams, &fork).await, b"abX");
+
+        let after_yz = streams
+            .stream(fork.clone())
+            .append(AppendRequest::new(Chunk::new(b"YZ".to_vec())))
+            .await
+            .expect("append fork tail")
+            .cursor
+            .next;
+        assert_eq!(after_yz, offset(5));
+        assert_eq!(read_all(&streams, &fork).await, b"abXYZ");
+
+        // The fork replaces no source byte and ignores the source tail after it.
+        append(&streams, &source, b"d").await;
+        assert_eq!(read_all(&streams, &fork).await, b"abXYZ");
+        assert_eq!(read_all(&streams, &source).await, b"abcd");
+    });
+}
+
+#[test]
 fn given_a_fork_when_it_is_created_twice_then_the_second_call_is_idempotent() {
     foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();

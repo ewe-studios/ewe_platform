@@ -94,19 +94,19 @@ pub struct ForkSpec {
 - [x] **T5 — soft-delete and cascade.** Source stays readable through the fork, direct access is
       `Gone`, re-create is `ConfigConflict`, last fork delete cascades. Tests:
       `soft_deleted_source_is_gone`, `deleting_last_fork_cascades_to_source`.
-- [ ] **T6 — TTL.** Sliding reset, `HEAD` no reset, both headers, fork table and expiry with
+- [x] **T6 — TTL.** Sliding reset, `HEAD` no reset, both headers, fork table and expiry with
       forks. Tests: `ttl_slides_on_read_and_write`, `head_does_not_reset_ttl`,
       `fork_ttl_follows_table`, `expired_source_with_fork_is_soft_deleted`.
 - [x] **T7 — retention.** A dropped offset returns `Trimmed`. Test:
       `retention_trims_by_refusing_not_gapping`.
-- [ ] **T8 — valtron boundary.** The valtron reader sees one stream across the fork. Test:
+- [x] **T8 — valtron boundary.** The valtron reader sees one stream across the fork. Test:
       `valtron_reader_spans_fork_boundary`.
-- [ ] **T9 — oracles.** Metamorphic, model and property oracles. Tests:
+- [x] **T9 — oracles.** Metamorphic, model and property oracles. Tests:
       `fork_read_is_source_prefix_plus_tail`, `ttl_model_matches`, `fork_offsets_are_unique`.
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core` green; fork and TTL tests live in `tests/durable/`.
-- [ ] Fork reads are byte-exact across the boundary.
-- [ ] Soft-delete returns `Gone`, and cascade cleanup works.
-- [ ] The valtron reader sees the fork as one stream.
+- [x] `cargo test -p foundation_core` green; fork and TTL tests live in `tests/durable/`.
+- [x] Fork reads are byte-exact across the boundary.
+- [x] Soft-delete returns `Gone`, and cascade cleanup works.
+- [x] The valtron reader sees the fork as one stream.

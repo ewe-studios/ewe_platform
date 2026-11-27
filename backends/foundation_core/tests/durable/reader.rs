@@ -6,6 +6,7 @@ use foundation_core::durable::{
     DurableStreams, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName, StreamOffset, VfsMeta,
     WriterState,
 };
+use proptest::prelude::*;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -145,20 +146,24 @@ fn given_a_stream_when_it_appends_then_the_notifier_fires() {
         trim_from: 0,
         version: 0,
     };
-    foundation_core::valtron::block_on_future_scoped(async { vfs.create(&name, meta).await.expect("create") });
+    foundation_core::valtron::block_on_future_scoped(async {
+        vfs.create(&name, meta).await.expect("create")
+    });
 
     let fired = Arc::new(AtomicBool::new(false));
     let flag = Arc::clone(&fired);
     let notifier = vfs.notifier(&name).expect("notifier");
     notifier.register(Box::new(move || flag.store(true, Ordering::SeqCst)));
 
-    foundation_core::valtron::block_on_future_scoped(async { vfs.append(&name, b"x").await.expect("append") });
+    foundation_core::valtron::block_on_future_scoped(async {
+        vfs.append(&name, b"x").await.expect("append")
+    });
 
     assert!(fired.load(Ordering::SeqCst));
 }
 
 #[test]
-fn given_a_stream_at_the_tail_when_read_from_tail_then_the_page_is_empty_and_up_to_date() {
+fn now_catchup_empty() {
     foundation_core::valtron::block_on_future_scoped(async {
         let streams = streams();
         let name = StreamName::parse("reader/tail").expect("valid");
@@ -179,7 +184,145 @@ fn given_a_stream_at_the_tail_when_read_from_tail_then_the_page_is_empty_and_up_
             .expect("read");
 
         assert_eq!(page.chunks, [] as [foundation_core::durable::Chunk; 0]);
+        assert_eq!(page.cursor.next, offset(4));
         assert!(page.cursor.up_to_date);
         assert!(!page.cursor.closed);
     });
+}
+
+#[test]
+fn now_closed_returns_immediately() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let streams = streams();
+        let name = StreamName::parse("reader/tail-closed").expect("valid");
+        let stream = streams.stream(name);
+
+        stream.create(CreateSpec::default()).await.expect("create");
+        stream
+            .append(AppendRequest::new(Chunk::new(b"data".to_vec())))
+            .await
+            .expect("append");
+        stream
+            .close(CloseRequest {
+                final_chunk: None,
+                producer: None,
+            })
+            .await
+            .expect("close");
+
+        let page = stream
+            .read(ReadRequest {
+                from: ReadFrom::Tail,
+                limit: ReadLimit::default(),
+            })
+            .await
+            .expect("read");
+
+        assert_eq!(page.chunks, [] as [foundation_core::durable::Chunk; 0]);
+        assert_eq!(page.cursor.next, offset(4));
+        assert!(page.cursor.up_to_date);
+        assert!(page.cursor.closed);
+    });
+}
+
+proptest! {
+    #[test]
+    fn read_from_offset_is_suffix(
+        data in prop::collection::vec(any::<u8>(), 1..64),
+        start in 0_usize..64,
+    ) {
+        let start = start.min(data.len());
+        let (full, suffix) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = streams();
+            let name = StreamName::parse("reader/suffix-oracle").expect("valid");
+            let stream = streams.stream(name);
+            stream.create(CreateSpec::default()).await.expect("create");
+            stream
+                .append(AppendRequest::new(Chunk::new(data.clone())))
+                .await
+                .expect("append");
+
+            let full = stream
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("full read");
+            let suffix = stream
+                .read(ReadRequest {
+                    from: ReadFrom::Offset(offset(start as u64)),
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("suffix read");
+            (bytes(&full), bytes(&suffix))
+        });
+
+        prop_assert_eq!(full, data.clone());
+        prop_assert_eq!(suffix, data[start..].to_vec());
+    }
+}
+
+proptest! {
+    #[test]
+    fn model_matches_driver(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..20), 0..8),
+        close in any::<bool>(),
+        page in 1_usize..16,
+    ) {
+        let model: Vec<u8> = chunks.iter().flatten().copied().collect();
+        let pages = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = streams();
+            let name = StreamName::parse("reader/model").expect("valid");
+            let stream = streams.stream(name);
+            stream.create(CreateSpec::default()).await.expect("create");
+
+            for chunk in &chunks {
+                stream
+                    .append(AppendRequest::new(Chunk::new(chunk.clone())))
+                    .await
+                    .expect("append");
+            }
+            if close {
+                stream
+                    .close(CloseRequest {
+                        final_chunk: None,
+                        producer: None,
+                    })
+                    .await
+                    .expect("close");
+            }
+
+            let mut collected = Vec::new();
+            let mut from = ReadFrom::Start;
+            let mut pages = Vec::new();
+            loop {
+                let page_out = stream
+                    .read(ReadRequest {
+                        from: from.clone(),
+                        limit: ReadLimit::new(Some(page), None),
+                    })
+                    .await
+                    .expect("read");
+                let page_bytes = bytes(&page_out);
+                pages.push((page_bytes.clone(), page_out.cursor.up_to_date, page_out.cursor.closed));
+                collected.extend_from_slice(&page_bytes);
+                if page_out.cursor.up_to_date {
+                    break;
+                }
+                from = ReadFrom::Offset(page_out.cursor.next);
+            }
+            (pages, collected)
+        });
+        let (pages, collected) = pages;
+
+        prop_assert_eq!(&collected, &model);
+        let (_, up_to_date, closed) = pages.last().expect("at least one page");
+        prop_assert!(*up_to_date);
+        prop_assert_eq!(*closed, close);
+        for (page_bytes, _, _) in &pages[..pages.len() - 1] {
+            prop_assert!(page_bytes.len() <= page);
+        }
+    }
 }

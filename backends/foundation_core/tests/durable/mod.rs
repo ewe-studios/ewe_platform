@@ -10,6 +10,8 @@ mod client;
 mod conformance_edges;
 #[cfg(not(target_arch = "wasm32"))]
 mod coverage_memory;
+#[cfg(all(not(target_arch = "wasm32"), feature = "test-clock"))]
+mod dst;
 #[cfg(not(target_arch = "wasm32"))]
 mod fork;
 #[cfg(not(target_arch = "wasm32"))]

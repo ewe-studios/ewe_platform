@@ -742,3 +742,32 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **No local service on this host.** `which minio localstack` found nothing.
   The stub transport and the in-memory object store are the test doubles. A
   real-service result needs a quiet host with MinIO.
+
+## Features 02 to 04: oracles and DST (2026-11-27)
+
+- **A DST needs a clock the scenario moves.** `SimulatedClock::advance_wall` moves the wall
+  clock and wakes parked executors. The DST runs no timed task, so the wake is harmless. A fixed
+  seed in `Ctx::with_seed` gives the scenario its draws, so a second run repeats every logged
+  `Debug` value.
+- **Bind the `Arc` before you lock it.** `ctx.rng()` returns a fresh `Arc`. `ctx.rng().lock()`
+  drops that `Arc` while the guard still borrows it. The test helper `draw` binds the `Arc`
+  first. Keep the guard out of an `await`.
+- **The TTL table is data.** The nine rows of feature 04 section 2.1 run as one loop. Each row
+  builds a fresh store and clock. A new row is one line.
+- **Expiry with a fork soft-deletes.** The first access after the deadline reports `NotFound`.
+  The second reports `Gone`, because the entry is soft-deleted. The fork still reads. Deleting
+  the last fork cascades the cleanup.
+- **`HEAD` never slides the window.** The test reads the head at 9 s and 9.999 s. At 10 s the
+  stream is gone. A read or an append at the same times keeps it alive.
+- **The core has no valtron feature to disable.** The crate keeps `durable::valtron` in the
+  same module tree, and the owner requires `block_on_future_scoped` in tests. A new architecture
+  guard proves the core reader and producer tests never name the wrapper. This is the closest
+  available form of the T9 and T7 rule.
+- **The differential oracle uses the two core entry paths.** The crate has one store
+  implementation, so `drivers_agree` compares the store-trait path with the business-API path on
+  two streams. A memory/SQL differential belongs to the feature 08 matrix.
+- **The producer model copies the ladder, not the data.** The model tracks `(epoch, last_seq)`
+  and returns the typed decision. The test compares decisions, then the stored byte count.
+- **One durable run failed one test under host load.** Thirty later runs passed and the name was
+  not captured. The likely cause is a `valtron_test` 5 s timeout under load, not an assertion.
+  A failure capture on the next run will name it.

@@ -27,3 +27,25 @@ fn given_the_durable_core_when_read_then_it_names_no_valtron_or_http_type() {
         }
     }
 }
+
+/// The core reader and producer tests exercise the core API only.
+///
+/// The crate has no feature that removes the valtron module. This guard proves
+/// the closest available rule: the core tests never name the valtron wrapper.
+#[test]
+fn core_reader_and_producer_tests_use_no_valtron_wrapper() {
+    for (name, source) in [
+        ("reader.rs", include_str!("reader.rs")),
+        ("producer.rs", include_str!("producer.rs")),
+    ] {
+        for banned in [
+            "durable::valtron",
+            "DurableStreamReader",
+            "DurableStreamWriter",
+            "producer_task",
+            "WakeableStream",
+        ] {
+            assert!(!source.contains(banned), "{name} must not name {banned}");
+        }
+    }
+}
