@@ -1518,3 +1518,9 @@ The plan reports an operating-system matrix for that list and keeps the stored t
 The macOS plan excludes HTTP under issue 546.
 The Windows plan excludes the browser and HTTP under issue 531, and the database under issue 519.
 The current plan output does not establish a passing test on those platforms.
+
+## WebAssembly time serialization
+
+The time modules implement serialization traits without exporting any items.
+Their two glob reexports match no public items and emit warnings.
+The implementations remain available after removing the reexports.

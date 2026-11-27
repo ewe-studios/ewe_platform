@@ -1985,3 +1985,8 @@ The hosted run waits for the remaining role-warning and graphics fixes.
 
 The physical iPhone check for VoiceOver Delete and countdown speech remains open.
 [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
+
+Two unused WebAssembly time reexports are removed.
+The time serialization implementations stay in their existing modules.
+The locked `foundation_compact` WebAssembly check with `serde` reports no warnings.
+[Issue 472](https://github.com/ewe-studios/ewe_platform/issues/472)

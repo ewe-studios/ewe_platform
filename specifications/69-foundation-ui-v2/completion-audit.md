@@ -11,13 +11,13 @@ The status below uses source inspection, existing test records, and the open Git
 
 #### Current assignments and next checks
 
-The combined branch includes the resource publication fix at `aac514c9a`.
+The following checkpoint includes the native recovery evidence at `2045268eb`.
 
 | Assignment | Current evidence | Next check |
 |---|---|---|
-| Feature 37 server | The repaired server returns 4,800 complete responses on reused connections. The moved development and standalone release packages pass. The project override uses separate routes. | Complete the native fixtures. |
-| Browser navigation | Issue #1143 tracks a separate driver error in page event routing and navigation results. | Test two simultaneous tabs, reload, failed navigation, and navigation within one document. Then verify native connection selection for #1062. |
-| Android sound | Commit `e9c102726` removes the Todo launcher's unconditional mute flag. A host recording contains the three Mathalley intro notes. Mute reduces the recorded level by about 40 decibels. | Check landscape input with side insets for #843. Then verify the failure banner and Back behavior. Physical speaker output remains unverified. |
+| Todo and server | Feature 37 completes all twelve acceptance checks at `b22d81cd0`. Chrome, iPhone, and Android each send four mutations. Both peers receive each change. | Remove server-only build warnings (#789). Check the replay backlog requirement (#548). |
+| Browser and Apple | Commit `474404fc2` fixes navigation across attached tabs. Commit `03e5a536f` fixes dedicated native connections. Apple and Android recover a pending change after a dropped socket. | Verify public release consumers (#845). Complete renderer, behavior, and supported operating system checks. |
+| Android graphics and sound | The host captures three game notes. Mute reduces the signal by about 40 decibels. Landscape input increases the score at the reported 1560 by 720 resolution. | Investigate the separate full-resolution focus failure (#1146). Verify outstanding graphics checks. Physical speaker output remains unverified. |
 
 The earlier Android surface repair passes two scored game visits on the emulator.
 The separate flash report still lacks a confirmed cause.
@@ -191,3 +191,19 @@ A native server can implement an action restricted to browser callers.
 
 A fresh Chrome check also found an obsolete cursor lookup in the Feature 12 parity fixture.
 Issue 721 tracks that fixture and its browser verification.
+
+### Replay backlog scope
+
+Feature 11 permits a configured frame limit and keeps an unbounded default.
+Section 4.3 defers snapshot replacement for streams that build a page from all received frames.
+Invariant I9 keeps the previous Broadcaster behavior.
+[Feature 11 requirements](features/11-live-mounts-and-server-streams/feature.md#43-must-have)
+
+The Todo replay fixture injects a frame limit.
+The live channel tests exercise typed expiry and replay after a new snapshot.
+Feature 37 repeats synchronized delivery with a bounded channel.
+[Todo acceptance](#feature-37-acceptance-ledger)
+
+The legacy stream still retains all frames.
+Issue 548 remains open for general snapshot replacement.
+[Issue 548](https://github.com/ewe-studios/ewe_platform/issues/548)
