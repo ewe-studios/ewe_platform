@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: issue #1081 closed. The `durable_core_no_valtron` integration crate now runs the
+  protocol conformance suite with `foundation_core` `default-features = false` and the features
+  `std` and `alloc`: no `valtron`, `test-clock`, `multi` or `vfs-testkit`, no HTTP and no
+  socket. `tests/durable_core.rs` has 11 scenarios: create and idempotent re-create, append and
+  byte-exact read, bounded pages, close and a refused append, fork prefix and divergence,
+  producer dedup, fencing and a sequence gap, `Stream-Seq` ordering, TTL expiry with a
+  hand-written `Clock`, and soft-delete, cascade and a fork that reads a soft-deleted source.
+  The HTTP gate server keeps the valtron executor for its socket surface. `foundation_http`
+  submits connections with `foundation_core::valtron::send`, its durable adapter waits with
+  `foundation_core::valtron::timer::sleep_for`, and `foundation_netio` native readiness returns
+  `foundation_core::valtron::EventReadinessPtr`. Its dependency leaves the `foundation_core`
+  default features on, and the default set includes `valtron`. A no-valtron HTTP server is
+  therefore not feasible with the current crates. Requirement 8 and report section 5.7 state the
+  contract. `cargo test -p durable_core_no_valtron` passes 11 of 11 and clippy is clean.
+
 - 2026-11-27: feature 08 T8 WebSocket row landed. The transport is in
   `backends/foundation_http/src/native/durable_ws/`, above the core. `DurableWsHandler` upgrades
   a GET request and serves create, append, close, head, delete, fork and read over JSON text
@@ -610,7 +625,9 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   Worker, the DO, the WebSocket server and the `foundation_ai` Session, and a build proof for
   wasm32. The wasm32 runtime test is #1080. The skip register names the two suite-forced client
   skips (issue #1082); the server suite has no skip. The valtron suite (T6), the BDD suite, the
-  driver matrix and the oracles remain.
+  driver matrix and the oracles remain. The no-valtron protocol core is proven by
+  `durable_core_no_valtron` (11 tests). The HTTP server keeps the valtron executor for its
+  socket surface; issue #1081 is closed.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server

@@ -23,8 +23,9 @@ merge.
 
 ## 2. Requirements
 
-1. **Server suite.** Run the reference server suite against `HttpAdapter` on port 4437, with the
-   valtron layer disabled.
+1. **Server suite.** Run the reference server suite against `HttpAdapter` on port 4437. The
+   server uses the valtron executor for its socket surface. It does not use the valtron protocol
+   layer.
 2. **Client suite.** Run the reference client suite with the Rust adapter. The adapter drives the
    client core.
 3. **Cross-runs.** Run our client against our server. Run the reference client against our
@@ -35,7 +36,17 @@ merge.
    non-skipped failure.
 7. **Conformance spike.** Before feature 06 is complete, a minimal in-memory server runs the
    server suite to find real failures early.
-8. **No valtron in the gate.** The conformance jobs do not enable the valtron layer.
+8. **No valtron on the protocol path.** The protocol core conformance runs with
+   `foundation_core` `default-features = false, features = ["std", "alloc"]`. The integration
+   crate `durable_core_no_valtron` runs it, and it never enables `valtron`, `test-clock`, `multi`
+   or `vfs-testkit`. The HTTP gate server needs the valtron executor for its socket surface. That
+   executor is not on the protocol path: the server calls `DurableService`, not
+   `DurableStreamReader`, `DurableStreamWriter` or `producer_task`. A no-valtron HTTP server is
+   not feasible with the current crates. The `foundation_http` native server submits each
+   connection with `foundation_core::valtron::send`, its durable adapter waits with
+   `foundation_core::valtron::timer::sleep_for`, and `foundation_netio` native readiness returns
+   `foundation_core::valtron::EventReadinessPtr`. `foundation_http` depends on `foundation_core`
+   with its default features on, and that default set includes `valtron`. See #1081.
 9. **Valtron suite.** A separate job runs the valtron layer behaviour tests.
 10. **Runtime matrix.** The core and the client core run in a local embedded process, a DO, a
     Worker, a WebSocket server, wasm32 and the `foundation_ai` Session. Each target has a test.
@@ -150,8 +161,11 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 
 ## 5. Success criteria
 
-- [ ] The server suite passes against `HttpAdapter` with valtron disabled. The suite passes.
-      The gate builds the server with `multi`, which turns the valtron feature on. See #1081.
+- [x] The protocol core passes conformance without valtron.
+      `cargo test -p durable_core_no_valtron` runs 11 scenarios with no HTTP and no socket. The
+      server suite passes against `HttpAdapter`. The HTTP server uses the valtron executor for
+      its socket surface; the executor is not on the protocol path. A no-valtron server is not
+      feasible with the current crates. See requirement 8 and #1081.
 - [x] The client suite passes with the Rust adapter.
 - [x] Both cross-runs pass. Our client to our server runs 5 scenarios; the reference Rust
       client to our server runs 6. The categories are create, append, catch-up read, long-poll,

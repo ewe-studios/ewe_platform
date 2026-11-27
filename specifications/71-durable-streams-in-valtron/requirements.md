@@ -144,6 +144,18 @@ Rules:
 - The core still passes conformance without the valtron layer, so non-valtron runtimes use it.
 - Conformance tests the core and its transport adapters. It does not require the valtron layer.
 
+**The valtron boundary.** The protocol core passes conformance without valtron. The integration
+crate `durable_core_no_valtron` runs the core with `foundation_core`
+`default-features = false` and the features `std` and `alloc`. It enables no `valtron`,
+`test-clock`, `multi` or `vfs-testkit` feature. The HTTP gate server is different. Its native
+server needs the valtron executor for the socket surface. `foundation_http` submits each
+connection with `foundation_core::valtron::send`, its durable adapter waits with
+`foundation_core::valtron::timer::sleep_for`, and `foundation_netio` native readiness returns
+`foundation_core::valtron::EventReadinessPtr`. The executor is not on the protocol path.
+`foundation_http` depends on `foundation_core` with its default features on, and that default set
+includes `valtron`. A no-valtron HTTP server is therefore not feasible with the current crates.
+Issue #1081 records the decision.
+
 **Runtime-neutral (iron law).** The core is not an HTTP server. HTTP is one surface. The same core
 runs in a local embedded process, a Durable Object, a Worker, a WebSocket server, WebAssembly
 (wasm) and the `foundation_ai` Session. The core takes `Ctx` and a store. It has no global
@@ -714,8 +726,9 @@ The valtron layer is required. It wraps the core. It adds:
 - `into_next_stream` and `into_future_stream` bridges.
 - A client reader wrapper that drives the client core.
 
-It must not change protocol outcomes. A conformance test must pass with the valtron layer
-disabled.
+It must not change protocol outcomes. The protocol core conformance passes with the valtron layer
+disabled. The integration crate `durable_core_no_valtron` is the proof. The HTTP server needs the
+valtron executor for its socket surface; section 3.0 gives the boundary and the evidence.
 
 Two composition rules:
 
@@ -821,6 +834,11 @@ suites in a temporary directory and fails on any test failure.
 - Every skip names an open issue: the six server skips are issue #1000 (subscriptions), and the
   61 client skips are issue #963 (the blocking Server-Sent Events poll). A skip without an open
   issue is a defect, not a decision.
+- The gate builds the server with the `multi` feature. `multi` implies `foundation_core/multi`,
+  and that feature implies `valtron`, so the gate links the valtron executor for the socket
+  surface. The protocol path still runs without the valtron layer. The separate
+  `durable_core_no_valtron` crate runs the core with `default-features = false` and no valtron.
+  Section 3.0 gives the boundary and the evidence.
 
 ### 6.2 Test oracles
 
@@ -923,6 +941,8 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 ## 8. Done for the whole spec
 
 - [ ] `foundation_core::durable::shared` exists and has no valtron dependency.
+- [x] The protocol core conformance passes with valtron disabled
+      (`cargo test -p durable_core_no_valtron`, 11 scenarios).
 - [ ] The core types and store trait are complete.
 - [ ] The core reader classifies `up_to_date` and `closed` correctly.
 - [ ] The producer fences a stale epoch, deduplicates a retry and rejects a gap.

@@ -1,7 +1,9 @@
-# Proves the durable protocol core of `foundation_core` builds and runs
-# without the valtron task engine (spec 71 feature 01 task T4).
+# Proves the durable protocol core of `foundation_core` builds and conforms
+# without the valtron task engine: spec 71 feature 01 task T4 and feature 08
+# requirement 8.
 #
-# The dependency turns the default features off and omits `valtron`. Run with:
+# The dependency turns the default features off and omits `valtron`. The
+# protocol conformance suite runs with no HTTP adapter and no socket. Run with:
 #   cargo test -p durable_core_no_valtron
 [package]
 name = "durable_core_no_valtron"

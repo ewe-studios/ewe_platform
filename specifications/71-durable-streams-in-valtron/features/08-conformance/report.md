@@ -24,6 +24,7 @@ WebAssembly (wasm).
 | Direction 3 cross-run | 6 scenarios pass | Recorded test target. |
 | Direction 4 cross-run | 5 scenarios pass | Recorded test target. |
 | Runtime matrix | 5 rows have a runtime proof, 1 row has a build proof, 0 rows are gaps | Section 5. |
+| Protocol core without valtron | 11 passed (11) | `cargo test -p durable_core_no_valtron`, re-run in this change. |
 | Clock parameter guard | 0 violations | Re-run in this change. |
 | Time source guard | 0 violations | Re-run in this change. |
 
@@ -58,6 +59,9 @@ the changed files. The nightly schedule and a manual dispatch run the gate in fu
 
 The recipe runs `ci/durable_conformance.sh` for directions 1 and 2. It then runs the two
 cross-run test targets for directions 3 and 4.
+
+The `multi` feature links the valtron executor for the server's socket surface. The protocol
+path does not use the valtron protocol layer. Section 5.7 gives the boundary and the evidence.
 
 ```mermaid
 flowchart LR
@@ -120,7 +124,7 @@ own. The rows below show how the same core runs in each target.
 
 | Row | How the core runs | Proof | Status |
 |---|---|---|---|
-| Local embedded | Direct async calls | `durable_core_no_valtron` (1 test) and `durable::runtime_matrix` (2 tests) | Runtime proof. |
+| Local embedded | Direct async calls | `durable_core_no_valtron` (11 tests) and `durable::runtime_matrix` (2 tests) | Runtime proof. |
 | wasm32 | The core compiles for the wasm32 target | Six `cargo check` commands pass | Build proof only. Issue #1080. |
 | Cloudflare Worker | The Worker fetch handler calls the core | `foundation_event_stream` wasm build, and `/run-d1` in the DO fixture | Runtime proof. |
 | Durable Object | DO SQLite storage and one fetch handler | `/run` in the DO fixture | Runtime proof. |
@@ -135,8 +139,19 @@ The embedded proof makes no HTTP call and uses no socket.
 cargo test -p durable_core_no_valtron
 ```
 
-Result: 1 passed. The crate depends on `foundation_core` with `default-features = false` and no
-`valtron` feature. It runs create, append and read over `MemoryVfs` with `futures-lite`.
+Result: 11 passed. The crate depends on `foundation_core` with `default-features = false` and the
+features `std` and `alloc`. It never enables `valtron`, `test-clock`, `multi` or `vfs-testkit`.
+It runs over `MemoryVfs` with `futures-lite`, no HTTP adapter and no socket. The scenarios are:
+
+- create, and an idempotent re-create;
+- append and a byte-exact read;
+- bounded pages with a byte limit;
+- close, and the refusal of a later append;
+- fork prefix and branch divergence;
+- producer dedup, fencing and a sequence gap;
+- `Stream-Seq` ordering;
+- time-to-live expiry, with a hand-written `Clock` that has no valtron type;
+- soft-delete, cascade, and a fork that keeps reading a soft-deleted source.
 
 ```text
 cargo test -p foundation_core --test mod -- durable::runtime_matrix
@@ -270,6 +285,34 @@ path, so the store adds none. The memory-tier cache stays the key-value `KvMemor
 cache, not the transcript. On a cold cache, `MemoryCoordinator` rebuilds the tiers from this
 durable audit log.
 
+### 5.7 No-valtron protocol core and the runtime boundary
+
+The protocol core conforms without valtron. The evidence is the integration crate:
+
+```text
+cargo test -p durable_core_no_valtron
+```
+
+Result: 11 passed. `integration/durable_core_no_valtron/Cargo.toml` takes `foundation_core` with
+`default-features = false` and the features `std` and `alloc`. `valtron`, `test-clock`, `multi`
+and `vfs-testkit` stay off. The build fails if the protocol core reaches for a valtron type,
+trait or executor. The long-poll path, the notifier and the producer task are not in this suite.
+
+The HTTP gate server needs a socket runtime. A no-valtron HTTP server is not feasible with the
+current crates, because these calls force the valtron executor:
+
+| Crate | Dependency | Evidence |
+|---|---|---|
+| `foundation_http` | Native server submits connections to the valtron executor. | `src/native/server/mod.rs` line 4 and `foundation_core::valtron::send` in the accept loop. |
+| `foundation_http` | The durable adapter waits with the valtron timer. | `src/native/durable.rs` line 25, `foundation_core::valtron::timer::sleep_for`. |
+| `foundation_netio` | Native readiness returns a valtron type. | `src/native/connection.rs`, `foundation_core::valtron::EventReadinessPtr`, and `ResumeSignal`. |
+| `foundation_http` | It leaves the `foundation_core` default features on. | `Cargo.toml` line 14. The `foundation_core` default set includes `valtron`. |
+
+The valtron layer is not on the protocol path. The server calls `DurableService`. It does not call
+`DurableStreamReader`, `DurableStreamWriter` or `producer_task`. The gate therefore builds the
+server with `multi` for its socket runtime, and the no-valtron claim is proven by the separate
+protocol core suite. Requirement 8 and issue #1081 record this contract.
+
 ## 6. Skip register
 
 | Suite | Test | File | Reason | Forced by | Author and commit |
@@ -293,7 +336,6 @@ The skip lines are present at the pinned reference commit
 | Issue | Severity | Subject | Matrix row |
 |---|---|---|---|
 | #1080 | low | No wasm32 runtime roundtrip test | wasm32 |
-| #1081 | medium | The gate builds the server with the valtron feature on | Gate |
 | #1082 | low | Two suite-forced client skips (`Swift implementation broken`) | Skip register |
 | #1063 | low | The wasm check warns on the unused `scoped::*` re-export | wasm32 build |
 
@@ -317,7 +359,5 @@ and run the gate again.
 - **T9 — `foundation_ai` Session.** Done: the Session row has a runtime proof (section 5.6).
 - **T11 to T21.** The behaviour-driven development (BDD) suite, the driver matrix, the model,
   differential, metamorphic, property, fault, crash, timing and VFS oracles.
-- **The valtron-disabled gate.** Decide the form of requirement 8 (#1081). The separate
-  `durable_core_no_valtron` crate proves the core runs without valtron. The gate does not.
 
 The runtime matrix success criterion stays unticked until the wasm32 runtime row passes.

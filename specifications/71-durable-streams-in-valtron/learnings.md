@@ -955,3 +955,26 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   but does not enforce RFC 6455 section 5.3. The server must reject an unmasked client frame
   with code 1002. The old `WebSocketServerConnection::recv_frame` did this; a new decoder path
   must do it too.
+
+## Feature 08: the no-valtron protocol core (2026-11-27)
+
+- **The core was already valtron-free; the missing proof was a suite.** `durable_core_no_valtron`
+  compiled and ran one create, append and read scenario. The protocol rules needed the same
+  scenarios as the embedded driver, not a new implementation.
+- **A test clock needs no valtron type.** `foundation_context::Clock` is object-safe. A test
+  implements it over an `AtomicI64` and builds `SystemTime::UNIX_EPOCH + Duration`. `Ctx::fixed`
+  injects it. The `foundation_core` TTL test used `foundation_compact::time::from_unix_millis`
+  and a valtron test helper; the integration crate does neither.
+- **`futures-lite` drives the native async core.** A test that only awaits the business API
+  needs no valtron executor. `futures_lite::future::block_on` is enough.
+- **The HTTP server cannot drop valtron today, and the forcing crate is `foundation_http`.**
+  Its native accept loop submits each connection with `foundation_core::valtron::send`; its
+  durable adapter waits with `foundation_core::valtron::timer::sleep_for`; and its
+  `foundation_core` dependency leaves the default features on, and the default set includes
+  `valtron`. `foundation_netio` native readiness also returns
+  `foundation_core::valtron::EventReadinessPtr`. The protocol path (`DurableService`) does not
+  use the layer. The precise contract is "no valtron on the protocol path", not "no valtron in
+  the gate binary".
+- **A precise requirement beats a broad one.** Requirement 8 as written ("the gate does not
+  enable the valtron layer") could not hold while the gate runs a socket server. The amended
+  requirement names the core suite, the socket runtime and the crate that forces it.
