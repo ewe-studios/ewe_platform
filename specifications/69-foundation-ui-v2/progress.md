@@ -1998,3 +1998,9 @@ It accepts the aggregate chain with all required fields and rejects a missing re
 Both focused tests pass on the Android 36 Arm emulator and the Linux AMD64 continuous integration image.
 These tests exercise the device creation records without creating a device.
 See [issue 691](https://github.com/ewe-studios/ewe_platform/issues/691).
+
+## Unknown behaviour on Kotlin
+
+The Android renderer scenario requires the original unknown numeric identifier in its report.
+Add a frame test for an unknown identifier and an unknown custom name.
+Keep the node and apply the valid row that follows both reports.
