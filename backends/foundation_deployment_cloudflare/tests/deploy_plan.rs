@@ -91,6 +91,7 @@ enum ApiCall {
     Promote {
         worker: String,
         version: String,
+        route: Option<String>,
     },
     Status,
     Rollback,
@@ -218,6 +219,7 @@ impl DeploymentApi for FakeApi {
         &self,
         worker_name: &str,
         version: &str,
+        route: Option<&Route>,
     ) -> foundation_deployment_cloudflare::deploy::DeployFuture<
         '_,
         Result<foundation_deployment_cloudflare::Promotion, DeployError>,
@@ -225,6 +227,7 @@ impl DeploymentApi for FakeApi {
         let call = ApiCall::Promote {
             worker: worker_name.to_string(),
             version: version.to_string(),
+            route: route.map(|route| route.pattern.clone()),
         };
         self.calls.lock().expect("the call log").push(call);
         let failure = self.maybe_fail(Step::Promote);
@@ -485,6 +488,20 @@ fn deploy_plan_parity() {
         names,
         vec!["SANDBOX", "SANDBOX_INDEX", "SLAVE", "AI"],
         "the bindings of the plan"
+    );
+
+    // The first route of the plan is the address that the promote receives.
+    let promote_route = calls
+        .iter()
+        .find_map(|call| match call {
+            ApiCall::Promote { route, .. } => Some(route.clone()),
+            _ => None,
+        })
+        .expect("the promote");
+    assert_eq!(
+        promote_route,
+        Some("sandbox.example.com/*".to_string()),
+        "the promote receives the first route"
     );
 
     let recorded = wrangler.commands.calls();
