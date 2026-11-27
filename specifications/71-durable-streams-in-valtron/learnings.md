@@ -813,6 +813,12 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   peer. A data event arrives before its control event, so the first reference
   `next_chunk` call has no cursor. The new test reads the second chunk (the control event) and
   asserts `chunk.cursor` and `reader.cursor()`.
+- **A path filter can hide a protocol mismatch.** The conformance job first ran only when a
+  pull request touched a durable path. A change outside that list could break the protocol and
+  stay green. Owner rule 2026-11-27 removes the filter: the gate runs on every CI run. The job
+  keeps its timeout, caches and pull request concurrency group, and `checks-passed` still
+  requires it. This is a deliberate, documented exception to the "affected packages only" CI
+  rule (AGENTS.md rule 16); the rule stays in force for every other job.
 - **The foundation_http durable files carried pedantic clippy debt.** The crate denies warnings,
   so `cargo clippy --all-targets` failed before this change. The example put its `use` items
   after statements, the test header helper took a `SimpleHeader` by value, and the route test

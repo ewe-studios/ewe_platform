@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T4 (CI) changed to run on every CI run. Owner rule: a protocol
+  mismatch must fail on any change. The `durable-conformance` job in
+  `.github/workflows/check.yaml` no longer has a changed-path filter step or step conditions.
+  It keeps the 20-minute timeout, the caches, the concurrency group with cancel-in-progress on
+  pull requests, and its place in the required `checks-passed` job. The job runs on every pull
+  request, every push to `master` and `platform/release`, the nightly schedule and manual
+  dispatch. YAML parse check passes. No other job or the plan logic changed. The conformance
+  suite did not run for this change.
+
 - 2026-11-27: closed #1065 (medium). The SSE control event now writes `streamCursor` as a JSON
   string (for example `"streamCursor":"123"`), as PROTOCOL.md section 5.8 requires. Before, it
   wrote a number (for example `"streamCursor":123`). The reference client reads the field with

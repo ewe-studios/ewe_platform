@@ -762,10 +762,12 @@ jobs:
 
   durable-conformance:
     name: Durable conformance
+    # Owner rule (2026-11-27): the gate runs on every CI run, not only when a
+    # durable path changes. A protocol mismatch must fail on any change. This
+    # overrides the usual "affected packages only" rule for this one job.
     # Runs the two reference Durable Streams conformance suites (server and
-    # client). A pull request runs this job only when it touches a durable
-    # path: the filter step below sets the condition. A full run (nightly,
-    # manual, master and platform/release) always runs it.
+    # client) on every pull request, every push to master and platform/release,
+    # the nightly schedule and manual dispatch.
     # The runner has Rust and Node; no CI image and no registry credentials
     # are needed, so the job works the same on a fork.
     runs-on: ubuntu-latest
@@ -783,33 +785,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
-          fetch-depth: 0 # the filter step diffs against the pull request base
+          fetch-depth: 0
           submodules: false
 
-      - name: Decide whether a durable path changed
-        id: filter
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "full run: the durable conformance job runs"
-            exit 0
-          fi
-          git fetch --no-tags --depth=1 origin "$BASE_SHA"
-          pattern='^(backends/foundation_core/src/durable/|backends/foundation_http/.*durable|backends/foundation_netio/.*durable|backends/foundation_event_stream/|backends/foundation_nativeapis/src/native/vfs/durable_file\.rs|ci/durable_conformance\.sh|specifications/71-durable-streams-in-valtron/)'
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq "$pattern"; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "a durable path changed"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "no durable path changed"
-          fi
-
       - name: Install the pinned toolchain
-        if: steps.filter.outputs.run == 'true'
         # Skip the install when rustup lists the channel, so a missing network
         # cannot fail the job (issue #402).
         run: |
@@ -820,13 +799,11 @@ jobs:
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Set up Node 20
-        if: steps.filter.outputs.run == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: "20"
 
       - name: Cache the npm downloads
-        if: steps.filter.outputs.run == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.npm
@@ -837,7 +814,6 @@ jobs:
             npm-durable-conformance-${{ runner.os }}-
 
       - name: Cache cargo registry and target dir
-        if: steps.filter.outputs.run == 'true'
         uses: Swatinem/rust-cache@v2.9.2
         with:
           key: durable-conformance
@@ -846,7 +822,6 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run the durable conformance gate
-        if: steps.filter.outputs.run == 'true'
         run: bash ci/durable_conformance.sh
 
   # One stable check to mark as required in branch protection: it passes when

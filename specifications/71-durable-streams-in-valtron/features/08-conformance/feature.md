@@ -93,8 +93,9 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       The full category matrix still belongs to the conformance suites (T1, T2 and the CI gate);
       this task proves the two directions on the core scenarios.
 - [x] **T4 — CI.** The `durable-conformance` job in `.github/workflows/check.yaml` runs
-      `ci/durable_conformance.sh` on a runner with Rust and Node 20. It runs when a pull request
-      touches a durable path, and on every full run. The script fails on a non-skipped failure
+      `ci/durable_conformance.sh` on a runner with Rust and Node 20. It runs on every CI run,
+      with no path filter, so a protocol mismatch fails on any change (owner rule 2026-11-27).
+      The script fails on a non-skipped failure
       and on a count other than 338 server passes or 267 client passes with 2 suite-forced skips.
       The `foundation_core` test run with `multi,test-clock,vfs-testkit` runs the memory VFS
       conformance test in CI.
