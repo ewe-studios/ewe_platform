@@ -218,7 +218,12 @@ async fn promote(ctx: TaskContext, args: Promote) -> TaskResult {
     if tags.peek().is_none() {
         return Err(TaskError::operation("--tags is empty"));
     }
-    let mut cmd = ProcessCommand::new("docker").args(["buildx", "imagetools", "create", "--prefer-index=false"]);
+    let mut cmd = ProcessCommand::new("docker").args([
+        "buildx",
+        "imagetools",
+        "create",
+        "--prefer-index=false",
+    ]);
     for tag in tags {
         cmd = cmd.arg("-t").arg(format!("{repo}:{tag}"));
     }
