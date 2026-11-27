@@ -1789,3 +1789,12 @@ It finds the game at x=83 and taps answer 8 at (772, 572).
 The score increases from 1000 to 1250, and the replay returns to Todos.
 The test restores the original display size after the run.
 Issue 1146 tracks the separate full-size focus timeout.
+
+## Issue evidence and unsigned acceptance checks
+
+[Issue 879](https://github.com/ewe-studios/ewe_platform/issues/879) is closed after the Android continuation build record.
+[Issue 722](https://github.com/ewe-studios/ewe_platform/issues/722) is closed after the macOS Metal test passes attach, rejection, and recovery on one owner.
+[Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) needs an installed application built from the shared provider outputs.
+Both staged Android library names and architectures match the provider record.
+The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) includes the provider and application checks.
+The [unsigned acceptance inventory](completion-audit.md#unsigned-feature-12-14-and-16-checks) records the current checks and remaining evidence.

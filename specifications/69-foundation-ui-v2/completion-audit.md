@@ -65,14 +65,38 @@ See [package output](../../backends/foundation_resources/src/package/browser.rs)
 
 ### Issue reconciliation
 
-- Commits `74202df65`, `1a10ee15a`, and `eee45d716` address #837, #879, and #722. All three are ancestors of the audit baseline.
-- GitHub still lists those three issues as open. Confirm their existing test records and reconcile the issue states.
+- [Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) remains open. Commit `74202df65` selects the requested library for both Android architectures.
+  The staged ARM64 and x86-64 libraries have the expected names and architectures. The installed application still needs a build record that links it to these provider outputs.
+  The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) schedules the shared provider build and the Android application test.
+- [Issue 879](https://github.com/ewe-studios/ewe_platform/issues/879) is closed. Commit `1a10ee15a` restores Android compilation. The full build stages both libraries. See the [Android build record](progress.md#android-client-continuation-compiles).
+- [Issue 722](https://github.com/ewe-studios/ewe_platform/issues/722) is closed. Commit `eee45d716` fixes the graphics extent check.
+  The macOS Metal test presents a 1206 by 2241 surface, rejects an oversized resize, and presents again on the same owner.
 - Issues #715, #828, #782, #732, and #714 are closed. Preserve their evidence for relocation, fixture removal, host restart, and native delivery.
 - Check graphics shutdown and validation issues #696, #700, #701, #713 and #691 against Features 34 and 35.
 - Check migration fixture #712, wire lint #846, replay backlog #548, and missing-clock handling #619 against the final package gates.
 - Check the first-install timeout (#831) against the launcher verification. The reviewed launcher and #1074 are already delivered.
 - Track server idle activity (#673) and unused Todo server code (#789). Address each if it blocks an acceptance or warning gate.
 - Keep unrelated task commands and dependency cleanup outside this queue. Record an external dependency only when a named acceptance check needs it.
+
+## Unsigned Feature 12, 14, and 16 checks
+
+| Feature and requirement | Evidence | Remaining check |
+|---|---|---|
+| [12](features/12-legacy-wire-retirement/feature.md#10-done-when). Run all section 9 commands without warnings. | The seven gate checks precede retirement. The current browser suite passes 40 tests on macOS and serial Linux. | Workspace formatting reports existing differences. Run the applicable package checks on Linux, macOS, and Windows under the continuous integration package plan. |
+| 12. Four commits and no skipped tests. | The historical record gives more than four commits, 42 ignored tests, and a focused macOS Hypertext Transfer Protocol (HTTP) run. | Keep these as historical exceptions. The original commit count cannot change through another test run. |
+| 12. Removed names and specification checklist. | The scan finds a comment and the compile-fail test that names the retired type. The browser runtime scan has no retired parser names. | Record these two scan exceptions during the checklist review. |
+| [14](features/14-native-ios-renderer/feature.md#10-done-when). Swift package commands and scenarios. | The integrated Swift host suite passes 25 tests on macOS. The suite checks fixtures, web-member reports, ordering, observation, live mounts, and native commands. | Map each section 7 row to its current test. Check the next valid row after an unknown node and a single delivery of server capabilities to the core. |
+| 14. Package build and specification checklist. | The historical iPhone simulator run covers the Todo actions. Feature 21 replaces the sibling package path with the integrated package. | Use the integrated package and current native build tasks for the clean iPhone simulator and starter check. Keep the public starter check under issue 845. |
+| [16](features/16-behaviour-matrix/feature.md#10-done-when). All commands and scenarios. | Both platform matrix checkers and the Python test pass. The explicit Node test file patterns pass 175 tests and skip one legacy fixture. | Map the current tests to each section 7 row. Repeat the applicable Rust package and native platform checks in the release lane. |
+| 16. JavaScript logic and specification checklist. | All 14 machinery script bodies match across `dd15675cf`. The browser tests compare the four shared behavior bodies with the machinery source. | Record the marker imports, raw string delimiters, and scope cleanup in the review of the original wording. |
+
+The package plan records the Windows browser test exception under [issue 531](https://github.com/ewe-studios/ewe_platform/issues/531).
+The Feature 12 record gives the macOS HTTP exception under [issue 546](https://github.com/ewe-studios/ewe_platform/issues/546).
+Use the next available release-lane run for the remaining operating-system checks.
+The Swift host tests run on macOS. Keep an iPhone simulator run separate from the host results.
+The Rust reference suite now passes 102 tests with the regenerated search input fixture.
+[Issue 1158](https://github.com/ewe-studios/ewe_platform/issues/1158) tracks the native fixture checks.
+The specification checklist stays unsigned while its scenario coverage review is open.
 
 ## Historical audit
 

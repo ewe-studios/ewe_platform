@@ -1411,3 +1411,10 @@ See [issue 737](https://github.com/ewe-studios/ewe_platform/issues/737).
 Test the same display size as the reported failure.
 At 1560 by 720, the existing detector finds the 83-pixel left inset.
 Verify the score before and after the landscape tap. The presence of a rendered frame alone cannot verify input.
+
+## Issue evidence and unsigned acceptance checks
+
+A staged Android library proves the copy step. The installed application check needs its own link to that library.
+Run Node tests with explicit file patterns. The documented directory arguments do not resolve under the pinned Node version.
+The browser behavior comparisons permit disposal hooks and still compare the behavior logic byte for byte.
+Keep historical commit structure and skipped tests visible during acceptance review.
