@@ -78,7 +78,6 @@ foundation_db = { workspace = true, optional = true, features = ["wasm", "wasm-b
 # `test-clock` provides `SimulatedClock`, so a test can prove that a server
 # timeout follows the injected clock.
 foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["multi", "test-clock"] }
-foundation_wireguard = { path = "../foundation_wireguard" }
 foundation_testing = { path = "../foundation_testing" }
 # Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
 foundation_nativeapis = { path = "../foundation_nativeapis", features = ["fd"] }
@@ -94,6 +93,9 @@ sha2 = { workspace = true }
 # certificate, then drive a real rustls handshake.
 rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+
+[target.'cfg(unix)'.dev-dependencies]
+foundation_wireguard = { path = "../foundation_wireguard" }
 
 [features]
 # The default set keeps the behaviour of the crate before the split: every
