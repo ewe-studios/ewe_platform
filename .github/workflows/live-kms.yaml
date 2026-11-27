@@ -5,6 +5,9 @@
 # and two GCP keys, runs the four gated `foundation_auth` tests, and removes
 # the keys again.
 #
+# It runs on the runner, not in a container: the `live-kms` task calls the AWS
+# CLI and the Google Cloud CLI, and the project CI image has neither.
+#
 # The job runs only when the repository holds all five secrets. When a secret
 # is absent the job says plainly that it did not run and finishes green, so a
 # fork or a repository without the secrets can never reach a real account.
@@ -44,9 +47,6 @@ permissions:
 jobs:
   live-kms:
     runs-on: ubuntu-latest
-    # The same image as the other workflows, for the build and the run.
-    container:
-      image: docker.io/ewestudios/ewe-platform-ci:latest
     timeout-minutes: 60
     # A step `if:` cannot read `secrets`, so map each secret to an environment
     # variable first; the gate step reads the variables.
@@ -78,13 +78,31 @@ jobs:
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Write the Google service account
+      - name: Show the cloud tools
+        # The task calls both CLIs. This step fails loudly if a future runner
+        # image drops one of them.
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          aws --version
+          gcloud --version
+
+      - name: Install the pinned toolchain
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Write and activate the Google service account
         if: steps.gate.outputs.run == 'true'
         run: |
           set -euo pipefail
           credential="${RUNNER_TEMP}/gcp-service-account.json"
           printf '%s' "${GCP_SERVICE_ACCOUNT_JSON}" > "${credential}"
           echo "GOOGLE_APPLICATION_CREDENTIALS=${credential}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${credential}" --project "${GCP_PROJECT}"
 
       - name: Build foundation-ci
         if: steps.gate.outputs.run == 'true'
