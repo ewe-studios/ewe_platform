@@ -62,3 +62,12 @@ Keep the release tag pending until the release owner approves the verified candi
 
 [Release procedure](../../../../scripts/ui_native/release/README.md)
 [Consumer issue 845](https://github.com/ewe-studios/ewe_platform/issues/845)
+
+## Managed Maven versions
+
+The Apple preview builds the libraries and stops when it reads the Android package descriptor.
+Gradle imports the Compose bill of materials (BOM).
+The descriptor omits literal versions for dependency versions that the BOM sets.
+Permit these external dependency entries. Require the exact candidate version for both Ewe dependencies.
+Check the Maven descriptor path in error messages. Verify the generated descriptor and a failing Ewe version case.
+[Issue 1165](https://github.com/ewe-studios/ewe_platform/issues/1165)
