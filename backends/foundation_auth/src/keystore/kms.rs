@@ -415,8 +415,10 @@ async fn request_json(
     }
     .map_err(|e| KeyStoreError::Storage(format!("KMS request URL: {e}")))?;
     let mut builder = builder;
-    // Content-Type holds one value. Add the JSON default only when the caller
-    // names no Content-Type.
+    // AWS KMS signs the exact `Content-Type` value and needs
+    // `application/x-amz-json-1.1`. Adding the default a second time sends two
+    // values, and KMS then answers `UnknownOperationException`. Use the
+    // caller's value when it gives one.
     let has_content_type = headers
         .iter()
         .any(|(name, _)| name.eq_ignore_ascii_case("content-type"));
@@ -847,8 +849,10 @@ impl KmsBackend for AwsKmsBackend {
         context: &'a [u8],
     ) -> SealFuture<'a, SecureBytes> {
         Box::pin(async move {
-            // Name the key in the request, so the KMS refuses a blob that a
-            // different key wrapped.
+            // `KeyId` binds the call to this backend's key. Without it, AWS
+            // KMS decrypts with the key named inside the ciphertext blob, so a
+            // blob sealed under another key would open. With it, a blob from
+            // another key fails with `IncorrectKeyException`.
             let body = serde_json::json!({
                 "KeyId": self.key_id,
                 "CiphertextBlob": B64_STD.encode(wrapped_dek),
@@ -897,7 +901,21 @@ impl GcpKmsBackend {
         Self { key_name, http }
     }
 
+    /// The OAuth 2.0 access token for Cloud KMS.
+    ///
+    /// On a Google Compute Engine (GCE) instance or a Google Kubernetes Engine
+    /// (GKE) pod the token comes from the metadata server, and the workload
+    /// identity supplies it. On any other host, such as a developer machine or
+    /// a CI runner with a service-account key, set `GCP_ACCESS_TOKEN` to the
+    /// value of `gcloud auth print-access-token`. The environment source comes
+    /// first, so a test or a short-lived job needs no metadata server. The
+    /// variable is a secret: never print it or write it to a file.
     async fn access_token(&self) -> Result<String, KeyStoreError> {
+        if let Ok(token) = std::env::var("GCP_ACCESS_TOKEN") {
+            if !token.trim().is_empty() {
+                return Ok(token);
+            }
+        }
         let body = request_json(
             HttpVerb::Get,
             &self.http,

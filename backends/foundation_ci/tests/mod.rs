@@ -1,11 +1,11 @@
-mod planner;
-mod images;
-mod binaries;
 mod android_lock;
-mod dispatch;
-mod release_tools;
+mod binaries;
 mod cloudflare;
 mod development;
+mod dispatch;
+mod images;
+mod planner;
+mod release_tools;
 
 #[cfg(feature = "cloudflare-objects")]
 mod cloudflare_objects;
