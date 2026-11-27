@@ -47,6 +47,10 @@ impl fmt::Display for NetioTransportError {
 impl core::error::Error for NetioTransportError {}
 
 /// The object transport over the `foundation_netio` client.
+///
+/// The client is a shared handle, so a clone shares the connection pool. A
+/// host that opens several stores clones one transport to reuse connections.
+#[derive(Clone)]
 pub struct NetioObjectTransport {
     client: DynNetClient,
     max_response_bytes: usize,
@@ -138,8 +142,19 @@ impl ObjectTransport for NetioObjectTransport {
                 ObjectError::Backend(Box::new(NetioTransportError(error.to_string())))
             })?;
             let (status, headers, body) = response.into_async_parts();
-            let body = collect_bytes_bounded(body, limit).await;
             let status = u16::try_from(status.into_usize()).unwrap_or(0);
+            // A HEAD response and a 204 or 304 response carry no body, even when
+            // the headers name a length. A read would wait for bytes that never
+            // arrive and would hold the connection.
+            let bodyless = request.method == HttpMethod::Head
+                || status == 204
+                || status == 304
+                || (100..200).contains(&status);
+            let body = if bodyless {
+                Vec::new()
+            } else {
+                collect_bytes_bounded(body, limit).await
+            };
             let headers = headers
                 .into_iter()
                 .flat_map(|(key, values)| {
