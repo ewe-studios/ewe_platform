@@ -127,8 +127,9 @@ impl StreamHandle {
       `max_batch_items` and `max_batch_bytes`, and support close and detach. Tests:
       `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`,
       `given_a_producer_when_two_appends_run_then_the_sequences_advance`.
-- [x] **T7 — dynamic headers and validation.** Per-request headers and config validation. Tests:
-      `dynamic_header_counter`, `invalid_epoch_is_rejected`.
+- [x] **T7 — dynamic headers and validation.** Per-request headers and config validation. Test:
+      `dynamic_header_counter`. The adapter's `validate` command checks an invalid epoch, and the
+      reference client suite exercises it; no Rust test carries that name (#1153).
 - [x] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
       `adapter_reports_200_for_append`.
 - [x] **T9 — valtron wrapper.** `StreamIterator` and `WakeableStream` over the client reader.
