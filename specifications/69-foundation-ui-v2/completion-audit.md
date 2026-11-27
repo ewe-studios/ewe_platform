@@ -91,10 +91,10 @@ See the [asset path contract](features/37-todo-server-build-and-state/feature.md
 | [12](features/12-legacy-wire-retirement/feature.md#10-done-when). Run all section 9 commands without warnings. | The seven gate checks precede retirement. The current browser suite passes 40 tests on macOS and serial Linux. | Workspace formatting reports existing differences. Run the applicable package checks on Linux, macOS, and Windows under the continuous integration package plan. |
 | 12. Four commits and no skipped tests. | The historical record gives more than four commits, 42 ignored tests, and a focused macOS Hypertext Transfer Protocol (HTTP) run. | Keep these as historical exceptions. The original commit count cannot change through another test run. |
 | 12. Removed names and specification checklist. | The scan finds a comment and the compile-fail test that names the retired type. The browser runtime scan has no retired parser names. | Record these two scan exceptions during the checklist review. |
-| [14](features/14-native-ios-renderer/feature.md#10-done-when). Swift package commands and scenarios. | The integrated Swift host suite passes 25 tests on macOS. The suite checks fixtures, web-member reports, ordering, observation, live mounts, and native commands. | Map each section 7 row to its current test. Check the next valid row after an unknown node and a single delivery of server capabilities to the core. |
-| 14. Package build and specification checklist. | The historical iPhone simulator run covers the Todo actions. Feature 21 replaces the sibling package path with the integrated package. | Use the integrated package and current native build tasks for the clean iPhone simulator and starter check. Keep the public starter check under issue 845. |
-| [16](features/16-behaviour-matrix/feature.md#10-done-when). All commands and scenarios. | Both platform matrix checkers and the Python test pass. The explicit Node test file patterns pass 175 tests and skip one legacy fixture. | Map the current tests to each section 7 row. Repeat the applicable Rust package and native platform checks in the release lane. |
-| 16. JavaScript logic and specification checklist. | All 14 machinery script bodies match across `dd15675cf`. The browser tests compare the four shared behavior bodies with the machinery source. | Record the marker imports, raw string delimiters, and scope cleanup in the review of the original wording. |
+| [14](features/14-native-ios-renderer/feature.md#10-done-when). Swift package commands and scenarios. | The integrated Swift host suite passes 25 tests on macOS. The suite checks fixtures, web-member reports, ordering, observation, live mounts, and native commands. | The focused host probe applies the next valid row after an unknown node and delivers the capabilities to the core once. Review the package commands and the specification checklist. |
+| 14. Package build and specification checklist. | The iOS 27 simulator runs both current Todo applications through the integrated package. Feature 21 replaces the sibling package path. | Verify the clean starter with the pending candidate. Keep the public starter check under issue 845. |
+| [16](features/16-behaviour-matrix/feature.md#10-done-when). All commands and scenarios. | Both platform matrix checkers and the Python test pass. The explicit Node test file patterns pass 175 tests and skip one legacy fixture. The Kotlin core suite passes 20 tests, including both unknown behaviour forms. | Repeat the applicable package checks in the release lane. |
+| 16. JavaScript logic and specification checklist. | All 14 machinery script bodies match across `dd15675cf`. The browser tests compare the four shared behavior bodies with the machinery source. | The change includes marker imports, raw string delimiters, and scope cleanup. The original marker-only condition stays unsigned. |
 
 The package plan records the Windows browser test exception under [issue 531](https://github.com/ewe-studios/ewe_platform/issues/531).
 The Feature 12 record gives the macOS HTTP exception under [issue 546](https://github.com/ewe-studios/ewe_platform/issues/546).
@@ -109,7 +109,15 @@ The retired API compile-fail test passes and reports three unused patch notices 
 The TypeScript wire reader passes 12 fixtures. The FlatBuffers generation check passes.
 The runtime lowering suite passes seven tests. The component matrix suite passes three tests.
 The CI planner selects the six requested crates after commit `6cde9ca0c`.
-The plan check does not run the outstanding operating-system suites.
+The scoped plan waits for hosted operating-system suites.
+
+| Scenario group | Current checks |
+|---|---|
+| 14. Fixtures, columns, unsupported rows, and malformed frames | `ConformanceTests.testWireFixtures` compares the native snapshots. `testAllWebRowsAreReported` covers the web rows. `RendererTests.testMalformedFramesAndUnknownNode` covers rejected input and unknown nodes. The focused host probe checks the next valid row. |
+| 14. Synchronous updates, ordering, observation, and live mounts | `RendererTests.testOrderingAndObservation` checks immediate answers and one observed record. `testGapReconnectsAndRemovalCloses` checks the resume cursor, channel removal and local mounts. |
+| 14. Events, capabilities, native commands, behaviours, and view construction | `RendererTests.testEventUsesStateOnControlAndReportsFailure` checks event state and errors. The focused host probe checks one capabilities callback. `MobileOperationTests.testNativeCommandsWebViewAndCustomBehaviour`, `BehaviourTests.testUnknownBehaviourRetainsItsNumericID`, and `RendererTests.testEveryCoreViewLaysOut` cover native commands, behaviour reports and view layout. |
+| 16. Matrix, identifiers, lowering, and version gate | `every_behaviour_and_component_matches_the_shipped_matrix`, `component_lists_match_machinery_calls`, `scoped_script_and_behaviours_belong_to_the_parent`, and `version_1_client_gets_no_behaviour` check the current declarations and wire output. |
+| 16. Platform dispatch and known or unknown bindings | The writer checks native and web fields. The browser all-forms fixture reports all three mobile fields. The browser behaviour tests cover registry lookup and cleanup. Swift and Kotlin conformance fixtures store known behaviours. `testSharedBindingsAndSettings` and `standardBehavioursReachCompose` check the bindings. `RuntimeTest.unknownBehaviourReportsPreserveNamesAndApplyTheNextRow` checks both unknown forms in Kotlin. |
 
 ## Apple screen reader checks
 
@@ -117,7 +125,7 @@ The Todo app on the iOS 27 simulator uses VoiceOver speech through Xcode 27.2.
 The result includes Add, selected filters, Complete, selected Reopen, and the Todo title.
 VoiceOver reaches Delete in the row's Actions menu. The simulated double tap does not open the confirmation.
 The pause test checks the title, remaining seconds, modal focus, and Input resumed.
-A physical iPhone check remains for Delete activation and countdown announcement cadence.
+A physical iPhone check remains for Delete activation and countdown announcement cadence. [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
 
 ## Historical audit
 
