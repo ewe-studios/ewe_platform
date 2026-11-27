@@ -391,6 +391,9 @@ async fn ensure_gcp_version(
                 key,
                 "--keyring",
                 RING,
+                // The destroyed version stays the primary otherwise, and
+                // `Encrypt` without a version uses the primary.
+                "--primary",
             ],
         ),
         Mode::Echo,
