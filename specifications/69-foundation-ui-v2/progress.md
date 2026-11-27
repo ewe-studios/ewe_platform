@@ -2104,3 +2104,9 @@ The hosted Xcode 26.6 test finds the keyboard and taps the letters in Review.
 Its space key label lookup fails. The step stops before it uploads the candidate.
 Use the focused field to enter spaces. Keep both keyboard layouts, geometry checks and exact title checks.
 Use the current Feature 23 capture steps to verify the same screens.
+
+## Android repeated delete preview
+
+The preview installs the provider-built Todo applications and completes both initial replays.
+The Android task still expects a refused second delete.
+Check the current instrumentation success result. Keep both deletion requests and their missing-record checks.
