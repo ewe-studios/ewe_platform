@@ -1,7 +1,11 @@
 # The Durable Streams transport conformance matrix (spec 71, handoff section
-# 4.6). One Given/When/Then scenario suite runs on the HTTP, WebSocket and
-# ConnectRPC transports. Each driver is checked against the model oracle, then
-# against the other drivers.
+# 4.6). One Given/When/Then scenario suite runs on the embedded, HTTP,
+# WebSocket and ConnectRPC transports, and on a Durable Object worker. Each
+# driver is checked against the model oracle, then against the other drivers.
+#
+# The shared code (`driver`, `scenario`, `model`) builds for wasm32, so a
+# Durable Object fixture can depend on it with `default-features = false`.
+# The native drivers sit behind `native-drivers`, which `default` enables.
 #
 # A new transport adds one driver and runs the same scenario list unchanged.
 [package]
@@ -15,20 +19,24 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-# The protocol core: the store, the client core and the wire offset codec.
-foundation_core = { path = "../../backends/foundation_core" }
+# The protocol core. The shared code uses the store types and the wire offset
+# codec. The native drivers add `multi` for the valtron pool.
+foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["std", "alloc"] }
 # The context bundle that carries the injected clock.
 foundation_context = { path = "../../backends/foundation_context" }
+# The observation types cross the Durable Object route as JavaScript Object
+# Notation (JSON), so they carry serde derives on every target.
+serde = { workspace = true }
 # The native HTTP server, the Durable handler and the Durable WebSocket handler.
-foundation_http = { path = "../../backends/foundation_http" }
+foundation_http = { path = "../../backends/foundation_http", optional = true }
 # The native HTTP client transport and the platform WebSocket client.
-foundation_netio = { path = "../../backends/foundation_netio" }
+foundation_netio = { path = "../../backends/foundation_netio", optional = true }
 # The ConnectRPC service, the server adapters and the generated client.
-foundation_connectrpc = { path = "../../backends/foundation_connectrpc" }
+foundation_connectrpc = { path = "../../backends/foundation_connectrpc", optional = true }
 # The concrete RPC error trace, so the driver reads the RPC code.
-foundation_errstacks = { path = "../../backends/foundation_errstacks" }
-base64 = { workspace = true }
-serde_json = { workspace = true }
+foundation_errstacks = { path = "../../backends/foundation_errstacks", optional = true }
+base64 = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 
 [dev-dependencies]
 # The serial lock and the test timeout for the scenario functions.
@@ -36,14 +44,24 @@ foundation_macros = { workspace = true }
 serial_test = { workspace = true }
 
 [features]
-# The native server and the platform client need the valtron multi-thread pool.
-default = ["multi"]
-multi = [
+# The native drivers need the valtron multi-thread pool and the platform
+# transports. A wasm fixture turns this off and uses the shared code only.
+default = ["native-drivers"]
+native-drivers = [
+  "dep:foundation_http",
+  "dep:foundation_netio",
+  "dep:foundation_connectrpc",
+  "dep:foundation_errstacks",
+  "dep:base64",
+  "dep:serde_json",
   "foundation_core/multi",
   "foundation_http/multi",
   "foundation_netio/multi",
   "foundation_connectrpc/rpc_multi",
 ]
+# The Durable Object driver test starts `wrangler dev --local`. It is off by
+# default, so the normal suite does not need wrangler.
+do-driver = ["native-drivers"]
 
 [lints]
 workspace = true

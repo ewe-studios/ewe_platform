@@ -8,6 +8,8 @@
 use core::fmt;
 use core::time::Duration;
 
+use serde::{Deserialize, Serialize};
+
 /// A producer identity and position in one epoch.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Producer {
@@ -20,7 +22,7 @@ pub struct Producer {
 }
 
 /// The protocol outcome of one step.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Outcome {
     /// The logical status. A success uses the status the protocol assigns.
     Status(u16),
@@ -29,7 +31,7 @@ pub enum Outcome {
 }
 
 /// A transport-neutral error kind.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ErrorKind {
     /// The stream is absent.
     NotFound,
@@ -53,7 +55,7 @@ pub enum ErrorKind {
 /// them differently, but a driver decodes them to this form.
 // The four booleans are independent protocol facts, not one state.
 #[allow(clippy::struct_excessive_bools)]
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Observation {
     /// The logical status or the typed refusal.
     pub outcome: Outcome,

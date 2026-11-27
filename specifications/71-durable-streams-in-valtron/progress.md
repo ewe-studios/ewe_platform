@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 08 T12 (Durable Object driver, #1091 closed). The transport matrix has
+  five drivers: embedded, HTTP, WebSocket, ConnectRPC and a Durable Object worker. The shared
+  code (`driver`, `model`, `scenario`) builds for wasm32; the native drivers sit behind the
+  `native-drivers` feature. The DO route is `GET /matrix?scenario=...` in
+  `backends/foundation_db/integration/do_sql`. It runs the same eight scenarios over
+  `SqlVfs<DoSqlExecutor>` with an in-memory block store, and its wait is a JavaScript
+  `setTimeout`, so the TTL scenario runs. The native test
+  `tests/do_driver.rs` starts `wrangler dev --local` on a free port and compares the DO reply
+  with the model oracle and the embedded driver. The run is in `ci/durable_conformance.sh`,
+  which installs wrangler 4.144.0 and worker-build when they are missing and adds the wasm32
+  target. Verified: the eight scenarios match on the DO (1 test, 73 s); the normal suite runs
+  9 tests; clippy is clean with and without `do-driver`; the wasm32 check of the shared code
+  passes. #1092 stays open for the Session document-store reason.
 - 2026-11-27: feature 08 T11 and T12 (transport matrix).
   `integration/durable_transport_matrix` holds one Given/When/Then list of eight scenarios:
   create, append and read; read from the first next offset; close and a refused append; fork at

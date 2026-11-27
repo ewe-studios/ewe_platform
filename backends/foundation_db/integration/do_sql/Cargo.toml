@@ -25,6 +25,9 @@ crate-type = ["cdylib", "rlib"]
 foundation_core = { path = "../../../foundation_core", features = ["vfs-testkit"] }
 foundation_context = { path = "../../../foundation_context" }
 foundation_db = { path = "../..", default-features = false, features = ["do-sql"] }
+# The shared scenario suite. The wasm build turns the native drivers off and
+# supplies the Durable Object driver from this fixture.
+durable_transport_matrix = { path = "../../../../integration/durable_transport_matrix", default-features = false }
 serde_json = "1"
 worker = "0.8.3"
 # Pin the bridge to the version the workspace uses, so the wasm-bindgen Command

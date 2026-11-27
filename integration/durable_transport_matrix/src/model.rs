@@ -11,8 +11,9 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use foundation_context::{Clock, Ctx};
+use foundation_context::{Clock, Ctx, SystemTime};
 use foundation_core::durable::{wire, StreamOffset, VfsOffset};
+#[cfg(feature = "native-drivers")]
 use foundation_core::valtron::timer;
 
 use crate::driver::{Driver, ErrorKind, Observation, Producer, StepResult};
@@ -22,7 +23,7 @@ use crate::scenario::{run_scenario, Scenario};
 fn wall_ms(clock: &dyn Clock) -> i64 {
     clock
         .wall_now()
-        .duration_since(std::time::UNIX_EPOCH)
+        .duration_since(SystemTime::UNIX_EPOCH)
         .map_or(0, |elapsed| {
             i64::try_from(elapsed.as_millis()).unwrap_or(i64::MAX)
         })
@@ -279,7 +280,15 @@ impl Driver for Model {
     }
 
     async fn wait(&mut self, duration: Duration) {
+        // The model runs natively, where the injected timer advances its clock.
+        // A wasm build compiles the same type but never runs the model: the DO
+        // driver owns the wait with a JavaScript `setTimeout`.
+        #[cfg(feature = "native-drivers")]
         timer::sleep_for(duration, &self.ctx).await;
+        #[cfg(not(feature = "native-drivers"))]
+        {
+            let _ = (duration, &self.ctx);
+        }
     }
 }
 

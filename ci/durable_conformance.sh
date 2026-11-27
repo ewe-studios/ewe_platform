@@ -128,4 +128,17 @@ if [ -n "$bad_skips" ]; then
   exit 1
 fi
 
+echo "== Durable Object transport matrix =="
+# The DO driver needs Node, wrangler and worker-build. Install them when the
+# gate image does not have them. The fixture has its own Cargo.lock.
+if ! command -v wrangler >/dev/null 2>&1; then
+  npm install -g wrangler@4.144.0
+fi
+if ! command -v worker-build >/dev/null 2>&1; then
+  cargo install worker-build --version 0.8.7 --locked
+fi
+rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
+cargo test --profile uat -p durable_transport_matrix --features do-driver --test do_driver
+echo "DO transport matrix: all eight scenarios match the model and the embedded driver"
+
 echo "== done: server 338 passed (338), client 267 passed, 0 failed, 2 suite-forced skips =="

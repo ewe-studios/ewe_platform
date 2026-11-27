@@ -143,12 +143,18 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       scenario follows requirement 3.5 and the reference server: a repeat and a regression are
       both `409 StreamSeqConflict`, and a larger sequence is accepted. A repeat is not a
       duplicate.
-- [ ] **T12 — driver matrix.** Four drivers pass every scenario: embedded (`DurableService`
-      over `DurableStream` and `MemoryVfs`), HTTP, WebSocket and ConnectRPC. The crate is
-      `integration/durable_transport_matrix`; each test asserts the driver equals the model
-      oracle, then that the drivers agree. Remaining:
-      - DO: it needs wasm32 and wrangler, so it cannot run in the native test process. The
-        matrix does not fake it. See #1091.
+- [ ] **T12 — driver matrix.** Five drivers pass every scenario: embedded (`DurableService`
+      over `DurableStream` and `MemoryVfs`), HTTP, WebSocket, ConnectRPC and the Durable Object
+      (DO) worker. The crate is `integration/durable_transport_matrix`; each test asserts the
+      driver equals the model oracle, then that the drivers agree. The DO driver is
+      `GET /matrix?scenario=...` in `backends/foundation_db/integration/do_sql`. It runs the
+      same eight scenarios over `SqlVfs<DoSqlExecutor>` with an in-memory block store. Its wait
+      is a JavaScript `setTimeout`, so the TTL scenario runs. The native test starts
+      `wrangler dev --local` and compares the reply with the model and the embedded driver. The
+      run lives in `ci/durable_conformance.sh`, which installs wrangler 4.144.0 and
+      worker-build when they are missing and adds the wasm32 target (#1091 is closed). Command:
+      `cargo test --profile uat -p durable_transport_matrix --features do-driver --test do_driver`.
+      Remaining:
       - Session: `DurableDocumentStore` is a document store over a stream, not the stream
         operations. A `Driver` mapping would rewrite the payload and hide the outcomes, which
         is a fake. See #1092.

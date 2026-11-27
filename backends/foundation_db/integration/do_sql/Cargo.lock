@@ -369,6 +369,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "durable_transport_matrix"
+version = "0.0.1"
+dependencies = [
+ "foundation_context",
+ "foundation_core",
+ "serde",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -541,6 +550,7 @@ dependencies = [
 name = "foundation_do_sql_worker"
 version = "0.0.1"
 dependencies = [
+ "durable_transport_matrix",
  "foundation_context",
  "foundation_core",
  "foundation_db",
