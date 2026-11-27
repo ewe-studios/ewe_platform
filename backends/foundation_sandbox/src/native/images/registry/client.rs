@@ -459,11 +459,18 @@ impl RegistryClient {
     /// limit.
     ///
     /// It never removes one of the blobs in `keep`, which the running import
-    /// named (feature 15, section 6.4).
+    /// named, and it never removes a blob that was used less than `min_age`
+    /// ago, so a concurrent import keeps the blob that it just read (feature
+    /// 15, section 6.4). A blob whose use time is unknown is kept.
     ///
     /// # Errors
     /// [`SandboxError::Io`] when the blob directory cannot be listed.
-    pub fn prune_blob_cache(&self, max_bytes: u64, keep: &[String]) -> SandboxResult<()> {
+    pub fn prune_blob_cache(
+        &self,
+        max_bytes: u64,
+        min_age: Duration,
+        keep: &[String],
+    ) -> SandboxResult<()> {
         let directory = self
             .cache_dir
             .join(BLOB_CACHE)
@@ -472,6 +479,7 @@ impl RegistryClient {
         if !self.fs.exists(&directory) {
             return Ok(());
         }
+        let now = self.ctx.clock().wall_now();
         let mut entries = Vec::new();
         let mut total = 0_u64;
         for path in self.fs.read_dir(&directory)? {
@@ -498,11 +506,17 @@ impl RegistryClient {
             return Ok(());
         }
         entries.sort_by_key(|entry| entry.0);
-        for (_, size, path, name) in entries {
+        for (used, size, path, name) in entries {
             if total <= max_bytes {
                 break;
             }
             if keep.iter().any(|kept| kept == &name) {
+                continue;
+            }
+            // A recent use, or an unknown one, protects the blob.
+            let recent =
+                used.is_none_or(|time| now.duration_since(time).map_or(true, |age| age < min_age));
+            if recent {
                 continue;
             }
             if self.fs.remove_file(&path).is_ok() {

@@ -287,6 +287,13 @@ pub struct ImageLimits {
     /// importer removes the blobs whose last use is oldest, and never one that
     /// the running import named (feature 15, section 6.4).
     pub blob_cache_max_bytes: u64,
+    /// The youngest age of a blob that the importer keeps in the cache.
+    ///
+    /// Default 1 hour. A blob that another import used within this age is not
+    /// removed, so a concurrent import keeps the blob that it just read. The
+    /// limit bounds the overshoot of the cache to the pulls of one hour.
+    #[serde(with = "duration_millis")]
+    pub blob_cache_min_age: Duration,
 }
 
 impl Default for ImageLimits {
@@ -297,6 +304,7 @@ impl Default for ImageLimits {
             pull_timeout: Duration::from_mins(10),
             max_archive_bytes: 16 * 1024 * 1024 * 1024,
             blob_cache_max_bytes: 20 * 1024 * 1024 * 1024,
+            blob_cache_min_age: Duration::from_hours(1),
         }
     }
 }
@@ -340,6 +348,13 @@ impl ImageLimits {
     #[must_use]
     pub fn with_blob_cache_max_bytes(mut self, value: u64) -> Self {
         self.blob_cache_max_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::blob_cache_min_age`].
+    #[must_use]
+    pub fn with_blob_cache_min_age(mut self, value: Duration) -> Self {
+        self.blob_cache_min_age = value;
         self
     }
 }

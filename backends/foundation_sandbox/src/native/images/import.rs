@@ -561,8 +561,12 @@ impl ImageImporter {
     ///
     /// It never removes a blob of the image that this import just named.
     fn prune_registry_cache(&self, plan: &OciPlan) {
-        let limit = self.host.config.image_limits.blob_cache_max_bytes;
-        if let Err(error) = plan.client.prune_blob_cache(limit, &plan.keep_hexes()) {
+        let limits = &self.host.config.image_limits;
+        if let Err(error) = plan.client.prune_blob_cache(
+            limits.blob_cache_max_bytes,
+            limits.blob_cache_min_age,
+            &plan.keep_hexes(),
+        ) {
             tracing::warn!(%error, "the registry blob cache cannot be pruned");
         }
     }

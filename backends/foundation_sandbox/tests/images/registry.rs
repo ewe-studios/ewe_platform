@@ -7,14 +7,16 @@ use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_sandbox::native::artifacts::sha256_hex;
 use foundation_sandbox::native::host::NativeFs;
 use foundation_sandbox::native::images::import::{
     ImageImporter, ImageSource, ImportOptions, ImportReport,
 };
 use foundation_sandbox::native::images::registry::{
-    OciDescriptor, OciReference, RegistryClient, RegistryOptions,
+    digest_hex, OciDescriptor, OciReference, RegistryClient, RegistryOptions,
 };
 use foundation_sandbox::native::images::ImageStore;
 use foundation_sandbox::shared::control::testing::{
@@ -172,11 +174,17 @@ struct Harness {
     slave: Arc<ScriptedSlave>,
     fs: FakeHostFs,
     store: ImageStore,
+    ctx: Ctx,
 }
 
 impl Harness {
     /// A harness over a new fake registry.
     fn new(seed: u64) -> Self {
+        Self::with_limits(seed, ImageLimits::default())
+    }
+
+    /// A harness with the given image limits.
+    fn with_limits(seed: u64, limits: ImageLimits) -> Self {
         let registry = FakeRegistry::start();
         let (ctx, _clock) = crate::control::support::ctx(seed);
         let driver = Arc::new(SimDriver::new(DriverId::Firecracker).with_fresh_substrate());
@@ -197,7 +205,7 @@ impl Harness {
             mkfs_ext4_path: Some(PathBuf::from("/bin/mkfs.ext4")),
             driver_order: vec![DriverId::Firecracker],
             artifact_limits: ArtifactLimits::default(),
-            image_limits: ImageLimits::default(),
+            image_limits: limits,
         };
         let host = SandboxHost {
             processes: spawner,
@@ -217,7 +225,7 @@ impl Harness {
             allow_insecure: vec![registry.address().to_string()],
             ..RegistryOptions::default()
         };
-        let importer = ImageImporter::new(ctx, host, store.clone(), manager, None)
+        let importer = ImageImporter::new(ctx.clone(), host, store.clone(), manager, None)
             .with_registry(registry_options);
         Self {
             importer,
@@ -226,6 +234,7 @@ impl Harness {
             slave,
             fs,
             store,
+            ctx,
         }
     }
 
@@ -606,6 +615,142 @@ fn layer_streams() {
         fs.written() >= total,
         "the writer saw every byte: {}",
         fs.written()
+    );
+}
+
+// ── the blob cache limit (feature 15, section 6.4) ────────────────────────
+
+/// A second image whose configuration differs from [`config`].
+fn other_config() -> Value {
+    let mut config = config();
+    config["Cmd"] = json!(["/other"]);
+    config
+}
+
+/// The cached path of one blob, and its use marker.
+fn blob_paths(digest: &str) -> (PathBuf, PathBuf) {
+    let hex = digest_hex(digest).expect("the digest is a sha256 digest");
+    let blob = PathBuf::from(format!("/cache/oci/blobs/sha256/{hex}"));
+    let used = PathBuf::from(format!("/cache/oci/blobs/sha256/{hex}.used"));
+    (blob, used)
+}
+
+#[test]
+fn blob_cache_keeps_a_recent_blob() {
+    let _serial = crate::control::support::serial();
+    let limits = ImageLimits::default()
+        .with_blob_cache_max_bytes(1)
+        .with_blob_cache_min_age(Duration::from_hours(1));
+    let harness = Harness::with_limits(0x531, limits);
+    let first = add_image(
+        &harness.registry,
+        &["a"],
+        &gzip(&tar_with("a", b"the first image")),
+        GZIP_LAYER,
+        &config(),
+    );
+    let second = add_image(
+        &harness.registry,
+        &["b"],
+        &gzip(&tar_with("b", b"the second image")),
+        GZIP_LAYER,
+        &other_config(),
+    );
+    // Two importers over the same cache directory.
+    let importer_a = harness.importer.clone();
+    let importer_b = harness.importer.clone();
+    crate::pool::block_on(importer_a.import(
+        ImageSource::Oci(harness.source("a")),
+        ImportOptions::default(),
+    ))
+    .expect("the first image imports");
+
+    // The first import used its blobs just now.
+    let now = harness.ctx.clock().wall_now();
+    for digest in [&first.configuration, &first.layer] {
+        let (blob, used) = blob_paths(digest);
+        harness.fs.set_modified(blob, now);
+        harness.fs.set_modified(used, now);
+    }
+
+    crate::pool::block_on(importer_b.import(
+        ImageSource::Oci(harness.source("b")),
+        ImportOptions::default(),
+    ))
+    .expect("the second image imports");
+
+    assert!(
+        harness.has_blob(&first.configuration),
+        "a recently used configuration is kept"
+    );
+    assert!(
+        harness.has_blob(&first.layer),
+        "a recently used layer is kept"
+    );
+    assert!(
+        harness.has_blob(&second.layer),
+        "the running import's layer is kept"
+    );
+}
+
+#[test]
+fn blob_cache_removes_an_old_blob() {
+    let _serial = crate::control::support::serial();
+    let limits = ImageLimits::default()
+        .with_blob_cache_max_bytes(1)
+        .with_blob_cache_min_age(Duration::ZERO);
+    let harness = Harness::with_limits(0x532, limits);
+    let first = add_image(
+        &harness.registry,
+        &["a"],
+        &gzip(&tar_with("a", b"the first image")),
+        GZIP_LAYER,
+        &config(),
+    );
+    let second = add_image(
+        &harness.registry,
+        &["b"],
+        &gzip(&tar_with("b", b"the second image")),
+        GZIP_LAYER,
+        &other_config(),
+    );
+    let importer_a = harness.importer.clone();
+    let importer_b = harness.importer.clone();
+    crate::pool::block_on(importer_a.import(
+        ImageSource::Oci(harness.source("a")),
+        ImportOptions::default(),
+    ))
+    .expect("the first image imports");
+
+    // The first image's blobs are old, so the second import may remove them.
+    for digest in [&first.configuration, &first.layer] {
+        let (blob, used) = blob_paths(digest);
+        harness
+            .fs
+            .set_modified(blob, foundation_compact::SystemTime::UNIX_EPOCH);
+        harness
+            .fs
+            .set_modified(used, foundation_compact::SystemTime::UNIX_EPOCH);
+    }
+
+    crate::pool::block_on(importer_b.import(
+        ImageSource::Oci(harness.source("b")),
+        ImportOptions::default(),
+    ))
+    .expect("the second image imports");
+
+    assert!(
+        !harness.has_blob(&first.configuration),
+        "an old configuration is removed"
+    );
+    assert!(!harness.has_blob(&first.layer), "an old layer is removed");
+    assert!(
+        harness.has_blob(&second.configuration),
+        "the running import's configuration is kept"
+    );
+    assert!(
+        harness.has_blob(&second.layer),
+        "the running import's layer is kept"
     );
 }
 
