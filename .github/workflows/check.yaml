@@ -618,6 +618,27 @@ jobs:
         # command is a no-op when the target is present.
         run: rustup target add wasm32-unknown-unknown
 
+      - &todo-test-tool-manager
+        name: Set up the Todo test tool manager
+        if: contains(format(' {0} ', matrix.packages), ' ui_todo ')
+        uses: jdx/mise-action@v5.2.10
+        with:
+          install: false
+
+      - &todo-test-browser-binding
+        name: Install the pinned Todo browser binding tool
+        if: contains(format(' {0} ', matrix.packages), ' ui_todo ')
+        shell: bash
+        run: |
+          mise trust --yes mise.toml
+          mise install --locked --yes github:wasm-bindgen/wasm-bindgen
+          bindgen="$(mise which wasm-bindgen)"
+          if command -v cygpath >/dev/null 2>&1; then
+            bindgen="$(cygpath -m "$bindgen")"
+          fi
+          "$bindgen" --version
+          printf 'WASM_BINDGEN=%s\n' "$bindgen" >> "$GITHUB_ENV"
+
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
         with:
@@ -747,6 +768,14 @@ jobs:
           chmod +x "$dir"/bin/protoc*
           "$dir/bin/protoc" --version
           echo "$dir/bin" >> "$GITHUB_PATH"
+
+      - name: Install the Todo WebAssembly target
+        if: contains(format(' {0} ', matrix.packages), ' ui_todo ')
+        run: rustup target add wasm32-unknown-unknown
+
+      - *todo-test-tool-manager
+
+      - *todo-test-browser-binding
 
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
