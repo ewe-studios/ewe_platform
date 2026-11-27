@@ -4043,6 +4043,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4060,6 +4068,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4081,6 +4097,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4097,6 +4121,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4118,6 +4150,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4137,6 +4177,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4154,6 +4202,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4176,6 +4232,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4194,6 +4258,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4216,6 +4288,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4234,6 +4314,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4256,6 +4344,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4274,6 +4370,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4296,6 +4400,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4316,6 +4428,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4333,6 +4453,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4355,6 +4483,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4373,6 +4509,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4395,6 +4539,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4412,6 +4564,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
@@ -4433,6 +4593,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4451,6 +4619,14 @@ where
         self.inner.wake_send(cb)
     }
 
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+
     fn announce(&mut self) {
         self.inner.announce();
     }
@@ -4467,6 +4643,14 @@ where
 
     fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
         self.inner.wake_send(cb)
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
     }
 
     fn announce(&mut self) {
