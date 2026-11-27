@@ -111,6 +111,14 @@ The runtime lowering suite passes seven tests. The component matrix suite passes
 The CI planner selects the six requested crates after commit `6cde9ca0c`.
 The plan check does not run the outstanding operating-system suites.
 
+## Apple screen reader checks
+
+The Todo app on the iOS 27 simulator uses VoiceOver speech through Xcode 27.2.
+The result includes Add, selected filters, Complete, selected Reopen, and the Todo title.
+VoiceOver reaches Delete in the row's Actions menu. The simulated double tap does not open the confirmation.
+The pause test checks the title, remaining seconds, modal focus, and Input resumed.
+A physical iPhone check remains for Delete activation and countdown announcement cadence.
+
 ## Historical audit
 
 ## Scope

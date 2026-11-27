@@ -1896,3 +1896,18 @@ The synchronized test with the iPhone simulator remains in progress.
 The locked metadata check passes for the full workspace and eleven standalone manifests.
 The six-package continuous integration plan succeeds.
 [Issue 1164](https://github.com/ewe-studios/ewe_platform/issues/1164)
+
+## Apple Todo simulator checks
+
+The iPhone simulator runs iOS 27 with Xcode 27.2 build 27B52.
+Todo On Device passes five tests. Todo Server passes six tests.
+The runs include server and local changes, list filters, and the large entry and search controls.
+The tests skip the optional theme and peer setups when their environment values are absent.
+
+The VoiceOver service speaks Add, selected Open, Complete, selected Done, selected Reopen, and the Todo title.
+The Actions menu speaks Delete from the Todo row.
+The automated double tap does not open the confirmation. Confirmation activation still needs a physical iPhone check.
+
+The pause test passes. VoiceOver speaks the pause title, the remaining seconds, and Input resumed.
+The test opens the pause with a direct tap before it enables VoiceOver.
+Its sampled focus stays in the modal while it is open.

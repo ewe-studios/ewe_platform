@@ -1474,3 +1474,11 @@ The peer helper now uses the same input sequence.
 Cargo permits dependency declarations in tables and inline values.
 The first dependency search missed five version fields in tables.
 The workspace and all eleven standalone manifests that use this database now resolve with their lockfiles.
+
+## iPhone simulator speech
+
+Xcode 27.2 can request spoken focus text from the simulator VoiceOver service.
+Read current speech before moving focus. The first movement can pass the title or the Add control.
+Reset VoiceOver before direct taps. An aborted test can leave it enabled.
+A standard automated double tap did not activate the spoken Delete command.
+The speech result has the focused utterance. It has no history for counting all countdown announcements.
