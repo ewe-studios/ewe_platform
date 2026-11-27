@@ -137,6 +137,40 @@ VoiceOver reaches Delete in the row's Actions menu. The simulated double tap doe
 The pause test checks the title, remaining seconds, modal focus, and Input resumed.
 A physical iPhone check remains for Delete activation and countdown announcement cadence. [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
 
+
+## Package examples and parity evidence
+
+The [scoped hosted run](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113) is pinned to `89fde9934`.
+The package names below identify its planned jobs.
+The nightly configuration covers packages outside the scoped run.
+The hosted plan passes. The example checks below include local results and earlier feature records.
+
+| Feature | Example or parity evidence | Package gate |
+|---|---|---|
+| 01. Wire schema | The standalone text update runs. The generated bindings match. The TypeScript reader passes all 12 wire fixtures. | The scoped wire job covers the default and reference runs. |
+| 02. Vocabulary | The wire guide's vocabulary example runs. The JavaScript vocabulary file passes its syntax check. | The scoped wire, browser UI, and component jobs cover the vocabulary consumers. |
+| 03. Frame writer | The wire guide's writer example writes a text reply and an aligned batch of three rows. | The scoped wire job covers writer tests and the WebAssembly build. |
+| 04. Signed state | The [runtime guide](../../backends/foundation_ui_runtime/README.md) gives a readable counter and a private counter. Both counters pass. Both WebAssembly host probes pass. | The scoped runtime, wire, and compact jobs cover the signer and its host inputs. |
+| 05. Action runtime | The runtime guide passes 12 documentation tests, including the search input change binding. The native integration run covers local and remote dispatch. | The scoped runtime, native, and Todo jobs cover those owners. |
+| 06. Action macro | The renamed action fixture builds for native and WebAssembly. The macro tests check invalid declarations. | The scoped runtime suite covers its fixture. The macro crate uses the nightly job and has the Windows exception in issue 531. |
+| 07. Dispatcher | The runtime and native suites cover capabilities, routing, action errors, and returned frames. The clock parameter guard reports zero violations. | The scoped runtime and native jobs cover dispatch. The repository time source guard reports two agent shutdown calls outside this specification. [Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180) |
+| 08. Markup | The runtime and component guides show shared controls, reactive conditions, and named placement. The retained component checks compare shared and browser behaviour calls. | The scoped runtime, browser UI, and component jobs cover their consumers. The macro package uses the nightly job. |
+| 09. Browser frames | The current browser tests compare Rust row and column fixtures and read every supported message form. The standalone import and both testbed integration tests pass at `b6a9a4e78`. [Issue 1177](https://github.com/ewe-studios/ewe_platform/issues/1177) | The scoped browser UI and browser driver jobs cover the earlier pinned source. The testbed crate uses the nightly job. |
+| 10. Browser actions | The browser UI guide shows manager setup and a local or remote action. The current JavaScript suite checks frame requests and explicit transport selection. | The scoped browser UI, runtime, browser driver, and Todo jobs cover the action paths. |
+| 11. Live delivery | The browser UI guide shows a mount and its resume cursor. The live fixtures exercise independent subscriptions. Android and iPhone retain a pending action after a socket closes. | The scoped browser UI, browser driver, and Todo jobs cover live fixtures. The core Wasm package uses the nightly job. |
+| 12. Legacy removal | The negative fixture rejects the retired API. The previous seven parity checks ran before removal. The guide links to that record and runs the retained fixtures. | The scoped run includes the main UI packages. The legacy retirement checklist keeps its recorded command and history exceptions. |
+| 13. Native commands | The native guide covers local actions, a host request, and the core builder. The current Linux suite passes 11 tests, including command helpers. | The scoped native job uses default, app, and tasks runs. Android and iPhone evidence stays separate. |
+| 17. Toolchain | The [current toolchain guide](../../scripts/toolchain/README.md) invokes the Rust tasks. Local Apple and Android scope checks pass. | The hosted plan and platform setup run the pinned tools. The maintained shell fixtures invoke the current Rust tasks. |
+| 20. Producer migration | The custom protocol example runs. The renamed reactive fixture builds. The wire suite passes 92 tests with default features disabled. Issue 629 covers detachment in the pre-switch Chrome record. | The scoped wire, runtime, browser UI, and browser driver jobs cover the current consumers. |
+| 27. Single Todo package | The Todo guide records one package, its staged files, and native startup. Feature 37 proves browser, iPhone, and Android mutations on a shared server. | The scoped Todo, resource, native, and browser UI jobs cover those package owners. Public consumption remains under issue 845. |
+| 28. Typed input | The native Linux suite forwards structured submission to local and remote handlers. Runtime and browser tests check rejected input and the selected encoding. | The scoped native, runtime, wire, and browser UI jobs cover those tests. |
+| 29. Thread-safe signals | The [runtime selection guide](../../backends/foundation_signals/README.md#choose-a-runtime) describes local and shared runtimes. The feature record covers all four macOS configurations. | The signals nightly job declares all four configurations. The scoped runtime and browser UI jobs cover their consumers. |
+| 30. Readers and routes | The wire guide shows file and asynchronous readers. The route guides explain lazy render and streaming. The current Todo peer run exercises live replay. | The scoped wire, runtime and Todo jobs cover their owners. The direct UI HTTP route crate uses the nightly job. |
+| 31. Explicit controls | The wire guide shows a complete form and a confirmation. The retained browser tests render the controls. The feature record keeps the approved device captures. | The scoped wire, browser UI, native, component, and Todo jobs cover their package tests. |
+
+The exact retired wire comparisons stay in the historical feature records.
+Physical device checks require their own results.
+
 ## Historical audit
 
 ## Scope

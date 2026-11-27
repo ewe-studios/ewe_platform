@@ -2116,3 +2116,15 @@ With the test repair, Xcode 27.2 passes search and entry in both appearances and
 The installed Android test checks successful repeated deletion. The task expected an old refusal result.
 The scratch emulator reports success after both deletion attempts and both missing-record checks.
 [Issue 1181](https://github.com/ewe-studios/ewe_platform/issues/1181)
+
+## 2026-11-28 — Package examples and parity audit
+
+The wire writer, vocabulary, standalone text update, and custom protocol examples run.
+The renamed reactive fixture builds. The renamed action fixture builds for native and WebAssembly.
+The generated wire bindings match. The TypeScript wire reader passes all 12 fixtures.
+The wire suite passes 92 tests with default features disabled. Its WebAssembly build check passes in the same configuration.
+Both WebAssembly crypto host probes pass.
+The runtime guide passes 12 runnable examples and retains two existing exclusions.
+The audit lists the package gates for features 01 through 13, 17, 20, and 27 through 31.
+The global time source guard reports two agent shutdown calls. The clock parameter guard passes.
+[Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180)

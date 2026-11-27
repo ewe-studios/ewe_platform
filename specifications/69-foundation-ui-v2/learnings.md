@@ -1582,3 +1582,10 @@ Retain the layout checks above the keyboard.
 The Android task and its instrumentation must use the same result text.
 The instrumentation sends two delete requests and checks the missing record after each request.
 The Android Debug Bridge (ADB) raw report gives the result text and success code.
+
+## 2026-11-28 — Package examples and parity audit
+
+Use the standalone examples with their own Cargo manifests and profiles.
+Install the locked JavaScript dependencies before checking generated wire bindings.
+Verify each WebAssembly entropy backend at runtime. The compact probes check both a working host and an absent entropy source.
+The time source guard now runs through the repository's Rust check command.
