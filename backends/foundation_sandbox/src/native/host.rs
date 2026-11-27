@@ -267,9 +267,16 @@ fn reflink(from: &Path, to: &Path) -> bool {
         else {
             return false;
         };
+        // The `ioctl` request type is not the same on every C library: glibc
+        // takes `c_ulong` and musl takes `c_int`. The FICLONE number fits in
+        // 32 bits, so the narrow form is exact.
+        #[cfg(target_env = "musl")]
+        let request = FICLONE as libc::c_int;
+        #[cfg(not(target_env = "musl"))]
+        let request = FICLONE;
         // SAFETY: both descriptors are open, and FICLONE takes the source
         // descriptor as its argument.
-        unsafe { libc::ioctl(target.as_raw_fd(), FICLONE, source.as_raw_fd()) == 0 }
+        unsafe { libc::ioctl(target.as_raw_fd(), request, source.as_raw_fd()) == 0 }
     }
     #[cfg(target_os = "macos")]
     {
