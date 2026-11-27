@@ -2145,3 +2145,10 @@ The runtime guide passes 12 runnable examples and retains two existing exclusion
 The audit lists the package gates for features 01 through 13, 17, 20, and 27 through 31.
 The global time source guard reports two agent shutdown calls. The clock parameter guard passes.
 [Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180)
+
+## 2026-11-28 — Scoped source formatting
+
+The formatter updates 23 changed Specification 69 source and test files.
+The staged Rust files match the formatter output byte for byte.
+The workspace format check reports 21 remaining files outside this scope.
+[Issue 1184](https://github.com/ewe-studios/ewe_platform/issues/1184)

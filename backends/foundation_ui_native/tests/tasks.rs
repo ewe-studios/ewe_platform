@@ -137,12 +137,10 @@ fn android_build_stages_only_the_requested_library_for_each_abi() {
         .collect::<Vec<_>>();
     assert!(!args.iter().any(|arg| arg == "-o"));
     assert!(args.iter().any(|arg| arg == "--target-dir"));
-    assert!(
-        build
-            .env
-            .iter()
-            .any(|(key, value)| key == "CARGO_NDK_OUTPUT_PATH" && value.is_none())
-    );
+    assert!(build
+        .env
+        .iter()
+        .any(|(key, value)| key == "CARGO_NDK_OUTPUT_PATH" && value.is_none()));
     drop(calls);
     for abi in ["arm64-v8a", "x86_64"] {
         let directory = root

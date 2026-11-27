@@ -1600,3 +1600,8 @@ Use the standalone examples with their own Cargo manifests and profiles.
 Install the locked JavaScript dependencies before checking generated wire bindings.
 Verify each WebAssembly entropy backend at runtime. The compact probes check both a working host and an absent entropy source.
 The time source guard now runs through the repository's Rust check command.
+
+## 2026-11-28 — Scoped source formatting
+
+Compare the staged Rust bytes with the formatter output before committing.
+Keep formatter changes in a separate commit from fixes to validators and test fixtures.

@@ -1,6 +1,6 @@
 //! Register the browser and mobile routes for the todo application.
-use crate::TodoStore;
 pub use crate::shared::countdown::CountdownConfig;
+use crate::TodoStore;
 use foundation_context::Ctx;
 use foundation_http::{
     get,

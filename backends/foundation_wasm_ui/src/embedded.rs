@@ -73,4 +73,5 @@ pub const FLOATING_NAV_JS: &str = include_str!("../runtimes/floating-nav.js");
 pub const STACK_VIEWPORT_JS: &str = include_str!("../runtimes/stack-viewport.js");
 
 /// Shared browser connection manager.
-pub const FOUNDATION_UI_CONNECTIONS_JS: &str = include_str!("../runtimes/foundation-ui-connections.js");
+pub const FOUNDATION_UI_CONNECTIONS_JS: &str =
+    include_str!("../runtimes/foundation-ui-connections.js");

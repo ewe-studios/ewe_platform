@@ -1,10 +1,10 @@
 use foundation_context::{
-    Clock, Ctx, Duration, Instant, SystemTime,
     env::{CounterSource, Env, SeededEntropy, Timer, TimerFuture},
+    Clock, Ctx, Duration, Instant, SystemTime,
 };
 use std::sync::{
-    Arc,
     atomic::{AtomicU64, Ordering},
+    Arc,
 };
 
 struct TestClock {
@@ -36,9 +36,9 @@ impl Timer for AdvancingTimer {
         Box::pin(std::future::ready(()))
     }
 }
-use foundation_ui_runtime::action::{Origin, invoke_action, prepare_messages};
+use foundation_ui_runtime::action::{invoke_action, prepare_messages, Origin};
 use foundation_ui_wire::{ActionInputT, ActionRequestT, MountSurface};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 fn call(ctx: &Ctx, name: &str, payload: Value) -> Value {
     let registry = ui_todo::server_registry().unwrap();
