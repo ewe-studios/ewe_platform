@@ -16,7 +16,7 @@ extern "C" {
 
     /// GET with an options object (`range`, `onlyIf`, ...).
     #[wasm_bindgen(method, js_name = get)]
-    pub(crate) fn get_with_options(
+    pub fn get_with_options(
         this: &R2Bucket,
         key: &str,
         options: &JsValue,
@@ -24,6 +24,18 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = put)]
     pub fn put(this: &R2Bucket, key: &str, value: &JsValue) -> js_sys::Promise;
+
+    /// PUT with an options object (`onlyIf`, `httpMetadata`, ...).
+    ///
+    /// A conditional write sends `onlyIf` in the options. The object is written
+    /// only when the condition holds.
+    #[wasm_bindgen(method, js_name = put)]
+    pub fn put_with_options(
+        this: &R2Bucket,
+        key: &str,
+        value: &JsValue,
+        options: &JsValue,
+    ) -> js_sys::Promise;
 
     #[wasm_bindgen(method, js_name = delete)]
     pub fn delete(this: &R2Bucket, key: &str) -> js_sys::Promise;
@@ -72,11 +84,17 @@ extern "C" {
 
     /// The object's quoted HTTP `ETag` (the value a conditional PUT compares).
     #[wasm_bindgen(method, getter, js_name = httpEtag)]
-    pub(crate) fn http_etag(this: &R2Object) -> String;
+    pub fn http_etag(this: &R2Object) -> String;
+
+    /// The object's bare hexadecimal `ETag`.
+    ///
+    /// A conditional PUT compares this value, not the quoted HTTP form.
+    #[wasm_bindgen(method, getter)]
+    pub fn etag(this: &R2Object) -> String;
 
     /// The object's key, as a listing returns it.
     #[wasm_bindgen(method, getter)]
-    pub(crate) fn key(this: &R2Object) -> String;
+    pub fn key(this: &R2Object) -> String;
 }
 
 /// R2 list output returned by `R2Bucket::list()`.

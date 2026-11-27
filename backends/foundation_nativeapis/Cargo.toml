@@ -46,6 +46,12 @@ sha2 = { workspace = true, optional = true }
 regex = { version = "1.10", optional = true }
 fff-search = { version = "0.9.3", optional = true }
 
+# The Cloudflare Workers R2 binding, on wasm32. The binding is the generated
+# Cloudflare API surface from foundation_db.
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = { workspace = true, optional = true }
+js-sys = { workspace = true, optional = true }
+
 # Userspace TCP/IP netstack for the WireGuard overlay data plane (spec-55, feature 00).
 # no_std / alloc only — the "phy" is us (the Tunn plaintext side), so no std/phy-* features.
 smoltcp = { version = "0.12", default-features = false, features = [
@@ -113,6 +119,8 @@ serial_test = "3.3"
 ntest = "0.9"
 uuid = { version = "1", features = ["v4"] }
 futures-lite = "2"
+# The wrangler-driven R2 block test parses the Worker route JSON.
+serde_json = "1"
 # The SQL VFS block-tier tests run against a real SQLite engine, not a fake.
 # This is the same engine and version as the optional `vfs-sqlite` dependency.
 libsql = "0.9"
@@ -204,6 +212,11 @@ required-features = ["vfs-native"]
 name = "durable_object_vfs"
 path = "tests/durable_object_vfs/mod.rs"
 required-features = ["vfs-object"]
+
+[[test]]
+name = "r2_wrangler"
+path = "tests/r2_wrangler.rs"
+required-features = ["r2-wrangler"]
 
 [[test]]
 name = "observable_vfs"
@@ -422,6 +435,23 @@ vfs-object-http = ["vfs-object", "dep:hmac", "dep:sha2"]
 # (TCP) and Transport Layer Security (TLS). Native only: the spool needs a local
 # file system and the client opens real sockets.
 vfs-object-netio = ["vfs-object-http", "dep:foundation_netio", "foundation_netio/multi"]
+
+# The Cloudflare R2 block tier for the SQL VFS, on wasm32. It uses the generated
+# R2 binding from foundation_db. A Worker has no local file system, so this tier
+# has no spool; the SQL VFS on Durable Object SQLite is the durable edge path.
+vfs-object-wasm = [
+    "vfs",
+    "dep:foundation_db",
+    "foundation_db/wasm-bindgen-bindings",
+    "dep:wasm-bindgen",
+    "dep:wasm-bindgen-futures",
+    "dep:js-sys",
+]
+
+# The wrangler-driven R2 block-store test. It starts `wrangler dev --local` for
+# the `integration/r2_blocks` fixture, so it needs Node, `wrangler` and
+# `worker-build`. Off by default; the test target requires this feature.
+r2-wrangler = []
 
 # Ptrace syscall interception (Linux only, nix raw ptrace backend)
 vfs-ptrace-nix = ["vfs-native", "dep:nix"]
