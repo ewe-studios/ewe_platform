@@ -22,7 +22,7 @@ ANDROID_NDK = "27.0.12077973"
 XCODE_MIN = "26.2"
 # The wrangler the Cloudflare integration tests run. Pinned: they use its local
 # explorer REST API (/cdn-cgi/local/explorer/api), which is beta and may change.
-# `package.json` carries an older wrangler for other uses.
+# `package.json` carries its own wrangler for other uses.
 WRANGLER_VERSION = "4.156.2"
 # Dev builds on Cranelift (fast compiles; needs the pinned nightly and its
 # rustc-codegen-cranelift component). Kept out of Cargo.toml/.cargo/config.toml
