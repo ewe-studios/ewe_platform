@@ -1510,3 +1510,11 @@ A landscape frame can appear while Android changes focus.
 Wait for the accessibility controls in the game dialog before the replay sends the touch.
 Wait for the round result before restoring portrait. The input command only reports that its own work completed.
 The previous focus timeout did not recur. These runs verify the result and the replay order.
+
+## Scoped operating-system plan
+
+The CI workflow accepts an explicit package list on a manual run.
+The plan reports an operating-system matrix for that list and keeps the stored test exceptions.
+The macOS plan excludes HTTP under issue 546.
+The Windows plan excludes the browser and HTTP under issue 531, and the database under issue 519.
+The current plan output does not establish a passing test on those platforms.

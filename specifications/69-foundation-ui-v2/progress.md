@@ -1974,3 +1974,14 @@ Android reports no additional Application Not Responding (ANR) exit.
 Three baseline captures also show a successful landscape answer when the replay waits long enough to capture the result.
 The Todo task test passes.
 See [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
+
+## Scoped operating-system plan
+
+The local Apple and Android toolchain checks pass.
+The Apple check uses Xcode 27.2. The Android check confirms the locked Java, Gradle, Kotlin and Android tools.
+The package plan selects 14 Linux packages, 13 macOS packages and 11 Windows packages.
+The repository limits active jobs to eight on Linux and two each on macOS and Windows.
+The hosted run waits for the remaining role-warning and graphics fixes.
+
+The physical iPhone check for VoiceOver Delete and countdown speech remains open.
+[Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
