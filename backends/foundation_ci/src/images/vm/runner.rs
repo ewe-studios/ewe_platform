@@ -1,7 +1,7 @@
 //! Check the runner process in a guest through its loopback port.
 use super::{
+    connection::{command, Connection},
     Guest,
-    connection::{Connection, command},
 };
 use crate::execution::sleep;
 use clap::Args;

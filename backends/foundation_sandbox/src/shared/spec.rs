@@ -314,8 +314,12 @@ impl SandboxSpec {
 }
 
 /// A path is absolute and has no `..` part.
+///
+/// `Path::is_absolute()` is false for `/workspace` on `wasm32-unknown-unknown`: the wasm
+/// std path code needs a prefix, and wasm has none. `has_root()` is true for a leading
+/// `/` on every target, so a Worker validates a guest path the same way a native host does.
 fn absolute_without_parent(path: &Path) -> bool {
-    path.is_absolute()
+    path.has_root()
         && !path
             .components()
             .any(|component| component == Component::ParentDir)

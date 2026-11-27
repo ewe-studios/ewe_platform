@@ -1,10 +1,9 @@
 //! Collect the host and guest logs without retaining their bodies in memory.
 use super::{
-    Guest,
-    connection::{Connection, command},
-    state,
+    connection::{command, Connection},
+    state, Guest,
 };
-use crate::{CiEnvironment, workspace::capture_to};
+use crate::{workspace::capture_to, CiEnvironment};
 use clap::Args;
 use foundation_tasks::{
     OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskResult, TaskSet,

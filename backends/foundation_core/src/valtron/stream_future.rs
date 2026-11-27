@@ -8,6 +8,7 @@ use core::pin::Pin;
 use core::task::{Context, Poll};
 use futures_core::Stream as FuturesStream;
 
+use super::executors::DEFAULT_WAIT_REDRIVE_BUDGET;
 use super::streams::{Stream, StreamIterator, StreamSpread};
 use super::wake::{WakeResult, WakeableStream};
 
@@ -23,6 +24,9 @@ pub struct StreamCollectFuture<SI: StreamIterator> {
     /// Whether the async consumer has announced itself to the stream (see
     /// [`prime`]).
     primed: bool,
+    /// How many times a `Wait` from a driving stream is re-polled before the
+    /// adapter parks. See [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    wait_redrive_budget: usize,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -32,7 +36,16 @@ impl<SI: StreamIterator> StreamCollectFuture<SI> {
             inner: Some(iter),
             primed: false,
             collected: Vec::new(),
+            wait_redrive_budget: DEFAULT_WAIT_REDRIVE_BUDGET,
         }
+    }
+
+    /// Set how many times a `Wait` from a driving stream is re-polled before
+    /// the adapter parks. The default is [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    #[must_use]
+    pub fn with_wait_redrive_budget(mut self, budget: usize) -> Self {
+        self.wait_redrive_budget = budget;
+        self
     }
 }
 
@@ -52,11 +65,19 @@ where
             prime(iter, cx);
         }
 
+        let mut wait_redrive_budget = this.wait_redrive_budget;
+
         loop {
             match iter.next() {
-                Some(Stream::Next(v)) => this.collected.push(v),
-                Some(Stream::Ignore) => {}
+                Some(Stream::Next(v)) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
+                    this.collected.push(v);
+                }
+                Some(Stream::Ignore) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
+                }
                 Some(Stream::Spread(items)) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
                     // A Spread carries multiple Done payloads; collect every one
                     // and skip Pending payloads (they are not values to collect).
                     for item in items {
@@ -64,6 +85,21 @@ where
                             this.collected.push(v);
                         }
                     }
+                }
+                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                    // A driving stream runs its producer inside `next()`. On a
+                    // single-threaded engine no other thread sends a wake, so
+                    // re-poll instead of parking. Bound the re-polls so a stream
+                    // that never makes progress still yields to the executor.
+                    // A parked engine reports `can_make_progress() == false`; it
+                    // keeps the old register-then-park behaviour below.
+                    if wait_redrive_budget == 0 {
+                        let waker = cx.waker().clone();
+                        let _ = iter.wake_send(Box::new(move || waker.wake()));
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
+                    }
+                    wait_redrive_budget -= 1;
                 }
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
@@ -118,6 +154,9 @@ pub struct StreamReadyFuture<SI: StreamIterator> {
     /// Whether the async consumer has announced itself to the stream (see
     /// [`prime`]).
     primed: bool,
+    /// How many times a `Wait` from a driving stream is re-polled before the
+    /// adapter parks. See [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    wait_redrive_budget: usize,
 }
 
 impl<SI: StreamIterator> StreamReadyFuture<SI> {
@@ -125,7 +164,16 @@ impl<SI: StreamIterator> StreamReadyFuture<SI> {
         Self {
             inner: Some(iter),
             primed: false,
+            wait_redrive_budget: DEFAULT_WAIT_REDRIVE_BUDGET,
         }
+    }
+
+    /// Set how many times a `Wait` from a driving stream is re-polled before
+    /// the adapter parks. The default is [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    #[must_use]
+    pub fn with_wait_redrive_budget(mut self, budget: usize) -> Self {
+        self.wait_redrive_budget = budget;
+        self
     }
 }
 
@@ -143,13 +191,32 @@ where
             prime(iter, cx);
         }
 
+        let mut wait_redrive_budget = this.wait_redrive_budget;
+
         loop {
             match iter.next() {
                 Some(Stream::Next(v)) => {
                     let remaining = this.inner.take().expect("inner should exist");
                     return Poll::Ready(Some((v, remaining)));
                 }
-                Some(Stream::Ignore) => {}
+                Some(Stream::Ignore) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
+                }
+                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                    // A driving stream runs its producer inside `next()`. On a
+                    // single-threaded engine no other thread sends a wake, so
+                    // re-poll instead of parking. Bound the re-polls so a stream
+                    // that never makes progress still yields to the executor.
+                    // A parked engine reports `can_make_progress() == false`; it
+                    // keeps the old register-then-park behaviour below.
+                    if wait_redrive_budget == 0 {
+                        let waker = cx.waker().clone();
+                        let _ = iter.wake_send(Box::new(move || waker.wake()));
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
+                    }
+                    wait_redrive_budget -= 1;
+                }
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
                     match iter.wake_send(Box::new(move || waker.wake())) {
@@ -189,6 +256,7 @@ where
                     }
                 }
                 Some(Stream::Spread(items)) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
                     for item in items {
                         if let StreamSpread::Done(v) = item {
                             let remaining = this.inner.take().expect("inner should exist");
@@ -212,6 +280,9 @@ pub struct StreamPendingFuture<SI: StreamIterator> {
     /// Whether the async consumer has announced itself to the stream (see
     /// [`prime`]).
     primed: bool,
+    /// How many times a `Wait` from a driving stream is re-polled before the
+    /// adapter parks. See [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    wait_redrive_budget: usize,
 }
 
 impl<SI: StreamIterator> StreamPendingFuture<SI> {
@@ -219,7 +290,16 @@ impl<SI: StreamIterator> StreamPendingFuture<SI> {
         Self {
             inner: Some(iter),
             primed: false,
+            wait_redrive_budget: DEFAULT_WAIT_REDRIVE_BUDGET,
         }
+    }
+
+    /// Set how many times a `Wait` from a driving stream is re-polled before
+    /// the adapter parks. The default is [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    #[must_use]
+    pub fn with_wait_redrive_budget(mut self, budget: usize) -> Self {
+        self.wait_redrive_budget = budget;
+        self
     }
 }
 
@@ -237,13 +317,32 @@ where
             prime(iter, cx);
         }
 
+        let mut wait_redrive_budget = this.wait_redrive_budget;
+
         loop {
             match iter.next() {
                 Some(Stream::Pending(p)) => {
                     let remaining = this.inner.take().expect("inner should exist");
                     return Poll::Ready(Some((p, remaining)));
                 }
-                Some(Stream::Ignore) => {}
+                Some(Stream::Ignore) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
+                }
+                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                    // A driving stream runs its producer inside `next()`. On a
+                    // single-threaded engine no other thread sends a wake, so
+                    // re-poll instead of parking. Bound the re-polls so a stream
+                    // that never makes progress still yields to the executor.
+                    // A parked engine reports `can_make_progress() == false`; it
+                    // keeps the old register-then-park behaviour below.
+                    if wait_redrive_budget == 0 {
+                        let waker = cx.waker().clone();
+                        let _ = iter.wake_send(Box::new(move || waker.wake()));
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
+                    }
+                    wait_redrive_budget -= 1;
+                }
                 Some(Stream::Next(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
                     match iter.wake_send(Box::new(move || waker.wake())) {
@@ -283,6 +382,7 @@ where
                     }
                 }
                 Some(Stream::Spread(items)) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
                     for item in items {
                         if let StreamSpread::Pending(p) = item {
                             let remaining = this.inner.take().expect("inner should exist");
@@ -354,6 +454,9 @@ pub struct StreamParkingFutureStream<SI: StreamIterator> {
     /// Whether the async consumer has announced itself to the stream (see
     /// [`prime`]).
     primed: bool,
+    /// How many times a `Wait` from a driving stream is re-polled before the
+    /// adapter parks. See [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    wait_redrive_budget: usize,
 }
 
 impl<SI: StreamIterator> StreamParkingFutureStream<SI> {
@@ -361,7 +464,16 @@ impl<SI: StreamIterator> StreamParkingFutureStream<SI> {
         Self {
             inner: Some(iter),
             primed: false,
+            wait_redrive_budget: DEFAULT_WAIT_REDRIVE_BUDGET,
         }
+    }
+
+    /// Set how many times a `Wait` from a driving stream is re-polled before
+    /// the adapter parks. The default is [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    #[must_use]
+    pub fn with_wait_redrive_budget(mut self, budget: usize) -> Self {
+        self.wait_redrive_budget = budget;
+        self
     }
 }
 
@@ -382,11 +494,30 @@ where
             prime(iter, cx);
         }
 
+        let mut wait_redrive_budget = this.wait_redrive_budget;
+
         loop {
             match iter.next() {
                 Some(Stream::Next(v)) => return Poll::Ready(Some(Stream::Next(v))),
                 Some(Stream::Spread(items)) => return Poll::Ready(Some(Stream::Spread(items))),
-                Some(Stream::Ignore) => {}
+                Some(Stream::Ignore) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
+                }
+                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                    // A driving stream runs its producer inside `next()`. On a
+                    // single-threaded engine no other thread sends a wake, so
+                    // re-poll instead of parking. Bound the re-polls so a stream
+                    // that never makes progress still yields to the executor.
+                    // A parked engine reports `can_make_progress() == false`; it
+                    // keeps the old register-then-park behaviour below.
+                    if wait_redrive_budget == 0 {
+                        let waker = cx.waker().clone();
+                        let _ = iter.wake_send(Box::new(move || waker.wake()));
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
+                    }
+                    wait_redrive_budget -= 1;
+                }
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
                     match iter.wake_send(Box::new(move || waker.wake())) {
@@ -456,6 +587,9 @@ pub struct StreamNextStream<SI: StreamIterator> {
     /// Whether the async consumer has announced itself to the stream (see
     /// [`prime`]).
     primed: bool,
+    /// How many times a `Wait` from a driving stream is re-polled before the
+    /// adapter parks. See [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    wait_redrive_budget: usize,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -465,7 +599,16 @@ impl<SI: StreamIterator> StreamNextStream<SI> {
             inner: Some(iter),
             primed: false,
             spread: Vec::new(),
+            wait_redrive_budget: DEFAULT_WAIT_REDRIVE_BUDGET,
         }
+    }
+
+    /// Set how many times a `Wait` from a driving stream is re-polled before
+    /// the adapter parks. The default is [`DEFAULT_WAIT_REDRIVE_BUDGET`].
+    #[must_use]
+    pub fn with_wait_redrive_budget(mut self, budget: usize) -> Self {
+        self.wait_redrive_budget = budget;
+        self
     }
 }
 
@@ -493,10 +636,29 @@ where
             prime(iter, cx);
         }
 
+        let mut wait_redrive_budget = this.wait_redrive_budget;
+
         loop {
             match iter.next() {
                 Some(Stream::Next(v)) => return Poll::Ready(Some(v)),
-                Some(Stream::Ignore) => {}
+                Some(Stream::Ignore) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
+                }
+                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                    // A driving stream runs its producer inside `next()`. On a
+                    // single-threaded engine no other thread sends a wake, so
+                    // re-poll instead of parking. Bound the re-polls so a stream
+                    // that never makes progress still yields to the executor.
+                    // A parked engine reports `can_make_progress() == false`; it
+                    // keeps the old register-then-park behaviour below.
+                    if wait_redrive_budget == 0 {
+                        let waker = cx.waker().clone();
+                        let _ = iter.wake_send(Box::new(move || waker.wake()));
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
+                    }
+                    wait_redrive_budget -= 1;
+                }
                 Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
                     match iter.wake_send(Box::new(move || waker.wake())) {
@@ -537,6 +699,7 @@ where
                     }
                 }
                 Some(Stream::Spread(items)) => {
+                    wait_redrive_budget = this.wait_redrive_budget;
                     for item in items {
                         if let StreamSpread::Done(v) = item {
                             this.spread.push(v);

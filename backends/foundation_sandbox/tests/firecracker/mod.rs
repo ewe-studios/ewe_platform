@@ -5,7 +5,7 @@
 //! program is absent.
 
 mod body;
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "testing"))]
 mod driver;
 /// The real microVM tests. They need Linux with KVM and the programs.
 #[cfg(all(target_os = "linux", feature = "control", feature = "artifacts"))]

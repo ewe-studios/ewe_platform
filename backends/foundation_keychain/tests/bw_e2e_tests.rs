@@ -118,7 +118,7 @@ fn master_key(email: &str, password: &str) -> [u8; 32] {
 /// The stretched master key: an encryption half and a MAC half.
 fn stretched_master_key(mk: &[u8; 32]) -> [u8; 64] {
     use hkdf::Hkdf;
-    use sha2::Sha256;
+    use sha2_010::Sha256;
     // The Bitwarden SDK treats the master key as the pseudorandom key (the
     // extract step is skipped), then expands one half for encryption and one
     // for the MAC.
@@ -133,7 +133,7 @@ fn stretched_master_key(mk: &[u8; 32]) -> [u8; 64] {
 fn encrypt_enc_string(stretched: &[u8; 64], plaintext: &[u8]) -> String {
     use aes::cipher::{block_padding::Pkcs7, BlockEncryptMut, KeyIvInit};
     use hmac::{Hmac, Mac};
-    use sha2::Sha256;
+    use sha2_010::Sha256;
 
     let iv = [0u8; 16];
     let mut buffer = vec![0u8; plaintext.len() + 16];

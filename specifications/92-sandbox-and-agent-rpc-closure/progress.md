@@ -7,10 +7,10 @@ _Last updated: 2026-11-27._
 | Feature | State |
 |---|---|
 | 00 Live proof on the real services | not started |
-| 01 DST fidelity: the real registry | not started |
+| 01 DST fidelity: the real registry | stage A in review |
 | 02 Sandbox follow-ups | not started |
 | 03 GCP KMS over gRPC | not started |
-| 04 Live cloud resources with OpenTofu | not started |
+| 04 Live cloud resources with the cloud CLI | done: pull request #1103; four live tests passed on 2026-11-28 |
 
 ## What is already true
 
@@ -24,6 +24,18 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 
 ## Work in review (2026-11-27)
 
+- **Feature 01, stage A (the DST `Wait` hang)** is branch `fix/dst-wait-redrive`. Cause:
+  `Stream::Wait` means "the queue is empty; run the producer and check again". The parking
+  adapters in `stream_future.rs` treated it as `Pending` and parked on a wake that a
+  single-threaded engine never sends. Fix: `WakeableStream` gains `drives_its_producer()`.
+  A driving stream reports `true`, and the five adapters re-poll it on `Wait` with a bounded
+  budget (`DEFAULT_WAIT_REDRIVE_BUDGET`, 100 on native and 1 on wasm). A driving stream whose
+  engine is parked reports `can_make_progress() == false`, so the adapter parks instead of
+  sleeping out the driver's wait budget once per re-poll. A queue-backed stream keeps the old
+  park behaviour. Tests: `wait_redrives_a_driving_stream` (the real `execute` driver under
+  `SimRuntime`, one poll), plus `wait_redrive.rs` (park, bound, reset, wrapper forwarding,
+  parked driving stream, property test). It also fixes #1108 and #1109, which made the default,
+  `multi` and `testing` CI steps red.
 - **Feature 00, task T3 (AWS KMS locally)** is pull request #1055. It adds the endpoint
   override (`AWS_ENDPOINT_URL_KMS`), the moto test, `mise run kms:moto` and the free CI job
   `kms-local`. It also fixes a duplicate `Content-Type` (#1054) and makes `Decrypt` send
@@ -34,6 +46,29 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 Local stack verified on this host: moto serves AWS KMS (create, encrypt, decrypt, data key,
 alias) on port 5055; Vault serves Transit on 8200 with its engine enabled by an init service;
 localgcp v0.6.0 serves Cloud KMS on h2c `:8091` and is not yet wired to a client.
+
+## Feature 04 result (2026-11-28)
+
+`foundation-ci live-kms` passed against the real services:
+
+| Item | Value |
+|---|---|
+| AWS region | `us-east-1` |
+| GCP project, location | `ewestudiosnigeria`, `global` |
+| Tests | 4 passed, 0 failed |
+| Teardown | done: both AWS keys are `PendingDeletion` (7 days) and both aliases are deleted |
+
+The Google Cloud key ring and two key entries stay listed. Google Cloud cannot delete a key
+ring, and it keeps a key entry until every version finishes destruction. The run destroys
+every version.
+
+Two findings from the runs:
+
+- **#1113** (`severity: medium`, fixed): a run after a teardown found a key with every version
+  scheduled for destruction, and the destroyed version was still the primary. The task now
+  creates a version when none is enabled and makes the newest enabled version the primary.
+- **#1114** (`severity: low`, open): the teardown should retry a transient precondition error
+  right after the billing link.
 
 ## Next
 

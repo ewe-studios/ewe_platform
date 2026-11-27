@@ -81,3 +81,10 @@ cargo run --locked --profile uat -p foundation_ci -- live-kms   # with the crede
 - The resources are gone after the run, and `live:sweep` finds nothing.
 - The result is recorded in `progress.md` with the date, the region, the project and the
   location.
+
+## 8. Result (2026-11-28)
+
+The task passed live in `us-east-1` and `ewestudiosnigeria/global`: four tests, zero failures,
+teardown done. The AWS keys are `PendingDeletion` and the aliases are gone. The Google Cloud
+key ring and the two key entries stay listed; their versions are destroyed. A repeat run now
+works because of #1113.
