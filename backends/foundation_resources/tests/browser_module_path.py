@@ -81,18 +81,20 @@ targets=['apple']
         shutil.copyfile(crate.parents[1] / "Cargo.lock", project / "Cargo.lock")
         public = target / "debug/public/module-location-fixture"
 
-        def build(path, expect_success=True, mobile=False, destination=None):
+        def build(path, expect_success=True, mobile=False, destination=None,
+                  target_path=target, companion=False, error=None):
             option = "" if path is None else f".with_module_path({json.dumps(path)})"
+            companion_option = '.with_companion("web", "companion")' if companion else ""
             (project / "build.rs").write_text(f"""
 fn main() -> std::io::Result<()> {{
     foundation_resources::package::BrowserPackage::new(std::path::Path::new("web/app.js"))
         .browser_enabled(cfg!(feature="server"))
         .with_dev_preview(cfg!(feature="server"))
         .with_generated("build-mode.txt", if cfg!(feature="server") {{ "server" }} else {{ "mobile" }})
-        {option}.build()
+        {option}{companion_option}.build()
 }}
 """)
-            command = ["cargo", "build", "--offline", "--target-dir", target, "--message-format=json"]
+            command = ["cargo", "build", "--offline", "--target-dir", target_path, "--message-format=json"]
             if mobile:
                 command.extend(["--no-default-features", "--features", "mobile"])
             env = os.environ.copy()
@@ -107,7 +109,7 @@ fn main() -> std::io::Result<()> {{
             if result.returncode and expect_success:
                 raise RuntimeError(result.stderr)
             if result.returncode:
-                if path not in result.stderr + result.stdout:
+                if (error or path) not in result.stderr + result.stdout:
                     raise AssertionError(result.stderr + result.stdout)
                 return
             messages = [json.loads(line) for line in result.stdout.splitlines()]
@@ -195,6 +197,23 @@ fn main() -> std::io::Result<()> {{
             build(invalid, False)
             assert published_files() == before
         browser(requested)
+        if os.name == "posix":
+            link = project / "target-link"
+            link.symlink_to(target, target_is_directory=True)
+            build(requested, target_path=link, companion=True)
+            companion = public / "companion/module_location_fixture_bg.wasm"
+            assert companion.read_bytes()[:8] == b"\0asm\x01\0\0\0"
+
+            previous = published_files()
+            outside = project / "outside.js"
+            outside.write_text("export const value = 42;")
+            nested = project / "web/nested"
+            nested.mkdir()
+            (nested / "external.js").symlink_to(outside)
+            build(requested, False, error="Source escapes its directory")
+            assert published_files() == previous
+            print("Packaged a symlinked target and rejected a nested source escape.", flush=True)
+
         print("Preserved browser and native resources in both build orders and after failure.", flush=True)
 
 

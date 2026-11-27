@@ -326,7 +326,8 @@ fn add_companion(
     let name = tools.produce(package, feature, "web", &out)?;
     let private = tools.private_bindings.join(folder);
     fs::create_dir_all(&private)?;
-    copy_sources(&out, &private, &out, true)?;
+    let source_root = out.canonicalize()?;
+    copy_sources(&out, &private, &source_root, true)?;
     let file = format!("{name}_bg.wasm");
     assets.push((format!("{folder}/{file}"), out.join(file)));
     Ok(())
@@ -354,7 +355,8 @@ fn copy_sources(dir: &Path, dest: &Path, root: &Path, generated: bool) -> io::Re
             fs::create_dir_all(&target)?;
             copy_sources(&path, &target, root, generated)?;
         } else if path.extension() == Some(OsStr::new("js")) {
-            if !path.canonicalize()?.starts_with(root) {
+            let source = path.canonicalize()?;
+            if !source.starts_with(root) {
                 return Err(io::Error::other(format!(
                     "Source escapes its directory: {}",
                     path.display()
@@ -369,7 +371,7 @@ fn copy_sources(dir: &Path, dest: &Path, root: &Path, generated: bool) -> io::Re
             if !generated {
                 println!("cargo:rerun-if-changed={}", path.display());
             }
-            fs::copy(path, target)?;
+            fs::copy(source, target)?;
         }
     }
     Ok(())
