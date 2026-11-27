@@ -6285,6 +6285,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_event_stream"
+version = "0.0.1"
+dependencies = [
+ "base64 0.22.1",
+ "ed25519-compact",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_context",
+ "foundation_core",
+ "foundation_http",
+ "foundation_netio",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "time",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "foundation_html"
 version = "0.0.8"
 dependencies = [
@@ -6314,6 +6334,7 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
+ "foundation_event_stream",
  "foundation_iogate",
  "foundation_macros",
  "foundation_nativeapis",

@@ -366,3 +366,38 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   came from the durable adapter commit, and the full crate test gate found it.
 - **`DURABLE_LOG` turns on tracing in the example server.** The value names the log level. The
   connection loop logs the request line and method when the method is unknown.
+
+## Subscriptions, feature 10 (2026-11-27)
+
+- **Re-export the module, not its items.** `pub use foundation_core::durable;` makes
+  `foundation_event_stream::durable::StreamName` the same type as the core type. A list of
+  `pub use` items would create a second path and break the "one type" rule.
+- **Wrap the VFS, do not change the core.** The engine installs an `ObservingVfs` over the raw
+  VFS and reports each append. The engine itself writes state and wake events through the raw
+  VFS, so its own writes do not wake the subscription again. The core stays transport-neutral.
+- **Keep the hot state in memory and snapshot it to the VFS.** Each change appends one JSON
+  snapshot line to a control stream. The loader reads the last line. This is enough for the
+  protocol's `wake_id`, generation, lease and retry metadata to survive a restart.
+- **A delete needs a tombstone.** Removing the record from the map alone lets the last snapshot
+  resurrect the subscription on the next start. The delete appends `{"deleted":true}` and the
+  loader treats it as an absent record.
+- **Validate the generation before the token.** The reference callback token carries its epoch.
+  A random token does not. To answer `409 FENCED` for a stale wake, check the request generation
+  against the record first, then the token, then the wake identifier.
+- **The conformance server test gate is one option.** `runConformanceTests` runs the
+  subscription block only when `subscriptions: true`. `ci/durable_conformance.sh` sets it in the
+  generated vitest file.
+- **A stale server on the gate port hides every failure.** The script starts its server and waits
+  for `__conformance_probe`, but it does not check that its own server bound the port. A
+  `durable_server` left from an earlier run answers the probe. The suite then runs against the old
+  binary: the stream tests pass and all six subscription tests fail. Find the listener with
+  `lsof -nP -iTCP:4437 -sTCP:LISTEN` and stop that exact PID before a gate run.
+- **Webhook delivery runs in the append path.** The observer awaits the delivery, because the
+  core has no task spawner and a host supplies the transport. A slow receiver delays the append
+  by up to the read timeout, and a webhook `lease_ttl_ms` can expire while the delivery is still
+  in flight. The reference server uses a fire-and-forget send. This is a throughput limitation,
+  not a protocol error. A host that needs it can supply a sender that enqueues the call.
+- **The large-payload test still fails once in a while.** One gate run failed
+  `should handle large payload appropriately` with a client-side `ECONNRESET`; the next run
+  passed 338 of 338. The earlier 405 flake has a recorded root cause and fix. This run has no
+  server panic and no log line that names the cause.

@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 10 (subscriptions) landed. The new `foundation_event_stream` crate owns
+  the reserved `__ds` control endpoints, the configuration hash, the generation fence, the lease
+  and the wake snapshot. It delivers signed webhooks with retry and the `failed` status, runs the
+  pull-wake claim, ack and release flow, and serves the JSON Web Key Set (JWKS) endpoint. It
+  re-exports `foundation_core::durable` and reuses the `foundation_auth` key model.
+  `ci/durable_conformance.sh` sets `subscriptions: true` now: the server suite is 338 pass,
+  0 skip, 0 fail, and the client suite is 208 pass, 0 fail, 61 skip. The crate suite is 12 pass.
+  The example server mounts the handler and runs a tick for lease expiry and retries.
+
 - 2026-11-27: issue #926 root cause fixed. The request builder dropped `Content-Length` for a
   streamed parsed body, so the adapter's 8 MiB cap left a 2 MiB tail on the connection and the
   next keep-alive GET parsed as an unknown method. The builder keeps parsed headers now, and the
@@ -169,8 +178,9 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   valtron wrapper remain.
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
-- **10-subscriptions** — ⏳ not started (0/7). The owner corrected the scope on 2026-11-27: the
-  reserved subscription APIs are in scope. The six skipped server tests wait for this feature.
+- **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
+  transport-neutral engine, the native handlers and the webhook sender. The six server
+  conformance tests pass and the gate shows 0 skips.
 
 ## Next steps
 

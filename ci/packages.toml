@@ -815,3 +815,10 @@ windows-reason = "Known bug on Windows: #529: Unix-only fd and socket code does 
 # default features; their code lands in features 02 and 05.
 wasm = "enforce"
 wasm-runs = ["", "--no-default-features"]
+
+[packages.foundation_event_stream]
+# The shared subscription core is the Cloudflare Worker surface, so it must
+# build for wasm32-unknown-unknown.
+wasm = "enforce"
+# The crate carries no clippy warnings in its default and test trees.
+clippy-deny-warnings = true

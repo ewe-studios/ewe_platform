@@ -15,8 +15,8 @@ JavaScript Object Signing and Encryption (JOSE); JSON Web Key (JWK); JSON Web Ke
 lease time to live (TTL).
 
 The owner corrected the scope on 2026-11-27: the reference protocol defines subscriptions, and
-this spec includes them. The server conformance suite has eight subscription tests. Six of them
-are skipped today.
+this spec includes them. The server conformance suite has six subscription tests. All six were
+skipped before this feature.
 
 ## 1. Goal
 
@@ -31,7 +31,9 @@ worker when one or more streams have new data. Delivery is by webhook or by pull
   (JWKS).
 - Pull-wake uses a claim, acknowledge and release flow with a lease and a generation fence.
 - A stale generation is refused.
-- The wake snapshot is acknowledged once. A repeat acknowledgement is idempotent.
+- The wake snapshot is acknowledged once. A repeat acknowledgement for a closed wake is refused
+  with `409 FENCED`.
+- Deletion writes a tombstone. A restart must not restore a deleted subscription.
 - Unsafe webhook URLs are refused.
 
 ## 3. Design
@@ -55,24 +57,24 @@ subscriptions and brings the pieces together. The server core stays transport-ne
 
 ## 4. Tasks
 
-- [ ] **T0 — crate.** Create `foundation_event_stream` with `shared/`, `native/` and `cf/`
+- [x] **T0 — crate.** Create `foundation_event_stream` with `shared/`, `native/` and `cf/`
       layout. Re-export `foundation_core::durable` as `foundation_event_stream::durable`. Re-export
       the `foundation_auth` JWKS types it uses. Tests: `crate_builds_wasm`,
       `durable_types_match_the_core`.
-- [ ] **T1 — core state.** Configuration, hash, generation, lease and snapshot. Tests:
+- [x] **T1 — core state.** Configuration, hash, generation, lease and snapshot. Tests:
       `config_hash_is_stable`, `generation_fences_stale_claim`.
-- [ ] **T2 — control endpoints.** Create, confirm, add and remove streams, list. Tests:
+- [x] **T2 — control endpoints.** Create, confirm, add and remove streams, list. Tests:
       `idempotent_confirm`, `add_and_remove_streams`.
-- [ ] **T3 — webhook delivery.** Signed body, retry, failed status, synchronous done ack. Tests:
+- [x] **T3 — webhook delivery.** Signed body, retry, failed status, synchronous done ack. Tests:
       `webhook_signature_verifies`, `failed_delivery_sets_failed`.
-- [ ] **T4 — pull-wake.** Claim, ack, release, lease expiry. Tests:
+- [x] **T4 — pull-wake.** Claim, ack, release, lease expiry. Tests:
       `claim_then_ack_clears`, `lease_expiry_reopens`.
-- [ ] **T5 — key discovery.** JWKS endpoint and stable `kid`. Test: `jwks_lists_public_keys`.
-- [ ] **T6 — unsafe URL refusal.** Test: `rejects_unsafe_webhook_urls`.
-- [ ] **T7 — conformance.** The six skipped server tests pass. `ci/durable_conformance.sh` shows
+- [x] **T5 — key discovery.** JWKS endpoint and stable `kid`. Test: `jwks_lists_public_keys`.
+- [x] **T6 — unsafe URL refusal.** Test: `rejects_unsafe_webhook_urls`.
+- [x] **T7 — conformance.** The six skipped server tests pass. `ci/durable_conformance.sh` shows
       0 skips.
 
 ## 5. Done when
 
-- The eight subscription tests in the reference server suite pass.
+- The six subscription tests in the reference server suite pass.
 - The conformance gate shows 338 of 338 with 0 skips.

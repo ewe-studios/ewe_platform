@@ -52,7 +52,7 @@ import { describe } from "vitest"
 import { runConformanceTests } from "@durable-streams/server-conformance-tests"
 
 describe("ewe durable streams server", () => {
-  runConformanceTests({ baseUrl: "${SERVER_URL}" })
+  runConformanceTests({ baseUrl: "${SERVER_URL}", subscriptions: true })
 })
 EOF
   npx vitest run server-conformance.test.ts

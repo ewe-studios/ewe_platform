@@ -1,0 +1,1230 @@
+//! The transport-neutral subscription engine.
+//!
+//! The engine owns the subscription records, the generation fence, the lease, the wake snapshot,
+//! the webhook delivery and the pull-wake flow. It reads the clock and the entropy source from
+//! [`foundation_context::Ctx`], stores state in a [`foundation_core::durable::DurableStreamVfs`],
+//! and calls the webhook transport that the host supplies.
+
+use crate::shared::config::{normalize_relative_path, SubscriptionConfig};
+use crate::shared::error::{SubscriptionError, SubscriptionErrorCode};
+use crate::shared::glob::glob_match;
+use crate::shared::hash::stable_config_hash;
+use crate::shared::model::{
+    AckEntry, AckRequest, AckResponse, ClaimResponse, CreateRequest, LinkType, StreamInfo,
+    StreamLink, StreamView, SubscriptionCreate, SubscriptionRecord, SubscriptionStatus,
+    SubscriptionType, SubscriptionView, WakeEvent, WakeNotification, WebhookCreate,
+    WebhookSigningView, WebhookView,
+};
+use crate::shared::offsets::{compare_offsets, offset_from_len, zero_offset, BEFORE_FIRST};
+use crate::shared::signing::WebhookSigningKey;
+use crate::shared::store::{ObservingVfs, StreamWriteObserver, SubscriptionStore};
+use crate::shared::url::validate_webhook_url;
+use crate::shared::webhook::{WebhookRequest, WebhookSender};
+use foundation_compact::rng::Rng;
+use foundation_compact::time::unix_millis;
+use foundation_context::Ctx;
+use foundation_core::durable::{
+    wire, AppendRequest, Chunk, DurableStreamStore, DurableStreamVfs, StoreError, StreamName,
+    VfsFuture,
+};
+use serde::Deserialize;
+use std::cmp::Ordering;
+use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
+use std::sync::Arc;
+
+/// The flag a webhook returns to finish synchronously.
+#[derive(Debug, Deserialize)]
+struct DoneFlag {
+    #[serde(default)]
+    done: bool,
+}
+
+/// The append observer that the engine installs on the observed virtual file system (VFS).
+struct EngineObserver {
+    engine: SubscriptionEngine,
+}
+
+impl StreamWriteObserver for EngineObserver {
+    fn stream_written(&self, name: StreamName) -> VfsFuture<'_, ()> {
+        let engine = self.engine.clone();
+        Box::pin(async move {
+            engine.on_stream_written(&name).await;
+            Ok(())
+        })
+    }
+}
+
+/// The subscription engine.
+#[derive(Clone)]
+pub struct SubscriptionEngine {
+    store: Arc<SubscriptionStore>,
+    ctx: Ctx,
+    signing: Arc<WebhookSigningKey>,
+    sender: Arc<dyn WebhookSender>,
+}
+
+impl SubscriptionEngine {
+    /// Build the engine.
+    ///
+    /// The host supplies the raw virtual file system (VFS), the context, the signing key and the
+    /// webhook transport. The engine reads no global.
+    #[must_use]
+    pub fn new(
+        vfs: Arc<dyn DurableStreamVfs>,
+        ctx: Ctx,
+        signing: WebhookSigningKey,
+        sender: Arc<dyn WebhookSender>,
+        config: SubscriptionConfig,
+    ) -> Self {
+        let store = Arc::new(SubscriptionStore::new(vfs, &ctx, config));
+        Self {
+            store,
+            ctx,
+            signing: Arc::new(signing),
+            sender,
+        }
+    }
+
+    /// The configuration.
+    #[must_use]
+    pub fn config(&self) -> &SubscriptionConfig {
+        self.store.config()
+    }
+
+    /// The subscription store.
+    #[must_use]
+    pub fn store(&self) -> &SubscriptionStore {
+        &self.store
+    }
+
+    /// The webhook signing key.
+    #[must_use]
+    pub fn signing(&self) -> &WebhookSigningKey {
+        &self.signing
+    }
+
+    /// The context.
+    #[must_use]
+    pub fn context(&self) -> &Ctx {
+        &self.ctx
+    }
+
+    /// Wrap the raw virtual file system (VFS) so appends reach the engine.
+    ///
+    /// The host builds its `DurableStream` on this wrapper. The engine itself keeps using the raw
+    /// virtual file system (VFS), so its own state writes do not wake subscriptions.
+    #[must_use]
+    pub fn observed_vfs(&self) -> Arc<dyn DurableStreamVfs> {
+        ObservingVfs::new(
+            self.store.raw_vfs().clone(),
+            Arc::new(EngineObserver {
+                engine: self.clone(),
+            }),
+        )
+    }
+
+    /// Read the persisted subscriptions. The call is idempotent.
+    ///
+    /// # Errors
+    ///
+    /// Returns the storage error of the state read.
+    pub async fn load(&self) -> Result<(), String> {
+        self.store.load().await
+    }
+
+    /// The published JSON Web Key Set (JWKS) as text.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the key set cannot be serialized.
+    pub fn jwks_json(&self) -> Result<String, SubscriptionError> {
+        self.signing.jwks_json()
+    }
+
+    /// Create a subscription or re-confirm an identical one.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SubscriptionErrorCode::InvalidRequest`] for a bad body,
+    /// [`SubscriptionErrorCode::WebhookUrlRejected`] for an unsafe webhook uniform resource
+    /// locator (URL), and [`SubscriptionErrorCode::SubscriptionAlreadyExists`] when the same
+    /// identifier has a different configuration.
+    pub async fn create_or_confirm(
+        &self,
+        id: &str,
+        request: CreateRequest,
+        request_base_url: &str,
+    ) -> Result<(SubscriptionView, bool), SubscriptionError> {
+        self.ensure_loaded().await;
+        if id.is_empty() {
+            return Err(SubscriptionError::invalid("subscription id is empty"));
+        }
+        let config = self.config().clone();
+        let input = normalize_create(&config, request)?;
+        let config_hash = stable_config_hash(&input);
+
+        if let Some(existing) = self.store.get(id) {
+            if existing.config_hash != config_hash {
+                return Err(SubscriptionError::new(
+                    SubscriptionErrorCode::SubscriptionAlreadyExists,
+                    "Subscription already exists with a different configuration",
+                ));
+            }
+            return Ok((self.view_of(&existing).await, false));
+        }
+
+        let base_url = config
+            .public_base_url
+            .clone()
+            .unwrap_or_else(|| request_base_url.trim_end_matches('/').to_string());
+        let mut record = SubscriptionRecord {
+            id: id.to_string(),
+            kind: input.kind,
+            pattern: input.pattern.clone(),
+            webhook_url: input.webhook.as_ref().map(|webhook| webhook.url.clone()),
+            wake_stream: input.wake_stream.clone(),
+            lease_ttl_ms: input.lease_ttl_ms,
+            description: input.description.clone(),
+            created_at: self.created_at(),
+            status: SubscriptionStatus::Active,
+            config_hash,
+            callback_base_url: base_url,
+            streams: BTreeMap::new(),
+            generation: 0,
+            wake_id: None,
+            wake_snapshot: BTreeMap::new(),
+            token: None,
+            token_generation: 0,
+            holder: None,
+            lease_expires_at_ms: None,
+            retry_count: 0,
+            next_attempt_at_ms: None,
+        };
+
+        for path in &input.streams {
+            let tail = self.tail_of(path).await;
+            record.streams.insert(
+                path.clone(),
+                StreamLink {
+                    path: path.clone(),
+                    link_types: BTreeSet::from([LinkType::Explicit]),
+                    acked_offset: tail,
+                },
+            );
+        }
+        if let Some(pattern) = &record.pattern {
+            for (path, tail) in self.list_streams().await {
+                if !glob_match(pattern, &path) {
+                    continue;
+                }
+                record
+                    .streams
+                    .entry(path.clone())
+                    .or_insert_with(|| StreamLink {
+                        path,
+                        link_types: BTreeSet::from([LinkType::Glob]),
+                        acked_offset: tail,
+                    })
+                    .link_types
+                    .insert(LinkType::Glob);
+            }
+        }
+
+        self.save(&record).await;
+        Ok((self.view_of(&record).await, true))
+    }
+
+    /// Read a subscription.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SubscriptionErrorCode::SubscriptionNotFound`] when the identifier is unknown.
+    pub async fn read(&self, id: &str) -> Result<SubscriptionView, SubscriptionError> {
+        self.ensure_loaded().await;
+        let record = self
+            .store
+            .get(id)
+            .ok_or_else(SubscriptionError::not_found)?;
+        Ok(self.view_of(&record).await)
+    }
+
+    /// Delete a subscription. A missing subscription is not an error.
+    pub async fn delete(&self, id: &str) {
+        self.ensure_loaded().await;
+        if self.store.remove(id).is_some() {
+            if let Err(error) = self.store.persist_tombstone(id).await {
+                tracing::warn!(
+                    subscription = id,
+                    "subscription tombstone write failed: {error}"
+                );
+            }
+        }
+    }
+
+    /// Add explicit streams to a subscription.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SubscriptionErrorCode::SubscriptionNotFound`] when the identifier is unknown.
+    pub async fn add_explicit_streams(
+        &self,
+        id: &str,
+        streams: Vec<String>,
+    ) -> Result<(), SubscriptionError> {
+        self.ensure_loaded().await;
+        let mut normalized = Vec::with_capacity(streams.len());
+        for stream in streams {
+            let path = normalize_relative_path(&stream);
+            if path.is_empty() {
+                return Err(SubscriptionError::invalid(
+                    "streams must contain non-empty paths",
+                ));
+            }
+            normalized.push(path);
+        }
+        if self.store.get(id).is_none() {
+            return Err(SubscriptionError::not_found());
+        }
+        for path in normalized {
+            let tail = self.tail_of(&path).await;
+            self.store.with_record_mut(id, |slot| {
+                let Some(record) = slot else {
+                    return;
+                };
+                match record.streams.get_mut(&path) {
+                    Some(link) => {
+                        link.link_types.insert(LinkType::Explicit);
+                    }
+                    None => {
+                        record.streams.insert(
+                            path.clone(),
+                            StreamLink {
+                                path: path.clone(),
+                                link_types: BTreeSet::from([LinkType::Explicit]),
+                                acked_offset: tail,
+                            },
+                        );
+                    }
+                }
+            });
+        }
+        self.persist_record(id).await;
+        Ok(())
+    }
+
+    /// Remove the explicit link of a stream. A matching glob link stays.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SubscriptionErrorCode::SubscriptionNotFound`] when the identifier is unknown.
+    pub async fn remove_explicit_stream(
+        &self,
+        id: &str,
+        stream: &str,
+    ) -> Result<(), SubscriptionError> {
+        self.ensure_loaded().await;
+        let path = normalize_relative_path(stream);
+        if self.store.get(id).is_none() {
+            return Err(SubscriptionError::not_found());
+        }
+        self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return;
+            };
+            let Some(link) = record.streams.get_mut(&path) else {
+                return;
+            };
+            link.link_types.remove(&LinkType::Explicit);
+            if link.link_types.is_empty() {
+                record.streams.remove(&path);
+            }
+        });
+        self.persist_record(id).await;
+        Ok(())
+    }
+
+    /// Claim a pull-wake subscription.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SubscriptionErrorCode::AlreadyClaimed`] when another worker holds the lease,
+    /// [`SubscriptionErrorCode::NoPendingWork`] when no data waits, and
+    /// [`SubscriptionErrorCode::InvalidRequest`] for a webhook subscription.
+    pub async fn claim(&self, id: &str, worker: &str) -> Result<ClaimResponse, SubscriptionError> {
+        self.ensure_loaded().await;
+        let now = self.now_ms();
+        self.expire_due_leases(now).await;
+        let record = self
+            .store
+            .get(id)
+            .ok_or_else(SubscriptionError::not_found)?;
+        if record.kind != SubscriptionType::PullWake {
+            return Err(SubscriptionError::invalid("Subscription is not pull-wake"));
+        }
+        if let Some(holder) = &record.holder {
+            return Err(SubscriptionError::new(
+                SubscriptionErrorCode::AlreadyClaimed,
+                "Another worker holds the lease",
+            )
+            .with_holder(holder.clone(), record.generation));
+        }
+        if !self.has_pending(&record).await {
+            return Err(SubscriptionError::new(
+                SubscriptionErrorCode::NoPendingWork,
+                "Subscription has no pending work",
+            ));
+        }
+        if record.wake_id.is_none() {
+            let triggered_by = self.first_pending(&record).await;
+            self.create_wake(id, &triggered_by).await;
+        }
+        let token = self.new_token();
+        let updated = self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return None;
+            };
+            record.holder = Some(worker.to_string());
+            record.token = Some(token.clone());
+            record.token_generation = record.generation;
+            record.lease_expires_at_ms = Some(now.saturating_add(self.lease_ms(record)));
+            record.status = SubscriptionStatus::Active;
+            Some(record.clone())
+        });
+        let record = updated.ok_or_else(SubscriptionError::not_found)?;
+        self.save(&record).await;
+        Ok(ClaimResponse {
+            wake_id: record.wake_id.clone().unwrap_or_default(),
+            generation: record.generation,
+            token,
+            streams: self.stream_infos(&record).await,
+            lease_ttl_ms: record.lease_ttl_ms,
+        })
+    }
+
+    /// Acknowledge a pull-wake claim. Without `done` the call extends the lease.
+    ///
+    /// # Errors
+    ///
+    /// Returns the fence or token error, or an invalid offset.
+    pub async fn ack(
+        &self,
+        id: &str,
+        token: &str,
+        request: AckRequest,
+    ) -> Result<AckResponse, SubscriptionError> {
+        self.finish_request(id, token, request, true).await
+    }
+
+    /// Acknowledge a webhook wake.
+    ///
+    /// # Errors
+    ///
+    /// Returns the fence or token error, or an invalid offset.
+    pub async fn callback(
+        &self,
+        id: &str,
+        token: &str,
+        request: AckRequest,
+    ) -> Result<AckResponse, SubscriptionError> {
+        self.finish_request(id, token, request, false).await
+    }
+
+    /// Release a pull-wake lease without acknowledging.
+    ///
+    /// # Errors
+    ///
+    /// Returns the fence or token error.
+    pub async fn release(
+        &self,
+        id: &str,
+        token: &str,
+        request: AckRequest,
+    ) -> Result<(), SubscriptionError> {
+        self.ensure_loaded().await;
+        let now = self.now_ms();
+        self.expire_due_leases(now).await;
+        let record = self
+            .store
+            .get(id)
+            .ok_or_else(SubscriptionError::not_found)?;
+        if record.kind != SubscriptionType::PullWake {
+            return Err(SubscriptionError::invalid("Subscription is not pull-wake"));
+        }
+        validate_wake(&record, token, &request)?;
+        let updated = self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return None;
+            };
+            record.clear_wake();
+            Some(record.clone())
+        });
+        let Some(record) = updated else {
+            return Err(SubscriptionError::not_found());
+        };
+        self.log_persist(id, self.store.persist(&record).await);
+        if self.has_pending(&record).await {
+            let triggered_by = self.first_pending(&record).await;
+            self.create_wake(id, &triggered_by).await;
+        }
+        Ok(())
+    }
+
+    /// Expire due leases and run due webhook retries. A host calls this on a timer.
+    pub async fn tick(&self) {
+        let now = self.now_ms();
+        self.expire_due_leases(now).await;
+        self.retry_due(now).await;
+    }
+
+    /// Deliver the webhook retries that are due at `now`.
+    pub async fn retry_due(&self, now: i64) {
+        let due = self.store.with_records(|records| {
+            records
+                .values()
+                .filter(|record| {
+                    record.status == SubscriptionStatus::Failed
+                        && record.next_attempt_at_ms.is_some_and(|at| at <= now)
+                })
+                .map(|record| record.id.clone())
+                .collect::<Vec<_>>()
+        });
+        for id in due {
+            self.deliver(&id).await;
+        }
+    }
+
+    /// Handle an append to a stream. The observed virtual file system (VFS) calls this.
+    pub async fn on_stream_written(&self, name: &StreamName) {
+        let config = self.config().clone();
+        let Some(relative) = config.relative_path(name.as_str()).map(str::to_string) else {
+            return;
+        };
+        let now = self.now_ms();
+        self.expire_due_leases(now).await;
+
+        let candidates = self.store.with_records(|records| {
+            records
+                .values()
+                .filter(|record| {
+                    record.streams.contains_key(&relative)
+                        || record
+                            .pattern
+                            .as_deref()
+                            .is_some_and(|pattern| glob_match(pattern, &relative))
+                })
+                .map(|record| record.id.clone())
+                .collect::<Vec<_>>()
+        });
+        if candidates.is_empty() {
+            return;
+        }
+
+        let tail = self.tail_of(&relative).await;
+        for id in candidates {
+            let outcome = self.store.with_record_mut(&id, |slot| {
+                let Some(record) = slot else {
+                    return None;
+                };
+                let mut changed = false;
+                if record
+                    .pattern
+                    .as_deref()
+                    .is_some_and(|pattern| glob_match(pattern, &relative))
+                    && !record.streams.contains_key(&relative)
+                {
+                    record.streams.insert(
+                        relative.clone(),
+                        StreamLink {
+                            path: relative.clone(),
+                            link_types: BTreeSet::from([LinkType::Glob]),
+                            acked_offset: BEFORE_FIRST.to_string(),
+                        },
+                    );
+                    changed = true;
+                }
+                let should_wake = record.streams.get(&relative).is_some_and(|link| {
+                    record.is_idle()
+                        && compare_offsets(&tail, &link.acked_offset) == Ordering::Greater
+                });
+                Some((record.clone(), changed, should_wake))
+            });
+            let Some((record, changed, should_wake)) = outcome else {
+                continue;
+            };
+            if changed || should_wake {
+                self.log_persist(&id, self.store.persist(&record).await);
+            }
+            if should_wake {
+                self.create_wake(&id, &relative).await;
+            }
+        }
+    }
+
+    async fn finish_request(
+        &self,
+        id: &str,
+        token: &str,
+        request: AckRequest,
+        require_pull_wake: bool,
+    ) -> Result<AckResponse, SubscriptionError> {
+        self.ensure_loaded().await;
+        let now = self.now_ms();
+        self.expire_due_leases(now).await;
+        let record = self
+            .store
+            .get(id)
+            .ok_or_else(SubscriptionError::not_found)?;
+        if require_pull_wake && record.kind != SubscriptionType::PullWake {
+            return Err(SubscriptionError::invalid("Subscription is not pull-wake"));
+        }
+        validate_wake(&record, token, &request)?;
+        self.apply_acks(id, request.acks.as_deref().unwrap_or(&[]))
+            .await?;
+        if request.done {
+            let next_wake = self.finish_wake(id).await;
+            Ok(AckResponse {
+                ok: true,
+                next_wake,
+            })
+        } else {
+            self.extend_lease(id, now).await;
+            Ok(AckResponse {
+                ok: true,
+                next_wake: false,
+            })
+        }
+    }
+
+    async fn apply_acks(&self, id: &str, entries: &[AckEntry]) -> Result<(), SubscriptionError> {
+        if entries.is_empty() {
+            return Ok(());
+        }
+        let record = self
+            .store
+            .get(id)
+            .ok_or_else(SubscriptionError::not_found)?;
+        let mut planned = Vec::with_capacity(entries.len());
+        for entry in entries {
+            let Some(raw) = entry.stream_path() else {
+                return Err(invalid_offset("Ack entry has no stream"));
+            };
+            let path = normalize_relative_path(raw);
+            let Some(link) = record.streams.get(&path) else {
+                return Err(invalid_offset(
+                    "Ack references an unknown subscription stream",
+                ));
+            };
+            if entry.offset == BEFORE_FIRST {
+                return Err(invalid_offset("Ack offset must not be -1"));
+            }
+            if compare_offsets(&entry.offset, &link.acked_offset) == Ordering::Less {
+                return Err(invalid_offset("Ack offset regresses the committed cursor"));
+            }
+            planned.push((path, entry.offset.clone()));
+        }
+        for (path, offset) in &planned {
+            let tail = self.tail_of(path).await;
+            if compare_offsets(offset, &tail) == Ordering::Greater {
+                return Err(invalid_offset("Ack offset is beyond stream tail"));
+            }
+        }
+        self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return;
+            };
+            for (path, offset) in planned {
+                if let Some(link) = record.streams.get_mut(&path) {
+                    link.acked_offset = offset;
+                }
+            }
+        });
+        Ok(())
+    }
+
+    async fn finish_wake(&self, id: &str) -> bool {
+        let updated = self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return None;
+            };
+            let snapshot = record.wake_snapshot.clone();
+            for (path, offset) in snapshot {
+                if let Some(link) = record.streams.get_mut(&path) {
+                    if compare_offsets(&offset, &link.acked_offset) == Ordering::Greater {
+                        link.acked_offset = offset;
+                    }
+                }
+            }
+            record.clear_wake();
+            record.status = SubscriptionStatus::Active;
+            record.retry_count = 0;
+            record.next_attempt_at_ms = None;
+            Some(record.clone())
+        });
+        let Some(record) = updated else {
+            return false;
+        };
+        self.log_persist(id, self.store.persist(&record).await);
+        if self.has_pending(&record).await {
+            let triggered_by = self.first_pending(&record).await;
+            // The wake path calls the delivery path, and a finished delivery can create the next
+            // wake. Box this edge so the async call graph stays finite.
+            Box::pin(self.create_wake(id, &triggered_by)).await;
+            true
+        } else {
+            false
+        }
+    }
+
+    async fn extend_lease(&self, id: &str, now: i64) {
+        let updated = self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return None;
+            };
+            record.lease_expires_at_ms = Some(now.saturating_add(self.lease_ms(record)));
+            Some(record.clone())
+        });
+        if let Some(record) = updated {
+            self.log_persist(id, self.store.persist(&record).await);
+        }
+    }
+
+    async fn create_wake(&self, id: &str, triggered_by: &str) {
+        let Some(record) = self.store.get(id) else {
+            return;
+        };
+        if !record.is_idle() {
+            return;
+        }
+        let mut tails = BTreeMap::new();
+        for path in record.streams.keys() {
+            tails.insert(path.clone(), self.tail_of(path).await);
+        }
+        let now = self.now_ms();
+        let created = self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return None;
+            };
+            if !record.is_idle() {
+                return None;
+            }
+            record.generation = record.generation.saturating_add(1);
+            record.wake_id = Some(self.new_wake_id());
+            record.wake_snapshot = tails.clone();
+            match record.kind {
+                SubscriptionType::Webhook => {
+                    record.token = Some(self.new_token());
+                    record.token_generation = record.generation;
+                    record.lease_expires_at_ms = Some(now.saturating_add(self.lease_ms(record)));
+                }
+                SubscriptionType::PullWake => {
+                    record.token = None;
+                    record.token_generation = record.generation;
+                    record.lease_expires_at_ms = None;
+                }
+            }
+            Some(record.clone())
+        });
+        let Some(record) = created else {
+            return;
+        };
+        self.log_persist(id, self.store.persist(&record).await);
+        match record.kind {
+            SubscriptionType::Webhook => self.deliver(id).await,
+            SubscriptionType::PullWake => {
+                if let Some(wake_stream) = record.wake_stream.clone() {
+                    self.write_wake_event(id, &wake_stream, triggered_by, record.generation)
+                        .await;
+                }
+            }
+        }
+    }
+
+    async fn deliver(&self, id: &str) {
+        let Some(record) = self.store.get(id) else {
+            return;
+        };
+        let (Some(url), Some(wake_id), Some(token)) = (
+            record.webhook_url.clone(),
+            record.wake_id.clone(),
+            record.token.clone(),
+        ) else {
+            return;
+        };
+        let notification = WakeNotification {
+            subscription_id: id.to_string(),
+            wake_id,
+            generation: record.generation,
+            streams: self.stream_infos(&record).await,
+            callback_url: format!(
+                "{}{}/callback",
+                record.callback_base_url,
+                self.config().subscription_path(id)
+            ),
+            callback_token: token,
+        };
+        let body = match serde_json::to_vec(&notification) {
+            Ok(body) => body,
+            Err(error) => {
+                tracing::error!(subscription = id, "webhook body encode failed: {error}");
+                return;
+            }
+        };
+        let signature = self.signing.sign_now(&self.ctx, &body);
+        let request = WebhookRequest {
+            url,
+            headers: vec![
+                ("content-type".to_string(), "application/json".to_string()),
+                ("webhook-signature".to_string(), signature.header_value()),
+            ],
+            body,
+        };
+        match self.sender.send(request).await {
+            Ok(response) if (200..300).contains(&response.status) => {
+                let done =
+                    serde_json::from_slice::<DoneFlag>(&response.body).is_ok_and(|flag| flag.done);
+                let updated = self.store.with_record_mut(id, |slot| {
+                    let Some(record) = slot else {
+                        return None;
+                    };
+                    record.status = SubscriptionStatus::Active;
+                    record.retry_count = 0;
+                    record.next_attempt_at_ms = None;
+                    Some(record.clone())
+                });
+                if let Some(record) = updated {
+                    self.log_persist(id, self.store.persist(&record).await);
+                }
+                if done {
+                    self.finish_wake(id).await;
+                }
+            }
+            Ok(response) => {
+                tracing::warn!(
+                    subscription = id,
+                    status = response.status,
+                    "webhook delivery returned a failure status"
+                );
+                self.schedule_retry(id).await;
+            }
+            Err(error) => {
+                tracing::warn!(subscription = id, "webhook delivery failed: {error}");
+                self.schedule_retry(id).await;
+            }
+        }
+    }
+
+    async fn schedule_retry(&self, id: &str) {
+        let now = self.now_ms();
+        let updated = self.store.with_record_mut(id, |slot| {
+            let Some(record) = slot else {
+                return None;
+            };
+            record.retry_count = record.retry_count.saturating_add(1);
+            let delay = self.retry_delay(record.retry_count);
+            record.status = SubscriptionStatus::Failed;
+            record.next_attempt_at_ms =
+                Some(now.saturating_add(i64::try_from(delay).unwrap_or(i64::MAX)));
+            Some(record.clone())
+        });
+        if let Some(record) = updated {
+            self.log_persist(id, self.store.persist(&record).await);
+        }
+    }
+
+    async fn expire_due_leases(&self, now: i64) {
+        let expired = self.store.with_records(|records| {
+            records
+                .values()
+                .filter(|record| record.lease_expires_at_ms.is_some_and(|at| at <= now))
+                .map(|record| record.id.clone())
+                .collect::<Vec<_>>()
+        });
+        for id in expired {
+            let updated = self.store.with_record_mut(&id, |slot| {
+                let Some(record) = slot else {
+                    return None;
+                };
+                tracing::debug!(
+                    subscription = id.as_str(),
+                    "expiring the subscription lease"
+                );
+                record.clear_wake();
+                Some(record.clone())
+            });
+            let Some(record) = updated else {
+                continue;
+            };
+            self.log_persist(&id, self.store.persist(&record).await);
+            if self.has_pending(&record).await {
+                let triggered_by = self.first_pending(&record).await;
+                self.create_wake(&id, &triggered_by).await;
+            }
+        }
+    }
+
+    async fn write_wake_event(&self, id: &str, wake_stream: &str, stream: &str, generation: u64) {
+        let absolute = self.config().absolute_path(wake_stream);
+        let Ok(name) = StreamName::parse(&absolute) else {
+            tracing::warn!(
+                subscription = id,
+                stream = absolute,
+                "wake stream name is invalid"
+            );
+            return;
+        };
+        let event = WakeEvent {
+            kind: "wake".to_string(),
+            subscription_id: id.to_string(),
+            stream: stream.to_string(),
+            generation,
+            ts: self.now_ms(),
+        };
+        let bytes = match serde_json::to_vec(&event) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                tracing::error!(subscription = id, "wake event encode failed: {error}");
+                return;
+            }
+        };
+        if let Err(error) = self
+            .store
+            .stream()
+            .append(&name, AppendRequest::new(Chunk::new(bytes)))
+            .await
+        {
+            tracing::warn!(
+                subscription = id,
+                stream = absolute,
+                "wake event write failed: {error}"
+            );
+        }
+    }
+
+    async fn list_streams(&self) -> Vec<(String, String)> {
+        let Ok(prefix) = StreamName::parse(&self.config().stream_root) else {
+            return Vec::new();
+        };
+        match self.store.list(&prefix).await {
+            Ok(entries) => entries
+                .into_iter()
+                .filter_map(|entry| {
+                    let relative = self
+                        .config()
+                        .relative_path(entry.name.as_str())
+                        .map(str::to_string)?;
+                    Some((relative, offset_from_len(entry.meta.len)))
+                })
+                .collect(),
+            Err(error) => {
+                tracing::warn!("stream list failed: {error}");
+                Vec::new()
+            }
+        }
+    }
+
+    async fn stream_infos(&self, record: &SubscriptionRecord) -> Vec<StreamInfo> {
+        let mut infos = Vec::with_capacity(record.streams.len());
+        for link in record.streams.values() {
+            let tail = self.tail_of(&link.path).await;
+            infos.push(StreamInfo {
+                path: link.path.clone(),
+                link_type: link.link_type(),
+                acked_offset: link.acked_offset.clone(),
+                has_pending: compare_offsets(&tail, &link.acked_offset) == Ordering::Greater,
+                tail_offset: tail,
+            });
+        }
+        infos
+    }
+
+    async fn has_pending(&self, record: &SubscriptionRecord) -> bool {
+        for link in record.streams.values() {
+            let tail = self.tail_of(&link.path).await;
+            if compare_offsets(&tail, &link.acked_offset) == Ordering::Greater {
+                return true;
+            }
+        }
+        false
+    }
+
+    async fn first_pending(&self, record: &SubscriptionRecord) -> String {
+        for link in record.streams.values() {
+            let tail = self.tail_of(&link.path).await;
+            if compare_offsets(&tail, &link.acked_offset) == Ordering::Greater {
+                return link.path.clone();
+            }
+        }
+        String::new()
+    }
+
+    async fn tail_of(&self, relative: &str) -> String {
+        let absolute = self.config().absolute_path(relative);
+        let Ok(name) = StreamName::parse(&absolute) else {
+            return zero_offset();
+        };
+        match self.store.stream().head(&name).await {
+            Ok(head) => wire::offset_text(&head.tail),
+            Err(StoreError::NotFound | StoreError::Gone) => zero_offset(),
+            Err(error) => {
+                tracing::warn!(stream = absolute, "stream head failed: {error}");
+                zero_offset()
+            }
+        }
+    }
+
+    async fn view_of(&self, record: &SubscriptionRecord) -> SubscriptionView {
+        let streams = self
+            .stream_infos(record)
+            .await
+            .into_iter()
+            .map(|info| StreamView {
+                path: info.path,
+                link_type: info.link_type,
+                acked_offset: info.acked_offset,
+            })
+            .collect();
+        let webhook = record.webhook_url.as_ref().map(|url| WebhookView {
+            url: url.clone(),
+            signing: WebhookSigningView {
+                alg: "ed25519".to_string(),
+                kid: self.signing.kid().to_string(),
+                jwks_url: format!("{}{}", record.callback_base_url, self.config().jwks_path()),
+            },
+        });
+        SubscriptionView {
+            id: record.id.clone(),
+            subscription_id: record.id.clone(),
+            kind: record.kind,
+            pattern: record.pattern.clone(),
+            streams,
+            webhook,
+            wake_stream: record.wake_stream.clone(),
+            lease_ttl_ms: record.lease_ttl_ms,
+            created_at: record.created_at.clone(),
+            status: record.status,
+            description: record.description.clone(),
+        }
+    }
+
+    async fn save(&self, record: &SubscriptionRecord) {
+        if let Err(error) = self.store.save(record).await {
+            tracing::warn!(
+                subscription = record.id.as_str(),
+                "subscription state write failed: {error}"
+            );
+        }
+    }
+
+    async fn persist_record(&self, id: &str) {
+        if let Some(record) = self.store.get(id) {
+            self.log_persist(id, self.store.persist(&record).await);
+        }
+    }
+
+    fn log_persist(&self, id: &str, result: Result<(), String>) {
+        if let Err(error) = result {
+            tracing::warn!(
+                subscription = id,
+                "subscription state write failed: {error}"
+            );
+        }
+    }
+
+    async fn ensure_loaded(&self) {
+        if let Err(error) = self.store.load().await {
+            tracing::warn!("subscription state load failed: {error}");
+        }
+    }
+
+    fn now_ms(&self) -> i64 {
+        unix_millis(self.ctx.clock().wall_now())
+    }
+
+    fn created_at(&self) -> String {
+        let millis = self.now_ms();
+        time::OffsetDateTime::from_unix_timestamp_nanos(i128::from(millis) * 1_000_000)
+            .ok()
+            .and_then(|time| {
+                time.format(&time::format_description::well_known::Rfc3339)
+                    .ok()
+            })
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
+    }
+
+    fn lease_ms(&self, record: &SubscriptionRecord) -> i64 {
+        i64::try_from(record.lease_ttl_ms).unwrap_or(i64::MAX)
+    }
+
+    fn retry_delay(&self, retry_count: u32) -> u64 {
+        let config = self.config();
+        let exponent = retry_count.saturating_sub(1).min(16);
+        let base = config
+            .min_retry_delay_ms
+            .saturating_mul(1_u64 << exponent)
+            .min(config.max_retry_delay_ms);
+        let span = base.saturating_mul(u64::from(config.retry_jitter_percent)) / 100;
+        if span == 0 {
+            return base;
+        }
+        let random = self.random_u64() % span.saturating_mul(2).saturating_add(1);
+        let jitter = random as i64 - span as i64;
+        u64::try_from(base as i64 + jitter)
+            .unwrap_or(base)
+            .max(config.min_retry_delay_ms)
+    }
+
+    fn new_wake_id(&self) -> String {
+        let bytes = self.random_bytes(12);
+        let mut out = String::with_capacity(2 + bytes.len() * 2);
+        out.push_str("w_");
+        for byte in bytes {
+            let _ = write!(out, "{byte:02x}");
+        }
+        out
+    }
+
+    fn new_token(&self) -> String {
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine as _;
+        URL_SAFE_NO_PAD.encode(self.random_bytes(32))
+    }
+
+    fn random_u64(&self) -> u64 {
+        let rng = self.ctx.rng();
+        let mut rng = rng.lock().unwrap_or_else(|error| error.into_inner());
+        rng.next_u64()
+    }
+
+    fn random_bytes(&self, len: usize) -> Vec<u8> {
+        let mut out = Vec::with_capacity(len);
+        while out.len() < len {
+            let value = self.random_u64().to_le_bytes();
+            let take = (len - out.len()).min(value.len());
+            out.extend_from_slice(&value[..take]);
+        }
+        out
+    }
+}
+
+fn validate_wake(
+    record: &SubscriptionRecord,
+    token: &str,
+    request: &AckRequest,
+) -> Result<(), SubscriptionError> {
+    tracing::debug!(
+        subscription = record.id.as_str(),
+        token_present = record.token.is_some(),
+        token_matches = record.token.as_deref() == Some(token),
+        token_generation = record.token_generation,
+        generation = record.generation,
+        wake_id = record.wake_id.as_deref(),
+        request_generation = request.generation,
+        request_wake_id = request.wake_id.as_deref(),
+        "validating subscription wake"
+    );
+    let Some(stored) = record.token.as_deref() else {
+        return Err(SubscriptionError::new(
+            SubscriptionErrorCode::TokenInvalid,
+            "Token invalid",
+        ));
+    };
+    if request
+        .generation
+        .is_some_and(|generation| generation != record.generation)
+    {
+        return Err(SubscriptionError::fenced());
+    }
+    if stored != token {
+        return Err(SubscriptionError::new(
+            SubscriptionErrorCode::TokenInvalid,
+            "Token invalid",
+        ));
+    }
+    if record.token_generation != record.generation
+        || request.generation != Some(record.generation)
+        || request.wake_id.as_deref() != record.wake_id.as_deref()
+    {
+        return Err(SubscriptionError::fenced());
+    }
+    Ok(())
+}
+
+fn invalid_offset(message: &str) -> SubscriptionError {
+    SubscriptionError::new(SubscriptionErrorCode::InvalidOffset, message)
+}
+
+fn normalize_create(
+    config: &SubscriptionConfig,
+    request: CreateRequest,
+) -> Result<SubscriptionCreate, SubscriptionError> {
+    let kind = match request.kind.as_str() {
+        "webhook" => SubscriptionType::Webhook,
+        "pull-wake" => SubscriptionType::PullWake,
+        _ => {
+            return Err(SubscriptionError::invalid(
+                "type must be \"webhook\" or \"pull-wake\"",
+            ))
+        }
+    };
+    let pattern = request
+        .pattern
+        .map(|pattern| normalize_relative_path(&pattern))
+        .filter(|pattern| !pattern.is_empty());
+    let mut streams = BTreeSet::new();
+    for stream in request.streams {
+        let path = normalize_relative_path(&stream);
+        if path.is_empty() {
+            return Err(SubscriptionError::invalid(
+                "streams must contain non-empty paths",
+            ));
+        }
+        streams.insert(path);
+    }
+    if pattern.is_none() && streams.is_empty() {
+        return Err(SubscriptionError::invalid(
+            "At least one of pattern or streams is required",
+        ));
+    }
+    let lease_ttl_ms = request.lease_ttl_ms.unwrap_or(config.default_lease_ttl_ms);
+    if lease_ttl_ms < config.min_lease_ttl_ms || lease_ttl_ms > config.max_lease_ttl_ms {
+        return Err(SubscriptionError::invalid(format!(
+            "lease_ttl_ms must be an integer from {} to {}",
+            config.min_lease_ttl_ms, config.max_lease_ttl_ms
+        )));
+    }
+    let webhook = match kind {
+        SubscriptionType::Webhook => {
+            let url = request
+                .webhook
+                .map(|webhook| webhook.url)
+                .filter(|url| !url.is_empty())
+                .ok_or_else(|| {
+                    SubscriptionError::invalid("webhook subscriptions require webhook.url")
+                })?;
+            validate_webhook_url(&url).map_err(|message| {
+                SubscriptionError::new(SubscriptionErrorCode::WebhookUrlRejected, message)
+            })?;
+            Some(WebhookCreate { url })
+        }
+        SubscriptionType::PullWake => None,
+    };
+    let wake_stream = request
+        .wake_stream
+        .map(|stream| normalize_relative_path(&stream))
+        .filter(|stream| !stream.is_empty());
+    if kind == SubscriptionType::PullWake && wake_stream.is_none() {
+        return Err(SubscriptionError::invalid(
+            "pull-wake subscriptions require wake_stream",
+        ));
+    }
+    Ok(SubscriptionCreate {
+        kind,
+        pattern,
+        streams: streams.into_iter().collect(),
+        webhook,
+        wake_stream,
+        lease_ttl_ms,
+        description: request.description,
+    })
+}

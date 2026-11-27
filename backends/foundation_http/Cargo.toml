@@ -82,6 +82,9 @@ foundation_nativeapis = { path = "../foundation_nativeapis", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 # The Durable Streams example logs through tracing when `DURABLE_LOG` is set.
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
+# The Durable Streams example mounts the subscription control handler beside the
+# stream handler (spec 71 feature 10).
+foundation_event_stream = { path = "../foundation_event_stream" }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
 async-trait = "0.1"
