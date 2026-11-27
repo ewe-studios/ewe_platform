@@ -6544,6 +6544,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
+ "sha2 0.10.9",
  "sha2 0.11.1",
  "ssh-key",
  "tempfile",
