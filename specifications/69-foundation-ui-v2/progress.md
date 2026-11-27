@@ -1794,9 +1794,9 @@ Issue 1146 tracks the separate full-size focus timeout.
 
 [Issue 879](https://github.com/ewe-studios/ewe_platform/issues/879) is closed after the Android continuation build record.
 [Issue 722](https://github.com/ewe-studios/ewe_platform/issues/722) is closed after the macOS Metal test passes attach, rejection, and recovery on one owner.
-[Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) needs an installed application built from the shared provider outputs.
-Both staged Android library names and architectures match the provider record.
-The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) includes the provider and application checks.
+[Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) is closed.
+The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46060536936/job/140713453224) builds both target libraries with the shared provider.
+It installs and launches both Todo applications, then passes the offline and server screen checks.
 The [unsigned acceptance inventory](completion-audit.md#unsigned-feature-12-14-and-16-checks) records the current checks and remaining evidence.
 
 ## Native search input fixture
@@ -2104,3 +2104,15 @@ Strict Clippy passes for all targets of the default native package on Linux AMD6
 The default integration suite passes all 11 tests and exits with status zero.
 The graphics crate also passes its Linux WebAssembly build check.
 [Issue 713](https://github.com/ewe-studios/ewe_platform/issues/713)
+
+## Native preview keyboard and replay checks
+
+The hosted candidate stage builds and verifies both starters.
+The full preview then reports two application test failures.
+The iPhone test cannot find the expected space key label on Xcode 26.6.
+With the test repair, Xcode 27.2 passes search and entry in both appearances and all three theme capture paths.
+[Issue 1179](https://github.com/ewe-studios/ewe_platform/issues/1179)
+
+The installed Android test checks successful repeated deletion. The task expected an old refusal result.
+The scratch emulator reports success after both deletion attempts and both missing-record checks.
+[Issue 1181](https://github.com/ewe-studios/ewe_platform/issues/1181)

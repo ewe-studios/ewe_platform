@@ -1572,3 +1572,13 @@ Keep the earlier two-wire result in its migration record.
 
 The Linux fallback reports an incompatible surface and consumes both of its inputs.
 Check that path with the Linux target. The Apple and Android builds use platform-specific surface code.
+
+## Native preview keyboard and replay checks
+
+A software keyboard exposes different space key labels across simulator versions.
+Enter the space in the focused field. Verify the full text and the keyboard before the capture.
+Retain the layout checks above the keyboard.
+
+The Android task and its instrumentation must use the same result text.
+The instrumentation sends two delete requests and checks the missing record after each request.
+The Android Debug Bridge (ADB) raw report gives the result text and success code.

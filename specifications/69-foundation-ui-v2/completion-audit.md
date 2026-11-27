@@ -71,9 +71,9 @@ See the [asset path contract](features/37-todo-server-build-and-state/feature.md
 
 ### Issue reconciliation
 
-- [Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) remains open. Commit `74202df65` selects the requested library for both Android architectures.
-  The staged ARM64 and x86-64 libraries have the expected names and architectures. The installed application still needs a build record that links it to these provider outputs.
-  The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) schedules the shared provider build and the Android application test.
+- [Issue 837](https://github.com/ewe-studios/ewe_platform/issues/837) is closed. Commit `74202df65` selects the requested library for both Android architectures.
+  The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46060536936/job/140713453224) builds both architectures, assembles the applications, installs them and passes both initial screen replays.
+  [Issue 1181](https://github.com/ewe-studios/ewe_platform/issues/1181) tracks the later instrumentation result check.
 - [Issue 879](https://github.com/ewe-studios/ewe_platform/issues/879) is closed. Commit `1a10ee15a` restores Android compilation. The full build stages both libraries. See the [Android build record](progress.md#android-client-continuation-compiles).
 - [Issue 722](https://github.com/ewe-studios/ewe_platform/issues/722) is closed. Commit `eee45d716` fixes the graphics extent check.
   The macOS Metal test presents a 1206 by 2241 surface, rejects an oversized resize, and presents again on the same owner.
