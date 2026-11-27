@@ -683,3 +683,26 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   lists `Read` as a server stream. The brief makes `Read` one bounded page and
   `Subscribe` the live stream. The brief wins for this task, so the proto has
   seven unary calls and one streaming call.
+
+## Configurable body cap, feature 06 T12 (2026-11-27)
+
+- **The adapter held the cap as a constant.** `MAX_BODY_BYTES` lived in
+  `native/durable.rs`, so a host could not change the largest body. The cap is
+  now `DurableLimits::max_body_bytes`, with `with_max_body_bytes` and an 8 MiB
+  default. The adapter reads `service.limits().max_body_bytes` once per request.
+- **The declared length and the read share one value.** A declared
+  `Content-Length` over the cap answers `413` and closes the connection, so a
+  partial body cannot leave a tail for the next request. The bounded read uses
+  the same value, so the two checks cannot drift apart.
+- **A small cap makes the test cheap and proves the source.** The test helper
+  puts `DurableLimits` in the `Ctx`. A 64-byte cap makes a 65-byte declared body
+  answer `413`, and a 64-byte JSON body append with `204`. The old test used a
+  9 MiB body and the fixed default, so it could not tell the limit from a
+  constant.
+- **The suite's 5 s limit measures the host, not the server.** On a shared host
+  with load 300 to 800 from other worktrees, 3 to 8 heavy tests hit the Vitest
+  `Test timed out in 5000ms` limit on each run. No test failed an assertion or
+  returned a wrong status. With `--testTimeout=60000` the suite passed 337 of
+  338, and the one failure was also a timeout. A live probe of a 10 MiB declared
+  body answered `413` in 11 ms. The body cap was not the cause. Run the gate on
+  a quiet host.

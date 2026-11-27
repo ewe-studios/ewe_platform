@@ -98,7 +98,7 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `ewe.durable.v1.DurableStreamService` maps create, append, read (one bounded page), head,
       close, delete and fork; `Subscribe` is the server stream. Test:
       `rpc_stream_resumes_from_offset`, `http_and_rpc_return_same_chunks`.
-- [ ] **T12 — body cap is configuration.** Move the adapter body cap from the constant
+- [x] **T12 — body cap is configuration.** Move the adapter body cap from the constant
       `MAX_BODY_BYTES` to `DurableLimits::max_body_bytes` (default 8 MiB, builder method). A
       declared body over the cap answers `413` and closes. Test:
       `oversized_body_answers_413_from_the_limit`.

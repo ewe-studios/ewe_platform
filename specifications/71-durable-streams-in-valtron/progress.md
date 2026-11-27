@@ -2,6 +2,39 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 06 T12 landed. The body cap is configuration.
+  `DurableLimits::max_body_bytes` holds the largest request body. It has
+  `with_max_body_bytes` and an 8 MiB default. The doc comment names the wasm
+  bridge default, the Cloudflare 100 MB cap and the nginx 1 MiB default. The
+  HTTP adapter reads the value from the service limits. The constant
+  `MAX_BODY_BYTES` is gone. A declared `Content-Length` over the cap still
+  answers `413` and closes the connection. The bounded body read uses the same
+  value.
+
+  Tests: `tests/durable_server.rs` adds
+  `oversized_body_answers_413_from_the_limit` and `body_at_the_limit_passes`.
+  Each starts a server with a 64-byte cap from the context. A 65-byte declared
+  body answers `413`. A 64-byte JSON body appends with `204`. The
+  `durable_adapter` and `durable_server` suites pass. Clippy is clean for
+  `foundation_core` and `foundation_http`. `check-clock-params` and
+  `check-time-sources` report no violation.
+
+  The conformance gate could not go green on this host. Other worktrees ran
+  Android, iOS and wasm builds, so the host load was 300 to 800 on 10 cores.
+  Three gate runs completed in 119, 124 and 151 s with 4, 3 and 8 failures. Every
+  failure was a Vitest `Test timed out in 5000ms`, never an assertion or a wrong
+  status. With `--testTimeout=60000` the server suite passed 337 of 338; the one
+  failure was also a timeout. A live probe of a 10 MiB declared body answered
+  `HTTP/1.1 413` in 11 ms, so the body cap is not the cause. A gate run on a
+  quiet host is still needed, and the client suite did not run because the gate
+  stops at the server step. The full `durable_server` binary also aborted after
+  5 of 7 tests under this load; each test passes alone, and the file passed 7 of
+  7 before the load rose.
+
+  The change also cleared three old pedantic clippy lints that blocked the
+  `foundation_http` library lint: `has_empty_offset`, the `serve_sse` length and
+  the `handle_idle` length.
+
 - 2026-11-27: feature 06 T9 landed. The Durable Streams `ConnectRPC` surface is
   `ewe.durable.v1.DurableStreamService` in
   `backends/foundation_connectrpc/proto/ewe/durable/v1/durable.proto`. The
@@ -367,11 +400,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   executor. Issue #1052 is closed. Both executors pass the shared VFS kit on
   real local bindings under `wrangler dev --local`: `/run` on a SQLite-backed
   Durable Object and `/run-d1` on D1.
-- **06-http-rpc-surface** — 🟡 in progress (9/12). `DurableService`/`DurableLimits`, JSON mode,
+- **06-http-rpc-surface** — 🟡 in progress (10/12). `DurableService`/`DurableLimits`, JSON mode,
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff`, the full
-  server conformance run and the `ConnectRPC` service landed. `429`, the oracles and the
-  configurable body cap remain.
+  server conformance run, the `ConnectRPC` service and the configurable body cap landed. `429`
+  and the oracles remain.
 - **07-durable-streams-client** — 🟢 done (11/11). The client core, transport injection,
   catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all

@@ -8,7 +8,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::durable::{DurableStream, MemoryVfs};
+use foundation_core::durable::{DurableLimits, DurableStream, MemoryVfs};
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::valtron::initialize_pool;
 use foundation_http::native::durable::DurableHandler;
@@ -56,6 +56,15 @@ fn make_client(addr: std::net::SocketAddr) -> DynNetClient {
 fn durable_app() -> HttpApp<Arc<dyn Serve>> {
     let ctx = Ctx::host();
     let _ = ctx.get_or_insert(DurableStream::new(Arc::new(MemoryVfs::new()), &ctx));
+    let mut app = HttpApp::with_context(ctx);
+    app.fallback::<DurableHandler>();
+    app
+}
+
+fn durable_app_with_body_limit(max_body_bytes: usize) -> HttpApp<Arc<dyn Serve>> {
+    let ctx = Ctx::host();
+    let _ = ctx.get_or_insert(DurableStream::new(Arc::new(MemoryVfs::new()), &ctx));
+    let _ = ctx.get_or_insert(DurableLimits::default().with_max_body_bytes(max_body_bytes));
     let mut app = HttpApp::with_context(ctx);
     app.fallback::<DurableHandler>();
     app
@@ -272,6 +281,96 @@ fn given_an_oversized_body_when_the_client_declares_it_then_the_server_answers_4
     assert!(
         response.starts_with("HTTP/1.1 413"),
         "expected 413 for an oversized body, got: {response}"
+    );
+
+    shutdown.turn_on();
+}
+
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn oversized_body_answers_413_from_the_limit() {
+    use std::io::{Read, Write};
+    use std::net::{Shutdown, TcpStream};
+
+    let _guard = initialize_pool(42, Some(5));
+    // A small configured cap proves the adapter reads the limit from the
+    // service, not a built-in constant.
+    let limit = 64_usize;
+    let (addr, shutdown) = start_server(durable_app_with_body_limit(limit));
+
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    let body_len = limit + 1;
+    let head = format!(
+        "POST /v1/stream/over-limit HTTP/1.1\r\nHost: test\r\nContent-Type: application/json\r\nContent-Length: {body_len}\r\n\r\n"
+    );
+    stream.write_all(head.as_bytes()).expect("write head");
+    stream.shutdown(Shutdown::Write).expect("half close");
+
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    let mut response = Vec::new();
+    let mut buf = [0_u8; 4096];
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                response.extend_from_slice(&buf[..n]);
+                if response.windows(4).any(|window| window == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            Err(error) => panic!("read response head: {error}"),
+        }
+    }
+
+    let response = String::from_utf8_lossy(&response);
+    assert!(
+        response.starts_with("HTTP/1.1 413"),
+        "expected 413 for a body over the configured limit, got: {response}"
+    );
+
+    shutdown.turn_on();
+}
+
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn body_at_the_limit_passes() {
+    let _guard = initialize_pool(42, Some(5));
+    let limit = 64_usize;
+    let (addr, shutdown) = start_server(durable_app_with_body_limit(limit));
+    let client = make_client(addr);
+
+    // The empty JSON object form `{"data":""}` is 11 bytes, so the filler makes
+    // a valid JSON body of exactly the configured limit.
+    let body = format!("{{\"data\":\"{}\"}}", "x".repeat(limit - 11));
+    assert_eq!(body.len(), limit, "the test body fills the limit exactly");
+
+    let created = client
+        .send(
+            PreparedRequestBuilder::put("http://testserver/limit")
+                .unwrap()
+                .header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .build(),
+        )
+        .unwrap();
+    assert_eq!(status_code(created.get_status()), 201);
+
+    let appended = client
+        .send(
+            PreparedRequestBuilder::post("http://testserver/limit")
+                .unwrap()
+                .header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .body_text(body)
+                .build(),
+        )
+        .unwrap();
+    assert_eq!(
+        status_code(appended.get_status()),
+        204,
+        "a body at the configured limit must pass"
     );
 
     shutdown.turn_on();

@@ -577,7 +577,7 @@ The HTTP adapter maps `DurableService` to HTTP. It owns every wire rule.
 | `DELETE` | no body | `204` | `404`, `410` |
 | Other | | `405` | |
 
-**Body cap.** `DurableLimits::max_body_bytes` sets the largest append body. The default is
+**Body cap.** `DurableLimits::max_body_bytes` sets the largest request body. The default is
 8 MiB: the wasm bridge default, below the Cloudflare 100 MB cap and above the nginx 1 MiB
 default. A declared `Content-Length` over the cap answers `413` and closes the connection, so no
 tail reaches the next request. The parser preserves the `Content-Length` of a parsed request; it

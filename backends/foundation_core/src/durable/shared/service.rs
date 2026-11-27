@@ -20,6 +20,8 @@ pub struct DurableLimits {
     pub long_poll_timeout_ms: u64,
     /// The longest a Server-Sent Events (SSE) connection lives, in milliseconds.
     pub sse_lifetime_ms: u64,
+    /// The largest request body the transport adapter reads, in bytes.
+    pub max_body_bytes: usize,
 }
 
 impl Default for DurableLimits {
@@ -35,6 +37,9 @@ impl Default for DurableLimits {
             // 60 s: the protocol guidance, so a content delivery network (CDN) can collapse
             // reconnects.
             sse_lifetime_ms: 60_000,
+            // 8 MiB: the wasm bridge default, below the Cloudflare 100 MB cap and above the
+            // nginx 1 MiB default.
+            max_body_bytes: 8 * 1024 * 1024,
         }
     }
 }
@@ -65,6 +70,13 @@ impl DurableLimits {
     #[must_use]
     pub fn with_sse_lifetime_ms(mut self, milliseconds: u64) -> Self {
         self.sse_lifetime_ms = milliseconds;
+        self
+    }
+
+    /// Set the largest request body the transport adapter reads, in bytes.
+    #[must_use]
+    pub fn with_max_body_bytes(mut self, bytes: usize) -> Self {
+        self.max_body_bytes = bytes;
         self
     }
 }

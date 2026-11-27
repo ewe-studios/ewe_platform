@@ -341,6 +341,8 @@ impl ConnectionHandler {
 
     // ---- Idle state -------------------------------------------------------
 
+    // One idle turn: the shutdown checkpoint, the keep-alive expiry and the read park.
+    #[allow(clippy::too_many_lines)]
     fn handle_idle(&mut self) -> Option<TaskStatus<(), ()>> {
         // Drain checkpoint (Decision 12 §10): if the server is shutting down and
         // this connection is idle between requests, stop taking new keep-alive

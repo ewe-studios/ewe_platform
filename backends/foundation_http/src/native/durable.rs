@@ -37,10 +37,6 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, UNIX_EPOCH};
 
-/// The largest request body the adapter reads. 8 MiB: the wasm bridge default, well below the
-/// Cloudflare 100 MB cap and above the nginx 1 MiB default.
-const MAX_BODY_BYTES: usize = 8 * 1024 * 1024;
-
 /// The Durable Streams HTTP handler.
 pub struct DurableHandler {
     service: Option<Arc<DurableService<DurableStream>>>,
@@ -218,13 +214,14 @@ impl Serve for DurableHandler {
                     .and_then(|value| value.parse::<usize>().ok())
             });
         let body = req.take_async_body();
+        let max_body_bytes = service.limits().max_body_bytes;
 
         crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
             // A body larger than the cap is read only up to the cap. Its tail
             // stays on the connection and corrupts the next request, so refuse
             // and close the connection.
             if let Some(expected) = declared_body_len {
-                if expected > MAX_BODY_BYTES {
+                if expected > max_body_bytes {
                     tracing::warn!(
                         expected,
                         "durable: request body exceeds the cap, closing the connection"
@@ -234,7 +231,7 @@ impl Serve for DurableHandler {
             }
 
             let body = match body {
-                Some(body) => collect_bytes_bounded(body, MAX_BODY_BYTES).await,
+                Some(body) => collect_bytes_bounded(body, max_body_bytes).await,
                 None => Vec::new(),
             };
 
@@ -321,12 +318,7 @@ pub fn short_body(declared: Option<usize>, read: usize) -> bool {
 /// refuse `?offset=` with `400`.
 fn has_empty_offset(uri: &str) -> bool {
     uri.split_once('?')
-        .map(|(_, query)| {
-            query
-                .split('&')
-                .any(|pair| pair == "offset=")
-        })
-        .unwrap_or(false)
+        .is_some_and(|(_, query)| query.split('&').any(|pair| pair == "offset="))
 }
 
 /// Make a relative `Location` absolute for the request host.
@@ -1154,6 +1146,8 @@ fn streaming_head(headers: &[(SimpleHeader, String)]) -> Result<Vec<u8>, String>
     render_message(response)
 }
 
+// One SSE turn: headers, replay, then the live loop; splitting it hides the sequence.
+#[allow(clippy::too_many_lines)]
 async fn serve_sse(
     service: &DurableService<DurableStream>,
     ctx: &Ctx,
