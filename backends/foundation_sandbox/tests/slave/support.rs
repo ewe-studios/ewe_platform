@@ -10,7 +10,7 @@
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use std::time::Duration;
 
 use foundation_connectrpc::shared::transport::Transport;
@@ -457,6 +457,32 @@ pub fn limits() -> SlaveLimits {
         max_unpack_bytes: 16 * 1024 * 1024 * 1024,
         max_unpack_path_bytes: 4096,
     }
+}
+
+/// The host directory that the plain-root tests use as a work directory.
+///
+/// `EWE_SANDBOX_WORK_ROOT` sets the base first, then `RUNNER_TEMP`, then the
+/// system temporary directory. The process makes one directory below the base
+/// and owns it, so the slave never has to change the mode of a shared
+/// directory such as `/tmp` (issue #1105).
+#[must_use]
+pub fn work_root() -> PathBuf {
+    static ROOT: OnceLock<PathBuf> = OnceLock::new();
+    ROOT.get_or_init(|| {
+        let base = std::env::var_os("EWE_SANDBOX_WORK_ROOT")
+            .or_else(|| std::env::var_os("RUNNER_TEMP"))
+            .map_or_else(std::env::temp_dir, PathBuf::from);
+        let path = base.join(format!("ewe-slave-work-{}", std::process::id()));
+        std::fs::create_dir_all(&path).expect("the work root is made");
+        path
+    })
+    .clone()
+}
+
+/// A `Prepare` request whose work directory is the harness work root.
+#[must_use]
+pub fn plain_prepare_work() -> PrepareRequest {
+    plain_prepare(&work_root().display().to_string())
 }
 
 /// A `Prepare` request with a plain root.

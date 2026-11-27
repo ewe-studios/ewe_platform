@@ -1068,8 +1068,25 @@ impl GuestMounts for NativeMounts {
     }
 
     fn mkdir_p(&self, path: &std::path::Path, mode: u32) -> std::io::Result<()> {
-        std::fs::create_dir_all(path)?;
-        sys::set_mode(path, mode)
+        // Set the mode only on the directory that this call makes. A caller
+        // that prepares a plain root may name a directory that it does not own,
+        // such as `/tmp`; a `chmod` there fails with `EPERM` and it would also
+        // remove a mode that the directory needs (the sticky bit of `/tmp`).
+        match std::fs::create_dir(path) {
+            Ok(()) => sys::set_mode(path, mode),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                if path.is_dir() {
+                    Ok(())
+                } else {
+                    Err(error)
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                std::fs::create_dir_all(path)?;
+                sys::set_mode(path, mode)
+            }
+            Err(error) => Err(error),
+        }
     }
 
     fn write_file(&self, path: &std::path::Path, data: &[u8]) -> std::io::Result<()> {

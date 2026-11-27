@@ -69,6 +69,12 @@ that do not need a Linux host with KVM.
   and of `foundation_compact` in its wasm runs, and removes the `clippy-deny-warnings`
   override of `foundation_jsonschema` from `ci/packages.toml`. `foundation_compact` has no
   override.
+- #1105 is fixed with the same feature. The slave test harness used `/tmp` as its work
+  directory, and the plain-root set-up changed the mode of that existing directory; the
+  runner user does not own `/tmp`, so `Prepare` failed with `EPERM` and 56 slave tests
+  failed. The set-up now sets the mode only on a directory it makes, and the harness takes
+  a work directory it owns from `EWE_SANDBOX_WORK_ROOT`, then `RUNNER_TEMP`, then the
+  system temporary directory.
 - #1095 (a Firecracker guest network) is left for its own change. It needs a Linux host
   with KVM, and this machine has none.
 

@@ -10,7 +10,7 @@ use foundation_sandbox::shared::rpc::messages::{
 };
 
 use super::support::{
-    drain, exec_request_stdin, exit_of, hex, plain_prepare, slave_code, stderr_of, stdout_of,
+    drain, exec_request_stdin, exit_of, hex, plain_prepare_work, slave_code, stderr_of, stdout_of,
     Caller, SlaveProcess,
 };
 
@@ -18,7 +18,7 @@ use super::support::{
 #[test]
 fn input_in_order() {
     let slave = SlaveProcess::start("input-order", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request_stdin(&hex(300), &["cat"]))
@@ -47,7 +47,7 @@ fn input_in_order() {
 #[test]
 fn input_duplicate() {
     let slave = SlaveProcess::start("input-duplicate", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request_stdin(&hex(301), &["cat"]))
@@ -69,7 +69,7 @@ fn input_duplicate() {
 #[test]
 fn input_repeat_before_the_first_chunk() {
     let slave = SlaveProcess::start("input-first-repeat", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let exec_id = hex(305);
     let stream = slave
         .caller
@@ -89,7 +89,7 @@ fn input_repeat_before_the_first_chunk() {
 #[test]
 fn input_gap() {
     let slave = SlaveProcess::start("input-gap", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request_stdin(&hex(302), &["cat"]))
@@ -106,7 +106,7 @@ fn input_gap() {
 #[test]
 fn input_after_eof() {
     let slave = SlaveProcess::start("input-after-eof", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request_stdin(
@@ -134,7 +134,7 @@ fn input_after_eof() {
 #[test]
 fn input_queue_full_then_retry() {
     let slave = SlaveProcess::start("input-queue-full", None, 4);
-    let mut prepare = plain_prepare("/tmp");
+    let mut prepare = plain_prepare_work();
     // The input holds four chunks in all: one in the pipe (one page), two in
     // the queue, and one that the input pump popped and holds while the pipe
     // is full. The fifth chunk must fail.
@@ -229,7 +229,7 @@ proptest! {
             )
         ) {
             let slave = SlaveProcess::start("input-model", None, 4);
-            slave.prepare(&plain_prepare("/tmp"));
+            slave.prepare(&plain_prepare_work());
             let exec_id = hex(400);
             let stream = slave
                 .caller

@@ -5,7 +5,7 @@ use std::time::Duration;
 use foundation_sandbox::shared::error::SlaveErrorCode;
 
 use super::support::{
-    drain, exec_request, exit_of, hex, plain_prepare, process_exists, started_pid, wait_until,
+    drain, exec_request, exit_of, hex, plain_prepare_work, process_exists, started_pid, wait_until,
     zombies_of, SlaveProcess,
 };
 
@@ -31,7 +31,7 @@ fn slave_socket_mode() {
 #[test]
 fn shutdown_grace() {
     let slave = SlaveProcess::start("shutdown-grace", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(
@@ -56,7 +56,7 @@ fn shutdown_grace() {
 #[test]
 fn shutdown_kill() {
     let slave = SlaveProcess::start("shutdown-kill", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(
@@ -82,7 +82,7 @@ fn shutdown_kill() {
 #[test]
 fn shutdown_twice() {
     let slave = SlaveProcess::start("shutdown-twice", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let _stream = slave
         .caller
         .exec(exec_request(
@@ -100,7 +100,7 @@ fn shutdown_twice() {
 #[test]
 fn exec_after_shutdown() {
     let slave = SlaveProcess::start("exec-after-shutdown", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let _stream = slave
         .caller
         .exec(exec_request(
@@ -123,7 +123,7 @@ fn exec_after_shutdown() {
 #[test]
 fn orphans_reaped() {
     let slave = SlaveProcess::start("orphans", None, 8);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     for index in 0..20 {
         let stream = slave
             .caller
@@ -147,7 +147,7 @@ fn orphans_reaped() {
 #[test]
 fn subreaper_adopts() {
     let slave = SlaveProcess::start("subreaper", None, 8);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(
@@ -169,7 +169,7 @@ fn subreaper_adopts() {
 #[test]
 fn sigchld_blocked_before_threads() {
     let slave = SlaveProcess::start("sigchld", None, 8);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     for index in 0..200 {
         let stream = slave
             .caller

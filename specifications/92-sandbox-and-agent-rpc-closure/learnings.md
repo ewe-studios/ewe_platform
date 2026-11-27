@@ -40,6 +40,13 @@ closed, not when its code compiles.
   error and then a hang. The hang was the leaked pool gate, not a slow test. A test that
   waits on a shared gate needs a report that names the gate, or the log shows only
   "running for over 60 seconds".
+- **A plain root must not change the mode of a directory it did not make.** The slave
+  tests used `/tmp` as the work directory. `mkdir_p` called `chmod` on it, and the runner
+  user does not own `/tmp`, so `Prepare` failed with `EPERM` (os error 1) in 56 tests. The
+  same call would have removed the sticky bit of `/tmp` for a root caller. `mkdir_p` now
+  sets the mode only on the directory that it creates. The harness takes its work
+  directory from `EWE_SANDBOX_WORK_ROOT`, then `RUNNER_TEMP`, then the system temporary
+  directory, and makes a directory it owns (issue #1105).
 - **A pipe write must park.** The unpack child writes to a pipe. A blocking `write_all`
   holds a valtron worker for the whole unpack. The fix uses `FdReadiness` and a readiness
   future, and reads the `ready` line the same way. The multi pool has at least two task
