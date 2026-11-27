@@ -2087,6 +2087,10 @@ pub struct SimpleIncomingRequestBuilder {
     headers: Option<SimpleHeaders>,
     extensions: Option<ClientExtensions>,
     connection: Option<Arc<ConnectionContext>>,
+    /// True when the headers already describe the wire truth (a parsed request).
+    /// The builder then keeps them as they are instead of deriving framing
+    /// headers from the body.
+    preserve_headers: bool,
 }
 
 impl SimpleIncomingRequestBuilder {
@@ -2162,6 +2166,15 @@ impl SimpleIncomingRequestBuilder {
     #[must_use]
     pub fn with_headers(mut self, headers: SimpleHeaders) -> Self {
         self.headers = Some(headers);
+        self
+    }
+
+    /// Keep the headers exactly as set. Use this for a parsed request, whose
+    /// wire headers (for example `Content-Length`) must not be derived again
+    /// from the body.
+    #[must_use]
+    pub fn with_preserved_headers(mut self) -> Self {
+        self.preserve_headers = true;
         self
     }
 
@@ -2251,42 +2264,47 @@ impl SimpleIncomingRequestBuilder {
         let method = self.method.unwrap_or(SimpleMethod::GET);
         let body = self.body.unwrap_or(SendSafeBody::None);
 
-        match &body {
-            SendSafeBody::Bytes(inner) => {
-                let content_length = inner
-                    .len()
-                    .try_into_string()
-                    .map_err(SimpleRequestError::StringConversion)?;
+        // A parsed request carries its wire headers. Deriving framing headers
+        // from the body here would drop a parsed `Content-Length` and corrupt
+        // the next keep-alive request, so skip it when the caller asks.
+        if !self.preserve_headers {
+            match &body {
+                SendSafeBody::Bytes(inner) => {
+                    let content_length = inner
+                        .len()
+                        .try_into_string()
+                        .map_err(SimpleRequestError::StringConversion)?;
 
-                // Always replace Content-Length - it must be a single value
-                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
-            }
-            SendSafeBody::Text(inner) => {
-                let content_length = inner
-                    .len()
-                    .try_into_string()
-                    .map_err(SimpleRequestError::StringConversion)?;
+                    // Always replace Content-Length - it must be a single value
+                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                }
+                SendSafeBody::Text(inner) => {
+                    let content_length = inner
+                        .len()
+                        .try_into_string()
+                        .map_err(SimpleRequestError::StringConversion)?;
 
-                // Always replace Content-Length - it must be a single value
-                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                    // Always replace Content-Length - it must be a single value
+                    headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
+                }
+                // All three streaming request bodies are chunk-framed by
+                // `Http11RequestBodyIterator`, so the head must advertise it.
+                SendSafeBody::Stream(_)
+                | SendSafeBody::ChunkedStream(_)
+                | SendSafeBody::LineFeedStream(_) => {
+                    ensure_chunked_transfer_encoding(&mut headers);
+                }
+                // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
+                // request (e.g. a GET, or a WebSocket upgrade) must not declare a
+                // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
+                // lib) reject a GET carrying `Content-Length` as "unsupported
+                // request body" (Chromium's CDP tolerates it). An explicitly-set
+                // `Content-Length` is preserved.
+                //
+                // SSE is a response-only body; the request renderer emits no
+                // framing for it, so no Transfer-Encoding is declared.
+                SendSafeBody::None | SendSafeBody::SseStream(_) => {}
             }
-            // All three streaming request bodies are chunk-framed by
-            // `Http11RequestBodyIterator`, so the head must advertise it.
-            SendSafeBody::Stream(_)
-            | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::LineFeedStream(_) => {
-                ensure_chunked_transfer_encoding(&mut headers);
-            }
-            // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
-            // request (e.g. a GET, or a WebSocket upgrade) must not declare a
-            // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
-            // lib) reject a GET carrying `Content-Length` as "unsupported
-            // request body" (Chromium's CDP tolerates it). An explicitly-set
-            // `Content-Length` is preserved.
-            //
-            // SSE is a response-only body; the request renderer emits no
-            // framing for it, so no Transfer-Encoding is declared.
-            SendSafeBody::None | SendSafeBody::SseStream(_) => {}
         }
 
         Ok(SimpleIncomingRequest {

@@ -205,6 +205,8 @@ impl<S> Router<S> {
         let path_without_query = path.split('?').next().unwrap_or(path);
         match self.root.match_route(method, path_without_query) {
             Ok(handler) => Ok(handler),
+            // A known path with a wrong method is a 405, not a fallback miss.
+            Err(RouteOp::MethodNotAllowed) => Err(RouteOp::MethodNotAllowed),
             Err(_) => self
                 .fallback
                 .clone()

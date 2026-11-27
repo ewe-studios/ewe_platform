@@ -220,6 +220,19 @@ impl Serve for DurableHandler {
         let body = req.take_async_body();
 
         crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
+            // A body larger than the cap is read only up to the cap. Its tail
+            // stays on the connection and corrupts the next request, so refuse
+            // and close the connection.
+            if let Some(expected) = declared_body_len {
+                if expected > MAX_BODY_BYTES {
+                    tracing::warn!(
+                        expected,
+                        "durable: request body exceeds the cap, closing the connection"
+                    );
+                    return refuse_body(conn, &ctx, 413, "request body is too large").await;
+                }
+            }
+
             let body = match body {
                 Some(body) => collect_bytes_bounded(body, MAX_BODY_BYTES).await,
                 None => Vec::new(),
@@ -234,19 +247,13 @@ impl Serve for DurableHandler {
                         read = body.len(),
                         "durable: short request body, closing the connection"
                     );
-                    let message = "request body is shorter than its declared length";
-                    let headers = vec![(
-                        SimpleHeader::CONTENT_TYPE,
-                        "text/plain; charset=utf-8".to_string(),
-                    )];
-                    if let Ok(head) = render_head(400, &headers, message.len()) {
-                        let mut writer =
-                            ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
-                        let _ = writer.write_all(&head).await;
-                        let _ = writer.write_all(message.as_bytes()).await;
-                        let _ = writer.flush().await;
-                    }
-                    return ServeOutcome::Close(None);
+                    return refuse_body(
+                        conn,
+                        &ctx,
+                        400,
+                        "request body is shorter than its declared length",
+                    )
+                    .await;
                 }
             }
 
@@ -348,6 +355,26 @@ async fn respond(
     };
     let writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
     write_response(writer, head, response.body).await
+}
+
+/// Write one plain-text error and close the connection.
+async fn refuse_body(
+    conn: SharedByteBufferStream<RawStream>,
+    ctx: &Ctx,
+    status: u16,
+    message: &str,
+) -> ServeOutcome {
+    let headers = vec![(
+        SimpleHeader::CONTENT_TYPE,
+        "text/plain; charset=utf-8".to_string(),
+    )];
+    if let Ok(head) = render_head(status, &headers, message.len()) {
+        let mut writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
+        let _ = writer.write_all(&head).await;
+        let _ = writer.write_all(message.as_bytes()).await;
+        let _ = writer.flush().await;
+    }
+    ServeOutcome::Close(None)
 }
 
 async fn respond_error(

@@ -6334,6 +6334,7 @@ dependencies = [
  "smol",
  "time",
  "tracing",
+ "tracing-subscriber",
  "tracing-test",
  "wasm-bindgen",
  "wasm-bindgen-futures",

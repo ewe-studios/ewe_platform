@@ -16,6 +16,16 @@ fn main() {
 
 #[cfg(unix)]
 fn main() {
+    // `DURABLE_LOG` turns on tracing. The value names the log level, for example
+    // `DURABLE_LOG=warn` or `DURABLE_LOG=trace`. The server logs nothing unless
+    // the variable is set.
+    if let Ok(filter) = std::env::var("DURABLE_LOG") {
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .with_target(false)
+            .init();
+    }
+
     use foundation_core::durable::{DurableLimits, DurableStream, MemoryVfs};
     use foundation_core::valtron::initialize_pool;
     use foundation_http::native::durable::DurableHandler;

@@ -328,11 +328,11 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 ## Valtron wrappers in the durable tree (2026-11-27)
 
 - **The owner put both wrappers under `durable`.** The new path is
-  `foundation_core::durable::valtron`. A glob re-export at
-  `foundation_core::valtron::durable` keeps the old path. Keep one copy only.
-- **A module-level re-export does not cycle.** The wrapper imports `crate::valtron` items, and the
-  compatibility module re-exports the wrapper. Rust resolves this because the items are not
-  recursive.
+  `foundation_core::durable::valtron`. The compatibility module is removed now. Keep one
+  copy only.
+- **A module-level re-export did not cycle.** The wrapper imports `crate::valtron` items, and a
+  compatibility module re-exported the wrapper. Rust resolved this because the items are not
+  recursive. The compatibility module is removed now, so only the new path remains.
 - **The client wrapper imports its sibling core by full path.** `super::client` inside
   `valtron/client.rs` names the wrapper's own module, not the client core. Use
   `crate::durable::shared::client`.
@@ -343,3 +343,26 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   receiver's later use does not infer it.
 - **A poll count proves park, not spin.** The cross-thread test records two polls: one `Pending`,
   one after `unpark`. A busy loop would record many.
+
+## 405 flake, root cause (2026-11-27)
+
+- **The request builder rewrote parsed headers.** `SimpleIncomingRequestBuilder::build` removed
+  `Content-Length` and added `Transfer-Encoding: chunked` for a streamed body. That is correct
+  for a client that renders a request, but wrong for a server that parses one. The server parser
+  reuses the builder, so every streamed `Content-Length` body lost its length.
+- **The lost length hid the oversized body.** The adapter reads at most 8 MiB. The conformance
+  large-payload test sends a 10 MiB body of zeros. The adapter read 8 MiB, saw no declared
+  length, answered 204 and kept the connection open. The 2 MiB tail stayed on the socket.
+- **The tail became the next request line.** The next keep-alive GET read 2 MiB of zeros first,
+  then its own line. The method token parsed as `Custom("\0...\0GET")`, so the adapter answered
+  405 `method not allowed`. It happened once in two to five runs, when the suite reused the
+  poisoned connection.
+- **The fix has two parts.** A `with_preserved_headers` builder flag keeps the wire headers of a
+  parsed request. The durable adapter answers 413 and closes when the declared body exceeds its
+  cap. A regression test sends a 9 MiB declaration and asserts 413.
+- **The fallback routing broke 405 too.** `Router::dispatch_result` swallowed
+  `RouteOp::MethodNotAllowed` and turned it into a fallback miss, so a known path with a wrong
+  method answered 404. Propagating the variant restored the 405 with `Allow`. This regression
+  came from the durable adapter commit, and the full crate test gate found it.
+- **`DURABLE_LOG` turns on tracing in the example server.** The value names the log level. The
+  connection loop logs the request line and method when the method is unknown.

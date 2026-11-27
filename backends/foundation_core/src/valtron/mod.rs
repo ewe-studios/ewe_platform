@@ -21,7 +21,6 @@ mod wake;
 
 // modules exported as is
 pub mod delayed_iterators;
-pub mod durable;
 pub mod multi_iterator;
 
 // The engine entry-point macros (#[valtron] / #[valtron_test]) — defined in

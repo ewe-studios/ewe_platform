@@ -726,7 +726,7 @@ Two composition rules:
 | 07 | [Client core](./features/07-durable-streams-client/feature.md) | The Rust client, the valtron client wrapper and the conformance adapter | 01 | L |
 | 08 | [Conformance](./features/08-conformance/feature.md) | Server and client suites, cross-runs and CI gates | 02–07, 09 | M |
 | 09 | [S3 and R2 VFS](./features/09-s3-r2-vfs/feature.md) | High-performance S3/R2 object storage with local batching and CAS | 01, 05 | L |
-| 10 | [Subscriptions](./features/10-subscriptions/feature.md) | The `__ds` control APIs, webhook and pull-wake delivery, signing keys | 01, 06 | L |
+| 10 | [Subscriptions](./features/10-subscriptions/feature.md) | The `__ds` control APIs, webhook and pull-wake delivery, signing keys, in `foundation_event_stream` | 01, 06 | L |
 
 Order: 01 → (02, 03) → 04, 05, 06 → 07 → 08. Feature 09 runs in parallel with 05 and 06. Run a
 conformance spike after 01 and 06.

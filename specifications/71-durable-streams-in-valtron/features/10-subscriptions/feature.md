@@ -3,7 +3,7 @@ feature: "Durable Streams subscriptions"
 status: "planned"
 priority: "high"
 depends_on: ["01-durable-stream-types", "06-http-rpc-surface"]
-crates: ["foundation_core", "foundation_http"]
+crates: ["foundation_event_stream", "foundation_core", "foundation_auth"]
 ---
 
 # Feature 10: Durable Streams subscriptions
@@ -36,14 +36,24 @@ worker when one or more streams have new data. Delivery is by webhook or by pull
 
 ## 3. Design
 
-- Core: `foundation_core::durable::shared::subscription` holds the subscription configuration,
-  the generation, the lease and the wake snapshot. It uses the injected clock.
-- HTTP: `foundation_http` serves the `__ds` control endpoints and the webhook deliveries.
-- Storage: the subscription state uses the same `DurableStreamVfs` boundary.
-- Signing keys come from an injected key source, never a global.
+The owner proposed one home for the work: a new `foundation_event_stream` crate. It owns
+subscriptions and brings the pieces together. The server core stays transport-neutral.
+
+- `foundation_event_stream` holds the subscription configuration, the configuration hash, the
+  generation, the lease, the wake snapshot, the webhook delivery and the pull-wake flow. It uses
+  the injected clock and `DurableStreamVfs` for its state.
+- The `__ds` control endpoints are `Serve` handlers in `foundation_event_stream`, mounted in the
+  host application beside the Durable Streams handler.
+- Webhook signing and the JSON Web Key Set (JWKS) reuse `foundation_auth`:
+  `foundation_auth::shared::jwks::{Jwk, Jwks, JwksManager}` and the signing key types. Do not
+  add a second key model or a second key endpoint.
+- The object store and the streams come from `foundation_core::durable`.
+- A host supplies the key source and the HTTP transport. The crate reads no global.
 
 ## 4. Tasks
 
+- [ ] **T0 — crate.** Create `foundation_event_stream` with `shared/`, `native/` and `cf/`
+      layout. Re-export the `foundation_auth` JWKS types it uses. Test: `crate_builds_wasm`.
 - [ ] **T1 — core state.** Configuration, hash, generation, lease and snapshot. Tests:
       `config_hash_is_stable`, `generation_fences_stale_claim`.
 - [ ] **T2 — control endpoints.** Create, confirm, add and remove streams, list. Tests:

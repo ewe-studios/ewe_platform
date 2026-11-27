@@ -102,9 +102,11 @@ fn given_a_durable_server_when_a_client_creates_appends_and_reads_then_it_round_
         )
         .unwrap();
     assert_eq!(status_code(created.get_status()), 201);
+    // The adapter makes the relative Location absolute for the request host,
+    // which the reference conformance suite requires.
     assert_eq!(
         header(&created, SimpleHeader::LOCATION).as_deref(),
-        Some("/events")
+        Some("http://testserver/events")
     );
 
     let appended = client
@@ -200,7 +202,7 @@ fn given_a_json_stream_when_a_client_reads_it_then_it_gets_a_json_array() {
 #[test]
 #[foundation_macros::timeout(60000)]
 #[serial(http_test)]
-fn given_a_body_shorter_than_its_header_when_the_client_half_closes_then_the_server_uses_the_bytes_it_read() {
+fn given_a_body_shorter_than_its_header_when_the_client_half_closes_then_the_server_answers_400() {
     use std::io::{Read, Write};
     use std::net::{Shutdown, TcpStream};
 
@@ -217,11 +219,59 @@ fn given_a_body_shorter_than_its_header_when_the_client_half_closes_then_the_ser
 
     let mut response = String::new();
     stream.read_to_string(&mut response).expect("read response");
-    // The server rewrites the request framing to chunked and reads to the
-    // end of the half-closed connection, so the 3 bytes are the whole body.
+    // The wire header declares 100 bytes but only 3 arrive, so the server
+    // answers 400 and closes the connection.
     assert!(
-        response.starts_with("HTTP/1.1 201"),
-        "expected 201, got: {response}"
+        response.starts_with("HTTP/1.1 400"),
+        "expected 400, got: {response}"
+    );
+
+    shutdown.turn_on();
+}
+
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn given_an_oversized_body_when_the_client_declares_it_then_the_server_answers_413() {
+    use std::io::{Read, Write};
+    use std::net::{Shutdown, TcpStream};
+
+    let _guard = initialize_pool(42, Some(5));
+    let (addr, shutdown) = start_server(durable_app());
+
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    // The body is larger than the adapter cap (8 MiB). The server must refuse
+    // the request and close, so the unread tail cannot corrupt the next
+    // keep-alive request.
+    let body_len = 9 * 1024 * 1024;
+    let head = format!(
+        "POST /v1/stream/oversized HTTP/1.1\r\nHost: test\r\nContent-Type: text/plain\r\nContent-Length: {body_len}\r\n\r\n"
+    );
+    stream.write_all(head.as_bytes()).expect("write head");
+    stream.shutdown(Shutdown::Write).expect("half close");
+
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    let mut response = Vec::new();
+    let mut buf = [0_u8; 4096];
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                response.extend_from_slice(&buf[..n]);
+                if response.windows(4).any(|window| window == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            Err(error) => panic!("read response head: {error}"),
+        }
+    }
+
+    let response = String::from_utf8_lossy(&response);
+    assert!(
+        response.starts_with("HTTP/1.1 413"),
+        "expected 413 for an oversized body, got: {response}"
     );
 
     shutdown.turn_on();

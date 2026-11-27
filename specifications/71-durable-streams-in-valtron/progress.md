@@ -2,12 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-27: feature 05 T4 landed. `FileVfs` in `foundation_nativeapis` has 8 tests:
+- 2026-11-27: issue #926 root cause fixed. The request builder dropped `Content-Length` for a
+  streamed parsed body, so the adapter's 8 MiB cap left a 2 MiB tail on the connection and the
+  next keep-alive GET parsed as an unknown method. The builder keeps parsed headers now, and the
+  adapter answers 413 and closes for a body over the cap. A regression test and a `DURABLE_LOG`
+  subscriber land with it. `Router::dispatch_result` also propagates `MethodNotAllowed` again,
+  which the durable adapter commit had swallowed.- 2026-11-27: feature 05 T4 landed. `FileVfs` in `foundation_nativeapis` has 8 tests:
   create, append, exact read, restart, stale-version conflict, fork prefix, invisible
   source append, soft-delete cascade, missing fork source, closed append and notifier.
   The crate suite with `vfs-native` is 238 pass, 0 fail, 5 ignored.
 - 2026-11-27: the valtron wrappers moved to `foundation_core::durable::valtron`. The
-  old `foundation_core::valtron::durable` path re-exports them. The durable suite is
+  compatibility path is removed; every caller uses the new path. The durable suite is
   106 pass, 0 fail.
 - 2026-11-27: `block_on_future_scoped` has 4 tests: a borrowed non-`Send` future, a
   cross-thread wake, a self-wake and a panic. They pass with and without `multi`.

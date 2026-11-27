@@ -29,7 +29,7 @@ use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
-    SimpleIncomingRequest, SimpleOutgoingResponse,
+    SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
 use crate::native::reader::read_next_request;
@@ -380,6 +380,26 @@ impl ConnectionHandler {
 
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(mut req)) => {
+                // The Durable Streams adapter answers 405 for any method it does
+                // not match. Log the request line here so an intermittent 405 can
+                // be traced back to the parsed method token.
+                if !matches!(
+                    &req.method,
+                    SimpleMethod::GET
+                        | SimpleMethod::HEAD
+                        | SimpleMethod::PUT
+                        | SimpleMethod::POST
+                        | SimpleMethod::DELETE
+                        | SimpleMethod::OPTIONS
+                ) {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        method = %req.method,
+                        request_line = %format!("{} {} {}", req.method, req.request_uri, req.proto),
+                        "Idle: unknown request method on the connection"
+                    );
+                }
+
                 // Version gate, before the body is read and before any
                 // middleware or route lookup can observe the request.
                 if !Self::is_supported_proto(&req.proto) {
