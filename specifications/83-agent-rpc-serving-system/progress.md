@@ -45,6 +45,12 @@ under test.
 Features 04, 05, 06 and 08 are in pull request #1009 together with spec 77. The earlier
 separate pull requests are closed. The branch is `integration/spec77-spec83`.
 
+## Merged (2026-11-27)
+
+Pull request #1009 merged into `master` as `348620340`; it carries features 04, 05, 06 and 08.
+The full `packages=all` run on that head is the proof for the Worker, container and native
+paths.
+
 ## Branches and PRs
 
 - **#124** (`worktree-65-agent-rpc-serving-system`) merged: feature 02 (old 06), feature 00

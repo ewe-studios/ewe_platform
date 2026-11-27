@@ -582,6 +582,16 @@ and the 4 simulation tests), the deployment and keystore suites, the wasm checks
 lockfile checks. The CI matrix is the proof for the real Firecracker, Docker, Cloudflare and
 image-import paths.
 
+## Merged (2026-11-27)
+
+The owner merged the combined pull request #1009 into `master` as `348620340`, and the
+dependency pull request #1040 as `811d4682b`. Spec 77 features 00 to 15 and spec 83 features
+00 to 08 are on master. Feature 16 stays a draft.
+
+The full `check.yaml` run with `packages=all` on `348620340` is the proof for the real
+Firecracker, Docker, Cloudflare and image-import paths; its failures, if any, are routed by
+component.
+
 ## In progress
 
 Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for
