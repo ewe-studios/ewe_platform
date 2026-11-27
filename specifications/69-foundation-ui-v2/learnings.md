@@ -1340,3 +1340,10 @@ The alternative sound card leaves this Android image with no sound device.
 A private Core Audio tap captures the emulator output on the host.
 The capture contains the game's three intro notes when sound is on.
 The capture returns to its noise floor when the game shows `SOUND OFF`.
+
+## 2026-11-28 — Landscape replay input focus
+
+A frame can show the rotated game before Android completes the focus change.
+The inset detector finds a landscape game surface with bounds from (128, 189) to (2400, 1017).
+The tap at (1176, 866) lies in the first answer. Android reports an input dispatch timeout before scoring.
+The app main thread waits in `HardwareRenderer.setStopped`. See [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).

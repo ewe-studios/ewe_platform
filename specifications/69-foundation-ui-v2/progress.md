@@ -1698,3 +1698,10 @@ On the Android 36 ARM64 review device, the emulator output contains the Mathalle
 The game shows `SOUND OFF` after the mute tap. The captured signal drops about 40 decibels to the noise floor.
 The host capture measures digital output. A physical speaker check remains open.
 See [issue 1083](https://github.com/ewe-studios/ewe_platform/issues/1083).
+
+## 2026-11-28 — Android landscape replay
+
+The patched local Todo app reaches Gumball in portrait and landscape on the Android 36 review emulator.
+The replay finds the left edge of the landscape game at pixel 128 and calculates a tap inside answer 8.
+Android stops the app during the input dispatch timeout. The score change remains unverified.
+See [issue 843](https://github.com/ewe-studios/ewe_platform/issues/843) and [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
