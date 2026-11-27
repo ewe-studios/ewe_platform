@@ -2600,3 +2600,15 @@ package first when the result is unclear.
 The default tree is clean, but the `quic` tree has 74 pedantic warnings in
 `quic`, `http3` and `webtransport`. `cargo clippy --features quic -- -D
 warnings` therefore fails. Issue #419 records the debt.
+
+## Slow-client test timeout on macOS
+
+The historical hosted runner reaches the 30-second wait for the writer result.
+That log records a timeout and gives no writer or reader progress.
+Both the original and current overlay paths register a waker before they check readiness.
+The later file-descriptor readiness and disconnect fixes use a different path.
+
+The slow-client binary has two tests. Its synchronous test does not use the Valtron engine registry.
+The client sleeps after each byte read. Host scheduling affects the total runtime.
+The repeated local runs finish between 6.25 and 7.73 seconds.
+The historical timeout does not occur in the local runs.

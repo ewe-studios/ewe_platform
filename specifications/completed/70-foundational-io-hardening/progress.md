@@ -2764,3 +2764,21 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
     hard-coded 5 second read timeout in `Connection::connect_unix`.
   - Next: wait for the pull request CI run. The `quic` clippy gate stays
     outside the required commands until #419 is fixed.
+
+## macOS event stream test coverage
+
+The local macOS 27.2.1 ARM64 CI recipe passes with the default features and with `multi,quic`.
+Run `foundation-ci run foundation_http --step test --profile uat`.
+The recipe runs both test variants with the default harness parallelism.
+The default run passes 178 tests. The second run passes 181 tests.
+Each run has one existing ignored documentation test.
+
+The slow-client test passes 12 bounded repetitions.
+Three lower-priority runs of its two-test binary also pass.
+A scratch TCP server delivers the complete 512 KiB event after the client holds its reads.
+The probe bounds the wait and compares the full encoded event.
+
+The continuous integration (CI) plan selects the HTTP test package on macOS.
+Windows remains tracked in issue 531.
+The hosted macOS run remains the confirmation for the old timeout.
+[Hosted follow-up](https://github.com/ewe-studios/ewe_platform/issues/546)
