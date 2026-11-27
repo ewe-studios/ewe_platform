@@ -2090,3 +2090,10 @@ Six clients repeat the response check over 48 reused connections.
 All 4,800 script responses have status 200 and contain 769,431 bytes.
 The largest header wait is 188.949 milliseconds.
 The scratch server uses a separate Todo store. [Issue 673](https://github.com/ewe-studios/ewe_platform/issues/673)
+
+## 2026-11-28 — Browser verification instructions
+
+The package guides now point to the current browser frame and behaviour specifications.
+The browser guide runs the retained row and column checks and links to the old parity record.
+The JavaScript browser and component suites pass 175 tests. One legacy fixture stays excluded.
+[Issue 1176](https://github.com/ewe-studios/ewe_platform/issues/1176)

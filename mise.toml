@@ -151,7 +151,7 @@ description = "Build the self-contained browser runtime"
 run = "cargo run --locked --profile uat -p foundation_wasm_ui --features tasks --bin ewe-wasm-bundle -- task run wasm-bundle:runtime"
 
 [tasks."ui-web:test"]
-description = "Test the browser runtime and compare both instruction encoders"
+description = "Test browser frames and component behaviours"
 run = "node --test backends/foundation_wasm_ui/integration/test/*.test.js backends/foundation_ui_components/integration/test/*.test.js"
 
 [tasks."ui-wire:generate"]

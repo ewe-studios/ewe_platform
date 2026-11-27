@@ -62,8 +62,7 @@ foundation_ui_components = { workspace = true }
 
 ---
 
-Catalog spec + build notes:
-[`specifications/42-ui-component/`](../../specifications/42-ui-component/).
+See the [component behaviour specification](../../specifications/69-foundation-ui-v2/features/16-behaviour-matrix/feature.md).
 
 ## Behaviour bindings
 
