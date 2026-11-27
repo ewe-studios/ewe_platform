@@ -7,13 +7,17 @@
 #
 # The test is `cargo test -p foundation_auth --features testing --profile uat
 # kms::aws_local`. It needs no secret. The container maps the host port
-# `KMS_MOTO_PORT` (default 5000) to the moto port 5000.
+# `KMS_MOTO_PORT` (default 5055) to the moto port 5000. The default avoids port
+# 5000, which macOS gives to ControlCenter. `ci/local-services` uses port 5055
+# for the same reason.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
-PORT="${KMS_MOTO_PORT:-5000}"
-IMAGE="${KMS_MOTO_IMAGE:-motoserver/moto}"
+PORT="${KMS_MOTO_PORT:-5055}"
+# The digest is the one that `ci/local-services/docker-compose.yml` pins, so a
+# laptop run and a CI run use the same bytes.
+IMAGE="${KMS_MOTO_IMAGE:-motoserver/moto@sha256:344e076f31ad1f5ff1ec4492f741e7d42911d1c7a1ef9b1590f56c340b968513}"
 CONTAINER="ewe-kms-moto-${PORT}"
 PID_FILE="${REPO_ROOT}/target/kms-moto-${PORT}.pid"
 
@@ -65,7 +69,7 @@ docker run -d --rm --name "${CONTAINER}" -p "${PORT}:5000" "${IMAGE}" >/dev/null
 mkdir -p "${REPO_ROOT}/target"
 docker inspect -f '{{.State.Pid}}' "${CONTAINER}" >"${PID_FILE}"
 
-# Wait for the server to answer. Any HTTP answer proves that it listens.
+# Wait for the server. The moto API answers 200 when the server is ready.
 deadline=$(($(date +%s) + 60))
 while :; do
     if ! docker inspect "${CONTAINER}" >/dev/null 2>&1; then
@@ -73,7 +77,7 @@ while :; do
         docker logs --tail 50 "${CONTAINER}" >&2 || true
         exit 1
     fi
-    if curl -s -o /dev/null "http://127.0.0.1:${PORT}/"; then
+    if curl -s -o /dev/null "http://127.0.0.1:${PORT}/moto-api/"; then
         break
     fi
     if [ "$(date +%s)" -ge "${deadline}" ]; then

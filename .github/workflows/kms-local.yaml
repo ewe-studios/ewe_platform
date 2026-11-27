@@ -73,7 +73,9 @@ jobs:
     timeout-minutes: 30
     services:
       moto:
-        image: motoserver/moto:latest
+        # The digest is the one that `ci/local-services/docker-compose.yml`
+        # pins, so a laptop run and a CI run use the same bytes.
+        image: motoserver/moto@sha256:344e076f31ad1f5ff1ec4492f741e7d42911d1c7a1ef9b1590f56c340b968513
         ports:
           - 5000:5000
     steps:
@@ -100,11 +102,11 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Wait for moto
-        # Any HTTP answer proves that the server listens. A connection error
+        # The moto API answers 200 when the server is ready. A connection error
         # fails the attempt.
         run: |
           for attempt in $(seq 1 60); do
-            if curl -s -o /dev/null http://localhost:5000/; then
+            if curl -s -o /dev/null http://localhost:5000/moto-api/; then
               exit 0
             fi
             sleep 1
