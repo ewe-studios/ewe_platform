@@ -1753,3 +1753,10 @@ The Android 36 ARM64 emulator passes the isolated dialog Back test and all four 
 The full Android user interface test suite passes all ten tests.
 The Back test checks one dismissal and the removal of the dialog. No source change is necessary.
 See [issue 692](https://github.com/ewe-studios/ewe_platform/issues/692).
+
+## 2026-11-28 — Android Todo replay input
+
+The Android replay waits for editor focus and a visible keyboard before it enters a title.
+The replay checks the full title in the focused editor before it submits.
+On Android 36, the touchscreen keyboard and the updated input sequence both save full titles through Connect.
+See [issue 737](https://github.com/ewe-studios/ewe_platform/issues/737).

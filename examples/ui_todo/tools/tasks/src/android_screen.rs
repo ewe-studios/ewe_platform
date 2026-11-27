@@ -25,9 +25,10 @@ fn bounds(s: &str) -> Result<Bounds, TaskError> {
         .try_into()
         .map_err(|_| TaskError::operation("Invalid accessibility bounds"))
 }
-fn nodes(xml: &[u8], package: &str) -> Result<Nodes, TaskError> {
+fn nodes(xml: &[u8], package: &str) -> Result<(Nodes, Option<String>), TaskError> {
     let mut reader = Reader::from_reader(xml);
     let mut out = Nodes::new();
+    let mut focused_editor = None;
     loop {
         match reader.read_event().map_err(TaskError::operation)? {
             Event::Start(e) | Event::Empty(e) if e.name().as_ref() == "node" => {
@@ -48,6 +49,7 @@ fn nodes(xml: &[u8], package: &str) -> Result<Nodes, TaskError> {
                         out.entry("<editor>".into()).or_insert(rect);
                         if attr("focused") == "true" {
                             out.entry("<focused-editor>".into()).or_insert(rect);
+                            focused_editor = Some(attr("text").to_owned());
                         }
                     }
                     for label in [attr("text"), attr("content-desc")] {
@@ -61,7 +63,7 @@ fn nodes(xml: &[u8], package: &str) -> Result<Nodes, TaskError> {
             _ => {}
         }
     }
-    Ok(out)
+    Ok((out, focused_editor))
 }
 impl Screen<'_> {
     async fn shell(&self, args: &[&str]) -> Result<String, TaskError> {
@@ -87,6 +89,17 @@ impl Screen<'_> {
         .await
     }
     async fn wait(&self, present: &[&str], absent: &[&str]) -> Result<Nodes, TaskError> {
+        self.wait_for_state(present, absent, None).await
+    }
+    async fn wait_for_state(
+        &self,
+        present: &[&str],
+        absent: &[&str],
+        editor: Option<&str>,
+    ) -> Result<Nodes, TaskError> {
+        let editor_requirement = editor
+            .map(|title| format!(" and focused editor value {title:?}"))
+            .unwrap_or_default();
         let file = "/sdcard/ewe-screen.xml";
         let start = self.ctx.context().clock().elapsed();
         let mut visible = Nodes::new();
@@ -99,9 +112,11 @@ impl Screen<'_> {
                             self.adb.clone().args(["shell", "cat", file]),
                         )
                         .await?;
-                        visible = nodes(&bytes, self.package)?;
+                        let (labels, focused_editor) = nodes(&bytes, self.package)?;
+                        visible = labels;
                         if present.iter().all(|name| visible.contains_key(*name))
                             && absent.iter().all(|name| !visible.contains_key(*name))
+                            && editor.is_none_or(|title| focused_editor.as_deref() == Some(title))
                         {
                             return Ok(visible);
                         }
@@ -111,7 +126,7 @@ impl Screen<'_> {
                 }
                 if self.ctx.context().clock().elapsed().saturating_sub(start) >= self.timeout {
                     return Err(TaskError::operation(format!(
-                        "{} requires {present:?} without {absent:?}. Visible labels: {:?}",
+                        "{} requires {present:?} without {absent:?}{editor_requirement}. Visible labels: {:?}",
                         self.package,
                         visible.keys()
                     )));
@@ -122,7 +137,7 @@ impl Screen<'_> {
         let deadline = async {
             sleep(self.ctx, self.timeout).await?;
             Err(TaskError::operation(format!(
-                "Timed out waiting for {present:?} in {}",
+                "Timed out waiting for {present:?}{editor_requirement} in {}",
                 self.package
             )))
         };
@@ -144,8 +159,23 @@ impl Screen<'_> {
     async fn type_title(&self, title: &str) -> TaskResult {
         self.tap("Add", &["Todos"]).await?;
         self.tap("Todo title", &["New todo"]).await?;
+        self.wait(&["New todo", "<focused-editor>"], &[]).await?;
+        super::device::wait_for(
+            self.ctx,
+            self.timeout,
+            self.interval,
+            "the Todo keyboard",
+            || async {
+                Ok(self
+                    .find(&["dumpsys", "input_method"], "mInputShown=true")
+                    .await?
+                    .is_some())
+            },
+        )
+        .await?;
         self.shell(&["input", "text", &title.replace(' ', "%s")])
             .await?;
+        self.wait_for_state(&["New todo"], &[], Some(title)).await?;
         Ok(())
     }
     async fn create(&self, title: &str) -> TaskResult {

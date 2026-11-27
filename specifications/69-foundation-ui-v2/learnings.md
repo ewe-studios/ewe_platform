@@ -1385,3 +1385,11 @@ Two retained dedicated mounts at the same endpoint must open two connections.
 Repeat the Back test in isolation, in its class, and in the full suite.
 On the Android 36 review emulator, the existing key event dismisses the dialog once in all three runs.
 See [issue 692](https://github.com/ewe-studios/ewe_platform/issues/692).
+
+## 2026-11-28 — Android replay title input
+
+The Android Debug Bridge (ADB) input command can return while the focused editor still has a partial title.
+A later accessibility read shows the same partial text when the replay starts input during keyboard setup.
+Touchscreen keyboard input writes and saves the full title on the same Connect path.
+Wait for the editor and keyboard before sending input. Read the focused editor value before permitting submission.
+See [issue 737](https://github.com/ewe-studios/ewe_platform/issues/737).
