@@ -19,13 +19,19 @@ fn main() {
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(8);
+    let socket_mode = std::env::var("EWE_SLAVE_SOCKET_MODE")
+        .ok()
+        .and_then(|value| u32::from_str_radix(value.trim_start_matches("0o"), 8).ok())
+        .unwrap_or(0o600);
     std::mem::forget(foundation_core::valtron::initialize_pool(1, Some(threads)));
+    let control = std::env::var("EWE_SLAVE_CONTROL").is_ok_and(|value| value == "1");
     let args = SlaveArgs {
         listen: ListenAddr::Unix {
             path: socket.into(),
         },
-        control: false,
+        control,
         plain_root: plain_root.into(),
+        socket_mode,
     };
     let code = run(foundation_context::Ctx::host(), args);
     std::process::exit(code);

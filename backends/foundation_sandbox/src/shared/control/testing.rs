@@ -48,7 +48,8 @@ use crate::shared::rpc::messages::{
     ExecSignalRequest, FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::{
     register_sandbox_service, register_slave_service, SandboxService, SlaveService,
@@ -63,7 +64,7 @@ pub fn full_capabilities() -> Capabilities {
         rootfs_ext4: true,
         rootfs_squashfs: true,
         rootfs_container_image: true,
-        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly],
+        root_modes: vec![RootMode::Overlay, RootMode::ReadOnly, RootMode::Writable],
         host_mounts: true,
         network_none: true,
         network_host: true,
@@ -285,6 +286,7 @@ struct DriverScript {
     mounts: Vec<GuestMount>,
     attach: AttachMode,
     launch_spec: Option<SandboxSpec>,
+    fresh_substrate: bool,
 }
 
 /// A driver that a test scripts.
@@ -332,6 +334,7 @@ impl SimDriver {
                 mounts: Vec::new(),
                 attach: AttachMode::None,
                 launch_spec: None,
+                fresh_substrate: false,
             }),
             container: None,
         }
@@ -372,11 +375,16 @@ impl SimDriver {
     /// Makes the launch stream fail.
     #[must_use]
     pub fn with_launch_error(self, error: SandboxError) -> Self {
+        self.set_launch_error(error);
+        self
+    }
+
+    /// Makes the launch stream fail, on a driver that a test already holds.
+    pub fn set_launch_error(&self, error: SandboxError) {
         self.script
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .launch_error = Some(error);
-        self
     }
 
     /// Replaces the root that the driver gives the slave.
@@ -416,6 +424,19 @@ impl SimDriver {
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .attach = attach;
+        self
+    }
+
+    /// Makes every launch start from a substrate that did not exit.
+    ///
+    /// A test that stops several sandboxes on one driver needs this: a
+    /// simulated substrate stays exited after its first stop.
+    #[must_use]
+    pub fn with_fresh_substrate(self) -> Self {
+        self.script
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .fresh_substrate = true;
         self
     }
 
@@ -500,6 +521,9 @@ impl SandboxDriver for SimDriver {
             let mut script = self.script.lock().unwrap_or_else(PoisonError::into_inner);
             script.launch_calls += 1;
             script.launch_spec = Some(spec);
+            if script.fresh_substrate {
+                script.substrate.reset();
+            }
             (
                 script.progress.clone(),
                 script.launch_error.clone(),
@@ -519,6 +543,8 @@ impl SandboxDriver for SimDriver {
                 root,
                 mounts,
                 handle: Box::new(SimHandle(substrate)),
+                calls: None,
+                slave: None,
             };
             items.push(ValtronStream::Next(Ok(substrate)));
         }
@@ -552,6 +578,8 @@ impl SandboxDriver for SimDriver {
                     root,
                     mounts,
                     handle: Box::new(SimHandle(substrate)),
+                    calls: None,
+                    slave: None,
                 })),
             }
         })
@@ -582,6 +610,8 @@ pub enum SlaveCall {
         argv: Vec<String>,
         /// Whether the program reads input.
         stdin: bool,
+        /// The user of the command (feature 12).
+        user: Option<String>,
     },
     /// `ExecInput`.
     ExecInput {
@@ -622,6 +652,11 @@ pub enum SlaveCall {
         /// The path.
         path: String,
     },
+    /// `UnpackBegin`.
+    UnpackBegin {
+        /// Whether an existing directory keeps its mode.
+        keep_existing_dirs: bool,
+    },
     /// `Shutdown`.
     Shutdown {
         /// The grace in milliseconds.
@@ -644,6 +679,7 @@ impl SlaveCall {
             Self::FileWriteCommit { .. } => "file_write_commit",
             Self::FileWriteAbort { .. } => "file_write_abort",
             Self::FileRead { .. } => "file_read",
+            Self::UnpackBegin { .. } => "unpack_begin",
             Self::Shutdown { .. } => "shutdown",
         }
     }
@@ -737,6 +773,7 @@ struct ScriptedInner {
     shutdown_count: Mutex<usize>,
     info_pending: AtomicBool,
     shutdown_error: Mutex<Option<SandboxError>>,
+    unpack_error: Mutex<Option<SandboxError>>,
 }
 
 /// A `SlaveService` implementation that a test scripts.
@@ -775,8 +812,18 @@ impl ScriptedSlave {
                 shutdown_count: Mutex::new(0),
                 info_pending: AtomicBool::new(false),
                 shutdown_error: Mutex::new(None),
+                unpack_error: Mutex::new(None),
             }),
         }
+    }
+
+    /// Makes the next `UnpackCommit` fail with `error`.
+    pub fn with_unpack_error(&self, error: SandboxError) {
+        *self
+            .inner
+            .unpack_error
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(error);
     }
 
     /// Makes `Shutdown` fail.
@@ -809,6 +856,15 @@ impl ScriptedSlave {
                 message: "the slave is not ready".to_string(),
             }));
         }
+    }
+
+    /// Sets whether the default `Info` answer reports `can_control`.
+    pub fn with_can_control(&self, can_control: bool) {
+        self.inner
+            .default_info
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .can_control = can_control;
     }
 
     /// Sets whether the default `Info` answer is prepared.
@@ -1085,6 +1141,7 @@ impl SlaveService for ScriptedSlave {
             exec_id: request.msg.exec_id.clone(),
             argv: request.msg.argv.clone(),
             stdin: request.msg.stdin,
+            user: request.msg.user.clone(),
         });
         let script = self
             .inner
@@ -1353,6 +1410,57 @@ impl SlaveService for ScriptedSlave {
         }
         Ok(Response::new(Empty {}))
     }
+
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackBeginRequest>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        self.record(SlaveCall::UnpackBegin {
+            keep_existing_dirs: request.msg.keep_existing_dirs,
+        });
+        Ok(Response::new(UnpackBeginResponse {
+            upload_id: "unpack-00000001".to_string(),
+        }))
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackChunkRequest>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        Ok(Response::new(UnpackChunkResponse {
+            next_offset: request.msg.offset + request.msg.data.len() as u64,
+        }))
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackCommitRequest>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let error = self
+            .inner
+            .unpack_error
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take();
+        if let Some(error) = error {
+            return Err(slave_connect_error(&error));
+        }
+        Ok(Response::new(UnpackCommitResponse {
+            entries: 0,
+            bytes: 0,
+        }))
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        _request: Request<UnpackAbortRequest>,
+    ) -> ConnectResult<Response<Empty>> {
+        Ok(Response::new(Empty {}))
+    }
 }
 
 /// A transport to a router in the same process, with no socket.
@@ -1510,6 +1618,29 @@ impl SlaveConnector for InMemoryConnector {
 pub fn in_memory_connector(slave: Arc<ScriptedSlave>) -> Arc<dyn SlaveConnector> {
     let mut router = Router::new();
     register_slave_service(&mut router, slave);
+    Arc::new(InMemoryConnector {
+        handler: Arc::new(router.into_handler()),
+    })
+}
+
+/// A connector to a slave that serves both services, as a nested host does
+/// (feature 11).
+///
+/// The `SlaveService` calls go to `slave`; the `SandboxService` calls go to
+/// `control`. A nested child reaches the second service through this
+/// connector.
+#[must_use]
+pub fn in_memory_dual_connector<S>(
+    _ctx: Ctx,
+    slave: Arc<ScriptedSlave>,
+    control: Arc<S>,
+) -> Arc<dyn SlaveConnector>
+where
+    S: SandboxService + 'static,
+{
+    let mut router = Router::new();
+    register_slave_service(&mut router, slave);
+    register_sandbox_service(&mut router, control);
     Arc::new(InMemoryConnector {
         handler: Arc::new(router.into_handler()),
     })
@@ -1715,6 +1846,7 @@ struct FsState {
     dirs: std::collections::HashSet<PathBuf>,
     modified: HashMap<PathBuf, foundation_compact::SystemTime>,
     read_write: HashMap<PathBuf, bool>,
+    locked: std::collections::HashSet<PathBuf>,
 }
 
 impl FakeHostFs {
@@ -1814,6 +1946,15 @@ impl crate::shared::host::HostFs for FakeHostFs {
         Ok(())
     }
 
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .files
+            .remove(path);
+        Ok(())
+    }
+
     fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
         let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(parent) = path.parent() {
@@ -1834,6 +1975,33 @@ impl crate::shared::host::HostFs for FakeHostFs {
                 message: format!("{}: not found", path.display()),
             })?;
         Ok(data[..data.len().min(max)].to_vec())
+    }
+
+    fn open_read(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send + Sync>> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let data = state
+            .files
+            .get(path)
+            .cloned()
+            .ok_or_else(|| SandboxError::Io {
+                op: "open_read".to_string(),
+                message: format!("{}: not found", path.display()),
+            })?;
+        Ok(Box::new(std::io::Cursor::new(data)))
+    }
+
+    fn file_size(&self, path: &Path) -> SandboxResult<u64> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        state.files.get(path).map_or_else(
+            || {
+                Err(SandboxError::Io {
+                    op: "file_size".to_string(),
+                    message: format!("{}: not found", path.display()),
+                }
+                .into())
+            },
+            |data| Ok(u64::try_from(data.len()).unwrap_or(u64::MAX)),
+        )
     }
 
     fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {
@@ -1862,6 +2030,30 @@ impl crate::shared::host::HostFs for FakeHostFs {
             return Ok(());
         }
         if state.dirs.remove(from) {
+            // A directory keeps its children: move each path below it.
+            let prefix = from.to_path_buf();
+            let moved_files: Vec<(PathBuf, Vec<u8>)> = state
+                .files
+                .iter()
+                .filter(|(path, _)| path.starts_with(&prefix))
+                .map(|(path, data)| (path.clone(), data.clone()))
+                .collect();
+            for (path, data) in moved_files {
+                state.files.remove(&path);
+                let suffix = path.strip_prefix(&prefix).unwrap_or(&path);
+                state.files.insert(to.join(suffix), data);
+            }
+            let moved_dirs: Vec<PathBuf> = state
+                .dirs
+                .iter()
+                .filter(|path| path.starts_with(&prefix))
+                .cloned()
+                .collect();
+            for path in moved_dirs {
+                state.dirs.remove(&path);
+                let suffix = path.strip_prefix(&prefix).unwrap_or(&path);
+                state.dirs.insert(to.join(suffix));
+            }
             state.dirs.insert(to.to_path_buf());
             return Ok(());
         }
@@ -1911,6 +2103,89 @@ impl crate::shared::host::HostFs for FakeHostFs {
             .copied()
             .unwrap_or_else(|| state.files.contains_key(path) || state.dirs.contains(path))
     }
+
+    fn entry_meta(&self, path: &Path) -> SandboxResult<crate::shared::host::EntryMeta> {
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some(data) = state.files.get(path) {
+            return Ok(crate::shared::host::EntryMeta {
+                kind: crate::shared::host::EntryKind::File,
+                mode: 0o644,
+                size: u64::try_from(data.len()).unwrap_or(u64::MAX),
+            });
+        }
+        if state.dirs.contains(path) {
+            return Ok(crate::shared::host::EntryMeta {
+                kind: crate::shared::host::EntryKind::Directory,
+                mode: 0o755,
+                size: 0,
+            });
+        }
+        Err(SandboxError::Io {
+            op: "entry_meta".to_string(),
+            message: format!("{}: not found", path.display()),
+        }
+        .into())
+    }
+
+    fn canonicalize(&self, path: &Path) -> SandboxResult<PathBuf> {
+        if self.exists(path) {
+            Ok(path.to_path_buf())
+        } else {
+            Err(SandboxError::Io {
+                op: "canonicalize".to_string(),
+                message: format!("{}: not found", path.display()),
+            }
+            .into())
+        }
+    }
+
+    fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn std::io::Read + Send>> {
+        let data = self.file(path).ok_or_else(|| SandboxError::Io {
+            op: "read_stream".to_string(),
+            message: format!("{}: not found", path.display()),
+        })?;
+        Ok(Box::new(std::io::Cursor::new(data)))
+    }
+
+    fn clone_file(&self, from: &Path, to: &Path) -> SandboxResult<()> {
+        let data = self.file(from).ok_or_else(|| SandboxError::Io {
+            op: "clone_file".to_string(),
+            message: format!("{}: not found", from.display()),
+        })?;
+        self.write(to, &data)
+    }
+
+    fn lock_exclusive(&self, path: &Path) -> SandboxResult<crate::shared::host::FileLock> {
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        if !state.locked.insert(path.to_path_buf()) {
+            return Err(SandboxError::Io {
+                op: "lock_exclusive".to_string(),
+                message: format!("{}: the lock is held", path.display()),
+            }
+            .into());
+        }
+        drop(state);
+        Ok(crate::shared::host::FileLock::new(FakeLock {
+            state: Arc::clone(&self.state),
+            path: path.to_path_buf(),
+        }))
+    }
+}
+
+/// The token of one [`FakeHostFs`] lock. Its drop releases the lock.
+struct FakeLock {
+    state: Arc<Mutex<FsState>>,
+    path: PathBuf,
+}
+
+impl Drop for FakeLock {
+    fn drop(&mut self) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .locked
+            .remove(&self.path);
+    }
 }
 
 /// A writer over one [`FakeHostFs`] file.
@@ -1929,6 +2204,15 @@ impl std::io::Write for FakeFileWriter {
 
     fn flush(&mut self) -> std::io::Result<()> {
         Ok(())
+    }
+}
+
+impl Drop for FakeFileWriter {
+    fn drop(&mut self) {
+        // `create_file` replaces the file contents, so an empty writer still
+        // makes an empty file. A caller that drops the writer without a write
+        // relies on it (the image store makes the work file this way).
+        let _ = self.fs.write(&self.path, &self.buffer);
     }
 }
 
@@ -2117,6 +2401,7 @@ struct SpawnerState {
     version_output: Option<String>,
     fs: Option<FakeHostFs>,
     exit_next_with: Option<NextExit>,
+    program_outputs: HashMap<String, (String, FakeHostFs)>,
 }
 
 /// How the next fake child ends at once.
@@ -2152,6 +2437,19 @@ impl FakeProcessSpawner {
         let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         state.version_output = Some(text.to_string());
         state.fs = Some(fs);
+    }
+
+    /// Makes a child of `program` write `text` and exit with code 0 at once.
+    ///
+    /// The host probe runs `codesign`, `sysctl` and `sandbox-krun --probe`.
+    /// The runner itself has a different argument list, so this rule does not
+    /// hide a scripted runner exit.
+    pub fn with_program_output(&self, fs: FakeHostFs, program: &str, text: &str) {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .program_outputs
+            .insert(program.to_string(), (text.to_string(), fs));
     }
 
     /// Makes the next non-`--version` child exit at once with `code`.
@@ -2226,6 +2524,32 @@ impl crate::shared::host::ProcessSpawner for FakeProcessSpawner {
             if let (Some(text), Some(fs)) = (state.version_output.clone(), state.fs.clone()) {
                 let _ = fs.write(&spec.stdout, text.as_bytes());
             }
+            drop(state);
+            control.record(crate::shared::host::ProcessExit {
+                code: Some(0),
+                signal: None,
+            });
+            return Ok(Box::new(FakeChildProcess {
+                pid,
+                state: child_state,
+                live,
+            }));
+        }
+        // A scripted probe command exits at once with its output.
+        let program = spec
+            .program
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        let is_probe =
+            program == "sandbox-krun" && spec.args.first().is_some_and(|arg| arg == "--probe");
+        let scripted = state
+            .program_outputs
+            .get(program)
+            .filter(|_| is_probe || program != "sandbox-krun")
+            .cloned();
+        if let Some((text, fs)) = scripted {
+            let _ = fs.write(&spec.stdout, text.as_bytes());
             drop(state);
             control.record(crate::shared::host::ProcessExit {
                 code: Some(0),

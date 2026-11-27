@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 45b9bfc518326b100b62b132dc1042c764325bff3668deedfd5745bf14dd903c # shrinks to file = Sandboxfile { steps: [Step { line: 1, kind: From(Alpine("a")) }, Step { line: 2, kind: Cmd(["a"]) }, Step { line: 3, kind: Cmd(["a"]) }] }
+cc 8dc879d4817e5a7ed760a7f3a2a3da206d2486a68a12661af74310944a0866c3 # shrinks to file = Sandboxfile { steps: [Step { line: 1, kind: From(Alpine("a")) }, Step { line: 2, kind: Kernel("a") }, Step { line: 3, kind: Kernel("a") }] }

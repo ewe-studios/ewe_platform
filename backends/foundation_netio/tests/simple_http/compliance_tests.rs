@@ -3322,8 +3322,8 @@ mod http_response_compliance {
             assert_eq!(
                 response_parts[1],
                 IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (SimpleHeader::Custom("Foo".into()), vec!["abc".into()]),
-                    (SimpleHeader::Custom("Bar".into()), vec!["def".into()]),
+                    (SimpleHeader::Custom("foo".into()), vec!["abc".into()]),
+                    (SimpleHeader::Custom("bar".into()), vec!["def".into()]),
                 ]))
             );
 
@@ -3372,8 +3372,8 @@ mod http_response_compliance {
             assert_eq!(
                 response_parts[1],
                 IncomingResponseParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
-                    (SimpleHeader::Custom("Foo".into()), vec!["abc".into()]),
-                    (SimpleHeader::Custom("Bar".into()), vec!["def".into()]),
+                    (SimpleHeader::Custom("foo".into()), vec!["abc".into()]),
+                    (SimpleHeader::Custom("bar".into()), vec!["def".into()]),
                 ]))
             );
 
@@ -5992,11 +5992,11 @@ Hello world!";
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                     (
-                        SimpleHeader::Custom(String::from("Header1")),
+                        SimpleHeader::Custom(String::from("header1")),
                         vec!["Value1".into()],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Header2")),
+                        SimpleHeader::Custom(String::from("header2")),
                         vec!["Value2".into()],
                     ),
                 ])),
@@ -6516,7 +6516,7 @@ Hello world!";
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                     (
-                        SimpleHeader::Custom(String::from("Line1")),
+                        SimpleHeader::Custom(String::from("line1")),
                         vec![
                             "abc".into(),
                             "def".into(),
@@ -6527,14 +6527,14 @@ Hello world!";
                         ],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Line2")),
+                        SimpleHeader::Custom(String::from("line2")),
                         vec!["line2".into()],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Line3")),
+                        SimpleHeader::Custom(String::from("line3")),
                         vec!["line3".into()],
                     ),
-                    (SimpleHeader::Custom(String::from("Line4")), vec![]),
+                    (SimpleHeader::Custom(String::from("line4")), vec![]),
                     (SimpleHeader::CONNECTION, vec!["close".into()]),
                 ])),
                 IncomingRequestParts::NoBody,
@@ -6583,7 +6583,7 @@ Hello world!";
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                     (
-                        SimpleHeader::Custom(String::from("Line1")),
+                        SimpleHeader::Custom(String::from("line1")),
                         vec![
                             "abc\\n\\".into(),
                             "def\\n\\".into(),
@@ -6594,15 +6594,15 @@ Hello world!";
                         ],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Line2")),
+                        SimpleHeader::Custom(String::from("line2")),
                         vec!["line2\t\\n\\".into()],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Line3")),
+                        SimpleHeader::Custom(String::from("line3")),
                         vec!["\\n\\".into(), "line3\\n\\".into()],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Line4")),
+                        SimpleHeader::Custom(String::from("line4")),
                         vec!["\\n\\".into(), "\\n\\".into()],
                     ),
                     (
@@ -6712,7 +6712,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
-                    SimpleHeader::Custom(String::from("Header1")),
+                    SimpleHeader::Custom(String::from("header1")),
                     vec!["Value1".into()],
                 )])),
                 IncomingRequestParts::NoBody,
@@ -6767,7 +6767,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
-                    SimpleHeader::Custom(String::from("Test")),
+                    SimpleHeader::Custom(String::from("test")),
                     vec!["Düsseldorf".into()],
                 )])),
                 IncomingRequestParts::NoBody,
@@ -6824,11 +6824,11 @@ Hello world!";
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                     (
-                        SimpleHeader::Custom(String::from("Header1")),
+                        SimpleHeader::Custom(String::from("header1")),
                         vec!["Value1".into()],
                     ),
                     (
-                        SimpleHeader::Custom(String::from("Header2")),
+                        SimpleHeader::Custom(String::from("header2")),
                         vec!["ÿValue2".into()],
                     ),
                 ])),
@@ -6884,7 +6884,7 @@ Hello world!";
                     "HTTP/1.1".into(),
                 ),
                 IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([(
-                    SimpleHeader::Custom(String::from("X-SSL-Nonsense")),
+                    SimpleHeader::Custom(String::from("x-ssl-nonsense")),
                     vec![
                             "-----BEGIN CERTIFICATE-----".into(),
                             "MIIFbTCCBFWgAwIBAgICH4cwDQYJKoZIhvcNAQEFBQAwcDELMAkGA1UEBhMCVUsx".into(),
@@ -7309,11 +7309,11 @@ Hello world!";
                     IncomingRequestParts::Headers(BTreeMap::<SimpleHeader, Vec<String>>::from([
                         (SimpleHeader::HOST, vec!["239.255.255.250:1900".into()]),
                         (
-                            SimpleHeader::Custom("MAN".into()),
+                            SimpleHeader::Custom("man".into()),
                             vec!["\"ssdp:discover\"".into()]
                         ),
                         (
-                            SimpleHeader::Custom("ST".into()),
+                            SimpleHeader::Custom("st".into()),
                             vec!["\"ssdp:all\"".into()]
                         ),
                     ])),

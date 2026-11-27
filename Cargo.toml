@@ -20,6 +20,15 @@ exclude = [
   "artefacts/*",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
+  # infrastructure/sandbox_worker is its own workspace root: it builds for
+  # wasm32 only (spec 77 feature 08).
+  "infrastructure/sandbox_worker",
+  # The control-plane image holds a Dockerfile, not a Rust crate (spec 77
+  # feature 10).
+  "infrastructure/sandbox_control_image",
+  # The nested host image holds a Dockerfile, not a Rust crate (spec 77
+  # feature 11).
+  "infrastructure/sandbox_nested_image",
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
@@ -53,6 +62,7 @@ image = { version = "0.25.10", default-features = false }
 foundation_cloudflare_storage = { path = "backends/foundation_cloudflare_storage", version = "0.1.3" }
 foundation_netio = { path = "backends/foundation_netio", version = "0.0.19", default-features = false }
 foundation_core = { path = "backends/foundation_core", version = "0.0.23" }
+foundation_api_common = { path = "backends/foundation_api_common", version = "0.0.1" }
 rustix = "1.1.4"
 foundation_ui_project = { path = "backends/foundation_ui_project", version = "0.1.0" }
 # plist 1.7 requires quick-xml 0.38 for its property list parser.
@@ -272,3 +282,13 @@ opt-level = 0
 lto = true # link time optimizations
 # Enable to remove debug info from wasm files
 strip = "debuginfo"
+
+# The `agent-slave` guest program (spec 77 feature 06). Size and startup time
+# matter in a microVM, so it is small, fully linked and stripped.
+[profile.agent]
+inherits = "release"
+opt-level = "s"
+lto = true
+panic = "abort"
+strip = true
+codegen-units = 1

@@ -1218,6 +1218,13 @@ pub struct UnifiedGenerator {
     strict: StrictRules,
     /// Shared-types-only mode (see [`UnifiedGenerator::shared_types_only`]).
     shared_types_only: bool,
+    /// The import path of the common API types in the generated shared module.
+    ///
+    /// The default depends on the layout: `crate::providers::common` in the
+    /// single-crate layout and `foundation_deployment::providers::common` for a
+    /// split-out provider. A caller that wants a smaller crate names it here,
+    /// for example `foundation_api_common` (spec 77 feature 11).
+    common_import_path: Option<String>,
 }
 
 /// The `Cargo.toml` of one generated group crate.
@@ -1389,7 +1396,21 @@ impl UnifiedGenerator {
             typed_unions: std::collections::BTreeSet::new(),
             strict: StrictRules::default(),
             shared_types_only: false,
+            common_import_path: None,
         }
+    }
+
+    /// Names the import path of the common API types in the generated shared
+    /// module.
+    ///
+    /// The default is `crate::providers::common` in a single-crate layout and
+    /// `foundation_deployment::providers::common` for a split-out provider. Use
+    /// this method when the generated client imports the types from another
+    /// crate, for example `foundation_api_common`.
+    #[must_use]
+    pub fn with_common_import_path(mut self, path: impl Into<String>) -> Self {
+        self.common_import_path = Some(path.into());
+        self
     }
 
     /// Emit an inline string `enum` as a Rust enum.
@@ -1762,7 +1783,7 @@ impl UnifiedGenerator {
         .unwrap();
         writeln!(
             lib,
-            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,"
+            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream, MultipartBody, MultipartPart,"
         )
         .unwrap();
         writeln!(lib, "    }};").unwrap();
@@ -1843,7 +1864,7 @@ impl UnifiedGenerator {
         .unwrap();
         writeln!(
             out,
-            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,"
+            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream, MultipartBody, MultipartPart,"
         )
         .unwrap();
         writeln!(out, "    }};").unwrap();
@@ -2757,16 +2778,24 @@ impl UnifiedGenerator {
             "/// * `args` - Request arguments (path params, query params, body)"
         )?;
         if let Some(raw) = &ep.raw_request_body {
-            writeln!(
-                out,
-                "/// * `body` - Request body, sent as-is as `{}`{}",
-                raw.media_type,
-                if raw.required {
-                    ""
-                } else {
-                    " (`None` sends none)"
-                }
-            )?;
+            if raw.multipart {
+                writeln!(
+                    out,
+                    "/// * `body` - Multipart body: the named parts of a `{}` request",
+                    raw.media_type
+                )?;
+            } else {
+                writeln!(
+                    out,
+                    "/// * `body` - Request body, sent as-is as `{}`{}",
+                    raw.media_type,
+                    if raw.required {
+                        ""
+                    } else {
+                        " (`None` sends none)"
+                    }
+                )?;
+            }
         }
         writeln!(out, "/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)")?;
         if let Some(rt) = streaming {
@@ -2815,7 +2844,9 @@ impl UnifiedGenerator {
         // DockerClient::base_url().
         writeln!(out, "    base_url: &str,")?;
         if let Some(raw) = &ep.raw_request_body {
-            if raw.required {
+            if raw.multipart {
+                writeln!(out, "    body: &super::shared::MultipartBody,")?;
+            } else if raw.required {
                 writeln!(
                     out,
                     "    body: foundation_netio::shared::http::SendSafeBody,"
@@ -2909,9 +2940,16 @@ impl UnifiedGenerator {
             writeln!(out)?;
         }
 
-        // A non-JSON body (tar archive, raw bytes) goes on as-is.
+        // A non-JSON body (tar archive, raw bytes) goes on as-is. A multipart
+        // body is framed from its named parts.
         if let Some(raw) = &ep.raw_request_body {
-            if raw.required {
+            if raw.multipart {
+                writeln!(out, "    let (content_type, encoded) = body.encode();")?;
+                writeln!(
+                    out,
+                    "    builder = builder.header(\"content-type\".to_string(), content_type).body_bytes(encoded);"
+                )?;
+            } else if raw.required {
                 writeln!(
                     out,
                     "    builder = super::shared::with_raw_body(builder, \"{}\", body);",
@@ -3003,12 +3041,15 @@ impl UnifiedGenerator {
         if self.groups_dir.is_none() {
             // For split-out providers (provider_dir_override set), the shared
             // module lives in its own crate so it must import from
-            // foundation_deployment rather than crate::providers::common.
-            let common_path = if self.provider_dir_override.is_some() {
-                "foundation_deployment::providers::common"
-            } else {
-                "crate::providers::common"
-            };
+            // foundation_deployment rather than crate::providers::common. A
+            // caller can name another crate, such as foundation_api_common.
+            let common_path = self.common_import_path.clone().unwrap_or_else(|| {
+                if self.provider_dir_override.is_some() {
+                    "foundation_deployment::providers::common".to_string()
+                } else {
+                    "crate::providers::common".to_string()
+                }
+            });
             writeln!(
                 out,
                 "// Re-export common API types from foundation_deployment"

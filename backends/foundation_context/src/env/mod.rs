@@ -24,7 +24,7 @@ use std::sync::Arc;
 
 use derive_more::{Display, Error};
 
-pub use entropy::{EntropySource, OsEntropy, SeededEntropy};
+pub use entropy::{EntropySource, EntropySourceExt, OsEntropy, SeededEntropy};
 pub use ids::{CounterSource, IdSource, Scru128Source};
 pub use timer::{Timer, TimerFuture};
 

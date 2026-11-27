@@ -75,6 +75,11 @@ pub enum StorageError {
     #[from(ignore)]
     PreconditionFailed(String),
 
+    /// The backend cannot do this operation at all. The name identifies the
+    /// operation, for example `insert_if_absent_async`.
+    #[from(ignore)]
+    Unsupported(String),
+
     /// A store's connection lock was not free in time. See `lock_timeout` on
     /// the store: a task that holds a row stream and then calls another
     /// operation on the same store waits for itself, and gets this error
@@ -123,6 +128,7 @@ impl core::fmt::Display for StorageError {
             Self::Generic(s) => write!(f, "Storage error: {s}"),
             Self::SqlConversion(s) => write!(f, "SQL conversion error: {s}"),
             Self::PreconditionFailed(s) => write!(f, "Precondition failed: {s}"),
+            Self::Unsupported(op) => write!(f, "Unsupported operation: {op}"),
             Self::LockTimeout { mode, waited } => write!(
                 f,
                 "Lock timeout: the {mode} lock was not free after {waited:?}; \

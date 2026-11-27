@@ -1,0 +1,5 @@
+# The token and the test harness are not build inputs.
+sandbox_token
+test/
+README.md
+.gitignore

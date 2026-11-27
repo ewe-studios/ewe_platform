@@ -5,7 +5,7 @@ use std::sync::Arc;
 use foundation_core::valtron::{from_future, send};
 
 use crate::shared::control::wait_until;
-use futures::future::{select, Either};
+use futures::future::{join_all, select, Either};
 
 use crate::shared::control::manager::Inner;
 use crate::shared::control::record::SandboxRecord;
@@ -37,7 +37,10 @@ pub async fn stop_record(
     inner: Arc<Inner>,
     record: Arc<SandboxRecord>,
 ) -> SandboxResult<ExitReport> {
+    // The children of a parent stop first (feature 11, invariant I3).
+    stop_children(&inner, &record).await;
     let mut wait_for_stop = false;
+    let mut nested = false;
     let (substrate, client) = {
         let mut state = record
             .state
@@ -55,6 +58,7 @@ pub async fn stop_record(
             SandboxState::Creating => return Err(SandboxError::SandboxStopped.into()),
             SandboxState::Ready => {
                 state.state = SandboxState::Stopping;
+                nested = state.calls.is_some();
                 (state.substrate.clone(), state.client.clone())
             }
         }
@@ -73,17 +77,35 @@ pub async fn stop_record(
     }
 
     let report = if let Some(substrate) = &substrate {
-        let exit = wait_for_exit(substrate, deadline, &inner).await;
-        if let Some(exit) = exit {
-            ExitReport {
-                substrate_exit_code: exit.code,
-                killed: false,
+        if nested {
+            // A nested child has no slave client of this control plane: its
+            // `terminate` sends the stop to the parent's inner control plane
+            // (feature 11, section 6.2).
+            if let Ok(exit) = substrate.terminate(grace).await {
+                ExitReport {
+                    substrate_exit_code: exit.code,
+                    killed: exit.forced,
+                }
+            } else {
+                let forced = force_exit(substrate, &inner).await;
+                ExitReport {
+                    substrate_exit_code: forced.code,
+                    killed: true,
+                }
             }
         } else {
-            let forced = force_exit(substrate, &inner).await;
-            ExitReport {
-                substrate_exit_code: forced.code,
-                killed: true,
+            let exit = wait_for_exit(substrate, deadline, &inner).await;
+            if let Some(exit) = exit {
+                ExitReport {
+                    substrate_exit_code: exit.code,
+                    killed: false,
+                }
+            } else {
+                let forced = force_exit(substrate, &inner).await;
+                ExitReport {
+                    substrate_exit_code: forced.code,
+                    killed: true,
+                }
             }
         }
     } else {
@@ -113,6 +135,8 @@ pub async fn kill_record(
     inner: Arc<Inner>,
     record: Arc<SandboxRecord>,
 ) -> SandboxResult<ExitReport> {
+    // The children of a parent stop first (feature 11, invariant I3).
+    kill_children(&inner, &record).await;
     let mut wait_for_stop = false;
     let substrate = {
         let mut state = record
@@ -158,6 +182,53 @@ pub async fn kill_record(
         .into()),
         _ => Ok(report),
     }
+}
+
+/// Stops every child of a parent, in parallel.
+///
+/// A record with no child does nothing. A child is a record whose `spec.parent`
+/// is this record; a child has no child of its own (one level only).
+async fn stop_children(inner: &Arc<Inner>, parent: &Arc<SandboxRecord>) {
+    if parent.spec.parent.is_some() {
+        return;
+    }
+    let children: Vec<Arc<SandboxRecord>> = inner
+        .records()
+        .into_iter()
+        .filter(|record| record.spec.parent.as_ref() == Some(&parent.id))
+        .collect();
+    if children.is_empty() {
+        return;
+    }
+    let futures = children.into_iter().map(|child| {
+        let inner = Arc::clone(inner);
+        async move {
+            let _ = stop_record(inner, child).await;
+        }
+    });
+    join_all(futures).await;
+}
+
+/// Kills every child of a parent, in parallel.
+async fn kill_children(inner: &Arc<Inner>, parent: &Arc<SandboxRecord>) {
+    if parent.spec.parent.is_some() {
+        return;
+    }
+    let children: Vec<Arc<SandboxRecord>> = inner
+        .records()
+        .into_iter()
+        .filter(|record| record.spec.parent.as_ref() == Some(&parent.id))
+        .collect();
+    if children.is_empty() {
+        return;
+    }
+    let futures = children.into_iter().map(|child| {
+        let inner = Arc::clone(inner);
+        async move {
+            let _ = kill_record(inner, child).await;
+        }
+    });
+    join_all(futures).await;
 }
 
 /// Waits for the substrate exit, up to `grace`.

@@ -95,7 +95,7 @@ impl<K: KeyValueStore + ?Sized + 'static> KvTrustStore<K> {
         message.extend_from_slice(nonce);
         format!(
             "{REFRESH_NONCE_PREFIX}{}",
-            crate::fingerprint::sha256_hex(&message)
+            crate::fingerprint::public_fingerprint_hex(&message)
         )
     }
 

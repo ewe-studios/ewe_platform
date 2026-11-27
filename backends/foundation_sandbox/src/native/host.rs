@@ -17,7 +17,7 @@
 
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 use std::os::unix::process::CommandExt as _;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -108,6 +108,14 @@ impl HostFs for NativeFs {
         }
     }
 
+    fn remove_file(&self, path: &Path) -> SandboxResult<()> {
+        match std::fs::remove_file(path) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(io_error("remove_file", path, &error).into()),
+        }
+    }
+
     fn write(&self, path: &Path, data: &[u8]) -> SandboxResult<()> {
         std::fs::write(path, data).map_err(|error| io_error("write", path, &error).into())
     }
@@ -119,6 +127,17 @@ impl HostFs for NativeFs {
             .read_to_end(&mut bytes)
             .map_err(|error| io_error("read", path, &error))?;
         Ok(bytes)
+    }
+
+    fn open_read(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send + Sync>> {
+        let file = File::open(path).map_err(|error| io_error("open_read", path, &error))?;
+        Ok(Box::new(file))
+    }
+
+    fn file_size(&self, path: &Path) -> SandboxResult<u64> {
+        std::fs::metadata(path)
+            .map(|metadata| metadata.len())
+            .map_err(|error| io_error("file_size", path, &error).into())
     }
 
     fn tail(&self, path: &Path, max: usize) -> SandboxResult<Vec<u8>> {
@@ -179,6 +198,150 @@ impl HostFs for NativeFs {
 
     fn is_openable_read_write(&self, path: &Path) -> bool {
         OpenOptions::new().read(true).write(true).open(path).is_ok()
+    }
+
+    fn entry_meta(&self, path: &Path) -> SandboxResult<crate::shared::host::EntryMeta> {
+        let metadata = std::fs::symlink_metadata(path)
+            .map_err(|error| io_error("entry_meta", path, &error))?;
+        let file_type = metadata.file_type();
+        let kind = if file_type.is_symlink() {
+            crate::shared::host::EntryKind::Symlink
+        } else if file_type.is_dir() {
+            crate::shared::host::EntryKind::Directory
+        } else if file_type.is_file() {
+            crate::shared::host::EntryKind::File
+        } else {
+            crate::shared::host::EntryKind::Other
+        };
+        #[cfg(unix)]
+        let mode = {
+            use std::os::unix::fs::MetadataExt as _;
+            metadata.mode() & 0o7777
+        };
+        #[cfg(not(unix))]
+        let mode = if file_type.is_dir() { 0o755 } else { 0o644 };
+        Ok(crate::shared::host::EntryMeta {
+            kind,
+            mode,
+            size: metadata.len(),
+        })
+    }
+
+    fn canonicalize(&self, path: &Path) -> SandboxResult<PathBuf> {
+        std::fs::canonicalize(path).map_err(|error| io_error("canonicalize", path, &error).into())
+    }
+
+    fn read_link(&self, path: &Path) -> SandboxResult<PathBuf> {
+        std::fs::read_link(path).map_err(|error| io_error("read_link", path, &error).into())
+    }
+
+    fn read_stream(&self, path: &Path) -> SandboxResult<Box<dyn Read + Send>> {
+        let file = File::open(path).map_err(|error| io_error("read_stream", path, &error))?;
+        Ok(Box::new(file))
+    }
+
+    fn clone_file(&self, from: &Path, to: &Path) -> SandboxResult<()> {
+        if let Some(parent) = to.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|error| io_error("clone_file", parent, &error))?;
+        }
+        if reflink(from, to) {
+            return Ok(());
+        }
+        let mut source = File::open(from).map_err(|error| io_error("clone_file", from, &error))?;
+        let mut target = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(to)
+            .map_err(|error| io_error("clone_file", to, &error))?;
+        std::io::copy(&mut source, &mut target)
+            .map_err(|error| io_error("clone_file", to, &error))?;
+        Ok(())
+    }
+
+    fn lock_exclusive(&self, path: &Path) -> SandboxResult<crate::shared::host::FileLock> {
+        #[cfg(unix)]
+        {
+            use std::os::fd::{AsRawFd as _, OwnedFd};
+
+            let file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(path)
+                .map_err(|error| io_error("lock_exclusive", path, &error))?;
+            let fd = OwnedFd::from(file);
+            // SAFETY: `fd` is an open descriptor of this process. `flock` reads
+            // only that descriptor and changes the lock state of its file.
+            let result = unsafe { libc::flock(fd.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
+            if result != 0 {
+                return Err(
+                    io_error("lock_exclusive", path, &std::io::Error::last_os_error()).into(),
+                );
+            }
+            Ok(crate::shared::host::FileLock::new(fd))
+        }
+        #[cfg(not(unix))]
+        {
+            Err(io_error(
+                "lock_exclusive",
+                path,
+                &std::io::Error::from(std::io::ErrorKind::Unsupported),
+            )
+            .into())
+        }
+    }
+}
+
+/// Tries a copy-on-write clone of one file. It returns `false` when the file
+/// system or the operating system has no clone call, so the caller copies.
+fn reflink(from: &Path, to: &Path) -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::fd::AsRawFd as _;
+
+        // The FICLONE request number of `linux/fs.h`.
+        const FICLONE: libc::c_ulong = 0x4004_9409;
+        let Ok(source) = File::open(from) else {
+            return false;
+        };
+        let Ok(target) = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(to)
+        else {
+            return false;
+        };
+        // The `ioctl` request type is not the same on every C library: glibc
+        // takes `c_ulong` and musl takes `c_int`. The FICLONE number fits in
+        // 32 bits, so the narrow form is exact.
+        #[cfg(target_env = "musl")]
+        let request = FICLONE as libc::c_int;
+        #[cfg(not(target_env = "musl"))]
+        let request = FICLONE;
+        // SAFETY: both descriptors are open, and FICLONE takes the source
+        // descriptor as its argument.
+        unsafe { libc::ioctl(target.as_raw_fd(), request, source.as_raw_fd()) == 0 }
+    }
+    #[cfg(target_os = "macos")]
+    {
+        use std::ffi::CString;
+
+        let (Ok(source), Ok(target)) = (
+            CString::new(from.as_os_str().as_encoded_bytes()),
+            CString::new(to.as_os_str().as_encoded_bytes()),
+        ) else {
+            return false;
+        };
+        // SAFETY: both strings are valid and live for the call; `clonefile`
+        // reads them only during the call.
+        unsafe { libc::clonefile(source.as_ptr(), target.as_ptr(), 0) == 0 }
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    {
+        let _ = (from, to);
+        false
     }
 }
 
@@ -309,8 +472,9 @@ fn spawn_process(mut spec: ProcessSpec) -> SandboxResult<NativeChild> {
         .stdout(std::process::Stdio::from(stdout))
         .stderr(std::process::Stdio::from(stderr));
 
-    #[cfg(target_os = "linux")]
-    if spec.kill_with_parent {
+    #[cfg(unix)]
+    if !extra_fds.is_empty() || (cfg!(target_os = "linux") && spec.kill_with_parent) {
+        let kill_with_parent = spec.kill_with_parent;
         // SAFETY: `pre_exec` runs in the child after `fork`, so the closure
         // must call only async-signal-safe system calls. It reads memory that
         // the parent owns and the child inherits.
@@ -322,21 +486,22 @@ fn spawn_process(mut spec: ProcessSpec) -> SandboxResult<NativeChild> {
                         return Err(std::io::Error::last_os_error());
                     }
                 }
-                if libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL, 0, 0, 0) != 0 {
-                    return Err(std::io::Error::last_os_error());
+                #[cfg(target_os = "linux")]
+                if kill_with_parent {
+                    if libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL, 0, 0, 0) != 0 {
+                        return Err(std::io::Error::last_os_error());
+                    }
+                    // The host process already died: no parent remains to
+                    // receive the death signal.
+                    if libc::getppid() == 1 {
+                        libc::_exit(1);
+                    }
                 }
-                // The host process already died: no parent remains to receive
-                // the death signal.
-                if libc::getppid() == 1 {
-                    libc::_exit(1);
-                }
+                #[cfg(not(target_os = "linux"))]
+                let _ = kill_with_parent;
                 Ok(())
             });
         }
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        let _ = extra_fds;
     }
 
     let child = command.spawn().map_err(|error| SandboxError::Io {
@@ -559,6 +724,22 @@ impl SlaveConnector for NativeConnector {
                 }
                 .into());
             }
+            SlaveEndpoint::CloudflareDo { .. } => {
+                return Err(SandboxError::PlatformMismatch {
+                    expected: crate::shared::platform::PlatformKind::Cloudflare,
+                    actual: crate::shared::platform::PlatformKind::Native,
+                }
+                .into());
+            }
+            SlaveEndpoint::Parent { .. } => {
+                // A nested child has no native transport: its calls go to the
+                // parent's inner control plane (feature 11).
+                return Err(SandboxError::InvalidSpec {
+                    field: "endpoint".to_string(),
+                    reason: "a nested child is reached through its parent".to_string(),
+                }
+                .into());
+            }
         };
         Ok(Arc::new(H1Transport::new(client)))
     }
@@ -655,6 +836,9 @@ impl HostConfig {
             env("EWE_SANDBOX_KRUN").map_or_else(|| exe_dir.join("sandbox-krun"), PathBuf::from),
         );
         let libkrun_path = env("EWE_LIBKRUN").map(PathBuf::from);
+        let mkfs_ext4_path = env("EWE_MKFS_EXT4")
+            .map(PathBuf::from)
+            .or_else(|| find_on_path(&env, "mkfs.ext4"));
         let driver_order = env("EWE_SANDBOX_DRIVERS")
             .map(|list| parse_driver_order(&list))
             .filter(|order| !order.is_empty())
@@ -666,8 +850,10 @@ impl HostConfig {
             firecracker_path,
             krun_runner_path,
             libkrun_path,
+            mkfs_ext4_path,
             driver_order,
             artifact_limits: crate::shared::limits::ArtifactLimits::default(),
+            image_limits: crate::shared::limits::ImageLimits::default(),
         }
     }
 }

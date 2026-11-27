@@ -52,7 +52,17 @@ pub struct WasmByteStream {
     done: Arc<AtomicBool>,
     error: Arc<Mutex<Option<String>>>,
     cancelled: Arc<AtomicBool>,
+    /// Fires on each push, on an error and at the end, so an async consumer
+    /// that parks is polled again.
+    wake: Arc<WakeRegistry>,
 }
+
+// SAFETY: wasm32 is single-threaded. The `WakeRegistry` holds non-Send
+// one-shot callbacks by design (valtron's single-threaded wake path), and the
+// JS reader lives inside the spawned task. Every field is only touched on the
+// one thread.
+unsafe impl Send for WasmByteStream {}
+unsafe impl Sync for WasmByteStream {}
 
 impl WasmByteStream {
     /// Read `stream`, with at most `chunks` queued ahead of the consumer, and
@@ -63,13 +73,33 @@ impl WasmByteStream {
     /// `max` is the configured body limit; `None` means no limit.
     #[must_use]
     pub fn new(stream: web_sys::ReadableStream, chunks: usize, max: Option<usize>) -> Self {
-        let parts = start_reader(stream, chunks, max, Arc::new(WakeRegistry::new()));
+        let wake = Arc::new(WakeRegistry::new());
+        let parts = start_reader(stream, chunks, max, Arc::clone(&wake));
         Self {
             queue: parts.queue,
             done: parts.done,
             error: parts.error,
             cancelled: parts.cancelled,
+            wake,
         }
+    }
+
+    /// Register a one-shot readiness callback.
+    ///
+    /// It fires on the next push, error or end. The method registers first and
+    /// then checks the queue, so a chunk that arrived before the call is not
+    /// missed. It always returns [`WakeResult::Successful`].
+    pub fn register_wake(&self, callback: WakeCallback) -> WakeResult {
+        self.wake.register(callback);
+        let has_error = self
+            .error
+            .lock()
+            .map(|slot| slot.is_some())
+            .unwrap_or(false);
+        if has_error || !self.queue.is_empty() || self.done.load(Ordering::Acquire) {
+            self.wake.fire();
+        }
+        WakeResult::Successful
     }
 
     /// The same bytes as a `std::io::Read`, for the server-sent event parser.
@@ -119,6 +149,7 @@ impl Drop for WasmByteStream {
         // `reader.cancel()` and closes the queue on its next turn.
         self.cancelled.store(true, Ordering::Release);
         self.queue.close();
+        self.wake.fire();
     }
 }
 

@@ -13,7 +13,7 @@
 use p256::ecdsa::signature::Verifier;
 use p256::ecdsa::{Signature as P256Signature, VerifyingKey as P256VerifyingKey};
 
-use crate::fingerprint::sha256_hex;
+use crate::fingerprint::public_fingerprint_hex;
 
 use super::SecretError;
 
@@ -114,7 +114,7 @@ impl ClientPublicKey {
     /// The lowercase hexadecimal SHA-256 of the raw key. Safe to log.
     #[must_use]
     pub fn fingerprint(&self) -> String {
-        sha256_hex(&self.bytes)
+        public_fingerprint_hex(&self.bytes)
     }
 
     /// Check one signature over `message`.

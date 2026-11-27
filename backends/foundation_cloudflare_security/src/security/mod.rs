@@ -9448,6 +9448,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -9461,6 +9462,7 @@ pub async fn post_bin_db_post_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &PostBinDBPostArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<PostBinDbPostResponse>, super::shared::ApiError>
 where
@@ -9471,6 +9473,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -14424,6 +14431,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14437,6 +14445,7 @@ pub async fn cloudforce_one_request_asset_new_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &CloudforceOneRequestAssetNewArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<CloudforceOneRequestAssetNewResponse>, super::shared::ApiError>
 where
@@ -14450,6 +14459,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -16020,6 +16034,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -16033,6 +16048,7 @@ pub async fn dlp_document_fingerprints_upload_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &DlpDocumentFingerprintsUploadArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DlpDocumentFingerprintsUploadResponse>, super::shared::ApiError>
 where
@@ -16046,6 +16062,11 @@ where
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -16982,6 +17003,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -16995,6 +17017,7 @@ pub async fn custom_indicator_feeds_update_indicator_feed_data_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &CustomIndicatorFeedsUpdateIndicatorFeedDataArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<CustomIndicatorFeedsUpdateFeedResponse>, super::shared::ApiError>
 where
@@ -17008,6 +17031,11 @@ where
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);

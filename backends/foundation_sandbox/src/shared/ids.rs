@@ -114,6 +114,8 @@ pub enum DriverId {
     Libkrun,
     /// The Docker Engine.
     Docker,
+    /// A micro virtual machine (VM) inside a parent sandbox (feature 11).
+    Nested,
     /// A Cloudflare container.
     CloudflareContainer,
     /// A Cloudflare Durable Object that serves the slave itself: the turn runs
@@ -128,6 +130,7 @@ impl fmt::Display for DriverId {
             Self::Firecracker => "firecracker",
             Self::Libkrun => "libkrun",
             Self::Docker => "docker",
+            Self::Nested => "nested",
             Self::CloudflareContainer => "cloudflare-container",
             Self::CloudflareDo => "cloudflare-do",
         };
@@ -143,6 +146,7 @@ impl FromStr for DriverId {
             "firecracker" => Ok(Self::Firecracker),
             "libkrun" => Ok(Self::Libkrun),
             "docker" => Ok(Self::Docker),
+            "nested" => Ok(Self::Nested),
             "cloudflare-container" => Ok(Self::CloudflareContainer),
             "cloudflare-do" => Ok(Self::CloudflareDo),
             other => Err(SandboxError::InvalidSpec {

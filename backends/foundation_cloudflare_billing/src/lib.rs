@@ -20,7 +20,8 @@ pub mod shared {
     pub use foundation_cloudflare_types::generated::*;
     pub use foundation_deployment::providers::common::{
         read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body,
-        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,
+        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream, MultipartBody,
+        MultipartPart,
     };
     pub use foundation_deployment::providers::common::{
         ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,

@@ -1172,6 +1172,13 @@ pub struct AnalyzeCertificateAnalyzeCertificateRequest {
 /// `ApiShieldAction` type.
 pub type ApiShieldAction = String;
 
+/// `ApiShieldAfter` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldAfter {
+    /// `after` property.
+    pub after: Option<String>,
+}
+
 /// `ApiShieldApiDiscoveryOrigin` type.
 pub type ApiShieldApiDiscoveryOrigin = String;
 
@@ -1239,6 +1246,13 @@ pub struct ApiShieldBasicOperation {
     pub host: String,
     /// `method` property.
     pub method: String,
+}
+
+/// `ApiShieldBefore` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldBefore {
+    /// `before` property.
+    pub before: Option<String>,
 }
 
 /// `ApiShieldBulkCreateRulesSuccessResponse` type.
@@ -1314,6 +1328,23 @@ pub type ApiShieldCreateConfigSuccessResponse =
 ///
 /// Same shape as `super::shared::ApiEnvelope<ApiShieldRule>`.
 pub type ApiShieldCreateRuleSuccessResponse = super::shared::ApiEnvelope<ApiShieldRule>;
+
+/// `ApiShieldCreateSingleRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldCreateSingleRuleRequest {
+    /// `action` property.
+    pub action: String,
+    /// `description` property.
+    pub description: String,
+    /// `enabled` property.
+    pub enabled: bool,
+    /// `expression` property.
+    pub expression: String,
+    /// `selector` property.
+    pub selector: ApiShieldSelector,
+    /// `title` property.
+    pub title: String,
+}
 
 /// `ApiShieldCredentials` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1422,6 +1453,25 @@ pub type ApiShieldEditConfigSuccessResponse =
 /// Same shape as `super::shared::ApiEnvelope<ApiShieldRule>`.
 pub type ApiShieldEditRuleSuccessResponse = super::shared::ApiEnvelope<ApiShieldRule>;
 
+/// `ApiShieldEditSingleRuleRequest` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldEditSingleRuleRequest {
+    /// `action` property.
+    pub action: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `expression` property.
+    pub expression: Option<String>,
+    /// `position` property.
+    pub position: Option<serde_json::Value>,
+    /// `selector` property.
+    pub selector: Option<ApiShieldSelector>,
+    /// `title` property.
+    pub title: Option<String>,
+}
+
 /// `ApiShieldEnabled` type.
 pub type ApiShieldEnabled = bool;
 
@@ -1486,6 +1536,15 @@ pub type ApiShieldGetConfigSuccessResponse =
 /// Same shape as `super::shared::ApiEnvelope<ApiShieldRule>`.
 pub type ApiShieldGetRuleSuccessResponse = super::shared::ApiEnvelope<ApiShieldRule>;
 
+/// `ApiShieldGlobalSettingChangeBase` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldGlobalSettingChangeBase {
+    /// `validation_default_mitigation_action` property.
+    pub validation_default_mitigation_action: Option<String>,
+    /// `validation_override_mitigation_action` property.
+    pub validation_override_mitigation_action: Option<String>,
+}
+
 /// `ApiShieldGlobalSettings` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldGlobalSettings {
@@ -1518,6 +1577,13 @@ pub type ApiShieldHeader = String;
 
 /// `ApiShieldHost` type.
 pub type ApiShieldHost = String;
+
+/// `ApiShieldIndex` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldIndex {
+    /// `index` property.
+    pub index: i64,
+}
 
 /// `ApiShieldLabel` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1844,6 +1910,9 @@ pub type ApiShieldPerOperationSettingsListSuccessResponse =
 /// `ApiShieldPeriodSeconds` type.
 pub type ApiShieldPeriodSeconds = i64;
 
+/// `ApiShieldPosition` type.
+pub type ApiShieldPosition = serde_json::Value;
+
 /// `ApiShieldPostLabelsOnOperationRequest` type.
 ///
 /// Same shape as `super::shared::ManagedUserObject`.
@@ -1941,6 +2010,23 @@ pub struct ApiShieldRule {
     pub selector: ApiShieldSelector,
     /// `title` property.
     pub title: String,
+}
+
+/// `ApiShieldRuleProperties` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldRuleProperties {
+    /// `action` property.
+    pub action: Option<String>,
+    /// `description` property.
+    pub description: Option<String>,
+    /// `enabled` property.
+    pub enabled: Option<bool>,
+    /// `expression` property.
+    pub expression: Option<String>,
+    /// `selector` property.
+    pub selector: Option<ApiShieldSelector>,
+    /// `title` property.
+    pub title: Option<String>,
 }
 
 /// `ApiShieldSchemaCreateSuccessResponse` type.
@@ -10838,9 +10924,13 @@ pub type ApiShieldSettingsRetrieveInformationAboutSpecificConfigurationPropertie
     super::shared::ZoneIdArgs;
 
 /// Arguments for [`api-shield-settings-set-configuration-properties_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type ApiShieldSettingsSetConfigurationPropertiesArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct ApiShieldSettingsSetConfigurationPropertiesArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: ApiShieldConfiguration,
+}
 
 /// Arguments for [`api-shield-api-discovery-retrieve-discovered-operations-on-a-zone-as-openapi_request`].
 ///
@@ -12622,9 +12712,13 @@ pub type GetZonesZoneIdLogsReceivedFieldsArgs = super::shared::ZoneIdArgs;
 pub type ListManagedTransformsArgs = super::shared::ZoneIdArgs;
 
 /// Arguments for [`updateManagedTransforms_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type UpdateManagedTransformsArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct UpdateManagedTransformsArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: RulesetsManagedTransforms,
+}
 
 /// Arguments for [`deleteManagedTransforms_request`].
 ///
@@ -12963,14 +13057,18 @@ pub type PageRulesDeleteAPageRuleArgs = super::shared::PageruleIdZoneIdArgs;
 pub type PayPerCrawlGetConfigArgs = super::shared::ZoneIdArgs;
 
 /// Arguments for [`pay-per-crawl.createConfig_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type PayPerCrawlCreateConfigArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct PayPerCrawlCreateConfigArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: PayPerCrawlDaricConfig,
+}
 
 /// Arguments for [`pay-per-crawl.patchConfig_request`].
 ///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type PayPerCrawlPatchConfigArgs = super::shared::ZoneIdArgs;
+/// Same shape as `PayPerCrawlCreateConfigArgs`.
+pub type PayPerCrawlPatchConfigArgs = PayPerCrawlCreateConfigArgs;
 
 /// Arguments for [`zone-purge_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -13161,9 +13259,13 @@ pub type SchemaValidationGetSettingsArgs = super::shared::ZoneIdArgs;
 pub type SchemaValidationUpdateSettingsArgs = super::shared::ZoneIdArgs;
 
 /// Arguments for [`schema-validation-edit-settings_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type SchemaValidationEditSettingsArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct SchemaValidationEditSettingsArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: ApiShieldGlobalSettingChangeBase,
+}
 
 /// Arguments for [`schema-validation-list-per-operation-settings_request`].
 ///
@@ -13936,9 +14038,15 @@ pub type TokenValidationConfigEditArgs = super::shared::ZoneIdConfigIdArgs;
 pub type TokenValidationConfigDeleteArgs = super::shared::ZoneIdConfigIdArgs;
 
 /// Arguments for [`token-validation-config-credentials-update_request`].
-///
-/// Same shape as `super::shared::ZoneIdConfigIdArgs`.
-pub type TokenValidationConfigCredentialsUpdateArgs = super::shared::ZoneIdConfigIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TokenValidationConfigCredentialsUpdateArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `config_id`.
+    pub config_id: String,
+    /// Request body.
+    pub body: ApiShieldCredentials,
+}
 
 /// Arguments for [`token-validation-rules-list_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -13966,19 +14074,31 @@ pub struct TokenValidationRulesListArgs {
 }
 
 /// Arguments for [`token-validation-rules-create_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type TokenValidationRulesCreateArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TokenValidationRulesCreateArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: ApiShieldCreateSingleRuleRequest,
+}
 
 /// Arguments for [`token-validation-rules-bulk-create_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type TokenValidationRulesBulkCreateArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TokenValidationRulesBulkCreateArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: Vec<ApiShieldCreateSingleRuleRequest>,
+}
 
 /// Arguments for [`token-validation-rules-bulk-edit_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type TokenValidationRulesBulkEditArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TokenValidationRulesBulkEditArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: Vec<serde_json::Value>,
+}
 
 /// Arguments for [`token-validation-rules-preview_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
@@ -13999,6 +14119,8 @@ pub struct TokenValidationRulesPreviewArgs {
     pub method: Vec<String>,
     /// Query parameter: `endpoint` (one per value).
     pub endpoint: Vec<String>,
+    /// Request body.
+    pub body: ApiShieldSelector,
 }
 
 /// Arguments for [`token-validation-rules-get_request`].
@@ -14007,9 +14129,15 @@ pub struct TokenValidationRulesPreviewArgs {
 pub type TokenValidationRulesGetArgs = super::shared::ZoneIdRuleIdArgs;
 
 /// Arguments for [`token-validation-rules-edit_request`].
-///
-/// Same shape as `super::shared::ZoneIdRuleIdArgs`.
-pub type TokenValidationRulesEditArgs = super::shared::ZoneIdRuleIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct TokenValidationRulesEditArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Path parameter: `rule_id`.
+    pub rule_id: String,
+    /// Request body.
+    pub body: ApiShieldEditSingleRuleRequest,
+}
 
 /// Arguments for [`token-validation-rules-delete_request`].
 ///
@@ -14022,9 +14150,13 @@ pub type TokenValidationRulesDeleteArgs = super::shared::ZoneIdRuleIdArgs;
 pub type GetUrlNormalizationArgs = super::shared::ZoneIdArgs;
 
 /// Arguments for [`updateUrlNormalization_request`].
-///
-/// Same shape as `super::shared::ZoneIdArgs`.
-pub type UpdateUrlNormalizationArgs = super::shared::ZoneIdArgs;
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct UpdateUrlNormalizationArgs {
+    /// Path parameter: `zone_id`.
+    pub zone_id: String,
+    /// Request body.
+    pub body: RulesetsUrlNormalization,
+}
 
 /// Arguments for [`deleteUrlNormalization_request`].
 ///
@@ -17510,6 +17642,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -22207,6 +22343,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -22220,6 +22357,7 @@ pub async fn dns_records_for_a_zone_import_dns_records_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneImportDnsRecordsArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<DnsRecordsDnsResponseImportScan>, super::shared::ApiError>
 where
@@ -22230,6 +22368,11 @@ where
 
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -27619,6 +27762,10 @@ where
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -29336,6 +29483,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -29378,6 +29529,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -30649,6 +30804,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -33897,6 +34056,7 @@ where
 ///
 /// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
+/// * `body` - Multipart body: the named parts of a `multipart/form-data` request
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -33910,6 +34070,7 @@ pub async fn update_zone_snippet_request<F>(
     client: impl Into<super::shared::ApiClient>,
     args: &UpdateZoneSnippetArgs,
     base_url: &str,
+    body: &super::shared::MultipartBody,
     builder_mod: Option<F>,
 ) -> Result<ApiResponse<SnippetsSnippetResponse>, super::shared::ApiError>
 where
@@ -33920,6 +34081,11 @@ where
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    let (content_type, encoded) = body.encode();
+    builder = builder
+        .header("content-type".to_string(), content_type)
+        .body_bytes(encoded);
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -35664,6 +35830,10 @@ where
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -35764,6 +35934,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -35808,6 +35982,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
@@ -35850,6 +36028,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -35913,6 +36095,10 @@ where
     for value in &args.endpoint {
         builder = builder.query("endpoint", Some(value.as_str()));
     }
+
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -36006,6 +36192,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::patch(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {
@@ -36141,6 +36331,10 @@ where
     let endpoint_url = format!("{base_url}{path}");
 
     let mut builder = PreparedRequestBuilder::put(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder
+        .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

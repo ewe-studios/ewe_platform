@@ -11,15 +11,20 @@
 //! a [`Caller`]. The registry methods take that caller, so the Worker can
 //! separate clients and the native host can keep one shared name space.
 
+#[cfg(any(feature = "multi", feature = "worker"))]
 pub mod local;
 
-pub use local::{InMemoryStores, LocalInstanceRegistry, SessionStores};
+#[cfg(any(feature = "multi", feature = "worker"))]
+pub use local::{
+    CreateHookFn, DestroyHookFn, DestroyHookFuture, InMemoryStores, LocalInstanceRegistry,
+    SessionStores,
+};
 
 use std::pin::Pin;
 
 use base64::Engine;
 use foundation_auth::client_auth::Principal;
-use foundation_auth::fingerprint::sha256_hex;
+use foundation_auth::fingerprint::public_fingerprint_hex;
 use futures::Stream;
 
 use crate::core::model::{AgentRpcFuture, Device, ModelKind, ModelRequest};
@@ -48,6 +53,19 @@ impl Scope {
     }
 }
 
+/// The Durable Object name and D1 key of one instance.
+///
+/// A Durable Object is addressed by name only (issue #987). Two owners that
+/// choose the same instance name would reach one object, and the object and
+/// its storage would be shared. The name therefore includes the scope:
+/// `"<scope>/<name>"`. The scope key is `shared` or a Secure Hash Algorithm
+/// with 256 bits (SHA-256) hex, and an instance name holds no slash, so the
+/// text is unambiguous. The D1 index keys the same text.
+#[must_use]
+pub fn object_key(scope: &Scope, name: &str) -> String {
+    format!("{}/{}", scope.as_key(), name)
+}
+
 /// Which scope a call gets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScopePolicy {
@@ -63,7 +81,7 @@ impl ScopePolicy {
     pub fn scope_for(self, principal: &Principal) -> Scope {
         match self {
             Self::Shared => Scope::Shared,
-            Self::PerOwner => Scope::Owner(sha256_hex(principal.subject.as_bytes())),
+            Self::PerOwner => Scope::Owner(public_fingerprint_hex(principal.subject.as_bytes())),
         }
     }
 

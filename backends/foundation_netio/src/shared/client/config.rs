@@ -22,6 +22,13 @@ pub struct RedirectConfig {
     pub preserve_cookies_on_redirect: bool,
     /// Follow `3xx` responses other than the canonical redirect statuses.
     pub follow_other_redirects_response: bool,
+    /// Refuse a redirect that lowers the transport security from `https` to
+    /// another scheme.
+    ///
+    /// The default is `false`, as Go `net/http`. A caller that downloads code
+    /// sets it to `true`, so the server cannot move the request to plain
+    /// `http`.
+    pub refuse_https_downgrade: bool,
 }
 
 impl Default for RedirectConfig {
@@ -30,6 +37,7 @@ impl Default for RedirectConfig {
             preserve_auth_on_redirect: false,
             preserve_cookies_on_redirect: false,
             follow_other_redirects_response: true,
+            refuse_https_downgrade: false,
         }
     }
 }

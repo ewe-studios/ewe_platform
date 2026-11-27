@@ -464,3 +464,5 @@ fn discover_order() {
     );
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+mod record;

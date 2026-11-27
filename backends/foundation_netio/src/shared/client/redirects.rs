@@ -120,13 +120,15 @@ pub fn build_followup_request_from_request_descriptor(
     // new origin (e.g. `Host: huggingface.co` to `cas-bridge.xethub.hf.co`).
     set_host_header(&mut headers, &new_url);
 
-    // Strip sensitive headers if host differs (unless preserve flags are true)
-    let original_host = original.request_uri.host_str().unwrap_or_default();
-    let new_host = new_url.host_str().unwrap_or_default();
+    // Strip sensitive headers if the origin differs (unless preserve flags are
+    // true). The origin is the scheme, the host and the port together: another
+    // port on the same host is another origin.
+    let original_origin = origin_key(&original.request_uri);
+    let new_origin = origin_key(&new_url);
     strip_sensitive_headers_for_redirect(
         &mut headers,
-        &original_host,
-        &new_host,
+        &original_origin,
+        &new_origin,
         preserve_auth,
         preserve_cookies,
     );
@@ -172,13 +174,14 @@ pub fn build_followup_request_from(
     // Rewrite the Host header to the redirect target.
     set_host_header(&mut headers, &new_url);
 
-    // Strip sensitive headers if host differs (unless preserve flags are true)
-    let original_host = original.url.host_str().unwrap_or_default();
-    let new_host = new_url.host_str().unwrap_or_default();
+    // Strip sensitive headers if the origin differs (unless preserve flags are
+    // true). The origin is the scheme, the host and the port together.
+    let original_origin = origin_key(&original.url);
+    let new_origin = origin_key(&new_url);
     strip_sensitive_headers_for_redirect(
         &mut headers,
-        &original_host,
-        &new_host,
+        &original_origin,
+        &new_origin,
         preserve_auth,
         preserve_cookies,
     );
@@ -191,6 +194,18 @@ pub fn build_followup_request_from(
         extensions: Extensions::new(),
         body_readiness: None,
     }
+}
+
+/// The origin of one URL: its scheme, its host and its port.
+///
+/// The port is the default port of the scheme when the URL names none, so
+/// `https://example.com/a` and `https://example.com:443/b` have one origin.
+/// The host is compared without case, as the domain name rules say.
+#[must_use]
+pub fn origin_key(uri: &Uri) -> String {
+    let scheme = uri.scheme().as_str().to_ascii_lowercase();
+    let host = uri.host_str().unwrap_or_default().to_ascii_lowercase();
+    format!("{scheme}://{host}:{}", uri.port_or_default())
 }
 
 /// Set (or overwrite) the `Host` header to match the given URL.
@@ -209,25 +224,28 @@ pub fn set_host_header(headers: &mut SimpleHeaders, url: &Uri) {
     }
 }
 
-/// Strip sensitive headers when following redirects across hosts.
+/// Strip sensitive headers when following redirects across origins.
 ///
-/// Current implementation strips `Authorization` and `Cookie` when the host changes.
+/// `Authorization` and `Cookie` are stripped when the origin changes, unless
+/// the matching preserve flag is set. The origin is the scheme, the host and
+/// the port together, so a redirect to another port on the same host strips
+/// the headers too.
 ///
 /// # Arguments
 ///
 /// * `headers` - Headers to modify
-/// * `original_host` - Original request host
-/// * `new_host` - Redirect target host
-/// * `preserve_auth` - If true, Authorization header is preserved even on cross-host redirects
-/// * `preserve_cookies` - If true, Cookie header is preserved even on cross-host redirects
+/// * `original_origin` - The origin of the original request, from [`origin_key`]
+/// * `new_origin` - The origin of the redirect target, from [`origin_key`]
+/// * `preserve_auth` - If true, Authorization header is preserved on a change
+/// * `preserve_cookies` - If true, Cookie header is preserved on a change
 pub fn strip_sensitive_headers_for_redirect(
     headers: &mut SimpleHeaders,
-    original_host: &str,
-    new_host: &str,
+    original_origin: &str,
+    new_origin: &str,
     preserve_auth: bool,
     preserve_cookies: bool,
 ) {
-    if original_host != new_host {
+    if original_origin != new_origin {
         if !preserve_auth {
             headers.remove(&SimpleHeader::AUTHORIZATION);
         }

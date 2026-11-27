@@ -495,6 +495,23 @@ fn prepare_workdir_is_the_spec_workdir() {
     }
 }
 
+/// Issue #1031: an empty workdir creates and `Prepare` carries the default.
+#[test]
+fn empty_workdir_uses_the_default() {
+    let _serial = support::serial();
+    let (ctx, _clock) = support::ctx(19);
+    let slave = Arc::new(ScriptedSlave::new());
+    let sim = driver(support::driver_id());
+    let (manager, _store) = support::simple_manager(ctx, sim, slave.clone());
+    let mut request = spec();
+    request.workdir = String::new();
+    support::block_on(manager.create(request)).expect("the create succeeds");
+    match &slave.calls()[1] {
+        SlaveCall::Prepare { workdir, .. } => assert_eq!(workdir, "/workspace"),
+        other => panic!("the second call is not Prepare: {other:?}"),
+    }
+}
+
 #[test]
 fn default_spec_uses_directory_root() {
     let _serial = support::serial();

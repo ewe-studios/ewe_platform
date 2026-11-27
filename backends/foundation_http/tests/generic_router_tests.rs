@@ -172,6 +172,11 @@ fn shared_registration_uses_the_writer_handler_on_each_path() {
     let first = router.dispatch(&SimpleMethod::GET, "/writer").unwrap();
     let second = router.dispatch(&SimpleMethod::GET, "/other").unwrap();
     assert!(Arc::ptr_eq(&first, &second));
-    router.at("/explicit", foundation_http::put(second)).unwrap();
-    assert!(Arc::ptr_eq(&first, &router.dispatch(&SimpleMethod::PUT, "/explicit").unwrap()));
+    router
+        .at("/explicit", foundation_http::put(second))
+        .unwrap();
+    assert!(Arc::ptr_eq(
+        &first,
+        &router.dispatch(&SimpleMethod::PUT, "/explicit").unwrap()
+    ));
 }

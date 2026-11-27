@@ -20,6 +20,14 @@ pub const RSA_PKCS8: &str = include_str!("../fixtures/rsa-pkcs8-key.pem");
 pub const ENCRYPTED_PKCS8: &str = include_str!("../fixtures/encrypted-pkcs8-key.pem");
 /// An Ed25519 key in OpenSSH private key form with a passphrase.
 pub const ENCRYPTED_OPENSSH: &str = include_str!("../fixtures/encrypted-openssh-key");
+/// An Ed25519 OpenSSH key whose passphrase is [`PASSPHRASE`].
+pub const ENCRYPTED_ED25519_OPENSSH: &str =
+    include_str!("../fixtures/encrypted-ed25519-openssh-key");
+/// An Ed25519 PKCS#8 key whose passphrase is [`PASSPHRASE`].
+pub const ENCRYPTED_ED25519_PKCS8: &str =
+    include_str!("../fixtures/encrypted-ed25519-pkcs8-key.pem");
+/// The passphrase of the two fixtures above. It is a test value, not a secret.
+pub const PASSPHRASE: &str = "test-passphrase";
 
 /// An empty in-memory file system.
 pub fn memory_fs() -> MemoryFs {

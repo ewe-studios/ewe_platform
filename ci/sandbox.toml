@@ -7,3 +7,29 @@
 # 06 pins the release that it downloads to the same value or a newer one.
 
 min_firecracker_version = "1.15.0"
+
+# The Firecracker release that the `sandbox-e2e` workflow downloads. The value
+# matches `min_firecracker_version` or is newer. The SHA-256 is the published
+# `firecracker-v1.15.0-x86_64.tgz.sha256.txt` value.
+firecracker_version = "1.15.0"
+firecracker_x86_64_sha256 = "00cadf7f21e709e939dc0c8d16e2d2ce7b975a62bec6c50f74b421cc8ab3cab4"
+
+# The `sandbox-cloudflare` workflow pins the two Worker tools (spec 77 feature
+# 08). `worker_build_version` is the version that builds the Worker module;
+# `wrangler_version` starts `wrangler dev` and deploys the Worker.
+worker_build_version = "0.8.7"
+wrangler_version = "4.144.0"
+
+# The two product images of spec 77 feature 17.
+#
+# `cloudflare_sandbox_tools_image` is Cloudflare's donor image. Its tag is the
+# `@cloudflare/sandbox` version of the application. `product_base_image` is the
+# pinned base system of the example product image. Both values are the image
+# reference with a digest: `<tag>@sha256:<digest>`.
+#
+# Docker Hub did not answer on the implementing host on 2026-11-27. The values
+# come from the pull-through mirror `mirror.gcr.io`. Each digest is the SHA-256
+# of the raw manifest that the mirror served. A CI run must prove that Docker
+# Hub serves the same digest.
+cloudflare_sandbox_tools_image = "docker.io/cloudflare/sandbox:1.0.3@sha256:fc1740c3cba26461f0ab1771287c84018ab2cca43a70ebb823087c85d780aaec"
+product_base_image = "ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b"

@@ -14,7 +14,7 @@
 //! The module is native code: it uses the HTTP client, `flate2` and `tar`.
 
 pub mod cpio;
-mod fetch;
+pub(crate) mod fetch;
 pub mod manifest;
 mod tarball;
 
@@ -535,6 +535,30 @@ impl ArtifactStore {
     pub async fn firecracker_kernel(&self, arch: GuestArch) -> SandboxResult<PathBuf> {
         self.ensure(&manifest::firecracker_kernel(arch).spec())
             .await
+    }
+
+    /// The pinned kernel whose manifest name is `name`, for this architecture.
+    ///
+    /// A name that is not a pinned kernel of `arch` fails with
+    /// [`SandboxError::BinaryNotFound`], so a manifest cannot name an artifact
+    /// that this host does not verify.
+    ///
+    /// # Errors
+    /// [`SandboxError::BinaryNotFound`] for an unknown name, and the errors of
+    /// [`Self::ensure`].
+    pub async fn firecracker_kernel_named(
+        &self,
+        name: &str,
+        arch: GuestArch,
+    ) -> SandboxResult<PathBuf> {
+        let pinned = manifest::firecracker_kernel(arch);
+        if pinned.name != name {
+            return Err(SandboxError::BinaryNotFound {
+                name: name.to_string(),
+            }
+            .into());
+        }
+        self.firecracker_kernel(arch).await
     }
 
     /// The slave initramfs: a `newc` archive with the slave as `/init`.

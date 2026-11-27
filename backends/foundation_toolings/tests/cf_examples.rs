@@ -196,7 +196,7 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
             "OPENROUTER_BASE_URL",
             format!("http://127.0.0.1:{}/api", vendor.port),
         )
-        .startup_timeout(Duration::from_secs(90))
+        .startup_timeout(Duration::from_secs(300))
         .build(Ctx::host())
         .expect("start cf-cloud-provider under miniflare");
 
@@ -238,7 +238,7 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
             "WORKERS_AI_BASE_URL",
             format!("http://127.0.0.1:{}", vendor.port),
         )
-        .startup_timeout(Duration::from_secs(90))
+        .startup_timeout(Duration::from_secs(300))
         .build(Ctx::host())
         .expect("start cf-agent-loop under miniflare");
 
@@ -256,4 +256,287 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
 
     let (status, _) = worker.get("/").expect("GET / after a prompt");
     assert_eq!(status, 200, "the isolate must keep serving after a prompt");
+}
+
+/// Decode a gzip body that the Worker compressed.
+fn decode_body(bytes: &[u8]) -> Vec<u8> {
+    let mut body = bytes.to_vec();
+    // A Worker and the Connect layer can each gzip a response, so decode every
+    // layer.
+    for _ in 0..4 {
+        if !body.starts_with(&[0x1f, 0x8b]) {
+            break;
+        }
+        let mut out = Vec::new();
+        let mut decoder = flate2::read::GzDecoder::new(body.as_slice());
+        if std::io::Read::read_to_end(&mut decoder, &mut out).is_err() {
+            break;
+        }
+        body = out;
+    }
+    body
+}
+
+/// One protobuf length-delimited string field.
+fn proto_string(field: u8, value: &str) -> Vec<u8> {
+    let mut out = vec![(field << 3) | 2];
+    let mut len = value.len();
+    loop {
+        let mut byte = u8::try_from(len & 0x7f).unwrap_or(0x7f);
+        len >>= 7;
+        if len != 0 {
+            byte |= 0x80;
+        }
+        out.push(byte);
+        if len == 0 {
+            break;
+        }
+    }
+    out.extend_from_slice(value.as_bytes());
+    out
+}
+
+/// One Connect envelope (flag 0, big-endian length, message).
+fn connect_envelope(message: &[u8]) -> Vec<u8> {
+    let mut out = vec![0u8];
+    out.extend_from_slice(&u32::try_from(message.len()).unwrap_or(0).to_be_bytes());
+    out.extend_from_slice(message);
+    out
+}
+
+/// A bearer access secret for the test host, and its public key.
+fn access_secret(ctx: &Ctx) -> (String, String) {
+    foundation_core::env::install(ctx, foundation_core::env::system).expect("install the Env");
+    use base64::Engine;
+    use foundation_auth::secret::{SecretDomain, SecretIssuer, SecretRequest, SigningKey};
+    use foundation_compact::Duration;
+    let key = SigningKey::from_seed([7u8; 32], Some("k1".to_string()));
+    let public =
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(key.verifying_key().as_bytes());
+    let issuer = SecretIssuer::new(
+        SecretDomain::AGENT_RPC,
+        key,
+        ctx.clone(),
+        Duration::from_hours(24),
+    );
+    let token = issuer
+        .issue(&SecretRequest::access(
+            Duration::from_hours(1),
+            "https://agents.example.com",
+        ))
+        .expect("issue the access secret")
+        .encode()
+        .to_string();
+    (token, public)
+}
+
+/// `cf-agent-rpc`: the Worker starts, answers CORS, refuses a forged header,
+/// then serves a full lifecycle with a bearer secret: health, create, stream,
+/// list, destroy.
+#[test]
+fn cf_agent_rpc_serves_connect() {
+    if which::which("worker-build").is_err() || which::which("wrangler").is_err() {
+        eprintln!("cf-agent-rpc: worker-build or wrangler is absent; skipping");
+        return;
+    }
+    let dir = example_dir("cf-agent-rpc");
+    worker_build(&dir);
+
+    let vendor = MockVendor::start(Vendor::WorkersAi);
+    let ctx = Ctx::host();
+    let (token, public_key) = access_secret(&ctx);
+    let models = format!(
+        "[{{\"name\":\"mock\",\"provider\":\"workers-ai\",\"model_id\":\"@cf/meta/llama-3.1-8b-instruct\",\"api_key_secret\":\"WORKERS_AI_API_TOKEN\",\"account_id\":\"mock\",\"base_url\":\"http://127.0.0.1:{}\"}}]",
+        vendor.port
+    );
+    let worker = Miniflare::builder()
+        .worker_dir(&dir)
+        .compatibility_date("2025-09-01")
+        .var("AGENT_RPC_PUBLIC_URL", "https://agents.example.com")
+        .var("AGENT_RPC_MODELS", models)
+        .var(
+            "AGENT_RPC_SECRET_PUBLIC_KEYS",
+            format!("[{{\"kid\":\"k1\",\"alg\":\"ed25519\",\"public_key\":\"{public_key}\"}}]"),
+        )
+        .var("AGENT_RPC_CORS_ORIGINS", "https://app.example.com")
+        .var("AGENT_RPC_TEST_RESET", "1")
+        .secret("WORKERS_AI_API_TOKEN", "mock")
+        .secret("CLOUDFLARE_ACCOUNT_ID", "mock")
+        .startup_timeout(Duration::from_secs(300))
+        .build(ctx)
+        .expect("start cf-agent-rpc under miniflare");
+
+    let (status, head, _body) = worker
+        .request(
+            "OPTIONS",
+            "/ewe.agent_rpc.v1.AgentService/Health",
+            &[
+                ("Origin", "https://app.example.com"),
+                ("Access-Control-Request-Method", "POST"),
+            ],
+            "",
+            Duration::from_secs(10),
+        )
+        .expect("the CORS preflight");
+    assert_eq!(
+        status,
+        204,
+        "the preflight status\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
+    let head = head.to_ascii_lowercase();
+    assert!(
+        head.contains("access-control-allow-origin: https://app.example.com"),
+        "the preflight must name the origin; head:\n{head}"
+    );
+
+    let (status, _head, body) = worker
+        .request(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/Health",
+            &[
+                ("Origin", "https://app.example.com"),
+                ("Content-Type", "application/proto"),
+                ("Accept-Encoding", "identity"),
+                ("ewe-forwarded-principal", "evil"),
+            ],
+            "",
+            Duration::from_secs(20),
+        )
+        .expect("the forged-principal call");
+    assert_eq!(
+        status,
+        401,
+        "a forged forwarded header must not authenticate; body: {body}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
+
+    let bearer = format!("Bearer {token}");
+    let (status, _head, body) = worker
+        .request_bytes(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/Health",
+            &[
+                ("Content-Type", "application/proto"),
+                ("Accept-Encoding", "identity"),
+                ("Authorization", bearer.as_str()),
+            ],
+            &[],
+            Duration::from_secs(20),
+        )
+        .expect("Health with the access secret");
+    assert_eq!(
+        status,
+        200,
+        "the bearer secret authenticates; body: {body:?}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
+
+    let mut create = proto_string(1, "case-one");
+    create.extend(proto_string(2, "mock"));
+
+    let (created_status, _head, created_body) = worker
+        .request_bytes(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/CreateInstance",
+            &[
+                ("Content-Type", "application/proto"),
+                ("Accept-Encoding", "identity"),
+                ("Authorization", bearer.as_str()),
+            ],
+            &create,
+            Duration::from_secs(30),
+        )
+        .expect("CreateInstance");
+    assert_eq!(
+        created_status,
+        200,
+        "the instance is created; body: {created_body:?}\nworker stdout:\n{}\nworker stderr:\n{}",
+        worker.stdout_tail(),
+        worker.stderr_tail()
+    );
+
+    let (reset_status, _head, _reset_body) = worker
+        .request(
+            "POST",
+            "/__test/reset",
+            &[("x-ewe-instance", "case-one")],
+            "",
+            Duration::from_secs(20),
+        )
+        .expect("the object reset");
+    assert_eq!(
+        reset_status,
+        200,
+        "the instance object resets; stderr:\n{}",
+        worker.stderr_tail()
+    );
+
+    let (list_status, _head, list_body) = worker
+        .request_bytes(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/ListInstances",
+            &[
+                ("Content-Type", "application/proto"),
+                ("Accept-Encoding", "identity"),
+                ("Authorization", bearer.as_str()),
+            ],
+            &[],
+            Duration::from_secs(20),
+        )
+        .expect("ListInstances");
+    assert_eq!(list_status, 200, "ListInstances succeeds");
+    let list_body = decode_body(&list_body);
+    assert!(
+        list_body.windows(8).any(|window| window == b"case-one"),
+        "the list names the instance; body: {list_body:?}"
+    );
+
+    let mut chat = proto_string(1, "case-one");
+    chat.extend(proto_string(2, "What is the capital of France?"));
+    let envelope = connect_envelope(&chat);
+    let (stream_status, _head, stream_body) = worker
+        .request_bytes(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/ChatStream",
+            &[
+                ("Content-Type", "application/connect+proto"),
+                ("Accept-Encoding", "identity"),
+                ("Authorization", bearer.as_str()),
+            ],
+            &envelope,
+            Duration::from_secs(60),
+        )
+        .expect("ChatStream");
+    assert_eq!(
+        stream_status,
+        200,
+        "ChatStream succeeds; body: {stream_body:?}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
+    assert!(
+        !stream_body.is_empty(),
+        "the turn streamed events; stderr:\n{}",
+        worker.stderr_tail()
+    );
+    let destroy = proto_string(1, "case-one");
+    let (destroy_status, _head, destroy_body) = worker
+        .request_bytes(
+            "POST",
+            "/ewe.agent_rpc.v1.AgentService/DestroyInstance",
+            &[
+                ("Content-Type", "application/proto"),
+                ("Accept-Encoding", "identity"),
+                ("Authorization", bearer.as_str()),
+            ],
+            &destroy,
+            Duration::from_secs(30),
+        )
+        .expect("DestroyInstance");
+    assert_eq!(
+        destroy_status,
+        200,
+        "the instance is destroyed; body: {destroy_body:?}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
 }

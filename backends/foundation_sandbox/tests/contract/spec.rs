@@ -172,6 +172,69 @@ fn spec_validate() {
     assert_invalid(wrong.validate(&caps), "limits");
 }
 
+/// Issue #1031: an empty workdir means the default; a bad value still fails.
+#[test]
+fn spec_workdir_empty_is_the_default() {
+    let caps = capabilities();
+
+    let mut empty = spec();
+    empty.workdir = String::new();
+    assert!(empty.validate(&caps).is_ok());
+    assert_eq!(empty.effective_workdir(), "/workspace");
+
+    // A path that leaves the root still fails.
+    let mut escape = spec();
+    escape.workdir = "../x".to_string();
+    assert_invalid(escape.validate(&caps), "workdir");
+
+    let mut relative = spec();
+    relative.workdir = "tmp".to_string();
+    assert_invalid(relative.validate(&caps), "workdir");
+
+    // A value that the caller gives is used as it is.
+    let mut custom = spec();
+    custom.workdir = "/tmp".to_string();
+    assert!(custom.validate(&caps).is_ok());
+    assert_eq!(custom.effective_workdir(), "/tmp");
+
+    // The message names the value, so one CI run shows the source.
+    let mut wrong = spec();
+    wrong.workdir = "workspace".to_string();
+    match wrong
+        .validate(&caps)
+        .expect_err("a relative workdir fails")
+        .current_context()
+    {
+        SandboxError::InvalidSpec { reason, .. } => {
+            assert!(
+                reason.contains("workspace"),
+                "the reason names the value: {reason}"
+            );
+        }
+        other => panic!("expected InvalidSpec, got {other:?}"),
+    }
+
+    let mut wrong = spec();
+    wrong.mounts = vec![HostMount {
+        host_path: PathBuf::from("/tmp/x"),
+        guest_path: "relative".to_string(),
+        read_only: false,
+    }];
+    match wrong
+        .validate(&caps)
+        .expect_err("a relative guest_path fails")
+        .current_context()
+    {
+        SandboxError::InvalidSpec { reason, .. } => {
+            assert!(
+                reason.contains("relative"),
+                "the reason names the value: {reason}"
+            );
+        }
+        other => panic!("expected InvalidSpec, got {other:?}"),
+    }
+}
+
 /// I4: the first failed rule wins.
 #[test]
 fn spec_validate_first_rule_wins() {

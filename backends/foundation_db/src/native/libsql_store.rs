@@ -1172,6 +1172,30 @@ impl KeyValueStore for LibsqlStore {
     async fn delete(&self, key: &str) -> StorageResult<()> {
         self.delete_async_internal(key).await
     }
+
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        let _guard = self.write().await?;
+        let serialized = serde_json::to_string(&value)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let stored_value = self.maybe_encrypt(&serialized)?;
+        let now = self.gate.now_millis()?;
+        // One statement: the database runs it atomically, and the row count
+        // says whether this call inserted the row.
+        let changed = self
+            .conn
+            .execute(
+                "INSERT INTO kv_store (key, value, created_at, updated_at)
+                 VALUES (?, ?, ?, ?) ON CONFLICT(key) DO NOTHING",
+                libsql::params![key, stored_value, now, now],
+            )
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        Ok(changed > 0)
+    }
     fn take_is_atomic(&self) -> bool {
         true
     }

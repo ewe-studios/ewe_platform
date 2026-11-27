@@ -9,6 +9,24 @@ use super::support::{
     zombies_of, SlaveProcess,
 };
 
+/// The Unix domain socket file has the mode that `--socket-mode` gives.
+///
+/// The Docker driver sets mode `666`: the slave runs as root in the container
+/// and the control plane on the host is a normal user (feature 10, section
+/// 6.3). The run directory's own mode keeps other users out.
+#[test]
+fn slave_socket_mode() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let slave = SlaveProcess::start_with_socket_mode("socket-mode", None, 4, 0o666);
+    let mode = std::fs::metadata(slave.socket_path())
+        .expect("the socket file")
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(mode, 0o666);
+}
+
 /// `Shutdown` gives programs time to stop.
 #[test]
 fn shutdown_grace() {

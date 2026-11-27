@@ -1053,8 +1053,26 @@ pub(crate) fn stream_error_frame(
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 /// The routing key: the path with any query string stripped (R1 leading slash).
-pub(crate) fn extract_path(url: &str) -> String {
-    url.split('?').next().unwrap_or(url).to_string()
+/// The path of a request target.
+///
+/// A native connection passes a path and query. A wasm bridge passes the full
+/// URL, because `fetch` names the request that way; the router must still see
+/// `/service/Method`, not `https://host/service/Method`. The scheme and the
+/// authority are removed, then the query.
+#[must_use]
+pub fn extract_path(url: &str) -> String {
+    let without_query = url.split('?').next().unwrap_or(url);
+    let after_scheme = without_query
+        .strip_prefix("http://")
+        .or_else(|| without_query.strip_prefix("https://"))
+        .or_else(|| without_query.strip_prefix("//"));
+    match after_scheme {
+        Some(rest) => match rest.find('/') {
+            Some(index) => rest[index..].to_string(),
+            None => "/".to_string(),
+        },
+        None => without_query.to_string(),
+    }
 }
 
 /// The union of HTTP methods any protocol on this entry accepts (for `Allow`).

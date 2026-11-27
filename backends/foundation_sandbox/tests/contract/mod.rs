@@ -3,9 +3,12 @@
 mod common;
 
 mod container;
+#[cfg(feature = "docker")]
+mod docker;
 mod error;
 mod host;
 mod ids;
 mod message;
+mod nested;
 mod sequence;
 mod spec;

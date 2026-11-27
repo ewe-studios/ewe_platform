@@ -2144,7 +2144,7 @@ pub struct AigConfigCreateEvaluationsResponseResultResultsItemEnvelope<T> {
     pub total_logs: f64,
 }
 
-/// Response envelope shared by 806 endpoints; `T` is the type of `result`.
+/// Response envelope shared by 808 endpoints; `T` is the type of `result`.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ApiEnvelope<T> {
     /// `errors` property.
@@ -2579,7 +2579,7 @@ pub struct AccountIdAlertIdArgs {
     pub alert_id: String,
 }
 
-/// A shape 5 generated types share.
+/// A shape 4 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccountIdAppIdArgs {
     /// Path parameter: `account_id`.
@@ -2599,7 +2599,7 @@ pub struct AccountIdAppIdMeetingIdArgs {
     pub meeting_id: String,
 }
 
-/// A shape 3 generated types share.
+/// A shape 2 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccountIdAppIdPresetIdArgs {
     /// Path parameter: `account_id`.
@@ -2632,7 +2632,7 @@ pub struct AccountIdAppIdWebhookIdArgs {
     pub webhook_id: String,
 }
 
-/// A shape 206 generated types share.
+/// A shape 204 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccountIdArgs {
     /// Path parameter: `account_id`.
@@ -9018,7 +9018,7 @@ pub struct ZoneIdAddressMapIdAccountIdArgs {
     pub account_id: String,
 }
 
-/// A shape 131 generated types share.
+/// A shape 122 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZoneIdArgs {
     /// Path parameter: `zone_id`.
@@ -9034,7 +9034,7 @@ pub struct ZoneIdClientCertificateIdArgs {
     pub client_certificate_id: String,
 }
 
-/// A shape 4 generated types share.
+/// A shape 3 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZoneIdConfigIdArgs {
     /// Path parameter: `zone_id`.
@@ -9119,7 +9119,7 @@ pub struct ZoneIdPolicyIdArgs {
     pub policy_id: String,
 }
 
-/// A shape 3 generated types share.
+/// A shape 2 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZoneIdRuleIdArgs {
     /// Path parameter: `zone_id`.

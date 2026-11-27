@@ -120,6 +120,9 @@ pub enum GroupRecipe {
     ExampleApplications,
     WasmRuntimeTests,
     ManifestContract,
+    /// A self-contained workspace that builds only for wasm32 (the sandbox
+    /// Cloudflare Worker of spec 77 feature 08).
+    SandboxWorker,
 }
 
 #[derive(Deserialize)]

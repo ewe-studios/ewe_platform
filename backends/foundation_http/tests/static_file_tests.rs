@@ -698,7 +698,8 @@ fn one_resource_route_serves_live_and_embedded_files() {
     let file = root.path().join("live.txt");
     std::fs::write(&file, b"first").unwrap();
     let harness = start_server_with(root.path(), StaticFileConfig::default(), |app| {
-        app.router.add_route_any("/nested/action", &(Arc::new(Ping) as Arc<dyn Serve>));
+        app.router
+            .add_route_any("/nested/action", &(Arc::new(Ping) as Arc<dyn Serve>));
         app.router
             .mount(StaticFileHandler::from_resources(Resources(file.clone())))
             .unwrap();

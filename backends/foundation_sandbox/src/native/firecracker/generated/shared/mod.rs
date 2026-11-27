@@ -4,11 +4,11 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use foundation_deployment::providers::common::{
+pub use foundation_api_common::{
     read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body,
     with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,
 };
-pub use foundation_deployment::providers::common::{
+pub use foundation_api_common::{
     ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
 };
 

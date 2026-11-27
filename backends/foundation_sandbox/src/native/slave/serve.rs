@@ -15,7 +15,11 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::native::connection::{Acceptor, Connection};
 
+#[cfg(feature = "control")]
+use crate::shared::control::service::ControlService;
 use crate::shared::limits::SandboxLimits;
+#[cfg(feature = "control")]
+use crate::shared::rpc::sandbox::{procedure as control_procedure, register_sandbox_service};
 use crate::shared::rpc::slave::{procedure, register_slave_service};
 
 use super::Slave;
@@ -56,20 +60,36 @@ impl Bound {
     }
 }
 
-/// Binds a listener of one kind. `shutdown` is the signal that stops the
-/// server; the slave holds the same value.
+/// The mode of the slave socket when the caller names none.
+pub const DEFAULT_SOCKET_MODE: u32 = 0o600;
+
+/// Binds a listener of one kind with the default socket mode.
 ///
 /// # Errors
 /// The operating system error of the bind, listen or socket-file call.
 pub fn bind(address: &ListenAddr, shutdown: Arc<ShutdownSignal>) -> io::Result<Bound> {
+    bind_with_mode(address, shutdown, DEFAULT_SOCKET_MODE)
+}
+
+/// Binds a listener of one kind. `shutdown` is the signal that stops the
+/// server; the slave holds the same value. `socket_mode` is the mode of the
+/// Unix domain socket file, and it has no meaning for the other kinds.
+///
+/// # Errors
+/// The operating system error of the bind, listen or socket-file call.
+pub fn bind_with_mode(
+    address: &ListenAddr,
+    shutdown: Arc<ShutdownSignal>,
+    socket_mode: u32,
+) -> io::Result<Bound> {
     // The server parks its accept loop on the shared reactor; the signal wakes
     // it at once instead of after the poll time.
     let _ = shutdown.register_wake();
     let (acceptor, socket_path): (Arc<dyn Acceptor>, Option<PathBuf>) = match address {
         ListenAddr::Unix { path } => {
             let listener = UnixListener::bind(path)?;
-            // The socket file carries the right of the caller only.
-            super::sys::set_mode(path, 0o600)?;
+            // The socket file carries the right that the caller asks for.
+            super::sys::set_mode(path, socket_mode)?;
             (Arc::new(UnixAcceptor { listener }), Some(path.clone()))
         }
         ListenAddr::Tcp { addr } => (Arc::new(std::net::TcpListener::bind(addr)?), None),
@@ -83,9 +103,21 @@ pub fn bind(address: &ListenAddr, shutdown: Arc<ShutdownSignal>) -> io::Result<B
 }
 
 /// Serves the slave service until the shutdown signal turns on.
-pub fn serve(bound: &Bound, ctx: Ctx, slave: Arc<Slave>) {
+pub fn serve(bound: &Bound, ctx: Ctx, slave: &Arc<Slave>) {
     let mut router = Router::new();
-    register_slave_service(&mut router, slave);
+    register_slave_service(&mut router, Arc::clone(slave));
+    // A slave with the control role serves `SandboxService` on the same
+    // listener (feature 11, invariant I4). Without `--control` the control
+    // paths answer `NotFound`, because the router has no handler for them.
+    #[cfg(feature = "control")]
+    {
+        let provider = slave.control().unwrap_or_else(|| {
+            Arc::new(crate::shared::control::DisabledControl)
+                as Arc<dyn crate::shared::control::SandboxProvider>
+        });
+        let service = Arc::new(ControlService::new(provider, SandboxLimits::default()));
+        register_sandbox_service(&mut router, service);
+    }
     let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
 
     let mut app = HttpApp::<Arc<dyn Serve>>::with_ctx(ctx);
@@ -101,6 +133,25 @@ pub fn serve(bound: &Bound, ctx: Ctx, slave: Arc<Slave>) {
         procedure::FILE_WRITE_ABORT,
         procedure::FILE_READ,
         procedure::SHUTDOWN,
+    ] {
+        app.router.add_route_any(path, &serve);
+    }
+    #[cfg(feature = "control")]
+    for path in [
+        control_procedure::PROBE,
+        control_procedure::CREATE,
+        control_procedure::GET,
+        control_procedure::LIST,
+        control_procedure::STOP,
+        control_procedure::KILL,
+        control_procedure::EXEC,
+        control_procedure::EXEC_INPUT,
+        control_procedure::EXEC_SIGNAL,
+        control_procedure::FILE_WRITE_BEGIN,
+        control_procedure::FILE_WRITE_CHUNK,
+        control_procedure::FILE_WRITE_COMMIT,
+        control_procedure::FILE_WRITE_ABORT,
+        control_procedure::FILE_READ,
     ] {
         app.router.add_route_any(path, &serve);
     }
