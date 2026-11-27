@@ -68,6 +68,22 @@ class SocketActionConnectionTest {
                 fixture.socket.events.deliver(acknowledge(16u, 2u))
                 assertArrayEquals(acknowledge(16u, 2u), call3.await())
                 assertTrue(fixture.delivered.isEmpty())
+
+                fixture.socket.events.disconnected(IOException("Shared socket closed"))
+                val ready1 = async(start = CoroutineStart.UNDISPATCHED) { first.awaitReady() }
+                val ready2 = async(start = CoroutineStart.UNDISPATCHED) { second.awaitReady() }
+                fixture.socket.events.opened()
+                val caps1 = capabilities(17u, first.requestTag)
+                val caps2 = capabilities(18u, second.requestTag)
+                fixture.socket.events.deliver(caps2)
+                ready2.await()
+                assertFalse(ready1.isCompleted)
+                fixture.socket.events.deliver(acknowledge(15u, 2u))
+                fixture.socket.events.deliver(caps1)
+                ready1.await()
+                assertEquals(2, fixture.delivered.size)
+                assertArrayEquals(caps2, fixture.delivered[0])
+                assertArrayEquals(caps1, fixture.delivered[1])
             }
         }
     }
