@@ -110,6 +110,14 @@ fn staging_produces_a_self_contained_harness() {
     ] {
         assert!(dir.path().join(file).is_file(), "{file} staged");
     }
+    let runtime = std::fs::read_to_string(dir.path().join("foundation-wasm-ui.js"))
+        .expect("read the UI runtime");
+    assert!(
+        !runtime
+            .lines()
+            .any(|line| line.trim_start().starts_with("import ")),
+        "the staged UI runtime must load without another module"
+    );
     let manifest = std::fs::read_to_string(dir.path().join("cases.json")).expect("read");
     assert!(manifest.contains("\"name\":\"passes_simple\""));
     assert!(manifest.contains("\"should_panic\":true"));

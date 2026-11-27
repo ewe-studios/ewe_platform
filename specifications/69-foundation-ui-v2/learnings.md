@@ -1561,3 +1561,9 @@ A macOS process sample shows the idle HTTP handler repeatedly registering a clos
 The request parser also uses an empty public result for a tolerated leading blank line.
 The handler now receives separate internal results for the two cases.
 It closes the peer at end of input and continues reading after a blank line.
+
+## 2026-11-28 — Standalone browser runtime
+
+A browser server can serve the connection module without exposing the missing dependency in the embedded runtime.
+Run an import in a directory that contains only the embedded runtime.
+Put the connection implementation in that runtime. Re-export the same constructor from the connection module.

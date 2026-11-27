@@ -2090,3 +2090,12 @@ Six clients repeat the response check over 48 reused connections.
 All 4,800 script responses have status 200 and contain 769,431 bytes.
 The largest header wait is 188.949 milliseconds.
 The scratch server uses a separate Todo store. [Issue 673](https://github.com/ewe-studios/ewe_platform/issues/673)
+
+## 2026-11-28 — Standalone browser runtime
+
+The embedded browser runtime loads as one module.
+The connection module exports the same connection manager as the standalone runtime.
+The generated regular and minified bundles match.
+The JavaScript suites pass 176 tests and skip one legacy fixture.
+The WebAssembly testbed passes both integration tests, including the isolated staged runtime.
+[Issue 1177](https://github.com/ewe-studios/ewe_platform/issues/1177)
