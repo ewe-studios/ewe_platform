@@ -512,9 +512,11 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_db]
-# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
-windows-tests = "none"
-windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123). Remove this opt-out when the issue is fixed."
+# Run the local SQLite tests while file-store paths fail on Windows (#519).
+# The test dependencies keep the package default features.
+# Restore the full platform recipe when issue 519 is fixed.
+windows-runs = ["--features libsql-local --test libsql_storage_tests --test libsql_batch_tests --test libsql_document_store_tests --test libsql_state_store_tests"]
+windows-reason = "Partial Windows coverage: #519 excludes the full package suite for file-store path errors 87 and 123."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 # `testing` adds the fault-injecting storage wrappers (spec 83 feature 04).
 runs = ["", "libsql", "testing"]
