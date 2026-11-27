@@ -2,6 +2,13 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: issue #1034 fixed. `DurableStream::new` and `DurableStream::with_ctx` take
+  `&Ctx`. The store reads the clock with `ctx.clock()` and no longer builds a
+  `MonotonicClock`. `SubscriptionStore` and every call site pass the context. The clock
+  parameter guard reports no durable or event-stream line. Core durable tests pass 106,
+  event-stream tests pass 12, HTTP durable adapter tests pass 30, native file VFS tests
+  pass 8, and clippy is clean for the touched crates.
+
 - 2026-11-27: issue #1030 fixed. `foundation_core` compiles for wasm32 with `multi`. The
   native `idle_wake` call in the `multi` executor now has a target gate, and netio's
   `ExchangeContinuation` follows the `multi` feature for its `Send` bound. CI runs the

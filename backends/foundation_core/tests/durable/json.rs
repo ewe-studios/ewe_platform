@@ -1,5 +1,6 @@
 //! BDD scenarios for JSON mode.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, BadRequestKind, Chunk, ContentType, CreateSpec, DurableStream, DurableStreams,
     MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName,
@@ -7,7 +8,7 @@ use foundation_core::durable::{
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
-    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 fn json_spec() -> CreateSpec {
@@ -175,7 +176,7 @@ fn given_an_offset_inside_a_json_message_when_a_read_runs_then_it_is_a_bad_reque
         };
         use std::sync::Arc;
 
-        let streams = DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())));
+        let streams = DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()));
         let stream = streams.stream(StreamName::parse("json/mid-offset").expect("name"));
         stream
             .create(CreateSpec {

@@ -3,6 +3,7 @@
 //! Each test names one wire rule the suite checks. The suite runs over HTTP;
 //! these tests pin the same rule at the core.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendKind, AppendRequest, Chunk, CloseRequest, ContentType, CreateSpec, DurableStream,
     DurableStreams, ForkSpec, MemoryVfs, Producer, ProducerId, ReadFrom, ReadLimit, ReadRequest,
@@ -11,7 +12,7 @@ use foundation_core::durable::{
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
-    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 fn name(value: &str) -> StreamName {

@@ -55,7 +55,7 @@ fn make_client(addr: std::net::SocketAddr) -> DynNetClient {
 
 fn durable_app() -> HttpApp<Arc<dyn Serve>> {
     let ctx = Ctx::host();
-    let _ = ctx.get_or_insert(DurableStream::new(Arc::new(MemoryVfs::new())));
+    let _ = ctx.get_or_insert(DurableStream::new(Arc::new(MemoryVfs::new()), &ctx));
     let mut app = HttpApp::with_context(ctx);
     app.fallback::<DurableHandler>();
     app

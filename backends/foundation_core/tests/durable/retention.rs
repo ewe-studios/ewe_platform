@@ -1,5 +1,6 @@
 //! BDD scenarios for retention trim.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreamVfs, DurableStreams, MemoryVfs,
     ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamOffset, VfsOffset,
@@ -10,7 +11,7 @@ use std::sync::Arc;
 fn given_a_trimmed_stream_when_read_before_the_trim_then_it_is_refused() {
     foundation_core::valtron::block_on_future_scoped(async {
         let vfs = Arc::new(MemoryVfs::new());
-        let streams = DurableStreams::new(DurableStream::new(vfs.clone()));
+        let streams = DurableStreams::new(DurableStream::new(vfs.clone(), &Ctx::host()));
         let name = StreamName::parse("retention/trim").expect("valid");
 
         streams

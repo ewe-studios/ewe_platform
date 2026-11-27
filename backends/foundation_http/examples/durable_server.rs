@@ -56,8 +56,7 @@ fn main() {
     );
     let observed = engine.observed_vfs();
     let ticker = engine.clone();
-    let clock = ctx.clock();
-    let _ = ctx.get_or_insert(DurableStream::with_clock(observed, clock));
+    let _ = ctx.get_or_insert(DurableStream::with_ctx(observed, &ctx));
     let _ = ctx.get_or_insert(engine);
     let _ = ctx.get_or_insert(subscriptions);
     // The conformance suite waits for a long-poll timeout inside a 5 s test

@@ -22,7 +22,7 @@ use foundation_http::shared::durable::parse::encode_offset;
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 
 fn service() -> DurableService<DurableStream> {
-    DurableService::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableService::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 fn service_for(stream: DurableStream) -> DurableService<DurableStream> {
@@ -449,7 +449,7 @@ fn given_a_stream_with_data_when_long_poll_runs_then_it_returns_the_data_at_once
 #[test]
 fn given_an_open_stream_at_the_tail_when_an_append_arrives_then_long_poll_returns_it() {
     smol::block_on(async {
-        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::new(stream.clone());
         send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "")
             .await

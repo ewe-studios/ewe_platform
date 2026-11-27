@@ -1,5 +1,6 @@
 //! Property and model-oracle tests for append and read.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs, ReadFrom,
     ReadLimit, ReadRequest, StreamName,
@@ -14,7 +15,7 @@ proptest! {
     ) {
         let (bytes, model) = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
-                DurableStream::new(Arc::new(MemoryVfs::new())),
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
             );
             let name = StreamName::parse("events/property").expect("valid name");
             let stream = streams.stream(name);
@@ -57,7 +58,7 @@ proptest! {
     ) {
         let bytes = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
-                DurableStream::new(Arc::new(MemoryVfs::new())),
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
             );
             let stream = streams.stream(StreamName::parse("events/producer").expect("name"));
             stream.create(CreateSpec::default()).await.expect("create");
@@ -107,7 +108,7 @@ proptest! {
     ) {
         let (fork_bytes, source_bytes) = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
-                DurableStream::new(Arc::new(MemoryVfs::new())),
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
             );
             let source = streams.stream(StreamName::parse("fork/source").expect("name"));
             source.create(CreateSpec::default()).await.expect("create");
@@ -184,7 +185,7 @@ proptest! {
     ) {
         let read_back = foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
-                DurableStream::new(Arc::new(MemoryVfs::new())),
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
             );
             let stream = streams.stream(StreamName::parse("json/property").expect("name"));
             stream
@@ -240,7 +241,7 @@ proptest! {
     ) {
         foundation_core::valtron::block_on_future_scoped(async {
             let streams = DurableStreams::new(
-                DurableStream::new(Arc::new(MemoryVfs::new())),
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
             );
             let stream = streams.stream(StreamName::parse("seq/property").expect("name"));
             stream.create(CreateSpec::default()).await.expect("create");

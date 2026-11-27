@@ -14,7 +14,7 @@ use std::sync::Arc;
 #[valtron_test(timeout = 5000)]
 fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
     let ctx = Ctx::host();
-    let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
     let name = StreamName::parse("reader/live").expect("valid name");
 
     foundation_core::valtron::block_on_future_scoped(async {
@@ -83,7 +83,7 @@ fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
 #[valtron_test(timeout = 5000)]
 fn given_a_reader_when_it_is_bridged_with_into_next_stream_then_it_yields_chunks() {
     let ctx = Ctx::host();
-    let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
     let name = StreamName::parse("reader/bridge").expect("valid name");
 
     foundation_core::valtron::block_on_future_scoped(async {
@@ -119,7 +119,7 @@ fn given_a_reader_when_it_is_bridged_with_into_next_stream_then_it_yields_chunks
 #[valtron_test(timeout = 5000)]
 fn given_a_closed_stream_when_the_valtron_reader_catches_up_then_it_yields_the_chunks() {
     let ctx = Ctx::host();
-    let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
     let name = StreamName::parse("reader/valtron").expect("valid name");
 
     foundation_core::valtron::block_on_future_scoped(async {

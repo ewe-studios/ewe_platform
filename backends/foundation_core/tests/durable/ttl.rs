@@ -1,7 +1,7 @@
 //! BDD scenarios for sliding TTL with an injected clock.
 
 use core::time::Duration;
-use foundation_context::Clock;
+use foundation_context::{Clock, Ctx};
 use foundation_core::durable::{
     AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, Expiry, MemoryVfs, ReadFrom,
     ReadLimit, ReadRequest, StoreError, StreamName,
@@ -43,7 +43,7 @@ impl Clock for TestClock {
 #[test]
 fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_window() {
     let clock = TestClock::new();
-    let stream = DurableStream::with_clock(Arc::new(MemoryVfs::new()), Arc::new(clock.clone()));
+    let stream = DurableStream::with_ctx(Arc::new(MemoryVfs::new()), &Ctx::fixed(Arc::new(clock.clone())));
     let streams = DurableStreams::new(stream);
     let name = StreamName::parse("ttl/sliding").expect("valid");
     let handle = streams.stream(name);
@@ -99,9 +99,9 @@ fn given_a_ttl_stream_when_reads_and_heads_happen_then_only_reads_slide_the_wind
 #[test]
 fn given_an_expired_ttl_stream_when_it_is_used_then_it_reports_not_found() {
     let clock = TestClock::new();
-    let streams = DurableStreams::new(DurableStream::with_clock(
+    let streams = DurableStreams::new(DurableStream::with_ctx(
         Arc::new(MemoryVfs::new()),
-        Arc::new(clock.clone()),
+        &Ctx::fixed(Arc::new(clock.clone())),
     ));
     let name = StreamName::parse("ttl/expired").expect("name");
 
@@ -145,9 +145,9 @@ fn given_an_expired_ttl_stream_when_it_is_used_then_it_reports_not_found() {
 #[test]
 fn given_a_ttl_source_when_it_expires_then_a_living_fork_keeps_its_own_window() {
     let clock = TestClock::new();
-    let streams = DurableStreams::new(DurableStream::with_clock(
+    let streams = DurableStreams::new(DurableStream::with_ctx(
         Arc::new(MemoryVfs::new()),
-        Arc::new(clock.clone()),
+        &Ctx::fixed(Arc::new(clock.clone())),
     ));
     let source = StreamName::parse("ttl/fork-src").expect("name");
     let fork = StreamName::parse("ttl/fork-child").expect("name");

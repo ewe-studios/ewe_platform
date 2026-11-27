@@ -7,7 +7,7 @@
 
 use crate::shared::config::SubscriptionConfig;
 use crate::shared::model::SubscriptionRecord;
-use foundation_context::{Clock, Ctx};
+use foundation_context::Ctx;
 use foundation_core::durable::{
     Chunk, ContentType, CreateSpec, DurableStream, DurableStreamStore, DurableStreamVfs,
     NotifierRef, ReadFrom, ReadLimit, ReadRequest, StreamName, VfsEntry, VfsFuture, VfsMeta,
@@ -122,14 +122,13 @@ pub struct SubscriptionStore {
 }
 
 impl SubscriptionStore {
-    /// Build a store over a virtual file system (VFS) and the clock of `ctx`.
+    /// Build a store over a virtual file system (VFS) and the context `ctx`.
     #[must_use]
     pub fn new(vfs: Arc<dyn DurableStreamVfs>, ctx: &Ctx, config: SubscriptionConfig) -> Self {
-        let clock: Arc<dyn Clock> = ctx.clock();
         let state_prefix = StreamName::parse(&config.state_prefix())
             .unwrap_or_else(|_| StreamName::parse("__ds/state").expect("valid fallback prefix"));
         Self {
-            stream: DurableStream::with_clock(vfs.clone(), clock),
+            stream: DurableStream::new(vfs.clone(), ctx),
             vfs,
             state_prefix,
             config,

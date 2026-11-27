@@ -145,8 +145,8 @@ pub fn harness() -> Harness {
     let sender = RecordingSender::new();
     let signing = WebhookSigningKey::from_seed([7_u8; 32]);
     let config = SubscriptionConfig::new("v1/stream");
-    let engine = SubscriptionEngine::new(vfs, ctx, signing, sender.clone(), config);
-    let stream = DurableStream::with_clock(engine.observed_vfs(), clock.clone());
+    let engine = SubscriptionEngine::new(vfs, ctx.clone(), signing, sender.clone(), config);
+    let stream = DurableStream::with_ctx(engine.observed_vfs(), &ctx);
     Harness {
         engine,
         clock,

@@ -23,7 +23,7 @@ use core::fmt;
 use core::future::Future;
 use core::pin::Pin;
 use foundation_compact::time::unix_millis;
-use foundation_context::{Clock, MonotonicClock};
+use foundation_context::Ctx;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -905,23 +905,29 @@ pub trait DurableStreamStore {
 #[derive(Clone)]
 pub struct DurableStream {
     vfs: Arc<dyn DurableStreamVfs>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl DurableStream {
-    /// Build a stream store over a VFS with the real clock.
+    /// Build a stream store over a virtual file system (VFS) with the injected context.
+    ///
+    /// The store reads the clock from `ctx`. The host builds the context with the
+    /// real clock.
     #[must_use]
-    pub fn new(vfs: Arc<dyn DurableStreamVfs>) -> Self {
+    pub fn new(vfs: Arc<dyn DurableStreamVfs>, ctx: &Ctx) -> Self {
         Self {
             vfs,
-            clock: Arc::new(MonotonicClock::new()),
+            ctx: ctx.clone(),
         }
     }
 
-    /// Build a stream store over a VFS with an injected clock.
+    /// Build a stream store with an explicit context.
+    ///
+    /// This is the test entry point. A test passes a context with a simulated
+    /// clock. The host uses [`Self::new`].
     #[must_use]
-    pub fn with_clock(vfs: Arc<dyn DurableStreamVfs>, clock: Arc<dyn Clock>) -> Self {
-        Self { vfs, clock }
+    pub fn with_ctx(vfs: Arc<dyn DurableStreamVfs>, ctx: &Ctx) -> Self {
+        Self::new(vfs, ctx)
     }
 
     /// Return the VFS.
@@ -931,7 +937,7 @@ impl DurableStream {
     }
 
     fn now_ms(&self) -> i64 {
-        unix_millis(self.clock.wall_now())
+        unix_millis(self.ctx.clock().wall_now())
     }
 
     fn is_expired(meta: &VfsMeta, now: i64) -> bool {

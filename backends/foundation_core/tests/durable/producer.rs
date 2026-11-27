@@ -1,5 +1,6 @@
 //! BDD scenarios for producer state and `Stream-Seq`.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendKind, AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs,
     Producer, ProducerId, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName, StreamSeq,
@@ -7,7 +8,7 @@ use foundation_core::durable::{
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
-    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 async fn create(streams: &DurableStreams<DurableStream>, name: &StreamName) {
@@ -221,7 +222,7 @@ fn given_a_producer_when_the_stream_restarts_then_a_retry_is_still_deduplicated(
         let name = StreamName::parse("producer/restart").expect("valid");
 
         {
-            let streams = DurableStreams::new(DurableStream::new(vfs.clone()));
+            let streams = DurableStreams::new(DurableStream::new(vfs.clone(), &Ctx::host()));
             create(&streams, &name).await;
             streams
                 .stream(name.clone())
@@ -230,7 +231,7 @@ fn given_a_producer_when_the_stream_restarts_then_a_retry_is_still_deduplicated(
                 .expect("first append");
         }
 
-        let streams = DurableStreams::new(DurableStream::new(vfs));
+        let streams = DurableStreams::new(DurableStream::new(vfs, &Ctx::host()));
         let retry = streams
             .stream(name.clone())
             .append(append(b"b", None, Some(producer("p", 0, 0))))

@@ -1,5 +1,6 @@
 //! BDD scenarios for the core reader state rules.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, Chunk, CloseRequest, ContentType, CreateSpec, DurableStream, DurableStreamVfs,
     DurableStreams, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StreamName, StreamOffset, VfsMeta,
@@ -9,7 +10,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
-    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 fn bytes(page: &foundation_core::durable::ReadPage) -> Vec<u8> {

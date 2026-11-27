@@ -1,5 +1,6 @@
 //! BDD scenarios for the business API and the memory VFS.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, Chunk, CloseRequest, CreateSpec, DurableStream, DurableStreams, MemoryVfs,
     ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName,
@@ -7,7 +8,7 @@ use foundation_core::durable::{
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
-    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 #[test]

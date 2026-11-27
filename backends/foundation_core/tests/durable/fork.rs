@@ -1,6 +1,7 @@
 //! BDD scenarios for fork and soft-delete.
 
 use core::time::Duration;
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, BadRequestKind, Chunk, ContentType, CreateSpec, DurableStream, DurableStreams,
     Expiry, ForkSpec, MemoryVfs, ReadFrom, ReadLimit, ReadRequest, StoreError, StreamName,
@@ -9,7 +10,7 @@ use foundation_core::durable::{
 use std::sync::Arc;
 
 fn streams() -> DurableStreams<DurableStream> {
-    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new())))
+    DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()))
 }
 
 async fn create(streams: &DurableStreams<DurableStream>, name: &StreamName) {

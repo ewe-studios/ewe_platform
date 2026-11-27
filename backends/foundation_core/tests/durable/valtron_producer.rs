@@ -1,5 +1,6 @@
 //! Tests for the valtron producer task.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs, ProducerId, ReadFrom, ReadLimit,
     ReadRequest, StreamName,
@@ -10,7 +11,7 @@ use std::sync::Arc;
 
 #[valtron_test(timeout = 5000)]
 fn given_a_producer_task_when_it_runs_then_it_appends_in_order() {
-    let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
     let name = StreamName::parse("producer/task").expect("valid name");
 
     foundation_core::valtron::block_on_future_scoped(async {

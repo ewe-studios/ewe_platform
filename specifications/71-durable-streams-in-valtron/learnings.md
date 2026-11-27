@@ -447,3 +447,15 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   `--features std,multi`. The old run used `--no-default-features`, so it never saw this
   failure.
 
+## Clock parameter guard, issue #1034 (2026-11-27)
+
+- **`DurableStream` takes the context bundle.** It held a bare clock and built a
+  `MonotonicClock` by default. `new` and `with_ctx` now take `&Ctx`, and the store reads the
+  clock with `ctx.clock()`. The host builds the real clock in the context.
+- **A stored clock field still trips the guard.** The guard scans every source line, not only
+  parameters. A field of type `Arc<dyn Clock>` fails it. Store the `Ctx` instead.
+- **Tests build a context.** A test with a hand-moved clock uses `Ctx::fixed(clock)`. A test
+  that does not check time uses `Ctx::host()`.
+- **The event-stream store lost its clock binding.** `SubscriptionStore::new` passes `ctx` to
+  `DurableStream::new` and keeps no `Arc<dyn Clock>` local.
+

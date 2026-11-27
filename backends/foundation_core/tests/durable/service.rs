@@ -1,5 +1,6 @@
 //! Tests for the transport-neutral service.
 
+use foundation_context::Ctx;
 use foundation_core::durable::{
     AppendRequest, Chunk, CreateSpec, DurableLimits, DurableService, DurableStream, MemoryVfs,
     ReadFrom, ReadLimit, ReadRequest, StreamName,
@@ -10,7 +11,7 @@ use std::sync::Arc;
 fn given_a_service_when_the_business_api_runs_then_it_uses_the_driver() {
     foundation_core::valtron::block_on_future_scoped(async {
         let service = DurableService::with_limits(
-            DurableStream::new(Arc::new(MemoryVfs::new())),
+            DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
             DurableLimits::default(),
         );
         let name = StreamName::parse("service/basic").expect("valid");
@@ -68,7 +69,7 @@ fn given_a_page_limit_when_a_read_runs_then_no_page_exceeds_it() {
         };
         use std::sync::Arc;
 
-        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::with_limits(
             stream,
             DurableLimits::default().with_page_bytes(4),
@@ -124,7 +125,7 @@ fn given_a_chunk_limit_when_a_json_read_runs_then_no_page_exceeds_it() {
         };
         use std::sync::Arc;
 
-        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::with_limits(
             stream,
             DurableLimits::default().with_page_chunks(2),
@@ -193,7 +194,7 @@ fn given_a_byte_limit_when_a_json_read_runs_then_the_page_respects_it() {
         };
         use std::sync::Arc;
 
-        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::with_limits(
             stream,
             DurableLimits::default().with_page_bytes(4),
@@ -249,7 +250,7 @@ fn given_a_message_larger_than_the_page_when_it_is_read_then_it_arrives_whole() 
         };
         use std::sync::Arc;
 
-        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::with_limits(
             stream,
             DurableLimits::default().with_page_bytes(4),
@@ -305,7 +306,7 @@ fn given_a_byte_limit_when_reads_walk_the_stream_then_every_message_appears_once
         };
         use std::sync::Arc;
 
-        let stream = DurableStream::new(Arc::new(MemoryVfs::new()));
+        let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::with_limits(
             stream,
             DurableLimits::default().with_page_bytes(4),
