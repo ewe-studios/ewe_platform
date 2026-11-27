@@ -205,3 +205,40 @@ async fn netio_transport_returns_a_non_2xx_status() {
         "a non-2xx status is a response, not a transport error"
     );
 }
+
+#[valtron_test]
+async fn netio_transport_reads_no_head_body() {
+    // A HEAD response names a length but sends no body. The server holds the
+    // connection open so a reader that waits for the named bytes is visible.
+    let response = b"HTTP/1.1 200 OK\r\nContent-Length: 123\r\nConnection: keep-alive\r\n\r\n".to_vec();
+    let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind test server");
+    let addr = listener.local_addr().expect("local addr");
+    let server = thread::spawn(move || {
+        let (mut stream, _peer) = listener.accept().expect("accept");
+        let mut buffer = [0_u8; 1024];
+        let _ = stream.read(&mut buffer).expect("read request");
+        stream.write_all(&response).expect("write response");
+        stream.flush().expect("flush response");
+        thread::sleep(Duration::from_secs(2));
+    });
+    let transport = client();
+    let request = ObjectRequest {
+        method: HttpMethod::Head,
+        url: format!("http://{addr}/bucket/durable/a/HEAD"),
+        query: Vec::new(),
+        headers: Vec::new(),
+        body: Vec::new(),
+        max_response_bytes: 1024,
+    };
+    let start = std::time::Instant::now();
+    let response = transport.send(request).await.expect("send");
+    assert!(
+        start.elapsed() < Duration::from_secs(1),
+        "the transport does not wait for a body that a HEAD response never sends"
+    );
+    assert_eq!(response.status, 200);
+    assert!(response.body.is_empty(), "a HEAD response has no body");
+    assert_eq!(response.header("content-length"), Some("123"));
+    drop(server);
+}
+
