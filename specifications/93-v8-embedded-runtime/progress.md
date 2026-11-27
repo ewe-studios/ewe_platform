@@ -45,6 +45,22 @@ _Last updated: 2026-11-27._
 - No code was changed. No build or test was run for V8, because the dependency is not in the
   tree.
 
+## Review (2026-11-27)
+
+A fresh reviewer read every spec file and checked each claim against the code. It reported 17
+findings. Sixteen were real and are fixed: the phase gates, the three-way cfg in `run_deno`,
+the test-file cleanup at cutover, the wall clock for `performance.timeOrigin` and `Date.now`,
+the file and line citations, the estimate split, and the undefined terms.
+
+One finding is rejected. The reviewer counted 34 `#[wasm_test]` cases in
+`foundation_core/integration/wasm_tests/src/lib.rs`. The file also holds 13
+`#[valtron_wasm_test]` cases, and both macros add a `__fwt_` export
+(`backends/foundation_macros/src/lib.rs:668-698`). The measured total is 47, so the four-file
+total is 106, not 93.
+
+The review also produced issue #1094: the embedded runtime unit tests do not run in the
+package matrix today.
+
 ## Next
 
 1. The owner settles D1 to D8 in `requirements.md`.
