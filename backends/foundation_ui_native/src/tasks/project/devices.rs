@@ -1,6 +1,6 @@
 //! List and start mobile devices by their platform identifiers.
 use crate::tasks::{
-    device::{sleep, text},
+    device::{self, sleep, text},
     output::device_query,
     NativeBuildEnv,
 };
@@ -200,16 +200,19 @@ pub async fn start(
         }
         return result;
     }
-    futures_lite::future::race(start_android(ctx, device, interval), deadline).await
+    let env = ctx.require::<NativeBuildEnv>()?;
+    let audio = device::android_audio_enabled(&env.devices)?;
+    futures_lite::future::race(start_android(ctx, device, interval, audio), deadline).await
 }
 
 async fn start_android(
     ctx: &TaskContext,
     device: Device,
     interval: Duration,
+    audio: bool,
 ) -> Result<Device, TaskError> {
     let mut owned = if device.state == "Stopped" {
-        let cmd = emulator(ctx)?.args(["-avd", &device.name]);
+        let cmd = device::with_android_audio(emulator(ctx)?.args(["-avd", &device.name]), audio);
         Some(
             ctx.require::<TaskEnv>()?
                 .process

@@ -1320,3 +1320,9 @@ Other device flags and explicit host policy keep their values.
 Discarding hardware abstraction layer labels would suppress this object name. It would leave the Vulkan extension enabled.
 After the first game closes, Android reports an abandoned surface queue. The second game does not present a frame.
 The lost surface handler tries to configure the surface again. It may delay later work on the graphics worker.
+
+## 2026-11-27 — Android emulator audio
+
+The Mathalley Android route already streams procedural samples through `AudioTrack`.
+The test task passed `-no-audio` to every new emulator, so speaker verification could not work.
+Keep emulator audio enabled unless the task host requests mute.

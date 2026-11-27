@@ -159,6 +159,20 @@ fn android_build_stages_only_the_requested_library_for_each_abi() {
 }
 
 #[test]
+fn android_emulator_audio_is_enabled_by_default_and_can_be_muted() {
+    let enabled = foundation_ui_native::tasks::device::with_android_audio(
+        ProcessCommand::new("emulator"),
+        true,
+    );
+    assert!(!enabled.args.iter().any(|arg| arg == "-no-audio"));
+    let muted = foundation_ui_native::tasks::device::with_android_audio(
+        ProcessCommand::new("emulator"),
+        false,
+    );
+    assert!(muted.args.iter().any(|arg| arg == "-no-audio"));
+}
+
+#[test]
 fn android_build_reports_the_missing_artifact() {
     let root = android_root();
     let process = Arc::new(FakeProcess(Mutex::default(), Fixture::MissingArtifact));

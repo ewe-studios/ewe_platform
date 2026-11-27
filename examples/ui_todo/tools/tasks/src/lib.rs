@@ -1,6 +1,9 @@
 //! Application-owned build and device checks for Todo and the release starters.
 use foundation_tasks::{TaskError, TaskResult, TaskSet};
-use foundation_ui_native::tasks::{output, stage, swift, sync, NativeBuildEnv};
+use foundation_ui_native::tasks::{
+    device::{android_audio_enabled, with_android_audio},
+    output, stage, swift, sync, NativeBuildEnv,
+};
 mod android;
 mod android_device;
 mod android_report;
@@ -20,6 +23,8 @@ pub fn environment() -> NativeBuildEnv {
     let mut env = NativeBuildEnv::from_workspace();
     env.devices.extend_from_host(&[
         "EWE_ANDROID_BOOT_TIMEOUT",
+        "EWE_ANDROID_AUDIO",
+        "EWE_ANDROID_MUTE",
         "EWE_ANDROID_VIEW_TIMEOUT",
         "EWE_ANDROID_VIEW_POLL_MS",
         "EWE_ANDROID_SERIAL",
