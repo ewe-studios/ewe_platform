@@ -226,12 +226,19 @@ fn server_and_host_actions_work() {
             Some(1)
         );
         let calls = "performance.getEntriesByType('resource').filter(e => new URL(e.name).pathname === '/ewe.ui.v1.Actions/Exchange').length";
-        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(1));
-        open.click().unwrap();
+        rpc.eval("(async () => { while (!window.todoReady) await new Promise(requestAnimationFrame); })()")
+            .unwrap();
+        let start = rpc.eval(calls).unwrap().as_u64().unwrap();
+        assert!(start >= 1);
+        // Open the dialog without changing tab visibility or refreshing the countdown.
+        let selector = serde_json::json!(button("host:open_add_dialog"));
+        rpc.eval(&format!("document.querySelector({selector}).click()"))
+            .unwrap();
         let input = rpc.locator("dialog:modal input");
         input.expect().to_be_visible().unwrap();
-        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(1));
+        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(start));
         input.fill("RPC task").unwrap();
+        let before_submit = rpc.eval(calls).unwrap().as_u64().unwrap();
         input.press("Enter").unwrap();
         rpc.locator("#open-count")
             .expect()
@@ -241,7 +248,7 @@ fn server_and_host_actions_work() {
             .expect()
             .to_be_visible()
             .unwrap();
-        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(2));
+        assert_eq!(rpc.eval(calls).unwrap().as_u64(), Some(before_submit + 1));
         open_document(&rpc, "about:blank");
         let starter = driver.new_page().unwrap();
         open_document(&starter, &format!("{url}?count"));

@@ -38,7 +38,7 @@ fn drop_next_reply(page: &Page<'_>) {
             const send = window.fetch.bind(window);
             window.fetch = async (url, options) => {
               const response = await send(url, options);
-              if (url === "/action") {
+              if (new URL(url, location.href).pathname === "/action") {
                 window.fetch = send;
                 if (window.holdCountdownReply) {
                   await new Promise(resolve => { window.releaseCountdownReply = resolve; });
@@ -70,7 +70,7 @@ fn the_pause_survives_reload_without_blocking_a_second_tab() {
             r#"(() => {
                 const send = window.fetch.bind(window);
                 window.fetch = (url, options) => {
-                    if (String(url) !== "/action") return send(url, options);
+                    if (new URL(url, location.href).pathname !== "/action") return send(url, options);
                     window.fetch = send;
                     return Promise.reject(Error("Drop the request before it reaches the server"));
                 };

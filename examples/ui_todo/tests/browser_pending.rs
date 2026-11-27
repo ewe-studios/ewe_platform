@@ -34,11 +34,15 @@ fn verify_pending_tabs(driver: &BrowserDriver<'_>, url: &str) {
     for (tab, title) in tabs.iter().zip(["Left tab", "Right tab"]) {
         open_document(tab, url);
         tab.locator(open).expect().to_be_visible().unwrap();
-        tab.locator(open).click().unwrap();
-        tab.locator("dialog:modal input").fill(title).unwrap();
+        let selector = serde_json::json!(open);
+        tab.eval(&format!("document.querySelector({selector}).click()"))
+            .unwrap();
+        let input = tab.locator("dialog:modal input");
+        input.expect().to_be_visible().unwrap();
+        input.fill(title).unwrap();
         tab.eval(r#"{
             const fetch = window.fetch.bind(window);
-            window.fetch = (url, opts) => String(url) === "/action"
+            window.fetch = (url, opts) => new URL(url, location.href).pathname === "/action"
                 ? Promise.reject(Error("Offline")) : fetch(url, opts);
             window.submitTogether = new BroadcastChannel("todo-storage-test");
             submitTogether.onmessage = () => document.querySelector("dialog:modal .ewe-submit-button").click();
