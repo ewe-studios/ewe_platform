@@ -32,7 +32,7 @@ use foundation_netio::shared::http::{
     SimpleIncomingRequest, SimpleOutgoingResponse,
 };
 
-use crate::native::reader::read_next_request;
+use crate::native::reader::{request_status, RequestReadStop};
 use crate::native::serve::Serve;
 use crate::native::writer::{
     send_continue_100, send_method_not_allowed, send_not_found, send_text,
@@ -378,8 +378,8 @@ impl ConnectionHandler {
 
         tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
 
-        match read_next_request(&self.streams, &self.client_ip, &self.connection) {
-            Some(Ok(mut req)) => {
+        match request_status(&self.streams, &self.client_ip, &self.connection) {
+            Ok(mut req) => {
                 // Version gate, before the body is read and before any
                 // middleware or route lookup can observe the request.
                 if !Self::is_supported_proto(&req.proto) {
@@ -424,7 +424,7 @@ impl ConnectionHandler {
                 });
                 Some(TaskStatus::Pending(()))
             }
-            Some(Err(e)) => {
+            Err(RequestReadStop::Parse(e)) => {
                 if Self::is_transient_error(&e) {
                     self.idle_poll_count += 1;
                     self.track_idle();
@@ -449,20 +449,13 @@ impl ConnectionHandler {
                     self.close_with(send_text(self.conn.clone(), 400, "Bad Request", &self.ctx))
                 }
             }
-            None => {
-                self.idle_poll_count += 1;
+            Err(RequestReadStop::BlankLine) => {
+                // The next request may already be in the read buffer.
                 self.track_idle();
-                // Non-blocking transport: park until the next request lands,
-                // instead of spin-delaying.
-                if let Some(status) = self.park_idle() {
-                    return Some(status);
-                }
-                tracing::trace!(
-                    client_ip = %self.client_ip,
-                    "Idle: no data available (WouldBlock)"
-                );
-                Some(self.maybe_delay_idle())
+                self.state = Some(HandlerState::Idle);
+                Some(TaskStatus::Pending(()))
             }
+            Err(RequestReadStop::Closed) => None,
         }
     }
 

@@ -26,7 +26,7 @@ use crate::shared::client_ip::ClientIp;
 /// carries a clone of it (a refcount bump), so handlers can reach connection
 /// facts via `req.connection` (Decision 12 §13 of spec 41-connectrpc).
 ///
-/// Returns `None` when the connection is closed (no more data).
+/// Returns `None` when the peer closes or the reader skips a leading blank line.
 /// Returns `Some(Err(_))` on parse errors.
 #[must_use]
 #[tracing::instrument(skip(streams, connection))]
@@ -35,11 +35,28 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
     client_ip: &str,
     connection: &Arc<ConnectionContext>,
 ) -> Option<Result<SimpleIncomingRequest, HttpReaderError>> {
+    match request_status(streams, client_ip, connection) {
+        Ok(request) => Some(Ok(request)),
+        Err(RequestReadStop::Parse(error)) => Some(Err(error)),
+        Err(RequestReadStop::Closed | RequestReadStop::BlankLine) => None,
+    }
+}
+
+pub(crate) enum RequestReadStop {
+    Parse(HttpReaderError),
+    BlankLine,
+    Closed,
+}
+
+pub(crate) fn request_status<T: std::io::Read + Send + Sync + 'static>(
+    streams: &HTTPStreams<T>,
+    client_ip: &str,
+    connection: &Arc<ConnectionContext>,
+) -> Result<SimpleIncomingRequest, RequestReadStop> {
     let mut request_stream = streams.next_request();
 
     let mut builder = SimpleIncomingRequest::builder().with_connection(connection.clone());
 
-    let mut total_skips = 0;
     let mut seen_starter: bool = false;
 
     tracing::trace!("Getting next request stream");
@@ -51,15 +68,11 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
             }
             Err(e) => {
                 tracing::trace!("Received Err(Error): {:?}", &e);
-                return Some(Err(e));
+                return Err(RequestReadStop::Parse(e));
             }
         };
 
-        tracing::trace!(
-            "Received new request part: total_skips={}, seen_starter={}",
-            &total_skips,
-            &seen_starter
-        );
+        tracing::trace!("Received new request part: seen_starter={}", &seen_starter);
         match part {
             IncomingRequestParts::NoBody => {
                 // Keep-alive artifact or no body — defaults are fine
@@ -89,15 +102,8 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
             }
             IncomingRequestParts::SKIP => {
                 tracing::trace!("Seen IncomingRequestParts::SKIP(_)");
-                // always break on skip because it means we found an extra
-                // newline after a request was finished.
-                if seen_starter {
-                    break;
-                }
-                // if we see more than 1 skip without seeing a starter then stop
-                total_skips += 1;
-                if !seen_starter && total_skips >= 2 {
-                    break;
+                if !seen_starter {
+                    return Err(RequestReadStop::BlankLine);
                 }
                 break;
             }
@@ -106,13 +112,12 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
 
     // if starter is not seen and we stopped then we cant really build a request.
     tracing::trace!(
-        "Finished request accumulation loop: total_skips={}, seen_starter={}",
-        &total_skips,
+        "Finished request accumulation loop: seen_starter={}",
         &seen_starter
     );
     if !seen_starter {
-        tracing::trace!("No request identified returning None");
-        return None;
+        tracing::trace!("Peer ends the request stream");
+        return Err(RequestReadStop::Closed);
     }
 
     // Iterator exhausted — if we got any parts, return the built request.
@@ -121,7 +126,7 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
         Ok(req) => req,
         Err(err) => {
             tracing::error!("Failed to correctly build request due to: {:?}", &err);
-            return Some(Err(err.into()));
+            return Err(RequestReadStop::Parse(err.into()));
         }
     };
 
@@ -130,5 +135,5 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
         extensions.insert(ClientIp(client_ip.to_string()));
     }
 
-    Some(Ok(req))
+    Ok(req)
 }

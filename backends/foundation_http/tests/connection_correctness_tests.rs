@@ -312,6 +312,57 @@ fn an_idle_keepalive_connection_parks_on_its_socket() {
 
 #[cfg(unix)]
 #[test]
+fn an_idle_connection_closes_when_the_peer_ends_its_input() {
+    let (client, stream) = silent_tcp_pair();
+    let ctx = Ctx::host();
+    let mut handler = build_handler(
+        Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(ctx.clone())),
+        stream,
+        &KeepAliveConfig::defaults(),
+        ctx.clone(),
+    );
+    let Some(TaskStatus::Depends(ready)) = handler.next_status(ctx.clone()) else {
+        panic!("An idle connection must wait for read readiness");
+    };
+    client.shutdown(std::net::Shutdown::Write).unwrap();
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    while !ready.is_ready(None) {
+        assert!(
+            std::time::Instant::now() < deadline,
+            "Read readiness missed the peer close"
+        );
+        std::thread::yield_now();
+    }
+    drop(ready);
+    assert!(
+        handler.next_status(ctx).is_none(),
+        "An ended input must not repark"
+    );
+}
+
+#[test]
+fn a_blank_line_keeps_the_buffered_request_ready() {
+    let (stream, client) = fake_overlay::overlay_pair(16 * 1024);
+    client.queue_request(b"\r\nGET / HTTP/1.1\r\nHost: test\r\n\r\n");
+    let ctx = Ctx::host();
+    let mut handler = build_handler(
+        Arc::new(HttpApp::<Arc<dyn Serve>>::with_ctx(ctx.clone())),
+        stream,
+        &KeepAliveConfig::defaults(),
+        ctx.clone(),
+    );
+
+    assert!(matches!(
+        handler.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(()))
+    ));
+    drive_until_closed(&mut handler, &ctx, 32);
+    let response = client.read_available();
+    assert!(String::from_utf8_lossy(&response).contains("404"));
+}
+
+#[cfg(unix)]
+#[test]
 fn incoming_request_parks_until_the_remaining_body_arrives() {
     use foundation_http::shared::serve::ServeOutcome;
     use foundation_netio::shared::client::body_reader::collect_bytes_async;
