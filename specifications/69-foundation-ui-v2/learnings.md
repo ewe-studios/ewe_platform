@@ -1548,3 +1548,9 @@ The server keeps the action declarations for controls that run in a client.
 The runtime selects which action bodies to compile.
 Cargo can select both roles for the same test build.
 Private client state and helpers use the same compile selection as the client action bodies.
+
+## 2026-11-28 — Graphics worker and browser verification
+
+Check the Linux process status after the test summaries. The original shutdown failure occurred after the tests reported success.
+For the browser check, build and bind the library and the test module. The page imports both modules.
+Use the test profile for the Wasm build. The local Cranelift code generator cannot build this Wasm target.

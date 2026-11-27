@@ -2020,3 +2020,22 @@ The action target passes all fourteen tests with both roles active.
 The backup target passes all three tests.
 The moved development package passes the Chromium mount and client action checks again.
 [Issue 789](https://github.com/ewe-studios/ewe_platform/issues/789)
+
+## 2026-11-28 — Graphics worker and browser verification
+
+The Linux AMD64 integration process exits with status zero on two default-concurrency runs.
+Each run passes 14 tests and skips three adapter tests.
+A separate run enables the adapter tests and passes all 17 tests.
+The shutdown test waits for the owner to release its provider before the test exits.
+[Issue 696](https://github.com/ewe-studios/ewe_platform/issues/696)
+
+The graphics library and the browser test build for WebAssembly (Wasm).
+Google Chrome 158 completes the graphics test on the Apple Metal 3 adapter.
+The shared service finishes an accepted canvas request before shutdown returns.
+The next canvas request fails while the browser host stays open.
+The three pixel samples match red, blue, and blue.
+[Issue 700](https://github.com/ewe-studios/ewe_platform/issues/700)
+
+Strict Clippy passes on Linux AMD64 for all graphics targets.
+The lease tests name the adapter options and device descriptor types in their default values.
+[Issue 701](https://github.com/ewe-studios/ewe_platform/issues/701)

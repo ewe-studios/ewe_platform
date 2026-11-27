@@ -17,7 +17,7 @@ The following checkpoint includes the native recovery evidence at `2045268eb`.
 |---|---|---|
 | Todo and server | Feature 37 completes all twelve acceptance checks at `b22d81cd0`. Chrome, iPhone, and Android each send four mutations. Both peers receive each change. | Remove server-only build warnings (#789). Check the replay backlog requirement (#548). |
 | Browser and Apple | Commit `474404fc2` fixes navigation across attached tabs. Commit `03e5a536f` fixes dedicated native connections. Apple and Android recover a pending change after a dropped socket. | Verify public release consumers (#845). Complete renderer, behavior, and supported operating system checks. |
-| Android graphics and sound | The host captures three game notes. Mute reduces the signal by about 40 decibels. Landscape input increases the score at the reported 1560 by 720 resolution. | Investigate the separate full-resolution focus failure (#1146). Verify outstanding graphics checks. Physical speaker output remains unverified. |
+| Android graphics and sound | The host captures three game notes. Mute reduces the signal by about 40 decibels. The replay confirms a landscape answer at 1560 by 720 and 2400 by 1080. | Monitor the original focus timeout (#1146). Verify the Linux native bridge gate (#713). Physical speaker output remains unverified. |
 
 The earlier Android surface repair passes two scored game visits on the emulator.
 The separate flash report still lacks a confirmed cause.
@@ -78,7 +78,11 @@ See the [asset path contract](features/37-todo-server-build-and-state/feature.md
 - [Issue 722](https://github.com/ewe-studios/ewe_platform/issues/722) is closed. Commit `eee45d716` fixes the graphics extent check.
   The macOS Metal test presents a 1206 by 2241 surface, rejects an oversized resize, and presents again on the same owner.
 - Issues #715, #828, #782, #732, and #714 are closed. Preserve their evidence for relocation, fixture removal, host restart, and native delivery.
-- Check graphics shutdown and validation issues #696, #700, #701, #713 and #691 against Features 34 and 35.
+- Issues #696, #700, and #701 are closed. The Linux graphics process exits cleanly at default concurrency, and strict Clippy passes.
+  The browser graphics test drains the shared and canvas queues on the Apple Metal adapter.
+- [Issue 691](https://github.com/ewe-studios/ewe_platform/issues/691) is closed. The Android emulator and Linux fixtures accept Vulkan aggregate records and reject a missing feature.
+  These fixtures use device creation records without creating a physical device grant.
+- [Issue 713](https://github.com/ewe-studios/ewe_platform/issues/713) remains open while the current Linux native bridge tests and strict Clippy run.
 - Check migration fixture #712, wire lint #846, replay backlog #548, and missing-clock handling #619 against the final package gates.
 - Check the first-install timeout (#831) against the launcher verification. The reviewed launcher and #1074 are already delivered.
 - Track server idle activity (#673) and unused Todo server code (#789). Address each if it blocks an acceptance or warning gate.
