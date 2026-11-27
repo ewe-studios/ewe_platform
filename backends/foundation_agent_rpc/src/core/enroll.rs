@@ -17,7 +17,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use foundation_auth::fingerprint::sha256;
+use foundation_auth::fingerprint::public_fingerprint;
 use foundation_auth::secret::{
     ClientPublicKey, SecretError, SecretIssuer, SecretRequest, SecretVerifier, VerifiedSecret,
 };
@@ -252,7 +252,7 @@ impl EnrollmentService {
         };
         self.spend_and_record(verified, record, &cert.cert_pem)
             .await?;
-        let proof_key = sha256(csr.as_bytes());
+        let proof_key = public_fingerprint(csr.as_bytes());
         let proof = self.server_proof(verified, nonce, &proof_key, client_id)?;
         Ok(EnrollResponse {
             client_cert_pem: cert.cert_pem,

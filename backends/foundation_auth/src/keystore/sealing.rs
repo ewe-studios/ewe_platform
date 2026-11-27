@@ -19,7 +19,7 @@ use std::pin::Pin;
 use base64::Engine as _;
 use foundation_compact::crypto::chacha::{open_with, seal_with, ChaChaKey};
 use foundation_compact::crypto::SecureBytes;
-use foundation_context::env::Env;
+use foundation_context::env::{EntropySourceExt as _, Env};
 use serde::{Deserialize, Serialize};
 #[cfg(not(target_family = "wasm"))]
 use zeroize::Zeroizing;
@@ -122,12 +122,10 @@ impl KekSealer {
 
     /// A random nonce from the injected entropy source.
     fn nonce(&self) -> Result<[u8; 12], KeyStoreError> {
-        let mut nonce = [0u8; 12];
         self.env
             .entropy()
-            .fill(&mut nonce)
-            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))?;
-        Ok(nonce)
+            .fill_new::<12>()
+            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))
     }
 }
 
@@ -230,21 +228,17 @@ impl PassphraseSealer {
 
     /// A random salt of 16 bytes.
     fn salt(&self) -> Result<[u8; 16], KeyStoreError> {
-        let mut salt = [0u8; 16];
         self.env
             .entropy()
-            .fill(&mut salt)
-            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))?;
-        Ok(salt)
+            .fill_new::<16>()
+            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))
     }
 
     fn nonce(&self) -> Result<[u8; 12], KeyStoreError> {
-        let mut nonce = [0u8; 12];
         self.env
             .entropy()
-            .fill(&mut nonce)
-            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))?;
-        Ok(nonce)
+            .fill_new::<12>()
+            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))
     }
 }
 

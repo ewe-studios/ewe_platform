@@ -68,7 +68,7 @@ impl std::fmt::Debug for PrivateKey {
             .field("kid", &self.kid)
             .field(
                 "public_key_sha256",
-                &crate::fingerprint::sha256_hex(&self.public_key),
+                &crate::fingerprint::public_fingerprint_hex(&self.public_key),
             )
             .finish_non_exhaustive()
     }
