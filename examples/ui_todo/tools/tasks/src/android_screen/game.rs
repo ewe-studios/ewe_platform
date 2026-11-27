@@ -1,5 +1,5 @@
 //! Replay a seeded Mathalley game and inspect the frames presented by Android.
-use super::{Screen, cleanup, sleep};
+use super::{cleanup, sleep, Screen};
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
 use std::{
     fs::File,
@@ -217,7 +217,9 @@ pub(crate) async fn run(ctx: TaskContext, args: Options) -> TaskResult {
         )
         .await?;
         // The rotated surface can appear before the game dialog receives focus.
-        screen.wait(&["Back to Todos", "Mathalley game"], &[]).await?;
+        screen
+            .wait(&["Back to Todos", "Mathalley game"], &[])
+            .await?;
         touch(&screen, &scene, 105, 690).await?;
         // Keep the display in landscape until the game processes the answer.
         presented(

@@ -127,7 +127,10 @@ pub fn compile_service(
     let temporary = tempfile::NamedTempFile::new_in(&out)?;
     let status =
         std::process::Command::new(std::env::var_os("PROTOC").unwrap_or_else(|| "protoc".into()))
-            .arg(format!("--descriptor_set_out={}", temporary.path().display()))
+            .arg(format!(
+                "--descriptor_set_out={}",
+                temporary.path().display()
+            ))
             .arg(format!("-I{root}"))
             .arg(source)
             .status()?;

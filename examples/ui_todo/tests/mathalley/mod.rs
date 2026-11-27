@@ -160,12 +160,16 @@ fn all_hosts_classify_the_actual_game_command() {
     let bytes = open_command().unwrap();
     assert_eq!(bytes, rmp_serde::to_vec("open:mathalley").unwrap());
     assert!(is_mathalley_open(bytes.clone()));
-    assert!(!is_mathalley_open(bytes[..bytes.len()-1].to_vec()));
+    assert!(!is_mathalley_open(bytes[..bytes.len() - 1].to_vec()));
     assert!(!is_mathalley_open([bytes, vec![0]].concat()));
     assert!(!is_mathalley_open(rmp_serde::to_vec("open:other").unwrap()));
     assert!(!is_mathalley_open(Vec::new()));
     assert!(!is_mathalley_open(vec![0]));
     assert!(!is_mathalley_open(vec![0x81, 0, 0xc0]));
-    assert!(!is_mathalley_open([vec![0x81], open_command().unwrap(), vec![0xc0]].concat()));
-    assert!(!is_mathalley_open([vec![0xc4, 14], b"open:mathalley".to_vec()].concat()));
+    assert!(!is_mathalley_open(
+        [vec![0x81], open_command().unwrap(), vec![0xc0]].concat()
+    ));
+    assert!(!is_mathalley_open(
+        [vec![0xc4, 14], b"open:mathalley".to_vec()].concat()
+    ));
 }

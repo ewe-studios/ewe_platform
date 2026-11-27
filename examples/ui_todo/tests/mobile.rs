@@ -205,14 +205,29 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
             path.to_str().unwrap().into(),
         )
         .unwrap();
-        use foundation_ui_wire::{writer::{write_caps, FrameHeader}, ServerActionT, ServerCapsT, SCHEMA_VERSION};
+        use foundation_ui_wire::{
+            writer::{write_caps, FrameHeader},
+            ServerActionT, ServerCapsT, SCHEMA_VERSION,
+        };
         let mut caps = ServerCapsT::default();
         caps.schema_version = SCHEMA_VERSION;
         caps.vocabulary_version = foundation_ui_wire::vocab::VOCABULARY_VERSION;
         let mut add = ServerActionT::default();
         add.name = Some("add_todo".into());
         caps.actions = Some(vec![add]);
-        core.apply_caps_frame(write_caps(&caps, FrameHeader { stream_id: 1, sequence_id: 1, ack: 0 }, &WriterConfig::default()).unwrap()).unwrap();
+        core.apply_caps_frame(
+            write_caps(
+                &caps,
+                FrameHeader {
+                    stream_id: 1,
+                    sequence_id: 1,
+                    ack: 0,
+                },
+                &WriterConfig::default(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
         core.set_frame_listener(preview.clone());
         core
     };
@@ -282,7 +297,11 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
         value: "Corrected title".into(),
         ..EventInput::receiving_view()
     };
-    let reply = corrected.trigger("host:submit_todo".into(), event).await.unwrap().unwrap();
+    let reply = corrected
+        .trigger("host:submit_todo".into(), event)
+        .await
+        .unwrap()
+        .unwrap();
     assert!(shows(&operations(&reply), "Try again"));
     let corrected_key = {
         let requests = transport.0.lock().unwrap();
@@ -603,7 +622,7 @@ async fn mobile_storage_uses_the_full_legacy_filename_for_each_namespace() {
 #[valtron_test]
 async fn native_countdown_scopes_are_private_across_concurrent_cores() {
     use foundation_ui_wire::{
-        writer::{FrameHeader, write_caps},
+        writer::{write_caps, FrameHeader},
         ServerActionT, ServerCapsT, SCHEMA_VERSION,
     };
 
@@ -619,23 +638,30 @@ async fn native_countdown_scopes_are_private_across_concurrent_cores() {
             let data: serde_json::Value = serde_json::from_slice(input).unwrap();
             let session = data["session"].as_str().unwrap().to_owned();
             self.0.lock().unwrap().push(session);
-            Err(CoreError::Transport { detail: "Drop the status reply".into() })
+            Err(CoreError::Transport {
+                detail: "Drop the status reply".into(),
+            })
         }
     }
 
     async fn send_query(core: &NativeCore) {
-        let reply = core.trigger_structured(
-            "host:tick_todo_countdown".into(),
-            EventInput::receiving_view(),
-            br#"{"refresh":true}"#.to_vec(),
-        ).await;
+        let reply = core
+            .trigger_structured(
+                "host:tick_todo_countdown".into(),
+                EventInput::receiving_view(),
+                br#"{"refresh":true}"#.to_vec(),
+            )
+            .await;
         match reply {
             Err(_) => {}
             Ok(Some(bytes)) => {
                 let frame = read_frame(&bytes, &WireLimits::default()).unwrap();
                 let response = frame.kind_as_frame_message().unwrap();
                 assert!(response.messages().unwrap().iter().any(|message| {
-                    message.control().and_then(|control| control.error()).is_some()
+                    message
+                        .control()
+                        .and_then(|control| control.error())
+                        .is_some()
                 }));
             }
             Ok(None) => panic!("A missing reply must report an error"),
@@ -650,15 +676,21 @@ async fn native_countdown_scopes_are_private_across_concurrent_cores() {
             NativePlatform::Android,
             transport.clone(),
             path.to_str().unwrap().to_owned(),
-        ).unwrap();
+        )
+        .unwrap();
         let mut caps = ServerCapsT::default();
         caps.schema_version = SCHEMA_VERSION;
         caps.vocabulary_version = foundation_ui_wire::vocab::VOCABULARY_VERSION;
         let mut status = ServerActionT::default();
         status.name = Some("current_countdown".into());
         caps.actions = Some(vec![status]);
-        let header = FrameHeader { stream_id: 1, sequence_id: 1, ack: 0 };
-        core.apply_caps_frame(write_caps(&caps, header, &WriterConfig::default()).unwrap()).unwrap();
+        let header = FrameHeader {
+            stream_id: 1,
+            sequence_id: 1,
+            ack: 0,
+        };
+        core.apply_caps_frame(write_caps(&caps, header, &WriterConfig::default()).unwrap())
+            .unwrap();
         core.set_frame_listener(Arc::new(LocalFrames::default()));
         core
     };

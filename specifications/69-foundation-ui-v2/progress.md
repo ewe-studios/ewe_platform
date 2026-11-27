@@ -2182,3 +2182,10 @@ The audit maps features 15, 19, 21 through 26, and 32 through 36 to their eviden
 It records device tests, public package checks, and the available local package results.
 The Android lending guide describes the accepted Vulkan aggregate records.
 [Issue 1188](https://github.com/ewe-studios/ewe_platform/issues/1188)
+
+## 2026-11-28 — Scoped source formatting
+
+The formatter updates 23 changed Specification 69 source and test files.
+The staged Rust files match the formatter output byte for byte.
+The workspace format check reports 21 remaining files outside this scope.
+[Issue 1184](https://github.com/ewe-studios/ewe_platform/issues/1184)

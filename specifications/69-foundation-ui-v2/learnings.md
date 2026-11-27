@@ -1631,3 +1631,8 @@ Keep the borrowed device and the owned surface checks in one simulator run.
 The device creation record lists extensions separately from the feature chain.
 The guide describes which promoted fields the lease validator can read.
 The staged package tests verify native consumption. Public consumption requires published package artifacts.
+
+## 2026-11-28 — Scoped source formatting
+
+Compare the staged Rust bytes with the formatter output before committing.
+Keep formatter changes in a separate commit from fixes to validators and test fixtures.

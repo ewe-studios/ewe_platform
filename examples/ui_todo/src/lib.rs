@@ -1,7 +1,7 @@
 //! Todo views, actions, and host entry points.
 pub mod mathalley;
-mod theme;
 pub mod shared;
+mod theme;
 pub use shared::*;
 
 #[cfg(all(feature = "server", not(target_family = "wasm")))]
