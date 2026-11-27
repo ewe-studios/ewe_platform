@@ -28,13 +28,13 @@ fn given_a_producer_task_when_it_runs_then_it_appends_in_order() {
         ProducerId::parse("task-producer").expect("id"),
         0,
     );
-    let mut task = producer_task(
+    let task = producer_task(
         writer,
         vec![Chunk::new(b"a".to_vec()), Chunk::new(b"b".to_vec())],
     );
 
     let mut outcomes = Vec::new();
-    while let Some(status) = task.next() {
+    for status in task {
         if let TaskStatus::Ready(result) = status {
             outcomes.push(result);
         }

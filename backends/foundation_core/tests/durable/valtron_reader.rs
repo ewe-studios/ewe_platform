@@ -35,7 +35,7 @@ fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
         assert!(steps < 100, "reader must reach the live tail");
         match reader.next() {
             Some(Stream::Wait) => break,
-            Some(Stream::Next(_)) | Some(Stream::Spread(_)) => panic!("unexpected data"),
+            Some(Stream::Next(_) | Stream::Spread(_)) => panic!("unexpected data"),
             Some(Stream::Pending(_) | Stream::Ignore | Stream::Init | Stream::Delayed(_)) => {}
             None => panic!("live reader ended before data"),
         }
@@ -52,7 +52,7 @@ fn given_a_live_reader_when_data_appends_then_it_yields_the_data() {
 
     let mut bytes = Vec::new();
     steps = 0;
-    while let Some(item) = reader.next() {
+    for item in reader {
         steps += 1;
         assert!(steps < 100, "reader must make progress");
 
@@ -139,11 +139,11 @@ fn given_a_closed_stream_when_the_valtron_reader_catches_up_then_it_yields_the_c
             .expect("close");
     });
 
-    let mut reader = DurableStreamReader::new(stream, name, ReadFrom::Start, false, ctx);
+    let reader = DurableStreamReader::new(stream, name, ReadFrom::Start, false, ctx);
     let mut bytes = Vec::new();
     let mut steps = 0_usize;
 
-    while let Some(item) = reader.next() {
+    for item in reader {
         steps += 1;
         assert!(steps < 100, "reader must make progress");
 

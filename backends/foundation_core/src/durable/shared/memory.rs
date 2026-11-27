@@ -149,7 +149,7 @@ fn read_chain(
     }
 
     if out.len() < limit {
-        let own_at = if at < base { 0 } else { at - base };
+        let own_at = at.saturating_sub(base);
         let start = usize::try_from(own_at)
             .unwrap_or(usize::MAX)
             .min(entry.data.len());
@@ -250,7 +250,7 @@ impl DurableStreamVfs for MemoryVfs {
                     entry.data.extend_from_slice(bytes);
                     let mut next = meta;
                     next.len = entry.base_len() + entry.data.len() as u64;
-                    next.fork = entry.meta.fork.clone();
+                    next.fork.clone_from(&entry.meta.fork);
                     next.trim_from = entry.meta.trim_from;
                     next.version = expected_version.saturating_add(1);
                     entry.meta = next;

@@ -537,3 +537,23 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   runs the gate. The image path needs registry credentials, so a fork takes the artifact path.
 - **The wasm checks from #1030 were already wired.** `foundation_netio` checks its default set
   and `wasm-fetch`; `foundation_core` checks `std,multi`. `foundation-ci plan` accepts both.
+
+## Clippy gate for the durable module (2026-11-27)
+
+- **A long function often hides two rules.** `create` mixed create with fork resolution, and
+  `append` mixed append with the closed-stream answer. Each block now sits in a helper with its
+  own doc comment. Both functions fit the 100-line limit, and the behavior did not change.
+- **One pattern form can satisfy two lints.** `Ok(true | false) | Err(VfsError::NotFound |
+  VfsError::Gone)` is nested and merged. It clears `unnested_or_patterns` and `match_same_arms`
+  in one arm.
+- **A remainder check replaces two length checks.** `as_chunks::<2>()` returns the pairs and the
+  remainder. The remainder check rejects an odd length, so the modulo test is gone.
+- **A private module rename keeps the public path.** Only `client/mod.rs` re-exports the client
+  names. Renaming the inner `client` module to `core` clears `module_inception` and changes no
+  public path.
+- **A test clock cannot build a monotonic `Instant` without `Instant::now()`.** The TTL test
+  reads only wall time. One `#[expect]` with a reason is the clean answer. The durable code
+  never reads the monotonic clock.
+- **The `clippy.toml` path needs a real dependency.** `foundation_core` has no `rand`
+  dependency, so the `rand::thread_rng` entry warns as unreachable. The warning is not a lint,
+  so `-D warnings` does not fail. A later change can remove the entry.

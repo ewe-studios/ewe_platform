@@ -2,7 +2,7 @@
 //!
 //! The HTTP adapter formats these values. They have no HTTP type.
 
-/// The ETag for a read range.
+/// The `ETag` for a read range.
 ///
 /// The value changes when the stream closes, even when no new bytes arrived. A stale
 /// `If-None-Match` therefore cannot hide the closure signal.

@@ -2,10 +2,10 @@
 //!
 //! The protocol core is runtime-neutral and transport-neutral. It has no valtron, HTTP, socket
 //! or global-runtime dependency. The optional valtron wrapper lives in the separate [`valtron`]
-//! module. The HTTP, ConnectRPC, WebSocket and embedded surfaces wrap the core.
+//! module. The HTTP, `ConnectRPC`, WebSocket and embedded surfaces wrap the core.
 //!
 //! The types follow `specifications/71-durable-streams-in-valtron`. Do not add a transport
-//! status, header or ETag here. The adapters own the wire rules.
+//! status, header or `ETag` here. The adapters own the wire rules.
 
 #![allow(async_fn_in_trait)] // Native async trait. The trait is used generically, never as `dyn`.
 
@@ -956,11 +956,80 @@ impl DurableStream {
     async fn expire(&self, name: &StreamName) -> StoreError {
         match self.vfs.remove(name).await {
             // An expired stream reads as missing. A fork that still refs the data keeps it.
-            Ok(true) | Ok(false) => StoreError::NotFound,
-            Err(VfsError::NotFound) => StoreError::NotFound,
-            Err(VfsError::Gone) => StoreError::NotFound,
+            Ok(true | false) | Err(VfsError::NotFound | VfsError::Gone) => StoreError::NotFound,
             Err(error) => StoreError::from(error),
         }
+    }
+
+    /// Resolve a create from its fork source.
+    ///
+    /// Returns the content type, fork info, start length and expiry.
+    async fn resolve_fork(
+        &self,
+        fork: ForkSpec,
+        content_type: Option<ContentType>,
+        expires: Option<Expiry>,
+    ) -> Result<(ContentType, Option<ForkInfo>, u64, Option<Expiry>), StoreError> {
+        let source = match self.vfs.meta(&fork.source).await {
+            Ok(source) => source,
+            // A fork from a soft-deleted source is a configuration conflict, not a read.
+            Err(VfsError::Gone) => return Err(StoreError::ConfigConflict),
+            Err(error) => return Err(error.into()),
+        };
+        if Self::is_expired(&source, self.now_ms()) {
+            return Err(self.expire(&fork.source).await);
+        }
+        if let Some(requested) = &content_type {
+            if requested != &source.content_type {
+                return Err(StoreError::ContentTypeMismatch {
+                    expected: source.content_type.clone(),
+                    got: requested.clone(),
+                });
+            }
+        }
+        let mut at = match fork.at {
+            Some(at) => VfsOffset::from(&at).0,
+            None => source.len,
+        };
+        if at > source.len {
+            return Err(StoreError::BadRequest(BadRequestKind::Fork));
+        }
+
+        if fork.sub_offset > 0 {
+            if source.content_type.is_json() {
+                let bytes = self
+                    .vfs
+                    .read_at(&fork.source, &VfsOffset(at), usize::MAX)
+                    .await?;
+                let messages = decode_json(&bytes)?;
+                let skip = usize::try_from(fork.sub_offset).unwrap_or(usize::MAX);
+                if skip > messages.len() {
+                    return Err(StoreError::BadRequest(BadRequestKind::Fork));
+                }
+                at = at.saturating_add(
+                    messages
+                        .iter()
+                        .take(skip)
+                        .map(|message| message.len() as u64 + 1)
+                        .sum::<u64>(),
+                );
+            } else {
+                at = at.saturating_add(u64::from(fork.sub_offset));
+                if at > source.len {
+                    return Err(StoreError::BadRequest(BadRequestKind::Fork));
+                }
+            }
+        }
+
+        Ok((
+            content_type.unwrap_or_else(|| source.content_type.clone()),
+            Some(ForkInfo {
+                source: fork.source,
+                at,
+            }),
+            at,
+            expires.or_else(|| source.expires.clone()),
+        ))
     }
 }
 
@@ -1074,6 +1143,33 @@ fn validate_producer(
     }
 }
 
+/// The outcome of an append to a closed stream.
+///
+/// A retry of the close that already landed is a duplicate, not a conflict.
+fn closed_append_outcome(
+    meta: &VfsMeta,
+    producer: Option<&Producer>,
+) -> Result<AppendOutcome, StoreError> {
+    if let Some(producer) = producer {
+        if let Ok(ProducerDecision::Duplicate(last_seq)) = validate_producer(&meta.writer, producer)
+        {
+            return Ok(AppendOutcome {
+                kind: AppendKind::Duplicate,
+                cursor: ResumeCursor {
+                    next: StreamOffset::from(VfsOffset(meta.len)),
+                    up_to_date: true,
+                    closed: true,
+                },
+                producer_seq: Some(last_seq),
+                closed: true,
+            });
+        }
+    }
+    Err(StoreError::Closed {
+        tail: StreamOffset::from(VfsOffset(meta.len)),
+    })
+}
+
 impl DurableStreamStore for DurableStream {
     async fn create(
         &self,
@@ -1088,69 +1184,9 @@ impl DurableStreamStore for DurableStream {
             fork,
         } = spec;
 
-        let (content_type, fork_info, start_len, expires) = if let Some(fork) = fork {
-            let source = match self.vfs.meta(&fork.source).await {
-                Ok(source) => source,
-                // A fork from a soft-deleted source is a configuration conflict, not a read.
-                Err(VfsError::Gone) => return Err(StoreError::ConfigConflict),
-                Err(error) => return Err(error.into()),
-            };
-            if Self::is_expired(&source, self.now_ms()) {
-                return Err(self.expire(&fork.source).await);
-            }
-            if let Some(requested) = &content_type {
-                if requested != &source.content_type {
-                    return Err(StoreError::ContentTypeMismatch {
-                        expected: source.content_type.clone(),
-                        got: requested.clone(),
-                    });
-                }
-            }
-            let mut at = match fork.at {
-                Some(at) => VfsOffset::from(&at).0,
-                None => source.len,
-            };
-            if at > source.len {
-                return Err(StoreError::BadRequest(BadRequestKind::Fork));
-            }
-
-            if fork.sub_offset > 0 {
-                if source.content_type.is_json() {
-                    let bytes = self
-                        .vfs
-                        .read_at(&fork.source, &VfsOffset(at), usize::MAX)
-                        .await?;
-                    let messages = decode_json(&bytes)?;
-                    let skip = usize::try_from(fork.sub_offset).unwrap_or(usize::MAX);
-                    if skip > messages.len() {
-                        return Err(StoreError::BadRequest(BadRequestKind::Fork));
-                    }
-                    at = at.saturating_add(
-                        messages
-                            .iter()
-                            .take(skip)
-                            .map(|message| message.len() as u64 + 1)
-                            .sum::<u64>(),
-                    );
-                } else {
-                    at = at.saturating_add(u64::from(fork.sub_offset));
-                    if at > source.len {
-                        return Err(StoreError::BadRequest(BadRequestKind::Fork));
-                    }
-                }
-            }
-
-            (
-                content_type.unwrap_or_else(|| source.content_type.clone()),
-                Some(ForkInfo {
-                    source: fork.source,
-                    at,
-                }),
-                at,
-                expires.or_else(|| source.expires.clone()),
-            )
-        } else {
-            (content_type.unwrap_or_default(), None, 0, expires)
+        let (content_type, fork_info, start_len, expires) = match fork {
+            Some(fork) => self.resolve_fork(fork, content_type, expires).await?,
+            None => (content_type.unwrap_or_default(), None, 0, expires),
         };
         let closed = fork_info.is_none() && closed;
 
@@ -1242,26 +1278,7 @@ impl DurableStreamStore for DurableStream {
             }
             meta.last_access_ms = now;
             if meta.closed {
-                // A retry of the close that already landed is a duplicate, not a conflict.
-                if let Some(producer) = &producer {
-                    if let Ok(ProducerDecision::Duplicate(last_seq)) =
-                        validate_producer(&meta.writer, producer)
-                    {
-                        return Ok(AppendOutcome {
-                            kind: AppendKind::Duplicate,
-                            cursor: ResumeCursor {
-                                next: StreamOffset::from(VfsOffset(meta.len)),
-                                up_to_date: true,
-                                closed: true,
-                            },
-                            producer_seq: Some(last_seq),
-                            closed: true,
-                        });
-                    }
-                }
-                return Err(StoreError::Closed {
-                    tail: StreamOffset::from(VfsOffset(meta.len)),
-                });
+                return closed_append_outcome(&meta, producer.as_ref());
             }
             if let Some(content_type) = &content_type {
                 if content_type != &meta.content_type {
@@ -1331,7 +1348,7 @@ impl DurableStreamStore for DurableStream {
                         closed: after.closed,
                     });
                 }
-                Err(VfsError::Conflict) => continue,
+                Err(VfsError::Conflict) => {}
                 Err(error) => return Err(StoreError::from(error)),
             }
         }
@@ -1497,7 +1514,7 @@ impl DurableStreamStore for DurableStream {
                         closed: true,
                     });
                 }
-                Err(VfsError::Conflict) => continue,
+                Err(VfsError::Conflict) => {}
                 Err(error) => return Err(StoreError::from(error)),
             }
         }

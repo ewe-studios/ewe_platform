@@ -35,16 +35,16 @@ pub fn parse_offset(value: &str) -> Option<StreamOffset> {
         let byte = position.parse::<u64>().ok()?;
         return Some(StreamOffset::from_bytes(byte.to_be_bytes().to_vec()));
     }
-    if value.is_empty() || value.len() % 2 != 0 {
+    if value.is_empty() {
         return None;
     }
-    let mut bytes = Vec::with_capacity(value.len() / 2);
-    let mut chunks = value.as_bytes().chunks_exact(2);
-    for chunk in &mut chunks {
+    let (chunks, remainder) = value.as_bytes().as_chunks::<2>();
+    if !remainder.is_empty() {
+        return None;
+    }
+    let mut bytes = Vec::with_capacity(chunks.len());
+    for chunk in chunks {
         bytes.push((hex_digit(chunk[0])? << 4) | hex_digit(chunk[1])?);
-    }
-    if !chunks.remainder().is_empty() {
-        return None;
     }
     Some(StreamOffset::from_bytes(bytes))
 }

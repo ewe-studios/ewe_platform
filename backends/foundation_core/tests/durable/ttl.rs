@@ -27,6 +27,10 @@ impl TestClock {
 }
 
 impl Clock for TestClock {
+    #[expect(
+        clippy::disallowed_methods,
+        reason = "The test drives wall time only; it never reads the monotonic clock."
+    )]
     fn now(&self) -> foundation_compact::Instant {
         foundation_compact::Instant::now()
     }

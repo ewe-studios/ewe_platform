@@ -178,7 +178,7 @@ fn given_a_stream_at_the_tail_when_read_from_tail_then_the_page_is_empty_and_up_
             .await
             .expect("read");
 
-        assert!(page.chunks.is_empty());
+        assert_eq!(page.chunks, [] as [foundation_core::durable::Chunk; 0]);
         assert!(page.cursor.up_to_date);
         assert!(!page.cursor.closed);
     });

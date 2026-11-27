@@ -211,7 +211,7 @@ fn given_a_source_when_forked_at_zero_then_it_reads_empty() {
             .await
             .expect("fork");
 
-        assert!(read_all(&streams, &fork).await.is_empty());
+        assert_eq!(read_all(&streams, &fork).await, [] as [u8; 0]);
     });
 }
 

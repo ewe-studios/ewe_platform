@@ -143,7 +143,10 @@ fn given_a_json_stream_when_it_is_created_with_an_empty_array_then_it_is_valid()
         )
         .await;
 
-        assert!(read_chunks(&streams, &name).await.is_empty());
+        assert_eq!(
+            read_chunks(&streams, &name).await,
+            [] as [std::string::String; 0]
+        );
     });
 }
 

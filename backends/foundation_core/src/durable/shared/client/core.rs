@@ -486,7 +486,7 @@ impl ReadBuilder {
             query.push_str(cursor);
         }
         match self.mode {
-            ReadMode::CatchUp => {}
+            ReadMode::CatchUp | ReadMode::Auto => {}
             ReadMode::LongPoll => {
                 if !query.is_empty() {
                     query.push('&');
@@ -499,7 +499,6 @@ impl ReadBuilder {
                 }
                 query.push_str("live=sse");
             }
-            ReadMode::Auto => {}
         }
         self.handle
             .request(HttpMethod::Get, &query, &self.headers, Vec::new())
@@ -736,7 +735,7 @@ fn decode(data: &str, base64: bool) -> Result<Vec<u8>, ClientError> {
 
 /// Join buffered data parts into one chunk.
 fn join(parts: Vec<Vec<u8>>) -> Vec<u8> {
-    parts.concat()
+    parts.into_iter().flatten().collect()
 }
 
 /// Decode one Server-Sent Events (SSE) base64 payload.
@@ -811,10 +810,10 @@ fn outcome(path: &str, response: &ClientResponse) -> Result<AppendResult, Client
             if response.header("stream-closed") == Some("true") {
                 Err(ClientError::Closed)
             } else {
-                Err(ClientError::Conflict(bounded_body(&response)))
+                Err(ClientError::Conflict(bounded_body(response)))
             }
         }
-        status => Err(unexpected(status, &response)),
+        status => Err(unexpected(status, response)),
     }
 }
 

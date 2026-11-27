@@ -19,7 +19,7 @@ struct SseHeadSpec {
 struct MockTransport {
     responses: Mutex<VecDeque<ClientResponse>>,
     requests: Mutex<Vec<ClientRequest>>,
-    events: Mutex<Vec<Result<SseEvent, TransportError>>>,
+    events: Mutex<Vec<SseEvent>>,
     sse_head: Mutex<SseHeadSpec>,
 }
 
@@ -82,7 +82,8 @@ impl ClientTransport for MockTransport {
         let events = self.events.lock().expect("events").drain(..).collect::<Vec<_>>();
         let head = self.sse_head.lock().expect("sse head").clone();
         Box::pin(async move {
-            let stream = futures_lite::stream::iter(events);
+            let stream =
+                futures_lite::stream::iter(events.into_iter().map(Ok::<_, TransportError>));
             let mut headers: BTreeMap<String, Vec<String>> = BTreeMap::new();
             for (key, value) in head.headers {
                 headers.entry(key).or_default().push(value);
@@ -251,7 +252,10 @@ fn given_a_long_poll_timeout_when_the_server_answers_204_then_the_client_is_up_t
             .expect("read");
 
         assert_eq!(result.status, 204);
-        assert!(result.chunks.is_empty());
+        assert_eq!(
+            result.chunks,
+            [] as [foundation_core::durable::client::ReadChunk; 0]
+        );
         assert!(result.up_to_date);
         assert_eq!(
             transport.last_request().url,
@@ -341,11 +345,11 @@ fn given_a_bad_status_when_a_read_runs_then_the_error_carries_the_status() {
     });
 }
 
-fn sse(event_type: &str, data: &str) -> Result<SseEvent, TransportError> {
-    Ok(SseEvent {
+fn sse(event_type: &str, data: &str) -> SseEvent {
+    SseEvent {
         event_type: Some(event_type.to_string()),
         data: data.to_string(),
-    })
+    }
 }
 
 /// Consume an open Server-Sent Events (SSE) read to its end and fold it into
@@ -420,10 +424,10 @@ fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes(
 fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_read() {
     foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![]);
-        transport.events.lock().expect("events").push(Ok(SseEvent {
+        transport.events.lock().expect("events").push(SseEvent {
             event_type: None,
             data: r#"{"streamNextOffset":"00aa","upToDate":true}"#.to_string(),
-        }));
+        });
         let read = handle(transport)
             .read()
             .mode(ReadMode::Sse)
@@ -432,7 +436,10 @@ fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_re
             .expect("sse");
         let result = drain(read).await;
 
-        assert!(result.chunks.is_empty());
+        assert_eq!(
+            result.chunks,
+            [] as [foundation_core::durable::client::ReadChunk; 0]
+        );
         assert_eq!(result.next_offset.as_deref(), Some("00aa"));
     });
 }
@@ -453,7 +460,10 @@ fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
             .expect("sse");
         let result = drain(read).await;
 
-        assert!(result.chunks.is_empty());
+        assert_eq!(
+            result.chunks,
+            [] as [foundation_core::durable::client::ReadChunk; 0]
+        );
     });
 }
 
@@ -648,7 +658,10 @@ fn given_a_matching_etag_when_a_read_runs_then_it_reports_not_modified() {
             .await
             .expect("conditional read");
         assert_eq!(result.status, 304);
-        assert!(result.chunks.is_empty());
+        assert_eq!(
+            result.chunks,
+            [] as [foundation_core::durable::client::ReadChunk; 0]
+        );
         assert!(result.up_to_date);
         assert!(transport
             .last_request()
@@ -676,7 +689,10 @@ fn given_a_closed_stream_at_the_tail_when_a_read_runs_then_it_reports_the_end() 
             .await
             .expect("read");
 
-        assert!(result.chunks.is_empty());
+        assert_eq!(
+            result.chunks,
+            [] as [foundation_core::durable::client::ReadChunk; 0]
+        );
         assert!(result.closed);
         assert!(result.up_to_date);
         assert_eq!(result.next_offset.as_deref(), Some("0000000000000003"));
@@ -718,10 +734,10 @@ fn given_a_client_reader_when_pages_arrive_then_it_yields_them_in_order() {
             b"cd",
         ),
     ]);
-    let mut reader = ClientReader::new(handle(transport), foundation_context::Ctx::host());
+    let reader = ClientReader::new(handle(transport), foundation_context::Ctx::host());
 
     let mut bytes = Vec::new();
-    while let Some(item) = reader.next() {
+    for item in reader {
         match item {
             Stream::Next(data) => bytes.extend_from_slice(&data),
             Stream::Spread(items) => {

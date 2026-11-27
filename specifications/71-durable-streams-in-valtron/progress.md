@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: closed #1043 (medium). The durable files are now free of clippy lints. Before:
+  19 library lints in `src/durable` and 16 test lints in `tests/durable`. After: 0 in both.
+  The doc comments take backticks for `ConnectRPC` and `ETag`. The `expire` match merges its
+  arms into one. `create` moves the fork path to the new `resolve_fork` helper, and `append`
+  moves the closed-stream path to the new `closed_append_outcome` helper, so both functions
+  fit the 100-line limit. The redundant `continue` becomes an empty arm. The private
+  `client::client` module is renamed to `client::core`. `parse_offset` uses `as_chunks::<2>()`
+  and one remainder check. The memory VFS read uses `saturating_sub`, and the append uses
+  `clone_from`. The client test mock stores plain `SseEvent` values. The time-to-live (TTL)
+  test clock carries one `#[expect]` with a reason, because the test reads only wall time.
+  Counts: core durable 115 pass, file VFS 17 pass, time source guard 0 violations. The
+  `clippy.toml` `rand::thread_rng` entry still warns; it is not a durable file and does not
+  fail the gate.
+
 - 2026-11-27: fixed #1042 (low). A direct `read_at` on a soft-deleted entry returns
   `VfsError::Gone` on both VFS implementations. `MemoryVfs::read_at` checks the entry before the
   chain; the internal fork chain still reads a soft-deleted source. The contract sentence is in

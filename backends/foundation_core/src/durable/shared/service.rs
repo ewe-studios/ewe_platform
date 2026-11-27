@@ -1,6 +1,6 @@
 //! The transport-neutral protocol service.
 //!
-//! `DurableService` wraps a driver and applies the protocol limits. It has no HTTP, SSE, ETag or
+//! `DurableService` wraps a driver and applies the protocol limits. It has no HTTP, SSE, `ETag` or
 //! valtron type. The transport adapters and the valtron layer call it.
 
 use super::{
