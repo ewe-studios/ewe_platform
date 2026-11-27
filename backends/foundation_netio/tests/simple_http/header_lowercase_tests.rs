@@ -2,6 +2,10 @@
 //! variants + first-class gRPC/Connect protocol header variants, with
 //! case-insensitive inbound parsing preserved (RFC 9110).
 
+use std::io::Write;
+use std::net::{TcpListener, TcpStream};
+use std::thread;
+
 use foundation_netio::shared::http::*;
 
 /// Known variants render canonical lowercase on the wire (HTTP/2 mandates it).
@@ -62,14 +66,57 @@ fn protocol_variants_render_expected_tokens() {
     );
 }
 
-/// `Custom` headers keep the caller's exact casing.
+/// A `Custom` header name is case-insensitive and has one canonical lowercase
+/// spelling, whatever casing the caller or the peer uses. A peer that writes
+/// `EWE-Forwarded-Principal` still reaches a handler that looks it up with the
+/// lowercase constant.
 #[test]
-fn custom_headers_preserve_case() {
+fn custom_headers_have_one_canonical_name() {
+    assert_eq!(SimpleHeader::custom("X-Villa").to_string(), "x-villa");
     assert_eq!(
-        SimpleHeader::Custom("X-Villa".into()).to_string(),
-        "X-Villa"
+        SimpleHeader::from("MixedCase".to_string()).to_string(),
+        "mixedcase"
     );
-    assert_eq!(SimpleHeader::custom("MixedCase").to_string(), "MixedCase");
+    assert_eq!(
+        SimpleHeader::from("EWE-Forwarded-Principal".to_string()),
+        SimpleHeader::custom("ewe-forwarded-principal")
+    );
+    assert_eq!(
+        SimpleHeader::from("EWE-FORWARDED-PRINCIPAL".to_string()),
+        SimpleHeader::custom("EWE-Forwarded-Principal")
+    );
+
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind a local port");
+    let addr = listener.local_addr().expect("should return address");
+
+    let writer = thread::spawn(move || {
+        let mut client = TcpStream::connect(addr).expect("connect to the reader");
+        client
+            .write_all(b"GET /url HTTP/1.1\r\nEWE-Forwarded-Principal: alice\r\n\r\n")
+            .expect("write the request");
+    });
+
+    let (client_stream, _) = listener.accept().expect("accept the request");
+    let reader =
+        foundation_netio::netcap::RawStream::from_tcp(client_stream).expect("should create stream");
+    let parts = http_streams::no_send::request_reader(reader)
+        .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>()
+        .expect("should parse the request");
+
+    writer.join().expect("should close");
+
+    let headers = parts
+        .iter()
+        .find_map(|part| match part {
+            IncomingRequestParts::Headers(headers) => Some(headers),
+            _ => None,
+        })
+        .expect("request headers");
+
+    assert_eq!(
+        headers.get(&SimpleHeader::custom("ewe-forwarded-principal")),
+        Some(&vec!["alice".to_string()])
+    );
 }
 
 /// Inbound parsing is case-insensitive and maps to the known variants (so a
