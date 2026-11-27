@@ -367,3 +367,117 @@ fn new_deployment_records_its_receipt_before_releasing() {
     );
     assert!(position("delete central-deployment-pending.json") < position("release"));
 }
+
+#[test]
+fn maven_inputs_allow_managed_external_versions_but_require_matching_ewe_versions() {
+    use foundation_ui_native::tasks::stage;
+
+    let root = tempfile::tempdir().unwrap();
+    let repository = root.path().join("maven");
+    let release = root.path().join("release");
+    fs::create_dir(&release).unwrap();
+    fs::write(
+        release.join("native-ui.toml"),
+        r#"
+version = "0.1.2"
+repository = "ewe-studios/ewe_platform"
+apple_archive = "EweCoreFFI.xcframework.zip"
+maven_group = "io.github.ewe-studios"
+maven_modules = ["ewe-ui-core", "ewe-ui-binding", "ewe-ui"]
+android_targets = ["arm64-v8a", "x86_64"]
+swift_product = "EweUI"
+"#,
+    )
+    .unwrap();
+    let config = stage::config(root.path()).unwrap();
+
+    let dependency = |group: &str, artifact: &str, version: &str| {
+        format!("<dependency><groupId>{group}</groupId><artifactId>{artifact}</artifactId>{version}</dependency>")
+    };
+    let ui = repository.join("io/github/ewe-studios/ewe-ui/0.1.2/ewe-ui-0.1.2.pom");
+    for (module, packaging) in [
+        ("ewe-ui-core", "jar"),
+        ("ewe-ui-binding", "aar"),
+        ("ewe-ui", "aar"),
+    ] {
+        let folder = repository
+            .join("io/github/ewe-studios")
+            .join(module)
+            .join("0.1.2");
+        fs::create_dir_all(&folder).unwrap();
+        let stem = format!("{module}-0.1.2");
+        let dependencies = if module == "ewe-ui" {
+            let bom = dependency(
+                "androidx.compose",
+                "compose-bom",
+                "<version>2026.11.01</version><type>pom</type><scope>import</scope>",
+            );
+            let core = dependency(
+                "io.github.ewe-studios",
+                "ewe-ui-core",
+                "<version>0.1.2</version>",
+            );
+            let binding = dependency(
+                "io.github.ewe-studios",
+                "ewe-ui-binding",
+                "<version>0.1.2</version>",
+            );
+            let foundation = dependency("androidx.compose.foundation", "foundation", "");
+            format!(
+                "<dependencyManagement><dependencies>{bom}</dependencies></dependencyManagement>
+                 <dependencies>{core}{binding}{foundation}</dependencies>"
+            )
+        } else {
+            String::new()
+        };
+        let pom = format!(
+            "<project>
+              <groupId>io.github.ewe-studios</groupId><artifactId>{module}</artifactId>
+              <version>0.1.2</version><packaging>{packaging}</packaging>
+              <name>{module}</name><description>Native package fixture</description>
+              <url>https://github.com/ewe-studios/ewe_platform</url>
+              <licenses><license><name>MIT</name></license></licenses>
+              <developers><developer><name>Ewe Studios</name></developer></developers>
+              <scm><connection>scm:git:https://github.com/ewe-studios/ewe_platform</connection></scm>
+              {dependencies}
+             </project>"
+        );
+        fs::write(folder.join(format!("{stem}.pom")), pom).unwrap();
+        let primary = folder.join(format!("{stem}.{packaging}"));
+        if module == "ewe-ui-binding" {
+            let mut archive = ZipWriter::new(File::create(primary).unwrap());
+            for abi in ["arm64-v8a", "x86_64"] {
+                archive
+                    .start_file(
+                        format!("jni/{abi}/libfoundation_ui_native.so"),
+                        SimpleFileOptions::default(),
+                    )
+                    .unwrap();
+                archive.write_all(b"library fixture").unwrap();
+            }
+            archive.finish().unwrap();
+        } else {
+            fs::write(primary, b"package fixture").unwrap();
+        }
+        for extension in ["-sources.jar", "-javadoc.jar", ".module"] {
+            fs::write(folder.join(format!("{stem}{extension}")), b"fixture").unwrap();
+        }
+    }
+
+    let inputs = || futures_lite::future::block_on(stage::maven_inputs(&repository, &config));
+    assert_eq!(inputs().unwrap().len(), 15);
+    let pom = fs::read_to_string(&ui).unwrap();
+    let explicit = dependency(
+        "io.github.ewe-studios",
+        "ewe-ui-core",
+        "<version>0.1.2</version>",
+    );
+    for wrong in ["", "<version>0.1.1</version>"] {
+        let replacement = dependency("io.github.ewe-studios", "ewe-ui-core", wrong);
+        fs::write(&ui, pom.replace(&explicit, &replacement)).unwrap();
+        let error = inputs().unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("Missing runtime dependency ewe-ui-core"));
+    }
+}
