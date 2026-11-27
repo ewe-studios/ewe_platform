@@ -30,7 +30,7 @@ A feature of this spec is done when its issues are closed, not when its code com
 | 01 | [DST fidelity](features/01-dst-fidelity/feature.md) | #908 part (b): the DST `TestWorld` runs the real registry and session |
 | 02 | [Sandbox follow-ups](features/02-sandbox-follow-ups/feature.md) | #977, #978, #966, #969, #970, #972, #1013, #1022, #1023, #935, #1008 |
 | 03 | [GCP KMS over gRPC](features/03-gcp-kms-grpc/feature.md) | The Cloud KMS protos, a gRPC path in `GcpKmsBackend`, and localgcp as the local emulator (#984, GCP half) |
-| 04 | [Live cloud resources with OpenTofu](features/04-live-cloud-resources/feature.md) | Real AWS and GCP KMS resources, created and destroyed by `tofu`, for the gated proof (#984) |
+| 04 | [Live cloud resources with the cloud CLI](features/04-live-cloud-resources/feature.md) | Real AWS and GCP KMS resources, created and destroyed by the cloud CLI, for the gated proof (#984) |
 
 Out of scope:
 
@@ -88,7 +88,7 @@ happens when they are absent (the test prints the reason and returns).
 
 1. Feature 00 first: the red job blocks every claim about the Cloudflare path.
 2. Feature 03 after it: the GCP gRPC path and localgcp, so the KMS tests run locally.
-3. Feature 04: the live resources with OpenTofu, when the operator provides the credentials.
+3. Feature 04: the live resources with the cloud CLI, when the operator provides the credentials.
 4. Feature 01: it changes what the DST proves and touches `foundation_ai` and
    `foundation_core`.
 5. Feature 02 last: a list of independent, small corrections, in severity order.
