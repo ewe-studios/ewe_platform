@@ -46,7 +46,7 @@ impl Validator {
     }
 
     /// Return an iterator over all validation errors.
-    #[must_use]
+    #[must_use = "the iterator is lazy; consume it to see the errors"]
     pub fn iter_errors(&self, instance: &Value) -> ErrorIterator {
         let mut ctx = crate::keywords::ValidationContext::new();
         let path = LazyLocation::new();

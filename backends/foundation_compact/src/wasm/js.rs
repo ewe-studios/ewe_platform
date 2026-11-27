@@ -30,11 +30,11 @@ thread_local! {
         let global: Global = js_sys::global().unchecked_into();
         let performance = global.performance();
 
-        if performance.is_undefined() {
-            panic!("`Performance` object not found")
-        } else {
-            performance.unchecked_into()
-        }
+        assert!(
+            !performance.is_undefined(),
+            "`Performance` object not found"
+        );
+        performance.unchecked_into()
     };
 }
 

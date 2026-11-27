@@ -41,7 +41,7 @@ fn test_json_type_of_array() {
 #[test]
 fn test_json_type_of_object() {
     assert_eq!(
-        JsonType::of(&Value::Object(Default::default())),
+        JsonType::of(&Value::Object(serde_json::Map::default())),
         JsonType::Object
     );
 }
