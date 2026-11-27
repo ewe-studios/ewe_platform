@@ -163,7 +163,7 @@ The owner named six systems. Two of the names are products (owner answer, 2026-1
 | Cloudflare Sandbox (the product) | The same primitive as the row above: a DO and its container. An image made for the product runs under our control plane, and an application of the product can call our control plane. | 17 (on 07, 08) |
 | libkrun | The control plane starts a libkrun microVM; the slave is the program of the libkrun init. | 09 |
 | Docker container | The control plane talks to the Docker Engine of the host and starts containers that hold the slave. The slave is the entry point or a sidecar process. | 10 |
-| Docker Sandboxes (the product) | The control plane runs the `sbx` program; each sandbox is a microVM that Docker manages, with the slave in it. **Draft, not a must have** (decision D14). | 16 (draft) |
+| Docker Sandboxes (the product) | The control plane runs the `sbx` program; each sandbox is a microVM that Docker manages, with the slave in it. **Rejected** (owner decision 2026-11-27; earlier D14 made it a draft). | 16 (rejected) |
 
 Where the control plane runs is a different question from which system it drives:
 
@@ -607,7 +607,6 @@ graph LR
   MB --> F09[09 libkrun]
   MB --> F10[10 Docker]
   F10 --> F11[11 nested sandboxes]
-  F10 -.-> F16[16 Docker Sandboxes product<br/>draft, not scheduled]
   MB --> F17[17 Cloudflare Sandbox product]
   F09 --> F12[12 images] --> F13[13 container source] --> F14[14 Sandboxfile] --> F15[15 registry pull]
   F10 --> F13
@@ -629,7 +628,7 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 | 09 | [libkrun driver](features/09-libkrun-driver/feature.md) | sonnet | 2 | A command runs in a libkrun microVM on Linux and macOS. |
 | 10 | [Docker driver](features/10-docker-driver/feature.md) | sonnet | 2 | A command runs in a Docker container that the control plane starts through the host's Docker Engine; `agent-sandbox` can also run in a container. |
 | 11 | [Nested sandboxes](features/11-nested-sandboxes/feature.md) | sonnet | 2 | A slave in a container starts Firecracker microVMs in it. |
-| 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | sonnet | draft, not scheduled | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
+| 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | — | rejected by the owner (2026-11-27) | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
 | 17 | [Cloudflare Sandbox product support](features/17-cloudflare-sandbox-product/feature.md) | sonnet | 2 | An image made for the Cloudflare Sandbox product runs under the control plane; a plain HTTP caller uses `SandboxService`. |
 | 18 | [Sandbox lifetime and stream cost](features/18-sandbox-lifetime-and-stream-cost/feature.md) | sonnet | 2 | A sandbox has a lifetime limit that shares the one DO alarm with the idle deadline; an `Exec` stream stops at `stream_max_duration`. Feature 18 follows the study in `research.md`. |
 | 12 | [Sandbox images](features/12-sandbox-images/feature.md) | sonnet | 3 | An image with a manifest boots on Firecracker and libkrun; the slave can unpack a tree into a writable root. |
@@ -756,6 +755,7 @@ out in `ci/packages.toml` with a reason (`.agents` rule 16).
 | D15 | (2026-11-14) Spec 77 owns Cloudflare container control and Cloudflare deployment. `foundation_deployment_cloudflare` is the primary deploy path; the manual `wrangler` adapter is a supported fallback. Both apply one `DeploymentPlan`. Spec 83 feature 06 consumes these surfaces and builds the agent-rpc Worker on them. |
 | D16 | (2026-11-15) The target vocabulary is two levels with the same shape: `SandboxProvider` and `SandboxHandle`, `ContainerControl` and `ContainerHandle` (section 6.0). The old control trait is `SandboxProvider`; the old handle struct is `SandboxHandle`; the old id-policy enum of feature 02 is `SandboxIdPolicy`, because `IdSource` is the spec 84 trait. Feature 06's deployment adapter is `SandboxDeploymentProvider` with the handle `SandboxDeploymentHandle`, so it does not clash with the control. Every outside caller takes a reference to the wrapper of section 6.0 (the concrete type, or `&dyn Platform` when a function serves several parts). `foundation_context` gets no change. |
 | D17 | (2026-11-15) The secret and the bearer check come from spec 86 (`Secret`, `extract_bearer_token`, `Secret::ct_eq`). This spec defines neither. Mutual TLS comes from spec 87; the native listener may add it, and a Worker uses `CfMtlsAuth`. The wasm gaps (the streaming client, the streaming bridges and sink, `StubHttpClient`) come from spec 85; the transport is `H1Transport` on every host. |
+| D18 | (2026-11-27) The owner rejected feature 16 (the Docker Sandboxes product driver, `sbx`). The product is not stable, and no other feature needs it. The feature file keeps its history with `status: rejected`. |
 
 ### 10.2 Open, with a recommendation
 
