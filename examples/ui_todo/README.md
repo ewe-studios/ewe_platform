@@ -279,3 +279,28 @@ ewe_ui task run todo:test-android-game --adb "$ANDROID_HOME/platform-tools/adb" 
 
 In Xcode, run `TodoTests.testTrainAndGumballSurviveRotation` in the on-device project.
 Both checks replay seed 13 and rotate the Gumball scene before returning to Todos.
+
+## Tauri desktop check
+
+Run the same Todo page in an optional desktop window. Follow the
+[Tauri build prerequisites](https://v2.tauri.app/start/prerequisites/) for your operating system.
+In a clean shell at the repository root, start a Todo service with a temporary database.
+
+```sh
+todo_check_dir=$(mktemp -d)
+cargo run --locked --profile uat -p ui_todo --bin ui_todo -- \
+  127.0.0.1:0 --store "$todo_check_dir/todo.sqlite3"
+```
+
+In a second shell at the repository root, run the desktop example. Replace the address
+below with the address printed by the server.
+
+```sh
+cargo run --locked --manifest-path examples/ui_todo/src-tauri/Cargo.toml -- \
+  http://127.0.0.1:57841/
+```
+
+The launch command requires the Todo service address.
+The Todo service supplies the page, browser scripts, and WebAssembly files. Keep it
+running while you use the desktop window. The shell registers no native commands
+or plugins for the page.

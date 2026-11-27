@@ -1,0 +1,9 @@
+{
+  "productName": "Foundation Todo Desktop",
+  "version": "0.1.0",
+  "identifier": "com.ewe.todo.desktop",
+  "app": {
+    "withGlobalTauri": false,
+    "windows": []
+  }
+}

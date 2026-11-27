@@ -12,3 +12,6 @@
 - Tauri can reuse the Foundation browser frame applicator and action manager. The Web mount has its own operation vocabulary.
 - The Tauri lockfile pins Rust wrapper versions. The WebView runtime and its accessibility and graphics behavior follow the target system.
 - Bundled web assets enable an offline launch. A clean Windows install also needs an offline WebView2 plan.
+- The standalone Tauri shell can load the Todo service without a browser build inside the shell or a native command bridge.
+- A Todo development executable needs its matching staged browser resources. A cached executable can start when its browser bundle is absent.
+- The checked macOS WebView draws the Mathalley Train round and returns to the same Todo filter.
