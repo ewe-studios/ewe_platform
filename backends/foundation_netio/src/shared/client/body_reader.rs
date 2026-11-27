@@ -47,9 +47,7 @@ use serde::de::DeserializeOwned;
 
 use crate::network_client::DynNetClient;
 use crate::shared::client::request_builder::PreparedRequestBuilder;
-use crate::shared::client::request_task::{
-    HttpExchange, HttpExchangeClientTask, HttpExchangePending,
-};
+use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::shared::http::{HttpClientError, SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH};
 
 // ============================================================================
@@ -2275,7 +2273,7 @@ pub fn split_exchange(
         DEFAULT_PUSHABLE_DEPTH,
     );
 
-    (head, body, body_cont)
+    (head, body, Box::new(body_cont))
 }
 
 /// Split an HTTP exchange **and** send the continuation to valtron.
