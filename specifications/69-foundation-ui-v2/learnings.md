@@ -1451,7 +1451,8 @@ It counts requests before and after submission, once the page is ready.
 
 A WebSocket send queues a message for transfer. An action reply shows that the server processed the action.
 The sequence number identifies the reply within one stream. Include the stream identifier when matching replies.
-A reply can arrive after the local timeout. Deliver it through the existing reply path so it can confirm the pending operation.
+A reply can arrive after the local timeout or cancellation.
+Deliver it through the existing reply path so it can confirm the pending operation.
 A reconnect can open the socket before it receives the new capabilities. Wait for those capabilities before loading the view.
 On Android, answer a peer close frame. A callback for completed closure alone can leave recovery waiting for that answer.
 
