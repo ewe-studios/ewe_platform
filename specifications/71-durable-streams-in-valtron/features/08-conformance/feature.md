@@ -165,6 +165,9 @@ in both directions:
 | Our server | Reference Rust client, `packages/client-rust` | passes (5 cross-run scenarios; `foundation_http/tests/durable_reference_cross_run.rs`) |
 | Our client | Reference server (TypeScript now; Rust server when available) | to build |
 
+- The reference Rust client runs on the tokio runtime. The cross-run test therefore takes
+  `tokio` as a **dev-dependency**, declared once in `[workspace.dependencies]`. Our client core,
+  our server and our VFS never use tokio; valtron remains the only runtime in shipped code.
 - The reference Rust client exists at
   `/Volumes/Outside/GitSources/src.Electric/durable-streams/packages/client-rust` and ships a
   conformance adapter (`run-conformance-adapter.sh`).
