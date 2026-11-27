@@ -1723,3 +1723,10 @@ The Linux continuous integration image passes all 40 tests with browser tests en
 Run its browser tests one at a time on the emulated host.
 [Issue 1143](https://github.com/ewe-studios/ewe_platform/issues/1143) records the driver defect.
 [Issue 784](https://github.com/ewe-studios/ewe_platform/issues/784) tracks the separate Todo server header stall.
+
+## 2026-11-28 — Android landscape replay
+
+The patched local Todo app reaches Gumball in portrait and landscape on the Android 36 review emulator.
+The replay finds the left edge of the landscape game at pixel 128 and calculates a tap inside answer 8.
+Android stops the app during the input dispatch timeout. The score change remains unverified.
+See [issue 843](https://github.com/ewe-studios/ewe_platform/issues/843) and [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).

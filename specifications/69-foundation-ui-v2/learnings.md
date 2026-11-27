@@ -1357,3 +1357,10 @@ Subscribe before the navigation command because the load event can arrive before
 Read navigation errors from the result before waiting. A fragment change keeps the loader and has no new load event.
 The parallel Linux run in the emulated image hits fixture request and navigation deadlines.
 The same browser test binaries pass when the tests run one at a time.
+
+## 2026-11-28 — Landscape replay input focus
+
+A frame can show the rotated game before Android completes the focus change.
+The inset detector finds a landscape game surface with bounds from (128, 189) to (2400, 1017).
+The tap at (1176, 866) lies in the first answer. Android reports an input dispatch timeout before scoring.
+The app main thread waits in `HardwareRenderer.setStopped`. See [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
