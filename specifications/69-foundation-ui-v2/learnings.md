@@ -1216,3 +1216,10 @@ The device limit came from the configuration default of 2048 pixels. A phone dis
 Read the limit from the adapter report and keep one documented fallback for a zero report.
 Check the extent before each configuration, and return a typed error that carries the values.
 A rejected extent must leave the owner usable; the next valid configuration must present.
+
+## 2026-11-27 — Todo native core and renderer coverage
+
+The Todo mobile tests run the Rust core on macOS with iPhone and Android configurations.
+They read the operations in the resulting frames.
+Use the installed iPhone and Android applications to verify how Swift and Kotlin apply those frames.
+Use the shared peer test for list changes and filter state. Check dialogs and notifications in each renderer.

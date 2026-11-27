@@ -1560,3 +1560,13 @@ The regression assertion already exists in `bin/ewe_ui/tests/mobile.py`.
 
 Issues [719](https://github.com/ewe-studios/ewe_platform/issues/719) (native release versions) and [834](https://github.com/ewe-studios/ewe_platform/issues/834) (typed Mathalley command) were also fixed on master. All three issues are closed.
 Issue [714](https://github.com/ewe-studios/ewe_platform/issues/714) stays open until the native renderer checks run.
+
+## 2026-11-27 — Todo native core verification
+
+Six Todo mobile integration tests pass on macOS with the `uat` profile and the `mobile` feature.
+The tests check dialog dispatch and cancellation for the iPhone and Android configurations.
+They also check list updates, frozen search results, and retry after restart.
+
+Issue [714](https://github.com/ewe-studios/ewe_platform/issues/714) remains open.
+Check list updates, filter state, dialogs, and notifications in Chrome and both installed mobile applications.
+The separate one-minute block demonstration remains open.
