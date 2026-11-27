@@ -82,24 +82,66 @@ cleanup() {
 }
 
 start_wrangler() {
+    local log="${WORKER_DIR}/wrangler-dev.log"
+    local start_line=0
+    if [ -f "${log}" ]; then
+        start_line=$(wc -l < "${log}")
+    fi
     npx wrangler dev --local --port "${WORKER_PORT}" --persist-to "${STATE_DIR}" \
-        >>"${WORKER_DIR}/wrangler-dev.log" 2>&1 &
+        >>"${log}" 2>&1 &
     WRANGLER_PID=$!
-    local ready=0
-    for _ in $(seq 1 180); do
+
+    # Wait for the Rust worker build of *this* start. The log is appended to on
+    # a restart, so search only the lines written since the process started.
+    local now deadline built=0
+    now=$(date +%s)
+    # A cold `worker-build --release` can take several minutes.
+    deadline=$((now + 900))
+    while [ "$(date +%s)" -lt "${deadline}" ]; do
         if ! kill -0 "${WRANGLER_PID}" 2>/dev/null; then
-            echo "wrangler dev stopped; see ${WORKER_DIR}/wrangler-dev.log" >&2
-            tail -50 "${WORKER_DIR}/wrangler-dev.log" >&2 || true
+            echo "wrangler dev stopped; see ${log}" >&2
+            tail -200 "${log}" >&2 || true
             exit 1
         fi
-        if curl -s -o /dev/null "${DEPLOYED_URL}"; then
+        # `grep -c` reads the whole tail, so `pipefail` cannot see a SIGPIPE
+        # from an early `grep -q` exit.
+        if [ "$(tail -n "+$((start_line + 1))" "${log}" 2>/dev/null \
+            | grep -c '\[custom build\] Finished')" -gt 0 ]; then
+            built=1
+            break
+        fi
+        sleep 1
+    done
+    if [ "${built}" != "1" ]; then
+        echo "the Worker build did not finish within 900 seconds; see ${log}" >&2
+        tail -200 "${log}" >&2 || true
+        exit 1
+    fi
+
+    # A finished build only means the bundle was written. Probe the service
+    # until it answers 200, so a stale or partial bundle is never tested.
+    local probe="${DEPLOYED_URL}/ewe.sandbox.control.v1.SandboxService/Probe"
+    local status="" ready=0
+    now=$(date +%s)
+    deadline=$((now + 180))
+    while [ "$(date +%s)" -lt "${deadline}" ]; do
+        if ! kill -0 "${WRANGLER_PID}" 2>/dev/null; then
+            echo "wrangler dev stopped; see ${log}" >&2
+            tail -200 "${log}" >&2 || true
+            exit 1
+        fi
+        status=$(curl -s -o /dev/null -w '%{http_code}' \
+            -X POST -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" -d '{}' "${probe}" || true)
+        if [ "${status}" = "200" ]; then
             ready=1
             break
         fi
         sleep 1
     done
     if [ "${ready}" != "1" ]; then
-        echo "the Worker did not become ready at ${DEPLOYED_URL}" >&2
+        echo "the Worker did not answer the Probe with 200 within 180 seconds (last status: ${status:-none})" >&2
+        tail -200 "${log}" >&2 || true
         exit 1
     fi
 }

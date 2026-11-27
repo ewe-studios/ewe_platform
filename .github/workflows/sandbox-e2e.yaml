@@ -175,7 +175,9 @@ jobs:
       - name: Cache cargo registry and target dir
         uses: Swatinem/rust-cache@v2.9.2
         with:
-          key: sandbox-cloudflare
+          # Key the cache on the head revision: a stale Worker bundle built
+          # from an older head must never be reused (issue #1039).
+          key: cloudflare-${{ github.sha }}
 
       - name: Install Node
         uses: actions/setup-node@v4

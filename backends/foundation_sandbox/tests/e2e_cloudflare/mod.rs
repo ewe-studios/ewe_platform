@@ -125,13 +125,26 @@ fn error_layer(error: &ErrorTrace<SandboxError>) -> &'static str {
 
 /// Creates one sandbox and names the failing layer in the panic message.
 async fn create(control: &SandboxRpcClient, spec: SandboxSpec, what: &str) -> SandboxHandle {
+    // Capture the wire form before `create` moves the spec, so an InvalidSpec
+    // rejection names the exact value that the Worker received.
+    let spec_json =
+        serde_json::to_string(&spec).unwrap_or_else(|error| format!("<not serializable: {error}>"));
     match SandboxProvider::create(control, spec).await {
         Ok(sandbox) => sandbox,
-        Err(error) => panic!(
-            "{what}: {} [layer: {}]",
-            error.current_context(),
-            error_layer(&error)
-        ),
+        Err(error) => {
+            if matches!(error.current_context(), SandboxError::InvalidSpec { .. }) {
+                panic!(
+                    "{what}: {} [layer: {}]\nspec: {spec_json}",
+                    error.current_context(),
+                    error_layer(&error)
+                );
+            }
+            panic!(
+                "{what}: {} [layer: {}]",
+                error.current_context(),
+                error_layer(&error)
+            );
+        }
     }
 }
 
