@@ -94,6 +94,10 @@ mod delayed_iterators;
 mod drain;
 #[cfg(not(target_family = "wasm"))]
 mod driven_stream_async_wake;
+#[cfg(feature = "testing")]
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod dst_hang_proof;
 mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]
