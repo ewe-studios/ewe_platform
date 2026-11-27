@@ -414,10 +414,18 @@ async fn request_json(
         HttpVerb::Put => foundation_netio::PreparedRequestBuilder::put(url),
     }
     .map_err(|e| KeyStoreError::Storage(format!("KMS request URL: {e}")))?;
-    let mut builder = builder.header(
-        foundation_netio::shared::http::SimpleHeader::CONTENT_TYPE,
-        "application/json",
-    );
+    let mut builder = builder;
+    // Content-Type holds one value. Add the JSON default only when the caller
+    // names no Content-Type.
+    let has_content_type = headers
+        .iter()
+        .any(|(name, _)| name.eq_ignore_ascii_case("content-type"));
+    if !has_content_type {
+        builder = builder.header(
+            foundation_netio::shared::http::SimpleHeader::CONTENT_TYPE,
+            "application/json",
+        );
+    }
     for (name, value) in headers {
         builder = builder.header(name.clone(), value.clone());
     }
@@ -839,7 +847,10 @@ impl KmsBackend for AwsKmsBackend {
         context: &'a [u8],
     ) -> SealFuture<'a, SecureBytes> {
         Box::pin(async move {
+            // Name the key in the request, so the KMS refuses a blob that a
+            // different key wrapped.
             let body = serde_json::json!({
+                "KeyId": self.key_id,
                 "CiphertextBlob": B64_STD.encode(wrapped_dek),
                 "EncryptionContext": { "ewe-aad": B64.encode(context) },
             })
