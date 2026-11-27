@@ -648,7 +648,9 @@ mod real {
     ///
     /// It hides the paths that the drivers mount (`/proc`, `/sys`, `/dev`,
     /// `/run`) and the four entries that `docker export` adds or replaces
-    /// (feature 13, section 6.4).
+    /// (feature 13, section 6.4). Every form works in the BusyBox of Alpine
+    /// 3.22: `find -xdev`, `find -not`, `stat -c` with `%F` and `%N`,
+    /// `sha256sum`, and `find -exec ... +`.
     const TREE_LIST: &str = r#"find / -xdev \
   -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' \
   -not -path '/run/*' -not -path '/tmp/*' -not -path '/.dockerenv' \
@@ -747,30 +749,136 @@ find / -xdev \
         );
     }
 
+    /// Runs one `docker` command and returns its standard output.
+    fn docker_cli(args: &[&str]) -> Option<String> {
+        let output = std::process::Command::new("docker")
+            .args(args)
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
+
+    /// A `registry:2` container on `127.0.0.1`, removed on drop.
+    struct LocalRegistry {
+        /// The container name, which the cleanup uses.
+        name: String,
+        /// The host port of the registry.
+        port: u16,
+    }
+
+    impl LocalRegistry {
+        /// Starts a registry and pushes `alpine:3.22` as `test/alpine:1`.
+        fn start() -> Option<Self> {
+            for image in ["registry:2", "alpine:3.22"] {
+                if docker_cli(&["image", "inspect", image]).is_none()
+                    && docker_cli(&["pull", image]).is_none()
+                {
+                    eprintln!("skip: cannot pull {image} for the differential listing");
+                    return None;
+                }
+            }
+            let name = format!("ewe-test-registry-{}", std::process::id());
+            let _ = docker_cli(&["rm", "-f", name.as_str()]);
+            let mut registry = Self { name, port: 0 };
+            docker_cli(&[
+                "run",
+                "-d",
+                "--rm",
+                "--name",
+                registry.name.as_str(),
+                "-p",
+                "127.0.0.1::5000",
+                "registry:2",
+            ])?;
+            let published = docker_cli(&["port", registry.name.as_str(), "5000/tcp"])?;
+            let port = published.rsplit(':').next()?.parse::<u16>().ok()?;
+            registry.port = port;
+            // Wait until the registry accepts connections.
+            for _ in 0..50 {
+                if std::net::TcpStream::connect(("127.0.0.1", port)).is_ok() {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+            let image = format!("127.0.0.1:{port}/test/alpine:1");
+            docker_cli(&["tag", "alpine:3.22", image.as_str()])?;
+            if docker_cli(&["push", image.as_str()]).is_none() {
+                eprintln!("skip: cannot push test/alpine:1 to the local registry");
+                return None;
+            }
+            Some(registry)
+        }
+    }
+
+    impl Drop for LocalRegistry {
+        fn drop(&mut self) {
+            let _ = docker_cli(&["rm", "-f", self.name.as_str()]);
+        }
+    }
+
+    /// The source of the differential test.
+    struct RegistrySource {
+        /// The registry address without a scheme.
+        registry: String,
+        /// The image reference for the registry import.
+        oci: String,
+        /// The image reference for the Docker export.
+        docker: String,
+        /// The local registry, stopped on drop.
+        _local: Option<LocalRegistry>,
+    }
+
+    /// The external registry, or a local one that the test starts.
+    fn registry_source() -> Option<RegistrySource> {
+        if let Ok(registry) = std::env::var("EWE_TEST_REGISTRY") {
+            let image =
+                std::env::var("EWE_TEST_OCI_IMAGE").unwrap_or_else(|_| "test/alpine:1".to_string());
+            return Some(RegistrySource {
+                registry: registry.clone(),
+                oci: format!("{registry}/{image}"),
+                docker: image,
+                _local: None,
+            });
+        }
+        let local = LocalRegistry::start()?;
+        let registry = format!("127.0.0.1:{}", local.port);
+        let image = format!("{registry}/test/alpine:1");
+        Some(RegistrySource {
+            registry,
+            oci: image.clone(),
+            docker: image,
+            _local: Some(local),
+        })
+    }
+
     /// `e2e_layers_equal_docker_export`: the registry image and the same image
     /// through `docker export` give one file tree.
+    ///
+    /// Set `EWE_TEST_REGISTRY` to an external registry that holds
+    /// `test/alpine:1`. Without it, the test starts a local `registry:2`
+    /// container, pushes `alpine:3.22` to it, and uses that.
     pub fn oci_layers_equal_docker_export() {
-        let Ok(registry) = std::env::var("EWE_TEST_REGISTRY") else {
-            eprintln!("skip: set EWE_TEST_REGISTRY to a local registry that holds test/alpine:1");
-            return;
-        };
-        let image =
-            std::env::var("EWE_TEST_OCI_IMAGE").unwrap_or_else(|_| "test/alpine:1".to_string());
         let Some((ctx, host)) = usable_host() else {
             return;
         };
         let Some(docker) = docker() else {
             return;
         };
+        let Some(source) = registry_source() else {
+            return;
+        };
         let store = ImageStore::new(ctx.clone(), host.clone());
         let control = manager(&ctx, &host, &store);
         let importer =
             importer(&ctx, &host, &store, control, Some(docker)).with_registry(RegistryOptions {
-                allow_insecure: vec![registry.clone()],
+                allow_insecure: vec![source.registry.clone()],
                 ..RegistryOptions::default()
             });
         let oci = crate::pool::block_on(importer.import(
-            ImageSource::Oci(format!("{registry}/{image}")),
+            ImageSource::Oci(source.oci.clone()),
             ImportOptions {
                 tag: Some("e2e-oci-tree".to_string()),
                 ..ImportOptions::default()
@@ -778,7 +886,7 @@ find / -xdev \
         ))
         .expect("the registry image imports");
         let exported = crate::pool::block_on(importer.import(
-            ImageSource::Docker(image),
+            ImageSource::Docker(source.docker.clone()),
             ImportOptions {
                 tag: Some("e2e-docker-tree".to_string()),
                 ..ImportOptions::default()
