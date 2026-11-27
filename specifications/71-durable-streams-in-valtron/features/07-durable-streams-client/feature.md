@@ -118,7 +118,7 @@ impl StreamHandle {
       Test: `client_reader_parks_and_wakes`.
 - [x] **T10 — client conformance.** Run the reference client suite with the adapter. Record every
       failure and skip. Do not close the feature until it passes.
-- [ ] **T11 — wasm32 and the body length fix.** The client core builds and runs on wasm32. The
+- [x] **T11 — wasm32 and the body length fix.** The client core builds and runs on wasm32. The
       wasm bridge must preserve the parsed request headers (issue #1019, severity high): set
       `with_preserved_headers()` in `foundation_netio/src/wasm/bridge/{cf,web}.rs`. Add a wasm
       test, close #1019 in the same change. Build the client core for wasm32 and run the BDD scenarios with a wasm

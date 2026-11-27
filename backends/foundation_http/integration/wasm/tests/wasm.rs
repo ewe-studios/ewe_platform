@@ -562,6 +562,61 @@ async fn injected_clock_reaches_the_handler() {
     );
 }
 
+/// Issue #1019. The web bridge keeps the parsed `Content-Length` of a streamed
+/// body and adds no `Transfer-Encoding`.
+///
+/// The host already framed the fetch request, so the builder must keep its wire
+/// headers instead of deriving framing headers from the body.
+#[wasm_bindgen_test]
+async fn web_bridge_preserves_content_length_for_a_streamed_body() {
+    let app = web_app_with(|app| {
+        app.router.add_route_web(
+            POST,
+            "/upload",
+            FnHandler::new(|_ctx, req, conn| {
+                let content_length = req
+                    .headers
+                    .get(&SimpleHeader::CONTENT_LENGTH)
+                    .map(|values| values.join(", "))
+                    .unwrap_or_default();
+                let has_transfer_encoding =
+                    req.headers.contains_key(&SimpleHeader::TRANSFER_ENCODING);
+                conn.set_status(200);
+                conn.set_header("x-content-length", &content_length);
+                conn.set_header(
+                    "x-transfer-encoding",
+                    if has_transfer_encoding { "yes" } else { "no" },
+                );
+                conn.set_body(b"ok".to_vec());
+            }),
+        );
+    });
+
+    let response = app
+        .handle_request(request(
+            "POST",
+            &format!("{ORIGIN}/upload"),
+            &[("content-length", "5")],
+            Some(b"hello"),
+        ))
+        .await
+        .expect("the request dispatches");
+
+    assert_eq!(response.status(), 200, "{}: #1019: status", host_name());
+    assert_eq!(
+        header(&response, "x-content-length").as_deref(),
+        Some("5"),
+        "{}: #1019: the web bridge must keep the wire Content-Length",
+        host_name()
+    );
+    assert_eq!(
+        header(&response, "x-transfer-encoding").as_deref(),
+        Some("no"),
+        "{}: #1019: the web bridge must not add Transfer-Encoding",
+        host_name()
+    );
+}
+
 // ── T3: the Cloudflare bridge (cases 12 to 15) ──────────────────────
 
 /// Case 12. Oracle: example. A route answers with `env` undefined.
@@ -690,6 +745,61 @@ async fn cf_conn_into_response_preserves_status_and_headers() {
         body_text(&response).await,
         "short and stout",
         "{}: case 15: body",
+        host_name()
+    );
+}
+
+/// Issue #1019. The Cloudflare bridge keeps the parsed `Content-Length` of a
+/// streamed body and adds no `Transfer-Encoding`.
+#[wasm_bindgen_test]
+async fn cf_bridge_preserves_content_length_for_a_streamed_body() {
+    let app = cf_app_with(|app| {
+        app.router.add_route_cf(
+            POST,
+            "/cf/upload",
+            CfFnHandler::new(|_ctx, req, conn| {
+                let content_length = req
+                    .headers
+                    .get(&SimpleHeader::CONTENT_LENGTH)
+                    .map(|values| values.join(", "))
+                    .unwrap_or_default();
+                let has_transfer_encoding =
+                    req.headers.contains_key(&SimpleHeader::TRANSFER_ENCODING);
+                conn.set_status(200);
+                conn.set_header("x-content-length", &content_length);
+                conn.set_header(
+                    "x-transfer-encoding",
+                    if has_transfer_encoding { "yes" } else { "no" },
+                );
+                conn.set_body(b"ok".to_vec());
+            }),
+        );
+    });
+
+    let response = app
+        .handle_request(
+            request(
+                "POST",
+                &format!("{ORIGIN}/cf/upload"),
+                &[("content-length", "5")],
+                Some(b"hello"),
+            ),
+            JsValue::UNDEFINED,
+        )
+        .await
+        .expect("the CF dispatch answers");
+
+    assert_eq!(response.status(), 200, "{}: #1019: status", host_name());
+    assert_eq!(
+        header(&response, "x-content-length").as_deref(),
+        Some("5"),
+        "{}: #1019: the CF bridge must keep the wire Content-Length",
+        host_name()
+    );
+    assert_eq!(
+        header(&response, "x-transfer-encoding").as_deref(),
+        Some("no"),
+        "{}: #1019: the CF bridge must not add Transfer-Encoding",
         host_name()
     );
 }

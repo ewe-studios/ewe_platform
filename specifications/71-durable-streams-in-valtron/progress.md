@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: issue #1019 fixed, feature 07 T11. Both wasm bridges
+  (`foundation_http/src/wasm/bridge/{cf,web}.rs`) now call `with_preserved_headers()` on the
+  request builder, so a parsed fetch request keeps its wire `Content-Length` and gains no
+  `Transfer-Encoding` for a streamed body. The default builder behaviour is unchanged for a
+  fresh request. Two wasm-bindgen cases prove it on the Deno host:
+  `web_bridge_preserves_content_length_for_a_streamed_body` and
+  `cf_bridge_preserves_content_length_for_a_streamed_body`. Both failed on the old code and
+  pass now. The client core wasm32 build was already recorded.
+
 - 2026-11-27: feature 10 (subscriptions) landed. The new `foundation_event_stream` crate owns
   the reserved `__ds` control endpoints, the configuration hash, the generation fence, the lease
   and the wake snapshot. It delivers signed webhooks with retry and the `failed` status, runs the

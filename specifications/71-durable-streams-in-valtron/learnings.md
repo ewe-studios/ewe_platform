@@ -402,3 +402,30 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   `should handle large payload appropriately` with a client-side `ECONNRESET`; the next run
   passed 338 of 338. The earlier 405 flake has a recorded root cause and fix. This run has no
   server panic and no log line that names the cause. Tracked as issue #1029.
+
+## Wasm body length, issue #1019 (2026-11-27)
+
+- **A parsed request must keep its wire framing headers.** The native reader already sets
+  `with_preserved_headers()` (issue #926). Both wasm bridges missed it. A fetch request from the
+  host is already framed. The bridge only wraps its body in a `Stream`.
+- **The default builder derives framing, and that is correct for a fresh request.** A client that
+  builds a request must advertise the framing of the body it renders. Do not change that default.
+  Set the flag only where the host framed the request.
+- **The bug was silent.** The builder removed `Content-Length` and added
+  `Transfer-Encoding: chunked`. A handler that read the body still worked. Only a handler that
+  used the declared length saw the loss.
+- **A host Request keeps a set `Content-Length`.** Deno, Chromium and workerd keep the header in
+  the `Headers` object. A wasm-bindgen case can therefore prove the bridge outcome. Both cases
+  failed on the old code and pass with the flag.
+- **Run the wasm cases on the Deno host.** The command is
+  `cargo run -p foundation_testbed --no-default-features --features wasm --profile uat --bin
+  wasm-testbed -- test bindgen-deno backends/foundation_http/integration/wasm --filter <name>`.
+  The `foundation_http` wasm test crate sits outside the root workspace, so a root `cargo test`
+  does not compile it.
+- **The `--features multi` wasm check fails in `foundation_core`.** On wasm32 the `multi`
+  executor refers to the native-only `idle_wake` module. The CI wasm run uses
+  `--no-default-features`, so this is a known native-only feature, not a new bug. Use
+  `--no-default-features --features wasm-fetch` for a wasm check of `foundation_netio`.
+- **Building the wasm test crate updates its `Cargo.lock`.** The package has its own lock file.
+  New `foundation_http` dependencies (`time`, `base64`) must reach it, or the next build rewrites
+  it again.
