@@ -30,9 +30,9 @@ protobuf messages and a protocol choice in the backend.
 | T1 | Vendor the Cloud KMS protos under `backends/foundation_auth/proto/google/cloud/kms/v1/`: `service.proto` and `resources.proto`, with the `google.protobuf` imports. Record the commit or release tag they come from in a `README.md` beside them. |
 | T2 | Generate the messages with `buffa-build` in `foundation_auth`'s build script, behind the `kms-grpc` feature (native only). Add a drift check that the committed output matches the vendored protos, as `foundation_registrar` does. |
 | T3 | `GcpKmsBackend` gains a protocol: `KmsProtocol::Rest { base_url }` (today) and `KmsProtocol::Grpc { endpoint }`. gRPC calls `KeyManagementService/Encrypt`, `Decrypt`, `CreateKey`, `DescribeKey`, `GenerateDataKey` and `ScheduleKeyDeletion`, with the bearer token in the `authorization` metadata. |
-| T4 | The localgcp runner: a `mise` task `services:localgcp` that downloads the pinned release (v0.6.0) for the host, checks the sha256 from the release `checksums.txt`, starts `localgcp up`, saves the PID, waits for the KMS port, and stops by that PID. `--keep-running` leaves it up. |
+| T4 | The localgcp runner is a `foundation_ci` `TaskSet` task, `services localgcp` (the owner chose the task system over `mise` on 2026-11-27): it downloads the pinned release (v0.6.0) for the host, checks the sha256 from the release `checksums.txt`, starts `localgcp up`, saves the PID file, waits for the KMS port, and stops by that PID. `services localgcp --keep-running` leaves it up. |
 | T5 | Tests in `foundation_auth/tests/kms/gcp_grpc.rs`: with `GCP_KMS_ENDPOINT` set (for example `http://127.0.0.1:8091`) they create a key ring and a key, seal and open, refuse a wrong key, and destroy. Without it they print `skip: set GCP_KMS_ENDPOINT` and return. |
-| T6 | A CI job `kms-gcp-local` in the workflow of feature 00's T6: download the pinned localgcp release, start it, run T5. No secret, free tier. |
+| T6 | A separate workflow `.github/workflows/kms-gcp-local.yaml` (its own concurrency group, per rule 16): run `foundation-ci services localgcp --keep-running`, then T5, then stop the task. No secret, free tier. Do not edit `check.yaml`. |
 
 ## 3. Configuration
 
@@ -59,7 +59,7 @@ appears in a log.
 ## 5. Verify
 
 ```bash
-mise run services:localgcp --keep-running
+cargo run --profile uat -p foundation_ci -- services localgcp --keep-running
 GCP_KMS_ENDPOINT=http://127.0.0.1:8091 GCP_KMS_PROTOCOL=grpc cargo test -p foundation_auth --features "testing kms-grpc" --profile uat kms::gcp_grpc
 cargo test -p foundation_auth --features testing --profile uat kms
 cargo fmt -p foundation_auth -- --check
@@ -70,5 +70,5 @@ cargo clippy -p foundation_auth --features "testing kms-grpc" --all-targets --pr
 
 - `GcpKmsBackend` makes gRPC calls against localgcp and the tests above pass.
 - The REST path is unchanged and its tests pass.
-- The CI job `kms-gcp-local` is green.
+- The workflow `kms-gcp-local` is green.
 - The real-project test of feature 04 uses the same backend with its own endpoint.

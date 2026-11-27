@@ -6,11 +6,11 @@ _Last updated: 2026-11-27._
 
 | Feature | State |
 |---|---|
-| 00 Live proof on the real services | not started |
-| 01 DST fidelity: the real registry | not started |
-| 02 Sandbox follow-ups | not started |
-| 03 GCP KMS over gRPC | not started |
-| 04 Live cloud resources with OpenTofu | not started |
+| 00 Live proof on the real services | in progress: pull request #1075 (the Cloudflare Worker path), pull request #1055 (moto for AWS KMS) |
+| 01 DST fidelity: the real registry | stage A in progress: branch `fix/dst-wait-redrive`; stage B not started |
+| 02 Sandbox follow-ups | in progress: branch `fix/sandbox-follow-ups`; issues #1104 and #1105 now belong to it |
+| 03 GCP KMS over gRPC | in progress: branch `feat/kms-grpc`, based on `feat/live-kms` |
+| 04 Live cloud resources with the CLI | in progress: pull request #1103; AWS passed live, GCP waits for billing |
 
 ## What is already true
 
@@ -35,9 +35,29 @@ Local stack verified on this host: moto serves AWS KMS (create, encrypt, decrypt
 alias) on port 5055; Vault serves Transit on 8200 with its engine enabled by an init service;
 localgcp v0.6.0 serves Cloud KMS on h2c `:8091` and is not yet wired to a client.
 
+## Today (2026-11-27, evening)
+
+- **Feature 04: the AWS half passed live.** `foundation-ci live-kms` made two keys and two
+  aliases in Amazon Web Services (AWS), from `AWS_REGION` in the shell. The seal and open
+  tests passed, the wrong key gave HTTP 400, and the teardown removed every resource.
+  Pull request #1103 holds the task and the four gated tests.
+- **Feature 04: the GCP half waits for billing.** `gcloud kms keyrings list` still returns
+  `FAILED_PRECONDITION: Billing is disabled for project 287273334770` for
+  `ewestudiosnigeria`, and the same for `artfforts` (855260392529). Billing account
+  `01DEB9-857B6C-880803` is open, but no project links to it. The owner says billing is on;
+  the API does not agree yet. The GCP proof runs when the call succeeds.
+- **Feature 02: two new findings from the continuous integration (CI) log.** Issue #1104
+  (`severity: high`) records the `serve::tcp_*` hang that held the `sandbox-e2e` job for
+  two hours. Issue #1105 (`severity: medium`) records the `subreaper_adopts` failure.
+- **Feature 01 is split in two stages.** Stage A fixes the `Stream::Wait` arm on branch
+  `fix/dst-wait-redrive`. Stage B moves the real registry under the simulator (#908).
+- **The merge order of the CI agent:** #1102, then master into #1075, then #1075, then
+  master into #1055, then #1055, then #1049, then #1103, then one full `packages=all` run.
+
 ## Next
 
-1. Feature 00, task T2 first: make `sandbox-cloudflare` green. The red run's log names the
-   step and now prints the failing value.
-2. Feature 00, task T1: one live run against the owner's account, recorded here.
-3. Feature 00, tasks T3 to T6: the KMS and WebCrypto tests.
+1. Feature 01 stage A: review the pull request and route any failing check.
+2. Feature 03: the protobuf messages, the gRPC protocol, the localgcp task and its CI job.
+3. Feature 04: run the GCP half when the billing link exists.
+4. Feature 00: make `sandbox-cloudflare` green through #1075.
+5. The Cloudflare demo under `examples/`, after #1075 merges.

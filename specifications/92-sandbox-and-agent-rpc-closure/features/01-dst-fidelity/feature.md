@@ -87,27 +87,79 @@ So T4 also needs `core::registry::local` and a deterministic model provider to c
 
 ## 6. Tasks
 
+The work has two stages. Stage A fixes the adapter. Stage B moves the real registry
+under the simulator. Stage B needs code that does not compile today (section 5).
+
+### Stage A: the `Wait` arm (now)
+
 | Task | Work | Closes |
 |---|---|---|
-| T1 | Write the failing test first: on `SimRuntime`, one turn over `LocalInstanceRegistry` completes. It hangs today | the red test |
-| T2 | Fix the `Wait` arm of `StreamParkingFutureStream` for a single-threaded engine, with the bounded re-poll policy; unit tests for `Next`, `Depends`, `Wait` and `Pending(duration)`, and a spin-guard test | — |
+| T1 | Write the failing test first: a task iterator that returns `Wait` twice, then `Ready(7)`, over the real `DrivenStreamIterator` on `SimRuntime`, never completes today | the red test |
+| T2 | Fix the `Wait` arm of the five parking adapters in `stream_future.rs` with the redrive policy of section 3; unit tests for `Next`, `Depends`, `Wait` and `Pending(duration)`, a spin-guard test and a proptest model | — |
 | T3 | `TurnEvents` and `ExecutionIterator` stay as they are; prove the multi-threaded path is unchanged by its existing tests | — |
-| T4 | Replace the `ScriptedRegistry` in `foundation_agent_rpc_dst` with the real registry; keep the 32-seed determinism test and the injected storage failure | #908 |
+
+### Stage B: the real registry
+
+| Task | Work | Closes |
+|---|---|---|
+| T4 | Compile `core::registry::local` without `multi`, and add a deterministic model provider without `multi`; then replace the `ScriptedRegistry` in `foundation_agent_rpc_dst` with the real registry; keep the 32-seed determinism test and the injected storage failure | #908 |
+
+### The redrive policy in code
+
+The adapter cannot see the engine. It can see whether the stream drives its own
+producer: `next()` runs the executor until the task reaches a state. That is the fact
+the fix uses. `WakeableStream` gains a defaulted method:
+
+```rust
+/// True when `next()` itself runs the producer, so a `Wait` means "run it
+/// again", not "wait for another thread". `DrivenStreamIterator` returns
+/// `true`; every other stream keeps the default `false`.
+fn drives_its_producer(&self) -> bool {
+    false
+}
+```
+
+The two `DrivenStreamIterator` types (sendable and non-sendable) return `true`.
+Every wrapper that forwards `wake` and `wake_send` must also forward this method.
+
+On `Wait` from a driving stream the adapter re-polls, and the budget of section 3
+bounds the re-polls. When the budget is spent, the adapter registers the wake,
+self-wakes and returns `Pending`, so the driver yields once and then re-polls. On
+`Wait` from any other stream the adapter keeps today's register-and-park.
+
+The budget is a field `wait_redrive_budget` on each adapter, with the builder
+`with_wait_redrive_budget`. Its default is `DEFAULT_WAIT_REDRIVE_BUDGET` in
+`executors/constants.rs`: 1 on wasm (yield to the event loop at once) and 100 on
+native. The native value matches `DEFAULT_NOTIFY_QUEUE_MAX_SPINS`, the executor's
+existing bound on how often a consumer yields to the producer before the driver
+acts.
 
 ## 7. Tests
 
 | Test | Oracle |
 |---|---|
-| `wait_arm_repolls_and_bounds` (a single-threaded engine, a loop that yields `Wait`; progress is made, then the bound stops the spin) | example |
+| `wait_redrives_a_driving_stream` (a task iterator over `DrivenStreamIterator` returns `Wait`, `Wait`, `Ready(7)`) | example: the stream completes in one poll |
+| `wait_parks_a_non_driving_stream` | the adapter returns `Pending`, and a producer wake still completes it |
+| `wait_redrive_is_bounded` | the adapter re-polls exactly the budget, registers the wake, self-wakes and returns `Pending` |
+| `wait_redrive_resets_on_progress` | stateful model: only a no-progress `Wait` spends the budget |
+| `wait_redrive_property` (proptest over `Wait`/`Next`/`Ignore` sequences) | the adapter yields the `Next` payloads in order and terminates |
+| a wrapper forwards `drives_its_producer` | identity |
 | the multi-threaded suites, unchanged | no regression |
-| `dst_create_enroll_one_turn_destroy_from_one_seed` with the real registry | expected outcome |
-| `dst_same_seed_gives_identical_traces_for_32_seeds` | stateful model |
-| `dst_injected_storage_failure_gives_a_typed_error` | fault |
+| `dst_create_enroll_one_turn_destroy_from_one_seed` with the real registry | expected outcome (stage B) |
+| `dst_same_seed_gives_identical_traces_for_32_seeds` | stateful model (stage B) |
+| `dst_injected_storage_failure_gives_a_typed_error` | fault (stage B) |
 
 ## 8. Verify
 
 ```bash
-cargo test -p foundation_core --features testing --profile uat sim
+# Stage A: the single-threaded tree (the DST engine) and the pool tree.
+cargo test -p foundation_core --profile uat valtron::stream_future
+cargo test -p foundation_core --profile uat --features multi valtron::stream_future
+cargo test -p foundation_core --profile uat --features multi valtron::
+cargo test -p foundation_core --profile uat --features testing valtron::
+cargo clippy -p foundation_core --profile uat --all-targets -- -D warnings
+cargo clippy -p foundation_core --profile uat --all-targets --features multi -- -D warnings
+# Stage B adds:
 cargo test -p foundation_agent_rpc_dst --profile uat dst_
 cargo check -p foundation_ai --no-default-features
 cargo test -p foundation_agent_rpc --profile uat native_
@@ -115,5 +167,7 @@ cargo test -p foundation_agent_rpc --profile uat native_
 
 ## 9. Done when
 
-The DST run uses the real registry and session, the 32 seeds give the same trace twice, and
-#908 is closed.
+Stage A: the redrive tests pass, the pool suites are unchanged, and the evidence file
+`tests/valtron/dst_hang_proof.rs` holds the positive regression tests instead of the
+red test. Stage B: the DST run uses the real registry and session, the 32 seeds give the
+same trace twice, and #908 is closed.
