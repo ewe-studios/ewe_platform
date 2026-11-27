@@ -1705,3 +1705,11 @@ The patched local Todo app reaches Gumball in portrait and landscape on the Andr
 The replay finds the left edge of the landscape game at pixel 128 and calculates a tap inside answer 8.
 Android stops the app during the input dispatch timeout. The score change remains unverified.
 See [issue 843](https://github.com/ewe-studios/ewe_platform/issues/843) and [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
+
+## 2026-11-28 — Android landscape score
+
+The replay passes on the same emulator at the issue's 1560 by 720 landscape size.
+It finds the game at x=83 and taps answer 8 at (772, 572).
+The score increases from 1000 to 1250, and the replay returns to Todos.
+The test restores the original display size after the run.
+Issue 1146 tracks the separate full-size focus timeout.

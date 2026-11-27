@@ -1347,3 +1347,9 @@ A frame can show the rotated game before Android completes the focus change.
 The inset detector finds a landscape game surface with bounds from (128, 189) to (2400, 1017).
 The tap at (1176, 866) lies in the first answer. Android reports an input dispatch timeout before scoring.
 The app main thread waits in `HardwareRenderer.setStopped`. See [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
+
+## 2026-11-28 — Android side inset acceptance
+
+Test the same display size as the reported failure.
+At 1560 by 720, the existing detector finds the 83-pixel left inset.
+Verify the score before and after the landscape tap. The presence of a rendered frame alone cannot verify input.
