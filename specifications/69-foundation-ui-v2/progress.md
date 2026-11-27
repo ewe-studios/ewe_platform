@@ -2097,3 +2097,10 @@ The package guides now point to the current browser frame and behaviour specific
 The browser guide runs the retained row and column checks and links to the old parity record.
 The JavaScript browser and component suites pass 175 tests. One legacy fixture stays excluded.
 [Issue 1176](https://github.com/ewe-studios/ewe_platform/issues/1176)
+
+## iPhone Todo keyboard test
+
+The hosted Xcode 26.6 test finds the keyboard and taps the letters in Review.
+Its space key label lookup fails. The step stops before it uploads the candidate.
+Use the focused field to enter spaces. Keep both keyboard layouts, geometry checks and exact title checks.
+Use the current Feature 23 capture steps to verify the same screens.
