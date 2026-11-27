@@ -116,6 +116,42 @@ pub struct SseEvent {
 pub type ClientSseStream =
     Pin<Box<dyn futures_core::Stream<Item = Result<SseEvent, TransportError>> + Send>>;
 
+/// The head of an open Server-Sent Events (SSE) response.
+///
+/// The client needs the status and headers with the event stream. A `404` or
+/// `410` opens no stream. The `stream-sse-data-encoding` header states whether
+/// data events are base64.
+pub struct SseOpen {
+    /// The response status.
+    pub status: u16,
+    /// The response headers, keyed without case.
+    pub headers: BTreeMap<String, Vec<String>>,
+    /// The event stream.
+    pub stream: ClientSseStream,
+}
+
+impl core::fmt::Debug for SseOpen {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SseOpen")
+            .field("status", &self.status)
+            .field("headers", &self.headers)
+            .field("stream", &"<event stream>")
+            .finish()
+    }
+}
+
+impl SseOpen {
+    /// The first value of a header, matched without case.
+    #[must_use]
+    pub fn header(&self, name: &str) -> Option<&str> {
+        self.headers
+            .iter()
+            .find(|(key, _)| key.eq_ignore_ascii_case(name))
+            .and_then(|(_, values)| values.first())
+            .map(String::as_str)
+    }
+}
+
 /// The injected client transport.
 pub trait ClientTransport: Send + Sync {
     /// Send one request and return the response.
@@ -125,7 +161,7 @@ pub trait ClientTransport: Send + Sync {
     ///
     /// The default fails with a transport error. A transport that cannot
     /// stream keeps this default, and the client reports `NOT_SUPPORTED`.
-    fn open_sse(&self, _request: ClientRequest) -> ClientFuture<'_, ClientSseStream> {
+    fn open_sse(&self, _request: ClientRequest) -> ClientFuture<'_, SseOpen> {
         Box::pin(async {
             Err(TransportError::new(
                 "this transport does not stream Server-Sent Events",

@@ -8,9 +8,9 @@ mod transport;
 
 pub use client::{
     AppendResult, ClientConfig, ClientError, DurableClient, HeadResult, ReadBuilder, ReadChunk,
-    ReadMode, ReadResult, StreamHandle,
+    ReadMode, ReadResult, SseRead, StreamHandle,
 };
 pub use transport::{
     ClientFuture, ClientRequest, ClientResponse, ClientSseStream, ClientTransport, HttpMethod,
-    SseEvent, TransportError,
+    SseEvent, SseOpen, TransportError,
 };

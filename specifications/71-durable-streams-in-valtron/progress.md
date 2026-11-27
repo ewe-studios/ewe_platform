@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 07 Server-Sent Events (SSE) landed. The client core returns an `SseOpen`
+  head (status, headers, stream) from `ClientTransport::open_sse`, so a 404 or 410 answers from
+  the head and `stream-sse-data-encoding` decides base64. The SSE read is a `futures_core::Stream`
+  (`SseRead`), not a collection loop. The native event task stops blocking: its `ReadingStream`
+  state parks on the connection readiness source with `TaskStatus::Depends`. The client body
+  reader de-chunks a chunked SSE response. The adapter announces every feature and escapes U+2028
+  and U+2029 in its output. The client suite is 267 pass, 2 suite-forced skips, 0 fail; the server
+  suite stays 338 pass, 0 skip. Closed #963, #947 and #1033.
+
 - 2026-11-27: issue #1034 fixed. `DurableStream::new` and `DurableStream::with_ctx` take
   `&Ctx`. The store reads the clock with `ctx.clock()` and no longer builds a
   `MonotonicClock`. `SubscriptionStore` and every call site pass the context. The clock
@@ -194,10 +203,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full
   server conformance run landed. ConnectRPC and `429` remain.
-- **07-durable-streams-client** — 🟡 in progress (8/11). The client core, transport injection,
-  catch-up, long-poll and auto reads, the native transport, the adapter, the client conformance
-  run, batching, dynamic headers and validation landed. The adapter-level SSE path and the
-  valtron wrapper remain.
+- **07-durable-streams-client** — 🟢 done (11/11). The client core, transport injection,
+  catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
+  conformance run, batching, dynamic headers, validation features and the SSE head/stream all
+  landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
 - **08-conformance** — ⏳ not started (0/7)
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the

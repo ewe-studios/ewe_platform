@@ -51,6 +51,8 @@ pub enum ClientError {
     },
     /// The server body is malformed.
     Parse(String),
+    /// The method is not available on this surface.
+    NotSupported(String),
 }
 
 impl core::fmt::Display for ClientError {
@@ -66,6 +68,7 @@ impl core::fmt::Display for ClientError {
                 write!(f, "unexpected status {status}: {body}")
             }
             Self::Parse(message) => write!(f, "parse error: {message}"),
+            Self::NotSupported(message) => write!(f, "not supported: {message}"),
         }
     }
 }
@@ -397,7 +400,6 @@ impl StreamHandle {
             headers: Vec::new(),
             max_chunks: None,
             sse_binary: false,
-            sse_timeout_ms: 2_000,
             cursor: None,
         }
     }
@@ -412,7 +414,6 @@ pub struct ReadBuilder {
     headers: Vec<(String, String)>,
     max_chunks: Option<usize>,
     sse_binary: bool,
-    sse_timeout_ms: u64,
     cursor: Option<String>,
 }
 
@@ -467,18 +468,8 @@ impl ReadBuilder {
         self
     }
 
-    /// Stop a Server-Sent Events (SSE) read after this many milliseconds.
-    #[must_use]
-    pub fn sse_timeout(mut self, milliseconds: u64) -> Self {
-        self.sse_timeout_ms = milliseconds;
-        self
-    }
-
-    /// Send the read.
-    ///
-    /// # Errors
-    /// Returns [`ClientError`] for a failed transport or a status.
-    pub async fn send(self) -> Result<ReadResult, ClientError> {
+    /// Build the wire request for this read.
+    fn request(&self) -> ClientRequest {
         let mut query = String::new();
         if let Some(offset) = &self.offset {
             query.push_str("offset=");
@@ -510,13 +501,24 @@ impl ReadBuilder {
             }
             ReadMode::Auto => {}
         }
+        self.handle
+            .request(HttpMethod::Get, &query, &self.headers, Vec::new())
+    }
 
-        let request = self
-            .handle
-            .request(HttpMethod::Get, &query, &self.headers, Vec::new());
+    /// Send the read.
+    ///
+    /// Handles catch-up, long-poll and auto. Use [`Self::open_sse`] for
+    /// [`ReadMode::Sse`], whose live connection yields a stream of events.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn send(self) -> Result<ReadResult, ClientError> {
         if self.mode == ReadMode::Sse {
-            return self.send_sse(request).await;
+            return Err(ClientError::NotSupported(
+                "use ReadBuilder::open_sse for Server-Sent Events".to_string(),
+            ));
         }
+        let request = self.request();
         let response = self.handle.transport.send(request).await?;
 
         match response.status {
@@ -560,18 +562,18 @@ impl ReadBuilder {
 }
 
 impl ReadBuilder {
-    async fn send_sse(self, request: ClientRequest) -> Result<ReadResult, ClientError> {
-        #[cfg(not(feature = "std"))]
-        use futures_lite::StreamExt;
-
-        // The event stream carries no status, so one HEAD request decides
-        // whether the stream exists and is readable.
-        let probe = self
-            .handle
-            .transport
-            .send(self.handle.request(HttpMethod::Head, "", &self.headers, Vec::new()))
-            .await?;
-        match probe.status {
+    /// Open a live Server-Sent Events (SSE) read.
+    ///
+    /// The response head carries the status and headers. A `404` or `410`
+    /// answers here before any event. The `stream-sse-data-encoding` header
+    /// states whether data events are base64.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a failed transport or a status.
+    pub async fn open_sse(self) -> Result<SseRead, ClientError> {
+        let request = self.request();
+        let open = self.handle.transport.open_sse(request).await?;
+        match open.status {
             200 | 204 => {}
             404 => {
                 return Err(ClientError::NotFound {
@@ -583,90 +585,205 @@ impl ReadBuilder {
                     path: self.handle.path.clone(),
                 })
             }
-            status => return Err(unexpected(status, &probe)),
+            status => return Err(unexpected_open(status, &open)),
         }
-
-        // The head states the data encoding. Fall back to the caller's flag
-        // when the transport cannot supply the header.
-        let decode_base64 = probe
+        let decode_base64 = open
             .header("stream-sse-data-encoding")
             .is_some_and(|value| value.eq_ignore_ascii_case("base64"))
             || self.sse_binary;
+        Ok(SseRead {
+            status: open.status,
+            headers: open.headers,
+            inner: open.stream,
+            decode_base64,
+            next_offset: None,
+            cursor: None,
+            up_to_date: false,
+            closed: false,
+        })
+    }
+}
 
-        let mut stream = self.handle.transport.open_sse(request).await?;
-        let mut result = ReadResult {
-            status: 200,
-            ..ReadResult::default()
-        };
-        #[cfg(feature = "std")]
-        let deadline = std::time::Instant::now()
-            + std::time::Duration::from_millis(self.sse_timeout_ms);
+/// A live Server-Sent Events (SSE) read.
+///
+/// The stream yields one decoded chunk per data event. A control event updates
+/// the read metadata and yields an empty chunk, which ends the current step.
+/// `None` ends the stream.
+pub struct SseRead {
+    status: u16,
+    headers: BTreeMap<String, Vec<String>>,
+    inner: super::transport::ClientSseStream,
+    decode_base64: bool,
+    next_offset: Option<String>,
+    cursor: Option<String>,
+    up_to_date: bool,
+    closed: bool,
+}
+
+impl SseRead {
+    /// The response status.
+    #[must_use]
+    pub fn status(&self) -> u16 {
+        self.status
+    }
+
+    /// The first value of a response header, matched without case.
+    #[must_use]
+    pub fn header(&self, name: &str) -> Option<&str> {
+        self.headers
+            .iter()
+            .find(|(key, _)| key.eq_ignore_ascii_case(name))
+            .and_then(|(_, values)| values.first())
+            .map(String::as_str)
+    }
+
+    /// The next wire offset known from the last control event.
+    #[must_use]
+    pub fn next_offset(&self) -> Option<&str> {
+        self.next_offset.as_deref()
+    }
+
+    /// The collapsing cursor known from the last control event.
+    #[must_use]
+    pub fn cursor(&self) -> Option<&str> {
+        self.cursor.as_deref()
+    }
+
+    /// True when the last control event marked the read up to date.
+    #[must_use]
+    pub fn up_to_date(&self) -> bool {
+        self.up_to_date
+    }
+
+    /// True when the last control event marked the stream closed.
+    #[must_use]
+    pub fn closed(&self) -> bool {
+        self.closed
+    }
+
+    /// The next step of the read.
+    ///
+    /// A data event waits for the following control event and then yields its
+    /// decoded bytes with that control's metadata. A control-only event yields
+    /// an empty chunk with its metadata. `None` ends the stream.
+    ///
+    /// # Errors
+    /// Returns [`ClientError`] for a transport failure, a malformed control
+    /// event or a malformed base64 payload.
+    pub async fn next(&mut self) -> Result<Option<ReadChunk>, ClientError> {
         loop {
-            #[cfg(feature = "std")]
-            let item = next_sse(&mut stream, deadline).await;
-            #[cfg(not(feature = "std"))]
-            let item = stream.next().await;
-            let Some(item) = item else { break };
-            let event = item?;
+            let Some(event) = next_event(&mut self.inner).await else {
+                return Ok(None);
+            };
+            let event = event?;
             match event.event_type.as_deref() {
                 Some("data") => {
-                    // An empty data event carries no message.
-                    if event.data.is_empty() {
-                        continue;
+                    // One data event is followed by one control event. Wait for
+                    // it so the chunk carries the step metadata (offset, cursor,
+                    // closed). Consecutive data events are concatenated.
+                    let mut parts = vec![decode(&event.data, self.decode_base64)?];
+                    loop {
+                        let Some(following) = next_event(&mut self.inner).await else {
+                            return Ok(Some(ReadChunk {
+                                data: join(parts),
+                            }));
+                        };
+                        let following = following?;
+                        match following.event_type.as_deref() {
+                            Some("data") => {
+                                parts.push(decode(&following.data, self.decode_base64)?);
+                            }
+                            Some("control") | None => {
+                                self.apply_control(&following.data)?;
+                                return Ok(Some(ReadChunk { data: join(parts) }));
+                            }
+                            _ => {}
+                        }
                     }
-                    let data = if decode_base64 {
-                        base64::Engine::decode(
-                            &base64::engine::general_purpose::STANDARD,
-                            event.data.as_bytes(),
-                        )
-                        .map_err(|error| ClientError::Parse(error.to_string()))?
-                    } else {
-                        event.data.into_bytes()
-                    };
-                    result.chunks.push(ReadChunk { data });
                 }
                 Some("control") | None => {
-                    if let Ok(value) = serde_json::from_str::<serde_json::Value>(&event.data) {
-                        result.next_offset =
-                            value["streamNextOffset"].as_str().map(str::to_string);
-                        result.cursor = value["streamCursor"]
-                            .as_u64()
-                            .map(|value| value.to_string());
-                        result.up_to_date =
-                            value["upToDate"].as_bool().unwrap_or(false);
-                        result.closed =
-                            value["streamClosed"].as_bool().unwrap_or(false);
-                    }
-                    break;
+                    // A control-only event carries the step metadata without a
+                    // data payload.
+                    self.apply_control(&event.data)?;
+                    return Ok(Some(ReadChunk { data: Vec::new() }));
                 }
                 _ => {}
             }
         }
-        Ok(result)
+    }
+
+    /// Apply one control event's fields to the read metadata.
+    fn apply_control(&mut self, data: &str) -> Result<(), ClientError> {
+        // An empty or malformed control body is a parse error.
+        let value = serde_json::from_str::<serde_json::Value>(data)
+            .map_err(|error| ClientError::Parse(error.to_string()))?;
+        self.next_offset = value["streamNextOffset"].as_str().map(str::to_string);
+        self.cursor = value["streamCursor"].as_u64().map(|value| value.to_string());
+        self.up_to_date = value["upToDate"].as_bool().unwrap_or(false);
+        self.closed = value["streamClosed"].as_bool().unwrap_or(false);
+        Ok(())
     }
 }
 
-/// Read the next SSE event, or stop at the deadline.
+/// Decode one data event into bytes.
+fn decode(data: &str, base64: bool) -> Result<Vec<u8>, ClientError> {
+    if base64 {
+        decode_base64(data)
+    } else {
+        Ok(data.to_string().into_bytes())
+    }
+}
+
+/// Join buffered data parts into one chunk.
+fn join(parts: Vec<Vec<u8>>) -> Vec<u8> {
+    parts.concat()
+}
+
+/// Decode one Server-Sent Events (SSE) base64 payload.
 ///
-/// The stream has no timer of its own, so the future wakes itself and checks
-/// the wall clock. The wait is short and a test adapter can afford it.
+/// A server may split one payload across `data:` lines, so the parser joins
+/// them with a newline. Remove those newlines before decoding (protocol
+/// section 5.8).
+fn decode_base64(data: &str) -> Result<Vec<u8>, ClientError> {
+    let cleaned: String = data
+        .chars()
+        .filter(|character| *character != '\n' && *character != '\r')
+        .collect();
+    if cleaned.is_empty() {
+        return Ok(Vec::new());
+    }
+    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &cleaned)
+        .map_err(|error| ClientError::Parse(error.to_string()))
+}
+
+/// Read the next Server-Sent Events (SSE) event.
 #[cfg(feature = "std")]
-async fn next_sse(
+async fn next_event(
     stream: &mut super::transport::ClientSseStream,
-    deadline: std::time::Instant,
 ) -> Option<Result<super::transport::SseEvent, TransportError>> {
-    futures_lite::future::poll_fn(|cx| match stream.as_mut().poll_next(cx) {
-        std::task::Poll::Pending => {
-            if std::time::Instant::now() >= deadline {
-                std::task::Poll::Ready(None)
-            } else {
-                cx.waker().wake_by_ref();
-                std::task::Poll::Pending
-            }
+    futures_lite::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await
+}
+
+/// Read the next Server-Sent Events (SSE) event on a target without `std`.
+#[cfg(not(feature = "std"))]
+async fn next_event(
+    stream: &mut super::transport::ClientSseStream,
+) -> Option<Result<super::transport::SseEvent, TransportError>> {
+    futures_lite::StreamExt::next(stream).await
+}
+
+fn unexpected_open(status: u16, open: &super::transport::SseOpen) -> ClientError {
+    let mut headers = BTreeMap::new();
+    for (key, values) in &open.headers {
+        if let Some(value) = values.first() {
+            headers.insert(key.clone(), value.clone());
         }
-        std::task::Poll::Ready(item) => std::task::Poll::Ready(item),
-    })
-    .await
+    }
+    ClientError::UnexpectedStatus {
+        status,
+        body: String::new(),
+        headers,
+    }
 }
 
 fn outcome(path: &str, response: &ClientResponse) -> Result<AppendResult, ClientError> {

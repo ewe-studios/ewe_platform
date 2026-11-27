@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::netcap::ConnectionContext;
-use crate::shared::client::body_reader::{AsyncSendSafeBody, ReadWakeSource};
+use crate::shared::client::body_reader::{is_would_block, AsyncSendSafeBody, ReadWakeSource};
 use crate::shared::http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,
@@ -3411,6 +3411,25 @@ impl SimpleResponse<SendSafeBody> {
     pub fn take_async_body(self) -> AsyncSendSafeBody {
         self.into_async_parts().2
     }
+
+    /// Consume the response and return the status, headers, body and the
+    /// attached readiness source together.
+    ///
+    /// A caller that builds its own stream over the body (for example the
+    /// Server-Sent Events path, which needs the event type) uses this instead
+    /// of [`Self::into_async_parts`], which would discard the event framing.
+    #[must_use]
+    pub fn into_parts_with_wake(
+        self,
+    ) -> (
+        Status,
+        SimpleHeaders,
+        SendSafeBody,
+        Option<ReadWakeSource>,
+    ) {
+        let Self(status, headers, body, source) = self;
+        (status, headers, body, source)
+    }
 }
 
 pub type Protocol = String;
@@ -5724,6 +5743,74 @@ pub struct SimpleSseIterator<T: std::io::Read + Send + Sync>(
     super::framing::FrameLimits,
 );
 
+/// A `Read` view over a chunked body iterator that strips the chunk framing.
+///
+/// WHY: the reference Server-Sent Events (SSE) server sends its response with
+/// `Transfer-Encoding: chunked`. The SSE parser reads plain bytes, so it must
+/// see the de-chunked body, not the chunk-size lines.
+pub struct ChunkedBodyReader<T: std::io::Read + Send + Sync> {
+    inner: SimpleHttpChunkIterator<T>,
+    pending: Vec<u8>,
+    cursor: usize,
+    done: bool,
+}
+
+impl<T: std::io::Read + Send + Sync> ChunkedBodyReader<T> {
+    fn new(
+        transfer_encoding: Vec<String>,
+        headers: SimpleHeaders,
+        stream: SharedByteBufferStream<T>,
+        piece_size: usize,
+        limits: super::framing::FrameLimits,
+    ) -> Self {
+        let inner = SimpleHttpChunkIterator::new(transfer_encoding, headers, stream)
+            .with_limits(piece_size, limits);
+        Self {
+            inner,
+            pending: Vec::new(),
+            cursor: 0,
+            done: false,
+        }
+    }
+}
+
+impl<T: std::io::Read + Send + Sync> std::io::Read for ChunkedBodyReader<T> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        loop {
+            if self.cursor < self.pending.len() {
+                let rest = &self.pending[self.cursor..];
+                let n = rest.len().min(buf.len());
+                buf[..n].copy_from_slice(&rest[..n]);
+                self.cursor += n;
+                return Ok(n);
+            }
+            if self.done {
+                return Ok(0);
+            }
+            match self.inner.next() {
+                Some(Ok(ChunkedData::Data(bytes, _))) => {
+                    self.pending = bytes;
+                    self.cursor = 0;
+                }
+                Some(Ok(ChunkedData::Trailers(_) | ChunkedData::DataEnded)) => {
+                    self.done = true;
+                    return Ok(0);
+                }
+                Some(Err(err)) if is_would_block(&*err) => {
+                    return Err(std::io::Error::from(std::io::ErrorKind::WouldBlock));
+                }
+                Some(Err(err)) => {
+                    return Err(std::io::Error::other(err.to_string()));
+                }
+                None => {
+                    self.done = true;
+                    return Ok(0);
+                }
+            }
+        }
+    }
+}
+
 impl<T: std::io::Read + Send + Sync> Clone for SimpleSseIterator<T> {
     fn clone(&self) -> Self {
         // SseParser cannot be cloned, so we create a new one with the same stream
@@ -6135,16 +6222,42 @@ impl SimpleHttpBody {
                 .and_then(|values| values.first())
                 .and_then(|value| value.trim().parse::<u64>().ok())
         };
+        // A chunked SSE response (the reference server sends one) must be
+        // de-chunked before the event parser sees it. Otherwise the parser
+        // reads the chunk-size lines as event fields.
+        let chunked = headers
+            .get(&SimpleHeader::TRANSFER_ENCODING)
+            .is_some_and(|values| {
+                values
+                    .iter()
+                    .any(|value| value.eq_ignore_ascii_case("chunked"))
+            });
         let sse_iterator: BoxedSendableIterator<
             crate::event_source::ParseResult,
             SendableBoxedError,
-        > = match framed_len {
-            Some(len) => {
-                let bounded =
-                    SharedByteBufferStream::rwrite(std::io::Read::take(stream.clone(), len));
-                Box::new(SimpleSseIterator::new(headers, bounded).with_limits(self.4))
+        > = if chunked {
+            let transfer_encoding = headers
+                .get(&SimpleHeader::TRANSFER_ENCODING)
+                .cloned()
+                .unwrap_or_default();
+            let reader = ChunkedBodyReader::new(
+                transfer_encoding,
+                headers.clone(),
+                stream,
+                self.2,
+                self.4,
+            );
+            let buffered = SharedByteBufferStream::rwrite(reader);
+            Box::new(SimpleSseIterator::new(headers, buffered).with_limits(self.4))
+        } else {
+            match framed_len {
+                Some(len) => {
+                    let bounded =
+                        SharedByteBufferStream::rwrite(std::io::Read::take(stream.clone(), len));
+                    Box::new(SimpleSseIterator::new(headers, bounded).with_limits(self.4))
+                }
+                None => Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4)),
             }
-            None => Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4)),
         };
         SendSafeBody::SseStream(Some(sse_iterator))
     }

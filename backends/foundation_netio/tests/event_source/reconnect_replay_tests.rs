@@ -7,7 +7,7 @@
 //! WHAT: the reconnecting task yields `Event::Reconnect` when the new connection
 //! starts, before any replayed event, so a consumer can discard what it holds.
 
-use foundation_core::valtron::{TaskIterator, TaskStatus};
+use foundation_core::valtron::{execute, valtron_test, Stream, TaskIterator, TaskStatus};
 
 use foundation_context::Ctx;
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
@@ -23,7 +23,6 @@ use std::time::Duration;
 /// sends " world". Returns what a consumer holds at the end, once with the reset
 /// on `Event::Reconnect` and the number of markers seen.
 fn run_with_one_reconnect() -> (String, usize, Vec<String>) {
-    let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     let server = SseTestServer::with_handler(
         move |_req: &foundation_testing::http::HttpRequest,
               writer: &mut SseStreamWriter,
@@ -49,17 +48,16 @@ fn run_with_one_reconnect() -> (String, usize, Vec<String>) {
         .unwrap()
         .parse()
         .unwrap();
-    let mut task =
-        ReconnectingEventSourceTask::connect(StaticSocketAddr::new(addr), server.base_url())
-            .unwrap()
-            .with_max_retries(3);
+    let task = ReconnectingEventSourceTask::connect(StaticSocketAddr::new(addr), server.base_url())
+        .unwrap()
+        .with_max_retries(3);
 
+    let mut stream = execute(task, None).expect("execute");
     let mut text = String::new();
     let mut markers = 0;
     let mut order = Vec::new();
-    let mut steps = 0;
-    while let Some(status) = task.next_status(Ctx::host()) {
-        if let TaskStatus::Ready(parse_result) = status {
+    while let Some(item) = stream.next() {
+        if let Stream::Next(parse_result) = item {
             match parse_result.event {
                 Event::Reconnect => {
                     markers += 1;
@@ -73,14 +71,11 @@ fn run_with_one_reconnect() -> (String, usize, Vec<String>) {
                 Event::Comment(_) => {}
             }
         }
-        steps += 1;
-        assert!(steps < 500, "too many steps, possible infinite loop");
     }
     (text, markers, order)
 }
 
-#[test]
-#[serial(valtron_pool)]
+#[valtron_test]
 fn a_reconnect_marks_the_restart_so_replayed_text_is_not_doubled() {
     let (text, markers, order) = run_with_one_reconnect();
     assert_eq!(markers, 1, "one reconnect, one marker: {order:?}");

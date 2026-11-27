@@ -95,6 +95,9 @@ fn main() {
 #[cfg(not(target_arch = "wasm32"))]
 type Client = foundation_core::durable::client::DurableClient;
 
+#[cfg(not(target_arch = "wasm32"))]
+use foundation_core::durable::client::{ReadChunk, ReadMode, ReadResult};
+
 /// Writes one result line per command, in command order.
 #[cfg(not(target_arch = "wasm32"))]
 struct Sink {
@@ -113,6 +116,12 @@ impl Sink {
 
     fn push(&self, sequence: u64, line: String) {
         use std::io::Write;
+        // Node's readline treats U+2028 and U+2029 as line terminators, so a
+        // raw separator inside a result would split the line and break the
+        // runner's JSON parse. Escape them, as the reference client does.
+        let line = line
+            .replace('\u{2028}', "\\u2028")
+            .replace('\u{2029}', "\\u2029");
         let mut state = self
             .state
             .lock()
@@ -207,6 +216,7 @@ fn client_error(command_type: &str, error: &foundation_core::durable::client::Cl
         ClientError::InvalidOffset(_) => ("INVALID_OFFSET", Some(400)),
         ClientError::UnexpectedStatus { status, .. } => ("UNEXPECTED_STATUS", Some(*status)),
         ClientError::Parse(_) => ("PARSE_ERROR", None),
+        ClientError::NotSupported(_) => ("NOT_SUPPORTED", None),
     };
     let mut result = failure_result(command_type, code, &error.to_string());
     if let Some(status) = status {
@@ -315,12 +325,15 @@ async fn handle(
                 "clientName": "ewe-rust",
                 "clientVersion": env!("CARGO_PKG_VERSION"),
                 "features": {
-                    "sse": false,
+                    "sse": true,
                     "longPoll": true,
                     "auto": true,
                     "streaming": true,
                     "batching": true,
                     "dynamicHeaders": true,
+                    "retryOptions": true,
+                    "batchItems": true,
+                    "strictZeroValidation": true,
                 },
             }),
             false,
@@ -783,8 +796,19 @@ fn validate(command: &serde_json::Value) -> (serde_json::Value, bool) {
         "retry-options" => {
             if spec["maxRetries"].as_i64().is_some_and(|value| value < 0) {
                 Some("maxRetries must be zero or more")
-            } else if spec["initialDelayMs"].as_i64().is_some_and(|value| value <= 0) {
+            } else if spec["initialDelayMs"]
+                .as_i64()
+                .is_some_and(|value| value <= 0)
+            {
                 Some("initialDelayMs must be more than zero")
+            } else if match (
+                spec["initialDelayMs"].as_i64(),
+                spec["maxDelayMs"].as_i64(),
+            ) {
+                (Some(initial), Some(max)) => max < initial,
+                _ => false,
+            } {
+                Some("maxDelayMs must be at least initialDelayMs")
             } else if spec["multiplier"].as_f64().is_some_and(|value| value < 1.0) {
                 Some("multiplier must be one or more")
             } else {
@@ -843,9 +867,7 @@ async fn handle_read(
 
     let mode = match command["live"].as_str() {
         Some("long-poll") => ReadMode::LongPoll,
-        Some("sse") => {
-            return failure_result("read", "NOT_SUPPORTED", "sse is not enabled");
-        }
+        Some("sse") => ReadMode::Sse,
         _ if command["live"].as_bool() == Some(true) => ReadMode::Auto,
         _ => ReadMode::CatchUp,
     };
@@ -854,17 +876,25 @@ async fn handle_read(
         .with_headers(headers_of(command))
         .with_headers(dynamic_headers)
         .with_query(dynamic_params);
-    let sse_timeout = command["timeoutMs"].as_u64().unwrap_or(2000);
-    let mut builder = handle
-        .read()
-        .mode(mode)
-        .sse_binary(binary)
-        .sse_timeout(sse_timeout);
+    let timeout_ms = command["timeoutMs"].as_u64().unwrap_or(2000);
+    let mut builder = handle.read().mode(mode).sse_binary(binary);
     if let Some(offset) = command["offset"].as_str() {
         builder = builder.offset(offset);
     }
     if let Some(limit) = command["maxChunks"].as_u64() {
         builder = builder.max_chunks(usize::try_from(limit).unwrap_or(usize::MAX));
+    }
+
+    if mode == ReadMode::Sse {
+        let max_chunks = command["maxChunks"]
+            .as_u64()
+            .map_or(100, |value| usize::try_from(value).unwrap_or(100));
+        let wait_for_up_to_date = command["waitForUpToDate"].as_bool() == Some(true);
+        let result = sse_read(builder, timeout_ms, max_chunks, wait_for_up_to_date).await;
+        return match result {
+            Ok(result) => read_result_json(&result, headers_sent, params_sent),
+            Err(error) => client_error("read", &error),
+        };
     }
 
     let mut attempt = 0;
@@ -962,11 +992,21 @@ async fn handle_read(
         }
     }
 
+    read_result_json(&result, headers_sent, params_sent)
+}
+
+/// Render a read result as the JavaScript Object Notation (JSON) the runner
+/// expects. Text data stays readable; binary data is base64.
+#[cfg(not(target_arch = "wasm32"))]
+fn read_result_json(
+    result: &ReadResult,
+    headers_sent: serde_json::Map<String, serde_json::Value>,
+    params_sent: serde_json::Map<String, serde_json::Value>,
+) -> serde_json::Value {
     let chunks: Vec<serde_json::Value> = result
         .chunks
         .iter()
         .map(|chunk| match std::str::from_utf8(&chunk.data) {
-            // Text data stays readable even on an octet-stream.
             Ok(text) => serde_json::json!({ "data": text }),
             Err(_) => {
                 use base64::Engine as _;
@@ -989,4 +1029,72 @@ async fn handle_read(
         "headersSent": headers_sent,
         "paramsSent": params_sent,
     })
+}
+
+/// Read one Server-Sent Events (SSE) step into a result.
+///
+/// The read stops when it reaches `max_chunks`, sees an up-to-date control
+/// event while `wait_for_up_to_date` is set, or times out. A timeout answers
+/// `204` with `upToDate: true`, like the reference client.
+#[cfg(not(target_arch = "wasm32"))]
+async fn sse_read(
+    builder: foundation_core::durable::client::ReadBuilder,
+    timeout_ms: u64,
+    max_chunks: usize,
+    wait_for_up_to_date: bool,
+) -> Result<ReadResult, foundation_core::durable::client::ClientError> {
+    let mut read = builder.mode(ReadMode::Sse).open_sse().await?;
+    let mut result = ReadResult {
+        status: read.status(),
+        ..ReadResult::default()
+    };
+    enum Step {
+        Item(
+            Result<
+                Option<ReadChunk>,
+                foundation_core::durable::client::ClientError,
+            >,
+        ),
+        Timeout,
+    }
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
+    while result.chunks.len() < max_chunks {
+        let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+        if remaining.is_zero() {
+            result.up_to_date = true;
+            result.status = 204;
+            break;
+        }
+        let item = async { Step::Item(read.next().await) };
+        let timeout = async {
+            smol::Timer::after(remaining).await;
+            Step::Timeout
+        };
+        match futures_lite::future::or(item, timeout).await {
+            Step::Item(item) => match item? {
+                Some(chunk) => {
+                    if !chunk.data.is_empty() {
+                        result.chunks.push(chunk);
+                    }
+                    result.next_offset = read.next_offset().map(str::to_string);
+                    result.cursor = read.cursor().map(str::to_string);
+                    result.up_to_date = read.up_to_date();
+                    result.closed = read.closed();
+                    if wait_for_up_to_date && read.up_to_date() {
+                        break;
+                    }
+                }
+                None => {
+                    result.up_to_date = true;
+                    break;
+                }
+            },
+            Step::Timeout => {
+                result.up_to_date = true;
+                result.status = 204;
+                break;
+            }
+        }
+    }
+    Ok(result)
 }

@@ -102,8 +102,10 @@ impl StreamHandle {
       `create_is_idempotent`, `append_returns_offset`, `head_returns_metadata`.
 - [x] **T2 — catch-up and long-poll.** Offset handling, byte-exact resumption and `204`.
       Tests: `read_resumes_byte_exactly`, `long_poll_timeout_is_up_to_date`.
-- [ ] **T3 — SSE and auto.** Parser, base64, control events, unknown events, auto fallback.
+- [x] **T3 — SSE and auto.** Parser, base64, control events, unknown events, auto fallback.
       Tests: `sse_decodes_base64`, `sse_ignores_unknown_event`, `auto_falls_back_to_long_poll`.
+      The adapter announces `retryOptions`, `batchItems` and `strictZeroValidation` and the
+      `validate` command rejects the same cases the suite checks.
 - [ ] **T4 — JSON and errors.** Parse arrays, `PARSE_ERROR`, error codes and path context.
       Tests: `json_parse_error_is_typed`, `not_found_message_has_path`.
 - [ ] **T5 — retry.** `500`, `503`, `429`, exhaustion and no-retry rules. Tests:
@@ -128,7 +130,7 @@ impl StreamHandle {
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_netio` green; client tests live in `tests/durable/`.
-- [ ] The client core has no valtron dependency.
-- [ ] The client conformance suite passes with the adapter.
-- [ ] The valtron wrapper tests pass with valtron enabled.
+- [x] `cargo test -p foundation_netio` green; client tests live in `tests/durable/`.
+- [x] The client core has no valtron dependency.
+- [x] The client conformance suite passes with the adapter (267 pass, 2 suite-forced skips).
+- [x] The valtron wrapper tests pass with valtron enabled.

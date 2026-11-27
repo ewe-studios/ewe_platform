@@ -6,14 +6,21 @@ use std::sync::{Arc, Mutex};
 use foundation_core::durable::StreamName;
 use foundation_core::durable::client::{
     ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientSseStream,
-    ClientTransport, DurableClient, ReadMode, SseEvent, TransportError,
+    ClientTransport, DurableClient, ReadMode, ReadResult, SseEvent, SseOpen, SseRead, TransportError,
 };
+
+#[derive(Clone, Default)]
+struct SseHeadSpec {
+    status: u16,
+    headers: Vec<(String, String)>,
+}
 
 #[derive(Default)]
 struct MockTransport {
     responses: Mutex<VecDeque<ClientResponse>>,
     requests: Mutex<Vec<ClientRequest>>,
     events: Mutex<Vec<Result<SseEvent, TransportError>>>,
+    sse_head: Mutex<SseHeadSpec>,
 }
 
 impl MockTransport {
@@ -22,6 +29,25 @@ impl MockTransport {
             responses: Mutex::new(responses.into()),
             requests: Mutex::new(Vec::new()),
             events: Mutex::new(Vec::new()),
+            sse_head: Mutex::new(SseHeadSpec {
+                status: 200,
+                headers: Vec::new(),
+            }),
+        })
+    }
+
+    fn with_sse_head(status: u16, headers: &[(&str, &str)]) -> Arc<Self> {
+        Arc::new(Self {
+            responses: Mutex::new(VecDeque::new()),
+            requests: Mutex::new(Vec::new()),
+            events: Mutex::new(Vec::new()),
+            sse_head: Mutex::new(SseHeadSpec {
+                status,
+                headers: headers
+                    .iter()
+                    .map(|(key, value)| ((*key).to_string(), (*value).to_string()))
+                    .collect(),
+            }),
         })
     }
 
@@ -51,12 +77,21 @@ impl ClientTransport for MockTransport {
         Box::pin(async move { Ok(response) })
     }
 
-    fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, ClientSseStream> {
+    fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, SseOpen> {
         self.requests.lock().expect("requests").push(request);
         let events = self.events.lock().expect("events").drain(..).collect::<Vec<_>>();
+        let head = self.sse_head.lock().expect("sse head").clone();
         Box::pin(async move {
             let stream = futures_lite::stream::iter(events);
-            Ok(Box::pin(stream) as ClientSseStream)
+            let mut headers: BTreeMap<String, Vec<String>> = BTreeMap::new();
+            for (key, value) in head.headers {
+                headers.entry(key).or_default().push(value);
+            }
+            Ok(SseOpen {
+                status: head.status,
+                headers,
+                stream: Box::pin(stream) as ClientSseStream,
+            })
         })
     }
 }
@@ -313,10 +348,29 @@ fn sse(event_type: &str, data: &str) -> Result<SseEvent, TransportError> {
     })
 }
 
+/// Consume an open Server-Sent Events (SSE) read to its end and fold it into
+/// a [`ReadResult`]. The mock events are finite, so the stream always ends.
+async fn drain(mut read: SseRead) -> ReadResult {
+    let mut result = ReadResult {
+        status: read.status(),
+        ..ReadResult::default()
+    };
+    while let Some(chunk) = read.next().await.expect("sse item") {
+        if !chunk.data.is_empty() {
+            result.chunks.push(chunk);
+        }
+        result.next_offset = read.next_offset().map(str::to_string);
+        result.cursor = read.cursor().map(str::to_string);
+        result.up_to_date = read.up_to_date();
+        result.closed = read.closed();
+    }
+    result
+}
+
 #[test]
 fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk_and_offset() {
     foundation_core::valtron::block_on_future_scoped(async {
-        let transport = MockTransport::with(vec![response(200, &[], b"")]);
+        let transport = MockTransport::with(vec![]);
         transport.events.lock().expect("events").extend([
             sse("data", "hello"),
             sse(
@@ -324,7 +378,13 @@ fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk
                 r#"{"streamNextOffset":"00ff","streamCursor":7,"upToDate":true}"#,
             ),
         ]);
-        let result = handle(transport).read().mode(ReadMode::Sse).send().await.expect("sse");
+        let read = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .open_sse()
+            .await
+            .expect("sse");
+        let result = drain(read).await;
 
         assert_eq!(result.chunks.len(), 1);
         assert_eq!(result.chunks[0].data, b"hello");
@@ -337,18 +397,19 @@ fn given_a_sse_data_and_control_event_when_a_read_runs_then_it_reports_the_chunk
 #[test]
 fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes() {
     foundation_core::valtron::block_on_future_scoped(async {
-        let transport = MockTransport::with(vec![response(200, &[], b"")]);
+        let transport = MockTransport::with(vec![]);
         transport.events.lock().expect("events").extend([
             sse("data", "SGVsbG8="),
             sse("control", r#"{"streamNextOffset":"00ff","streamClosed":true}"#),
         ]);
-        let result = handle(transport)
+        let read = handle(transport)
             .read()
             .mode(ReadMode::Sse)
             .sse_binary(true)
-            .send()
+            .open_sse()
             .await
             .expect("sse");
+        let result = drain(read).await;
 
         assert_eq!(result.chunks[0].data, b"Hello");
         assert!(result.closed);
@@ -358,17 +419,18 @@ fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes(
 #[test]
 fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_read() {
     foundation_core::valtron::block_on_future_scoped(async {
-        let transport = MockTransport::with(vec![response(200, &[], b"")]);
+        let transport = MockTransport::with(vec![]);
         transport.events.lock().expect("events").push(Ok(SseEvent {
             event_type: None,
             data: r#"{"streamNextOffset":"00aa","upToDate":true}"#.to_string(),
         }));
-        let result = handle(transport)
+        let read = handle(transport)
             .read()
             .mode(ReadMode::Sse)
-            .send()
+            .open_sse()
             .await
             .expect("sse");
+        let result = drain(read).await;
 
         assert!(result.chunks.is_empty());
         assert_eq!(result.next_offset.as_deref(), Some("00aa"));
@@ -378,32 +440,34 @@ fn given_a_control_event_with_no_type_when_a_read_runs_then_it_still_ends_the_re
 #[test]
 fn given_an_empty_data_event_when_a_read_runs_then_it_adds_no_chunk() {
     foundation_core::valtron::block_on_future_scoped(async {
-        let transport = MockTransport::with(vec![response(200, &[], b"")]);
+        let transport = MockTransport::with(vec![]);
         transport.events.lock().expect("events").extend([
             sse("data", ""),
             sse("control", r#"{"streamNextOffset":"00bb","upToDate":true}"#),
         ]);
-        let result = handle(transport)
+        let read = handle(transport)
             .read()
             .mode(ReadMode::Sse)
-            .send()
+            .open_sse()
             .await
             .expect("sse");
+        let result = drain(read).await;
 
         assert!(result.chunks.is_empty());
     });
 }
 
 #[test]
-fn given_a_missing_stream_when_an_sse_read_runs_then_the_probe_answers_not_found() {
+fn given_a_missing_stream_when_an_sse_read_runs_then_the_head_answers_not_found() {
     foundation_core::valtron::block_on_future_scoped(async {
-        let transport = MockTransport::with(vec![response(404, &[], b"")]);
+        let transport = MockTransport::with_sse_head(404, &[]);
         let error = handle(transport)
             .read()
             .mode(ReadMode::Sse)
-            .send()
+            .open_sse()
             .await
-            .expect_err("missing");
+            .err()
+            .expect("missing");
         assert!(matches!(error, ClientError::NotFound { .. }));
     });
 }
@@ -411,23 +475,83 @@ fn given_a_missing_stream_when_an_sse_read_runs_then_the_probe_answers_not_found
 #[test]
 fn given_an_sse_encoding_header_when_a_text_read_runs_then_the_data_is_decoded() {
     foundation_core::valtron::block_on_future_scoped(async {
-        let transport = MockTransport::with(vec![response(
-            200,
-            &[("stream-sse-data-encoding", "base64")],
-            b"",
-        )]);
+        let transport =
+            MockTransport::with_sse_head(200, &[("stream-sse-data-encoding", "base64")]);
         transport.events.lock().expect("events").extend([
             sse("data", "SGVsbG8="),
             sse("control", r#"{"streamNextOffset":"00cc"}"#),
         ]);
-        let result = handle(transport)
+        let read = handle(transport)
             .read()
             .mode(ReadMode::Sse)
-            .send()
+            .open_sse()
             .await
             .expect("sse");
+        let result = drain(read).await;
 
         assert_eq!(result.chunks[0].data, b"Hello");
+    });
+}
+
+#[test]
+fn given_a_multiline_base64_event_when_it_is_read_then_it_decodes_to_the_text() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        use base64::Engine as _;
+        let text = "Line 1\nLine 2\nLine 3";
+        let encoded = base64::engine::general_purpose::STANDARD.encode(text);
+        let transport =
+            MockTransport::with_sse_head(200, &[("stream-sse-data-encoding", "base64")]);
+        transport.events.lock().expect("events").extend([
+            sse("data", &encoded),
+            sse("control", r#"{"streamNextOffset":"00dd","upToDate":true}"#),
+        ]);
+        let read = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .open_sse()
+            .await
+            .expect("sse");
+        let result = drain(read).await;
+
+        assert_eq!(result.chunks.len(), 1);
+        assert_eq!(result.chunks[0].data, text.as_bytes());
+    });
+}
+
+#[test]
+fn given_a_large_base64_payload_split_across_lines_when_it_is_read_then_it_decodes_exactly() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        use base64::Engine as _;
+        // A 4096-byte pattern: the bytes 0 to 255 repeated sixteen times.
+        let original: Vec<u8> = (0..=255u8).cycle().take(4096).collect();
+        let mut encoded = base64::engine::general_purpose::STANDARD.encode(&original);
+        // A server splits a long payload across `data:` lines. The parser
+        // joins those lines with a newline, so insert one every 76 characters.
+        let mut split = String::new();
+        for (index, character) in encoded.chars().enumerate() {
+            if index > 0 && index % 76 == 0 {
+                split.push('\n');
+            }
+            split.push(character);
+        }
+        encoded = split;
+
+        let transport =
+            MockTransport::with_sse_head(200, &[("stream-sse-data-encoding", "base64")]);
+        transport.events.lock().expect("events").extend([
+            sse("data", &encoded),
+            sse("control", r#"{"streamNextOffset":"00ee","upToDate":true}"#),
+        ]);
+        let read = handle(transport)
+            .read()
+            .mode(ReadMode::Sse)
+            .open_sse()
+            .await
+            .expect("sse");
+        let result = drain(read).await;
+
+        assert_eq!(result.chunks.len(), 1);
+        assert_eq!(result.chunks[0].data, original);
     });
 }
 

@@ -459,3 +459,31 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The event-stream store lost its clock binding.** `SubscriptionStore::new` passes `ctx` to
   `DurableStream::new` and keeps no `Arc<dyn Clock>` local.
 
+
+## SSE close-out (2026-11-27)
+
+- **The reference server chunks the SSE body.** `@durable-streams/server` sends
+  `Transfer-Encoding: chunked` for a live SSE response. The client body extractor checked the
+  content type first and fed the raw chunked bytes to the event parser, so the chunk-size lines
+  were read as event fields and every event lost its `event:` type. The fix de-chunks with a
+  `Read` adapter over the chunk iterator before the event parser runs.
+- **The SSE open must return the head.** `ClientTransport::open_sse` now returns `SseOpen`
+  (status, headers, stream). The client answers 404 and 410 from the head and reads
+  `stream-sse-data-encoding` there. The HEAD probe workaround is gone.
+- **One future yields many values as a stream.** `ReadBuilder::open_sse` returns an `SseRead`
+  stream. `ReadBuilder::send` rejects `ReadMode::Sse` and points to `open_sse`. A data event
+  waits for its following control event, so a chunk carries the control's metadata (offset,
+  cursor, closed).
+- **The event task parks, it does not block.** `EventSourceTask::ReadingStream` sets the socket
+  non-blocking and returns `TaskStatus::Depends` on the connection readiness source when the body
+  iterator reports `WouldBlock`. A test that drives `next_status` directly must park on that
+  status, not spin; a consumer should drive the task with `execute`.
+- **Escape U+2028 and U+2029 in adapter output.** Node's readline treats both as line
+  terminators, so a raw separator inside a JSON result splits the line. The adapter escapes them,
+  as the reference client does.
+- **Strip `\n` and `\r` from base64 before decoding.** A server may split one base64 payload
+  across `data:` lines. The decoder removes the joined newlines first (protocol section 5.8).
+- **The suite forces two skips.** `sse-base64-data-integrity-multiline` and
+  `sse-base64-large-payload-4kb` are skipped by the suite itself with
+  "Swift implementation broken". No client can run them. Our own client-core tests cover the
+  same rules.
