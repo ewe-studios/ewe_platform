@@ -339,6 +339,7 @@ impl Slave {
             self.ctx.clone(),
             limits.max_exec_sessions as usize,
             std::time::Duration::from_millis(u64::from(limits.upload_idle_timeout_ms)),
+            limits.max_message_bytes as usize,
         ));
         *slot = Some(Arc::clone(&sessions));
         start_unpack_timer(
@@ -687,17 +688,21 @@ impl SlaveService for Slave {
         request: Request<UnpackBeginRequest>,
     ) -> ConnectResult<Response<UnpackBeginResponse>> {
         let max = self.max_error_message();
-        let answer = self.prepared().and_then(|prepared| {
+        let answer = async {
+            let prepared = self.prepared()?;
             let sessions = self.unpack_sessions()?;
             let mut child = unpack_child_limits(prepared.limits());
             child.oci_whiteouts = request.msg.oci_whiteouts;
             child.keep_existing_dirs = request.msg.keep_existing_dirs;
             child.skip.clone_from(&request.msg.skip);
-            let upload_id = sessions.begin(&prepared.exec_root, &request.msg.dest, &child)?;
+            let upload_id = sessions
+                .begin(&prepared.exec_root, &request.msg.dest, &child)
+                .await?;
             Ok(UnpackBeginResponse {
                 upload_id: upload_id.to_string(),
             })
-        });
+        }
+        .await;
         to_connect(answer, max).map(Response::new)
     }
 
@@ -707,17 +712,19 @@ impl SlaveService for Slave {
         request: Request<UnpackChunkRequest>,
     ) -> ConnectResult<Response<UnpackChunkResponse>> {
         let max = self.max_error_message();
-        let answer = self
-            .prepared()
-            .and_then(|_| self.unpack_sessions())
-            .and_then(|sessions| {
-                sessions.chunk(
+        let answer = async {
+            let _ = self.prepared()?;
+            let sessions = self.unpack_sessions()?;
+            sessions
+                .chunk(
                     &request.msg.upload_id,
                     request.msg.offset,
                     &request.msg.data,
                 )
-            })
-            .map(|next_offset| UnpackChunkResponse { next_offset });
+                .await
+        }
+        .await
+        .map(|next_offset| UnpackChunkResponse { next_offset });
         to_connect(answer, max).map(Response::new)
     }
 
@@ -727,11 +734,15 @@ impl SlaveService for Slave {
         request: Request<UnpackCommitRequest>,
     ) -> ConnectResult<Response<UnpackCommitResponse>> {
         let max = self.max_error_message();
-        let answer = self
-            .prepared()
-            .and_then(|_| self.unpack_sessions())
-            .and_then(|sessions| sessions.commit(&request.msg.upload_id, request.msg.size))
-            .map(|(entries, bytes)| UnpackCommitResponse { entries, bytes });
+        let answer = async {
+            let _ = self.prepared()?;
+            let sessions = self.unpack_sessions()?;
+            sessions
+                .commit(&request.msg.upload_id, request.msg.size)
+                .await
+        }
+        .await
+        .map(|(entries, bytes)| UnpackCommitResponse { entries, bytes });
         to_connect(answer, max).map(Response::new)
     }
 
