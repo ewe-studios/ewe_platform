@@ -19,7 +19,7 @@ use crate::shared::offsets::{compare_offsets, offset_from_len, zero_offset, BEFO
 use crate::shared::signing::WebhookSigningKey;
 use crate::shared::store::{ObservingVfs, StreamWriteObserver, SubscriptionStore};
 use crate::shared::url::validate_webhook_url;
-use crate::shared::webhook::{WebhookRequest, WebhookSender};
+use crate::shared::webhook::{WebhookRequest, WebhookResponse, WebhookSender};
 use foundation_compact::rng::Rng;
 use foundation_compact::time::unix_millis;
 use foundation_context::Ctx;
@@ -29,15 +29,95 @@ use foundation_core::durable::{
 };
 use serde::Deserialize;
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Write as _;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 /// The flag a webhook returns to finish synchronously.
 #[derive(Debug, Deserialize)]
 struct DoneFlag {
     #[serde(default)]
     done: bool,
+}
+
+/// A hook that a host runs after the engine queues a webhook delivery.
+///
+/// The engine never waits for it. A host uses it to start a worker without waiting for the next
+/// [`SubscriptionEngine::tick`]. The hook must return quickly and must not block.
+pub trait DeliveryNotifier: Send + Sync {
+    /// Runs once for each delivery that enters the queue.
+    fn delivery_queued(&self);
+}
+
+/// The result of a queue push.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum QueuePush {
+    /// The delivery entered the queue.
+    Queued,
+    /// The subscription already has a queued delivery.
+    Duplicate,
+    /// The queue is at its bound.
+    Full,
+}
+
+/// The bounded first-in-first-out queue of subscription identifiers.
+struct DeliveryQueue {
+    bound: usize,
+    state: Mutex<QueueState>,
+}
+
+/// The queue order and the identifiers it holds, so a push is idempotent.
+#[derive(Default)]
+struct QueueState {
+    order: VecDeque<String>,
+    queued: BTreeSet<String>,
+}
+
+impl DeliveryQueue {
+    fn new(bound: usize) -> Self {
+        Self {
+            bound: bound.max(1),
+            state: Mutex::new(QueueState::default()),
+        }
+    }
+
+    fn bound(&self) -> usize {
+        self.bound
+    }
+
+    fn push(&self, id: &str) -> QueuePush {
+        let mut state = self.lock();
+        if state.queued.contains(id) {
+            return QueuePush::Duplicate;
+        }
+        if state.order.len() >= self.bound {
+            return QueuePush::Full;
+        }
+        state.order.push_back(id.to_string());
+        state.queued.insert(id.to_string());
+        QueuePush::Queued
+    }
+
+    fn pop(&self) -> Option<String> {
+        let mut state = self.lock();
+        let id = state.order.pop_front()?;
+        state.queued.remove(&id);
+        Some(id)
+    }
+
+    fn lock(&self) -> std::sync::MutexGuard<'_, QueueState> {
+        self.state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    }
+}
+
+/// The result of one bounded webhook attempt.
+enum DeliveryOutcome {
+    /// The sender answered or failed.
+    Answered(Result<WebhookResponse, String>),
+    /// The delivery timeout passed before the sender answered.
+    TimedOut,
 }
 
 /// The append observer that the engine installs on the observed virtual file system (VFS).
@@ -56,12 +136,19 @@ impl StreamWriteObserver for EngineObserver {
 }
 
 /// The subscription engine.
+///
+/// A create, a confirm and an append never wait for a webhook receiver. They record the wake and
+/// put the subscription identifier in a queue. A worker drains the queue in
+/// [`SubscriptionEngine::tick`], or when the host calls
+/// [`SubscriptionEngine::drain_deliveries`] from its own executor.
 #[derive(Clone)]
 pub struct SubscriptionEngine {
     store: Arc<SubscriptionStore>,
     ctx: Ctx,
     signing: Arc<WebhookSigningKey>,
     sender: Arc<dyn WebhookSender>,
+    queue: Arc<DeliveryQueue>,
+    notifier: Option<Arc<dyn DeliveryNotifier>>,
 }
 
 impl SubscriptionEngine {
@@ -77,13 +164,26 @@ impl SubscriptionEngine {
         sender: Arc<dyn WebhookSender>,
         config: SubscriptionConfig,
     ) -> Self {
+        let queue = Arc::new(DeliveryQueue::new(config.delivery_queue_bound));
         let store = Arc::new(SubscriptionStore::new(vfs, &ctx, config));
         Self {
             store,
             ctx,
             signing: Arc::new(signing),
             sender,
+            queue,
+            notifier: None,
         }
+    }
+
+    /// Set the hook that the engine calls after it queues a delivery.
+    ///
+    /// The hook lets the host start a worker at once. Without it, the host drains the queue on
+    /// its [`SubscriptionEngine::tick`] schedule.
+    #[must_use]
+    pub fn with_delivery_notifier(mut self, notifier: Arc<dyn DeliveryNotifier>) -> Self {
+        self.notifier = Some(notifier);
+        self
     }
 
     /// The configuration.
@@ -470,15 +570,37 @@ impl SubscriptionEngine {
         Ok(())
     }
 
-    /// Expire due leases and run due webhook retries. A host calls this on a timer.
+    /// Expire due leases, queue due webhook retries and drain the delivery queue.
+    ///
+    /// A host calls this on a timer. The call uses the injected clock, so a test drives it
+    /// without a real wait.
     pub async fn tick(&self) {
         let now = self.now_ms();
         self.expire_due_leases(now).await;
-        self.retry_due(now).await;
+        self.enqueue_due_retries(now);
+        self.drain_deliveries().await;
     }
 
-    /// Deliver the webhook retries that are due at `now`.
-    pub async fn retry_due(&self, now: i64) {
+    /// Run the queued webhook deliveries. The call returns the number of attempts.
+    ///
+    /// The call makes at most `delivery_queue_bound` attempts. A delivery that finishes a wake
+    /// can queue the next wake; the same call runs it when the bound allows. The call never
+    /// waits for a receiver longer than `delivery_timeout_ms` on the injected clock.
+    pub async fn drain_deliveries(&self) -> usize {
+        let cap = self.queue.bound();
+        let mut attempts = 0;
+        while attempts < cap {
+            let Some(id) = self.queue.pop() else {
+                break;
+            };
+            self.deliver(&id).await;
+            attempts += 1;
+        }
+        attempts
+    }
+
+    /// Queue the webhook retries that are due at `now`.
+    fn enqueue_due_retries(&self, now: i64) {
         let due = self.store.with_records(|records| {
             records
                 .values()
@@ -490,7 +612,24 @@ impl SubscriptionEngine {
                 .collect::<Vec<_>>()
         });
         for id in due {
-            self.deliver(&id).await;
+            self.enqueue_delivery(&id);
+        }
+    }
+
+    /// Put a subscription in the delivery queue.
+    fn enqueue_delivery(&self, id: &str) {
+        match self.queue.push(id) {
+            QueuePush::Queued => {
+                if let Some(notifier) = &self.notifier {
+                    notifier.delivery_queued();
+                }
+            }
+            QueuePush::Duplicate => {}
+            QueuePush::Full => tracing::warn!(
+                subscription = id,
+                bound = self.queue.bound(),
+                "webhook delivery queue is full; the subscription lease queues the delivery again"
+            ),
         }
     }
 
@@ -711,6 +850,8 @@ impl SubscriptionEngine {
             record.generation = record.generation.saturating_add(1);
             record.wake_id = Some(self.new_wake_id());
             record.wake_snapshot = tails.clone();
+            record.retry_count = 0;
+            record.next_attempt_at_ms = None;
             match record.kind {
                 SubscriptionType::Webhook => {
                     record.token = Some(self.new_token());
@@ -730,7 +871,7 @@ impl SubscriptionEngine {
         };
         self.log_persist(id, self.store.persist(&record).await);
         match record.kind {
-            SubscriptionType::Webhook => self.deliver(id).await,
+            SubscriptionType::Webhook => self.enqueue_delivery(id),
             SubscriptionType::PullWake => {
                 if let Some(wake_stream) = record.wake_stream.clone() {
                     self.write_wake_event(id, &wake_stream, triggered_by, record.generation)
@@ -740,6 +881,10 @@ impl SubscriptionEngine {
         }
     }
 
+    /// Deliver the current wake to the webhook receiver.
+    ///
+    /// The worker calls this. The call holds the wake lease over the attempt, and it bounds the
+    /// attempt with the delivery timeout on the injected clock.
     async fn deliver(&self, id: &str) {
         let Some(record) = self.store.get(id) else {
             return;
@@ -751,6 +896,7 @@ impl SubscriptionEngine {
         ) else {
             return;
         };
+        self.hold_lease_for_attempt(id).await;
         let notification = WakeNotification {
             subscription_id: id.to_string(),
             wake_id,
@@ -779,8 +925,8 @@ impl SubscriptionEngine {
             ],
             body,
         };
-        match self.sender.send(request).await {
-            Ok(response) if (200..300).contains(&response.status) => {
+        match self.send_bounded(request).await {
+            DeliveryOutcome::Answered(Ok(response)) if (200..300).contains(&response.status) => {
                 let done =
                     serde_json::from_slice::<DoneFlag>(&response.body).is_ok_and(|flag| flag.done);
                 let updated = self.store.with_record_mut(id, |slot| {
@@ -799,7 +945,7 @@ impl SubscriptionEngine {
                     self.finish_wake(id).await;
                 }
             }
-            Ok(response) => {
+            DeliveryOutcome::Answered(Ok(response)) => {
                 tracing::warn!(
                     subscription = id,
                     status = response.status,
@@ -807,26 +953,93 @@ impl SubscriptionEngine {
                 );
                 self.schedule_retry(id).await;
             }
-            Err(error) => {
+            DeliveryOutcome::Answered(Err(error)) => {
                 tracing::warn!(subscription = id, "webhook delivery failed: {error}");
+                self.schedule_retry(id).await;
+            }
+            DeliveryOutcome::TimedOut => {
+                tracing::warn!(
+                    subscription = id,
+                    timeout_ms = self.config().delivery_timeout_ms,
+                    "webhook delivery exceeded the delivery timeout"
+                );
                 self.schedule_retry(id).await;
             }
         }
     }
 
-    async fn schedule_retry(&self, id: &str) {
+    /// Send one webhook within the delivery timeout.
+    ///
+    /// The engine uses the timer from the injected [`foundation_context::env::Env`]. A host that
+    /// installs no `Env` gets no engine bound, and the sender's transport timeouts apply.
+    async fn send_bounded(&self, request: WebhookRequest) -> DeliveryOutcome {
+        let timeout_ms = self.config().delivery_timeout_ms;
+        let Some(env) = self.ctx.env().filter(|_| timeout_ms > 0) else {
+            return DeliveryOutcome::Answered(self.sender.send(request).await);
+        };
+        let deadline = self.ctx.clock().now() + std::time::Duration::from_millis(timeout_ms);
+        let timer = env.timer().sleep_until(self.ctx.clone(), deadline);
+        let send = async move { DeliveryOutcome::Answered(self.sender.send(request).await) };
+        let timeout = async move {
+            timer.await;
+            DeliveryOutcome::TimedOut
+        };
+        futures_lite::future::or(send, timeout).await
+    }
+
+    /// Extend the wake lease so it cannot expire during one delivery attempt.
+    async fn hold_lease_for_attempt(&self, id: &str) {
         let now = self.now_ms();
+        let hold = i64::try_from(self.config().delivery_timeout_ms).unwrap_or(i64::MAX);
         let updated = self.store.with_record_mut(id, |slot| {
-            let Some(record) = slot else {
-                return None;
-            };
-            record.retry_count = record.retry_count.saturating_add(1);
-            let delay = self.retry_delay(record.retry_count);
-            record.status = SubscriptionStatus::Failed;
-            record.next_attempt_at_ms =
-                Some(now.saturating_add(i64::try_from(delay).unwrap_or(i64::MAX)));
+            let record = slot.filter(|record| record.wake_id.is_some())?;
+            let until = now
+                .saturating_add(self.lease_ms(record))
+                .saturating_add(hold);
+            record.lease_expires_at_ms =
+                Some(record.lease_expires_at_ms.unwrap_or(until).max(until));
             Some(record.clone())
         });
+        if let Some(record) = updated {
+            self.log_persist(id, self.store.persist(&record).await);
+        }
+    }
+
+    async fn schedule_retry(&self, id: &str) {
+        let now = self.now_ms();
+        let bound = self.config().delivery_retry_bound.max(1);
+        let mut exhausted = false;
+        let updated = self.store.with_record_mut(id, |slot| {
+            let record = slot?;
+            record.retry_count = record.retry_count.saturating_add(1);
+            record.status = SubscriptionStatus::Failed;
+            if record.retry_count >= bound {
+                // The bound is reached. Stop retrying this wake and release it, so the next
+                // append starts a new wake with a new budget.
+                exhausted = true;
+                record.clear_wake();
+                record.next_attempt_at_ms = None;
+            } else {
+                let delay = self.retry_delay(record.retry_count);
+                let next = now.saturating_add(i64::try_from(delay).unwrap_or(i64::MAX));
+                record.next_attempt_at_ms = Some(next);
+                // The lease must not expire between retries. Keep it over the next attempt
+                // and its callback window.
+                let until = next.saturating_add(self.lease_ms(record)).saturating_add(
+                    i64::try_from(self.config().delivery_timeout_ms).unwrap_or(i64::MAX),
+                );
+                record.lease_expires_at_ms =
+                    Some(record.lease_expires_at_ms.unwrap_or(until).max(until));
+            }
+            Some(record.clone())
+        });
+        if exhausted {
+            tracing::warn!(
+                subscription = id,
+                bound,
+                "webhook delivery retry bound reached; the subscription stays failed"
+            );
+        }
         if let Some(record) = updated {
             self.log_persist(id, self.store.persist(&record).await);
         }

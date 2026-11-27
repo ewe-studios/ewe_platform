@@ -45,6 +45,31 @@ pub struct SubscriptionConfig {
     pub webhook_connect_timeout_ms: u64,
     /// The longest webhook read wait in milliseconds. Default 30 000.
     pub webhook_read_timeout_ms: u64,
+    /// The largest number of webhook deliveries that wait in the queue.
+    ///
+    /// The append path only queues a delivery. A full queue refuses the new entry, and the
+    /// subscription lease schedules it again after it expires.
+    ///
+    /// Default 1 024: twice the nginx `worker_connections` default of 512, because one queue
+    /// serves every subscription in the host.
+    pub delivery_queue_bound: usize,
+    /// The most failed delivery attempts for one wake.
+    ///
+    /// The engine stops retrying when the count reaches the bound. The status stays `failed`.
+    /// A new wake starts a new count.
+    ///
+    /// Default 8, the number of delivery attempts that Svix documents for a webhook before it
+    /// marks the message failed.
+    pub delivery_retry_bound: u32,
+    /// The longest one webhook delivery attempt may take in milliseconds.
+    ///
+    /// The worker races the send against a timer on the injected clock, so a stalled receiver
+    /// cannot hold the worker. A value of 0 disables the engine bound, and the sender's own
+    /// transport timeouts apply.
+    ///
+    /// Default 10 000: GitHub records a webhook delivery as failed when the receiver does not
+    /// answer within 10 seconds.
+    pub delivery_timeout_ms: u64,
 }
 
 impl SubscriptionConfig {
@@ -66,6 +91,9 @@ impl SubscriptionConfig {
             public_scheme: "http".to_string(),
             webhook_connect_timeout_ms: 10_000,
             webhook_read_timeout_ms: 30_000,
+            delivery_queue_bound: 1_024,
+            delivery_retry_bound: 8,
+            delivery_timeout_ms: 10_000,
         }
     }
 
@@ -139,6 +167,33 @@ impl SubscriptionConfig {
     pub fn with_webhook_timeouts_ms(mut self, connect: u64, read: u64) -> Self {
         self.webhook_connect_timeout_ms = connect;
         self.webhook_read_timeout_ms = read;
+        self
+    }
+
+    /// Set the largest number of webhook deliveries that wait in the queue.
+    ///
+    /// A value of 0 is treated as 1.
+    #[must_use]
+    pub fn with_delivery_queue_bound(mut self, bound: usize) -> Self {
+        self.delivery_queue_bound = bound;
+        self
+    }
+
+    /// Set the most failed delivery attempts for one wake.
+    ///
+    /// A value of 0 is treated as 1.
+    #[must_use]
+    pub fn with_delivery_retry_bound(mut self, bound: u32) -> Self {
+        self.delivery_retry_bound = bound;
+        self
+    }
+
+    /// Set the longest one webhook delivery attempt may take in milliseconds.
+    ///
+    /// A value of 0 disables the engine bound.
+    #[must_use]
+    pub fn with_delivery_timeout_ms(mut self, milliseconds: u64) -> Self {
+        self.delivery_timeout_ms = milliseconds;
         self
     }
 

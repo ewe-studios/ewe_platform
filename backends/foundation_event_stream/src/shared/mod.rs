@@ -18,7 +18,7 @@ pub mod url;
 pub mod webhook;
 
 pub use config::{normalize_relative_path, SubscriptionConfig};
-pub use engine::SubscriptionEngine;
+pub use engine::{DeliveryNotifier, SubscriptionEngine};
 pub use error::{SubscriptionError, SubscriptionErrorCode};
 pub use glob::glob_match;
 pub use hash::stable_config_hash;

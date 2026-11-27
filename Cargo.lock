@@ -6326,6 +6326,7 @@ dependencies = [
  "foundation_core",
  "foundation_http",
  "foundation_netio",
+ "futures-lite",
  "serde",
  "serde_json",
  "sha2 0.11.1",

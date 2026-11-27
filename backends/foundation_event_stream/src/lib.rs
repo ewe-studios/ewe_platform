@@ -30,7 +30,7 @@ pub use foundation_auth::shared::jwks::{Jwk, Jwks, JwksError, JwksManager};
 pub use foundation_core::durable;
 
 pub use shared::{
-    LinkType, StreamInfo, StreamView, SubscriptionConfig, SubscriptionCreate, SubscriptionEngine,
-    SubscriptionError, SubscriptionErrorCode, SubscriptionRecord, SubscriptionStatus,
-    SubscriptionType, SubscriptionView, WebhookSignature, WebhookSigningKey,
+    DeliveryNotifier, LinkType, StreamInfo, StreamView, SubscriptionConfig, SubscriptionCreate,
+    SubscriptionEngine, SubscriptionError, SubscriptionErrorCode, SubscriptionRecord,
+    SubscriptionStatus, SubscriptionType, SubscriptionView, WebhookSignature, WebhookSigningKey,
 };

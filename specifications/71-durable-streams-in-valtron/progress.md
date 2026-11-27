@@ -2,6 +2,26 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: issue #1028 closed (medium). Webhook delivery leaves the append path. A create, a
+  confirm, an append, an acknowledgement and a lease change only record the wake and put the
+  subscription identifier in a bounded first-in-first-out (FIFO) queue. `SubscriptionEngine::tick`
+  expires due leases, queues due retries and drains the queue; a host can also call
+  `drain_deliveries` from its own executor after `DeliveryNotifier::delivery_queued`. The worker
+  bounds one attempt with `delivery_timeout_ms` on the injected timer, so a stalled receiver
+  cannot hold the worker. It extends the wake lease over the attempt and over each scheduled
+  retry, so the lease cannot expire during delivery. The retry count stops at
+  `delivery_retry_bound`; the subscription stays `failed`, and a new append starts a new wake
+  with a new budget. The queue holds each subscription once and keeps FIFO order.
+  `SubscriptionConfig` adds `delivery_queue_bound` (default 1 024), `delivery_retry_bound`
+  (default 8) and `delivery_timeout_ms` (default 10 000), each with a builder method. The
+  example server installs the real effect environment, so its tick enforces the timeout.
+  `tests/subscriptions/t7_delivery_queue.rs` adds 4 tests: a clock-gated receiver does not
+  delay create, confirm or append and the worker delivers after the clock moves; a failing
+  receiver stops at the retry bound; two deliveries for one subscription arrive in order; and a
+  stalled send times out on the injected clock. The crate suite passes 16 of 16. A bounded
+  upstream run passed the 6 server subscription tests (6 passed, 332 skipped). The
+  `foundation_event_stream` files add no time-source or clock-parameter hit.
+
 - 2026-11-27: issue #1081 closed. The `durable_core_no_valtron` integration crate now runs the
   protocol conformance suite with `foundation_core` `default-features = false` and the features
   `std` and `alloc`: no `valtron`, `test-clock`, `multi` or `vfs-testkit`, no HTTP and no

@@ -978,3 +978,26 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **A precise requirement beats a broad one.** Requirement 8 as written ("the gate does not
   enable the valtron layer") could not hold while the gate runs a socket server. The amended
   requirement names the core suite, the socket runtime and the crate that forces it.
+
+## Issue #1028: webhook delivery leaves the append path (2026-11-27)
+
+- **Queue the subscription, not the stream name.** The append already updates the record cheaply.
+  The expensive part is the webhook round trip. The queue holds one subscription identifier per
+  wake. It removes a duplicate wake at no extra cost and keeps first-in-first-out (FIFO) order.
+  The store state machine allows one open wake per subscription, so a second entry for the same
+  identifier cannot happen.
+- **A stalled receiver needs a real bound.** The worker races the send against the timer of the
+  injected `Env`. This race makes the worker return. A test moves the manual clock in the first
+  poll of the sender, so the timer is due on the next poll and the test never waits. A host that
+  installs no `Env` keeps the sender's transport timeout. The doc comment states this.
+- **The lease must outlive the attempt and the retry schedule.** The old code could fence a
+  callback when a short `lease_ttl_ms` expired during delivery. The worker extends the lease over
+  the attempt, and a scheduled retry extends it over the next attempt and its callback window.
+  The generation fence and the idempotent wake acknowledgement do not change.
+- **The retry bound needs a defined recovery path.** A bound that leaves the wake open is not a
+  bound: lease expiry re-wakes the subscription and resets the period. The engine clears the wake
+  at the bound and keeps the status `failed`. Pending data stays unacknowledged until a new append
+  starts a new wake with a new budget.
+- **A shared manual clock must move `now()`.** The valtron timer reads `Clock::now()`. The test
+  clock now returns an origin plus the moved duration, so an advance controls both the wall time
+  and the timer. It used to return the real `Instant`.

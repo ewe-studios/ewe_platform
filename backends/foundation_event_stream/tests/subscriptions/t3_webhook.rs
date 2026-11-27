@@ -27,6 +27,7 @@ fn webhook_signature_verifies() {
         true,
         Some(b"{\"event\":\"created\"}"),
     );
+    block_on_future_scoped(harness.engine.tick());
     let request = harness.sender.last_request().expect("webhook sent");
     let header = request
         .headers
@@ -82,6 +83,7 @@ fn failed_delivery_sets_failed() {
         true,
         Some(b"{\"event\":1}"),
     );
+    block_on_future_scoped(harness.engine.tick());
 
     let record = harness.engine.store().get("wh-2").expect("stored record");
     assert_eq!(record.status, SubscriptionStatus::Failed);
@@ -92,7 +94,7 @@ fn failed_delivery_sets_failed() {
         .sender
         .push(WebhookOutcome::Response(200, b"{\"done\":true}".to_vec()));
     harness.clock.advance(120_000);
-    block_on_future_scoped(harness.engine.retry_due(harness.clock.millis()));
+    block_on_future_scoped(harness.engine.tick());
 
     let record = harness.engine.store().get("wh-2").expect("stored record");
     assert_eq!(record.status, SubscriptionStatus::Active);

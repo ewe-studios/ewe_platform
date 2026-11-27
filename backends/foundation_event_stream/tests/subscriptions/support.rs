@@ -6,7 +6,6 @@ use foundation_core::durable::{
     DurableStreamVfs, MemoryVfs, StreamName,
 };
 use foundation_core::valtron::block_on_future_scoped;
-use foundation_event_stream::durable;
 use foundation_event_stream::shared::{
     AckRequest, CreateRequest, SubscriptionConfig, SubscriptionEngine, WebhookFuture, WebhookInput,
     WebhookRequest, WebhookResponse, WebhookSender, WebhookSigningKey,
@@ -16,16 +15,24 @@ use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, Mutex};
 
 /// A clock that the test moves by hand.
+///
+/// The monotonic `now()` moves with `advance`, so a timer on the injected clock fires only after
+/// the test moves time. No test waits on real time.
 #[derive(Clone)]
 pub struct TestClock {
+    origin: foundation_compact::Instant,
     millis: Arc<AtomicI64>,
 }
+
+/// The wall-clock start of every test, in UNIX milliseconds.
+const TEST_CLOCK_ORIGIN_MS: i64 = 1_700_000_000_000;
 
 impl TestClock {
     /// Start at UNIX time 1 700 000 000 000 milliseconds.
     pub fn new() -> Self {
         Self {
-            millis: Arc::new(AtomicI64::new(1_700_000_000_000)),
+            origin: foundation_compact::Instant::now(),
+            millis: Arc::new(AtomicI64::new(TEST_CLOCK_ORIGIN_MS)),
         }
     }
 
@@ -38,15 +45,20 @@ impl TestClock {
     pub fn millis(&self) -> i64 {
         self.millis.load(Ordering::SeqCst)
     }
+
+    /// The time moved since the clock started, in milliseconds.
+    fn moved_ms(&self) -> u64 {
+        u64::try_from((self.millis() - TEST_CLOCK_ORIGIN_MS).max(0)).unwrap_or(0)
+    }
 }
 
 impl foundation_context::Clock for TestClock {
     fn now(&self) -> foundation_compact::Instant {
-        foundation_compact::Instant::now()
+        self.origin + core::time::Duration::from_millis(self.moved_ms())
     }
 
     fn elapsed(&self) -> core::time::Duration {
-        core::time::Duration::ZERO
+        core::time::Duration::from_millis(self.moved_ms())
     }
 
     fn wall_now(&self) -> foundation_context::SystemTime {
@@ -126,26 +138,43 @@ impl WebhookSender for RecordingSender {
 }
 
 /// One engine and the stream store over the same observed virtual file system.
-pub struct Harness {
+pub struct Harness<S: WebhookSender = RecordingSender> {
     /// The subscription engine.
     pub engine: SubscriptionEngine,
     /// The manual clock.
     pub clock: Arc<TestClock>,
-    /// The recording webhook sender.
-    pub sender: Arc<RecordingSender>,
+    /// The webhook sender.
+    pub sender: Arc<S>,
     /// The Durable Streams store over the observed virtual file system.
     pub stream: DurableStream,
 }
 
-/// Build a harness with an in-memory virtual file system.
+/// Build a harness with an in-memory virtual file system and a recording sender.
 pub fn harness() -> Harness {
+    harness_with(SubscriptionConfig::new("v1/stream"), RecordingSender::new())
+}
+
+/// Build a harness with a configuration and a webhook sender.
+pub fn harness_with(config: SubscriptionConfig, sender: Arc<RecordingSender>) -> Harness {
     let clock = Arc::new(TestClock::new());
+    harness_with_clock(clock, config, sender)
+}
+
+/// Build a harness over a clock that the caller shares with a custom sender.
+pub fn harness_with_clock<S: WebhookSender + 'static>(
+    clock: Arc<TestClock>,
+    config: SubscriptionConfig,
+    sender: Arc<S>,
+) -> Harness<S> {
     let ctx = Ctx::fixed(clock.clone());
+    // The delivery timeout needs the injected timer. The test environment uses the valtron
+    // timer, which reads the manual clock, so no test waits on real time.
+    let env = foundation_core::env::simulated(&ctx, 7).expect("the simulated effect environment");
+    ctx.store(env);
     let vfs: Arc<dyn DurableStreamVfs> = Arc::new(MemoryVfs::new());
-    let sender = RecordingSender::new();
     let signing = WebhookSigningKey::from_seed([7_u8; 32]);
-    let config = SubscriptionConfig::new("v1/stream");
-    let engine = SubscriptionEngine::new(vfs, ctx.clone(), signing, sender.clone(), config);
+    let sender_trait: Arc<dyn WebhookSender> = sender.clone();
+    let engine = SubscriptionEngine::new(vfs, ctx.clone(), signing, sender_trait, config);
     let stream = DurableStream::with_ctx(engine.observed_vfs(), &ctx);
     Harness {
         engine,
@@ -156,7 +185,12 @@ pub fn harness() -> Harness {
 }
 
 /// Create a stream with an optional initial body.
-pub fn create_stream(harness: &Harness, path: &str, json: bool, body: Option<&[u8]>) {
+pub fn create_stream<S: WebhookSender>(
+    harness: &Harness<S>,
+    path: &str,
+    json: bool,
+    body: Option<&[u8]>,
+) {
     let name = StreamName::parse(path).expect("valid stream name");
     let content_type = ContentType::parse(if json {
         "application/json"
@@ -173,7 +207,7 @@ pub fn create_stream(harness: &Harness, path: &str, json: bool, body: Option<&[u
 }
 
 /// Append one body to a stream.
-pub fn append_stream(harness: &Harness, path: &str, body: &[u8]) {
+pub fn append_stream<S: WebhookSender>(harness: &Harness<S>, path: &str, body: &[u8]) {
     let name = StreamName::parse(path).expect("valid stream name");
     block_on_future_scoped(
         harness
@@ -181,13 +215,6 @@ pub fn append_stream(harness: &Harness, path: &str, body: &[u8]) {
             .append(&name, AppendRequest::new(Chunk::new(body.to_vec()))),
     )
     .expect("append stream");
-}
-
-/// Read a stream's tail offset as wire text.
-pub fn tail_offset(harness: &Harness, path: &str) -> String {
-    let name = StreamName::parse(path).expect("valid stream name");
-    let head = block_on_future_scoped(harness.stream.head(&name)).expect("head stream");
-    durable::wire::offset_text(&head.tail)
 }
 
 /// Build a webhook create request.

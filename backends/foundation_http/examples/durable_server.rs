@@ -43,6 +43,10 @@ fn main() {
     let addr = std::env::var("DURABLE_ADDR").unwrap_or_else(|_| "127.0.0.1:4437".to_string());
 
     let ctx = Ctx::host();
+    // The delivery worker bounds one webhook attempt with the timer of this environment. The
+    // timer reads the injected clock.
+    let _environment = foundation_core::env::install(&ctx, foundation_core::env::system)
+        .expect("the host effect environment builds");
     let subscriptions = SubscriptionConfig::new("v1/stream");
     let vfs: Arc<dyn DurableStreamVfs> = Arc::new(MemoryVfs::new());
     let signing = WebhookSigningKey::generate(&ctx);
