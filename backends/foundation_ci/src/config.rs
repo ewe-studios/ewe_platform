@@ -123,6 +123,10 @@ pub enum GroupRecipe {
     /// A self-contained workspace that builds only for wasm32 (the sandbox
     /// Cloudflare Worker of spec 77 feature 08).
     SandboxWorker,
+    /// A self-contained workspace of any target kind. The recipe runs the
+    /// standard fmt/build/clippy/test steps with `--manifest-path` into the
+    /// group directory (the deterministic agent RPC simulation tests).
+    CargoDirectory,
 }
 
 #[derive(Deserialize)]
