@@ -79,3 +79,13 @@ The device test task then builds the Todo server.
 The server build needs the locked WebAssembly binding command to generate browser bindings.
 Install the command in both preview jobs before the Todo tests.
 [Issue 1166](https://github.com/ewe-studios/ewe_platform/issues/1166)
+
+## Application test corrections
+
+The second preview stages the native candidate and builds both starters against it.
+The Android job installs and launches the provider-built applications and passes their first screen replays.
+The iPhone suite fails at a space key label lookup on Xcode 26.6.
+The Android task expects a result from the old repeated delete test.
+One follow-up preview includes both application test corrections.
+The iPhone simulator passes both keyboard tests with Xcode 27.2.
+The Android emulator reports success after both delete requests and both missing-record checks.
