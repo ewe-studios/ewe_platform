@@ -42,6 +42,12 @@ The secondary surface uses browser colors. The application theme continues to su
 The Todo page still uses a light canvas with a dark preference. [Issue 1069](https://github.com/ewe-studios/ewe_platform/issues/1069) tracks the contrast.
 Regenerate the vocabulary and the classic browser scripts from the shared stylesheet. The Todo build embeds the vocabulary in its bundle.
 
+## Browser graphics instance flags
+
+The browser canvas starts its own graphics owner. A shared constructor change must include this call.
+The browser keeps the default instance flags. The Android host selects the flags for the Ranchu emulator.
+Issue [1085](https://github.com/ewe-studios/ewe_platform/issues/1085) tracks the missing browser argument.
+
 ## Todo local database build
 
 The Todo server and native clients use local database files.
