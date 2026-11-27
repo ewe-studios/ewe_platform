@@ -77,93 +77,15 @@ fn is_assistant(record: &SessionRecord) -> bool {
     )
 }
 
-/// The turn's raw items with the progress hints driven past.
-///
-/// WHY: the agent loop reports progress (`Stream::Pending`) between its ready
-/// records. The stream-to-future adapter in `foundation_core` parks on a
-/// `Pending` item instead of returning it, and on a single-threaded engine
-/// nothing else runs the loop, so the turn stalls after the first progress
-/// hint (issue #1129). The adapter's `Wait` re-drive does not cover a `Pending`
-/// item.
-///
-/// WHAT: `next` keeps driving the producer past `Pending` and `Ignore` items,
-/// and re-drives a `Wait` while the producer can make progress, with the same
-/// bounded budget as the adapter. A consumer therefore sees the ready records
-/// and the end of the stream. It never saw the progress hints anyway: the
-/// adapter parked on them.
-///
-/// The loop runs the engine inside `next()`, so on a single-threaded engine a
-/// re-drive is the only way forward, and the budget stops a producer that
-/// reports progress without making any.
-pub(crate) struct TurnItems<SI> {
-    inner: SI,
-}
-
-impl<SI> TurnItems<SI> {
-    fn new(inner: SI) -> Self {
-        Self { inner }
-    }
-}
-
-impl<SI> Iterator for TurnItems<SI>
-where
-    SI: foundation_core::valtron::StreamIterator<D = SessionRecord, P = AgentProgress>
-        + WakeableStream,
-{
-    type Item = Stream<SessionRecord, AgentProgress>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let mut budget = foundation_core::valtron::DEFAULT_WAIT_REDRIVE_BUDGET;
-        loop {
-            let item = self.inner.next()?;
-            let keep_driving = match &item {
-                // A progress hint is not an item to surface. The `next()` above
-                // drove the loop one step, so try again.
-                Stream::Pending(_) | Stream::Ignore => true,
-                // A driving stream runs its producer inside `next()`.
-                Stream::Wait => true,
-                Stream::Init | Stream::Next(_) | Stream::Spread(_) | Stream::Delayed(_) => false,
-            };
-            if !keep_driving || budget == 0 || !self.inner.can_make_progress() {
-                return Some(item);
-            }
-            budget -= 1;
-        }
-    }
-}
-
-impl<SI> WakeableStream for TurnItems<SI>
-where
-    SI: foundation_core::valtron::StreamIterator<D = SessionRecord, P = AgentProgress>
-        + WakeableStream,
-{
-    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
-        self.inner.wake(cb)
-    }
-
-    fn wake_send(&mut self, cb: foundation_core::valtron::SendWakeCallback) -> WakeResult {
-        self.inner.wake_send(cb)
-    }
-
-    fn drives_its_producer(&self) -> bool {
-        self.inner.drives_its_producer()
-    }
-
-    fn can_make_progress(&self) -> bool {
-        self.inner.can_make_progress()
-    }
-
-    fn announce(&mut self) {
-        self.inner.announce();
-    }
-}
-
 /// The raw turn as an async stream: every `Stream<SessionRecord,
 /// AgentProgress>` item, parking (not polling) while the loop waits.
+///
+/// `StreamParkingFutureStream` drives the loop past its control states on a
+/// single-threaded engine: `Wait`, `Pending` and `Init` from a stream that
+/// runs its own producer are re-polled with a bounded budget (issue #1129),
+/// and `Delayed` keeps its timer.
 pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
-    foundation_core::valtron::StreamParkingFutureStream<
-        TurnItems<DrivenStreamIterator<AgentLoop<D, M>>>,
-    >,
+    foundation_core::valtron::StreamParkingFutureStream<DrivenStreamIterator<AgentLoop<D, M>>>,
 >;
 
 /// The next raw item of `items`.
@@ -695,7 +617,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
 
     /// The raw items as an async stream that parks while the loop waits.
     pub(crate) fn into_raw_items(self) -> RawTurnItems<D, M> {
-        foundation_compact::SendWrapper::new(TurnItems::new(self.into_inner()).into_future_stream())
+        foundation_compact::SendWrapper::new(self.into_inner().into_future_stream())
     }
 
     /// The turn as an async stream of [`TurnEvent`]s: text, tool calls and
