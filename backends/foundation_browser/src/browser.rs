@@ -127,7 +127,11 @@ impl<'a> BrowserDriver<'a> {
     /// Protocol errors during session/context setup.
     pub fn new_page(&self) -> Result<Page<'_>> {
         let backend: Box<dyn Backend + '_> = match self.browser {
-            Browser::Chromium => Box::new(CdpBackend::attach(&self.engine, self.navigate_timeout)?),
+            Browser::Chromium => Box::new(CdpBackend::attach(
+                &self.engine,
+                self.ctx.ctx_ref(),
+                self.navigate_timeout,
+            )?),
             Browser::Firefox => Box::new(BiDiBackend::create(&self.engine)?),
         };
         Ok(Page {

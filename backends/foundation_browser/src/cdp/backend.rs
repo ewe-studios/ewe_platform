@@ -6,6 +6,7 @@
 use std::time::Duration;
 
 use base64::Engine as _;
+use foundation_context::Ctx;
 use serde_json::{json, Value};
 
 use crate::backend::Backend;
@@ -17,6 +18,7 @@ use crate::jsonrpc::{RpcEngine, WireProtocol};
 pub(crate) struct CdpBackend<'e> {
     engine: &'e RpcEngine,
     session: String,
+    ctx: &'e Ctx,
     navigate_timeout: Duration,
 }
 
@@ -24,11 +26,21 @@ impl<'e> CdpBackend<'e> {
     /// Create a fresh page target and attach a flattened session to it.
     ///
     /// `navigate_timeout` bounds the wait for the load event of each navigation.
-    pub(crate) fn attach(engine: &'e RpcEngine, navigate_timeout: Duration) -> Result<Self> {
+    pub(crate) fn attach(
+        engine: &'e RpcEngine,
+        ctx: &'e Ctx,
+        navigate_timeout: Duration,
+    ) -> Result<Self> {
         let session = attach_page(engine)?;
+        engine.call(
+            "Page.setLifecycleEventsEnabled",
+            json!({ "enabled": true }),
+            Some(&session),
+        )?;
         Ok(Self {
             engine,
             session,
+            ctx,
             navigate_timeout,
         })
     }
@@ -40,15 +52,60 @@ impl<'e> CdpBackend<'e> {
 
 impl Backend for CdpBackend<'_> {
     fn navigate(&self, url: &str) -> Result<()> {
-        // Subscribe BEFORE navigating so the load event isn't missed.
-        let load = self.engine.subscribe("Page.loadEventFired");
-        self.call("Page.navigate", json!({ "url": url }))?;
-        load.recv_timeout(self.navigate_timeout)
-            .map_err(|_| BrowserError::Timeout {
+        // Chromium can send the load event before it answers the command.
+        let events = self
+            .engine
+            .subscribe_session("Page.lifecycleEvent", &self.session);
+        let result = self.call("Page.navigate", json!({ "url": url }))?;
+        if let Some(error) = result.get("errorText").and_then(Value::as_str) {
+            return Err(BrowserError::Protocol {
+                code: 0,
+                message: format!("Page.navigate {url}: {error}"),
+            });
+        }
+        if result.get("isDownload").and_then(Value::as_bool) == Some(true) {
+            return Err(BrowserError::Protocol {
+                code: 0,
+                message: format!("Page.navigate {url} started a download"),
+            });
+        }
+        let frame = result
+            .get("frameId")
+            .and_then(Value::as_str)
+            .ok_or_else(|| BrowserError::Protocol {
+                code: 0,
+                message: "Page.navigate returned no frameId".into(),
+            })?;
+        let Some(loader) = result.get("loaderId").and_then(Value::as_str) else {
+            // Same-document navigation keeps the current loader.
+            return Ok(());
+        };
+
+        let clock = self.ctx.clock();
+        let started = clock.now();
+        loop {
+            let remaining = self
+                .navigate_timeout
+                .saturating_sub(clock.now().saturating_duration_since(started));
+            if let Ok(event) = events.receiver.recv_timeout(remaining) {
+                if event.get("name").and_then(Value::as_str) == Some("load")
+                    && event.get("frameId").and_then(Value::as_str) == Some(frame)
+                    && event.get("loaderId").and_then(Value::as_str) == Some(loader)
+                {
+                    return Ok(());
+                }
+                if !remaining.is_zero() {
+                    continue;
+                }
+            }
+            if let Some(reason) = self.engine.closed_reason() {
+                return Err(BrowserError::ConnectionLost { reason });
+            }
+            return Err(BrowserError::Timeout {
                 op: format!("load {url}"),
                 after_ms: u64::try_from(self.navigate_timeout.as_millis()).unwrap_or(u64::MAX),
-            })?;
-        Ok(())
+            });
+        }
     }
 
     fn evaluate(&self, expression: &str) -> Result<Value> {

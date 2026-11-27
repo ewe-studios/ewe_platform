@@ -1346,3 +1346,14 @@ The alternative sound card leaves this Android image with no sound device.
 A private Core Audio tap captures the emulator output on the host.
 The capture contains the game's three intro notes when sound is on.
 The capture returns to its noise floor when the game shows `SOUND OFF`.
+
+## Chromium navigation completion
+
+One Chrome DevTools Protocol (CDP) connection can carry events for many tabs.
+Use the session identifier in the event envelope to select a tab.
+Use the frame and loader identifiers in the event to select its document.
+The loader identifies one document load. Reloading the same address can create a new loader.
+Subscribe before the navigation command because the load event can arrive before the command response.
+Read navigation errors from the result before waiting. A fragment change keeps the loader and has no new load event.
+The parallel Linux run in the emulated image hits fixture request and navigation deadlines.
+The same browser test binaries pass when the tests run one at a time.
