@@ -11,11 +11,10 @@
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
-use foundation_context::Clock;
 use foundation_context::Ctx;
 use foundation_core::env;
-use foundation_core::valtron::SimulatedClock;
 use foundation_http::ShutdownSignal;
 
 use foundation_sandbox::native::connect::ConnectAddr;
@@ -56,14 +55,47 @@ impl Drop for SocketPath {
     }
 }
 
-/// A context with a simulated clock and environment.
-fn ctx(seed: u64) -> Ctx {
+/// A context with the host clock and the host environment.
+///
+/// These tests run a real socket and a real server thread, so its keep-alive
+/// and drain timers follow real time. A simulated clock that no thread
+/// advances does not fit a server that waits on a real connection.
+fn ctx(_seed: u64) -> Ctx {
     crate::pool::pool();
-    let clock = Arc::new(SimulatedClock::new(std::time::Duration::ZERO));
-    let ctx = Ctx::with_seed(Arc::clone(&clock) as Arc<dyn Clock>, seed);
-    let env = env::simulated(&ctx, seed).expect("the simulated Env builds");
+    let ctx = Ctx::host();
+    let env = env::system(&ctx).expect("the host environment builds");
     ctx.store(env);
     ctx
+}
+
+/// The time a serve test may take before the watchdog fails it.
+const WATCHDOG: Duration = Duration::from_secs(30);
+
+/// Runs `body` on a worker thread and fails the run when it hangs.
+///
+/// A hung test otherwise holds the continuous integration (CI) runner until
+/// the job is cancelled (issue #1104). The timeout exits the whole test binary,
+/// because the stuck worker thread holds the test pool and every later test
+/// would block on it.
+fn with_watchdog(body: impl FnOnce() + Send + 'static) {
+    let (sender, receiver) = std::sync::mpsc::channel();
+    let handle = std::thread::spawn(move || {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(body));
+        let _ = sender.send(());
+        result
+    });
+    if receiver.recv_timeout(WATCHDOG).is_ok() {
+        match handle.join() {
+            Ok(Ok(())) => {}
+            Ok(Err(payload)) | Err(payload) => std::panic::resume_unwind(payload),
+        }
+    } else {
+        eprintln!(
+            "watchdog: the serve test did not finish within {WATCHDOG:?}; \
+             exiting to fail the job (issue #1104)"
+        );
+        std::process::exit(101);
+    }
 }
 
 /// A manager over one simulation driver and a scripted slave.
@@ -196,92 +228,102 @@ fn rpc_error_variants() {
 
 #[test]
 fn tcp_needs_token() {
-    let _serial = crate::control::support::serial();
-    let ctx = ctx(82);
-    let slave = Arc::new(ScriptedSlave::new());
-    let manager = manager(&ctx, SimDriver::new(DriverId::Firecracker), slave);
-    let shutdown = Arc::new(ShutdownSignal::new());
-    let bound = bind_control(
-        &ListenAddress::Tcp {
-            addr: "127.0.0.1:0".parse().expect("the address"),
-        },
-        Arc::clone(&shutdown),
-        &ServeConfig::default(),
-    )
-    .expect("the TCP listener binds");
-    let port = bound.local_addr().expect("the TCP address").port();
-    let control: Arc<dyn SandboxProvider> = Arc::clone(&manager) as Arc<dyn SandboxProvider>;
-    let server = serve(
-        ctx.clone(),
-        control,
-        bound,
-        Some(Secret::new("correct-token")),
-    );
+    with_watchdog(|| {
+        let _serial = crate::control::support::serial();
+        let ctx = ctx(82);
+        let slave = Arc::new(ScriptedSlave::new());
+        let manager = manager(&ctx, SimDriver::new(DriverId::Firecracker), slave);
+        let shutdown = Arc::new(ShutdownSignal::new());
+        let bound = bind_control(
+            &ListenAddress::Tcp {
+                addr: "127.0.0.1:0".parse().expect("the address"),
+            },
+            Arc::clone(&shutdown),
+            &ServeConfig::default(),
+        )
+        .expect("the TCP listener binds");
+        let port = bound.local_addr().expect("the TCP address").port();
+        let control: Arc<dyn SandboxProvider> = Arc::clone(&manager) as Arc<dyn SandboxProvider>;
+        let server = serve(
+            ctx.clone(),
+            control,
+            bound,
+            Some(Secret::new("correct-token")),
+        );
 
-    let client = SandboxRpcClient::connect(
-        ctx.clone(),
-        ConnectAddr::Tcp {
-            host: "127.0.0.1".to_string(),
-            port,
-        },
-        SandboxLimits::default(),
-    )
-    .expect("the client connects");
-    let error = crate::pool::block_on(client.list()).expect_err("no token must fail");
-    assert!(matches!(
-        error.current_context(),
-        SandboxError::Unauthorized
-    ));
-    let wrong = client.with_token(Secret::new("wrong-token"));
-    let error = crate::pool::block_on(wrong.list()).expect_err("a wrong token must fail");
-    assert!(matches!(
-        error.current_context(),
-        SandboxError::Unauthorized
-    ));
+        let client = SandboxRpcClient::connect(
+            ctx.clone(),
+            ConnectAddr::Tcp {
+                host: "127.0.0.1".to_string(),
+                port,
+            },
+            SandboxLimits::default(),
+        )
+        .expect("the client connects");
+        let error = crate::pool::block_on(client.list()).expect_err("no token must fail");
+        assert!(matches!(
+            error.current_context(),
+            SandboxError::Unauthorized
+        ));
+        let wrong = client.with_token(Secret::new("wrong-token"));
+        let error = crate::pool::block_on(wrong.list()).expect_err("a wrong token must fail");
+        assert!(matches!(
+            error.current_context(),
+            SandboxError::Unauthorized
+        ));
 
-    shutdown.turn_on();
-    server.join().expect("the server thread ends");
+        // Close the keep-alive connection before the drain, so the shutdown
+        // does not wait for an idle connection. `with_token` moved `client`
+        // into `wrong`, so this drop closes the one transport.
+        drop(wrong);
+        shutdown.turn_on();
+        server.join().expect("the server thread ends");
+    });
 }
 
 #[test]
 fn tcp_accepts_the_token() {
-    let _serial = crate::control::support::serial();
-    let ctx = ctx(83);
-    let slave = Arc::new(ScriptedSlave::new());
-    let manager = manager(&ctx, SimDriver::new(DriverId::Firecracker), slave);
-    let shutdown = Arc::new(ShutdownSignal::new());
-    let bound = bind_control(
-        &ListenAddress::Tcp {
-            addr: "127.0.0.1:0".parse().expect("the address"),
-        },
-        Arc::clone(&shutdown),
-        &ServeConfig::default(),
-    )
-    .expect("the TCP listener binds");
-    let port = bound.local_addr().expect("the TCP address").port();
-    let control: Arc<dyn SandboxProvider> = Arc::clone(&manager) as Arc<dyn SandboxProvider>;
-    let server = serve(
-        ctx.clone(),
-        control,
-        bound,
-        Some(Secret::new("correct-token")),
-    );
+    with_watchdog(|| {
+        let _serial = crate::control::support::serial();
+        let ctx = ctx(83);
+        let slave = Arc::new(ScriptedSlave::new());
+        let manager = manager(&ctx, SimDriver::new(DriverId::Firecracker), slave);
+        let shutdown = Arc::new(ShutdownSignal::new());
+        let bound = bind_control(
+            &ListenAddress::Tcp {
+                addr: "127.0.0.1:0".parse().expect("the address"),
+            },
+            Arc::clone(&shutdown),
+            &ServeConfig::default(),
+        )
+        .expect("the TCP listener binds");
+        let port = bound.local_addr().expect("the TCP address").port();
+        let control: Arc<dyn SandboxProvider> = Arc::clone(&manager) as Arc<dyn SandboxProvider>;
+        let server = serve(
+            ctx.clone(),
+            control,
+            bound,
+            Some(Secret::new("correct-token")),
+        );
 
-    let client = SandboxRpcClient::connect(
-        ctx.clone(),
-        ConnectAddr::Tcp {
-            host: "127.0.0.1".to_string(),
-            port,
-        },
-        SandboxLimits::default(),
-    )
-    .expect("the client connects")
-    .with_token(Secret::new("correct-token"));
-    let sandboxes = crate::pool::block_on(client.list()).expect("a correct token passes");
-    assert!(sandboxes.is_empty());
+        let client = SandboxRpcClient::connect(
+            ctx.clone(),
+            ConnectAddr::Tcp {
+                host: "127.0.0.1".to_string(),
+                port,
+            },
+            SandboxLimits::default(),
+        )
+        .expect("the client connects")
+        .with_token(Secret::new("correct-token"));
+        let sandboxes = crate::pool::block_on(client.list()).expect("a correct token passes");
+        assert!(sandboxes.is_empty());
 
-    shutdown.turn_on();
-    server.join().expect("the server thread ends");
+        // Close the keep-alive connection before the drain.
+        drop(client);
+        shutdown.turn_on();
+        server.join().expect("the server thread ends");
+    });
 }
 
 #[test]
