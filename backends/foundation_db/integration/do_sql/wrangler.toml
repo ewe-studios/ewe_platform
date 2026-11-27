@@ -1,0 +1,28 @@
+name = "foundation-do-sql-smoke"
+main = "build/worker/shim.mjs"
+compatibility_date = "2026-05-18"
+
+# A local D1 database for the `/run-d1` route. The identifiers are local-only
+# preview values, so no Cloudflare account is needed.
+[[d1_databases]]
+binding = "DB"
+database_name = "foundation-do-sql-db"
+database_id = "foundation-do-sql-db-id"
+preview_database_id = "foundation-do-sql-db-preview"
+
+# `worker-build` compiles the Rust crate, runs the wasm-bindgen CLI and writes
+# `build/worker/shim.mjs`. The Durable Object needs the SQLite backend, so the
+# migration uses `new_sqlite_classes`, not `new_classes`.
+[build]
+command = "worker-build --release"
+
+[[durable_objects.bindings]]
+name = "DO_SQL"
+class_name = "DoSqlObject"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DoSqlObject"]
+
+[dev]
+port = 8791

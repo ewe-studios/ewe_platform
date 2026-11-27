@@ -1,9 +1,10 @@
 //! A Structured Query Language (SQL) backed Durable Streams virtual file system (VFS).
 //!
 //! One engine, two executors. [`SqlVfs`] implements [`DurableStreamVfs`] over any
-//! [`SqlExecutor`]: Cloudflare D1 and, when its binding lands, a Durable Object
-//! (DO) SQLite store. The engine holds the tables, the read path and the code
-//! that maintains the metadata record. The executor only runs statements.
+//! [`SqlExecutor`]: Cloudflare D1 (`foundation_db::D1Executor`) and a Durable
+//! Object (DO) SQLite store (`foundation_db::DoSqlExecutor`). The engine holds the
+//! tables, the read path and the code that maintains the metadata record. The
+//! executor only runs statements.
 //!
 //! # Tables
 //!

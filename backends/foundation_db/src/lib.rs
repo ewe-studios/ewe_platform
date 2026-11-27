@@ -74,6 +74,10 @@ pub use native::*;
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 pub use wasm::{CfD1R2DocumentStore, D1Executor, D1WasmStorage, KVWasmStorage, R2WasmStorage};
 
+// Durable Object (DO) SQLite executor re-exports (wasm32 only)
+#[cfg(all(target_family = "wasm", feature = "do-sql"))]
+pub use wasm::{DoSqlExecutor, DurableObjectStorage};
+
 // Wasm-bindgen CF types re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 pub use wasm::bindgen::{

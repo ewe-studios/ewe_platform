@@ -10,21 +10,14 @@
 //! text; the typed SQLite column converts it back to an integer.
 
 use foundation_compact::SendWrapper;
-use foundation_core::durable::sql::{
-    SqlError, SqlExecutor, SqlFuture, SqlRow, SqlStatement, SqlValue,
-};
-use js_sys::{Array, ArrayBuffer, Reflect, Uint8Array};
+use foundation_core::durable::sql::{SqlError, SqlExecutor, SqlFuture, SqlRow, SqlStatement};
+use js_sys::{Array, Reflect};
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
+use super::sql_value::{js_to_value, value_to_js};
 use crate::wasm::bindgen::{D1Database, D1PreparedStatement};
-
-/// The largest integer a JavaScript Number holds exactly, as a float.
-const MAX_SAFE_FLOAT: f64 = 9_007_199_254_740_992.0;
-
-/// The largest integer a JavaScript Number holds exactly.
-const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_992;
 
 /// A D1-backed executor.
 #[derive(Clone)]
@@ -153,77 +146,4 @@ fn rows(result: &JsValue) -> Result<Vec<SqlRow>, SqlError> {
         out.push(SqlRow::new(values));
     }
     Ok(out)
-}
-
-/// Turn one bound value into the JavaScript value D1 binds.
-fn value_to_js(value: &SqlValue) -> JsValue {
-    match value {
-        SqlValue::Null => JsValue::NULL,
-        SqlValue::Integer(value) if (-MAX_SAFE_INTEGER..MAX_SAFE_INTEGER).contains(value) =>
-        {
-            #[allow(clippy::cast_precision_loss)]
-            JsValue::from_f64(*value as f64)
-        }
-        SqlValue::Integer(value) => JsValue::from_str(&value.to_string()),
-        SqlValue::Real(value) => JsValue::from_f64(*value),
-        SqlValue::Text(value) => JsValue::from_str(value),
-        SqlValue::Blob(value) => {
-            let length = u32::try_from(value.len()).unwrap_or(u32::MAX);
-            let buffer = Uint8Array::new_with_length(length);
-            buffer.copy_from(value);
-            buffer.into()
-        }
-    }
-}
-
-/// Turn one column value from a `raw()` row into a bound value.
-fn js_to_value(value: &JsValue) -> SqlValue {
-    if value.is_null() || value.is_undefined() {
-        return SqlValue::Null;
-    }
-    if let Some(flag) = value.as_bool() {
-        return SqlValue::Integer(i64::from(flag));
-    }
-    if let Some(number) = value.as_f64() {
-        return number_to_value(number);
-    }
-    if let Some(text) = value.as_string() {
-        return SqlValue::Text(text);
-    }
-    if let Some(buffer) = value.dyn_ref::<ArrayBuffer>() {
-        return SqlValue::Blob(Uint8Array::new(buffer).to_vec());
-    }
-    if let Some(bytes) = value.dyn_ref::<Uint8Array>() {
-        return SqlValue::Blob(bytes.to_vec());
-    }
-    if let Some(numbers) = value.dyn_ref::<Array>() {
-        return SqlValue::Blob(array_to_blob(numbers));
-    }
-    SqlValue::Text(
-        js_sys::JSON::stringify(value)
-            .ok()
-            .and_then(|text| text.as_string())
-            .unwrap_or_default(),
-    )
-}
-
-fn number_to_value(number: f64) -> SqlValue {
-    let integral = number.fract() == 0.0;
-    let safe = (-MAX_SAFE_FLOAT..=MAX_SAFE_FLOAT).contains(&number);
-    if integral && safe {
-        #[allow(clippy::cast_possible_truncation)]
-        SqlValue::Integer(number as i64)
-    } else {
-        SqlValue::Real(number)
-    }
-}
-
-fn array_to_blob(numbers: &Array) -> Vec<u8> {
-    let mut out = Vec::with_capacity(usize::try_from(numbers.length()).unwrap_or(0));
-    for index in 0..numbers.length() {
-        let byte = numbers.get(index).as_f64().unwrap_or(0.0);
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        out.push(byte as u8);
-    }
-    out
 }

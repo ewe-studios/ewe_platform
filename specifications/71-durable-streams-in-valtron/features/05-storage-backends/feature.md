@@ -111,16 +111,50 @@ follows the repository layout.
       metadata and group-commit coverage. The 8 tests in `tests/durable_file_vfs/` pass.
 - [x] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS
       metadata. Tests: `producer_state_survives_restart`, `stream_seq_state_survives_restart`.
-- [ ] **T6 — DO SQLite VFS and D1 VFS.** Atomic producer state. Tests:
+- [x] **T6 — DO SQLite VFS and D1 VFS.** Atomic producer state. Tests:
       `do_sqlite_vfs_passes_dst_scenario`, `d1_vfs_passes_dst_scenario`.
 
-      **Status (2026-11-27): partial.** The generic engine
+      **Status (2026-11-27): done.** The generic engine
       (`foundation_core::durable::shared::sql`), the block format, the batcher,
-      the vacuum and the D1 executor landed. The engine passes the shared VFS
-      kit against a real SQLite engine (libsql). The DO SQLite half waits on
-      issue #1052: this repository has no Durable Object SQLite binding. No DO
-      executor is stubbed. The D1 executor compiles on wasm32 and has no runtime
-      test yet; a `wrangler dev --local` test is the next step after #1052.
+      the vacuum, the D1 executor and the DO SQLite executor landed. The engine
+      passes the shared VFS kit against a real SQLite engine (libsql) in
+      `foundation_core/tests/durable/sql.rs`. Issue #1052 is closed.
+
+      The DO executor is `foundation_db::DoSqlExecutor` in
+      `src/wasm/wasm_storage/do_sql_executor.rs`. It runs `exec` with bound
+      parameters for a statement and a query, and `transactionSync` for one
+      atomic transaction. The Workers Rust library (`workers-rs`) version 0.8
+      wraps `exec` but not `transactionSync`, so
+      `src/wasm/bindgen/cf/do_sql.rs` binds the missing call. The executor takes
+      the storage handle (`DoSqlExecutor::new`) or the Durable Object state that
+      the runtime passes to the constructor (`DoSqlExecutor::from_state`).
+
+      Changed-row counts: the runtime's `rowsWritten` counter includes index
+      rows, so an insert into an indexed table reports two. The executor
+      measures the rise of the SQLite `total_changes()` counter instead. That
+      value matches the D1 `meta.changes` count, and a query leaves it
+      unchanged.
+
+      The real-service check is
+      `backends/foundation_db/integration/do_sql/`. It is a standalone worker.
+      `wrangler dev --local` runs it in workerd:
+
+      ```
+      cd backends/foundation_db/integration/do_sql
+      worker-build --release
+      wrangler dev --local --port 8791
+      curl --fail http://127.0.0.1:8791/run
+      curl --fail http://127.0.0.1:8791/run-d1
+      curl --fail http://127.0.0.1:8791/rollback
+      ```
+
+      Measured 2026-11-27: `/run` and `/run-d1` return `{"ok":true,...}` with
+      all nine scenarios: `create`, `append`, `read_byte_exact`,
+      `bounded_pages`, `fork_prefix`, `fork_append`, `soft_delete_cascade`,
+      `ttl_slide` and `version_conflict`. The DO route uses a SQLite-backed
+      Durable Object (`new_sqlite_classes`); the D1 route uses the local D1
+      binding. `/rollback` returns `{"failed":true,"ok":true,"remaining":0}`: a
+      failing second statement rolls the first insert back. No route is a stub.
 
       **Metadata is the VFS.** `DurableStreamVfs` stores the metadata record: content type,
       length, closed, expiry, writer state (producers and `Stream-Seq`), fork, last access,

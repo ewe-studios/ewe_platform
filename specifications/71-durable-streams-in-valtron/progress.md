@@ -2,6 +2,42 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 05 T6 done. This closes issue #1052. The Durable Object
+  (DO) SQLite executor is `foundation_db::DoSqlExecutor` in
+  `backends/foundation_db/src/wasm/wasm_storage/do_sql_executor.rs`. It runs
+  `exec` with bound parameters for a statement and a query, and
+  `transactionSync` for one atomic transaction. The Workers Rust library
+  (`workers-rs`) version 0.8 does not bind `transactionSync`, so
+  `src/wasm/bindgen/cf/do_sql.rs` binds it. `workers-rs` version 0.8 also has no
+  `durable_object` feature; the `durable` and `sql` modules compile
+  unconditionally, so `do-sql` enables only the `worker` dependency. The
+  `workers-rs` feature now also enables `wasm-bindgen-storage`, because its
+  interop module needs the D1 binding type. The shared JavaScript value
+  conversion for D1 and DO is in `wasm_storage/sql_value.rs`.
+
+  Changed-row counts: the DO runtime's `rowsWritten` counter includes index
+  rows, so an indexed insert reports two. The executor measures the rise of the
+  SQLite `total_changes()` counter instead. That value matches the D1
+  `meta.changes` count and stays zero for a query. The vendor `SqlCursor` also
+  returns `rowsWritten` only after the cursor ends, so `execute` iterates the
+  cursor to its end first.
+
+  Real-service check: `backends/foundation_db/integration/do_sql/` is a
+  standalone worker outside the workspace. `wrangler dev --local` runs it in
+  workerd. Both `GET /run` (SQLite-backed Durable Object, migration
+  `new_sqlite_classes`) and `GET /run-d1` (local D1 binding) return
+  `{"ok":true,...}` with all nine VFS kit scenarios: `create`, `append`,
+  `read_byte_exact`, `bounded_pages`, `fork_prefix`, `fork_append`,
+  `soft_delete_cascade`, `ttl_slide` and `version_conflict`. `GET /rollback`
+  returns `{"failed":true,"ok":true,"remaining":0}`: a failing second statement
+  rolls the first insert back. No route is a stub.
+
+  Checks: `cargo check -p foundation_db --target wasm32-unknown-unknown
+  --no-default-features --features do-sql` and the same check with
+  `wasm-bindgen-storage` (D1) are clean. `cargo clippy -p foundation_db` for the
+  lib and for the wasm `do-sql` tree is clean. `cargo test -p foundation_db`
+  passes. `check-clock-params` and `check-time-sources` report no violation.
+
 - 2026-11-27: closed #1050 (medium). Three valtron test files read the global thread RNG at 26
   sites: `single_executor.rs` (5), `self_wake_fairness.rs` (1) and `local_executor.rs` (20).
   Each file now draws the executor seed from a local `ChaCha8Rng` with a fixed seed constant,
@@ -288,10 +324,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   idempotent creation, soft-delete, cascading cleanup, sliding TTL, TTL inheritance and
   sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
   remain.
-- **05-storage-backends** — 🟡 in progress (5/6). T1 to T5 and T7 to T10 are
-  done. T6 is partial: the SQL engine, the tiering and the D1 executor landed;
-  the DO SQLite executor waits on issue #1052 (no DO SQLite binding in the
-  repository).
+- **05-storage-backends** — 🟢 done (6/6). T1 to T10 are done. T6 landed the
+  SQL engine, the tiering, the D1 executor and the Durable Object SQLite
+  executor. Issue #1052 is closed. Both executors pass the shared VFS kit on
+  real local bindings under `wrangler dev --local`: `/run` on a SQLite-backed
+  Durable Object and `/run-d1` on D1.
 - **06-http-rpc-surface** — 🟡 in progress (10/11). `DurableService`/`DurableLimits`, JSON mode,
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full

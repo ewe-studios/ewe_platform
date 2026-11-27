@@ -592,11 +592,46 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   `foundation_vectors` build libsql 0.6 for native targets. The SQL VFS tests
   use it as a dev-dependency, open an in-memory database, and run the real
   engine. No fake SQL executor exists.
-- **The repository has no Durable Object SQLite binding.**
-  `foundation_db/src/wasm/bindgen/cf/` has D1, R2 and KV only. The DO executor
-  was not stubbed. Issue #1052 names the exact `SqlExecutor` trait and the
-  binding to add. The D1 executor is complete and compiles for wasm32, but a DO
-  SQLite executor remains the next task.
+- **The Workers Rust library binds `exec`, not `transactionSync`.**
+  `worker` 0.8.5 and 0.8.7 wrap `SqlStorage::exec` (`worker-0.8.7/src/sql.rs`,
+  around line 201) but not `DurableObjectStorage::transactionSync`.
+  `worker-sys` 0.8.5 binds only `sql_storage.rs` `exec` and `databaseSize`.
+  Version 0.8 has no `durable_object` feature; `durable` and `sql` compile
+  unconditionally. The JavaScript API does have `transactionSync`:
+  `@cloudflare/workers-types` declares
+  `transactionSync<T>(closure: () => T): T` on `DurableObjectStorage`. The fix
+  is a small wasm-bindgen binding in
+  `foundation_db/src/wasm/bindgen/cf/do_sql.rs`, not a stub. The handle comes
+  from `worker::durable::State::_inner()`, then `.storage()`. `State` is not
+  cloneable, so the constructor consumes it; the normal entry point is
+  `DoSqlExecutor::from_state`.
+- **A `transactionSync` rollback is a JavaScript throw.** The closure commits
+  when it returns and rolls back when it throws. Rust must throw from the
+  closure with `wasm_bindgen::throw_str`. That call does not run destructors, so
+  it leaks the closure's allocations on the error path only. The executor
+  stores the `SqlError` in a shared `Rc<RefCell<...>>` before the throw, so the
+  caller gets the real error, not the throw text. The fixture's `/rollback`
+  route proves the rollback on the real runtime: a failing second statement
+  leaves zero rows from the first insert.
+- **`rowsWritten` is not the changed-row count.** The Durable Object cursor's
+  `rowsWritten` includes index rows: an insert into a table with a primary key
+  index reports two. It is also filled only after the cursor reaches its end.
+  The first conformance run failed scenario `create` with this counter.
+  `changes()` is correct for a write but stale after a query. The executor
+  measures the change in SQLite `total_changes()` before and after each
+  statement. That delta matches the D1 `meta.changes` count, counts one row per
+  inserted, updated or deleted row, and is zero for a query.
+- **The `workers-rs` feature needed the wasm storage types.** Enabling
+  `workers-rs` alone failed: its D1 interop module names `crate::D1Database`,
+  which was gated behind `wasm-bindgen-storage`. The feature now includes
+  `wasm-bindgen-storage`, so one feature is self-consistent.
+- **A local Durable Object needs `new_sqlite_classes`.** The migration must
+  declare `new_sqlite_classes = ["DoSqlObject"]`. `new_classes` creates a
+  key-value Durable Object with no `storage.sql`. The fixture in
+  `foundation_db/integration/do_sql/` runs `worker-build` and
+  `wrangler dev --local`; both the DO route and the D1 route return all nine
+  kit scenarios with `{"ok":true,...}`. The built worker is outside the
+  workspace, so the native `tests/` never compile for wasm32.
 - **A test seed comes from a local RNG, not the host.** The valtron tests need
   one `u64` seed for the executor. A local `ChaCha8Rng::seed_from_u64` with a
   named constant gives it. The global `foundation_compact::rng::rng` call then
