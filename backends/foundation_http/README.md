@@ -2,13 +2,21 @@
 
 Connection-owned, worker-pooled HTTP serving framework built on `foundation_core`.
 
-No async/await — synchronous blocking I/O on worker threads managed by `BackgroundJobRunner`.
+Native responses use asynchronous writes on non-blocking sockets.
 
 ## Architecture
 
 - **`shared/`** — wasm-compatible modules (traits, router, middleware, handlers, app builder)
-- **`native/`** — TCP server, HTTP reader, protocol upgrades (non-wasm only)
+- **`native/`** — Native HTTP reader and routes. The TCP server and protocol upgrades require Unix.
 - **`wasm/`** — request dispatch with structured connection types (wasm32 + wasm-test)
+
+## Windows test scope
+
+Windows uses the native HTTP reader and shared router.
+Run the default package tests and the `multi,quic` test variant.
+These variants run portable assertions on Windows.
+The local TCP server, response writer, and server integration tests use the Unix reactor path.
+Run the native Todo server on a supported host for the browser and mobile clients.
 
 ## Serve Traits
 

@@ -19,7 +19,7 @@
 //!
 //! Self-contained: raw `std::net::TcpStream` client + `std` timing only. Gated
 //! on `multi` (the executor the server runs handler tasks on); empty otherwise.
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::io::{Read, Write};
 use std::sync::atomic::{AtomicBool, Ordering};

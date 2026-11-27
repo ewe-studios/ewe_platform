@@ -6,7 +6,7 @@
 //! WHAT: a GET-only route, a POST to it, and a POST to a missing path.
 //! HOW: a real HTTP/1.1 request over a loopback socket, and the raw reply.
 
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::io::{Read, Write};
 use std::net::TcpStream;

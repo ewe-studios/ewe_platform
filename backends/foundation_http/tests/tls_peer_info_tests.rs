@@ -7,7 +7,7 @@
 //! certificate; the protocol detector completes the handshake, captures the
 //! peer chain, and rebuilds the connection context before the handler runs.
 
-#![cfg(all(feature = "ssl-rustls", not(target_family = "wasm")))]
+#![cfg(all(feature = "ssl-rustls", unix))]
 
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
