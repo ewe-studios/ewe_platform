@@ -1,5 +1,13 @@
 # Spec 69 learnings
 
+## Shared web button styles
+
+Ordinary shared buttons use the `.ewe-button` class. The base stylesheet did not include it.
+The filter buttons have the same class. The standalone button rules exclude buttons in a segmented control.
+The secondary surface uses browser colors. The application theme continues to supply the primary color.
+The Todo page still uses a light canvas with a dark preference. [Issue 1069](https://github.com/ewe-studios/ewe_platform/issues/1069) tracks the contrast.
+Regenerate the vocabulary and the classic browser scripts from the shared stylesheet. The Todo build embeds the vocabulary in its bundle.
+
 ## Feature 32 — Todo input pause
 
 - A private action reply keeps pause state out of the live feed that all Todo clients share.
