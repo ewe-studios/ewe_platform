@@ -89,7 +89,7 @@ async fn l2_scores_are_negative_squared_distance() {
 /// store opens it. The old shape has no `metadata` column and no text primary
 /// key.
 async fn seed_old_table(path: &std::path::Path) {
-    let db = libsql::Builder::new_local(path.to_str().unwrap())
+    let db = libsql_backend::Builder::new_local(path.to_str().unwrap())
         .build()
         .await
         .unwrap();
@@ -111,7 +111,7 @@ async fn seed_old_table(path: &std::path::Path) {
     ] {
         conn.execute(
             "INSERT INTO vec0_old(embedding, external_id) VALUES (?, ?)",
-            libsql::params![blob(v), id],
+            libsql_backend::params![blob(v), id],
         )
         .await
         .unwrap();
@@ -144,7 +144,7 @@ async fn old_vec0_table_with_wrong_dimension_is_refused() {
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("v.db");
     {
-        let db = libsql::Builder::new_local(path.to_str().unwrap())
+        let db = libsql_backend::Builder::new_local(path.to_str().unwrap())
             .build()
             .await
             .unwrap();

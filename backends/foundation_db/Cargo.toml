@@ -1,6 +1,6 @@
 [package]
 name = "foundation_db"
-version = "0.0.11"
+version = "0.0.12"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -70,7 +70,7 @@ async-lock = "3"
 # transitive deps (e.g. tracing-appender → symlink) that don't compile.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 turso = { version = "0.8.3", optional = true, default-features = false }
-libsql = { version = "0.6", optional = true }
+libsql_backend = { workspace = true, optional = true }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"  # flock for FileStateStore::set_if_version
@@ -101,7 +101,10 @@ testing = []
 test-hooks = []
 default = ["turso", "d1", "r2"]
 turso = ["dep:turso", "multi"]
-libsql = ["dep:libsql", "multi"]
+# Use the local backend without libsql network support.
+libsql-local = ["dep:libsql_backend", "libsql_backend/core", "multi"]
+# Preserve the full backend for callers that use embedded replicas.
+libsql = ["libsql-local", "libsql_backend/default"]
 d1 = ["foundation_netio/multi", "netio-ssl"]
 r2 = ["foundation_netio/multi", "netio-ssl"]
 # The TLS provider of foundation_netio. On by default, through d1 and r2; a

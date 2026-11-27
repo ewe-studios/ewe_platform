@@ -1,7 +1,7 @@
 //! `LibsqlStore::execute_batch_statements` all-or-nothing transaction tests
 //! against a local libsql file.
 
-#![cfg(feature = "libsql")]
+#![cfg(feature = "libsql-local")]
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::{LibsqlStore, QueryStore};

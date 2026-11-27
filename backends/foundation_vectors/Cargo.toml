@@ -29,12 +29,12 @@ tracing = { workspace = true, optional = true }
 # the shared `QueryStore`/`DataValue` core, so the default features are off.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.11"
+version = "0.0.12"
 optional = true
 
 [target.'cfg(target_family = "wasm")'.dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.11"
+version = "0.0.12"
 optional = true
 default-features = false
 
@@ -65,7 +65,7 @@ tree-sitter-python = { version = "0.23", optional = true }
 tree-sitter-go = { version = "0.23", optional = true }
 # fjall (on-disk LSM) backs the persistent fjall-IVF VectorStore — native only.
 fjall = { version = "2", optional = true }
-libsql = { version = "0.6", optional = true }
+libsql_backend = { workspace = true, features = ["default"], optional = true }
 tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
@@ -74,7 +74,7 @@ tempfile = "3"
 async-trait = "0.1"
 futures-lite = "2"
 # The migration test seeds an old-shape table through libsql directly.
-libsql = "0.6"
+libsql_backend = { workspace = true, features = ["default"] }
 foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
 foundation_db = { path = "../foundation_db", features = ["turso", "libsql"] }
 foundation_netio = { path = "../foundation_netio" }
@@ -95,7 +95,7 @@ turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio", 
 # Persistent native VectorStore over fjall + a persisted F25 IVF index (F29).
 fjall-store = ["dep:fjall", "dep:serde_json", "dep:foundation_core"]
 # SQLite vec0 KNN via bundled sqlite-vec .so (F29). Native only.
-sqlite-vec = ["dep:serde_json", "dep:libsql", "dep:tempfile"]
+sqlite-vec = ["dep:serde_json", "dep:libsql_backend", "dep:tempfile"]
 
 [[test]]
 name = "code_graph_tests"

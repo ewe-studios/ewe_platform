@@ -109,7 +109,7 @@ pub enum StorageError {
     Turso(turso::Error),
 
     /// libsql error.
-    #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+    #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
     Libsql(libsql::Error),
 }
 
@@ -140,7 +140,7 @@ impl core::fmt::Display for StorageError {
             Self::Hex(e) => write!(f, "Hex error: {e}"),
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             Self::Turso(e) => write!(f, "Turso error: {e}"),
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             Self::Libsql(e) => write!(f, "libsql error: {e}"),
         }
     }

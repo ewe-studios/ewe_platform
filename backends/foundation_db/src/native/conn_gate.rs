@@ -32,7 +32,7 @@
 //! (see the `recover` method of each store) before its next operation.
 
 use crate::core::errors::{LockMode, StorageError, StorageResult};
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 use async_lock::RwLockReadGuardArc;
 use async_lock::{RwLock, RwLockWriteGuardArc};
 use foundation_context::Ctx;
@@ -48,7 +48,7 @@ pub const DEFAULT_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Owned read guard: held while one statement, or one row stream, uses the
 /// connection. Only a driver that allows two live read statements uses it.
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 pub(crate) type ReadGuard = RwLockReadGuardArc<()>;
 
 /// Owned write guard: held for the whole of a multi-statement sequence.
@@ -83,7 +83,7 @@ impl ConnGate {
     }
 
     /// Read record timestamps from the connection's clock.
-    #[cfg(feature = "libsql")]
+    #[cfg(feature = "libsql-local")]
     pub(crate) fn now_millis(&self) -> StorageResult<i64> {
         let value = crate::core::backends::unix_now_millis(&self.ctx)?;
         i64::try_from(value).map_err(|error| StorageError::SqlConversion(error.to_string()))
@@ -103,7 +103,7 @@ impl ConnGate {
     /// # Errors
     ///
     /// `LockTimeout` if the lock is not free within the wait limit.
-    #[cfg(feature = "libsql")]
+    #[cfg(feature = "libsql-local")]
     pub(crate) async fn read(&self) -> StorageResult<ReadGuard> {
         let lock = Arc::clone(&self.lock);
         or(

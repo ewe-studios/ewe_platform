@@ -19,7 +19,7 @@ bindgen = ["uniffi/cli", "uniffi/cargo-metadata"]
 app = ["dep:foundation_wasm_ui", "dep:foundation_wasm"]
 
 [dependencies]
-foundation_db = { workspace = true, features = ["libsql"], optional = true }
+foundation_db = { workspace = true, features = ["libsql-local"], optional = true }
 futures-lite.workspace = true
 async-channel.workspace = true
 foundation_ui_gpu.workspace = true

@@ -19,7 +19,7 @@ use foundation_core::valtron::{valtron_test, SimulatedClock};
 use foundation_context::Ctx;
 use foundation_db::{MemoryJsonStore, MemoryStorage, RateLimiterStore, TursoStorage};
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 use foundation_db::LibsqlStore;
 
 /// A simulated wall clock parked one million seconds after the UNIX epoch.
@@ -110,7 +110,7 @@ async fn turso_storage() {
     .await;
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 #[valtron_test]
 async fn libsql_store() {
     all(&LibsqlStore::in_memory(foundation_context::Ctx::host())

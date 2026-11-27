@@ -93,7 +93,7 @@ fn turso_take_is_atomic() {
     check_take(store);
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 #[valtron_test(threads = 8, timeout = 60000)]
 fn libsql_take_is_atomic() {
     let dir = TempDir::new().unwrap();

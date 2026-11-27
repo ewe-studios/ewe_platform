@@ -42,7 +42,7 @@ async fn a_failed_migration_leaves_no_record_and_no_table() {
     );
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 #[valtron_test]
 async fn a_failed_migration_rolls_back_on_libsql() {
     let store = foundation_db::LibsqlStore::new_kv(":memory:", None, crate::common::ctx())

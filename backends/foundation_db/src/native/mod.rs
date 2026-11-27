@@ -1,13 +1,13 @@
 //! Native module — non-wasm targets, plus wasm with the WebAssembly System
 //! Interface (WASI) for `json_file`.
 
-#[cfg(any(feature = "turso", feature = "libsql"))]
+#[cfg(any(feature = "turso", feature = "libsql-local"))]
 pub(crate) mod conn_gate;
 
 #[cfg(feature = "turso")]
 pub mod turso_backend;
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 pub mod libsql_store;
 
 #[cfg(feature = "d1")]
@@ -19,7 +19,7 @@ pub mod r2_blobstore;
 #[cfg(feature = "turso")]
 pub use turso_backend::TursoStorage;
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 pub use libsql_store::LibsqlStore;
 
 #[cfg(feature = "d1")]
@@ -29,11 +29,11 @@ pub use d1_kvstore::D1Store;
 pub use r2_blobstore::R2Store;
 
 pub mod json_file;
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 pub mod rows_stream;
 
 pub use json_file::*;
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 pub use rows_stream::*;
 
 use crate::core::state::file::FileStateStore;
@@ -56,12 +56,13 @@ use std::path::Path;
 /// # Errors
 ///
 /// Returns an error if the selected backend fails to initialize.
+/// Replica configuration requires the `libsql` feature.
 ///
 /// The libsql backend opens (and may sync) its database here, so this is
 /// `async`; a sync entry point awaits it through `block_on_future` /
 /// `.block()` behind `blocking_boundary!`.
 #[cfg_attr(
-    not(feature = "libsql"),
+    not(feature = "libsql-local"),
     allow(
         clippy::unused_async,
         reason = "only the libsql backend awaits; the signature is the same for every feature set"
@@ -75,7 +76,7 @@ pub async fn create_state_store(
     ctx: foundation_context::Ctx,
 ) -> Result<Box<dyn StateStore>, crate::core::errors::StorageError> {
     // Only the libsql backend reads the context.
-    #[cfg(not(feature = "libsql"))]
+    #[cfg(not(feature = "libsql-local"))]
     let _ = &ctx;
     #[cfg(feature = "d1")]
     if std::env::var("DEPLOYMENT_D1_DATABASE_ID").is_ok() {
@@ -87,7 +88,7 @@ pub async fn create_state_store(
         return Ok(Box::new(R2Store::from_env_state(project, stage)?));
     }
 
-    #[cfg(feature = "libsql")]
+    #[cfg(feature = "libsql-local")]
     if std::env::var("TURSO_DATABASE_URL").is_ok()
         || std::env::var("LIBSQL_TURSO_URL").is_ok()
         || std::env::var("LIBSQL_LOCAL_PATH").is_ok()

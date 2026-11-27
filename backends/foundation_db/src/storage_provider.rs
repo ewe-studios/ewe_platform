@@ -21,7 +21,7 @@ use crate::native::r2_blobstore::R2Store;
 #[cfg(all(feature = "turso", not(target_family = "wasm")))]
 use crate::native::turso_backend::TursoStorage;
 
-#[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+#[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
 use crate::native::libsql_store::LibsqlStore;
 
 #[cfg(json_file_backend)]
@@ -64,7 +64,7 @@ pub enum StorageBackend {
     #[cfg(all(feature = "turso", not(target_family = "wasm")))]
     Turso { url: String, ctx: BackendCtx },
     /// libsql backend with database URL (native only). `ctx` times the lock wait.
-    #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+    #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
     Libsql { url: String, ctx: BackendCtx },
     #[cfg(all(feature = "d1", not(target_family = "wasm")))]
     D1,
@@ -112,7 +112,7 @@ pub struct StorageProvider {
 enum StorageProviderInner {
     #[cfg(all(feature = "turso", not(target_family = "wasm")))]
     Turso(Box<TursoStorage>),
-    #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+    #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
     Libsql(Box<LibsqlStore>),
     #[cfg(json_file_backend)]
     JsonFile(JsonFileStorage),
@@ -161,7 +161,7 @@ impl StorageProvider {
                     inner: StorageProviderInner::Turso(Box::new(storage)),
                 })
             }
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageBackend::Libsql { url, ctx } => {
                 let storage = LibsqlStore::new_kv(&url, None, ctx.0).await?;
                 storage.init_kv().await?;
@@ -291,7 +291,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.get(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.get(key).await,
@@ -318,7 +318,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.set(key, value).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.set(key, value).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.set(key, value).await,
@@ -345,7 +345,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.delete(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.delete(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.delete(key).await,
@@ -378,7 +378,7 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Turso(storage) => {
                 storage.insert_if_absent_async(key, value).await
             }
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
                 storage.insert_if_absent_async(key, value).await
             }
@@ -417,7 +417,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.take_is_atomic(),
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.take_is_atomic(),
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.take_is_atomic(),
@@ -443,7 +443,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.take(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.take(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.take(key).await,
@@ -471,7 +471,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.exists(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.exists(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.exists(key).await,
@@ -498,7 +498,7 @@ impl KeyValueStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.list_keys(prefix).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.list_keys(prefix).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix).await,
@@ -528,7 +528,7 @@ impl QueryStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.query(_sql, _params).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.query(_sql, _params).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
@@ -563,7 +563,7 @@ impl QueryStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.execute(_sql, _params).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.execute(_sql, _params).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
@@ -598,7 +598,7 @@ impl QueryStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.execute_batch(_sql).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.execute_batch(_sql).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
@@ -633,7 +633,7 @@ impl QueryStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.batch_is_transactional(),
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.batch_is_transactional(),
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.batch_is_transactional(),
@@ -658,7 +658,7 @@ impl RateLimiterStore for StorageProvider {
                     .check_rate_limit(ctx, key, max_count, window_seconds)
                     .await
             }
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
                 storage
                     .check_rate_limit(ctx, key, max_count, window_seconds)
@@ -718,7 +718,7 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Turso(storage) => {
                 storage.record_rate_limit(ctx, key, window_seconds).await
             }
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
                 storage.record_rate_limit(ctx, key, window_seconds).await
             }
@@ -759,7 +759,7 @@ impl RateLimiterStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.reset_rate_limit(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
@@ -791,7 +791,7 @@ impl BlobStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.put_blob(key, data).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.put_blob(key, data).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.put_blob(key, data).await,
@@ -814,7 +814,7 @@ impl BlobStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get_blob(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.get_blob(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.get_blob(key).await,
@@ -837,7 +837,7 @@ impl BlobStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.delete_blob(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.delete_blob(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.delete_blob(key).await,
@@ -860,7 +860,7 @@ impl BlobStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.blob_exists(key).await,
-            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            #[cfg(all(feature = "libsql-local", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.blob_exists(key).await,
             #[cfg(json_file_backend)]
             StorageProviderInner::JsonFile(storage) => storage.blob_exists(key).await,

@@ -1,5 +1,14 @@
 # Spec 69 learnings
 
+## Todo local database build
+
+The Todo server and native clients use local database files.
+Libsql enables replication by default. Replication adds the Tonic transport, Tokio Stream, and Hyper Timeout.
+Select the libsql core feature for local storage. Keep the original libsql feature for remote replicas.
+Give the dependency and the replica feature different names. This keeps the local feature from enabling the replica feature.
+A local-only state store returns an unsupported operation error when the configuration selects a replica.
+[Issue 1076](https://github.com/ewe-studios/ewe_platform/issues/1076) tracks unused dependencies for the Cloudflare adapters.
+
 ## Feature 32 — Todo input pause
 
 - A private action reply keeps pause state out of the live feed that all Todo clients share.

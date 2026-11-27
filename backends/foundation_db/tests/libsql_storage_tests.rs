@@ -1,5 +1,5 @@
 //! libsql storage backend integration tests.
-#![cfg(feature = "libsql")]
+#![cfg(feature = "libsql-local")]
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::{KeyValueStore, LibsqlStore};

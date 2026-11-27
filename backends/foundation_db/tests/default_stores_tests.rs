@@ -10,7 +10,7 @@ use foundation_core::valtron::valtron_test;
 use foundation_db::traits::{DocumentStore, KeyValueStore};
 use foundation_db::{SqlDocumentStore, StorageProvider, TursoStorage};
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 use foundation_db::LibsqlStore;
 
 #[valtron_test]
@@ -55,7 +55,7 @@ async fn in_memory_turso_stores_are_independent() {
     assert_eq!(in_b, None, "each in-memory store is its own database");
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 #[valtron_test]
 async fn in_memory_libsql_store_is_a_migrated_key_value_store() {
     let store = LibsqlStore::in_memory(foundation_context::Ctx::host())
