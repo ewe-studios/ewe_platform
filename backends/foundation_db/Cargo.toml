@@ -98,8 +98,13 @@ foundation_nativeapis = { workspace = true }
 # crate's own tests turn it on through the self dev-dependency below.
 test-hooks = []
 default = ["turso", "d1", "r2"]
-turso = ["dep:turso", "multi"]
-libsql = ["dep:libsql", "multi"]
+# The native SQL engines do not need the threaded executor at the feature
+# level. Pulling `multi` here made the default build fail for wasm32, where
+# `multi` selects the Send task path and the turso dependency is absent. A
+# native host that wants the multi-threaded pool enables `multi` or
+# `foundation_core/multi` itself.
+turso = ["dep:turso"]
+libsql = ["dep:libsql"]
 d1 = ["foundation_netio/multi"]
 r2 = ["foundation_netio/multi"]
 
