@@ -102,6 +102,7 @@ foundation_tasks = { path = "backends/foundation_tasks", version = "0.1.1" }
 foundation_ci = { path = "backends/foundation_ci", version = "0.1.1" }
 buffa = "0.9.2"
 buffa-build = "0.9.2"
+buffa-types = "0.9.2"
 # Service code generation uses the descriptor types from prost 0.12.
 prost = "0.12"
 prost-types = "0.12"
