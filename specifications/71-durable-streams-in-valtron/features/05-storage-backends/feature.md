@@ -94,22 +94,22 @@ follows the repository layout.
 
 ## 4. Tasks
 
-- [ ] **T1 — VFS trait.** `DurableStreamVfs`, `VfsMeta`, `VfsOffset`, `VfsEntry`, `VfsError` and
+- [x] **T1 — VFS trait.** `DurableStreamVfs`, `VfsMeta`, `VfsOffset`, `VfsEntry`, `VfsError` and
       `VfsFuture`. Test: `vfs_is_object_safe` (compile).
-- [ ] **T2 — `DurableStream` struct.** Delegates every store method to the VFS. Test:
+- [x] **T2 — `DurableStream` struct.** Delegates every store method to the VFS. Test:
       `durable_stream_delegates_to_vfs`.
-- [ ] **T3 — memory VFS.** In `foundation_core`. `BTreeMap` and a notifier. Tests: shared
+- [x] **T3 — memory VFS.** In `foundation_core`. `BTreeMap` and a notifier. Tests: shared
       conformance scenarios, `memory_vfs_notifies_on_append`, bounded read coverage.
 - [x] **T4 — file VFS.** In `foundation_nativeapis`. An append-only log file and an atomically
       replaced metadata file. Tests: shared conformance scenarios, `file_vfs_persists_across_restart`,
       metadata and group-commit coverage. The 8 tests in `tests/durable_file_vfs/` pass.
-- [ ] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS
+- [x] **T5 — protocol state.** Producer, `Stream-Seq`, TTL, fork and soft-delete state over VFS
       metadata. Tests: `producer_state_survives_restart`, `stream_seq_state_survives_restart`.
 - [ ] **T6 — DO SQLite and D1 VFS.** Atomic producer state. Tests:
       `do_sqlite_vfs_passes_dst_scenario`, `d1_vfs_passes_dst_scenario`.
 - [ ] **T7 — oracles.** Crash and recovery, model, differential and resource oracles. Tests:
       `restart_preserves_stream`, `backends_match_model`, `read_is_bounded`.
-- [ ] **T8 — no valtron or runtime.** The VFS and `DurableStream` build with valtron and sockets
+- [x] **T8 — no valtron or runtime.** The VFS and `DurableStream` build with valtron and sockets
       disabled.
 - [ ] **T9 — VFS testkit.** Export the shared VFS conformance scenarios from `foundation_core`
       behind a test-only feature. Test: `every_vfs_runs_the_same_scenarios`.

@@ -131,6 +131,13 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [ ] The valtron layer tests pass separately.
 - [ ] CI fails on any non-skipped conformance failure.
 
+## 5.1 Owner acceptance bar (2026-11-27)
+
+- The server suite runs with `subscriptions: true` and reports 338 of 338.
+- The client suite reports 269 of 269 with every feature announced.
+- A skip that the reference suite forces is named with its reason; it is not a pass.
+- A fresh zero-context agent verifies the claims against the code.
+
 ## 6. Verified commands (2026-11-27)
 
 `ci/durable_conformance.sh` runs both suites. It builds the examples, starts the server,
