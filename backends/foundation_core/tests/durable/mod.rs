@@ -28,6 +28,8 @@ mod scenarios;
 mod service;
 #[cfg(not(target_arch = "wasm32"))]
 mod soft_delete_read;
+#[cfg(all(not(target_arch = "wasm32"), feature = "test-clock"))]
+mod sql;
 mod store_contract;
 mod support;
 #[cfg(not(target_arch = "wasm32"))]

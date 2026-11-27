@@ -13,6 +13,7 @@ pub mod cache;
 pub mod client;
 mod memory;
 mod service;
+pub mod sql;
 pub mod valtron;
 #[cfg(feature = "vfs-testkit")]
 pub mod vfs_testkit;

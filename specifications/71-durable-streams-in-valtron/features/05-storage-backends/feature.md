@@ -1,6 +1,6 @@
 ---
 feature: "Storage: DurableStream and the VFS"
-status: "planned"
+status: "in progress"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
 crates: ["foundation_core", "foundation_nativeapis", "foundation_db"]
@@ -113,6 +113,14 @@ follows the repository layout.
       metadata. Tests: `producer_state_survives_restart`, `stream_seq_state_survives_restart`.
 - [ ] **T6 — DO SQLite VFS and D1 VFS.** Atomic producer state. Tests:
       `do_sqlite_vfs_passes_dst_scenario`, `d1_vfs_passes_dst_scenario`.
+
+      **Status (2026-11-27): partial.** The generic engine
+      (`foundation_core::durable::shared::sql`), the block format, the batcher,
+      the vacuum and the D1 executor landed. The engine passes the shared VFS
+      kit against a real SQLite engine (libsql). The DO SQLite half waits on
+      issue #1052: this repository has no Durable Object SQLite binding. No DO
+      executor is stubbed. The D1 executor compiles on wasm32 and has no runtime
+      test yet; a `wrangler dev --local` test is the next step after #1052.
 
       **Metadata is the VFS.** `DurableStreamVfs` stores the metadata record: content type,
       length, closed, expiry, writer state (producers and `Stream-Seq`), fork, last access,

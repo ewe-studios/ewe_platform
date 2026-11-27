@@ -557,3 +557,43 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The `clippy.toml` path needs a real dependency.** `foundation_core` has no `rand`
   dependency, so the `rand::thread_rng` entry warns as unreachable. The warning is not a lint,
   so `-D warnings` does not fail. A later change can remove the entry.
+
+## SQL VFS and the two executors (2026-11-27)
+
+- **A vacuumed read needs a block index.** The table design lists only
+  `stream_meta` and `pending_data`. After a vacuum removes the delivered rows,
+  a read cannot derive the block key or its byte offset from the offset alone.
+  The engine therefore keeps a `blocks` text column on `stream_meta`. It lists
+  each delivered block as `first`, `last` and `key`. The two-table design stays
+  true; the index lives in the metadata row.
+- **The batch age needs an append time.** `pending_data` lists only stream,
+  sequence, bytes and state. An injected-clock batcher cannot measure an age
+  without a timestamp, so the engine adds `appended_ms`. Both extra columns are
+  documented in the module and in `progress.md`.
+- **Advance the metadata first and guard the row update.** The first design
+  marked rows delivered and then advanced `delivered_seq`. A lost race left
+  rows delivered with no block index entry, so a vacuum could never reach them.
+  The transaction now updates `stream_meta.delivered_seq` first, guarded by the
+  old value. The row update follows, guarded by `EXISTS (... delivered_seq =
+  next)`. A losing batcher leaves its rows pending, and a later flush retries
+  the same deterministic key.
+- **A conditional insert tells the writer what happened.** `INSERT ... ON
+  CONFLICT(name) DO NOTHING` followed by `UPDATE stream_meta SET ref_count =
+  ref_count + changes()` keeps the fork reference count correct under a create
+  race. `changes()` is the insert count from the previous statement.
+- **A read fetches three bounded ranges per block.** The reader gets 12 header
+  bytes, then `count * 24` index bytes, then only the payload range it needs.
+  The chunk count is capped by the block byte limit, so a corrupt count cannot
+  force a large read. A missing block is an `Io` error, never zero bytes.
+- **The clock guard rejects a `dyn Clock` parameter.** `check-clock-params`
+  scans `backends/*/src` for `dyn Clock`. The engine stores the injected `Ctx`
+  and reads `ctx.clock()` at the call site. The guard then reports no hit.
+- **libsql is already in the workspace.** `foundation_db` and
+  `foundation_vectors` build libsql 0.6 for native targets. The SQL VFS tests
+  use it as a dev-dependency, open an in-memory database, and run the real
+  engine. No fake SQL executor exists.
+- **The repository has no Durable Object SQLite binding.**
+  `foundation_db/src/wasm/bindgen/cf/` has D1, R2 and KV only. The DO executor
+  was not stubbed. Issue #1052 names the exact `SqlExecutor` trait and the
+  binding to add. The D1 executor is complete and compiles for wasm32, but a DO
+  SQLite executor remains the next task.

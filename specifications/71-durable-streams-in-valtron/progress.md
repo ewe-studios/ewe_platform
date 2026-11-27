@@ -2,6 +2,31 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 05 T6 (partial): the SQL VFS engine and the D1 executor.
+  `foundation_core::durable::shared::sql` holds `SqlExecutor` (execute, query and
+  an atomic transaction that returns each statement's changed-row count),
+  `SqlVfs<E: SqlExecutor>` over the `stream_meta` and `pending_data` tables,
+  the immutable block format, the `BlockStore` trait, the batcher and the
+  vacuum. The block key is `durable/<hex(stream)>/<first>-<last>`. An append
+  writes the chunk row and the metadata row in one transaction. A read serves
+  SQL rows with `substr` slices; a vacuumed range is fetched from the block
+  store with three range GETs (header, index, payload). `durability` is `Hot`
+  (default) or `Object`. The limits are `SqlVfsConfig` fields: 256 KiB block
+  cap, one second batch age, 64 delivered rows to vacuum, three retries,
+  fork depth 64. Two engine columns extend the design and are documented:
+  `stream_meta.blocks` is the delivered-block index that a vacuumed read needs,
+  and `pending_data.appended_ms` is the append time that the injected clock
+  needs to measure the batch age. The D1 executor is
+  `foundation_db::D1Executor` in `src/wasm/wasm_storage/d1_executor.rs`; it adds
+  the `batch` and `raw` D1 calls and compiles for wasm32. Tests: 11 in
+  `foundation_core/tests/durable/sql.rs` against libsql (a real SQLite engine),
+  including the shared VFS kit (`sql_vfs_passes_conformance`), batching, batch
+  age, crash replay, vacuum plus block read, bounded range read, retry bound,
+  object durability, a missing block and every VFS method. Counts: core durable
+  126 pass. The DO SQLite half is blocked on issue #1052: the repository has no
+  Durable Object SQLite binding, so no executor was stubbed. The clock guard is
+  clean because the engine stores `Ctx`. Clippy is clean in all four CI trees.
+
 - 2026-11-27: closed #1043 (medium). The durable files are now free of clippy lints. Before:
   19 library lints in `src/durable` and 16 test lints in `tests/durable`. After: 0 in both.
   The doc comments take backticks for `ConnectRPC` and `ETag`. The `expire` match merges its
@@ -252,7 +277,10 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   idempotent creation, soft-delete, cascading cleanup, sliding TTL, TTL inheritance and
   sub-offset resolution landed. The full TTL table, retention, valtron boundary and oracles
   remain.
-- **05-storage-backends** — ⏳ not started (0/6)
+- **05-storage-backends** — 🟡 in progress (5/6). T1 to T5 and T7 to T10 are
+  done. T6 is partial: the SQL engine, the tiering and the D1 executor landed;
+  the DO SQLite executor waits on issue #1052 (no DO SQLite binding in the
+  repository).
 - **06-http-rpc-surface** — 🟡 in progress (10/11). `DurableService`/`DurableLimits`, JSON mode,
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
   request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full
