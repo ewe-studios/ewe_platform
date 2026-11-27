@@ -625,6 +625,16 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   `workers-rs` alone failed: its D1 interop module names `crate::D1Database`,
   which was gated behind `wasm-bindgen-storage`. The feature now includes
   `wasm-bindgen-storage`, so one feature is self-consistent.
+- **A wasm check of `foundation_db` must disable the default features.** The
+  default set is `turso`, `d1` and `r2`, and `turso` turns on `multi`.
+  `foundation_core/multi` makes `TaskIterator` require a `Send` future. The
+  crate keeps its state store future `!Send` on wasm by design
+  (`store_state_task.rs`), so the two rules conflict. The error is
+  `next_status ... TaskIterator` not satisfied. The same failure happens with
+  no feature flag at all, so it predates the Durable Object (DO) work. Use
+  `--no-default-features --features do-sql` (or another wasm set). Issue #1056
+  records it. `ci/packages.toml` `wasm-runs` uses `--no-default-features` and
+  now runs `do-sql`.
 - **A local Durable Object needs `new_sqlite_classes`.** The migration must
   declare `new_sqlite_classes = ["DoSqlObject"]`. `new_classes` creates a
   key-value Durable Object with no `storage.sql`. The fixture in

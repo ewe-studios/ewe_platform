@@ -514,12 +514,15 @@ clippy-runs = ["", "libsql"]
 # At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
 clippy-deny-warnings = true
 wasm = "enforce"
-# Plain wasm (no JS host), and with the Cloudflare bindings
-# (`wasm-bindgen-storage` turns on valtron's JS mode).
+# Plain wasm (no JS host), with the Cloudflare bindings
+# (`wasm-bindgen-storage` turns on valtron's JS mode), and with the Durable
+# Object SQL executor. Every run disables the default features: `turso` pulls
+# `multi`, which needs threads and does not build on wasm (issue #1056).
 wasm-runs = [
   "--no-default-features --features wasm",
   "--no-default-features --features wasm-bindgen-storage",
   "--no-default-features --features browser-storage",
+  "--no-default-features --features do-sql",
 ]
 
 [packages.foundation_netio]

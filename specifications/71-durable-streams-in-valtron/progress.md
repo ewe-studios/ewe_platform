@@ -34,9 +34,13 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
 
   Checks: `cargo check -p foundation_db --target wasm32-unknown-unknown
   --no-default-features --features do-sql` and the same check with
-  `wasm-bindgen-storage` (D1) are clean. `cargo clippy -p foundation_db` for the
-  lib and for the wasm `do-sql` tree is clean. `cargo test -p foundation_db`
-  passes. `check-clock-params` and `check-time-sources` report no violation.
+  `wasm-bindgen-storage` (D1) are clean. A wasm check must disable the default
+  features: the default set pulls `turso` → `multi`, which needs threads and
+  does not build on wasm (issue #1056). `ci/packages.toml` `wasm-runs` now
+  includes `--no-default-features --features do-sql`. `cargo clippy -p
+  foundation_db` for the lib and for the wasm `do-sql` tree is clean.
+  `cargo test -p foundation_db` passes. `check-clock-params` and
+  `check-time-sources` report no violation.
 
 - 2026-11-27: closed #1050 (medium). Three valtron test files read the global thread RNG at 26
   sites: `single_executor.rs` (5), `self_wake_fairness.rs` (1) and `local_executor.rs` (20).

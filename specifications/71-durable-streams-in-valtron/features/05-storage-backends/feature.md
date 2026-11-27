@@ -148,6 +148,20 @@ follows the repository layout.
       curl --fail http://127.0.0.1:8791/rollback
       ```
 
+      **Wasm check command.** A wasm check of this crate must disable the
+      default features:
+
+      ```
+      cargo check -p foundation_db --target wasm32-unknown-unknown \
+        --no-default-features --features do-sql
+      ```
+
+      The default set includes `turso`, which turns on `multi`. `multi` needs
+      threads, and `foundation_db` keeps the state store future `!Send` on wasm
+      by design. The same gap breaks a plain default-feature wasm check without
+      `do-sql`. Issue #1056 records it. The CI `wasm-runs` list uses
+      `--no-default-features` for the same reason and now includes `do-sql`.
+
       Measured 2026-11-27: `/run` and `/run-d1` return `{"ok":true,...}` with
       all nine scenarios: `create`, `append`, `read_byte_exact`,
       `bounded_pages`, `fork_prefix`, `fork_append`, `soft_delete_cascade`,
