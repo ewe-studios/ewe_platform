@@ -199,10 +199,14 @@ pub fn get_target_source_path(
     }
 
     if target_source.starts_with('$') {
-        if let Some((first_part, _rest)) = target_source.split_once('/') {
-            let target_location_ref = env::var(first_part.replace('$', ""))
-                .expect("get environment variable: {:first_part}");
-            return target_source.replace(first_part, &target_location_ref);
+        if let Some((variable, suffix)) = target_source.split_once('/') {
+            let directory = env::var(variable.trim_start_matches('$'))
+                .unwrap_or_else(|error| panic!("Cannot read {variable}: {error}"));
+            return Path::new(&directory)
+                .join(suffix)
+                .into_os_string()
+                .into_string()
+                .expect("The embedded path uses UTF-8");
         }
     }
 
