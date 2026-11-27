@@ -21,47 +21,72 @@ session build, the turn guard, shutdown and destroy are under test (#908 part b)
 ## 2. The problem, in plain words
 
 The turn emits events through a future stream. That stream is built with
-`into_future_stream`, which **parks the caller's thread** when the loop waits
-(`foundation_core/src/valtron/stream_future.rs:352`). On a multi-threaded engine another
-worker makes progress, so parking is fine. On the single-threaded simulation engine the
-producer needs the same thread that is parked, so no event ever arrives, and the first turn
-hangs.
+`into_future_stream` (`foundation_core/src/valtron/stream_future.rs:373`). It is not a
+blocking call: it registers the caller's waker and returns `Pending`. The wait it registers
+is the defect. For `Stream::Wait`, the engine's meaning is "the queue is empty; the executor
+should yield and re-check". On a multi-threaded pool another worker advances the producer and
+fires the wake. On the single-threaded simulation engine nobody else runs, so the wake is
+never sent, and the first turn hangs.
 
 ## 3. The fix
 
-A cooperative event stream for the single-threaded path:
+The existing futures adapter is already async: `StreamParkingFutureStream::poll_next`
+(`foundation_core/src/valtron/stream_future.rs:373`) advances the loop, returns `Ready` for
+an item, and registers the caller's waker before it returns `Pending`. The type and its
+callers stay.
 
-1. `poll_next` advances the loop with `ExecutionIterator::next(entry, engine, ctx)`
-   (`foundation_core/src/valtron/task.rs:1369`).
-2. A produced item returns `Ready`. `Progressed` and `Reschedule` loop again.
-3. `Wait` returns `Pending`, with the waker registered on the loop's queue readiness.
-   Register first, then re-check, so a push between the two cannot be lost.
-4. `Depends(readiness)` registers the waker on that readiness and returns `Pending`.
-5. `Pending(duration)` returns `Pending` and wakes at the deadline from the `Ctx` timer.
-6. `Done` or `None` returns `Ready(None)`. `Panicked` or `SpawnFailed` returns one error item.
+The defect is one signal on one engine. `Stream::Wait` means "the queue is empty; the
+executor should yield and re-check". On the multi-threaded pool another worker advances the
+producer and fires the wake. On the single-threaded engine nobody else runs, so the adapter
+waits for a wake that only the producer could send, and the first turn hangs.
 
-`TurnEvents` uses this stream when the build has no `multi`; the multi build keeps the
-parking stream.
+| Stream signal | Multi-threaded | Single-threaded |
+|---|---|---|
+| `Next` | `Ready` | `Ready` |
+| `Depends(readiness)` | register the waker | register the waker (unchanged) |
+| `Wait` | register, `Pending` | **yield and re-poll** |
+| `Pending(duration)` | `Pending` | `Pending`, with the injected timer |
 
-## 4. Tasks
+The re-poll policy must not spin: a re-poll happens only when the loop made progress, or the
+stream returns a readiness wait or a timer wait. A task that makes no progress stops after a
+bounded number of immediate re-polls and returns `Pending` on a wake that the engine will
+honour. The bound is a field, with a documented default.
+
+If the turn still stalls after this change, the remaining suspect is the single-threaded
+driver not honouring a `Depends` readiness wake (`SimRuntime`). That is a harness fix, not a
+change to `ExecutionIterator`.
+
+## 4. The evidence comes first
+
+No production code changes until four failing tests prove the cause and the layer:
+
+1. `wait_arm_never_repolls_single_threaded` — the adapter returns `Pending` on `Wait` while the producer still has items, and nothing re-polls it.
+2. `wait_arm_completes_with_a_producer_thread` — the same stream completes when another thread advances the producer. The difference is the engine, not the adapter.
+3. `dst_real_registry_turn_hangs_today` — one turn over the real `LocalInstanceRegistry` and `AgentSession` on `SimRuntime` does not finish. A watchdog makes it fail in seconds, never hang CI.
+4. `sim_honours_depends_readiness` — a task waiting on an `EventReadiness` resumes when a push fires it. If this passes, the harness honours readiness and the `Wait` arm is the only defect; if it fails, the fix belongs in `SimRuntime`.
+
+Each test has a watchdog. The failing outputs are recorded on the issue, and they decide which layer changes.
+
+## 5. Tasks
 
 | Task | Work | Closes |
 |---|---|---|
-| T1 | Write the failing test first: on `SimRuntime`, one turn over `LocalInstanceRegistry` completes | the red test |
-| T2 | Add the cooperative stream in `foundation_core` next to `ExecutionIterator`, with a unit test for each `State` arm | — |
-| T3 | Switch `foundation_ai`'s `TurnEvents` to it under `not(feature = "multi")` | — |
+| T1 | Write the failing test first: on `SimRuntime`, one turn over `LocalInstanceRegistry` completes. It hangs today | the red test |
+| T2 | Fix the `Wait` arm of `StreamParkingFutureStream` for a single-threaded engine, with the bounded re-poll policy; unit tests for `Next`, `Depends`, `Wait` and `Pending(duration)`, and a spin-guard test | — |
+| T3 | `TurnEvents` and `ExecutionIterator` stay as they are; prove the multi-threaded path is unchanged by its existing tests | — |
 | T4 | Replace the `ScriptedRegistry` in `foundation_agent_rpc_dst` with the real registry; keep the 32-seed determinism test and the injected storage failure | #908 |
 
-## 5. Tests
+## 6. Tests
 
 | Test | Oracle |
 |---|---|
-| `cooperative_stream_arms` (each state, one test) | example |
+| `wait_arm_repolls_and_bounds` (a single-threaded engine, a loop that yields `Wait`; progress is made, then the bound stops the spin) | example |
+| the multi-threaded suites, unchanged | no regression |
 | `dst_create_enroll_one_turn_destroy_from_one_seed` with the real registry | expected outcome |
 | `dst_same_seed_gives_identical_traces_for_32_seeds` | stateful model |
 | `dst_injected_storage_failure_gives_a_typed_error` | fault |
 
-## 6. Verify
+## 7. Verify
 
 ```bash
 cargo test -p foundation_core --features testing --profile uat sim
@@ -70,7 +95,7 @@ cargo check -p foundation_ai --no-default-features
 cargo test -p foundation_agent_rpc --profile uat native_
 ```
 
-## 7. Done when
+## 8. Done when
 
 The DST run uses the real registry and session, the 32 seeds give the same trace twice, and
 #908 is closed.
