@@ -140,6 +140,7 @@ pub(crate) struct Group {
 #[serde(rename_all = "kebab-case")]
 pub enum GateRecipe {
     DurableConformance,
+    DurableValtron,
 }
 
 #[derive(Deserialize)]

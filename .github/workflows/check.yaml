@@ -881,11 +881,70 @@ jobs:
           ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
           ${{ github.event_name == 'push' && format('--if-affected --base {0}', github.event.before) || '' }}
 
+  durable-valtron:
+    name: Durable valtron ${{ matrix.group }}
+    # Spec 71 feature 08 T6. The valtron reader, writer, wait and wake
+    # behaviour tests run in their own job, separate from the foundation_core
+    # package job. The `durable-valtron` gate in ci/packages.toml is selected
+    # when the protocol core changes, and `foundation-ci run` decides from the
+    # change (rule 16). Each group is one matrix job, so a failing group names
+    # itself and the job fails with it.
+    runs-on: ubuntu-latest
+    needs: [plan]
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      # From ci/packages.toml, so free-plan runners queue instead of stampede.
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-linux) }}
+      matrix:
+        group: [reader, writer, wait, wake]
+    concurrency:
+      # A new push to a pull request cancels the old run of the same group.
+      # Full runs queue and never cancel each other.
+      group: durable-valtron-${{ github.event.pull_request.number || github.ref }}-${{ matrix.group }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_PROFILE_UAT_DEBUG: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402).
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: durable-valtron-${{ matrix.group }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run the valtron behaviour group
+        # The gate recipe runs the group's libtest filters with the `multi`
+        # executor. A failing filter fails the step and the job.
+        run: >-
+          cargo run --locked --profile uat -p foundation_ci -- run durable-valtron --step test --group ${{ matrix.group }}
+          ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+          ${{ github.event_name == 'push' && format('--if-affected --base {0}', github.event.before) || '' }}
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test, durable-conformance]
+    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test, durable-conformance, durable-valtron]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -899,10 +958,11 @@ jobs:
           MACOS_TESTS: ${{ needs.macos-test.result }}
           WINDOWS_TESTS: ${{ needs.windows-test.result }}
           DURABLE: ${{ needs.durable-conformance.result }}
+          DURABLE_VALTRON: ${{ needs.durable-valtron.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS, durable conformance: $DURABLE"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS, durable conformance: $DURABLE, durable valtron: $DURABLE_VALTRON"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS" "$DURABLE"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS" "$DURABLE" "$DURABLE_VALTRON"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;

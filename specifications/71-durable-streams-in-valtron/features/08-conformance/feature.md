@@ -123,10 +123,19 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       (`given_a_multiline_base64_event_when_it_is_read_then_it_decodes_to_the_text`,
       `given_a_large_base64_payload_split_across_lines_when_it_is_read_then_it_decodes_exactly`)
       and the gate runs them. The server suite has no skip. Issue #1082 is closed.
-- [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
-      Open: no separate CI job runs the valtron reader, writer, wait and wake tests. They run
-      inside the `foundation_core` suite (`tests/durable/valtron_reader.rs`,
-      `tests/durable/valtron_producer.rs`).
+- [x] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
+      The `durable-valtron` job in `.github/workflows/check.yaml` runs the four groups as a
+      matrix (`reader`, `writer`, `wait`, `wake`). Each job runs
+      `foundation-ci run durable-valtron --step test --group <group>`. The gate is a
+      first-class entry in `ci/packages.toml` (`[gates.durable-valtron]`), so
+      `foundation-ci affected` selects it from a `foundation_core` change. The job sets a
+      concurrency group per group and takes `max-parallel` from `[defaults]`
+      `max-parallel-linux`. The recipe is `GateRecipe::DurableValtron` in
+      `backends/foundation_ci/src/execution/recipes.rs`. It runs the `mod` test target with the
+      `multi` executor, because the wake test is gated on that feature. Seven tests run: four
+      reader tests (`valtron_reader.rs`), one writer test (`valtron_producer.rs`), the
+      `now_live_waits` wait test and the `wake_callback_fires_on_append` wake test. A failing
+      group fails its job and `checks-passed`. Measured 2026-11-28: all seven pass.
 - [x] **T7 — report.** `features/08-conformance/report.md` holds the gate command, the suite
       versions and commit, the recorded counts, the four-direction matrix and the runtime matrix.
 - [x] **T8 — runtime matrix.** Run the core in a local embedded process, a DO, a Worker, a
@@ -200,11 +209,16 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       `append_read_is_byte_exact`, `producer_retries_store_each_chunk_once`,
       `stream_seq_accepts_increasing_values_only`, `fork_read_is_source_prefix_plus_tail`
       (`tests/durable/property.rs`) and `ttl_model_matches` (`tests/durable/ttl.rs`).
-- [ ] **T17 — failure injection and fuzz.** Inject faults and malformed input. Tests:
-      `injected_error_is_typed`, `malformed_input_never_panics`.
-      Open: no test with these names exists. `sql_vfs_retries_a_failed_put` injects one block
-      put failure, but there is no protocol-level fault oracle and no malformed-input fuzz
-      oracle.
+- [x] **T17 — failure injection and fuzz.** Inject faults and malformed input. Tests:
+      `injected_error_is_typed` (`tests/durable/fault_injection.rs`) and
+      `malformed_input_never_panics` (`tests/durable/fuzz_harness.rs`).
+      The fault test wraps `MemoryVfs` in a VFS that fails one armed operation (`append`,
+      `read`, `head`, `close`, `fork`) and returns `VfsError::Io` with a typed cause. It
+      asserts the cause survives the `DurableStream` boundary as `StoreError::Storage`, and
+      that a failed operation leaves no state: the tail, closure, data, openness and fork
+      target all stay as before. The fuzz test uses `proptest` over random offset bytes,
+      `Stream-Seq` values, JSON bodies and header and field combinations. It asserts a typed
+      `StoreError` and no panic.
 - [x] **T18 — crash and resource oracles.** Restart and bounded-memory tests. Tests:
       `restart_preserves_stream` and `read_is_bounded`
       (`foundation_nativeapis/tests/durable_file_vfs/oracle.rs`); `sql_vfs_range_read_is_bounded`
@@ -239,9 +253,9 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [x] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
       Embedded, Worker, DO, WebSocket, wasm32 and the Session now have proofs. See T8. Issues
       #1077, #1079 and #1080 are closed.
-- [ ] Every protocol rule has a derived oracle.
-      Open: T17 has no protocol-level fault-injection oracle and no malformed-input fuzz
-      oracle.
+- [x] Every protocol rule has a derived oracle. T17 adds the protocol-level fault-injection
+      oracle (`injected_error_is_typed`) and the malformed-input fuzz oracle
+      (`malformed_input_never_panics`). See T13 to T17.
 - [x] Property tests cover append and read, producer, `Stream-Seq`, fork and TTL. Tests:
       `append_read_is_byte_exact`, `producer_retries_store_each_chunk_once`,
       `stream_seq_accepts_increasing_values_only`, `fork_read_is_source_prefix_plus_tail`
@@ -249,8 +263,9 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - [x] Every VFS crate runs the shared conformance suite and its own coverage tests. See T20
       and T21. The kit runs on memory, file, S3, R2, libsql, DO and D1, and each VFS has a
       coverage test.
-- [ ] The valtron layer tests pass separately.
-      Open: no separate job runs them. They pass inside the `foundation_core` suite.
+- [x] The valtron layer tests pass separately. The `durable-valtron` job runs the four groups
+      (`reader`, `writer`, `wait`, `wake`) in their own matrix jobs. All seven tests pass. See
+      T6.
 - [x] CI fails on any non-skipped conformance failure.
 
 ## 5.1 Owner acceptance bar (2026-11-27)
@@ -361,7 +376,4 @@ A skip that no suite forces names an open issue. A skip without an issue fails t
 
 ## 7. Open items
 
-1. T6: add a separate job for the valtron reader, writer, wait and wake tests.
-2. T17: add the failure-injection and malformed-input fuzz oracles.
-3. The "every protocol rule has a derived oracle" criterion waits for T17.
-4. The "valtron layer tests pass separately" criterion waits for T6.
+None for T6 and T17. T11 of feature 06 (the golden oracle) stays open.

@@ -210,6 +210,13 @@ runs = [""]
 windows-tests = "none"
 windows-reason = "The native HTTP server and the WebSocket client are Unix only: foundation_http gates its native server modules on cfg(unix)."
 
+# Spec 71 feature 08 T6. The valtron reader, writer, wait and wake behaviour
+# tests run in their own gate job, not inside the foundation_core package job.
+# The group matrix runs the four groups in parallel; the gate recipe fails the
+# job when a group fails.
+[packages.durable-valtron]
+timeout-minutes = 20
+
 [packages.foundation_cedar]
 fmt = "enforce"
 
@@ -957,3 +964,10 @@ paths = ["integration/"]
 # Both reference suites, the example server and client, the cross-runs and the
 # live MinIO S3 run. The owner approved 30 minutes.
 timeout-minutes = 30
+
+[gates.durable-valtron]
+description = "The valtron reader, writer, wait and wake behaviour suite"
+recipe = "durable-valtron"
+# The layer sits in the protocol core. A change to that package selects the
+# gate, and `foundation-ci affected` is the same selector the package jobs use.
+packages = ["foundation_core"]

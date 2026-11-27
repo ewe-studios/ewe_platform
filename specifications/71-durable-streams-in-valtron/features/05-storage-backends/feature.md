@@ -214,12 +214,13 @@ follows the repository layout.
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core`, `cargo test -p foundation_nativeapis` and
+- [x] `cargo test -p foundation_core`, `cargo test -p foundation_nativeapis` and
       `cargo test -p foundation_db` green.
-      Open: the full `foundation_nativeapis` run (with `vfs-object-http`) and
-      `cargo test -p foundation_db` are recorded as green. The `foundation_core` run is the
-      durable filter only (146 tests). The full `cargo test -p foundation_core` run is not
-      recorded.
+      Recorded 2026-11-28: `cargo test --profile uat -p foundation_core` passed 1,046 tests,
+      with 0 failed and 0 ignored. With `--features test-clock,multi` it passed 1,134 tests,
+      with 0 failed and 0 ignored. The full `foundation_nativeapis` run
+      (with `vfs-object-http`) and `cargo test -p foundation_db` were recorded as green
+      earlier.
 - [x] The same DST scenario passes on memory, file, DO SQLite and D1. The S3/R2 VFS passes in
       feature 09. Evidence: `vfs_testkit::run_all` runs the nine deterministic scenarios on
       memory (`tests/durable/vfs_conformance.rs`), file (`tests/durable_file_vfs/oracle.rs`),
@@ -255,4 +256,4 @@ follows the repository layout.
 
 ## 6. Open items
 
-1. Run the full `cargo test -p foundation_core` and record the result.
+None.

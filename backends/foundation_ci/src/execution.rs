@@ -39,6 +39,9 @@ struct Options {
     base: Option<String>,
     #[arg(long)]
     head: Option<String>,
+    /// The behaviour group of a gate recipe that runs one group per job.
+    #[arg(long)]
+    group: Option<String>,
 }
 #[derive(Args)]
 struct Run {
@@ -346,6 +349,7 @@ async fn execute(ctx: TaskContext, names: Vec<String>, options: Options, many: b
             os,
             github,
             profile: &profile,
+            group: options.group.as_deref(),
         };
         let reports = package.run(&steps).await?;
         for (msg, lines) in &reports {
@@ -397,6 +401,7 @@ struct PackageRun<'a> {
     os: &'a str,
     github: bool,
     profile: &'a str,
+    group: Option<&'a str>,
 }
 
 impl PackageRun<'_> {
@@ -443,6 +448,7 @@ impl PackageRun<'_> {
                 self.os,
                 step,
                 self.env,
+                self.group,
             )? {
                 let (report, expired) = self
                     .run_command(entry, step, mode, &target, deadline)

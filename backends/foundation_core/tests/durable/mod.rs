@@ -13,7 +13,11 @@ mod coverage_memory;
 #[cfg(all(not(target_arch = "wasm32"), feature = "test-clock"))]
 mod dst;
 #[cfg(not(target_arch = "wasm32"))]
+mod fault_injection;
+#[cfg(not(target_arch = "wasm32"))]
 mod fork;
+#[cfg(not(target_arch = "wasm32"))]
+mod fuzz_harness;
 #[cfg(not(target_arch = "wasm32"))]
 mod json;
 mod leak;

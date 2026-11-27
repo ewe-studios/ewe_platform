@@ -170,9 +170,11 @@ pub trait DurableStreamStore {
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
-      Open: the recorded run is the durable filter only (146 tests, 2026-11-27). The full
-      `cargo test -p foundation_core` run is not recorded.
+- [x] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
+      Recorded 2026-11-28 with the default features: 1,046 tests passed, 0 failed, 0 ignored.
+      The count covers every test target of the package, including the `mod` integration target
+      (914 tests) and the 71 doc-tests. With `--features test-clock,multi` it passed 1,134
+      tests, 0 failed, 0 ignored.
 - [x] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
 - [x] `foundation_core::durable::shared` has no valtron, socket or global runtime dependency.
 - [ ] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
@@ -188,5 +190,4 @@ pub trait DurableStreamStore {
 
 ## 6. Open items
 
-1. Run the full `cargo test -p foundation_core` and record the result.
-2. Run the BDD harness on two drivers.
+1. Run the BDD harness on two drivers.

@@ -257,12 +257,80 @@ fn example_commands(
     }
     Ok(out)
 }
-fn gate_commands(recipe: GateRecipe, profile: &str, step: &str) -> Vec<CommandStep> {
+/// The behaviour groups of the valtron layer suite.
+///
+/// Each entry is the group name and its libtest filters. The reader group has
+/// two filters because its fork-boundary test has no common prefix with the
+/// other reader tests.
+const VALTRON_GROUPS: [(&str, &[&str]); 4] = [
+    (
+        "reader",
+        &[
+            "durable::valtron_reader::given_",
+            "durable::valtron_reader::valtron_reader_spans_fork_boundary",
+        ],
+    ),
+    ("writer", &["durable::valtron_producer"]),
+    ("wait", &["durable::valtron_reader::now_live_waits"]),
+    (
+        "wake",
+        &["durable::valtron_reader::wake_callback_fires_on_append"],
+    ),
+];
+
+/// One valtron test filter. `multi` enables the wake test, which is gated on
+/// that feature; the thread-pool executor runs every group.
+fn valtron_test(profile: &str, filter: &str) -> CommandStep {
+    cargo(&[
+        "test",
+        "--profile",
+        profile,
+        "-p",
+        "foundation_core",
+        "--features",
+        "multi",
+        "--test",
+        "mod",
+        "--",
+        "--nocapture",
+        filter,
+    ])
+}
+
+fn valtron_commands(
+    profile: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
+    if let Some(name) = group {
+        if !VALTRON_GROUPS.iter().any(|(known, _)| *known == name) {
+            return Err(TaskError::operation(format!(
+                "unknown durable-valtron group: {name}"
+            )));
+        }
+    }
+    let mut out = Vec::new();
+    for (name, filters) in VALTRON_GROUPS {
+        if group.is_some_and(|wanted| wanted != name) {
+            continue;
+        }
+        for filter in filters {
+            out.push(valtron_test(profile, filter));
+        }
+    }
+    Ok(out)
+}
+
+fn gate_commands(
+    recipe: GateRecipe,
+    profile: &str,
+    step: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
     if step != "test" {
-        return Vec::new();
+        return Ok(Vec::new());
     }
     match recipe {
-        GateRecipe::DurableConformance => vec![
+        GateRecipe::DurableConformance => Ok(vec![
             // The reference server and client suites, and the counts the gate
             // requires.
             CommandStep::new("bash", ["ci/durable_conformance.sh"]),
@@ -281,7 +349,8 @@ fn gate_commands(recipe: GateRecipe, profile: &str, step: &str) -> Vec<CommandSt
                 "--test",
                 "durable_reference_cross_run",
             ]),
-        ],
+        ]),
+        GateRecipe::DurableValtron => valtron_commands(profile, group),
     }
 }
 
@@ -319,6 +388,7 @@ fn sandbox_worker_commands(root: &Path, pkg: &Package, step: &str) -> Vec<Comman
     out
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn commands(
     root: &Path,
     pkg: &Package,
@@ -327,11 +397,12 @@ pub(super) fn commands(
     os: &str,
     step: &str,
     host: &CiEnvironment,
+    group: Option<&str>,
 ) -> Result<Vec<CommandStep>, TaskError> {
     let name = &pkg.name;
     let mut out = Vec::new();
     if let Some(recipe) = pkg.gate {
-        return Ok(gate_commands(recipe, profile, step));
+        return gate_commands(recipe, profile, step, group);
     }
     if pkg.recipe == Some(GroupRecipe::WasmRuntimeTests) {
         return Ok(wasm_suite(profile, step, os, host, &pkg.dir));
