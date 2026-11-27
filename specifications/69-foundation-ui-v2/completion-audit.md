@@ -155,7 +155,7 @@ The scoped plan waits for hosted operating-system suites.
 
 ## Revision coverage after the scoped run
 
-The scoped run uses commit `89fde9934`. This comparison uses commit `b6a9a4e78`.
+The scoped run uses commit `89fde9934`. This comparison uses commit `ed0b32817`.
 [Scoped operating-system run](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113)
 
 | Change after the tested revision | Coverage record |
@@ -167,12 +167,18 @@ The scoped run uses commit `89fde9934`. This comparison uses commit `b6a9a4e78`.
 
 For each platform, check the configured recipe with the Cargo dependency tree.
 Use its normal, build and development dependencies with that platform's target.
-The relevant recipes for the database, reactor, compact and UI traits have unchanged inputs.
-Reuse their successful test steps from the scoped run.
+The compact and UI traits recipes have unchanged inputs. Reuse their successful test steps.
+The macro changes now enter the configured database and reactor recipes.
+The setup changes affect the Todo package shards and the separate macOS sample command.
 
-The current changed package set contains the browser, HTTP, resources, UI components, graphics, native, runtime, wire, WebAssembly UI and Todo packages.
-Add the direct testbed change when it needs a configured package test.
+The current changed package set adds macros, the project generator and the testbed.
+Keep the platform exceptions in the package plan.
 The follow-up applies only to missing test evidence after the first run reports its results.
+
+The baseline macOS shards pass 11 packages. The runtime guide and Todo package fail.
+Issue 1182 fixes the missing macro import. Issue 1195 adds the Todo binding program to the shard.
+The Windows native task fails on the staged template path. Issue 1193 changes the path join.
+The Windows Todo example fails in the old database dependency. Issue 1194 tracks the compatibility preview.
 
 ## Apple screen reader checks
 

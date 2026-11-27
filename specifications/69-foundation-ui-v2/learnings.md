@@ -1712,3 +1712,10 @@ Two available immutable crates require an older macro version than the current w
 The scratch Git mirror confirms the single resource source.
 The full Git probe spends 9.0 GiB on recursive checkout before it reaches dependency resolution.
 [Git checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1200)
+
+## Package test evidence by revision
+
+A package can keep a passing test result while later documentation changes.
+Compare its test recipe dependencies for each operating system before reusing that result.
+Record tool setup and compiler checks separately from package tests.
+Use an isolated workflow commit for the Windows preview job selection.

@@ -2296,3 +2296,11 @@ The scratch Git consumer locks one resource package for the native and mixed bro
 The lock checks retain the expected feature sets.
 The public release still requires the approved version and source, the protected environment, and published inputs.
 [Release prerequisites](features/19-native-package-releases/release-prerequisites.md)
+
+## Windows Todo compatibility preview
+
+The Windows preview uses the product candidate `ec8819205`.
+Its test-only commit `63c937cee` selects the normal Windows package recipes.
+The planner selects Todo, the native task, the project generator and vectors.
+Two Windows shards can run at once. The product candidate remains isolated until the Windows evidence is available.
+[Windows compatibility preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509)
