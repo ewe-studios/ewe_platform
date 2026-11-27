@@ -1047,6 +1047,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bcrypt-pbkdf"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6aeac2e1fe888769f34f05ac343bbef98b14d1ffb292ab69d4608b3abc86f2a2"
+dependencies = [
+ "blowfish",
+ "pbkdf2 0.12.2",
+ "sha2 0.10.9",
+]
+
+[[package]]
 name = "beamterm-core"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1422,6 +1433,16 @@ dependencies = [
  "futures-io",
  "futures-lite",
  "piper",
+]
+
+[[package]]
+name = "blowfish"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e412e2cd0f2b2d93e02543ceae7917b3c70331573df19ee046bcbc35e45e87d7"
+dependencies = [
+ "byteorder",
+ "cipher 0.4.4",
 ]
 
 [[package]]
@@ -3051,7 +3072,7 @@ checksum = "7359bf1de037ddada72729c3acec9b040f3468400c6e9e740b01ba0cd2e89562"
 dependencies = [
  "float8",
  "half 2.7.1",
- "libloading 0.9.0",
+ "libloading 0.9.1",
 ]
 
 [[package]]
@@ -4934,11 +4955,14 @@ dependencies = [
 name = "foundation_agent_rpc"
 version = "0.0.4"
 dependencies = [
+ "async-trait",
  "base64 0.22.1",
  "buffa",
  "buffa-build",
+ "chrono",
  "derive_more",
  "ed25519-compact",
+ "flate2",
  "foundation_ai",
  "foundation_auth",
  "foundation_compact",
@@ -4947,22 +4971,48 @@ dependencies = [
  "foundation_context",
  "foundation_core",
  "foundation_db",
+ "foundation_deployment_cloudflare",
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
+ "foundation_sandbox",
  "futures",
+ "futures-lite",
+ "js-sys",
  "prost 0.12.6",
  "prost-types 0.12.6",
  "qrcode",
  "ring",
  "serde",
  "serde_json",
+ "sha2 0.11.1",
  "tempfile",
  "tracing",
  "tracing-subscriber",
  "tracing-test",
  "url",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "worker",
  "zeroize",
+]
+
+[[package]]
+name = "foundation_agent_rpc_dst"
+version = "0.0.1"
+dependencies = [
+ "ed25519-compact",
+ "foundation_agent_rpc",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_core",
+ "foundation_db",
+ "foundation_errstacks",
+ "foundation_netio",
+ "futures",
 ]
 
 [[package]]
@@ -5002,6 +5052,23 @@ dependencies = [
  "tokenizers 0.22.2",
  "tracing",
  "tracing-test",
+]
+
+[[package]]
+name = "foundation_api_common"
+version = "0.0.1"
+dependencies = [
+ "base85rs",
+ "bytes",
+ "foundation_core",
+ "foundation_macros",
+ "foundation_netio",
+ "futures-core",
+ "futures-lite",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "tracing",
 ]
 
 [[package]]
@@ -5052,8 +5119,10 @@ dependencies = [
  "openssl",
  "p256",
  "pbkdf2 0.13.0",
+ "pkcs8 0.10.2",
  "rand_chacha 0.3.1",
  "rcgen",
+ "rpassword",
  "rsa",
  "rustls 0.23.40",
  "rustls-pemfile",
@@ -6049,6 +6118,7 @@ dependencies = [
  "bytes",
  "chrono",
  "derive_more",
+ "foundation_api_common",
  "foundation_compact",
  "foundation_context",
  "foundation_core",
@@ -6073,6 +6143,7 @@ version = "0.2.4"
 dependencies = [
  "chrono",
  "derive_more",
+ "foundation_auth",
  "foundation_cloudflare_access",
  "foundation_cloudflare_accounts",
  "foundation_cloudflare_ai",
@@ -6232,7 +6303,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_deployment_platform"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -6248,6 +6319,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_macros",
  "foundation_netio",
+ "foundation_sandbox",
  "foundation_sshkit",
  "foundation_wireguard",
  "fs2",
@@ -6795,13 +6867,16 @@ dependencies = [
 
 [[package]]
 name = "foundation_sandbox"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
+ "async-trait",
  "base64 0.22.1",
  "base85rs",
  "bytes",
+ "clap",
  "derive_more",
  "flate2",
+ "foundation_api_common",
  "foundation_auth",
  "foundation_codegentools",
  "foundation_compact",
@@ -6809,6 +6884,8 @@ dependencies = [
  "foundation_context",
  "foundation_core",
  "foundation_deployment",
+ "foundation_deployment_docker",
+ "foundation_deployment_platform",
  "foundation_errstacks",
  "foundation_http",
  "foundation_macros",
@@ -6817,12 +6894,14 @@ dependencies = [
  "foundation_reactor",
  "futures",
  "libc",
+ "libloading 0.9.1",
  "proptest",
  "serde",
  "serde_json",
  "sha2 0.10.9",
  "tar",
  "tracing",
+ "worker",
 ]
 
 [[package]]
@@ -6982,8 +7061,11 @@ dependencies = [
 name = "foundation_toolings"
 version = "0.0.11"
 dependencies = [
+ "base64 0.22.1",
  "concurrent-queue",
  "derive_more",
+ "flate2",
+ "foundation_auth",
  "foundation_compact",
  "foundation_context",
  "foundation_core",
@@ -9940,9 +10022,9 @@ dependencies = [
 
 [[package]]
 name = "libloading"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60"
+checksum = "a1832accd5a4ca2795ace4d05d15c4039be15b62d3b950eff99746a990e3cc10"
 dependencies = [
  "cfg-if",
  "windows-link 0.2.1",
@@ -12110,12 +12192,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pkcs5"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e847e2c91a18bfa887dd028ec33f2fe6f25db77db3619024764914affe8b69a6"
+dependencies = [
+ "aes 0.8.4",
+ "cbc",
+ "der 0.7.10",
+ "pbkdf2 0.12.2",
+ "scrypt",
+ "sha2 0.10.9",
+ "spki 0.7.3",
+]
+
+[[package]]
 name = "pkcs8"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f950b2377845cebe5cf8b5165cb3cc1a5e0fa5cfa3e1f7f55707d8fd82e0a7b7"
 dependencies = [
  "der 0.7.10",
+ "pkcs5",
+ "rand_core 0.6.4",
  "spki 0.7.3",
 ]
 
@@ -13409,6 +13508,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rpassword"
+version = "7.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fa2c5d9304b618df61ff17f3d3485c6e1854a3d94902a49abbb8d43dfbe0464"
+dependencies = [
+ "libc",
+ "rtoolbox",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "rsa"
 version = "0.9.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13427,6 +13537,16 @@ dependencies = [
  "spki 0.7.3",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "rtoolbox"
+version = "0.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a1efe12a1469752d0e6ff5ebec0b6ef4924cc5c4c71046b0ec730040535819d"
+dependencies = [
+ "libc",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -14694,8 +14814,15 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caac132742f0d33c3af65bfcde7f6aa8f62f0e991d80db99149eb9d44708784f"
 dependencies = [
+ "aes 0.8.4",
+ "aes-gcm",
+ "cbc",
+ "chacha20 0.9.1",
  "cipher 0.4.4",
+ "ctr",
+ "poly1305",
  "ssh-encoding",
+ "subtle",
 ]
 
 [[package]]
@@ -14715,6 +14842,7 @@ version = "0.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b86f5297f0f04d08cabaa0f6bff7cb6aec4d9c3b49d87990d63da9d9156a8c3"
 dependencies = [
+ "bcrypt-pbkdf",
  "ed25519-dalek",
  "num-bigint-dig",
  "p256",
@@ -17899,9 +18027,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-streams"
-version = "0.6.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7d3be8814f5ba5f074491a469eed3d73c273ffad955f25ed1635efac4b0d269"
+checksum = "434504846030952e6c0d1e0abf6cb4be16f56e129a9af54a4452d5a2a40f84b1"
 dependencies = [
  "futures-util",
  "js-sys",
@@ -19471,9 +19599,9 @@ dependencies = [
 
 [[package]]
 name = "worker"
-version = "0.8.5"
+version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f8adbf6c9ae45b665dee995c5e3a342c2bd7d58a2e8ca5c75b50ce8b1b8bfd9"
+checksum = "4057bce8ec66c80b7e270d884c312e2a4ff60eb997fd02936656106c06a964e5"
 dependencies = [
  "async-trait",
  "bytes",
@@ -19489,12 +19617,12 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_json",
  "serde_urlencoded",
- "strum 0.27.2",
+ "strum 0.28.0",
  "tokio",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.6.0",
+ "wasm-streams 0.7.1",
  "web-sys",
  "worker-macros",
  "worker-sys",
@@ -19502,15 +19630,15 @@ dependencies = [
 
 [[package]]
 name = "worker-macros"
-version = "0.8.5"
+version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d908735d273dd7f9c325a842623f4e5a745e0686187ce465b34dc162ad348df"
+checksum = "f3d7389670b55aab89760be149007aeff773cdad7b650d807f7fb556d04bb304"
 dependencies = [
  "async-trait",
  "proc-macro2",
  "quote",
- "strum 0.27.2",
- "syn 2.0.119",
+ "strum 0.28.0",
+ "syn 3.0.10",
  "wasm-bindgen",
  "wasm-bindgen-macro-support",
  "worker-sys",
@@ -19518,9 +19646,9 @@ dependencies = [
 
 [[package]]
 name = "worker-sys"
-version = "0.8.5"
+version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33faa1a8fa6c7eec67b196e008859c44d468a5ad4f991855cdc856f119e0e98f"
+checksum = "6a440092e7ae7c5feb5507fbdc6aee0cc241d132757c83e1729766a24cddff82"
 dependencies = [
  "cfg-if",
  "js-sys",

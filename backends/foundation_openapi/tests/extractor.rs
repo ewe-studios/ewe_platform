@@ -334,3 +334,56 @@ fn extracts_array_request_body_with_ref_items() {
     // Array of named refs should become Vec<SecretInput>
     assert_eq!(ep.request_type, Some("Vec<SecretInput>".to_string()));
 }
+
+#[test]
+fn resolves_a_multipart_request_body_reference() {
+    let spec_json = serde_json::json!({
+        "openapi": "3.0.0",
+        "info": { "title": "Test", "version": "1.0.0" },
+        "paths": {
+            "/accounts/{account_id}/workers/scripts/{script_name}": {
+                "put": {
+                    "operationId": "worker-script-upload-worker-module",
+                    "parameters": [
+                        { "in": "path", "name": "account_id", "required": true, "schema": { "type": "string" } },
+                        { "in": "path", "name": "script_name", "required": true, "schema": { "type": "string" } }
+                    ],
+                    "requestBody": { "$ref": "#/components/requestBodies/workers_script_upload" },
+                    "responses": { "200": { "description": "Success" } }
+                }
+            }
+        },
+        "components": {
+            "requestBodies": {
+                "workers_script_upload": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "metadata": { "type": "object" },
+                                    "files": { "type": "array", "items": { "type": "string", "format": "binary" } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    let spec: OpenApiSpec = serde_json::from_value(spec_json).unwrap();
+    let extractor = EndpointExtractor::new(Arc::new(spec));
+    let endpoints = extractor.extract_all();
+
+    assert_eq!(endpoints.len(), 1);
+    let raw = endpoints[0]
+        .raw_request_body
+        .as_ref()
+        .expect("the upload body is raw");
+    assert_eq!(raw.media_type, "multipart/form-data");
+    assert!(raw.multipart, "the body is built from named parts");
+    assert!(raw.required);
+    assert_eq!(endpoints[0].request_type, None);
+}

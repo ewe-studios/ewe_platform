@@ -8,6 +8,11 @@
 //! process start ([`run`]), `Prepare` ([`root`]), the sessions ([`exec`]), the
 //! files ([`files`]) and `Shutdown`.
 
+/// The control role of the slave (feature 11, section 6.1): the inner control
+/// plane that runs micro virtual machines (VMs) in a container.
+#[cfg(all(feature = "control", feature = "firecracker"))]
+pub mod control;
+
 pub mod exec;
 pub mod files;
 pub mod pid1;
@@ -16,10 +21,15 @@ pub mod root;
 pub mod serve;
 pub mod state;
 pub mod sys;
+pub mod unpack;
 
 use std::path::PathBuf;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+
+#[cfg(feature = "control")]
+use crate::shared::control::SandboxProvider;
 
 use foundation_compact::rng::Rng;
 use foundation_connectrpc::{ConnectError, ConnectResult, Request, Response, RpcCtx};
@@ -37,7 +47,8 @@ use crate::shared::rpc::messages::{
     FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::SlaveService;
 
@@ -47,6 +58,7 @@ use self::exec::{SessionStream, SessionTable};
 use self::files::Files;
 use self::reaper::ChildTable;
 use self::state::{Phase, PrepareRecord, State};
+use self::unpack::{ChildOptions, UnpackSessions};
 
 /// The number of threads of the valtron pool that the slave starts when its
 /// caller did not start one. Four workers keep both output pumps of one session
@@ -65,6 +77,12 @@ pub struct SlaveArgs {
     /// the file calls only: a program cannot start under a root other than `/`
     /// without the right to `chroot`.
     pub plain_root: PathBuf,
+    /// The mode of the Unix domain socket file.
+    ///
+    /// Default `0o600`. A slave that serves a control plane of another user,
+    /// as in a Docker container, needs a wider mode; the run directory's own
+    /// mode keeps other users out.
+    pub socket_mode: u32,
 }
 
 /// The slave service.
@@ -77,7 +95,14 @@ pub struct Slave {
     sessions: Arc<SessionTable>,
     children: Arc<ChildTable>,
     files: Mutex<Option<Arc<Files>>>,
+    unpack: Mutex<Option<Arc<UnpackSessions>>>,
     shutdown: Arc<ShutdownSignal>,
+    /// The inner control plane, when the slave was started with `--control`.
+    #[cfg(feature = "control")]
+    control: Mutex<Option<Arc<dyn SandboxProvider>>>,
+    /// Whether the slave can control: the build has the features, `--control`
+    /// was given, and the Firecracker probe is usable (feature 11).
+    can_control: AtomicBool,
 }
 
 impl Slave {
@@ -110,8 +135,41 @@ impl Slave {
             sessions: Arc::new(SessionTable::new()),
             children: Arc::new(ChildTable::new()),
             files: Mutex::new(None),
+            unpack: Mutex::new(None),
             shutdown,
+            #[cfg(feature = "control")]
+            control: Mutex::new(None),
+            can_control: AtomicBool::new(false),
         })
+    }
+
+    /// Adds the inner control plane and the result of its Firecracker probe.
+    ///
+    /// The slave serves `SandboxService` only when this method ran (feature 11,
+    /// invariant I4).
+    #[cfg(feature = "control")]
+    pub fn set_control(&self, provider: Arc<dyn SandboxProvider>, can_control: bool) {
+        *self
+            .control
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(provider);
+        self.can_control.store(can_control, Ordering::SeqCst);
+    }
+
+    /// The inner control plane, when the slave was started with `--control`.
+    #[cfg(feature = "control")]
+    #[must_use]
+    pub fn control(&self) -> Option<Arc<dyn SandboxProvider>> {
+        self.control
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+
+    /// Whether the slave can control (feature 11).
+    #[must_use]
+    pub fn can_control(&self) -> bool {
+        self.can_control.load(Ordering::SeqCst)
     }
 
     /// The signal that stops the server.
@@ -266,6 +324,86 @@ impl Slave {
         Ok(opened)
     }
 
+    /// The unpack sessions, opened on the first unpack call.
+    fn unpack_sessions(&self) -> SandboxResult<Arc<UnpackSessions>> {
+        let prepared = self.prepared()?;
+        let mut slot = self
+            .unpack
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(sessions) = slot.as_ref() {
+            return Ok(Arc::clone(sessions));
+        }
+        let limits = prepared.limits();
+        let sessions = Arc::new(UnpackSessions::new(
+            self.ctx.clone(),
+            limits.max_exec_sessions as usize,
+            std::time::Duration::from_millis(u64::from(limits.upload_idle_timeout_ms)),
+        ));
+        *slot = Some(Arc::clone(&sessions));
+        start_unpack_timer(
+            self.ctx.clone(),
+            Arc::clone(&sessions),
+            std::time::Duration::from_millis(u64::from(limits.upload_idle_timeout_ms) / 2),
+        );
+        Ok(sessions)
+    }
+
+    /// Unmounts a writable root cleanly before the machine powers off.
+    ///
+    /// It unmounts the bind mounts below the root, flushes the buffers and
+    /// unmounts the root. When the root refuses with `EBUSY`, it remounts the
+    /// root read-only, which also makes the image clean. It never fails the
+    /// stop: every error is logged, and the power off runs next.
+    pub fn unmount_writable_root(&self) {
+        let Some(record) = self.lock_state().prepare.clone() else {
+            return;
+        };
+        if record.root_mode != crate::shared::spec::RootMode::Writable {
+            return;
+        }
+        let root = &record.exec_root;
+        let mut targets: Vec<PathBuf> = Vec::new();
+        for mount in &record.request.mounts {
+            targets.push(root.join(mount.guest_path.trim_start_matches('/')));
+        }
+        if !record.request.dns.is_empty() {
+            targets.push(root.join("etc/resolv.conf"));
+        }
+        for directory in ["dev", "sys", "proc"] {
+            targets.push(root.join(directory));
+        }
+        for target in &targets {
+            if let Err(error) = sys::unmount(target, 0) {
+                tracing::warn!(
+                    target = %target.display(),
+                    error = %error,
+                    "cannot unmount a bind mount of the writable root"
+                );
+            }
+        }
+        self.host.power.sync();
+        if let Err(error) = sys::unmount(root, 0) {
+            tracing::warn!(
+                root = %root.display(),
+                error = %error,
+                "cannot unmount the writable root: remount it read-only"
+            );
+            #[allow(
+                clippy::unnecessary_cast,
+                reason = "the mount flag type is not the same on every system"
+            )]
+            let flags = (libc::MS_REMOUNT | libc::MS_RDONLY) as u64;
+            if let Err(error) = self.host.mounts.mount("none", root, "", flags, "") {
+                tracing::warn!(
+                    root = %root.display(),
+                    error = %error,
+                    "cannot remount the writable root read-only"
+                );
+            }
+        }
+    }
+
     /// Ends every session and every upload. The server calls it when its loop
     /// ends, and `Shutdown` calls it after the grace time.
     pub fn end_everything(&self) {
@@ -275,17 +413,45 @@ impl Slave {
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .clone(),
+            self.unpack
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .clone(),
         );
     }
 }
 
-/// Ends every session and removes every upload.
-fn end_everything(sessions: &Arc<SessionTable>, files: Option<Arc<Files>>) {
+/// Ends every session, removes every upload and stops every unpack.
+fn end_everything(
+    sessions: &Arc<SessionTable>,
+    files: Option<Arc<Files>>,
+    unpack: Option<Arc<UnpackSessions>>,
+) {
     for session in sessions.snapshot() {
         let _ = session.signal_group(libc::SIGKILL);
     }
     if let Some(files) = files {
         files.remove_all();
+    }
+    if let Some(unpack) = unpack {
+        unpack.remove_all();
+    }
+}
+
+/// Stops the inner sandboxes of a slave with the control role.
+///
+/// The children stop first, then the programs of the slave (feature 11,
+/// section 6.1). A failed stop is not reported: the slave is going away.
+#[cfg(feature = "control")]
+async fn stop_inner_sandboxes(control: &Arc<dyn SandboxProvider>) {
+    let Ok(sandboxes) = control.list().await else {
+        return;
+    };
+    for info in sandboxes {
+        let Ok(id) = info.id.parse() else {
+            continue;
+        };
+        let _ = control.stop(id).await;
     }
 }
 
@@ -295,9 +461,16 @@ async fn shutdown_sessions(
     ctx: Ctx,
     sessions: Arc<SessionTable>,
     files: Option<Arc<Files>>,
+    unpack: Option<Arc<UnpackSessions>>,
     shutdown: Arc<ShutdownSignal>,
     grace: std::time::Duration,
+    #[cfg(feature = "control")] control: Option<Arc<dyn SandboxProvider>>,
 ) {
+    // The children stop first.
+    #[cfg(feature = "control")]
+    if let Some(control) = &control {
+        stop_inner_sandboxes(control).await;
+    }
     for session in sessions.snapshot() {
         let _ = session.signal_group(libc::SIGTERM);
     }
@@ -307,7 +480,7 @@ async fn shutdown_sessions(
         let step = remaining.min(std::time::Duration::from_millis(20));
         foundation_core::valtron::timer::sleep_for(step, &ctx).await;
     }
-    end_everything(&sessions, files);
+    end_everything(&sessions, files, unpack);
     shutdown.turn_on();
 }
 
@@ -325,6 +498,33 @@ fn start_upload_timer(ctx: Ctx, files: Arc<Files>, interval: std::time::Duration
         foundation_core::valtron::send(foundation_core::valtron::from_future(future))
     {
         tracing::error!(error = %error, "the slave could not start the upload timer");
+    }
+}
+
+/// The child limits of one unpack.
+fn unpack_child_limits(limits: crate::shared::rpc::messages::SlaveLimits) -> ChildOptions {
+    ChildOptions {
+        oci_whiteouts: false,
+        keep_existing_dirs: false,
+        skip: Vec::new(),
+        max_entries: usize::try_from(limits.max_unpack_entries).unwrap_or(usize::MAX),
+        max_bytes: limits.max_unpack_bytes,
+        max_path_bytes: usize::try_from(limits.max_unpack_path_bytes).unwrap_or(usize::MAX),
+    }
+}
+
+/// Starts the task that stops an unpack that stays idle.
+fn start_unpack_timer(ctx: Ctx, unpack: Arc<UnpackSessions>, interval: std::time::Duration) {
+    let future = async move {
+        loop {
+            foundation_core::valtron::timer::sleep_for(interval, &ctx).await;
+            unpack.expire_idle();
+        }
+    };
+    if let Err(error) =
+        foundation_core::valtron::send(foundation_core::valtron::from_future(future))
+    {
+        tracing::error!(error = %error, "the slave could not start the unpack timer");
     }
 }
 
@@ -347,7 +547,7 @@ impl SlaveService for Slave {
             kernel,
             is_pid1: self.pid1,
             prepared: state.is_prepared(),
-            can_control: false,
+            can_control: self.can_control(),
         }))
     }
 
@@ -481,6 +681,73 @@ impl SlaveService for Slave {
         }
     }
 
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackBeginRequest>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        let max = self.max_error_message();
+        let answer = self.prepared().and_then(|prepared| {
+            let sessions = self.unpack_sessions()?;
+            let mut child = unpack_child_limits(prepared.limits());
+            child.oci_whiteouts = request.msg.oci_whiteouts;
+            child.keep_existing_dirs = request.msg.keep_existing_dirs;
+            child.skip.clone_from(&request.msg.skip);
+            let upload_id = sessions.begin(&prepared.exec_root, &request.msg.dest, &child)?;
+            Ok(UnpackBeginResponse {
+                upload_id: upload_id.to_string(),
+            })
+        });
+        to_connect(answer, max).map(Response::new)
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackChunkRequest>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        let max = self.max_error_message();
+        let answer = self
+            .prepared()
+            .and_then(|_| self.unpack_sessions())
+            .and_then(|sessions| {
+                sessions.chunk(
+                    &request.msg.upload_id,
+                    request.msg.offset,
+                    &request.msg.data,
+                )
+            })
+            .map(|next_offset| UnpackChunkResponse { next_offset });
+        to_connect(answer, max).map(Response::new)
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackCommitRequest>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let max = self.max_error_message();
+        let answer = self
+            .prepared()
+            .and_then(|_| self.unpack_sessions())
+            .and_then(|sessions| sessions.commit(&request.msg.upload_id, request.msg.size))
+            .map(|(entries, bytes)| UnpackCommitResponse { entries, bytes });
+        to_connect(answer, max).map(Response::new)
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<UnpackAbortRequest>,
+    ) -> ConnectResult<Response<Empty>> {
+        let max = self.max_error_message();
+        let answer = self
+            .prepared()
+            .and_then(|_| self.unpack_sessions())
+            .map(|sessions| sessions.abort(&request.msg.upload_id));
+        to_connect(answer, max).map(|()| Response::new(Empty {}))
+    }
+
     async fn shutdown(
         &self,
         _ctx: RpcCtx,
@@ -503,10 +770,27 @@ impl SlaveService for Slave {
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
                 .clone();
+            let unpack = self
+                .unpack
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .clone();
             let shutdown = Arc::clone(&self.shutdown);
             let grace = std::time::Duration::from_millis(u64::from(request.msg.grace_ms));
+            #[cfg(feature = "control")]
+            let control = self.control();
             let future = async move {
-                shutdown_sessions(ctx, sessions, files, shutdown, grace).await;
+                shutdown_sessions(
+                    ctx,
+                    sessions,
+                    files,
+                    unpack,
+                    shutdown,
+                    grace,
+                    #[cfg(feature = "control")]
+                    control,
+                )
+                .await;
             };
             if let Err(error) =
                 foundation_core::valtron::send(foundation_core::valtron::from_future(future))
@@ -651,7 +935,7 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
     start_pool(&ctx);
 
     let shutdown = Arc::new(ShutdownSignal::new());
-    let bound = match serve::bind(&args.listen, Arc::clone(&shutdown)) {
+    let bound = match serve::bind_with_mode(&args.listen, Arc::clone(&shutdown), args.socket_mode) {
         Ok(bound) => bound,
         Err(error) => {
             write_error(&format!("agent-slave: the bind failed: {error}"));
@@ -669,6 +953,22 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
         Arc::clone(&shutdown),
     );
 
+    if args.control {
+        #[cfg(all(feature = "control", feature = "firecracker"))]
+        match control::build(&ctx) {
+            Ok(role) => slave.set_control(role.provider, role.can_control),
+            // A failure to build the inner control plane leaves the slave
+            // unable to control; the control paths answer `DriverUnavailable`.
+            Err(error) => {
+                tracing::warn!(error = %error, "the slave could not build its control role");
+            }
+        }
+        #[cfg(not(all(feature = "control", feature = "firecracker")))]
+        tracing::warn!(
+            "--control is ignored: this build has no `control` and `firecracker` features"
+        );
+    }
+
     if let Err(error) = reaper::start(Arc::clone(slave.children())) {
         write_error(&format!("agent-slave: the reaper set-up failed: {error}"));
         if pid1 {
@@ -683,9 +983,20 @@ pub fn run(ctx: Ctx, args: SlaveArgs) -> i32 {
         debug_assert!(slave.is_pid1());
     }
 
-    serve::serve(&bound, ctx, Arc::clone(&slave));
-    // The listener loop ended: no session or upload stays behind.
+    serve::serve(&bound, ctx, &slave);
+    // The listener loop ended. The children stop first, then the sessions and
+    // the uploads of the slave: nothing stays behind.
+    #[cfg(feature = "control")]
+    if let Some(control) = slave.control() {
+        let control = Arc::clone(&control);
+        foundation_core::valtron::block_on_future(async move {
+            stop_inner_sandboxes(&control).await;
+        });
+    }
     slave.end_everything();
+    // A writable image must be unmounted before the machine stops, so a later
+    // mount needs no journal replay.
+    slave.unmount_writable_root();
 
     if pid1 {
         pid1::finish_and_power_off(&host);

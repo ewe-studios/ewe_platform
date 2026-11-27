@@ -12,6 +12,10 @@
 // Cross-platform modules (native + wasm).
 pub mod shared;
 
+/// In-memory network and transport for deterministic simulation tests.
+#[cfg(feature = "testing")]
+pub mod testing;
+
 // Native-only modules (TCP server, h2/h3 transports).
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
@@ -20,6 +24,8 @@ pub mod native;
 #[cfg(target_family = "wasm")]
 pub mod wasm;
 
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use wasm::body::request_body_from_stream;
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use wasm::sink::{ConnectSink, ConnectSinkHandle};
 
@@ -32,8 +38,8 @@ pub use shared::error_writer::ErrorWriter;
 
 pub use shared::message::{Request, Response};
 pub use shared::router::{
-    in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, HandlerOptions,
-    RequestBody, RequestStream, ResponseSink, Router,
+    extract_path, in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer,
+    HandlerOptions, RequestBody, RequestStream, ResponseSink, Router,
 };
 
 /// Proc-macro for code-first `ConnectRPC` service generation (Feature 27,

@@ -23,6 +23,12 @@ pub struct CfConn {
     pub status: u16,
     pub headers: Vec<(String, String)>,
     pub body: Option<Vec<u8>>,
+    /// A response that already streams its body. When it is set,
+    /// [`into_response`](Self::into_response) returns it as it is, so the
+    /// body stays a JavaScript `ReadableStream` and no frame is collected in
+    /// memory.
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
+    stream: Option<web_sys::Response>,
 }
 
 impl CfConn {
@@ -32,7 +38,19 @@ impl CfConn {
             status: 200,
             headers: Vec::new(),
             body: None,
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
+            stream: None,
         }
+    }
+
+    /// Use a response whose body is a `ReadableStream`.
+    ///
+    /// A handler that streams (a Connect `ResponseSink`, for example) builds
+    /// the response and sets it here. The status, the headers and the body
+    /// fields are then ignored: the response carries its own.
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
+    pub fn set_response(&mut self, response: web_sys::Response) {
+        self.stream = Some(response);
     }
 
     /// Set the response status code.
@@ -62,6 +80,9 @@ impl CfConn {
     /// Convert collected fields into a `web_sys::Response`.
     #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
     pub fn into_response(self) -> Result<web_sys::Response, wasm_bindgen::JsError> {
+        if let Some(response) = self.stream {
+            return Ok(response);
+        }
         let init = web_sys::ResponseInit::new();
         init.set_status(self.status);
 

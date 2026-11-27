@@ -90,6 +90,8 @@ pub struct Miniflare {
     stdout: LogTail,
     stderr: LogTail,
     drains: Vec<JoinHandle<()>>,
+    /// The `.dev.vars` file written for this run and the text it replaced.
+    dev_vars: Option<(PathBuf, Option<String>)>,
 }
 
 impl Miniflare {
@@ -104,6 +106,7 @@ impl Miniflare {
             }
         }
 
+        let dev_vars = write_dev_vars(&config)?;
         let tool = resolve_tool(&config.tool)?;
         let port = config
             .port
@@ -170,6 +173,7 @@ impl Miniflare {
             stdout,
             stderr,
             drains,
+            dev_vars,
         };
 
         if !wait_for_ready(port, config.startup_timeout, &ctx) {
@@ -210,6 +214,37 @@ impl Miniflare {
         timeout: Duration,
     ) -> Result<(u16, String), MiniflareError> {
         http_request("127.0.0.1", self.port, "POST", path, body, timeout)
+    }
+
+    /// One request with explicit headers; returns the status, the response head
+    /// and the decoded body.
+    ///
+    /// # Errors
+    /// A connection, timeout or malformed-response failure.
+    pub fn request(
+        &self,
+        method: &str,
+        path: &str,
+        headers: &[(&str, &str)],
+        body: &str,
+        timeout: Duration,
+    ) -> Result<(u16, String, String), MiniflareError> {
+        http_request_full("127.0.0.1", self.port, method, path, headers, body, timeout)
+    }
+
+    /// One request whose body and response body are binary.
+    ///
+    /// # Errors
+    /// A connection, timeout or malformed-response failure.
+    pub fn request_bytes(
+        &self,
+        method: &str,
+        path: &str,
+        headers: &[(&str, &str)],
+        body: &[u8],
+        timeout: Duration,
+    ) -> Result<(u16, String, Vec<u8>), MiniflareError> {
+        http_request_bytes("127.0.0.1", self.port, method, path, headers, body, timeout)
     }
 
     /// The last lines the worker process wrote to stdout (see
@@ -253,6 +288,16 @@ impl Miniflare {
                 tracing::warn!(pid, error = %e, "reaping the miniflare child failed");
             }
         }
+        if let Some((path, previous)) = self.dev_vars.take() {
+            match previous {
+                Some(text) => {
+                    let _ = std::fs::write(&path, text);
+                }
+                None => {
+                    let _ = std::fs::remove_file(&path);
+                }
+            }
+        }
         // The drain threads end on their own once every writer of the pipes is
         // gone; never block shutdown on them (a stray grandchild that escaped
         // the process group would otherwise hang the caller here).
@@ -290,6 +335,9 @@ pub struct MiniflareConfig {
     pub extra_args: Vec<String>,
     /// Worker vars passed as `wrangler dev --var NAME:VALUE` (wrangler only).
     pub vars: Vec<(String, String)>,
+    /// Worker secrets, written to a temporary `.dev.vars` in the worker
+    /// directory for the run (wrangler reads `.dev.vars` as secrets).
+    pub secrets: Vec<(String, String)>,
     /// How many of the child's most recent stdout/stderr lines to keep for
     /// error reports. Both pipes are always drained; this only bounds memory.
     /// Default 200, about a screenful of wrangler output.
@@ -309,6 +357,7 @@ impl Default for MiniflareConfig {
             startup_timeout: Duration::from_secs(30),
             extra_args: Vec::new(),
             vars: Vec::new(),
+            secrets: Vec::new(),
             log_tail_lines: 200,
         }
     }
@@ -369,6 +418,15 @@ impl MiniflareConfig {
     #[must_use]
     pub fn var(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
         self.vars.push((name.into(), value.into()));
+        self
+    }
+
+    /// Add a Worker secret for this run. A `--var` is not a secret; wrangler
+    /// reads secrets from `.dev.vars`, so the harness writes one and removes it
+    /// at stop.
+    #[must_use]
+    pub fn secret(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.secrets.push((name.into(), value.into()));
         self
     }
 
@@ -478,11 +536,43 @@ fn build_args(config: &MiniflareConfig, tool_path: &Path, port: u16) -> Vec<Stri
     args
 }
 
+/// Write the run's secrets to `.dev.vars`, keeping any file that was there.
+///
+/// A Worker secret is not a var: `wrangler dev` reads `.dev.vars` for secrets
+/// and `--var` for vars. The file is removed, or restored, at stop.
+fn write_dev_vars(
+    config: &MiniflareConfig,
+) -> Result<Option<(PathBuf, Option<String>)>, MiniflareError> {
+    if config.secrets.is_empty() {
+        return Ok(None);
+    }
+    let Some(dir) = config.worker_dir.as_ref() else {
+        return Ok(None);
+    };
+    let path = dir.join(".dev.vars");
+    let previous = std::fs::read_to_string(&path).ok();
+    let mut text = previous.clone().unwrap_or_default();
+    if !text.is_empty() && !text.ends_with('\n') {
+        text.push('\n');
+    }
+    for (name, value) in &config.secrets {
+        text.push_str(name);
+        text.push('=');
+        text.push_str(value);
+        text.push('\n');
+    }
+    std::fs::write(&path, text).map_err(MiniflareError::SpawnFailed)?;
+    Ok(Some((path, previous)))
+}
+
 fn wait_for_ready(port: u16, timeout: Duration, ctx: &Ctx) -> bool {
     let clock = ctx.clock();
     let deadline = clock.now() + timeout;
     while clock.now() < deadline {
-        if http_get("127.0.0.1", port, "/").is_ok() {
+        // The first request of a Worker may build its stores (a D1 schema, a
+        // secret read), which can take longer than a bare health request. Give
+        // it ten seconds before the probe retries.
+        if http_request("127.0.0.1", port, "GET", "/", "", Duration::from_secs(10)).is_ok() {
             return true;
         }
         std::thread::sleep(Duration::from_millis(200));
@@ -502,6 +592,21 @@ fn http_request(
     body: &str,
     timeout: Duration,
 ) -> Result<(u16, String), MiniflareError> {
+    http_request_full(host, port, method, path, &[], body, timeout)
+        .map(|(status, _head, body)| (status, body))
+}
+
+/// One request with explicit headers; returns the status, the response head
+/// and the decoded body.
+fn http_request_full(
+    host: &str,
+    port: u16,
+    method: &str,
+    path: &str,
+    headers: &[(&str, &str)],
+    body: &str,
+    timeout: Duration,
+) -> Result<(u16, String, String), MiniflareError> {
     let addr = format!("{host}:{port}");
     let mut stream = TcpStream::connect(&addr)
         .map_err(|e| MiniflareError::HttpFailed(format!("connect {addr}: {e}")))?;
@@ -510,9 +615,13 @@ fn http_request(
         .set_read_timeout(Some(timeout))
         .map_err(|e| MiniflareError::HttpFailed(format!("set timeout: {e}")))?;
 
+    let mut extra = String::new();
+    for (name, value) in headers {
+        extra.push_str(&format!("{name}: {value}\r\n"));
+    }
     let request = format!(
         "{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\
-         Content-Length: {}\r\n\r\n{body}",
+         {extra}Content-Length: {}\r\n\r\n{body}",
         body.len()
     );
     stream
@@ -545,7 +654,94 @@ fn http_request(
         body.to_string()
     };
 
-    Ok((status_code, body))
+    Ok((status_code, head.to_string(), body))
+}
+
+/// One request whose request and response bodies are binary.
+fn http_request_bytes(
+    host: &str,
+    port: u16,
+    method: &str,
+    path: &str,
+    headers: &[(&str, &str)],
+    body: &[u8],
+    timeout: Duration,
+) -> Result<(u16, String, Vec<u8>), MiniflareError> {
+    let addr = format!("{host}:{port}");
+    let mut stream = TcpStream::connect(&addr)
+        .map_err(|e| MiniflareError::HttpFailed(format!("connect {addr}: {e}")))?;
+    stream
+        .set_read_timeout(Some(timeout))
+        .map_err(|e| MiniflareError::HttpFailed(format!("set timeout: {e}")))?;
+
+    let mut head =
+        format!("{method} {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n");
+    for (name, value) in headers {
+        head.push_str(&format!("{name}: {value}\r\n"));
+    }
+    head.push_str(&format!("Content-Length: {}\r\n\r\n", body.len()));
+    stream
+        .write_all(head.as_bytes())
+        .map_err(|e| MiniflareError::HttpFailed(format!("write head: {e}")))?;
+    stream
+        .write_all(body)
+        .map_err(|e| MiniflareError::HttpFailed(format!("write body: {e}")))?;
+
+    let mut raw = Vec::new();
+    stream
+        .read_to_end(&mut raw)
+        .map_err(|e| MiniflareError::HttpFailed(format!("read {method} {path}: {e}")))?;
+
+    let split = raw
+        .windows(4)
+        .position(|window| window == b"\r\n\r\n")
+        .map(|index| (index, index + 4))
+        .ok_or_else(|| MiniflareError::HttpFailed("the response has no head".into()))?;
+    let head_text = String::from_utf8_lossy(&raw[..split.0]).to_string();
+    let status = head_text
+        .lines()
+        .next()
+        .and_then(|line| line.split_whitespace().nth(1))
+        .and_then(|code| code.parse::<u16>().ok())
+        .unwrap_or(0);
+    let chunked = head_text.lines().any(|line| {
+        let line = line.to_ascii_lowercase();
+        line.starts_with("transfer-encoding:") && line.contains("chunked")
+    });
+    let body = if chunked {
+        dechunk_bytes(&raw[split.1..])?
+    } else {
+        raw[split.1..].to_vec()
+    };
+    Ok((status, head_text, body))
+}
+
+/// Decode an HTTP/1.1 chunked body as bytes.
+fn dechunk_bytes(mut body: &[u8]) -> Result<Vec<u8>, MiniflareError> {
+    let mut out = Vec::new();
+    loop {
+        let line_end = body
+            .windows(2)
+            .position(|window| window == b"\r\n")
+            .ok_or_else(|| MiniflareError::HttpFailed("truncated chunk header".into()))?;
+        let size_line = String::from_utf8_lossy(&body[..line_end]);
+        let size_hex = size_line.split(';').next().unwrap_or("").trim();
+        let size = usize::from_str_radix(size_hex, 16)
+            .map_err(|e| MiniflareError::HttpFailed(format!("bad chunk size {size_hex:?}: {e}")))?;
+        if size == 0 {
+            return Ok(out);
+        }
+        let start = line_end + 2;
+        let end = start + size;
+        let chunk = body
+            .get(start..end)
+            .ok_or_else(|| MiniflareError::HttpFailed("truncated chunk".into()))?;
+        out.extend_from_slice(chunk);
+        body = body
+            .get(end..)
+            .and_then(|rest| rest.strip_prefix(b"\r\n".as_slice()))
+            .ok_or_else(|| MiniflareError::HttpFailed("missing chunk terminator".into()))?;
+    }
 }
 
 /// Decode an HTTP/1.1 `Transfer-Encoding: chunked` body.

@@ -22,6 +22,8 @@ fn stored(id: &SandboxId, state: SandboxState) -> StoredRecord {
         spec,
         state,
         created_unix_ms: 0,
+        expires_at_unix_ms: None,
+        manifest: None,
     }
 }
 

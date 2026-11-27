@@ -246,6 +246,12 @@ impl Default for EnrollConfig {
     }
 }
 
+/// The default port of the native agent-rpc server in a Cloudflare container.
+///
+/// The image must listen on this port. `AgentRpcConfig::port` changes the value
+/// that the caller passes to `AgentContainer::call`.
+pub const DEFAULT_AGENT_RPC_PORT: u16 = 8_080;
+
 /// A token-bucket rate limit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RateLimit {
@@ -253,4 +259,61 @@ pub struct RateLimit {
     pub per_second: u32,
     /// The bucket size: the largest burst.
     pub burst: u32,
+}
+
+/// Where one model provider application programming interface (API) key
+/// lives.
+///
+/// A key is a secret, like a private key. The configuration names the secret,
+/// never the value. The native host reads the secret from the host, and the
+/// Worker reads it from a Worker secret or an account Secrets Store binding.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum SecretRef {
+    /// A per-host secret (`wrangler secret put <name>` on a Worker, or the
+    /// native secret source of the same name).
+    WorkerSecret {
+        /// The binding name.
+        name: String,
+    },
+    /// An account-level Secrets Store binding. Read with `get()`.
+    SecretsStore {
+        /// The binding name.
+        binding: String,
+    },
+}
+
+impl SecretRef {
+    /// Read the reference from the `api_key_secret` text.
+    ///
+    /// A plain name is a host secret, as in the earlier configuration. A text
+    /// that starts with `{` is a JSON [`SecretRef`].
+    ///
+    /// # Errors
+    /// [`crate::error::AgentRpcError::Config`] for JSON that is not a
+    /// [`SecretRef`].
+    pub fn parse(text: &str) -> crate::error::AgentRpcResult<Self> {
+        let text = text.trim();
+        if text.starts_with('{') {
+            serde_json::from_str(text).map_err(|error| {
+                crate::error::AgentRpcError::Config(format!(
+                    "api_key_secret is not a secret reference: {error}"
+                ))
+                .into()
+            })
+        } else {
+            Ok(Self::WorkerSecret {
+                name: text.to_string(),
+            })
+        }
+    }
+
+    /// The binding name, for an error message that never shows the value.
+    #[must_use]
+    pub fn binding(&self) -> &str {
+        match self {
+            Self::WorkerSecret { name } => name,
+            Self::SecretsStore { binding } => binding,
+        }
+    }
 }

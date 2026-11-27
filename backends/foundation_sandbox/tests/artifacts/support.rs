@@ -313,6 +313,22 @@ impl HostFs for RecordingFs {
         NativeFs.remove_dir_all(path)
     }
 
+    fn remove_file(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<()> {
+        NativeFs.remove_file(path)
+    }
+
+    fn open_read(
+        &self,
+        path: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<Box<dyn std::io::Read + Send + Sync>>
+    {
+        NativeFs.open_read(path)
+    }
+
+    fn file_size(&self, path: &Path) -> foundation_sandbox::shared::error::SandboxResult<u64> {
+        NativeFs.file_size(path)
+    }
+
     fn write(
         &self,
         path: &Path,
@@ -347,6 +363,29 @@ impl HostFs for RecordingFs {
         to: &Path,
     ) -> foundation_sandbox::shared::error::SandboxResult<()> {
         NativeFs.rename(from, to)
+    }
+
+    fn read_stream(
+        &self,
+        path: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<Box<dyn std::io::Read + Send>> {
+        NativeFs.read_stream(path)
+    }
+
+    fn clone_file(
+        &self,
+        from: &Path,
+        to: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<()> {
+        NativeFs.clone_file(from, to)
+    }
+
+    fn lock_exclusive(
+        &self,
+        path: &Path,
+    ) -> foundation_sandbox::shared::error::SandboxResult<foundation_sandbox::shared::host::FileLock>
+    {
+        NativeFs.lock_exclusive(path)
     }
 
     fn create_file(

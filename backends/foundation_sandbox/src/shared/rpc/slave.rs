@@ -12,7 +12,8 @@ use super::messages::{
     FileChunk, FileReadRequest, FileWriteAbortRequest, FileWriteBeginRequest,
     FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse, FileWriteCommitRequest,
     FileWriteCommitResponse, InfoRequest, PrepareRequest, PrepareResponse, ShutdownRequest,
-    SlaveInfo,
+    SlaveInfo, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 
 /// The service that runs in the sandbox.
@@ -87,6 +88,34 @@ pub trait SlaveService {
         ctx: RpcCtx,
         req: Request<FileReadRequest>,
     ) -> ConnectResult<impl futures::Stream<Item = ConnectResult<FileChunk>>>;
+
+    /// Starts an image unpack.
+    async fn unpack_begin(
+        &self,
+        ctx: RpcCtx,
+        req: Request<UnpackBeginRequest>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>>;
+
+    /// Writes one chunk of the tar stream.
+    async fn unpack_chunk(
+        &self,
+        ctx: RpcCtx,
+        req: Request<UnpackChunkRequest>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>>;
+
+    /// Ends the tar stream and applies the archive.
+    async fn unpack_commit(
+        &self,
+        ctx: RpcCtx,
+        req: Request<UnpackCommitRequest>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>>;
+
+    /// Ends an unpack without applying it.
+    async fn unpack_abort(
+        &self,
+        ctx: RpcCtx,
+        req: Request<UnpackAbortRequest>,
+    ) -> ConnectResult<Response<Empty>>;
 
     /// Stops the sandbox.
     async fn shutdown(

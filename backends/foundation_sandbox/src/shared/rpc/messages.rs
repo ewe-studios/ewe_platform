@@ -11,6 +11,142 @@ use crate::shared::spec::SandboxSpec;
 pub use crate::shared::control::{ExitReport, SandboxInfo, SandboxState};
 pub use crate::shared::spec::{FsType, GuestMount, RootMode, RootSetup, RootSource};
 
+/// The request of the container `Start` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerStartRequest {
+    /// What the caller wants the container to be.
+    pub spec: crate::shared::container::ContainerSpec,
+}
+
+/// The request of the container `Get` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerGetRequest {
+    /// The container identifier.
+    pub container_id: String,
+}
+
+/// The response of the container `Get` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerGetResponse {
+    /// The container, when this control has it and it runs.
+    pub container: Option<crate::shared::container::ContainerInfo>,
+}
+
+/// The response of the container `List` call.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerListResponse {
+    /// The containers of this control.
+    pub containers: Vec<crate::shared::container::ContainerInfo>,
+}
+
+/// The request of the container `Fetch` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerFetchRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The port.
+    pub port: u16,
+    /// The request.
+    pub request: crate::shared::container::PortRequest,
+}
+
+/// One event of a container `Fetch` response.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ContainerFetchEvent {
+    /// The response head. It is first.
+    Head {
+        /// The HTTP status.
+        status: u16,
+        /// The response headers.
+        headers: Vec<(String, String)>,
+    },
+    /// One chunk of the response body.
+    Chunk {
+        /// The bytes.
+        #[serde(with = "base64_bytes")]
+        data: Vec<u8>,
+    },
+}
+
+/// The request of the container `Exec` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerExecRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The execution request of the slave.
+    pub request: ExecRequest,
+}
+
+/// The request of the container `ExecInput` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerExecInputRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The input chunk of the slave.
+    pub request: ExecInputRequest,
+}
+
+/// The request of the container `ExecSignal` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerExecSignalRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The signal of the slave.
+    pub request: ExecSignalRequest,
+}
+
+/// The request of the container `Signal` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerSignalRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The signal number.
+    pub signo: i32,
+}
+
+/// The request of the container `Wait` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerWaitRequest {
+    /// The container identifier.
+    pub container_id: String,
+}
+
+/// The request of the container `Stop` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerStopRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The grace period in milliseconds.
+    pub grace_ms: u64,
+}
+
+/// The request of the container `Destroy` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerDestroyRequest {
+    /// The container identifier.
+    pub container_id: String,
+}
+
+/// The request of the container `LogTail` call.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerLogTailRequest {
+    /// The container identifier.
+    pub container_id: String,
+    /// The most bytes to read.
+    pub max: usize,
+}
+
+/// The response of the container `LogTail` call.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ContainerLogTailResponse {
+    /// The bytes of the tail.
+    pub data: Vec<u8>,
+}
+
+// The values of the container service are the contract values of feature 00.
+pub use crate::shared::container::{ContainerInfo, ContainerResources, ContainerSpec, PortRequest};
+pub use crate::shared::driver::SubstrateExit;
+
 /// An empty request or response.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Empty {}
@@ -77,6 +213,12 @@ pub struct SlaveLimits {
     pub max_message_bytes: u32,
     /// The events held for one `Exec` stream before the pumps wait. Default 4.
     pub event_queue_len: u32,
+    /// The most entries that one image unpack applies (feature 12).
+    pub max_unpack_entries: u32,
+    /// The most bytes that one image unpack writes (feature 12).
+    pub max_unpack_bytes: u64,
+    /// The longest path that one image unpack accepts (feature 12).
+    pub max_unpack_path_bytes: u32,
 }
 
 /// The default of [`SlaveLimits::input_pipe_bytes`]: 64 KiB, the Linux pipe
@@ -105,6 +247,16 @@ pub struct ExecRequest {
     pub cwd: Option<String>,
     /// Whether the program reads input. `false` uses `/dev/null`.
     pub stdin: bool,
+    /// The time limit in milliseconds, or `None` for no time limit.
+    ///
+    /// The slave may use it. The field is additive and defaults to `None`, so
+    /// an older peer ignores it.
+    #[serde(default)]
+    pub timeout_ms: Option<u64>,
+    /// The user of the program, in the forms of feature 12. `None` runs as
+    /// root, or as the image user when the command has no user.
+    #[serde(default)]
+    pub user: Option<String>,
 }
 
 /// One event of a running program.
@@ -233,6 +385,72 @@ pub struct FileWriteAbortRequest {
     pub upload_id: String,
 }
 
+/// The request of `UnpackBegin` (feature 12).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackBeginRequest {
+    /// The target directory in the guest.
+    pub dest: String,
+    /// Whether OCI whiteout entries remove earlier entries.
+    pub oci_whiteouts: bool,
+    /// Exact paths, relative to `dest`, that the reader drops.
+    #[serde(default)]
+    pub skip: Vec<String>,
+    /// Keep the mode of a directory that already exists (feature 14).
+    #[serde(default)]
+    pub keep_existing_dirs: bool,
+}
+
+/// The response of `UnpackBegin`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackBeginResponse {
+    /// The unpack identifier.
+    pub upload_id: String,
+}
+
+/// The request of `UnpackChunk`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackChunkRequest {
+    /// The unpack identifier.
+    pub upload_id: String,
+    /// The byte offset of this chunk.
+    pub offset: u64,
+    /// The uncompressed tar bytes.
+    #[serde(with = "base64_bytes")]
+    pub data: Vec<u8>,
+}
+
+/// The response of `UnpackChunk`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackChunkResponse {
+    /// The next offset that the slave accepts.
+    pub next_offset: u64,
+}
+
+/// The request of `UnpackCommit`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackCommitRequest {
+    /// The unpack identifier.
+    pub upload_id: String,
+    /// The final size of the tar stream in bytes.
+    pub size: u64,
+}
+
+/// The response of `UnpackCommit`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackCommitResponse {
+    /// The number of applied entries.
+    pub entries: u64,
+    /// The number of file data bytes.
+    pub bytes: u64,
+}
+
+/// The request of `UnpackAbort`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnpackAbortRequest {
+    /// The unpack identifier.
+    pub upload_id: String,
+}
+
 /// The request of `FileRead`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FileReadRequest {
@@ -285,6 +503,10 @@ pub struct CreateRequest {
 
 /// One event of `Create`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(
+    clippy::large_enum_variant,
+    reason = "the created sandbox carries its manifest; a create sends one event, so the box would save nothing"
+)]
 pub enum CreateEvent {
     /// The create reached a progress step.
     Progress(CreateProgress),

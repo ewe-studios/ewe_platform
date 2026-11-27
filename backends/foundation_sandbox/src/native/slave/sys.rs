@@ -650,6 +650,50 @@ pub fn mount(source: &str, target: &Path, fstype: &str, flags: u64, data: &str) 
     Ok(())
 }
 
+/// Makes `path` the root directory of this process.
+///
+/// # Errors
+/// The operating system error of `chroot`, such as `EPERM` when the process
+/// has no right to change its root.
+pub fn chroot(path: &str) -> io::Result<()> {
+    let path = CString::new(path.as_bytes()).map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `path` is a valid zero-terminated string.
+    let result = unsafe { libc::chroot(path.as_ptr()) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+/// Changes the working directory of this process.
+///
+/// # Errors
+/// The operating system error of `chdir`.
+pub fn chdir(path: &Path) -> io::Result<()> {
+    let path = CString::new(path.as_os_str().as_bytes()).map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `path` is a valid zero-terminated string.
+    let result = unsafe { libc::chdir(path.as_ptr()) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+/// Unmounts `target`.
+///
+/// # Errors
+/// The operating system error of `umount2`, such as `EBUSY` when a mount below
+/// `target` is still mounted.
+pub fn unmount(target: &Path, flags: i32) -> io::Result<()> {
+    let target = CString::new(target.as_os_str().as_bytes()).map_err(|_| error_of(libc::EINVAL))?;
+    // SAFETY: `target` is a valid zero-terminated string.
+    let result = unsafe { libc::umount2(target.as_ptr(), flags) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
 /// Flushes every file system buffer.
 pub fn sync() {
     // SAFETY: `sync` has no argument.
@@ -805,6 +849,37 @@ pub fn child_chroot(path: &CString) -> i32 {
 pub fn child_chdir(path: &CString) -> i32 {
     // SAFETY: `path` is a valid zero-terminated string.
     if unsafe { libc::chdir(path.as_ptr()) } < 0 {
+        return child_errno();
+    }
+    0
+}
+
+/// Clears the supplementary groups of the child. It returns the error number,
+/// or 0.
+#[must_use]
+pub fn child_setgroups() -> i32 {
+    // SAFETY: a count of zero with a null list clears every group.
+    if unsafe { libc::setgroups(0, std::ptr::null()) } < 0 {
+        return child_errno();
+    }
+    0
+}
+
+/// Sets the group of the child. It returns the error number, or 0.
+#[must_use]
+pub fn child_setgid(gid: u32) -> i32 {
+    // SAFETY: `setgid` takes one number.
+    if unsafe { libc::setgid(gid) } < 0 {
+        return child_errno();
+    }
+    0
+}
+
+/// Sets the user of the child. It returns the error number, or 0.
+#[must_use]
+pub fn child_setuid(uid: u32) -> i32 {
+    // SAFETY: `setuid` takes one number.
+    if unsafe { libc::setuid(uid) } < 0 {
         return child_errno();
     }
     0

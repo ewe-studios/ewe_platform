@@ -10,12 +10,13 @@
     reason = "the tests read clearer with these forms"
 )]
 
-mod support;
+pub mod support;
 
 mod create;
 mod drop;
 mod exec;
 mod misc;
+mod nested;
 mod properties;
 mod restore;
 mod rpc;

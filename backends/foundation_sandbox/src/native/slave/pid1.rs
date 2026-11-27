@@ -11,12 +11,30 @@ use super::sys;
 /// The mode of a directory that this file makes.
 const DIR_MODE: u32 = 0o755;
 
+/// Whether this process runs in a container.
+///
+/// Docker writes `/.dockerenv` and Podman writes `/run/.containerenv`. A
+/// container runtime owns the mount namespace and the loopback interface, and a
+/// container's process identifier (PID) 1 has no right to change them. The
+/// slave then skips the virtual machine boot duties and ends with an exit
+/// instead of a power off (feature 10).
+#[must_use]
+pub fn in_container() -> bool {
+    Path::new("/.dockerenv").exists() || Path::new("/run/.containerenv").exists()
+}
+
 /// Mounts the kernel file systems, sets the loopback interface up, opens the
 /// `SIGCHLD` descriptor and starts the reaper.
+///
+/// A container runtime already did these steps, so a container's PID 1 skips
+/// them: the mount calls return `EPERM` there, not a useful error.
 ///
 /// # Errors
 /// The operating system error of the first mount or of the signal set-up.
 pub fn boot_duties(host: &SlaveHost) -> io::Result<()> {
+    if in_container() {
+        return Ok(());
+    }
     for (source, target, fstype) in [
         ("proc", "/proc", "proc"),
         ("sysfs", "/sys", "sysfs"),
@@ -55,7 +73,14 @@ pub fn power_off(host: &SlaveHost) -> io::Result<std::convert::Infallible> {
 /// Runs the end of a process identifier 1 slave: the buffers are flushed and
 /// the machine is powered off. A failed power off writes the error and waits
 /// for ever, so the control plane forces the stop after its grace time.
+///
+/// In a container the runtime owns the machine, so the slave ends the container
+/// with exit code 0 instead (feature 10).
 pub fn finish_and_power_off(host: &Arc<SlaveHost>) -> ! {
+    if in_container() {
+        host.power.sync();
+        std::process::exit(0);
+    }
     match power_off(host) {
         Ok(never) => match never {},
         Err(error) => {

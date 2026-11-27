@@ -168,6 +168,7 @@ impl Default for KeepAliveConfig {
 ///
 /// NOTE: Now uses `TimeoutCalculator` as the single source of truth for
 /// timeout values, providing dynamic timeout calculation based on context.
+#[derive(Clone)]
 pub struct ServerConfig {
     /// Timeout calculator for dynamic timeout calculation.
     pub timeout_calculator: TimeoutCalculator,

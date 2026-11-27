@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>agent-rpc web client</title>
+  </head>
+  <body>
+    <h1>agent-rpc</h1>
+    <p>Paste an operator-issued access payload, then create an instance and chat.</p>
+    <label>Payload <input id="payload" size="60" /></label>
+    <button id="connect">Connect</button>
+    <p id="status"></p>
+    <label>Instance <input id="instance" value="demo" /></label>
+    <label>Model <input id="model" value="llama-3.1-8b" /></label>
+    <button id="create">Create</button>
+    <label>Prompt <input id="prompt" size="40" value="Hello" /></label>
+    <button id="chat">Chat</button>
+    <pre id="answer"></pre>
+    <script type="module">
+      import init, { BrowserClient } from "./pkg/agent_rpc_web.js";
+
+      await init();
+      const status = document.getElementById("status");
+      let client = null;
+
+      document.getElementById("connect").onclick = () => {
+        try {
+          client = BrowserClient.fromAccessPayload(
+            document.getElementById("payload").value,
+          );
+          status.textContent = `connected to ${client.url}`;
+        } catch (error) {
+          status.textContent = `error: ${error}`;
+        }
+      };
+      document.getElementById("create").onclick = async () => {
+        try {
+          const info = await client.createInstance(
+            document.getElementById("instance").value,
+            document.getElementById("model").value,
+          );
+          status.textContent = `created ${info}`;
+        } catch (error) {
+          status.textContent = `error: ${error}`;
+        }
+      };
+      document.getElementById("chat").onclick = async () => {
+        try {
+          document.getElementById("answer").textContent = await client.chat(
+            document.getElementById("instance").value,
+            document.getElementById("prompt").value,
+          );
+        } catch (error) {
+          status.textContent = `error: ${error}`;
+        }
+      };
+    </script>
+  </body>
+</html>

@@ -382,7 +382,7 @@ impl VerifyingKey {
     /// Lowercase hexadecimal SHA-256 of the key bytes. Safe to log.
     #[must_use]
     pub fn fingerprint(&self) -> String {
-        crate::fingerprint::sha256_hex(&self.bytes)
+        crate::fingerprint::public_fingerprint_hex(&self.bytes)
     }
 
     /// Check `signature` over `message`.
@@ -465,6 +465,6 @@ pub(crate) const KID_HEX_CHARS: usize = 16;
 /// the public key.
 #[must_use]
 pub(crate) fn derived_kid(public_key: &[u8]) -> String {
-    let digest = crate::fingerprint::sha256_hex(public_key);
+    let digest = crate::fingerprint::public_fingerprint_hex(public_key);
     digest.chars().take(KID_HEX_CHARS).collect()
 }

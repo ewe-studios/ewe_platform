@@ -27,6 +27,32 @@ pub trait EntropySource: Send + Sync + 'static {
     }
 }
 
+/// An object-safe extension of [`EntropySource`].
+///
+/// A generic method on the trait itself would make `dyn EntropySource`
+/// impossible, and `Env` holds the source behind `Arc<dyn EntropySource>`.
+/// This extension trait is implemented for every source, including the trait
+/// object, so a caller gets the same method either way.
+pub trait EntropySourceExt {
+    /// A new array filled with random bytes.
+    ///
+    /// Use it where a buffer is made only to be filled. The zero values exist
+    /// for one statement and never reach a caller: a failure returns an error
+    /// instead of a half-filled array.
+    ///
+    /// # Errors
+    /// The platform source failed.
+    fn fill_new<const N: usize>(&self) -> Result<[u8; N], entropy::Error>;
+}
+
+impl<T: EntropySource + ?Sized> EntropySourceExt for T {
+    fn fill_new<const N: usize>(&self) -> Result<[u8; N], entropy::Error> {
+        let mut bytes = [0u8; N];
+        self.fill(&mut bytes)?;
+        Ok(bytes)
+    }
+}
+
 /// The operating-system source. Native: `getrandom`/`getentropy`. wasm:
 /// `crypto.getRandomValues`.
 #[derive(Debug, Clone, Copy, Default)]

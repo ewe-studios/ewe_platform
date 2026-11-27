@@ -386,6 +386,29 @@ pub trait KeyValueStore: Send + Sync {
     /// For Turso/Libsql: yields keys one at a time.
     /// For D1 backends: buffered (API returns all keys at once).
     async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
+
+    /// Store `value` under `key` only if `key` is absent. Returns `true` when
+    /// this call stored it.
+    ///
+    /// The check and the write are one atomic step on SQL backends
+    /// (`INSERT ... ON CONFLICT DO NOTHING`) and inside one process on the
+    /// memory and JSON-file backends. The default is not atomic, so a backend
+    /// that cannot do it returns [`StorageError::Unsupported`]. Workers KV is
+    /// one such backend: it has no conditional write.
+    ///
+    /// # Errors
+    /// [`StorageError::Unsupported`] when the backend cannot do it atomically
+    /// (the default).
+    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<bool> {
+        let _ = (key, value);
+        Err(StorageError::Unsupported(
+            "insert_if_absent_async".to_string(),
+        ))
+    }
 }
 
 /// A byte-chunk stream for a blob body. Each item is one chunk; the whole

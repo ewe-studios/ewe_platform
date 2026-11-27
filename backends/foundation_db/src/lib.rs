@@ -30,6 +30,10 @@ pub mod core;
 // Central storage provider (wraps all backends)
 pub mod storage_provider;
 
+/// Fault-injecting storage wrappers for deterministic simulation tests.
+#[cfg(feature = "testing")]
+pub mod testing;
+
 // Native — TCP/DB backends, rows streaming. `json_file` also needs only
 // filesystem access, which a wasm target with WASI has.
 #[cfg(json_file_backend)]
@@ -52,6 +56,7 @@ pub use core::auth_store::*;
 pub use core::backends::*;
 pub use core::cleanup::*;
 pub use core::crypto::*;
+pub use core::do_sql::*;
 pub use core::errors::*;
 pub use core::schema::*;
 pub use core::storage_provider as traits;

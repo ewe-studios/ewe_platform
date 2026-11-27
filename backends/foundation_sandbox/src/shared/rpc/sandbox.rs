@@ -12,7 +12,8 @@ use super::messages::{
     ExecRequest, ExecSignalRequest, FileChunk, FileReadRequest, FileWriteAbortRequest,
     FileWriteBeginRequest, FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse,
     FileWriteCommitRequest, FileWriteCommitResponse, ListResponse, ProbeResponse, SandboxInfo,
-    SandboxRef, Scoped,
+    SandboxRef, Scoped, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse,
+    UnpackChunkRequest, UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::control::ExitReport;
 
@@ -113,4 +114,32 @@ pub trait SandboxService {
         ctx: RpcCtx,
         req: Request<Scoped<FileReadRequest>>,
     ) -> ConnectResult<impl futures::Stream<Item = ConnectResult<FileChunk>>>;
+
+    /// Starts an image unpack.
+    async fn unpack_begin(
+        &self,
+        ctx: RpcCtx,
+        req: Request<Scoped<UnpackBeginRequest>>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>>;
+
+    /// Writes one chunk of the tar stream.
+    async fn unpack_chunk(
+        &self,
+        ctx: RpcCtx,
+        req: Request<Scoped<UnpackChunkRequest>>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>>;
+
+    /// Ends the tar stream and applies the archive.
+    async fn unpack_commit(
+        &self,
+        ctx: RpcCtx,
+        req: Request<Scoped<UnpackCommitRequest>>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>>;
+
+    /// Ends an unpack without applying it.
+    async fn unpack_abort(
+        &self,
+        ctx: RpcCtx,
+        req: Request<Scoped<UnpackAbortRequest>>,
+    ) -> ConnectResult<Response<Empty>>;
 }

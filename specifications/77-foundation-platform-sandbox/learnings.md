@@ -234,7 +234,7 @@ Source: `README.md`, `docs/vm-lifecycle.md`, `docs/workloads.md`, `docs/init.md`
   macOS. Shutdown works on macOS aarch64. These return `FeatureDisabled` on Linux.
 - New: a Windows backend (`src/whp`) is "upcoming".
 - The same concepts that we use exist in 2.0: `FsDevice` with an overlay, `VsockDevice`
-  with `TsiFlags`, port forward to a UDS. A port of `bin/sandbox_krun` is small.
+  with `TsiFlags`, port forward to a UDS. A port of `src/bin/sandbox_krun.rs` is small.
 
 ### 3.7 Security notes
 
@@ -485,7 +485,7 @@ Spec 83 feature 06 (then "Cloudflare Deployment") and this spec said opposite th
 
 | Question | Spec 77 | Spec 83 feature 06 |
 |---|---|---|
-| Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and `ewe_deployables::cloudflare`. |
+| Who owns Cloudflare deployment? | The manual `npx wrangler deploy` of the operator (feature 08, section 6.7). A deploy from Rust is out of scope. | `foundation_deployment_cloudflare` and its generated types (`ewe_deployables::cloudflare` was removed in spec 70 feature 22). |
 | Who owns the container surface? | The private `ContainerApi` of the Cloudflare DO (feature 07, section 6). | A public `ContainersDeploy` in `foundation_deployment_cloudflare`. |
 | Is there a handle for the container? | No. The `SandboxHandle` is the only handle. | No. `ContainersDeploy` takes a `ContainerSpec` with undefined fields. |
 
@@ -1576,3 +1576,220 @@ the two sweeps, the state model of the handle and the source scan of invariant I
 final gate is Linux, and the Linux continuous integration (CI) image is the check for it.
 The native side-effect tests (7 on macOS) run on both Unix systems. The real microVM tests
 are Linux with Kernel-based Virtual Machine (KVM) only.
+
+## 17. The decision-16 documents did not agree (2026-11-26)
+
+Decision D16 puts the model slave in the Cloudflare part. Requirements section 8 and
+decision D16 name "feature 07 (library) and feature 08 (Worker classes)". Feature 07 gained
+section 6.10 on 2026-11-25. Feature 08 was not updated: its goal, its context table, its
+`wrangler.toml`, its deployment plan and its tests named two DO classes only.
+
+A reader of feature 08 would have built a Worker with no `SLAVE` class and no binding for
+it. The plan had a hole, not only a wording fault.
+
+### 17.1 Root cause
+
+The decision was recorded in two files that describe the same fact at different levels
+(requirements and feature 07), and the third file that depends on it (feature 08) was left
+alone. A cross-document check was missing. The owner asked for the check ("review to
+validate"); it found the gap.
+
+### 17.2 What the correction adds
+
+- A table in feature 07 section 6.10 that names the file of each type. Before, it named the
+  types only.
+- `SlaveEndpoint::CloudflareDo { binding, name }`. The name is necessary: a service binding
+  names a class, and `id_from_name` gives the instance. Without the name, every sandbox
+  would reach one slave DO.
+- Two drivers and one endpoint-dispatching connector in `DoControlPlane::open`. The first
+  text named one driver and `PortConnector`.
+- `ModelSlaveDo`, `WorkerModelClient`, the `SLAVE` and `AI` bindings, `Binding::Ai` in the
+  plan, and the model rows of feature 08's test table.
+- The `CloudflareAi` backend uses the `AI` binding, so it needs no key. Only `OpenRouter`
+  reads a key. This keeps one secret out of the Worker.
+
+### 17.3 Size
+
+Feature 07 is 794 lines and feature 08 is 728 lines, over the 700-line review line of
+`specifications/CLAUDE.md`. Both files grew by the D16 part. A later pass may split the D16
+library into its own feature; requirements section 8 would then need a new number and a new
+edge in the feature graph. The current order keeps 07 and 08 as the owner's decision D16
+states.
+
+## 18. Feature 06 implementation findings (2026-11-27)
+
+### 18.1 The default binary needs the driver
+
+The first commit of feature 06 built `agent-sandbox` without the `firecracker` feature, so
+`run` had no driver on a Linux host. Commit `22cff605a` gives the default feature set the
+Firecracker driver. A binary that ships a default action needs the default provider of that
+action.
+
+### 18.2 Two crates became non-optional for the native build
+
+`foundation_http` and `foundation_netio` are now non-optional native dependencies. Both were
+already in every native graph through the slave and the artifact store. The two musl checks
+show that the slave binary still links no TLS library.
+
+### 18.3 The I12 source scan needs a boundary list
+
+The scan of invariant I12 looks for sandbox logic in the program crates. It must exempt
+`src/cli/`, because `cli::sandbox::run` holds the body of the `agent-sandbox` main function.
+A scan without that exemption reports the program's own entry point as a violation. The test
+names the exemption and its reason.
+
+### 18.4 The test binary owns the CLI tests
+
+The feature named `agent_sandbox_cli.rs` as the test file. The crate has one test binary
+(`tests/mod.rs`), so the CLI tests are modules of it. This follows root rule 7 and keeps one
+binary for the whole crate.
+
+### 18.5 What a macOS host cannot prove
+
+The static-link check, the real Unix domain socket cases of the create and input paths, and
+every microVM case need Linux. The macOS run proves the types, the parsing and the wasm and
+musl checks. The pull request's CI job is the proof for the rest.
+
+## 19. The Durable Streams study (2026-11-27)
+
+### 19.1 A Durable Object has one alarm
+
+The study project sets one alarm for each DO, at an absolute time. A new `setAlarm` replaces
+the pending one. Our idle deadline already uses that single slot. A lifetime limit therefore
+cannot have its own timer. The control plane computes the earlier of the two deadlines and
+sets one alarm. Feature 18 records the rule.
+
+### 19.2 A model is not a measurement
+
+The study project publishes large savings: about 100 times less for hibernation, and a
+total in the tens of thousands for each month. Every figure is an arithmetic model of
+assumed counts and list prices. The measured inputs are hit rates only. A reader must not
+treat a percentage in a README as a bill.
+
+We record our own limits as configuration with a default (root rule 8), and we say in
+`research.md` which number is measured and which is a model.
+
+### 19.3 Hibernation needs a different protocol
+
+A hibernatable WebSocket lets a DO sleep between writes. `SandboxService` is RPC over
+HTTP. An open response stream is an open request, and the DO stays awake for it. We bound
+the wake time with `stream_max_duration` instead of changing the protocol. A later feature
+may move large output to R2 behind a signed URL, which removes the long stream.
+
+## 20. A Linux compile check on the macOS host (2026-11-27)
+
+A `cfg(target_os = "linux")` function is not compiled on the macOS host. Feature 06 had two
+Linux-only compile errors that macOS could not see, and each one cost a full continuous
+integration (CI) round.
+
+**The tool.** Zig supplies a C compiler and a linker for a Linux target, with no virtual
+machine. The CC environment variable of the C compiler wrapper crate needs the target name
+`x86_64-unknown-linux-gnu`, and Zig accepts only `x86_64-linux-gnu`. A three-line wrapper
+maps the name (it replaces `--target=x86_64-unknown-linux-gnu` with
+`--target=x86_64-linux-gnu` before it calls `zig cc`).
+
+**The command.**
+
+```bash
+export CC_x86_64_unknown_linux_gnu=/tmp/zigcc
+export AR_x86_64_unknown_linux_gnu="/tmp/zig/zig ar"
+export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/tmp/zigcc
+cargo check -p foundation_sandbox --target x86_64-unknown-linux-gnu \
+  --features "cli testing slave" --profile uat
+```
+
+**What it proves.** Every Linux-only path in the crate compiles: the Firecracker driver, the
+slave engine, the CLI's Linux blocks and their tests.
+
+**What it does not prove.** Linking, the run of a test, the Kernel-based Virtual Machine
+(KVM), real sockets and the generated code at run time. The `sandbox-e2e` job proves those.
+Run this check before a push that changes a Linux-gated file.
+
+## 21. A blocked test thread cannot advance a simulated clock (2026-11-27)
+
+The port timeout test of feature 07 did not finish. The cause was not the transport: the test
+blocked on the future while the deadline lived on the simulated clock. A simulated clock moves
+only when the test moves it, and a blocked thread cannot. The deadline never fired, and the
+call waited for ever.
+
+**Rule for a test.** If a test blocks on a future whose deadline must fire, use the host clock
+(the real time source), or run the runtime in a loop that also advances the simulated clock.
+A test of a real-time limit uses real time. A deterministic simulation test (DST) advances the
+clock itself and never blocks on the future.
+
+**Rule for the code.** The transport was correct: the 50 ms deadline dropped the pending port
+exchange and returned `DeadlineExceeded`. The defect was in the test, and the fix stayed in the
+test.
+
+## 22. A Durable Object must stream with `dispatch_to` (2026-11-27)
+
+`ConnectRpcHandler::dispatch` collects a streaming response and returns it when the stream
+ends. Its own documentation says that a server must use `dispatch_to` to send frames as they
+are produced. Feature 07 used `dispatch` first. An `Exec` through a Durable Object would then
+arrive only at its end: the stream guard never held, and the idle alarm could stop a sandbox
+while a command ran.
+
+**Rule.** A server writes with `dispatch_to` and a `ResponseSink`. The only use of `dispatch`
+is a test or an in-process caller that needs the whole answer.
+
+The response of the DO handler is `HttpResponseParts`: a status, flat headers and a
+`BoxByteStream`. A Worker maps it to the wasm response and holds the stream for the life of
+the response. The request body is bounded by `max_message_bytes`; the response streams.
+
+## 23. Parallel tests cannot share one valtron pool with a simulated clock (2026-11-27)
+
+`cargo test -p foundation_sandbox --features "testing cloudflare"` hung with the default
+thread count and passed with `--test-threads=1`. The cause was the test harness: it created
+one process-wide valtron pool that every test shared. A test that parked a worker on a
+simulated clock held the pool, and the next test waited for a worker that never came free.
+The same suite then timed out in continuous integration.
+
+**The fix.** Each test thread takes its own pool lease. A global gate serializes the creation
+and the drop of the pool, so only one pool exists at a time, and a test that starts its own
+threads releases the lease before it joins them (`pool::release()`).
+
+**The rules.**
+
+1. A test that advances a simulated clock owns its pool.
+2. A test that runs on the host clock still takes a lease; the gate keeps one pool.
+3. A test that spawns threads which drive their own futures releases the lease first.
+4. The acceptance for a suite is the plain command, with no thread flag. A suite that needs
+   `--test-threads=1` hides a shared-state defect.
+
+## 24. Two clocks meet in the Durable Object (2026-11-27)
+
+The idle alarm and the lifetime deadline are wall-clock times, stored in milliseconds. The
+stream guard's touch timer runs on the monotonic clock, because a timer measures an interval.
+A test that advances one clock without the other sees a deadline that does not move.
+
+**The rule.** A simulation test advances the wall clock first and the monotonic clock second,
+in that order, so a guard that reads the wall clock sees the new time when it wakes. In
+production both clocks move together, so the order never matters there.
+
+The test `an_open_stream_holds_the_sandbox_alive` documents this: it advances 30 minutes of
+wall time over three idle periods, sees the stored idle deadline move to `4 * idle_timeout`,
+fires the alarm, and checks that the sandbox still runs. Then it advances past the one-hour
+cap and expects the `deadline_exceeded` terminal frame.
+
+## 25. The artifact TLS feature put `ring` into the static slave (2026-11-27)
+
+Feature 11 needed the static musl build of `agent-slave` with the `control` and `firecracker`
+features. The build failed in the build script of `ring`, which wants a C compiler. The
+`firecracker` feature enables `artifacts`, and `artifacts` enabled `foundation_netio/ssl`,
+which links `ring` and its C code.
+
+**Rule.** The artifact store does not need TLS to read its cache. The feature split is:
+`artifacts` has no TLS, and `artifacts-remote` adds it. The default feature set has
+`artifacts-remote`; the static slave build has `artifacts` only.
+
+**What it proves.** `cargo build -p foundation_sandbox --no-default-features --features
+"slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl` gives a
+static-pie program of 4.9 MB.
+
+**Finding.** `ContainerHostConfig` flattens a `HostConfig` and a `Resources` that both name
+`Devices`. A `Devices` value on the `HostConfig` alone is written as null, because the later
+flattened field wins. The Docker driver sets both fields (issue #966).
+
+**Finding.** The Firecracker probe of a nested host reports `kvm` false, and
+`SlaveInfo.can_control` is then false. A child create fails with `DriverUnavailable`, as
+invariant I2 says. No second code path is needed.

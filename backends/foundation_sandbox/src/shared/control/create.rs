@@ -15,18 +15,19 @@ use futures::future::{select, select_all, Either};
 
 use crate::shared::control::handle::{LocalSandboxOps, SendIterator};
 use crate::shared::control::manager::{apply_default_limits, choose_driver, Inner};
-use crate::shared::control::record::{created_unix_ms, SandboxRecord};
+use crate::shared::control::record::{created_unix_ms, lifetime_deadline, SandboxRecord};
 use crate::shared::control::slave_client::SlaveClient;
 use crate::shared::control::stop::{kill_record, spawn_detached, start_watcher};
 use crate::shared::control::{wait_until, SandboxState};
 use crate::shared::control::{SandboxHandle, SandboxIdPolicy};
 use crate::shared::driver::{CreateProgress, LaunchStream, SubstrateHandle};
 use crate::shared::error::{SandboxError, SandboxResult};
-use crate::shared::handles::CreateStream;
+use crate::shared::handles::{CreateStream, ExecFileCalls};
 use crate::shared::ids::SandboxId;
+use crate::shared::images::{apply_manifest, check_arch};
 use crate::shared::limits::SandboxLimits;
 use crate::shared::rpc::messages::{PrepareRequest, SlaveInfo, SlaveLimits};
-use crate::shared::spec::{GuestMount, NetworkMode, RootSetup, SandboxSpec};
+use crate::shared::spec::{GuestMount, NetworkMode, RootFs, RootSetup, SandboxSpec};
 
 /// One step of the create task.
 pub enum CreateState {
@@ -140,6 +141,29 @@ impl CreateTask {
         self.last_progress = Some(rank);
         true
     }
+}
+
+/// Resolves a named image to a root file and rewrites the spec (section 6.3).
+///
+/// A spec that names a driver sees the rewritten root, so every driver gets an
+/// `Ext4Image` and no driver needs image code. A manager with no resolver
+/// refuses `RootFs::Image` with `InvalidSpec { field: "rootfs" }`.
+async fn resolve_image(
+    inner: &Inner,
+    spec: &SandboxSpec,
+) -> SandboxResult<(SandboxSpec, Option<crate::shared::images::ImageManifest>)> {
+    let RootFs::Image(reference) = &spec.rootfs else {
+        return Ok((spec.clone(), None));
+    };
+    let resolver = inner
+        .image_resolver()
+        .ok_or_else(|| SandboxError::InvalidSpec {
+            field: "rootfs".to_string(),
+            reason: "this manager has no image resolver".to_string(),
+        })?;
+    let (rootfs, manifest) = resolver.resolve(reference).await?;
+    check_arch(&manifest)?;
+    Ok((apply_manifest(spec, rootfs, &manifest), Some(manifest)))
 }
 
 /// The order of the progress values of one create.
@@ -379,7 +403,11 @@ pub async fn create_sandbox(
 }
 
 async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
-    let spec = apply_default_limits(&task.spec, &task.inner.config.limits);
+    let (resolved, manifest) = match resolve_image(&task.inner, &task.spec).await {
+        Ok(value) => value,
+        Err(error) => return fail(task, error.current_context().clone()).await,
+    };
+    let spec = apply_default_limits(&resolved, &task.inner.config.limits);
     let (driver, _report) = match choose_driver(&task.inner, &spec).await {
         Ok(chosen) => chosen,
         Err(error) => return fail(task, error.current_context().clone()).await,
@@ -406,12 +434,16 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
         }
     };
     let created = created_unix_ms(&ctx);
-    let record = Arc::new(SandboxRecord::new(
+    let expires_at_unix_ms = lifetime_deadline(created, spec.ttl);
+    let mut record = SandboxRecord::new(
         id.clone(),
         driver.id(),
         spec.clone(),
         created,
-    ));
+        expires_at_unix_ms,
+    );
+    record.manifest = manifest;
+    let record = Arc::new(record);
     task.inner.insert(Arc::clone(&record));
     task.record = Some(Arc::clone(&record));
     task.guard.set_record(Arc::clone(&record));
@@ -434,6 +466,10 @@ async fn choose(ctx: Ctx, mut task: CreateTask) -> (CreateTask, Status) {
     )
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "one transition of the create state machine reads the one answer of the driver"
+)]
 async fn launch_state(
     ctx: Ctx,
     mut task: CreateTask,
@@ -461,10 +497,15 @@ async fn launch_state(
             )
         }
         Some(Stream::Next(Ok(substrate))) => {
-            let endpoint = substrate.endpoint;
-            let root = substrate.root;
-            let mounts = substrate.mounts;
-            let handle: Arc<dyn SubstrateHandle> = Arc::from(substrate.handle);
+            let crate::shared::driver::Substrate {
+                endpoint,
+                root,
+                mounts,
+                handle,
+                calls,
+                slave,
+            } = substrate;
+            let handle: Arc<dyn SubstrateHandle> = Arc::from(handle);
             if let Some(record) = &task.record {
                 let mut state = record
                     .state
@@ -475,6 +516,11 @@ async fn launch_state(
             }
             if task.guard.is_cancelled() {
                 return stopped(task);
+            }
+            // A nested child is ready already: the parent's inner control plane
+            // called `Info` and `Prepare` (feature 11, section 6.2).
+            if let Some(calls) = calls {
+                return nested_ready(task, id, spec, calls, slave).await;
             }
             let transport = match task.inner.connector.connect(&ctx, &endpoint, &spec.limits) {
                 Ok(transport) => transport,
@@ -541,6 +587,55 @@ async fn launch_state(
             TaskStatus::Ignore,
         ),
     }
+}
+
+/// Moves a nested child to `Ready` without a second `Info` and `Prepare`.
+///
+/// The parent's inner control plane already reached and prepared the slave, and
+/// the launch result carries its `SlaveInfo` (feature 11, section 6.2).
+async fn nested_ready(
+    mut task: CreateTask,
+    id: SandboxId,
+    spec: SandboxSpec,
+    calls: Arc<dyn ExecFileCalls>,
+    slave: Option<SlaveInfo>,
+) -> (CreateTask, Status) {
+    let Some(record) = task.record.clone() else {
+        return fail(task, SandboxError::SlaveHandshake).await;
+    };
+    {
+        let mut state = record
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        state.state = SandboxState::Ready;
+        state.calls = Some(calls);
+        state.slave = slave;
+    }
+    if task.guard.is_cancelled() {
+        return stopped(task);
+    }
+    if let Err(error) = task.inner.store.put(record.stored()).await {
+        return fail(task, error.current_context().clone()).await;
+    }
+    start_watcher(Arc::clone(&task.inner), Arc::clone(&record));
+    let ops: Arc<dyn crate::shared::control::SandboxOps> = Arc::new(LocalSandboxOps::new(
+        Arc::clone(&task.inner),
+        record,
+        task.inner.ctx.clone(),
+        spec.limits.clone(),
+    ));
+    let handle = SandboxHandle::new(id, ops);
+    task.guard.finish();
+    let status = if task.progress(CreateProgress::SlaveReady) {
+        TaskStatus::Pending(CreateProgress::SlaveReady)
+    } else {
+        TaskStatus::Ignore
+    };
+    (
+        task.next(CreateState::Finish { result: Ok(handle) }),
+        status,
+    )
 }
 
 /// One candidate of the readiness wait.
@@ -715,7 +810,8 @@ async fn prepare(
     let left = deadline.saturating_duration_since(now);
     let request = PrepareRequest {
         root,
-        workdir: spec.workdir.clone(),
+        // An empty workdir means the guest default (issue #1031).
+        workdir: spec.effective_workdir().to_string(),
         env: spec.env.clone(),
         mounts,
         dns: match spec.network {
@@ -837,6 +933,9 @@ pub fn slave_limits(limits: &SandboxLimits) -> SlaveLimits {
         input_pipe_bytes: 64 * 1024,
         max_message_bytes: u32::try_from(limits.max_message_bytes).unwrap_or(u32::MAX),
         event_queue_len: 4,
+        max_unpack_entries: u32::try_from(limits.max_unpack_entries).unwrap_or(u32::MAX),
+        max_unpack_bytes: limits.max_unpack_bytes,
+        max_unpack_path_bytes: u32::try_from(limits.max_unpack_path_bytes).unwrap_or(u32::MAX),
     }
 }
 

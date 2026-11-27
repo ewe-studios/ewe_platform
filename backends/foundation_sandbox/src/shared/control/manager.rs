@@ -3,10 +3,12 @@
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use foundation_context::Ctx;
+
+use crate::shared::drivers::nested::NestedDriver;
 
 use crate::shared::container::ContainerControl;
 use crate::shared::control::record::{created_unix_ms, RecordStore, SandboxRecord};
@@ -18,6 +20,7 @@ use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::handles::CreateStream;
 use crate::shared::host::SlaveConnector;
 use crate::shared::ids::{DriverId, SandboxId};
+use crate::shared::images::ImageResolver;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::spec::SandboxSpec;
 use crate::shared::BoxFuture;
@@ -139,6 +142,8 @@ pub struct Inner {
     pub store: Arc<dyn RecordStore>,
     /// The configuration.
     pub config: ManagerConfig,
+    /// The resolver of a named image. `None` refuses `RootFs::Image`.
+    image_resolver: Mutex<Option<Arc<dyn ImageResolver>>>,
     entries: Mutex<HashMap<SandboxId, Arc<SandboxRecord>>>,
     stopped: Mutex<Vec<(SandboxId, ExitReport)>>,
     restored: AtomicBool,
@@ -229,6 +234,22 @@ impl Inner {
         }
     }
 
+    /// Sets the resolver of a named image.
+    pub fn set_image_resolver(&self, resolver: Arc<dyn ImageResolver>) {
+        *self
+            .image_resolver
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(resolver);
+    }
+
+    /// The resolver of a named image, when the manager has one.
+    pub fn image_resolver(&self) -> Option<Arc<dyn ImageResolver>> {
+        self.image_resolver
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+
     /// The driver with this identifier.
     pub fn driver(&self, id: DriverId) -> Option<Arc<dyn SandboxDriver>> {
         self.drivers
@@ -263,6 +284,7 @@ impl SandboxManager {
                 connector,
                 store,
                 config,
+                image_resolver: Mutex::new(None),
                 entries: Mutex::new(HashMap::new()),
                 stopped: Mutex::new(Vec::new()),
                 restored: AtomicBool::new(false),
@@ -270,10 +292,51 @@ impl SandboxManager {
         }
     }
 
+    /// A manager with the nested driver over its own registry (feature 11).
+    ///
+    /// The nested driver finds the parent of a child in this manager. The
+    /// manager fills the driver's registry slot after it exists, because the
+    /// manager holds the driver.
+    #[must_use]
+    pub fn with_nested_driver(
+        ctx: Ctx,
+        mut drivers: Vec<Arc<dyn SandboxDriver>>,
+        connector: Arc<dyn SlaveConnector>,
+        store: Arc<dyn RecordStore>,
+        config: ManagerConfig,
+    ) -> Self {
+        let slot = Arc::new(OnceLock::new());
+        drivers.push(Arc::new(NestedDriver::with_slot(Arc::clone(&slot))));
+        let inner = Arc::new(Inner {
+            ctx,
+            drivers,
+            connector,
+            store,
+            config,
+            image_resolver: Mutex::new(None),
+            entries: Mutex::new(HashMap::new()),
+            stopped: Mutex::new(Vec::new()),
+            restored: AtomicBool::new(false),
+        });
+        let _ = slot.set(Arc::clone(&inner));
+        Self { inner }
+    }
+
     /// The shared state, for the create task and the handles.
     #[must_use]
     pub fn inner(&self) -> Arc<Inner> {
         Arc::clone(&self.inner)
+    }
+
+    /// Sets the resolver that turns a named image into a root file and a
+    /// manifest (feature 12).
+    ///
+    /// A manager with no resolver refuses `RootFs::Image` with
+    /// `InvalidSpec { field: "rootfs" }`.
+    #[must_use]
+    pub fn with_image_resolver(self, resolver: Arc<dyn ImageResolver>) -> Self {
+        self.inner.set_image_resolver(resolver);
+        self
     }
 
     /// Loads the stored records and finds their substrates again.
@@ -303,11 +366,24 @@ impl SandboxManager {
             self.remove_stored(&stored.id).await;
             return;
         };
+        // The lifetime deadline is fixed at create. A restore that finds it in
+        // the past destroys the sandbox, as a `Creating` record is today.
+        let now = created_unix_ms(&self.inner.ctx);
+        let expired = stored
+            .expires_at_unix_ms
+            .is_some_and(|expires| now >= expires);
         let attached = driver.attach(self.inner.ctx.clone(), &stored).await;
         let Ok(Some(substrate)) = attached else {
             self.remove_stored(&stored.id).await;
             return;
         };
+        if expired {
+            let handle: Arc<dyn SubstrateHandle> = Arc::from(substrate.handle);
+            let _ = handle.kill().await;
+            let _ = handle.cleanup().await;
+            self.remove_stored(&stored.id).await;
+            return;
+        }
         if stored.state != SandboxState::Ready {
             let handle: Arc<dyn SubstrateHandle> = Arc::from(substrate.handle);
             let _ = handle.kill().await;
@@ -344,12 +420,15 @@ impl SandboxManager {
         let info = client.info(limits.rpc_timeout).await;
         match info {
             Ok(info) if info.prepared => {
-                let record = Arc::new(SandboxRecord::new(
+                let mut rebuilt = SandboxRecord::new(
                     stored.id.clone(),
                     stored.driver,
                     stored.spec.clone(),
                     stored.created_unix_ms,
-                ));
+                    stored.expires_at_unix_ms,
+                );
+                rebuilt.manifest.clone_from(&stored.manifest);
+                let record = Arc::new(rebuilt);
                 {
                     let mut state = record
                         .state
@@ -524,6 +603,12 @@ pub async fn choose_driver(
     let mut first_error = None;
     let mut chosen = None;
     for (driver, report) in inner.drivers.iter().zip(reports.iter()) {
+        // A nested child names its driver and its parent: the validate rule
+        // requires `driver: Nested` exactly when `parent` is set. So the
+        // automatic choice never picks the nested driver (feature 11).
+        if driver.id() == DriverId::Nested {
+            continue;
+        }
         if !report.usable {
             continue;
         }

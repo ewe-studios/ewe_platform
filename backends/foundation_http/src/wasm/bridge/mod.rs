@@ -26,7 +26,7 @@ pub use web::{WasmHttpAppGuard, WasmHttpAppSingleton};
 /// Returns the message of a malformed URL, an incomplete or invalid percent
 /// escape, or a path that is not UTF-8 after decoding.
 #[cfg(feature = "wasm-bindgen-http")]
-pub(crate) fn parse_request_uri(url: &str) -> Result<foundation_core::url::Uri, String> {
+pub fn parse_request_uri(url: &str) -> Result<foundation_core::url::Uri, String> {
     let uri = foundation_core::url::Uri::parse(url)
         .map_err(|error| format!("failed to parse the request URL {url}: {error}"))?;
     let decoded = decode_percent_path(uri.path())?;

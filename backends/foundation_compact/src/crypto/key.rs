@@ -22,8 +22,7 @@ impl<const N: usize> EncryptionKey<N> {
     /// Panics if the platform entropy source is unavailable.
     #[must_use]
     pub fn generate() -> Self {
-        let mut bytes = [0u8; N];
-        entropy::fill(&mut bytes).expect("platform entropy source unavailable");
+        let bytes = entropy::fill_new::<N>().expect("platform entropy source unavailable");
         Self(Zeroizing::new(bytes))
     }
 
@@ -89,7 +88,5 @@ pub fn fill_random(dest: &mut [u8]) -> Result<(), entropy::Error> {
 /// Panics if the platform entropy source is unavailable.
 #[must_use]
 pub fn generate_nonce<const N: usize>() -> [u8; N] {
-    let mut nonce = [0u8; N];
-    entropy::fill(&mut nonce).expect("platform entropy source unavailable");
-    nonce
+    entropy::fill_new::<N>().expect("platform entropy source unavailable")
 }

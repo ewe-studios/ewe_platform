@@ -23,8 +23,10 @@ created: 2026-11-14
    `compacted.md` with `.agents/skills/context-compaction/skill.md`.
 8. Work on one task at a time, test first. Tests live in
    `backends/foundation_agent_rpc/tests/`.
-9. Report to the Main Agent. After the commit, update `../../progress.md` and
-   `../../LEARNINGS.md`.
+9. Run the verify commands of `feature.md` section 8. A DST test prints its seed, so a
+   failure can be replayed.
+10. Report to the Main Agent. After the commit, update `../../progress.md` and
+    `../../LEARNINGS.md`.
 
 **Order:** feature 03 lands first. This feature makes the agent RPC proof of concept work.
 

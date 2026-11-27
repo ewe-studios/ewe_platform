@@ -23,7 +23,8 @@ use crate::shared::rpc::messages::{
     ExecRequest, ExecSignalRequest, FileChunk, FileReadRequest, FileWriteAbortRequest,
     FileWriteBeginRequest, FileWriteBeginResponse, FileWriteChunkRequest, FileWriteChunkResponse,
     FileWriteCommitRequest, FileWriteCommitResponse, ListResponse, ProbeResponse, SandboxRef,
-    Scoped,
+    Scoped, UnpackAbortRequest, UnpackBeginRequest, UnpackBeginResponse, UnpackChunkRequest,
+    UnpackChunkResponse, UnpackCommitRequest, UnpackCommitResponse,
 };
 use crate::shared::rpc::{SandboxService, SandboxServiceClient};
 use crate::shared::{BoxFuture, Secret};
@@ -42,6 +43,64 @@ pub fn authorize(header: Option<&str>, token: &Secret) -> SandboxResult<()> {
     match Secret::from_bearer(header) {
         Some(provided) if provided.ct_eq(token) => Ok(()),
         _ => Err(SandboxError::Unauthorized.into()),
+    }
+}
+
+/// A control plane with no sandbox: every call answers `NotFound`.
+///
+/// A slave without `--control` serves the control paths with this provider, so
+/// a caller gets the typed `NotFound { what: "method" }` of feature 11,
+/// invariant I4, and not a transport error.
+pub struct DisabledControl;
+
+/// The error of a call to a slave that cannot control.
+fn disabled() -> foundation_errstacks::ErrorTrace<SandboxError> {
+    SandboxError::NotFound {
+        what: "method".to_string(),
+    }
+    .into()
+}
+
+impl crate::shared::control::SandboxProvider for DisabledControl {
+    fn probe(&self) -> BoxFuture<'_, SandboxResult<Vec<crate::shared::driver::HostReport>>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn create(
+        &self,
+        _spec: crate::shared::spec::SandboxSpec,
+    ) -> BoxFuture<'_, SandboxResult<SandboxHandle>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn create_with_progress(
+        &self,
+        _spec: crate::shared::spec::SandboxSpec,
+    ) -> crate::shared::handles::CreateStream {
+        let item: foundation_core::valtron::Stream<
+            SandboxResult<SandboxHandle>,
+            crate::shared::driver::CreateProgress,
+        > = foundation_core::valtron::Stream::Next(Err(disabled()));
+        crate::shared::handles::CreateStream::new(Box::new(std::iter::once(item)))
+    }
+
+    fn get(
+        &self,
+        _id: crate::shared::ids::SandboxId,
+    ) -> BoxFuture<'_, SandboxResult<SandboxHandle>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn list(&self) -> BoxFuture<'_, SandboxResult<Vec<SandboxInfo>>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn stop(&self, _id: crate::shared::ids::SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>> {
+        send_box(async { Err(disabled()) })
+    }
+
+    fn kill(&self, _id: crate::shared::ids::SandboxId) -> BoxFuture<'_, SandboxResult<ExitReport>> {
+        send_box(async { Err(disabled()) })
     }
 }
 
@@ -331,6 +390,62 @@ impl SandboxService for ControlService {
         });
         Ok(Box::pin(mapped))
     }
+
+    async fn unpack_begin(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackBeginRequest>>,
+    ) -> ConnectResult<Response<UnpackBeginResponse>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        let answer = sandbox
+            .calls()
+            .unpack_begin(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn unpack_chunk(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackChunkRequest>>,
+    ) -> ConnectResult<Response<UnpackChunkResponse>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        let answer = sandbox
+            .calls()
+            .unpack_chunk(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn unpack_commit(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackCommitRequest>>,
+    ) -> ConnectResult<Response<UnpackCommitResponse>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        let answer = sandbox
+            .calls()
+            .unpack_commit(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(answer))
+    }
+
+    async fn unpack_abort(
+        &self,
+        _ctx: RpcCtx,
+        request: Request<Scoped<UnpackAbortRequest>>,
+    ) -> ConnectResult<Response<Empty>> {
+        let sandbox = self.ready_sandbox(&request.msg.sandbox_id).await?;
+        sandbox
+            .calls()
+            .unpack_abort(request.msg.inner)
+            .await
+            .map_err(|error| self.connect_error(&error))?;
+        Ok(Response::new(Empty {}))
+    }
 }
 
 /// `SandboxProvider` on a transport to a `SandboxService`.
@@ -339,6 +454,7 @@ pub struct SandboxRpcClient {
     transport: Arc<dyn Transport>,
     client: Arc<SandboxServiceClient>,
     limits: crate::shared::limits::SandboxLimits,
+    authority: String,
 }
 
 impl SandboxRpcClient {
@@ -353,9 +469,29 @@ impl SandboxRpcClient {
         transport: Arc<dyn Transport>,
         limits: crate::shared::limits::SandboxLimits,
     ) -> Self {
+        Self::with_authority(ctx, transport, limits, CONTROL_AUTHORITY)
+    }
+
+    /// A client over a transport, with the authority that the request line
+    /// carries.
+    ///
+    /// A Unix domain socket and a resolved TCP address ignore the authority; a
+    /// base `http://` or `https://` address needs it (`SandboxRpcClient::
+    /// connect` on an [`ConnectAddr::Url`](crate::native::connect::ConnectAddr)).
+    ///
+    /// # Panics
+    /// When the JSON client cannot be built. The options are fixed and valid,
+    /// so this is a programming error and not a run-time failure.
+    #[must_use]
+    pub fn with_authority(
+        ctx: Ctx,
+        transport: Arc<dyn Transport>,
+        limits: crate::shared::limits::SandboxLimits,
+        authority: &str,
+    ) -> Self {
         let client = SandboxServiceClient::new(
             Arc::clone(&transport),
-            CONTROL_AUTHORITY,
+            authority,
             ClientOptions::new().with_codec("json"),
         )
         .expect("the JSON SandboxService client builds");
@@ -364,6 +500,7 @@ impl SandboxRpcClient {
             transport,
             client: Arc::new(client),
             limits,
+            authority: authority.to_string(),
         }
     }
 
@@ -381,7 +518,7 @@ impl SandboxRpcClient {
         let header = foundation_auth::server_credential::bearer_header(&token);
         let client = SandboxServiceClient::new(
             Arc::clone(&self.transport),
-            CONTROL_AUTHORITY,
+            &self.authority,
             ClientOptions::new()
                 .with_codec("json")
                 .with_header("AUTHORIZATION".to_string(), header),
@@ -392,6 +529,7 @@ impl SandboxRpcClient {
             transport: self.transport,
             client: Arc::new(client),
             limits: self.limits,
+            authority: self.authority,
         }
     }
 

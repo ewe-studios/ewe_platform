@@ -182,11 +182,15 @@ impl SignedSecret {
         codec::decode(encoded, *limits)
     }
 
-    /// The ID: lowercase hexadecimal SHA-256 of the 32 secret bytes. Safe to log
-    /// and to store. Nobody can get the secret back from it.
+    /// The ID: lowercase hexadecimal SHA-256 of the public signature.
+    ///
+    /// The signature travels in the encoded secret and is unique for each
+    /// issued secret, so this names the secret without hashing the secret
+    /// bytes. A fast hash is correct here: the input is public and this is an
+    /// identifier, not a password hash.
     #[must_use]
     pub fn id(&self) -> String {
-        crate::fingerprint::sha256_hex(&self.secret)
+        crate::fingerprint::public_fingerprint_hex(&self.signature)
     }
 
     /// A client-side check: the signature matches the key that the secret

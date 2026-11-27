@@ -1,0 +1,16 @@
+# The template of a product image for the Cloudflare Sandbox product.
+#
+# `mise run sandbox:product-dockerfile` replaces the three `@NAME@` values and
+# writes `Dockerfile.product` beside this file. Keep the `sandbox-tools` tag
+# equal to the `@cloudflare/sandbox` version that the application uses.
+#
+# The product keeps its own base system, its `sandbox-shim` and its `CMD`. The
+# control-plane Durable Object starts the slave with an entry point, so the
+# image `CMD` does not run for a sandbox.
+FROM @SANDBOX_TOOLS_IMAGE@ AS sandbox-tools
+FROM @SLAVE_IMAGE@ AS agent-slave
+
+FROM @BASE_IMAGE@
+COPY --from=sandbox-tools /usr/local/bin/sandbox-shim /usr/local/bin/sandbox-shim
+COPY --from=agent-slave /usr/local/bin/agent-slave /usr/local/bin/agent-slave
+CMD ["sleep", "infinity"]

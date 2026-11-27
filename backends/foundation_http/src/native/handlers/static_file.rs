@@ -129,7 +129,10 @@ impl StaticFileHandler {
     /// Serve declared resources through one fallback route.
     #[must_use]
     pub fn from_resources<R: PackagedResourceSet>(resources: R) -> ResourceFileHandler<R> {
-        ResourceFileHandler { resources, directory: None }
+        ResourceFileHandler {
+            resources,
+            directory: None,
+        }
     }
 
     /// Create a new `StaticFileHandler` serving from the given root directory,

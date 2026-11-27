@@ -73,15 +73,75 @@ pub fn decrypt(key: &ChaChaKey, encrypted: &[u8]) -> Result<SecureBytes, String>
         return Err("encrypted data too short (need at least 12-byte nonce)".into());
     }
 
+    let nonce_bytes: [u8; 12] = encrypted[..12]
+        .try_into()
+        .map_err(|_| "encrypted data has a bad nonce".to_string())?;
+
+    open_with(key, &nonce_bytes, &[], &encrypted[12..])
+}
+
+/// Encrypt `plaintext` with ChaCha20-Poly1305 and associated data.
+///
+/// The associated data (AAD) is signed but not stored: the same `aad` must
+/// come back to [`open_with`], or decryption fails. It binds a sealed value to
+/// its record, so one record's blob cannot move to another record.
+///
+/// Returns `nonce (12 bytes) || ciphertext || tag (16 bytes)`.
+///
+/// # Errors
+///
+/// Returns an error if the cipher cannot initialize or encrypt the message.
+pub fn seal_with(
+    key: &ChaChaKey,
+    nonce_bytes: [u8; 12],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, String> {
     let cipher = ChaCha20Poly1305::new_from_slice(key.as_bytes())
         .map_err(|e| format!("cipher init: {e}"))?;
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    let ciphertext = cipher
+        .encrypt(
+            nonce,
+            chacha20poly1305::aead::Payload {
+                msg: plaintext,
+                aad,
+            },
+        )
+        .map_err(|e| format!("encrypt: {e}"))?;
 
-    let nonce = Nonce::from_slice(&encrypted[..12]);
-    let ciphertext = &encrypted[12..];
+    let mut result = Vec::with_capacity(12 + ciphertext.len());
+    result.extend_from_slice(&nonce_bytes);
+    result.extend(ciphertext);
+    Ok(result)
+}
 
+/// Decrypt a value from [`seal_with`].
+///
+/// `sealed` is `nonce (12 bytes) || ciphertext || tag (16 bytes)`. Returns
+/// [`SecureBytes`] — the plaintext is zeroed when dropped.
+///
+/// # Errors
+///
+/// Returns an error if the input is too short, cipher init fails, or the key,
+/// the associated data or the ciphertext is wrong.
+pub fn open_with(
+    key: &ChaChaKey,
+    nonce_bytes: &[u8; 12],
+    aad: &[u8],
+    ciphertext: &[u8],
+) -> Result<SecureBytes, String> {
+    let cipher = ChaCha20Poly1305::new_from_slice(key.as_bytes())
+        .map_err(|e| format!("cipher init: {e}"))?;
+    let nonce = Nonce::from_slice(nonce_bytes);
     let plaintext = cipher
-        .decrypt(nonce, ciphertext)
+        .decrypt(
+            nonce,
+            chacha20poly1305::aead::Payload {
+                msg: ciphertext,
+                aad,
+            },
+        )
         .map_err(|e| format!("decrypt: {e}"))?;
-
     Ok(SecureBytes::new(plaintext))
 }

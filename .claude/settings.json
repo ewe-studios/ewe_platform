@@ -10,5 +10,9 @@
         ]
       }
     ]
+  },
+  "env": {
+    "CARGO_TARGET_DIR": "/Volumes/Outside/cargo-target",
+    "CARGO_HOME": "/Volumes/Outside/cargo-home"
   }
 }

@@ -40,7 +40,7 @@ pub(super) fn parse(text: &[u8]) -> Result<ParsedKey, KeyLoadError> {
         return Err(KeyLoadError::Encrypted);
     }
     if text.contains("-----BEGIN OPENSSH PRIVATE KEY-----") {
-        return parse_openssh(text);
+        return parse_openssh(text, None);
     }
     if text.contains("-----BEGIN EC PRIVATE KEY-----") {
         return parse_sec1(text);
@@ -53,8 +53,25 @@ pub(super) fn parse(text: &[u8]) -> Result<ParsedKey, KeyLoadError> {
     ))
 }
 
-fn parse_openssh(text: &str) -> Result<ParsedKey, KeyLoadError> {
-    let key = ssh_key::PrivateKey::from_openssh(text).map_err(|error| {
+/// Parse key text with its passphrase. An unencrypted key ignores it.
+pub(super) fn parse_with_passphrase(
+    text: &[u8],
+    passphrase: &str,
+) -> Result<ParsedKey, KeyLoadError> {
+    let text = core::str::from_utf8(text)
+        .map_err(|_| KeyLoadError::UnsupportedFormat("the key text is not UTF-8".to_string()))?;
+    let text = text.trim();
+    if text.contains("-----BEGIN ENCRYPTED PRIVATE KEY-----") {
+        return parse_encrypted_pkcs8(text, passphrase);
+    }
+    if text.contains("-----BEGIN OPENSSH PRIVATE KEY-----") {
+        return parse_openssh(text, Some(passphrase));
+    }
+    parse(text.as_bytes())
+}
+
+fn parse_openssh(text: &str, passphrase: Option<&str>) -> Result<ParsedKey, KeyLoadError> {
+    let mut key = ssh_key::PrivateKey::from_openssh(text).map_err(|error| {
         if error.to_string().to_ascii_lowercase().contains("encrypt") {
             KeyLoadError::Encrypted
         } else {
@@ -62,7 +79,10 @@ fn parse_openssh(text: &str) -> Result<ParsedKey, KeyLoadError> {
         }
     })?;
     if key.is_encrypted() {
-        return Err(KeyLoadError::Encrypted);
+        let passphrase = passphrase.ok_or(KeyLoadError::Encrypted)?;
+        key = key
+            .decrypt(passphrase)
+            .map_err(|_| KeyLoadError::BadPassphrase)?;
     }
     match key.key_data() {
         KeypairData::Ed25519(keypair) => {
@@ -82,11 +102,26 @@ fn parse_openssh(text: &str) -> Result<ParsedKey, KeyLoadError> {
     }
 }
 
+fn parse_encrypted_pkcs8(text: &str, passphrase: &str) -> Result<ParsedKey, KeyLoadError> {
+    let der = pem_der(text, "ENCRYPTED PRIVATE KEY").ok_or_else(|| {
+        KeyLoadError::UnsupportedFormat("the encrypted PKCS#8 PEM body is not base64".to_string())
+    })?;
+    let encrypted = pkcs8::EncryptedPrivateKeyInfo::try_from(der.as_slice())
+        .map_err(|error| KeyLoadError::UnsupportedFormat(format!("encrypted PKCS#8: {error}")))?;
+    let document = encrypted
+        .decrypt(passphrase)
+        .map_err(|_| KeyLoadError::BadPassphrase)?;
+    parse_pkcs8_der(document.as_bytes())
+}
+
 fn parse_pkcs8(text: &str) -> Result<ParsedKey, KeyLoadError> {
     let der = pem_der(text, "PRIVATE KEY").ok_or_else(|| {
         KeyLoadError::UnsupportedFormat("the PKCS#8 PEM body is not base64".to_string())
     })?;
+    parse_pkcs8_der(&der)
+}
 
+fn parse_pkcs8_der(der: &[u8]) -> Result<ParsedKey, KeyLoadError> {
     if der.len() == 48 && der[..16] == V1_HEADER {
         return Ok(ed25519_from_seed(&der[16..48]));
     }
@@ -101,7 +136,7 @@ fn parse_pkcs8(text: &str) -> Result<ParsedKey, KeyLoadError> {
         }
         return Ok(ed25519_from_seed(seed));
     }
-    if let Ok(secret) = SecretKey::from_pkcs8_der(&der) {
+    if let Ok(secret) = SecretKey::from_pkcs8_der(der) {
         return p256_parts(&secret);
     }
     #[cfg(all(feature = "secret-rsa", not(target_family = "wasm")))]

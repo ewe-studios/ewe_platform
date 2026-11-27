@@ -82,6 +82,18 @@ impl RecordStore for MemoryRecordStore {
     }
 }
 
+/// The lifetime deadline of one sandbox, as Unix milliseconds.
+///
+/// The create calls this one time and stores the result in the record. A
+/// restart reads the stored value, so it never moves the deadline.
+#[must_use]
+pub fn lifetime_deadline(created_unix_ms: u64, ttl: Option<std::time::Duration>) -> Option<u64> {
+    ttl.map(|ttl| {
+        let millis = u64::try_from(ttl.as_millis()).unwrap_or(u64::MAX);
+        created_unix_ms.saturating_add(millis)
+    })
+}
+
 /// The changing part of one sandbox record.
 pub struct RecordState {
     /// The state of the sandbox.
@@ -92,6 +104,11 @@ pub struct RecordState {
     pub substrate: Option<Arc<dyn SubstrateHandle>>,
     /// The typed client of the slave.
     pub client: Option<Arc<crate::shared::control::SlaveClient>>,
+    /// The low-level calls of the slave, when the driver already reached it.
+    ///
+    /// A nested child's calls go to the parent's inner control plane
+    /// (feature 11). They replace the slave client for the exec and file calls.
+    pub calls: Option<Arc<dyn crate::shared::handles::ExecFileCalls>>,
     /// What the slave reported in `Info`.
     pub slave: Option<SlaveInfo>,
     /// How the sandbox ended, frozen at the first stop, kill or exit.
@@ -106,8 +123,12 @@ pub struct SandboxRecord {
     pub driver: DriverId,
     /// The spec that the caller gave.
     pub spec: SandboxSpec,
+    /// The image manifest, when the root came from a named image.
+    pub manifest: Option<crate::shared::images::ImageManifest>,
     /// The creation time as Unix milliseconds.
     pub created_unix_ms: u64,
+    /// The lifetime deadline as Unix milliseconds, or `None` for no limit.
+    pub expires_at_unix_ms: Option<u64>,
     /// The changing part.
     pub state: Mutex<RecordState>,
     /// The signal that a stop or kill finished.
@@ -117,17 +138,26 @@ pub struct SandboxRecord {
 impl SandboxRecord {
     /// A record in the `Creating` state.
     #[must_use]
-    pub fn new(id: SandboxId, driver: DriverId, spec: SandboxSpec, created_unix_ms: u64) -> Self {
+    pub fn new(
+        id: SandboxId,
+        driver: DriverId,
+        spec: SandboxSpec,
+        created_unix_ms: u64,
+        expires_at_unix_ms: Option<u64>,
+    ) -> Self {
         Self {
             id,
             driver,
             spec,
+            manifest: None,
             created_unix_ms,
+            expires_at_unix_ms,
             state: Mutex::new(RecordState {
                 state: SandboxState::Creating,
                 endpoint: None,
                 substrate: None,
                 client: None,
+                calls: None,
                 slave: None,
                 exit: None,
             }),
@@ -147,7 +177,9 @@ impl SandboxRecord {
             driver: self.driver,
             state: state.state,
             created_unix_ms: self.created_unix_ms,
+            expires_at_unix_ms: self.expires_at_unix_ms,
             slave: state.slave.clone(),
+            manifest: self.manifest.clone(),
         }
     }
 
@@ -164,7 +196,9 @@ impl SandboxRecord {
             spec: self.spec.clone(),
             state: state.state,
             created_unix_ms: self.created_unix_ms,
+            expires_at_unix_ms: self.expires_at_unix_ms,
             endpoint: state.endpoint.clone(),
+            manifest: self.manifest.clone(),
         }
     }
 

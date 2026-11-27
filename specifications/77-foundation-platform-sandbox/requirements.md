@@ -180,9 +180,9 @@ Where the control plane runs is a different question from which system it drives
 |---|---|---|
 | `backends/foundation_sandbox` | library | **All logic.** |
 | `.../src/shared/` | all targets | Domain types, laws, the two RPC contracts, `SandboxManager`, `SandboxProvider`, `SlaveClient`, `ContainerControl` and `ContainerHandle`, the slave's request handling that needs no operating system, `Platform` and `PlatformKind` (`shared/platform.rs`). |
-| `.../src/shared/cloudflare/` | all targets | Everything of the Cloudflare part that needs no `worker` type: `CloudflareContainerDriver`, `CloudflareContainerControl`, `DoContainerOps`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane` and `CloudflarePlatform`. `ContainerApi`, `DoStorage` and `DoAlarm` are the seams. |
+| `.../src/shared/cloudflare/` | all targets | Everything of the Cloudflare part that needs no `worker` type: `CloudflareContainerDriver`, `CloudflareContainerControl`, `DoContainerOps`, `ContainerPortTransport`, `DoRecordStore`, `DoControlPlane`, `CloudflarePlatform`, and the model-slave part of decision D16 (`CloudflareDoDriver`, `DoSlaveConnector`, `ModelSlave`, `ModelClient`). `ContainerApi`, `DoStorage`, `DoAlarm` and the service binding are the seams. |
 | `.../src/native/` | not wasm | The slave engine (processes, mounts, PID 1), the Firecracker, libkrun, Docker and Docker Sandboxes drivers, the Docker container control, the native side effects, the RPC servers on UDS, vsock and TCP, and the wrappers `NativePlatform` and `DockerPlatform`. |
-| `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The three adapters of the traits (feature 07 section 6.3): `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, and `CloudflareHost::from_state`. |
+| `.../src/cloudflare/` | wasm32 with the `cloudflare` feature | The adapters of the traits (feature 07 sections 6.3 and 6.10): `WorkerContainer`, `WorkerStorage`, `WorkerAlarm`, `WorkerModelClient`, and `CloudflareHost::from_state`. |
 | `.../src/cli/` | not wasm | The command structures of `agent-sandbox` and `agent-slave` (arguments, sub-commands, `run(ctx, args)`). |
 | `.../src/bin/agent_sandbox.rs` | program | `main`: build the `Ctx`, call `cli::sandbox::run`. The control plane is this crate's binary (decision D4). |
 | `.../src/bin/agent_slave.rs` | program | `main`: build the `Ctx`, call `cli::slave::run`. The `slave` feature pulls no TLS library and no Docker client, so the binary builds as a static musl program (decision D11). |
@@ -197,7 +197,7 @@ Docker capability lives in `foundation_deployment_docker` (the existing Docker c
 `foundation_sandbox` uses it behind the `docker` feature.
 
 Cloudflare deployment lives in `foundation_deployment_cloudflare` (the existing crate, with
-its generated Cloudflare types and `ewe_deployables::cloudflare`). It is a native library,
+its generated Cloudflare types; the old `ewe_deployables::cloudflare` module was removed in spec 70 feature 22). It is a native library,
 not wasm. `foundation_sandbox` does not use it; a caller of the deployer does
 (feature 08).
 
@@ -603,6 +603,7 @@ graph LR
   F07 --> F08[08 Cloudflare Worker and end to end]
   F06 --> F08
   F08 --> MB((MVP-B: Cloudflare))
+  F08 --> F18[18 lifetime and stream cost]
   MB --> F09[09 libkrun]
   MB --> F10[10 Docker]
   F10 --> F11[11 nested sandboxes]
@@ -623,13 +624,14 @@ _Caption: nine features give the MVP on Firecracker and on Cloudflare; the other
 | 04 | [Firecracker API client](features/04-firecracker-api-client/feature.md) | sonnet | MVP | Generated types and the client pass against a mock and the real program. |
 | 05 | [Firecracker driver](features/05-firecracker-driver/feature.md) | sonnet | MVP | A command runs in a Firecracker microVM through `SandboxManager`. |
 | 06 | [Programs, RPC and Provider](features/06-programs-rpc-provider/feature.md) | sonnet | **MVP-A** | `agent-sandbox` and `agent-slave` exist; `SandboxService` works; the `Provider` facade works; CI runs the microVM tests. |
-| 07 | [Cloudflare control plane](features/07-cloudflare-control-plane/feature.md) | sonnet | MVP | The control plane compiles to wasm, drives a container through fakes, and exposes `ContainerControl` and `ContainerHandle`. |
-| 08 | [Cloudflare Worker and deployment](features/08-cloudflare-worker/feature.md) | sonnet | **MVP-B** | A command runs in a Cloudflare container through `SandboxService` on a Worker; both deploy paths apply one plan. |
+| 07 | [Cloudflare control plane](features/07-cloudflare-control-plane/feature.md) | sonnet | MVP | The control plane compiles to wasm, drives a container through fakes, exposes `ContainerControl` and `ContainerHandle`, and holds the model-slave substrate of decision D16. |
+| 08 | [Cloudflare Worker and deployment](features/08-cloudflare-worker/feature.md) | sonnet | **MVP-B** | A command runs in a Cloudflare container through `SandboxService` on a Worker; both deploy paths apply one plan; the Worker hosts the model slave of decision D16. |
 | 09 | [libkrun driver](features/09-libkrun-driver/feature.md) | sonnet | 2 | A command runs in a libkrun microVM on Linux and macOS. |
 | 10 | [Docker driver](features/10-docker-driver/feature.md) | sonnet | 2 | A command runs in a Docker container that the control plane starts through the host's Docker Engine; `agent-sandbox` can also run in a container. |
 | 11 | [Nested sandboxes](features/11-nested-sandboxes/feature.md) | sonnet | 2 | A slave in a container starts Firecracker microVMs in it. |
 | 16 | [Docker Sandboxes product driver](features/16-docker-sandboxes-driver/feature.md) | sonnet | draft, not scheduled | A command runs in a Docker Sandboxes microVM through the `sbx` program. |
 | 17 | [Cloudflare Sandbox product support](features/17-cloudflare-sandbox-product/feature.md) | sonnet | 2 | An image made for the Cloudflare Sandbox product runs under the control plane; a plain HTTP caller uses `SandboxService`. |
+| 18 | [Sandbox lifetime and stream cost](features/18-sandbox-lifetime-and-stream-cost/feature.md) | sonnet | 2 | A sandbox has a lifetime limit that shares the one DO alarm with the idle deadline; an `Exec` stream stops at `stream_max_duration`. Feature 18 follows the study in `research.md`. |
 | 12 | [Sandbox images](features/12-sandbox-images/feature.md) | sonnet | 3 | An image with a manifest boots on Firecracker and libkrun; the slave can unpack a tree into a writable root. |
 | 13 | [Container image source](features/13-container-image-source/feature.md) | sonnet | 3 | A Docker image becomes a sandbox image. |
 | 14 | [Sandboxfile builder](features/14-sandboxfile-builder/feature.md) | sonnet | 3 | A build file with `FROM`, `ADD`, `FETCH`, `RUN`, `CMD` gives a sandbox image, with a step cache. |
@@ -648,6 +650,10 @@ DO's container. Feature 07 needs only features 01 and 02. Feature 08 also needs 
 06, for the native client (`SandboxRpcClient::connect`), the `Provider` facade and the CI
 workflow; so MVP-B comes after MVP-A. Feature 08 also owns the two deployment paths: the
 Rust deployer is the primary path, and the `wrangler` adapter is the fallback.
+
+**After MVP-B:** feature 18 adds a lifetime deadline and a bound on the time an `Exec` stream
+keeps a DO awake. It reads the study in `research.md`. The Durable Streams project does not
+measure its dollar savings; the techniques themselves are tested.
 
 Features 00 to 04 have no dependency on each other after 00, so 01, 02, 03 and 04 run in
 parallel. Feature 07 starts as soon as 01 and 02 are done, in parallel with 05 and 06.

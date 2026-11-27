@@ -53,10 +53,48 @@ Not part of the native proof of concept. It can start once feature 03 is done.
 
 Task T19 (`FetchServe`, `FetchTransport`) and the transport part of task T21 (`DoStubTransport`) moved to [spec 85](../../../completed/85-wasm-fetch-transport/requirements.md) on 2026-11-15. Spec 85 now delivers the wasm gaps inside the existing `HttpClient`, `DynNetClient` and `H1Transport` instead: the streaming response body (T1), the exchange over its own client (T2), `streaming_response_with` (T3), the streaming bridges and sink (T4) and `StubHttpClient` (T5). This feature uses those and writes no fetch pump. T21 here is the host wiring only.
 
-## 4. Done when
+## 4. Rules
+
+### 4.1 Invariants
+
+| # | Invariant |
+|---|---|
+| I1 | The Worker holds no state between requests except the valtron pool and the `Ctx`. An instance's state lives in its Durable Object. |
+| I2 | Every limit is a field of `WorkerHostConfig` with a documented default (`hosts.md` section 8). |
+| I3 | A body over `max_request_bytes` is refused with a Connect error before the core sees it. |
+| I4 | A forged `ewe-forwarded-principal` header has no effect. The principal comes from the verified token or the client certificate only. |
+| I5 | The archive upload happens before the instance is destroyed. A failed upload deletes nothing. |
+| I6 | A dropped browser response cancels the handler. |
+| I7 | No code writes a model provider key to a log, a record or the plan. |
+
+## 5. Tests
+
+All tests are modules of each crate's `tests/` directory (root rule 7).
+
+| Test | Crate and file | What it proves |
+|---|---|---|
+| `ConnectService` | `foundation_agent_rpc/tests/wasm/worker_serve_tests.rs` (`wasm-bindgen-test`, Node) | Unary, server stream, an error status, a deadline, a body over the limit and a cancel. |
+| Browser transport | `foundation_connectrpc/tests/wasm/h1_transport_tests.rs` | `H1Transport` over a test `NetClient`, against a `ConnectService` in the same test. |
+| Worker host | `foundation_toolings/tests/cf_examples.rs`, the case `cf_agent_rpc` (Miniflare, feature `cf-worker-tests`) | Bearer auth, a revoked secret, CORS preflight, create, stream, list, destroy; a forged header has no effect; a DO restart keeps the history. |
+| Cloudflare mTLS | the same case, with a fake `request.cf.tlsClientAuth` | `CfMtlsAuth` accepts a registered fingerprint and refuses `FAILED:...`. |
+| Web client | `foundation_agent_rpc/tests/wasm/web_client_tests.rs` (headless browser) | The payload rules and a full turn against a Miniflare Worker. |
+| Archive | `foundation_agent_rpc/tests/archive_tests.rs` | Upload, then destroy; a failed upload deletes nothing (I5). |
+
+## 6. Verify
+
+```bash
+cargo fmt --all --check
+cargo clippy -p foundation_agent_rpc --target wasm32-unknown-unknown --no-default-features --features worker -- -D warnings
+cargo test -p foundation_agent_rpc --features testing --profile uat archive_
+cargo test -p foundation_toolings --features cf-worker-tests --profile uat cf_agent_rpc
+```
+
+The wasm tests run under `wasm-bindgen-test` in Node and in a headless browser, through the `mise` wasm tasks. The Miniflare case needs Node and the pinned `wrangler`.
+
+## 7. Done when
 
 The `cf-agent-rpc` Miniflare case passes. The web client tests pass in a headless browser. The archive tests pass, and a failed upload deletes nothing.
 
-## 5. Pull requests
+## 8. Pull requests
 
 Two PRs: T20 + T22, then T21 + T26 (was PR group G). T19 is spec 85's task T2.

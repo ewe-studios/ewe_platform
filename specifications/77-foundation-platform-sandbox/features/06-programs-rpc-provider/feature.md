@@ -536,8 +536,8 @@ When the owner approves issue filing (decision D9):
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "cli testing slave" --all-targets --profile uat --no-deps -- -D warnings
 cargo clippy -p foundation_deployment_platform --features sandbox --all-targets --profile uat --no-deps -- -D warnings
-cargo test -p foundation_sandbox --features "cli testing slave" --profile uat control_rpc serve_ cli_parse boundary_scan
-cargo test -p foundation_deployment_platform --features sandbox --profile uat sandbox_provider agent_sandbox_cli
+cargo test -p foundation_sandbox --features "cli testing slave" --profile uat
+cargo test -p foundation_deployment_platform --features sandbox --profile uat sandbox_provider
 cargo test -p foundation_deployment_platform --profile uat          # default features still pass
 mise run sandbox:slave
 file target/sandbox/agent-slave-x86_64    # must say "statically linked"

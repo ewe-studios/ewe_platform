@@ -5,7 +5,7 @@ priority: "medium"
 model: "sonnet"
 phase: "2"
 depends_on: ["10-docker-driver"]
-crates: ["foundation_sandbox", "agent_slave", "foundation_deployment"]
+crates: ["foundation_sandbox", "foundation_deployment", "foundation_api_common"]
 ---
 
 # Feature 11: Nested sandboxes (a slave that is also a control plane)
@@ -284,7 +284,7 @@ Fix, in this feature:
 4. `foundation_netio` in the slave build has TLS off (feature 01, section 6.1); the
    Firecracker API is on a UDS and needs none.
 
-Verify: `cargo check -p agent_slave --features control --target x86_64-unknown-linux-musl`.
+Verify: `cargo build -p foundation_sandbox --no-default-features --features "slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl`.
 
 ### 6.6 Cloudflare
 
@@ -302,15 +302,15 @@ container.
 
 | Law or scenario | Test | Where | Oracle |
 |---|---|---|---|
-| I4, "The control paths are off by default" | `slave_control_off`, `slave_control_on` (both services answer) | `tests/slave_*.rs` | expected outcome |
+| I4, "The control paths are off by default" | `slave_control_off`, `slave_control_on` (both services answer) | `tests/slave/control.rs` | expected outcome |
 | I5 | `slave_control_uses_manager` (a source scan: `native/slave/control.rs` has no state check or retry) | `tests/boundary_scan.rs` | example |
-| I2, "A parent that cannot control is refused" | `nested_parent_cannot_control`, `nested_parent_missing`, `nested_parent_not_ready` | `tests/control_sim_*.rs` (`ScriptedSlave` as the parent) | expected outcome |
-| `validate` | `spec_parent_rule` | `tests/contract_*.rs` | expected outcome |
+| I2, "A parent that cannot control is refused" | `nested_parent_cannot_control`, `nested_parent_missing`, `nested_parent_not_ready` | `tests/control/nested.rs` (`ScriptedSlave` as the parent) | expected outcome |
+| `validate` | `spec_parent_rule` | `tests/contract/nested.rs` | expected outcome |
 | I3, the two parent stop scenarios | `stop_parent_stops_children`, `parent_exit_fails_children` | `tests/control_sim_*.rs` | fault |
-| I6, section 6.3 | `create_body_nested_host` | `tests/docker_sim_*.rs` | example |
+| I6, section 6.3 | `create_body_nested_host` | `tests/docker/sim.rs` | example |
 | I7 | the verify command | | build |
 | `foundation_api_common` | the existing tests of `foundation_deployment` and of the Docker client still pass; `common_reexport_is_same_type` | those crates | identity |
-| I1, the first three scenarios | `e2e_nested_acceptance`, `e2e_nested_two_children` | `tests/e2e_nested.rs` (Linux with KVM and Docker; returns with the probe report when not usable) | the shared scenarios |
+| I1, the first three scenarios | `e2e_nested_acceptance`, `e2e_nested_two_children` | `tests/nested/e2e.rs` (Linux with KVM and Docker; returns with the probe report when not usable) | the shared scenarios |
 | "A container without KVM reports it" | `e2e_nested_no_kvm` | the same | expected outcome |
 | "Stopping the parent ..." | `e2e_nested_stop_parent` | the same | conservation |
 
@@ -322,8 +322,8 @@ The `e2e_nested` tests run in the CI job `sandbox-e2e` (it has KVM and Docker).
 cargo fmt --all --check
 cargo clippy -p foundation_sandbox --features "docker firecracker slave testing" --all-targets --profile uat --no-deps -- -D warnings
 cargo test -p foundation_api_common -p foundation_deployment -p foundation_deployment_docker --profile uat
-cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat control_sim docker_sim slave_ contract boundary_scan
-cargo check -p agent_slave --features control --target x86_64-unknown-linux-musl --profile uat
+cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat
+cargo build -p foundation_sandbox --no-default-features --features "slave control firecracker cli" --bin agent-slave --target x86_64-unknown-linux-musl --profile uat
 mise run sandbox:nested-image
 cargo test -p foundation_sandbox --features "docker firecracker slave testing" --profile uat e2e_nested -- --nocapture
 ```
@@ -332,6 +332,6 @@ cargo test -p foundation_sandbox --features "docker firecracker slave testing" -
 
 - Each scenario of section 5 and each row of section 7 passes.
 - A child sandbox passes the shared acceptance scenarios.
-- `agent-slave` with the control feature is a static musl program.
+- `agent-slave` with the control feature is a static musl program (it is a binary of `foundation_sandbox`).
 - `foundation_api_common` exists, and `foundation_sandbox` does not depend on
   `foundation_deployment`.

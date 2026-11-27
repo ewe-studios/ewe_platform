@@ -4116,6 +4116,40 @@
         },
         "description": "InternalError500."
       },
+      "cc_PublicCreateApplicationResponse200": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/cc_V4BaseResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/cc_PublicApplicationResult"
+                }
+              ]
+            }
+          }
+        },
+        "description": "The created container application."
+      },
+      "cc_PublicUpdateApplicationResponse200": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/cc_V4BaseResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/cc_PublicApplicationResult"
+                }
+              ]
+            }
+          }
+        },
+        "description": "The updated container application."
+      },
       "cc_PublicListApplicationsResponse200": {
         "content": {
           "application/json": {
@@ -28883,6 +28917,75 @@
             "$ref": "#/components/schemas/cc_InstanceType"
           }
         ]
+      },
+      "cc_CreateApplicationRequest": {
+        "description": "The configuration of a new container application.",
+        "properties": {
+          "image": {
+            "$ref": "#/components/schemas/cc_Image"
+          },
+          "instance_type": {
+            "$ref": "#/components/schemas/cc_InstanceType"
+          },
+          "max_instances": {
+            "description": "Maximum number of instances that the application will allow.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "name": {
+            "description": "The name of the application.",
+            "maxLength": 63,
+            "type": "string"
+          },
+          "network": {
+            "$ref": "#/components/schemas/cc_ApplicationNetwork"
+          },
+          "observability": {
+            "$ref": "#/components/schemas/cc_Observability"
+          },
+          "rollout_active_grace_period": {
+            "$ref": "#/components/schemas/cc_ApplicationRolloutActiveGracePeriod"
+          }
+        },
+        "required": [
+          "name",
+          "image"
+        ],
+        "type": "object"
+      },
+      "cc_PublicApplicationResult": {
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/cc_PublicApplication"
+          }
+        },
+        "type": "object"
+      },
+      "cc_UpdateApplicationRequest": {
+        "description": "The fields of a container application that an update changes.",
+        "properties": {
+          "image": {
+            "$ref": "#/components/schemas/cc_Image"
+          },
+          "instance_type": {
+            "$ref": "#/components/schemas/cc_InstanceType"
+          },
+          "max_instances": {
+            "description": "Maximum number of instances that the application will allow.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "network": {
+            "$ref": "#/components/schemas/cc_ApplicationNetwork"
+          },
+          "observability": {
+            "$ref": "#/components/schemas/cc_Observability"
+          },
+          "rollout_active_grace_period": {
+            "$ref": "#/components/schemas/cc_ApplicationRolloutActiveGracePeriod"
+          }
+        },
+        "type": "object"
       },
       "cc_PublicListApplicationsResult": {
         "properties": {
@@ -113465,6 +113568,40 @@
         "example": "AAAAANuhDN7SjacTnSVsDu3WW1Lvst6dxJGTjRY5BhxPXdf6L6uTcpd_NVtjhn11OUYRsVEykxoUwF-JQU4dn6QylZSKTOJuG0indrdn_MlHpMRtsxgXjs-RPdHYIVm3odE_uvEQ_dTQGFm8oikZMohns34DLBgrQpc",
         "type": "string"
       },
+      "workers_deployment_request": {
+        "description": "One traffic switch of a Worker.",
+        "properties": {
+          "strategy": {
+            "description": "The rollout strategy.",
+            "type": "string"
+          },
+          "versions": {
+            "items": {
+              "properties": {
+                "percentage": {
+                  "description": "The traffic share of this version, from 0 to 100.",
+                  "type": "number"
+                },
+                "version_id": {
+                  "description": "The Worker version identifier.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "version_id",
+                "percentage"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "strategy",
+          "versions"
+        ],
+        "type": "object"
+      },
       "workers_deployment": {
         "properties": {
           "annotations": {
@@ -116616,6 +116753,23 @@
             ],
             "type": "object"
           }
+        ],
+        "type": "object"
+      },
+      "workers_route_request": {
+        "description": "The fields of a Worker route that a create or update sets.",
+        "properties": {
+          "pattern": {
+            "description": "The route pattern.",
+            "type": "string"
+          },
+          "script": {
+            "description": "The Worker script that the route reaches.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pattern"
         ],
         "type": "object"
       },
@@ -256375,6 +256529,98 @@
         }
       ]
     },
+    "/accounts/{account_id}/containers/applications": {
+      "post": {
+        "description": "Create a container application.",
+        "operationId": "publicCreateApplication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cc_AccountId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/cc_CreateApplicationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/cc_PublicCreateApplicationResponse200"
+          },
+          "400": {
+            "$ref": "#/components/responses/cc_PublicBadRequest400"
+          },
+          "401": {
+            "$ref": "#/components/responses/cc_PublicUnauthorized401"
+          },
+          "500": {
+            "$ref": "#/components/responses/cc_PublicInternalError500"
+          }
+        },
+        "summary": "Create a container application.",
+        "tags": [
+          "Containers"
+        ],
+        "x-api-token-group": [
+          "Containers Write"
+        ]
+      }
+    },
+    "/accounts/{account_id}/containers/applications/{application_id}": {
+      "patch": {
+        "description": "Update a container application.",
+        "operationId": "publicUpdateApplication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cc_AccountId"
+          },
+          {
+            "in": "path",
+            "name": "application_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/cc_ApplicationID"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/cc_UpdateApplicationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/cc_PublicUpdateApplicationResponse200"
+          },
+          "400": {
+            "$ref": "#/components/responses/cc_PublicBadRequest400"
+          },
+          "401": {
+            "$ref": "#/components/responses/cc_PublicUnauthorized401"
+          },
+          "500": {
+            "$ref": "#/components/responses/cc_PublicInternalError500"
+          }
+        },
+        "summary": "Update a container application.",
+        "tags": [
+          "Containers"
+        ],
+        "x-api-token-group": [
+          "Containers Write"
+        ]
+      }
+    },
     "/accounts/{account_id}/containers/registries/{domain}/credentials": {
       "parameters": [
         {
@@ -364921,7 +365167,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/workers_deployment"
+                "$ref": "#/components/schemas/workers_deployment_request"
               }
             }
           },
@@ -554392,7 +554638,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/workers_route"
+                "$ref": "#/components/schemas/workers_route_request"
               }
             }
           },
@@ -554638,7 +554884,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/workers_route"
+                "$ref": "#/components/schemas/workers_route_request"
               }
             }
           },

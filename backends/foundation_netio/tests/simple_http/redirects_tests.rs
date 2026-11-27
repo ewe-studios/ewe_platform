@@ -166,3 +166,64 @@ fn test_strip_sensitive_headers_preserve_both() {
         "Cookie should be preserved"
     );
 }
+
+#[test]
+fn test_redirect_same_host_other_port_strips_auth() {
+    let mut headers = create_headers_with_auth_and_cookie();
+    headers.insert(SimpleHeader::HOST, vec!["example.com".into()]);
+    let original = descriptor_with_headers("https://example.com/a", headers);
+    let new_url = Uri::parse("https://example.com:8443/b").expect("valid url");
+    let followup = build_followup_request_from_request_descriptor(&original, new_url, false, false)
+        .expect("followup builds");
+
+    // Another port on the same host is another origin.
+    assert!(
+        !followup.headers.contains_key(&SimpleHeader::AUTHORIZATION),
+        "Authorization must be stripped for another port"
+    );
+    assert!(
+        !followup.headers.contains_key(&SimpleHeader::COOKIE),
+        "Cookie must be stripped for another port"
+    );
+}
+
+#[test]
+fn test_redirect_scheme_change_strips_auth() {
+    let mut headers = create_headers_with_auth_and_cookie();
+    headers.insert(SimpleHeader::HOST, vec!["example.com:8443".into()]);
+    let original = descriptor_with_headers("https://example.com:8443/a", headers);
+    let new_url = Uri::parse("http://example.com:8443/b").expect("valid url");
+    let followup = build_followup_request_from_request_descriptor(&original, new_url, false, false)
+        .expect("followup builds");
+
+    // The same host and port on another scheme is another origin.
+    assert!(
+        !followup.headers.contains_key(&SimpleHeader::AUTHORIZATION),
+        "Authorization must be stripped for another scheme"
+    );
+    assert!(
+        !followup.headers.contains_key(&SimpleHeader::COOKIE),
+        "Cookie must be stripped for another scheme"
+    );
+}
+
+#[test]
+fn test_redirect_same_origin_keeps_auth() {
+    let headers = create_headers_with_auth_and_cookie();
+    let original = descriptor_with_headers("https://example.com/a", headers);
+
+    // The default port and the explicit default port are the same origin, and
+    // the host comparison is not case sensitive.
+    let new_url = Uri::parse("https://EXAMPLE.com:443/b").expect("valid url");
+    let followup = build_followup_request_from_request_descriptor(&original, new_url, false, false)
+        .expect("followup builds");
+
+    assert!(
+        followup.headers.contains_key(&SimpleHeader::AUTHORIZATION),
+        "Authorization stays in the same origin"
+    );
+    assert!(
+        followup.headers.contains_key(&SimpleHeader::COOKIE),
+        "Cookie stays in the same origin"
+    );
+}

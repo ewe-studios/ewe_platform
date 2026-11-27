@@ -19,7 +19,7 @@
 //! comment (rule R2) and its failure names the case and the first unexpected
 //! value (rule R3).
 
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -31,16 +31,23 @@ use foundation_connectrpc::shared::protocol::connect::constants as connect_const
 use foundation_connectrpc::shared::transport::h1::H1Transport;
 use foundation_connectrpc::shared::transport::wasm::WASM_FETCH_CAPABILITIES;
 use foundation_connectrpc::{
-    CallHooks, Code, ConnectError, ConnectResult, ConnectSink, HandlerOptions, Request,
+    CallHooks, Code, ConnectError, ConnectResult, ConnectRpcHandler, ConnectSink, HandlerOptions,
+    Request,
     Response as RpcResponse, ResponseSink, Router, RpcCtx, Transport,
+    request_body_from_stream,
 };
 use foundation_connectrpc_wasm_tests::{
     Call, IdentityCodec, RecordingSink, SimulatedTimer, body, ctx, enveloped, host,
     parse_envelopes, remaining_ms, request, response_body, rpc_base_url, simulated_ctx,
 };
+use foundation_context::Ctx;
 use foundation_core::valtron::Stream;
-use foundation_http::wasm::bridge::cf::request_from_cf;
+use foundation_http::shared::app::HttpApp;
+use foundation_http::wasm::bridge::cf::{CfHttpApp, request_from_cf};
+use foundation_http::wasm::cf_conn::{CfConn, CfConnectionResult};
+use foundation_http::wasm::serve_cf::{CfServe, CfServeFactory};
 use foundation_netio::HttpClientBuilder;
+use futures::StreamExt;
 use foundation_netio::shared::client::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
@@ -50,7 +57,7 @@ use foundation_netio::shared::http::{
 };
 use wasm_bindgen::JsCast;
 use wasm_bindgen::{JsValue, closure::Closure};
-use wasm_bindgen_futures::JsFuture;
+use wasm_bindgen_futures::{JsFuture, spawn_local};
 use wasm_bindgen_test::wasm_bindgen_test;
 use web_sys::{
     ReadableStream, ReadableStreamDefaultController, ReadableStreamDefaultReader, RequestInit,
@@ -244,11 +251,11 @@ fn capability_constants() {
 // Spec 88 feature 03: the router, the error model, the sink and the deadline
 // ══════════════════════════════════════════════════════════════════════════
 
-const UNARY: &str = "http://t/case.CaseService/Unary";
-const STREAM: &str = "http://t/case.CaseService/Stream";
-const FAIL: &str = "http://t/case.CaseService/Fail";
-const WAIT: &str = "http://t/case.CaseService/Wait";
-const SECOND: &str = "http://t/case.SecondService/Unary";
+const UNARY: &str = "/case.CaseService/Unary";
+const STREAM: &str = "/case.CaseService/Stream";
+const FAIL: &str = "/case.CaseService/Fail";
+const WAIT: &str = "/case.CaseService/Wait";
+const SECOND: &str = "/case.SecondService/Unary";
 
 /// The three frames every server-stream case emits.
 const FRAMES: [&[u8]; 3] = [b"frame-0", b"frame-1", b"frame-2"];
@@ -406,7 +413,7 @@ async fn unknown_service_returns_unimplemented() {
     let calls = Arc::new(AtomicUsize::new(0));
     let handler = echo_router(calls.clone()).into_handler();
     let response = handler
-        .dispatch(ctx(), unary_request("http://t/missing.Procedure", b"ping"))
+        .dispatch(ctx(), unary_request("/missing.Procedure", b"ping"))
         .await;
 
     assert_eq!(
@@ -632,7 +639,7 @@ async fn client_stream_reads_every_frame() {
     let seen_by_handler = seen.clone();
     let mut router = Router::new();
     router.client_stream(
-        "http://t/case.CaseService/Collect",
+        "/case.CaseService/Collect",
         ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
         move |_ctx, mut reqs: foundation_connectrpc::RequestStream<Vec<u8>>| {
             let seen = seen_by_handler.clone();
@@ -655,7 +662,7 @@ async fn client_stream_reads_every_frame() {
     for frame in [b"one".as_slice(), b"two", b"three"] {
         payload.extend_from_slice(&enveloped(frame));
     }
-    let req = stream_request("http://t/case.CaseService/Collect", payload.clone());
+    let req = stream_request("/case.CaseService/Collect", payload.clone());
     let response = handler.dispatch(ctx(), req).await;
 
     assert_eq!(response.status, Status::OK, "case 8: status");
@@ -680,7 +687,7 @@ async fn bidi_echoes_in_order() {
 
     let mut router = Router::new();
     router.bidi_stream(
-        "http://t/case.CaseService/Chat",
+        "/case.CaseService/Chat",
         ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
         |_ctx, mut reqs: foundation_connectrpc::RequestStream<Vec<u8>>| async move {
             let mut echoes = Vec::new();
@@ -700,7 +707,7 @@ async fn bidi_echoes_in_order() {
     for frame in [b"one".as_slice(), b"two", b"three"] {
         payload.extend_from_slice(&enveloped(frame));
     }
-    let mut req = stream_request("http://t/case.CaseService/Chat", payload);
+    let mut req = stream_request("/case.CaseService/Chat", payload);
     req.proto = Proto::HTTP20;
     let listener = handler.dispatch(ctx(), req).await;
 
@@ -1038,4 +1045,288 @@ fn wasm_fetch_capabilities_match_the_transport() {
         actual.multiplexed, WASM_FETCH_CAPABILITIES.multiplexed,
         "case 17: multiplexing"
     );
+}
+
+// ── CfConn streaming (#927) and the async request body (#928) ─────────────
+
+/// Read every chunk of a response body, with one reader for the whole body.
+async fn read_all_chunks(reader: &ReadableStreamDefaultReader) -> Vec<Vec<u8>> {
+    let mut chunks = Vec::new();
+    loop {
+        let result = JsFuture::from(reader.read()).await.expect("read");
+        let done = js_sys::Reflect::get(&result, &JsValue::from_str("done"))
+            .ok()
+            .and_then(|value| value.as_bool())
+            .unwrap_or(true);
+        if done {
+            break;
+        }
+        let value = js_sys::Reflect::get(&result, &JsValue::from_str("value")).expect("value");
+        chunks.push(js_sys::Uint8Array::new(&value).to_vec());
+    }
+    chunks
+}
+
+fn streaming_reader(response: &Response) -> ReadableStreamDefaultReader {
+    response
+        .body()
+        .expect("a streaming body")
+        .get_reader()
+        .unchecked_into::<ReadableStreamDefaultReader>()
+}
+
+/// #927: the first frame reaches the client while the producer still runs.
+///
+/// The handler writes frame one, then waits on a gate. The test reads frame
+/// one through a `CfConn`-carried response, asserts the producer has not
+/// finished, then releases the gate and reads the rest.
+#[wasm_bindgen_test]
+async fn cf_conn_streams_the_first_frame_while_the_producer_runs() {
+    let (release, gate) = futures::channel::oneshot::channel::<()>();
+    let gate = Arc::new(Mutex::new(Some(gate)));
+    let produced = Arc::new(AtomicUsize::new(0));
+
+    let mut router = Router::new();
+    let handler_produced = Arc::clone(&produced);
+    let handler_gate = Arc::clone(&gate);
+    router.server_stream(
+        STREAM,
+        ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
+        move |_ctx, _req: Request<Vec<u8>>| {
+            let produced = Arc::clone(&handler_produced);
+            let gate = Arc::clone(&handler_gate);
+            async move {
+                produced.fetch_add(1, Ordering::SeqCst);
+                let first: Vec<ConnectResult<Vec<u8>>> = vec![Ok(b"first".to_vec())];
+                let first = futures::stream::iter(first);
+                let second = futures::stream::once(async move {
+                    let receiver = gate.lock().unwrap().take().expect("the gate");
+                    let _ = receiver.await;
+                    produced.fetch_add(1, Ordering::SeqCst);
+                    Ok(b"second".to_vec())
+                });
+                Ok(first.chain(second))
+            }
+        },
+        HandlerOptions::new(),
+    );
+
+    let handler = Arc::new(router.into_handler());
+    let (sink, handle) = ConnectSink::new_pair_with_capacity(1);
+    spawn_local(async move {
+        let _ = handler
+            .dispatch_to(
+                ctx(),
+                stream_request(STREAM, enveloped(b"seed")),
+                body(enveloped(b"seed")),
+                Box::new(sink),
+                CallHooks::default(),
+            )
+            .await;
+    });
+
+    let response = handle.wait_response().await.expect("the response head");
+    let mut conn = CfConn::new();
+    conn.set_response(response);
+    let response = conn.into_response().expect("a streaming response");
+    let reader = streaming_reader(&response);
+
+    let first = JsFuture::from(reader.read()).await.expect("first read");
+    let value = js_sys::Reflect::get(&first, &JsValue::from_str("value")).expect("value");
+    let first = js_sys::Uint8Array::new(&value).to_vec();
+    assert_eq!(
+        parse_envelopes(&first),
+        vec![(0u8, b"first".to_vec())],
+        "#927: the first frame arrives before the producer ends"
+    );
+    assert_eq!(
+        produced.load(Ordering::SeqCst),
+        1,
+        "#927: the producer is still running after the first frame"
+    );
+
+    release.send(()).expect("release the gate");
+    let rest = read_all_chunks(&reader).await;
+    let mut all = first;
+    for chunk in rest {
+        all.extend_from_slice(&chunk);
+    }
+    let payloads: Vec<Vec<u8>> = parse_envelopes(&all)
+        .into_iter()
+        .filter(|(flag, _)| *flag == 0)
+        .map(|(_, payload)| payload)
+        .collect();
+    assert_eq!(
+        payloads,
+        vec![b"first".to_vec(), b"second".to_vec()],
+        "#927: both frames arrive in order"
+    );
+}
+
+/// #927: a 10 MiB stream arrives in many chunks, not one buffer.
+#[wasm_bindgen_test]
+async fn cf_conn_streams_ten_mib_in_chunks() {
+    const CHUNK: usize = 64 * 1024;
+    const COUNT: usize = 160; // 10 MiB
+
+    let mut router = Router::new();
+    router.server_stream(
+        STREAM,
+        ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
+        move |_ctx, _req: Request<Vec<u8>>| async move {
+            let frames: Vec<ConnectResult<Vec<u8>>> =
+                (0..COUNT).map(|_| Ok(vec![b'x'; CHUNK])).collect();
+            Ok(futures::stream::iter(frames))
+        },
+        HandlerOptions::new(),
+    );
+    let handler = router.into_handler();
+    let (sink, handle) = ConnectSink::new_pair_with_capacity(4);
+    spawn_local(async move {
+        let _ = handler
+            .dispatch_to(
+                ctx(),
+                stream_request(STREAM, enveloped(b"seed")),
+                body(enveloped(b"seed")),
+                Box::new(sink),
+                CallHooks::default(),
+            )
+            .await;
+    });
+
+    let response = handle.wait_response().await.expect("the response head");
+    let mut conn = CfConn::new();
+    conn.set_response(response);
+    let response = conn.into_response().expect("a streaming response");
+    let chunks = read_all_chunks(&streaming_reader(&response)).await;
+    let total: usize = chunks.iter().map(Vec::len).sum();
+    assert!(
+        chunks.len() > 1,
+        "#927: a 10 MiB body arrives in chunks, got {}",
+        chunks.len()
+    );
+    assert!(
+        total >= 10 * 1024 * 1024,
+        "#927: ten MiB arrive, got {total} bytes"
+    );
+}
+
+/// #928: a JS `ReadableStream` becomes an async request body.
+///
+/// The body parks on a retry and yields every chunk; a `WouldBlock` error
+/// would fail the test.
+#[wasm_bindgen_test]
+async fn a_js_stream_becomes_an_async_request_body() {
+    const CHUNK: usize = 32 * 1024;
+    const COUNT: u32 = 8;
+
+    let (stream, _pulls) = counting_stream(COUNT, CHUNK);
+    let mut body = request_body_from_stream(stream, 2, Some(COUNT as usize * CHUNK));
+    let mut chunks = 0usize;
+    let mut total = 0usize;
+    while let Some(item) = body.next().await {
+        let bytes = item.expect("#928: a retry parks, it is not a WouldBlock error");
+        chunks += 1;
+        total += bytes.len();
+    }
+    assert_eq!(total, COUNT as usize * CHUNK, "#928: every byte arrives");
+    assert!(chunks > 1, "#928: the body arrives in chunks");
+}
+
+// ── #948: a Connect call through CfHttpApp keeps its path and body ────────
+
+const PROBE: &str = "/SandboxService/Probe";
+
+thread_local! {
+    /// The router handler that `ProbeServe` dispatches to.
+    static PROBE_HANDLER: RefCell<Option<Arc<ConnectRpcHandler>>> = const { RefCell::new(None) };
+}
+
+/// A `CfServe` over a Connect handler, as `ConnectService` is on the Worker.
+struct ProbeServe;
+
+impl CfServeFactory for ProbeServe {
+    fn create(_ctx: &Ctx) -> Self {
+        Self
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl CfServe for ProbeServe {
+    async fn serve_cf(
+        &self,
+        ctx: Ctx,
+        req: SimpleIncomingRequest,
+        conn: &mut CfConn,
+    ) -> CfConnectionResult {
+        let Some(handler) = PROBE_HANDLER.with(|slot| slot.borrow().clone()) else {
+            conn.set_status(500);
+            return CfConnectionResult::Ok;
+        };
+        // A unary call writes one whole response. Await it, so the body is
+        // complete before the app returns the response.
+        let (sink, handle) = ConnectSink::new_pair_with_capacity(4);
+        let _ = handler
+            .dispatch_to(
+                ctx,
+                req,
+                body(enveloped(b"seed")),
+                Box::new(sink),
+                CallHooks::default(),
+            )
+            .await;
+        match handle.into_response() {
+            Some(response) => conn.set_response(response),
+            None => conn.set_status(500),
+        }
+        CfConnectionResult::Ok
+    }
+}
+
+/// #948: a `web_sys::Request` for `SandboxService/Probe` through `CfHttpApp`
+/// returns the Connect status and the response body.
+///
+/// The browser names the request by its whole URL. The inner Connect router
+/// must read its path, not the URL, or it answers an empty 404.
+#[wasm_bindgen_test]
+async fn a_connect_call_through_the_app_keeps_its_path_and_body() {
+    let mut router = Router::new();
+    router.unary(
+        PROBE,
+        ProcedureCodecs::<Vec<u8>, Vec<u8>>::only(IdentityCodec),
+        |_ctx, _req: Request<Vec<u8>>| async move { Ok(RpcResponse::new(b"probe-ok".to_vec())) },
+        HandlerOptions::new(),
+    );
+    PROBE_HANDLER.with(|slot| *slot.borrow_mut() = Some(Arc::new(router.into_handler())));
+
+    let ctx = ctx();
+    let mut app = HttpApp::<Arc<dyn CfServe>>::with_ctx(ctx);
+    app.route_any_cf::<ProbeServe>(PROBE);
+    let app = CfHttpApp::from_app(app);
+
+    let init = RequestInit::new();
+    init.set_method("POST");
+    let headers = web_sys::Headers::new().expect("headers");
+    headers
+        .set("Content-Type", "application/proto")
+        .expect("content type");
+    init.set_headers(&headers);
+    let request = web_sys::Request::new_with_str_and_init(
+        &format!("https://agents.example.com{PROBE}"),
+        &init,
+    )
+    .expect("the request");
+
+    let response = app
+        .handle_request(request, JsValue::NULL)
+        .await
+        .expect("#948: the app answers");
+    assert_eq!(response.status(), 200, "#948: the probe succeeds");
+    let chunks = read_all_chunks(&streaming_reader(&response)).await;
+    let mut all = Vec::new();
+    for chunk in chunks {
+        all.extend_from_slice(&chunk);
+    }
+    // A Connect unary response body is the raw message; there is no envelope.
+    assert_eq!(all, b"probe-ok", "#948: the Connect body arrives");
 }

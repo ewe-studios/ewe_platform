@@ -87,6 +87,12 @@ impl AgentRpcService {
     pub fn registry(&self) -> &Arc<dyn InstanceRegistry> {
         &self.registry
     }
+
+    /// The catalog that this service reports and serves.
+    #[must_use]
+    pub fn catalog(&self) -> &Arc<dyn ModelCatalog> {
+        &self.catalog
+    }
 }
 
 /// The caller of one checked call.
