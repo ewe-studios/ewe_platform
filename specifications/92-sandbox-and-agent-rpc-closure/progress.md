@@ -9,6 +9,8 @@ _Last updated: 2026-11-27._
 | 00 Live proof on the real services | not started |
 | 01 DST fidelity: the real registry | not started |
 | 02 Sandbox follow-ups | not started |
+| 03 GCP KMS over gRPC | not started |
+| 04 Live cloud resources with OpenTofu | not started |
 
 ## What is already true
 
