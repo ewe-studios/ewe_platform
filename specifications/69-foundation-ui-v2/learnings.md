@@ -1320,3 +1320,12 @@ Other device flags and explicit host policy keep their values.
 Discarding hardware abstraction layer labels would suppress this object name. It would leave the Vulkan extension enabled.
 After the first game closes, Android reports an abandoned surface queue. The second game does not present a frame.
 The lost surface handler tries to configure the surface again. It may delay later work on the graphics worker.
+
+## Chromium navigation completion
+
+One Chrome DevTools Protocol (CDP) connection can carry events for many tabs.
+Use the session identifier in the event envelope to select a tab.
+Use the frame and loader identifiers in the event to select its document.
+The loader identifies one document load. Reloading the same address can create a new loader.
+Subscribe before the navigation command because the load event can arrive before the command response.
+Read navigation errors from the result before waiting. A fragment change keeps the loader and has no new load event.

@@ -1687,3 +1687,15 @@ Back restores the same Todo list after each visit. Android records no crash for 
 Three Android framework tests pass on the same emulator.
 The replacement test verifies a red frame on the new window and rejects the old frame callback.
 The other tests verify two independent windows and a Vulkan device that the host owns.
+
+## Chromium navigation completion
+
+The browser driver waits for the load event for the session, frame, and document loader that Chromium identifies.
+A fragment change completes on the command response. A failed navigation returns the browser's error.
+A local service holds a script response in one tab while a second tab loads.
+The previous driver reports success for the blocked tab. The fixed driver waits for that tab's timeout.
+A replacement document in the same tab also leaves the requested load pending.
+Chrome for Testing 157 passes all 40 browser driver tests on macOS.
+Google Chrome 158 passes all three navigation regressions on macOS.
+[Issue 1143](https://github.com/ewe-studios/ewe_platform/issues/1143) records the driver defect.
+[Issue 784](https://github.com/ewe-studios/ewe_platform/issues/784) tracks the separate Todo server header stall.

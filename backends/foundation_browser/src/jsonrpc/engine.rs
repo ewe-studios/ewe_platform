@@ -18,7 +18,32 @@ use crate::runtime::ensure_runtime;
 pub type EventSub = Receiver<Value>;
 
 type Pending = Arc<Mutex<HashMap<u64, SyncSender<Result<Value>>>>>;
-type Subs = Arc<Mutex<HashMap<String, Vec<Sender<Value>>>>>;
+type Subs = Arc<Mutex<HashMap<String, MethodSubscribers>>>;
+
+#[derive(Default)]
+struct MethodSubscribers {
+    all: Vec<Sender<Value>>,
+    sessions: HashMap<u64, (String, Sender<Value>)>,
+}
+
+pub(crate) struct SessionEventSub<'a> {
+    pub(crate) receiver: EventSub,
+    subs: &'a Subs,
+    method: &'static str,
+    id: u64,
+}
+
+impl Drop for SessionEventSub<'_> {
+    fn drop(&mut self) {
+        let mut subs = self.subs.lock().expect("subs poisoned");
+        if let Some(list) = subs.get_mut(self.method) {
+            list.sessions.remove(&self.id);
+            if list.sessions.is_empty() && list.all.is_empty() {
+                subs.remove(self.method);
+            }
+        }
+    }
+}
 
 /// The protocol surface the driver programs against (CDP today; `BiDi` later).
 pub trait WireProtocol: Send + Sync {
@@ -182,10 +207,13 @@ impl RpcEngine {
                     tracing::debug!(%reason, "cdp reader thread exiting");
                     // Mark the connection closed BEFORE failing the waiters, so
                     // a call that arrives now sees the flag and never waits.
-                    alive.store(false, Ordering::SeqCst);
                     *last_reader_error
                         .lock()
                         .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(reason.clone());
+                    alive.store(false, Ordering::SeqCst);
+                    subs.lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner)
+                        .clear();
                     let drained: Vec<_> = pending
                         .lock()
                         .unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -215,7 +243,7 @@ impl RpcEngine {
     }
 
     /// The reason this connection is closed, or `None` while it is alive.
-    fn closed_reason(&self) -> Option<String> {
+    pub(crate) fn closed_reason(&self) -> Option<String> {
         if self.alive.load(Ordering::SeqCst) {
             return None;
         }
@@ -226,6 +254,29 @@ impl RpcEngine {
                 .clone()
                 .unwrap_or_else(|| "reader stopped".to_string()),
         )
+    }
+
+    /// Collect events from one flattened browser session until the subscriber drops.
+    pub(crate) fn subscribe_session(
+        &self,
+        method: &'static str,
+        session: &str,
+    ) -> SessionEventSub<'_> {
+        let id = self.next_id.fetch_add(1, Ordering::SeqCst);
+        let (tx, receiver) = channel();
+        self.subs
+            .lock()
+            .expect("subs poisoned")
+            .entry(method.to_string())
+            .or_default()
+            .sessions
+            .insert(id, (session.to_string(), tx));
+        SessionEventSub {
+            receiver,
+            subs: &self.subs,
+            method,
+            id,
+        }
     }
 }
 
@@ -277,18 +328,16 @@ fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
             let _ = tx.send(result);
         }
     } else if let Some(method) = v.get("method").and_then(Value::as_str) {
-        tracing::debug!(
-            method,
-            session = v
-                .get("sessionId")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or(""),
-            "cdp recv event"
-        );
-        let params = v.get("params").cloned().unwrap_or(Value::Null);
-        if let Some(list) = subs.lock().expect("subs poisoned").get(method) {
-            for tx in list {
-                let _ = tx.send(params.clone());
+        let session = v.get("sessionId").and_then(Value::as_str);
+        tracing::debug!(method, session = session.unwrap_or(""), "cdp recv event");
+        if let Some(list) = subs.lock().expect("subs poisoned").get_mut(method) {
+            let params = v.get("params").cloned().unwrap_or(Value::Null);
+            list.all.retain(|tx| tx.send(params.clone()).is_ok());
+            for (sub_session, tx) in list.sessions.values() {
+                if session == Some(sub_session.as_str()) {
+                    // Drop unregisters the subscriber before its receiver closes.
+                    let _ = tx.send(params.clone());
+                }
             }
         }
     }
@@ -348,6 +397,7 @@ impl WireProtocol for RpcEngine {
             .expect("subs poisoned")
             .entry(method.to_string())
             .or_default()
+            .all
             .push(tx);
         rx
     }
