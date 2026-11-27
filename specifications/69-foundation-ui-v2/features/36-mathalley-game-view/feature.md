@@ -160,3 +160,31 @@ Each host fits the scene within its available surface.
 | Chrome | [Train](screenshots/browser-game.png) | [Gumball](screenshots/browser-gumball.png) | [Todos](screenshots/browser-return.png) |
 | iPhone | [Train](screenshots/ios-game.png) | [Gumball](screenshots/ios-gumball.png) and [landscape](screenshots/ios-gumball-landscape.png) | [Todos](screenshots/ios-return.png) |
 | Android | [Train](screenshots/android-game.png) | [Gumball](screenshots/android-gumball.png) | [Todos](screenshots/android-return.png) |
+
+### Physical phone sound handoff
+
+Run Todo On Device on each phone. Its local task store starts with the process and needs no server.
+Use the existing [iPhone signing and launch steps](../../../../examples/ui_todo/ios/todo_on_device/README.md).
+Use the [Android build steps](../../../../examples/ui_todo/android/README.md) for the matching library and Todo On Device application.
+Use an Android device that has no existing Todo On Device installation.
+Install and start the matching scratch application with these commands.
+
+```sh
+adb -s "$ANDROID_DEVICE" install examples/ui_todo/android/todo_on_device/app/build/outputs/apk/debug/app-debug.apk
+adb -s "$ANDROID_DEVICE" shell am start -n ewe.todo.local/.MainActivity
+```
+
+1. Select the phone speaker on the test device. Record the device, operating system, build revision and output route.
+2. Add a scratch item. Select Open, then **Play Mathalley**. Tap the title and answer one question.
+3. Listen at the speaker for the opening music and answer cue. Record which sounds play and when.
+4. Select **Sound** to mute and answer again. Verify silence at the speaker.
+5. Background the app and return. Verify the mute setting remains on and the game accepts an answer.
+6. Enable sound. Trigger an interruption with an approved test call or focus change. Record its start and end.
+7. Verify the game stops sound during interruption. On return, verify a new cue plays without a burst of expired notes.
+8. Repeat the interruption while muted. Verify the game stays silent after the return.
+9. Select **Back to Todos**. Verify the same item and Open selection. Verify the closed game stays silent.
+10. Open another game view. Unmute that view if needed. Verify it can play a new cue.
+
+Record the Apple audio session notification or the Android audio focus change for the interruption check.
+Use the Home and return result for foreground changes. Use the session or focus record for interruptions.
+Record actual speaker output separately from the audio engine samples and emulator capture.

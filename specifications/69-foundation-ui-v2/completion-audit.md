@@ -358,8 +358,9 @@ Feature 19 retains the public package installation gate.
 The available device inventory contains five iPhone simulator entries and one Android emulator.
 No physical test device is available.
 
-- Install a fresh scratch Todo Server bundle on a physical iPhone. Record normal cold launch and debugger-paused first launch. Compare the captured title, scene readiness, and system launch logs. [Issue 831](https://github.com/ewe-studios/ewe_platform/issues/831)
-- On a physical iPhone, activate Delete from VoiceOver Actions and verify the confirmation. Record the automatic countdown speech and verify focus returns to the pause control. [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
+- Use the [physical Todo handoff](features/23-native-design-and-themes/feature.md#physical-iphone-todo-handoff) for launch and VoiceOver Delete. It covers issues 831 and 1168.
+- Use the [physical countdown handoff](features/32-portable-view-targets/feature.md#physical-iphone-countdown-handoff) for speech and focus in issue 1168.
+- Use the [physical sound handoff](features/36-mathalley-game-view/feature.md#physical-phone-sound-handoff) for speaker playback, interruptions and close behavior.
 
 ### Candidate and local package coverage
 

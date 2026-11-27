@@ -2319,3 +2319,9 @@ Issue 519 tracks the separate JSON file-state store. The old Windows suite passe
 The namespaced test fails. A name with a slash becomes a file name with a colon.
 The full database package remains excluded on Windows. A proposed recipe selects four local libSQL test files.
 The planner schedules that recipe. All 14 selected tests pass on macOS. The Windows result still needs a run.
+
+### Physical phone handoff
+
+The Feature 23 handoff gives the signed scratch install and both first-launch paths.
+Feature 32 gives the VoiceOver speech and focus checks. Feature 36 gives the physical sound and interruption checks.
+The results still need physical devices.

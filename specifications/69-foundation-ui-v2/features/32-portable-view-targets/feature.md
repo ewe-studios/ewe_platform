@@ -407,3 +407,15 @@ Verify each removal against existing behavior. Test a lost reply, duplicate deli
 Document which application abstractions disappeared and which remaining state each acceptance test requires.
 
 [Feature 37](../37-todo-server-build-and-state/feature.md) defines the current Todo implementation and removal checks.
+
+### Physical iPhone countdown handoff
+
+Use the signed Todo Server and scratch store from the [physical Todo handoff](../23-native-design-and-themes/feature.md#physical-iphone-todo-handoff).
+With VoiceOver enabled, focus and activate **Pause input for one minute**.
+Record the speech from the request until input returns. Leave the timer untouched for several seconds.
+VoiceOver announces the pause once. Speech stays quiet between the pause and expiry while the timer is untouched.
+Read the timer on demand. The current remaining time is spoken and focus stays inside the modal.
+At expiry, VoiceOver says **Input resumed** once. Focus returns to **Pause input for one minute**.
+Activate an ordinary list control to confirm input works again.
+Record the duration and the spoken phrases. Keep the result separate from simulator focus samples.
+[Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)

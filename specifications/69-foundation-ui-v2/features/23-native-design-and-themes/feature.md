@@ -237,3 +237,50 @@ Keyboard focus remains inside the dialog. Complete moves the row to Done and upd
 - [Light dialog](design/browser-light-dialog.png)
 - [Dark list](design/browser-dark-list.png)
 - [Dark dialog](design/browser-dark-dialog.png)
+
+### Physical iPhone Todo handoff
+
+Use a signed scratch Todo Server for the first-install and VoiceOver checks.
+Run the preparation task and start a separate server from the repository root.
+
+```sh
+native-task task run native:todo:prepare-ios
+todo_device_run=$(mktemp -d "${TMPDIR:-/tmp}/ewe-todo-device.XXXXXX")
+cargo run --locked --profile uat -p ui_todo --bin ui_todo -- 127.0.0.1:0 --store "$todo_device_run/todo.sqlite3"
+```
+
+Use the printed address to seed the scratch store from the browser.
+Add three uniquely named test items.
+Use an approved device-reachable endpoint for this scratch port.
+Keep the Todo process bound to loopback. Leave the check pending if the phone cannot reach that endpoint.
+
+1. Open the [Todo Server project](../../../../examples/ui_todo/ios/todo_server/README.md). Select a signing team.
+   Select the physical device and TodoServer scheme.
+2. Build two fresh scratch bundle identifiers. Set `EWE_TODO_SERVER_URL` in both builds for launches outside the Xcode scheme.
+3. Install the first signed application. Launch it with no debugger. Record the launch time, first title and first visible seeded item.
+4. Install the second application. Launch it with `--start-stopped`. Capture the screen before the application runs.
+5. Continue the second process in the debugger. Record scene readiness and first list content.
+   Save logs for the scratch bundle and the launch-image service.
+6. Compare both results with issue 831. Record any launch-image timeout, including the reported error and elapsed time.
+
+Use the built application paths and scratch bundle identifiers in these commands.
+
+```sh
+xcrun devicectl device install app --device "$IPHONE" "$TODO_NORMAL_APP"
+xcrun devicectl device process launch --device "$IPHONE" "$TODO_NORMAL_ID"
+xcrun devicectl device install app --device "$IPHONE" "$TODO_PAUSED_APP"
+xcrun devicectl device process launch --device "$IPHONE" --start-stopped "$TODO_PAUSED_ID"
+```
+
+To continue the paused application, start `xcrun lldb`.
+Enter `device select IPHONE` and `device process attach -p PROCESS_ID`. Use the selected device and launch process identifier.
+Enter `continue` after you record the launch image.
+
+For VoiceOver, use the live scratch list after a normal launch.
+Focus one test item. Select Delete from VoiceOver Actions and double-tap.
+The confirmation opens without a row reveal gesture. Focus enters the confirmation.
+Cancel once and check that the item remains. Repeat and confirm the deletion.
+Check that the named item is gone and the other two items remain.
+Record the spoken action, confirmation and result with the device and operating system.
+[First launch issue 831](https://github.com/ewe-studios/ewe_platform/issues/831)
+[VoiceOver issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
