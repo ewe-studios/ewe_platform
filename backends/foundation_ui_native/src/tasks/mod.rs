@@ -38,6 +38,7 @@ pub struct NativeBuildEnv {
     developer_dir: Option<OsString>,
     home: Option<OsString>,
     temporary_dir: PathBuf,
+    android_build_type_staging: bool,
 }
 
 impl NativeBuildEnv {
@@ -58,6 +59,7 @@ impl NativeBuildEnv {
             developer_dir: None,
             home: None,
             temporary_dir: PathBuf::from("/tmp"),
+            android_build_type_staging: false,
         }
     }
 
@@ -73,6 +75,8 @@ impl NativeBuildEnv {
             .filter(|key| !key.is_empty());
         env.home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE"));
         env.temporary_dir = std::env::temp_dir();
+        env.android_build_type_staging =
+            std::env::var_os("EWE_ANDROID_BUILD_TYPE_STAGING").is_some_and(|value| value == "1");
         if cfg!(target_os = "macos") && env.developer_dir.is_none() {
             env.developer_dir = Some("/Applications/Xcode.app/Contents/Developer".into());
         }

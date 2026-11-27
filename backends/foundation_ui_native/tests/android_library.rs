@@ -13,7 +13,9 @@ use std::{
     sync::Arc,
 };
 
-struct BuildTools;
+struct BuildTools {
+    fail_native: bool,
+}
 impl TaskOutput for BuildTools {
     fn write<'a>(&'a self, _: OutputStream, _: &'a [u8]) -> BoxFuture<'a, io::Result<()>> {
         Box::pin(async { Ok(()) })
@@ -42,6 +44,9 @@ impl TaskProcess for BuildTools {
             };
             let release = args.contains(&"--release");
             if args.first() == Some(&"ndk") {
+                if self.fail_native {
+                    return Err(TaskError::operation("Android fixture build failed"));
+                }
                 assert!(!args.contains(&"-o"));
                 assert!(cmd
                     .env
@@ -58,7 +63,8 @@ impl TaskProcess for BuildTools {
                         .join(triple)
                         .join(if release { "release" } else { "debug" });
                     fs::create_dir_all(&dir).map_err(TaskError::operation)?;
-                    fs::write(dir.join("libcounter_app.so"), triple)
+                    let profile = if release { "release" } else { "debug" };
+                    fs::write(dir.join("libcounter_app.so"), format!("{triple}/{profile}"))
                         .map_err(TaskError::operation)?;
                     fs::write(dir.join("libdependency.rlib"), b"dependency")
                         .map_err(TaskError::operation)?;
@@ -75,16 +81,19 @@ impl TaskProcess for BuildTools {
     }
 }
 
-fn staged(root: &Path, release: bool) -> TaskResult {
+fn staged(root: &Path, release: bool, build_type_staging: bool, fail_native: bool) -> TaskResult {
     let root = root.to_owned();
     let ctx = Ctx::host();
-    ctx.store(
+    let env = if build_type_staging {
+        NativeBuildEnv::from_workspace()
+    } else {
         NativeBuildEnv::new(root.clone())
-            .with_host_directories(root.as_os_str().to_owned(), root.join("locks")),
-    );
+    };
+    ctx.store(env.with_host_directories(root.as_os_str().to_owned(), root.join("locks")));
+    let tools = Arc::new(BuildTools { fail_native });
     ctx.store(TaskEnv {
-        process: Arc::new(BuildTools),
-        output: Arc::new(BuildTools),
+        process: tools.clone(),
+        output: tools,
         cancellation: Cancellation::new(),
     });
     let mut tasks = TaskSet::new("test");
@@ -124,7 +133,7 @@ fn application_stages_its_own_shared_library_for_each_android_architecture() {
     let module = root.path().join("android/app");
     fs::create_dir_all(&module).unwrap();
     for release in [false, true] {
-        staged(root.path(), release).unwrap();
+        staged(root.path(), release, false, false).unwrap();
         assert_eq!(
             fs::read(module.join("generated/kotlin/Counter.kt")).unwrap(),
             b"binding"
@@ -139,8 +148,51 @@ fn application_stages_its_own_shared_library_for_each_android_architecture() {
             assert_eq!(dir.read_dir().unwrap().count(), 1);
             assert_eq!(
                 fs::read_to_string(dir.join("libcounter_app.so")).unwrap(),
-                triple
+                format!("{triple}/{}", if release { "release" } else { "debug" })
             );
         }
+    }
+}
+
+#[test]
+fn composed_android_build_types_keep_distinct_native_outputs() {
+    const FLAG: &str = "EWE_ANDROID_BUILD_TYPE_STAGING";
+    // Isolate the build setting from the other test in this process.
+    if std::env::var_os(FLAG).as_deref() != Some(std::ffi::OsStr::new("1")) {
+        let result = std::process::Command::new(std::env::current_exe().unwrap())
+            .env(FLAG, "1")
+            .args([
+                "--exact",
+                "android_library::composed_android_build_types_keep_distinct_native_outputs",
+            ])
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success() && String::from_utf8_lossy(&result.stdout).contains("1 passed"),
+            "{}{}",
+            String::from_utf8_lossy(&result.stdout),
+            String::from_utf8_lossy(&result.stderr)
+        );
+        return;
+    }
+    let abi = "arm64-v8a";
+    for order in [[false, true], [true, false]] {
+        let root = tempfile::tempdir().unwrap();
+        let module = root.path().join("android/app");
+        fs::create_dir_all(&module).unwrap();
+        for release in order {
+            staged(root.path(), release, true, false).unwrap();
+        }
+        assert!(staged(root.path(), order[0], true, true).is_err());
+        for profile in ["debug", "release"] {
+            let dir = module.join("build/generated/ewe-native").join(profile);
+            assert_eq!(fs::read(dir.join("kotlin/Counter.kt")).unwrap(), b"binding");
+            assert_eq!(
+                fs::read_to_string(dir.join("jniLibs").join(abi).join("libcounter_app.so"))
+                    .unwrap(),
+                format!("aarch64-linux-android/{profile}")
+            );
+        }
+        assert!(!module.join("generated").exists());
     }
 }

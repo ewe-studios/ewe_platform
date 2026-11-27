@@ -107,3 +107,20 @@ Each project used a distinct application identifier. The package version was 0.1
 The local checks substitute a Swift package checkout and a Maven candidate repository.
 Issue [672](https://github.com/ewe-studios/ewe_platform/issues/672) tracks the command dependencies that need publication.
 Feature 19 tracks the public mobile package installation.
+
+## Android native outputs by build type
+
+A composed on-device Android app builds its Rust library and Kotlin bindings for its selected build type.
+The debug and release tasks use separate Kotlin and native directories under `build/generated/ewe-native`.
+The new paths stay outside the shared directory used by old templates.
+The Gradle template supplies the build type through its existing prepare task.
+The template requests a build-type staging directory when it invokes the native provider.
+The provider takes the directory name from its existing debug or release selection.
+An older template can still prepare the shared generated directory.
+This change uses the existing Android application template and does not change its views.
+
+1. Generate an on-device Android app with the current tool.
+2. Build debug and release together. Check the staged files and packaged libraries for each build type.
+3. Repeat in the opposite build order. Check that each variant keeps its own files.
+4. Run the existing shared-directory test for an older template.
+5. Verify that a failed producer keeps the last successful output for each variant.

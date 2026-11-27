@@ -32,7 +32,11 @@ android {
         versionName = "{{ VERSION }}"
         ndk { abiFilters += setOf("arm64-v8a", "x86_64") }
     }
-{% if HOST == "on-device" %}    sourceSets["main"].kotlin.directories.add("generated/kotlin")
+{% if COMPOSED and HOST == "on-device" %}    for (type in listOf("debug", "release")) {
+        sourceSets[type].kotlin.directories.add("build/generated/ewe-native/$type/kotlin")
+        sourceSets[type].jniLibs.directories.add("build/generated/ewe-native/$type/jniLibs")
+    }
+{% elif HOST == "on-device" %}    sourceSets["main"].kotlin.directories.add("generated/kotlin")
     sourceSets["main"].jniLibs.directories.add("generated/jniLibs")
 {% endif %}    buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
@@ -88,6 +92,7 @@ extensions.getByType<ApplicationAndroidComponentsExtension>().onVariants { varia
     val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }
     val native = tasks.register<Exec>("prepare${variantName}Rust") {
         workingDir(rootProject.projectDir.parentFile)
+        environment("EWE_ANDROID_BUILD_TYPE_STAGING", "1")
         commandLine(providers.environmentVariable("EWE_UI_BIN").getOrElse("ewe_ui"), "task", "run", "app:prepare", "--target", "android")
         if (variant.buildType == "release") args("--release")
     }

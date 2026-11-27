@@ -117,12 +117,14 @@ pub(super) async fn android(
         )
         .map_err(TaskError::operation)?;
     }
-    super::super::staging::replace(
-        &output,
-        &module.join("generated"),
-        &ctx.require::<crate::tasks::NativeBuildEnv>()?.temporary_dir,
-    )
-    .map_err(TaskError::operation)
+    let env = ctx.require::<crate::tasks::NativeBuildEnv>()?;
+    let destination = if env.android_build_type_staging {
+        module.join("build/generated/ewe-native").join(profile)
+    } else {
+        module.join("generated")
+    };
+    super::super::staging::replace(&output, &destination, &env.temporary_dir)
+        .map_err(TaskError::operation)
 }
 pub(super) async fn apple(
     ctx: &TaskContext,
