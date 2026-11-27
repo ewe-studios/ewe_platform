@@ -53,7 +53,21 @@ A clean Cargo build must prepare the browser application without a separate scri
 
 ### Standard paths and project overrides
 
-The framework supplies a standard location for each packaged asset and a default base for application routes.
+The build stages assets in `public/` on disk. The server exposes them at `pkg/` relative to the application mount.
+For an application mounted at `/todo/`, the browser requests the application script at `/todo/pkg/bundle.js`.
+The project can change the relative asset directory. The application route base defaults to its mount.
+The project can configure a separate service address.
+
+```mermaid
+flowchart LR
+    Page["Browser page at /todo/"] --> Assets["Asset requests at /todo/pkg/"]
+    Page --> Service["Default service requests at /todo/"]
+    Page -. "service override" .-> Other["Configured service address"]
+    Assets --> Public["Packaged files in public/"]
+```
+
+The browser can use a different service address while it loads assets from the application mount.
+
 The project can override these locations in `build.rs`. The build records the effective locations in the existing generated project configuration.
 The browser entry already imports `moduleUrl` from `ewe-app-config.js`. Extend this configuration for the remaining locations.
 Generate the page links from the same settings. The browser needs the script location before it can load the configuration.
@@ -82,8 +96,10 @@ Use the existing [pending](../32-portable-view-targets/screenshots/chrome-pendin
 3. Resolve asset and service addresses from one project configuration. [Issue 839](https://github.com/ewe-studios/ewe_platform/issues/839)
    - Extend the generated browser configuration from the standard path settings above. Generate page links from the same values.
    - Resolve relative addresses from the public application mount. Keep the exposed prefix in the browser even when the proxy strips it upstream.
-   - Route default initial, action, live, Connect, socket, and resource requests through the configured service base.
-   - Use the canonical Todo service address for pending state. Preserve the existing root namespace and keep separate mounts independent.
+   - Route initial, action, live, Connect, and socket requests through the service base.
+   - Resolve named packaged resources from the same asset base as the script, style, icon, and modules.
+   - Use the canonical Todo service address for pending state.
+   - Preserve the existing root namespace. Import origin-wide legacy records only into that namespace.
    - Use the existing one-script output for this brief. The two-script output amendment needs a separate approval.
 4. Check the package at the origin root and below a prefix-only proxy.
    - Use a clean target directory. Check default paths and a project override with no matching edit in Todo JavaScript.

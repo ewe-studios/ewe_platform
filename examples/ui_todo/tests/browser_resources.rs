@@ -41,8 +41,8 @@ fn browser_opens_the_same_packaged_icon() {
             try {
                 window.fetch = async (url) => {
                     const path = new URL(url, location.href).pathname;
-                    if (path === "/unavailable") return new Response(null, {status: 503});
-                    if (path !== "/interrupted" && path !== "/unused") return originalFetch.call(window, url);
+                    if (path === "/pkg/unavailable") return new Response(null, {status: 503});
+                    if (path !== "/pkg/interrupted" && path !== "/pkg/unused") return originalFetch.call(window, url);
                     return new Response(new ReadableStream({
                         pull(controller) {
                             if (sent) controller.error(new Error("Transfer interrupted"));
@@ -66,10 +66,10 @@ fn browser_opens_the_same_packaged_icon() {
         })()"#).unwrap();
         assert_eq!(
             page.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js")).join(",")"#).unwrap().as_str(),
-            Some("/bundle.js")
+            Some("/pkg/bundle.js")
         );
         assert_eq!(
-            page.eval(r#"performance.getEntriesByType("resource").filter(e => new URL(e.name).pathname === "/resources-wasm/foundation_resources_bg.wasm").length"#).unwrap().as_u64(),
+            page.eval(r#"performance.getEntriesByType("resource").filter(e => new URL(e.name).pathname === "/pkg/resources-wasm/foundation_resources_bg.wasm").length"#).unwrap().as_u64(),
             Some(1)
         );
         assert_eq!(

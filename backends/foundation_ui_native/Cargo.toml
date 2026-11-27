@@ -28,7 +28,7 @@ foundation_tasks = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
 blocking.workspace = true
 tracing.workspace = true
-foundation_resources = { path = "../foundation_resources", version = "0.1.2" }
+foundation_resources = { workspace = true, features = ["runtime"] }
 tempfile = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }

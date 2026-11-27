@@ -2,9 +2,11 @@
 use foundation_context::Ctx;
 use foundation_wasm_ui::actions::LocalApp;
 
-/// Installs the local action dispatcher for the browser.
+/// Install the local action dispatcher for the browser.
+///
+/// Skip the origin's legacy data when the page uses a different Todo service.
 #[unsafe(no_mangle)]
-pub extern "C" fn init_todo_host() -> u32 {
+pub extern "C" fn init_todo_host(skip_root_migration: u32) -> u32 {
     let Ok(ctx) = Ctx::try_host() else {
         return 3;
     };
@@ -19,7 +21,13 @@ pub extern "C" fn init_todo_host() -> u32 {
     let Ok(actions) = crate::host_registry() else {
         return 2;
     };
-    let migration = crate::shared::pending::records::migrate(ctx.clone());
-    LocalApp::builder(ctx, actions).on_boot(migration).install();
+    let migration =
+        (skip_root_migration == 0).then(|| crate::shared::pending::records::migrate(ctx.clone()));
+    let app = LocalApp::builder(ctx, actions);
+    if let Some(migration) = migration {
+        app.on_boot(migration).install();
+    } else {
+        app.install();
+    }
     0
 }

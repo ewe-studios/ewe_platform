@@ -48,7 +48,7 @@ struct Entry {
 fn invalid(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidInput, message.into())
 }
-fn checked_source(root: &Path, relative: &Path) -> io::Result<PathBuf> {
+pub(crate) fn checked_source(root: &Path, relative: &Path) -> io::Result<PathBuf> {
     if relative.as_os_str().is_empty()
         || !relative
             .components()
@@ -473,12 +473,13 @@ fn publish(inputs: &Inputs, dest: &Path) -> io::Result<()> {
 /// # Errors
 /// Returns an error when Cargo variables or resource inputs are missing.
 pub fn stage_from_cargo() -> io::Result<Staged> {
-    stage_outputs(&[], true)
+    stage_outputs(&[], true, None)
 }
 
 pub(crate) fn stage_outputs(
     outputs: &[(String, PathBuf)],
     publish_dev_preview: bool,
+    asset_directory: Option<&str>,
 ) -> io::Result<Staged> {
     for key in [
         "EWE_RESOURCE_TARGET",
@@ -559,6 +560,9 @@ pub(crate) fn stage_outputs(
         );
     }
     write_provider(&generated, &staged)?;
+    if let Some(directory) = asset_directory {
+        println!("cargo:rustc-env=EWE_BROWSER_ASSET_DIRECTORY={directory}");
+    }
     let names = generated.join("ewe-resource-names");
     let content = staged.names.join("\n");
     let unchanged = match fs::metadata(&names) {

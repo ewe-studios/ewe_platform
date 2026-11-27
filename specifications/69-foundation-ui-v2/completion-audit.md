@@ -15,7 +15,7 @@ The combined branch includes the resource publication fix at `aac514c9a`.
 
 | Assignment | Current evidence | Next check |
 |---|---|---|
-| Feature 37 server | The repaired server returns 4,800 complete responses on reused connections. The reactor suite passes on macOS and Linux. | Run the subdirectory fixtures for #839. |
+| Feature 37 server | The repaired server returns 4,800 complete responses on reused connections. The moved development and standalone release packages pass. The project override uses separate routes. | Complete the native fixtures. |
 | Browser navigation | Issue #1143 tracks a separate driver error in page event routing and navigation results. | Test two simultaneous tabs, reload, failed navigation, and navigation within one document. Then verify native connection selection for #1062. |
 | Android sound | Commit `e9c102726` removes the Todo launcher's unconditional mute flag. A host recording contains the three Mathalley intro notes. Mute reduces the recorded level by about 40 decibels. | Check landscape input with side insets for #843. Then verify the failure banner and Back behavior. Physical speaker output remains unverified. |
 
@@ -49,13 +49,13 @@ Numbers follow the [acceptance contract](features/37-todo-server-build-and-state
 
 | Checks | Existing evidence | Remaining action |
 |---|---|---|
-| 1–3. Persistence | Three server processes prove restart, lookup, initial page, deletion, and retry. The store suite also checks the list and key lookup. | Link the [durable server record](progress.md#confirmed-todo-records) in the final report. |
+| 1–3. Persistence | Three server processes prove restart, lookup, initial page, deletion, and retry. The moved development package also reopens its store in a new process. | Link the [durable server record](progress.md#confirmed-todo-records) in the final report. |
 | 4–5. Failure and replay | Tests cover malformed stores, failed writes, cancellation, independent writes, bounded replay, and concurrent snapshots. | Reconcile #728 with native and browser tests. Check the remaining native failure cases in order 3. |
 | 6. Independent data service | The seeded fixture and historical Swift and Kotlin calls cover success and missing records. The production server rejects the retired fixture flag. | Link both native runs to the fixture revision. |
-| 7. Packaging | The moved development server serves its database and resources. A separate release run serves embedded resources outside the checkout. | Record a clean target build, moved development tree, and standalone Todo release against the final packaging revision. Resolve #1060 first. Verify the [standard paths and project overrides](features/37-todo-server-build-and-state/feature.md#standard-paths-and-project-overrides). |
-| 8. Browser and native resources | Existing runs cover one script request, Connect calls, native icon reads, and the packaged game. | Fix #839. Test script and binary requests below a subdirectory, missing build inputs, and the selected output contract. |
-| 9–10. Client behavior | Three clients exchange all four mutations at `b3fa90f7a`. Separate suites check retry identifiers, delayed replies, drafts, filters, and duplicate delivery. | Repeat affected paths after transport and packaging fixes. Include the failed-send and dedicated-connection cases. |
-| 11. Retired code | Production startup uses the durable store, one static resource handler, and shared browser startup. The old module build script is gone. | Check all retired mechanisms against the final source, including moved wrappers and manual frame handling. |
+| 7. Packaging | Clean builds pass with a moved development tree and an embedded release in an empty directory. The default and override layouts pass. | Keep the commands and media results in the final package record. |
+| 8. Browser and native resources | Chromium checks one script, all module media types, separate service routes, named resources, and a game return. Missing inputs preserve the public tree. | Link the browser and native resource verification in the final report. |
+| 9–10. Client behavior | Three clients exchange all four mutations at `b3fa90f7a`. Three Chromium tabs now verify all four mutations across Fetch, WebSocket, and Connect on the mounted package. | Repeat affected paths after transport and packaging fixes. Include the failed-send and dedicated-connection cases. |
+| 11. Retired code | Source review confirms one resource mount, shared browser startup, and the durable store. The framework owns socket callbacks and frame processing. | Link the retired-source review in the final report. |
 | 12. Final evidence | Feature 32 contains pending and retry captures. Results and commands span two specifications and several revisions. | Gather the commit, commands, profiles, platforms, captures, and remaining exceptions in one closure record. |
 
 **Browser output decision.** The Feature 37 amendment requests readable and minified application scripts.

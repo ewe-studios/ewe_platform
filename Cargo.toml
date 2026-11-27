@@ -151,6 +151,7 @@ time = "0.3"
 # free of a package cycle: `foundation_nativeapis` has optional Cloudflare
 # delta stores that depend on `foundation_db`.
 foundation_vfs = { path = "backends/foundation_vfs", version = "0.0.1" }
+foundation_resources = { path = "backends/foundation_resources", version = "0.1.3", default-features = false }
 
 # Virtual file system (VFS) implementations. The `vfs` feature builds on wasm
 # too; only `NativeFs` is native. `foundation_db` tests use `MemoryFs`.

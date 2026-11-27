@@ -17,7 +17,7 @@ fn server_and_host_actions_work() {
         shared_count.expect().to_have_text("0 open todos").unwrap();
         assert_eq!(
             other.eval(r#"performance.getEntriesByType("resource").map(entry => new URL(entry.name).pathname).filter(path => path.endsWith(".js")).join(",")"#).unwrap().as_str(),
-            Some("/bundle.js")
+            Some("/pkg/bundle.js")
         );
         let page = driver.new_page().unwrap();
         open_document(&page, url);
@@ -219,10 +219,10 @@ fn server_and_host_actions_work() {
         });
         assert_eq!(
             rpc.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js")).join(",")"#).unwrap().as_str(),
-            Some("/bundle.js")
+            Some("/pkg/bundle.js")
         );
         assert_eq!(
-            rpc.eval(r#"performance.getEntriesByType("resource").filter(e => new URL(e.name).pathname === "/rpc/foundation_ui_connectrpc_bg.wasm").length"#).unwrap().as_u64(),
+            rpc.eval(r#"performance.getEntriesByType("resource").filter(e => new URL(e.name).pathname === "/pkg/rpc/foundation_ui_connectrpc_bg.wasm").length"#).unwrap().as_u64(),
             Some(1)
         );
         let calls = "performance.getEntriesByType('resource').filter(e => new URL(e.name).pathname === '/ewe.ui.v1.Actions/Exchange').length";
@@ -506,8 +506,8 @@ fn game_view_keeps_the_todo_subscription_and_draws_on_the_host_device() {
                     panic!("{e:?}: {:?}", page.eval("document.body.innerText"))
                 });
                 assert_eq!(
-                page.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js") || p.includes("/mathalley/")).join(",")"#).unwrap().as_str(),
-                Some("/bundle.js,/mathalley/ui_todo_bg.wasm")
+                page.eval(r#"performance.getEntriesByType("resource").map(e => new URL(e.name).pathname).filter(p => p.endsWith(".js") || p.includes("/pkg/mathalley/")).join(",")"#).unwrap().as_str(),
+                Some("/pkg/bundle.js,/pkg/mathalley/ui_todo_bg.wasm")
             );
                 if pass == 0 {
                     page.eval(&game_test_bindings()).unwrap();

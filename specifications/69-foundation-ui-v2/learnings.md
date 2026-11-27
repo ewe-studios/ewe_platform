@@ -27,6 +27,18 @@ A proxy that only forwards `/todo/` returns the page. The page still points to t
 The proxy returns 404 for the page's references and 200 for the prefixed assets.
 The package needs one mount-aware configuration for assets and services to pass a prefix-only proxy.
 
+### Todo application mount
+
+A reverse proxy can strip the app mount before forwarding a request.
+Read the mount from the script's public address. The server does not see this address after the proxy strips the mount.
+Keep logical resource names on disk. The provider adds the configured browser directory to the lookup paths.
+The browser resolves named resources from the asset directory. The action and live transports use the separate service address.
+The root service keeps its existing pending database name. Other service paths include their resolved path in that name.
+The old pending key belongs to the browser origin. Import it only for the original root service.
+A socket handshake reply enters the frame queue. The advertised actions change when the queue applies the reply.
+Flush the queue before the reconnect notification. The app then refreshes its countdown through that notification.
+
+
 ## Android drawing window replacement
 
 The Android window can close while the graphics owner works on a frame.

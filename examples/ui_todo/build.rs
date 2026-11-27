@@ -7,6 +7,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     foundation_connectrpc_codegen::build::compile_service("proto", "todos", "todo_service.rs")?;
     let publishes_browser = cfg!(feature = "server");
     foundation_resources::package::BrowserPackage::new(std::path::Path::new("web/app.js"))
+        .with_page(std::path::Path::new("web/index.html"))
         .with_module_path("module.wasm")
         .browser_enabled(publishes_browser)
         .with_dev_preview(publishes_browser)

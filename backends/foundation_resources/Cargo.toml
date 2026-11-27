@@ -1,6 +1,6 @@
 [package]
 name = "foundation_resources"
-version = "0.1.2"
+version = "0.1.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,7 +13,7 @@ crate-type = ["rlib", "cdylib"]
 
 [features]
 mobile-launch = ["build", "dep:image", "dep:serde_json"]
-browser-package = ["build", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:serde_json"]
+browser-package = ["build", "dep:foundation_codegen", "dep:foundation_wasm_ui", "dep:serde_json", "dep:url"]
 server = ["dep:foundation_http", "dep:foundation_netio"]
 browser-bindings = ["runtime", "foundation_context/wasm-bindgen"]
 default = ["runtime"]
@@ -23,6 +23,7 @@ runtime = ["dep:foundation_context", "dep:futures-util", "dep:blocking", "dep:we
 [dependencies]
 image = { workspace = true, optional = true, features = ["png"] }
 serde_json = { workspace = true, optional = true }
+url = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 toml = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }

@@ -17,7 +17,7 @@
     const fetch = window.fetch.bind(window);
     window.fetch = async (request, ...options) => {
         const response = await fetch(request, ...options);
-        if (new URL(response.url).pathname === "/mathalley/ui_todo_bg.wasm") {
+        if (new URL(response.url).pathname === "/pkg/mathalley/ui_todo_bg.wasm") {
             window.gameTestBinary = WebAssembly.compileStreaming(response.clone());
         }
         return response;

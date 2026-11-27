@@ -102,10 +102,19 @@ macro_rules! packaged_resources {
             fn lookup(&self, name: &str) -> std::io::Result<Option<$crate::server::PackagedFile>> {
                 let index: &[(&str, Option<&'static [u8]>)] =
                     include!(concat!(env!("OUT_DIR"), "/ewe-packaged-resources.rs"));
-                let Ok(position) = index.binary_search_by(|entry| entry.0.cmp(name)) else {
+                let find = |name: &str| {
+                    index.binary_search_by(|entry| entry.0.cmp(name))
+                        .ok()
+                        .map(|position| index[position])
+                };
+                let asset = option_env!("EWE_BROWSER_ASSET_DIRECTORY")
+                    .and_then(|directory| name.strip_prefix(directory))
+                    .and_then(|suffix| suffix.strip_prefix('/'))
+                    .and_then(find);
+                let Some((name, contents)) = asset.or_else(|| find(name)) else {
                     return Ok(None);
                 };
-                match index[position].1 {
+                match contents {
                     Some(bytes) => Ok(Some($crate::server::PackagedFile::Embedded(bytes))),
                     None => {
                         let root = $crate::server::sibling_public(env!("CARGO_PKG_NAME"))?;

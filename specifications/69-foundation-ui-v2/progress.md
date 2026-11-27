@@ -38,6 +38,27 @@ The subdirectory audit reproduces issue #839. The page loads at `/todo/` but sen
 The application path changes and final package checks run in the mounted package worktree.
 The shared Cargo run commands and the two-script output amendment remain separate proposals.
 
+### Mounted Todo package
+
+The owner approves the public `pkg/` directory for the browser. The files stay in `public/ui_todo/` on disk.
+The generated page and application configuration use the same asset directory.
+A clean development build serves the moved executable and its public tree outside the source checkout.
+Chromium passes the default prefix fixture at `/todo/`. Each page requests one script.
+The fixture checks the page, stylesheet, icon, application module, and game module media types.
+Fetch, Connect, and the socket complete actions. Add, Complete, Reopen, and Delete reach both browser peers.
+A forced socket disconnect closes the first connection. The next connection sends its handshake and countdown refresh.
+The old origin-wide pending key imports at the root. Prefix services keep separate databases and leave those entries at the root.
+A named resource streams to the browser. The game module loads on demand, draws, and returns to the Todo list.
+The relocated executable reopens its scratch store in a second process. The initial page still shows the saved record.
+The override uses `/todo/static/v2/` for assets and `/api/` for services. No Todo JavaScript change is necessary.
+A missing generated stylesheet and a missing page template both fail before publication. All published file hashes stay equal.
+The framework applies the handshake reply before the app refreshes countdown state. [Issue 1147](https://github.com/ewe-studios/ewe_platform/issues/1147)
+Import of the old origin-wide pending key is limited to its original root service. [Issue 1149](https://github.com/ewe-studios/ewe_platform/issues/1149)
+A clean release build runs from an empty directory with only the executable.
+The same Chromium fixture passes against its embedded assets and after a server process restart.
+The native device checks continue.
+
+
 ## Android Todo Server startup address
 
 - Read the default address from the Android project settings.
@@ -1557,7 +1578,7 @@ Three server module checks passed, including duplicate identifier rejection.
 The relocated server served its page, bundle, browser binary, and initial view from an empty working directory.
 Both live connection and snapshot race tests passed against the durable server.
 
-The packaged page still requests the site root when a proxy mounts it below a subdirectory.
+The earlier package requested the site root when a proxy mounted it below a subdirectory.
 [Issue 839](https://github.com/ewe-studios/ewe_platform/issues/839) records the three failed requests.
 
 The relocation check moved the server, its public directory, and its SQLite database together.

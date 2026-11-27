@@ -1,5 +1,5 @@
 import { installMathalley } from "./game-view.js";
-import { moduleUrl } from "./ewe-app-config.js";
+import { assetBase, moduleUrl, serviceBase, serviceUrl } from "./ewe-app-config.js";
 import * as bindings from "./bindings/ui_todo_bg.js";
 import { WasmLoader } from "./foundation-wasm.js";
 import { createApp } from "./foundation-ui-actions.js";
@@ -7,19 +7,22 @@ import { createApp } from "./foundation-ui-actions.js";
 async function connectSender() {
     const { default: initialize, BrowserConnectSender } = await import("./rpc/foundation_ui_connectrpc.js");
     await initialize();
-    const sender = new BrowserConnectSender(location.origin, window.fetch.bind(window));
+    const sender = new BrowserConnectSender(serviceBase, window.fetch.bind(window));
     return { close: () => sender.free(), async send(bytes) {
         const reply = await sender.exchange(bytes);
         return reply === undefined ? [] : [reply];
     } };
 }
 
+const serviceAddress = new URL(serviceBase);
+const serviceIdentity = serviceAddress.pathname === "/" ? serviceAddress.origin : serviceBase;
+
 let resourceHost;
 
 async function installResources() {
     const { default: initialize, BrowserResources } = await import("./resources-wasm/foundation_resources.js");
     await initialize();
-    return new BrowserResources(new URL("/", location.href).href);
+    return new BrowserResources(assetBase);
 }
 
 // Return the next bytes only when the caller reads the stream.
@@ -32,7 +35,9 @@ export async function openResource(name) {
 }
 
 async function tabSession() {
-    const key = "ewe.todo.countdown-session";
+    const key = serviceIdentity === location.origin
+        ? "ewe.todo.countdown-session"
+        : "ewe.todo.countdown-session:" + serviceIdentity;
     if (!navigator.locks) return crypto.randomUUID();
     let session = sessionStorage.getItem(key) ?? crypto.randomUUID();
     for (;;) {
@@ -118,14 +123,6 @@ async function runCountdown(manager, page) {
     document.addEventListener("visibilitychange", resume);
     document.addEventListener("keydown", keepFocusInModal, {capture: true});
     window.addEventListener("online", resume);
-    const socket = manager.deps.server;
-    const onOpen = socket?.onOpen;
-    if (typeof onOpen === "function") {
-        socket.onOpen = async () => {
-            await onOpen.call(socket);
-            resume();
-        };
-    }
     window.addEventListener("pageshow", event => {
         if (event.persisted) resume();
     });
@@ -136,9 +133,9 @@ async function runCountdown(manager, page) {
         document.removeEventListener("visibilitychange", resume);
         document.removeEventListener("keydown", keepFocusInModal, {capture: true});
         window.removeEventListener("online", resume);
-        if (typeof onOpen === "function") socket.onOpen = onOpen;
     });
     await tick(true);
+    return resume;
 }
 
 async function boot() {
@@ -146,18 +143,26 @@ async function boot() {
     const params = new URL(location.href).searchParams;
     const notice = document.querySelector("#notice");
     let hostBindings;
+    let resumeCountdown;
     const app = createApp({
         moduleLoader, moduleUrl, start: "init_todo_host",
+        startArgs: [Number(serviceIdentity !== location.origin)],
         view: "todos", mount: document.querySelector("#page"),
-        initialRoute: params.has("count") ? "/open-count" : "/initial",
+        initialRoute: serviceUrl(params.has("count") ? "open-count" : "initial"),
+        resolveLiveUrl: serviceUrl,
+        onReconnect() {
+            if (notice.value === "Transport") notice.value = "";
+            resumeCountdown?.();
+        },
         viewDataAction: "host:apply_todo_delivery",
-        transport: params.has("socket") ? {socket: "/socket"} : params.has("rpc") ? connectSender : undefined,
+        transport: params.has("socket") ? {socket: serviceUrl("socket")}
+            : params.has("rpc") ? connectSender : {http: serviceUrl("action")},
         onError(error) { notice.value = error.code; console.error(error); },
         bindings: {
             importName: bindings.importName,
             createBindings() { hostBindings = bindings.createBindings(); return hostBindings; },
         },
-        storage: {provider: "indexedDB", namespace: "todo:" + location.origin},
+        storage: {provider: "indexedDB", namespace: "todo:" + serviceIdentity},
     });
 
     const manager = await app.boot();
@@ -169,7 +174,9 @@ async function boot() {
             game.open();
         }
     }, { capture: true });
-    if (!params.has("count")) await runCountdown(manager, document.querySelector("#page"));
+    if (!params.has("count")) {
+        resumeCountdown = await runCountdown(manager, document.querySelector("#page"));
+    }
     window.todoReady = true;
 }
 globalThis.todoResources = { open: openResource };

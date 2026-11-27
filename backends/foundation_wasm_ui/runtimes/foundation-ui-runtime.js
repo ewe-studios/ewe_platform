@@ -14396,6 +14396,7 @@
         const streams = new Map();
         const connections = frames.deps.connections ?? frameConnections();
         runtime.connections = connections;
+        const resolveApi = (api)=>frames.deps.resolveLiveUrl?.(api) ?? api;
         const previousGap = frames.deps.onGap;
         frames.deps.onGap = (gap)=>{
             for (const binding of streams.get(gap.streamId) ?? []){
@@ -14454,7 +14455,7 @@
                     ].includes(adapter));
                     if (!shared && !keepAlive && !negotiate) return null;
                     if (sharing === null && !keepAlive && !negotiate && !frames.deps.connections) return null;
-                    const endpoint = shared || negotiate ? api : binding.url(api);
+                    const endpoint = shared || negotiate ? resolveApi(api) : binding.url(api);
                     const subscription = connections.nextTag();
                     const hello = new ClientHelloT(VOCABULARY_VERSION, Platform.Web, MountSurface.Web, 0n, true, subscription);
                     const greeting = requestBytes(0n, new FrameRequestT(null, hello));
@@ -14556,6 +14557,7 @@
                     return handle;
                 },
                 url (api) {
+                    api = resolveApi(api);
                     const cursor = stream === undefined ? undefined : frames.cursor(stream, owner) ?? start;
                     if (stream === undefined || !cursor) return api;
                     const url = new URL(api, element.ownerDocument?.baseURI ?? globalThis.location.href);
@@ -14791,6 +14793,8 @@
                     reconnect = false;
                     try {
                         for (const reply of (await deps.server.send(this.hello())))await this.receive(reply);
+                        deps.frames.flush?.();
+                        await deps.onReconnect?.();
                     } catch (error) {
                         this.onError({
                             code: "Transport",
@@ -15146,7 +15150,7 @@
         constructor(bridge){
             this.bridge = bridge;
         }
-        static async boot(loader, url, { registry, start, imports = {}, bindings, storage, window: window1 = globalThis.window }) {
+        static async boot(loader, url, { registry, start, startArgs = [], imports = {}, bindings, storage, window: window1 = globalThis.window }) {
             const dom = new mod1.DomHeap({
                 window: window1,
                 document: window1.document
@@ -15203,7 +15207,7 @@
                     exports: api,
                     memory: ()=>runtime.bridge.memory
                 });
-                const status = api[start]();
+                const status = api[start](...startArgs);
                 if (status !== 0) throw new Error("Host initializer " + start + " returned " + status);
                 await glue?.prepareBrowserHost?.();
                 return local;
@@ -15369,6 +15373,7 @@
             const local = await WasmActionTransport.boot(moduleLoader, options.moduleUrl, {
                 registry,
                 start: options.start,
+                startArgs: options.startArgs,
                 imports: options.imports,
                 window: doc.defaultView,
                 bindings: options.bindings,
@@ -15395,7 +15400,8 @@
                 document: doc,
                 connections,
                 onReport: onError,
-                viewMount: mount
+                viewMount: mount,
+                resolveLiveUrl: options.resolveLiveUrl
             });
             mod1.registerWebComponents();
             cleanup.push(frames.registerView(options.view, mount));
@@ -15412,7 +15418,8 @@
                 local,
                 behaviours: mod2,
                 document: doc,
-                onError
+                onError,
+                onReconnect: options.onReconnect
             });
             cleanup.push(manager.dispose);
             let initialDeliveries = [];

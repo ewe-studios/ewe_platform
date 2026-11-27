@@ -23,6 +23,9 @@ pub struct BrowserPackage<'a> {
     browser: bool,
     publish_dev_preview: bool,
     npm_lock: Option<&'a Path>,
+    page: Option<&'a Path>,
+    asset_directory: &'a str,
+    service_base: &'a str,
 }
 
 impl<'a> BrowserPackage<'a> {
@@ -40,7 +43,39 @@ impl<'a> BrowserPackage<'a> {
             browser: true,
             publish_dev_preview: true,
             npm_lock: None,
+            page: None,
+            asset_directory: "pkg",
+            service_base: "./",
         }
+    }
+
+    /// Serve a generated page at the application mount.
+    ///
+    /// Replace each `{{ewe_assets}}` marker in the template with the relative asset directory.
+    /// The `packaged_resources!` provider serves that directory under the application mount.
+    #[must_use]
+    pub fn with_page(mut self, template: &'a Path) -> Self {
+        self.page = Some(template);
+        self
+    }
+
+    /// Set the relative browser asset directory for a generated page. The default is `pkg`.
+    ///
+    /// Use a relative path without a trailing slash.
+    #[must_use]
+    pub fn with_asset_directory(mut self, directory: &'a str) -> Self {
+        self.asset_directory = directory;
+        self
+    }
+
+    /// Set the browser service base independently of assets. The default is the application mount.
+    ///
+    /// The address can be relative to the mount, relative to its origin, or an HTTP address.
+    /// End the address with a slash.
+    #[must_use]
+    pub fn with_service_base(mut self, base: &'a str) -> Self {
+        self.service_base = base;
+        self
     }
 
     /// Select the Cargo feature that enables the application's browser library.
@@ -171,7 +206,7 @@ impl<'a> BrowserPackage<'a> {
             file.persist(path)?;
         }
         if !self.browser || env::var_os("EWE_RESOURCE_TARGET").is_some_and(|t| t != "web") {
-            return crate::build::stage_outputs(&[], self.publish_dev_preview).map(drop);
+            return crate::build::stage_outputs(&[], self.publish_dev_preview, None).map(drop);
         }
         for (_, folder) in &self.companions {
             ResourceName::new(folder).map_err(io::Error::other)?;

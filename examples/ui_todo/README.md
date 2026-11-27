@@ -131,6 +131,21 @@ The package selects one entry point for each host.
 | Android | `src/mobile.rs` | `native-task task run native:build-android --with-todo` | Each example gets `app/src/main/jniLibs/<abi>/libui_todo.so`. |
 
 The server is the default Cargo feature. The browser script selects `web`. The mobile scripts select `mobile`.
+
+The browser loads assets from `pkg/` relative to the application mount.
+For a site mounted at `/todo/`, the script address is `/todo/pkg/bundle.js`.
+The development files remain in `public/ui_todo/` beside the server.
+Set the asset directory or a separate service address on `BrowserPackage` in `build.rs`.
+The configured service address must end with a slash.
+A different origin must permit the application's browser requests.
+
+Run the package check with Node.js and a local Chromium executable.
+
+```sh
+node examples/ui_todo/tests/mounted_package.mjs ./target/uat/ui_todo /path/to/chromium
+```
+
+Pass the configured asset directory and proxy service path after the Chromium executable to check an override.
 Swift imports `EweTodoCore`. Kotlin imports the actions from `io.github.ewe_studios.ewe.todo`.
 
 ## Ordinary data and UI actions over Connect

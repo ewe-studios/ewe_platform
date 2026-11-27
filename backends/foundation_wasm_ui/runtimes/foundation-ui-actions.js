@@ -142,8 +142,12 @@ export class WebActionManager {
       deps.server.onOpen = async () => {
         if (!reconnect) return;
         reconnect = false;
-        try { for (const reply of await deps.server.send(this.hello())) await this.receive(reply); }
-        catch (error) { this.onError({code: "Transport", detail: String(error)}); }
+        try {
+          for (const reply of await deps.server.send(this.hello())) await this.receive(reply);
+          // Apply the capability reply before the next action uses it.
+          deps.frames.flush?.();
+          await deps.onReconnect?.();
+        } catch (error) { this.onError({code: "Transport", detail: String(error)}); }
       };
     }
     this.streamId = deps.streamId ?? 0n;
@@ -442,7 +446,7 @@ export class WasmActionTransport {
   constructor(bridge) { this.bridge = bridge; }
 
   /** Load a browser action module and run its exported host initializer. */
-  static async boot(loader, url, {registry, start, imports = {}, bindings, storage, window = globalThis.window}) {
+  static async boot(loader, url, {registry, start, startArgs = [], imports = {}, bindings, storage, window = globalThis.window}) {
     const dom = new ui.DomHeap({window, document: window.document});
     const decoder = new TextDecoder("utf-8", {fatal: true});
     let local;
@@ -476,7 +480,7 @@ export class WasmActionTransport {
       glue?.configureHostStorage?.(storage?.provider ?? "memory", storage?.namespace ?? "");
       if (typeof api[start] !== "function") throw new Error("Missing host initializer: " + start);
       local = new WasmActionTransport({exports: api, memory: () => runtime.bridge.memory});
-      const status = api[start]();
+      const status = api[start](...startArgs);
       if (status !== 0) throw new Error("Host initializer " + start + " returned " + status);
       await glue?.prepareBrowserHost?.();
       return local;
@@ -624,7 +628,8 @@ export function createApp(options) {
     const doc = mount.ownerDocument;
     const registry = new JsActionRegistry();
     const local = await WasmActionTransport.boot(moduleLoader, options.moduleUrl, {
-      registry, start: options.start, imports: options.imports, window: doc.defaultView,
+      registry, start: options.start, startArgs: options.startArgs, imports: options.imports,
+      window: doc.defaultView,
       bindings: options.bindings, storage: options.storage,
     });
     cleanup.push(() => moduleLoader.runtime.dispose(), () => local.close());
@@ -642,7 +647,8 @@ export function createApp(options) {
     });
     runtime.frames = null;
     runtime.dispatcher = new ui.EventDispatcher(() => {});
-    const frames = installFrameRuntime(ui, {document: doc, connections, onReport: onError, viewMount: mount});
+    const frames = installFrameRuntime(ui, {document: doc, connections, onReport: onError,
+      viewMount: mount, resolveLiveUrl: options.resolveLiveUrl});
     ui.registerWebComponents();
     cleanup.push(frames.registerView(options.view, mount));
     let manager;
@@ -650,7 +656,8 @@ export function createApp(options) {
       : options.transport?.socket ? WebSocketActionTransport.connect(connections, options.transport.socket)
       : new FetchActionTransport({url: options.transport?.http ?? "/action", hello: () => manager.hello()});
     cleanup.push(() => server.close?.());
-    manager = installActionRuntime(ui, {registry, frames, server, local, behaviours, document: doc, onError});
+    manager = installActionRuntime(ui, {registry, frames, server, local, behaviours, document: doc, onError,
+      onReconnect: options.onReconnect});
     cleanup.push(manager.dispose);
     let initialDeliveries = [];
     if (options.viewDataAction) {

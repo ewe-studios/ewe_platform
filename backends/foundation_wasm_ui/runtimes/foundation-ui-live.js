@@ -31,6 +31,7 @@ export function bindLiveMounts(runtime, frames) {
   const streams = new Map();
   const connections = frames.deps.connections ?? frameConnections();
   runtime.connections = connections;
+  const resolveApi = api => frames.deps.resolveLiveUrl?.(api) ?? api;
   const previousGap = frames.deps.onGap;
   frames.deps.onGap = gap => {
     for (const binding of streams.get(gap.streamId) ?? []) {
@@ -82,7 +83,7 @@ export function bindLiveMounts(runtime, frames) {
         const negotiate = Boolean(frames.deps.deliverySession) && (socket || ["sse", "chunked"].includes(adapter));
         if (!shared && !keepAlive && !negotiate) return null;
         if (sharing === null && !keepAlive && !negotiate && !frames.deps.connections) return null;
-        const endpoint = (shared || negotiate) ? api : binding.url(api);
+        const endpoint = (shared || negotiate) ? resolveApi(api) : binding.url(api);
         const subscription = connections.nextTag();
         const hello = new wire.ClientHelloT(VOCABULARY_VERSION, wire.Platform.Web, wire.MountSurface.Web, 0n, true, subscription);
         const greeting = requestBytes(0n, new wire.FrameRequestT(null, hello));
@@ -148,6 +149,7 @@ export function bindLiveMounts(runtime, frames) {
         return handle;
       },
       url(api) {
+        api = resolveApi(api);
         const cursor = stream === undefined ? undefined : frames.cursor(stream, owner) ?? start;
         if (stream === undefined || !cursor) return api;
         const url = new URL(api, element.ownerDocument?.baseURI ?? globalThis.location.href);

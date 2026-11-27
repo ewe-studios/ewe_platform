@@ -14,6 +14,34 @@ use std::{
 pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     let package = required("CARGO_MANIFEST_DIR")?.canonicalize()?;
     let output = required("OUT_DIR")?;
+    let asset_directory = options.page.map(|_| options.asset_directory);
+    if let Some(directory) = asset_directory {
+        crate::ResourceName::new(directory).map_err(io::Error::other)?;
+        if !directory
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"/-._~".contains(&byte))
+        {
+            return Err(io::Error::other(
+                "Asset directory must use URL path characters",
+            ));
+        }
+    }
+    let check_base = url::Url::parse("https://example.invalid/app/").map_err(io::Error::other)?;
+    let service = check_base
+        .join(options.service_base)
+        .map_err(io::Error::other)?;
+    if !options.service_base.ends_with('/')
+        || options.service_base.starts_with("//")
+        || !matches!(service.scheme(), "http" | "https")
+        || !service.username().is_empty()
+        || service.password().is_some()
+        || service.query().is_some()
+        || service.fragment().is_some()
+    {
+        return Err(io::Error::other(
+            "Expected an HTTP service directory without credentials, query, or fragment",
+        ));
+    }
     let target = output.join("browser-target");
     let cargo = required("CARGO")?;
     let manifest = package.join("Cargo.toml");
@@ -36,6 +64,20 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     };
     println!("cargo:rerun-if-env-changed=WASM_BINDGEN");
     let private = tempfile::tempdir_in(&output)?;
+    let mut artifacts = Vec::new();
+    if let (Some(template), Some(directory)) = (options.page, asset_directory) {
+        let source = crate::build::checked_source(&package, template)?;
+        println!("cargo:rerun-if-changed={}", source.display());
+        let page = fs::read_to_string(&source)?;
+        if !page.contains("{{ewe_assets}}") {
+            return Err(io::Error::other(
+                "Page template needs a {{ewe_assets}} marker",
+            ));
+        }
+        let index = private.path().join("index.html");
+        fs::write(&index, page.replace("{{ewe_assets}}", directory))?;
+        artifacts.push(("index.html".to_owned(), index));
+    }
     let tree = private.path().join("modules");
     if let Some(lock) = options.npm_lock {
         npm_runtime(&package, lock, private.path(), &tree)?;
@@ -63,6 +105,18 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
         "export const moduleUrl = new URL({}.split(\"/\").map(encodeURIComponent).join(\"/\"), import.meta.url).href;",
         serde_json::to_string(options.module_path)?
     )?;
+    writeln!(
+        config,
+        "export const assetBase = new URL('./', import.meta.url).href;
+const mount = new URL({}, assetBase);
+export const serviceBase = new URL({}, mount).href;
+export const serviceUrl = route => new URL(route.startsWith('/') && !route.startsWith('//') ? route.slice(1) : route, serviceBase).href;",
+        serde_json::to_string(&asset_directory.map_or_else(
+            || "./".to_owned(),
+            |directory| "../".repeat(directory.split('/').count()),
+        ))?,
+        serde_json::to_string(options.service_base)?,
+    )?;
     drop(config);
     let entry = tree.join(
         entry
@@ -83,10 +137,10 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
         host_bindings.join(&bindings),
         tree.join("bindings").join(&bindings),
     )?;
-    let mut artifacts = vec![(
+    artifacts.push((
         options.module_path.to_owned(),
         temporary.join(format!("{app_stem}_bg.wasm")),
-    )];
+    ));
     if options.connect {
         let rpc = choose(&packages, "foundation_ui_connectrpc")?;
         add_companion(&tools, rpc, "browser", "rpc", &tree, &mut artifacts)?;
@@ -116,7 +170,12 @@ pub(super) fn build(options: &BrowserPackage<'_>) -> io::Result<()> {
     let script_file = private.path().join("bundle.js");
     fs::write(&script_file, script.bytes)?;
     artifacts.push(("bundle.js".to_owned(), script_file));
-    stage_artifacts(artifacts, &output, options.publish_dev_preview)
+    stage_artifacts(
+        artifacts,
+        &output,
+        options.publish_dev_preview,
+        asset_directory,
+    )
 }
 
 fn npm_runtime(package: &Path, lock: &Path, private: &Path, tree: &Path) -> io::Result<()> {
@@ -190,6 +249,7 @@ fn stage_artifacts(
     artifacts: Vec<(String, PathBuf)>,
     output: &Path,
     publish_dev_preview: bool,
+    asset_directory: Option<&str>,
 ) -> io::Result<()> {
     let mut generated = Vec::new();
     for (index, (name, source)) in artifacts.into_iter().enumerate() {
@@ -216,7 +276,7 @@ fn stage_artifacts(
         }
         generated.push((name, relative));
     }
-    stage_outputs(&generated, publish_dev_preview).map(drop)
+    stage_outputs(&generated, publish_dev_preview, asset_directory).map(drop)
 }
 
 fn add_companion(
