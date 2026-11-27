@@ -125,6 +125,12 @@ Owner rule, 2026-11-27: server conformance 338 of 338 with `subscriptions: true`
 conformance 269 of 269 with every feature announced, no skip causes by our code, all Rust tests
 and clippy green, and a fresh zero-context agent verifies the claims against the code.
 
+## 4.3 One pull request
+
+All of spec 71 lands in one pull request: #1025 (draft) from `spec-durable-streams` into `master`.
+Commits land on the branch; do not open a per-feature pull request. The draft becomes ready only
+when the completion bundle closes and the acceptance bar holds.
+
 ## 5. Rules that matter here
 
 - Run `ci/durable_conformance.sh` before you call a protocol change done.
