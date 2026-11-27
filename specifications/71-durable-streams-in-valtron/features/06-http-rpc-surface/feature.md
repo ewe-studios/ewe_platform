@@ -96,7 +96,11 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `security_headers_on_all_responses`, `cors_exposes_stream_headers`.
 - [ ] **T9 — ConnectRPC.** The eight methods and the live stream. Test:
       `rpc_stream_resumes_from_offset`, `http_and_rpc_return_same_chunks`.
-- [x] **T10 — server conformance.** Run the reference suite against `HttpAdapter`. Record every
+- [ ] **T12 — body cap is configuration.** Move the adapter body cap from the constant
+      `MAX_BODY_BYTES` to `DurableLimits::max_body_bytes` (default 8 MiB, builder method). A
+      declared body over the cap answers `413` and closes. Test:
+      `oversized_body_answers_413_from_the_limit`.
+- [x] **T10 — server conformance.** Run the reference suite against `DurableHandler`. Record every
       failure and skip. Do not close the feature until it passes.
 - [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
       oracles. Tests: `status_table_matches`, `server_suite_passes`,
