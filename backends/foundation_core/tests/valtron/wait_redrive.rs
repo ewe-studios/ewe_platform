@@ -1,18 +1,21 @@
 // Tests build the effect sources on purpose (spec 84, section 6, item 2).
 #![allow(clippy::disallowed_methods)]
 
-//! Bounded `Wait` re-drive for the parking stream-to-future adapters (spec 92
-//! feature 01, stage A).
+//! Bounded re-drive for the parking stream-to-future adapters (spec 92 feature
+//! 01, stages A and C).
 //!
 //! WHY: `Stream::Wait` means "the queue is empty; run the producer and check
-//! again". Unlike `Pending`, it is not a request to sleep. A driving stream
-//! (for example `DrivenStreamIterator`) runs the producer inside `next()`. On a
-//! single-threaded engine no other thread sends the wake, so parking on `Wait`
-//! hangs the first turn.
+//! again". `Stream::Init` and `Stream::Pending` are in-band control states too:
+//! the agent loop reports progress as `Pending` between its ready records. A
+//! driving stream (for example `DrivenStreamIterator`) runs the producer inside
+//! `next()`. On a single-threaded engine no other thread sends the wake, so
+//! parking on any of these states hangs the first turn. `Stream::Delayed` is
+//! different: it asks for a timer, so the adapter still parks.
 //!
-//! WHAT: the adapters re-poll a driving stream on `Wait`, with a bounded
-//! budget, and keep the old park behaviour for a queue-backed stream and for a
-//! driving stream whose engine is parked.
+//! WHAT: the adapters re-poll a driving stream on `Wait`, `Init` and `Pending`,
+//! with a bounded budget, and keep the old park behaviour for a queue-backed
+//! stream and for a driving stream whose engine is parked. `StreamPendingFuture`
+//! returns `Pending` as its result, so it re-drives only the other states.
 //!
 //! HOW: fake streams prove each arm. The red evidence over the real driver
 //! lives in `dst_hang_proof`.
@@ -23,6 +26,7 @@ use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Wake, Waker};
+use std::time::Duration;
 
 use foundation_core::valtron::{
     SendWakeCallback, Stream, StreamIteratorExt, WakeResult, WakeableStream,
@@ -287,6 +291,166 @@ fn wait_redrive_resets_on_progress() {
         counter.count(),
         0,
         "the adapter must not park while it makes progress"
+    );
+}
+
+// ============================================================================
+// pending_and_init_redrive_a_driving_stream
+// ============================================================================
+
+/// A `Pending` item from a driving stream is a control state, not an item to
+/// park on: the stream still has its ready record. One poll must drive past it.
+#[test]
+fn pending_redrives_a_driving_stream() {
+    let (stream, calls) = ScriptedStream::new(vec![Stream::Pending(()), Stream::Next(7)]);
+    let mut stream = stream.into_next_stream();
+    let counter = WakeCount::default();
+    let waker = counter.waker();
+    let mut cx = Context::from_waker(&waker);
+
+    let poll = Pin::new(&mut stream).poll_next(&mut cx);
+
+    assert_eq!(
+        poll,
+        Poll::Ready(Some(7)),
+        "a Pending item from a driving stream must be driven past in one poll"
+    );
+    assert_eq!(
+        calls.load(Ordering::SeqCst),
+        2,
+        "the adapter must pull the Pending and the Next"
+    );
+    assert_eq!(
+        counter.count(),
+        0,
+        "the adapter must not park while it makes progress"
+    );
+}
+
+/// `StreamPendingFuture` returns `Pending` as its result. It must keep that
+/// behaviour, and not re-drive it away.
+#[test]
+fn pending_is_the_result_of_stream_pending_future() {
+    let (stream, calls) = ScriptedStream::new(vec![Stream::Pending(()), Stream::Next(7)]);
+    let mut future = stream.into_pending_future();
+    let counter = WakeCount::default();
+    let waker = counter.waker();
+    let mut cx = Context::from_waker(&waker);
+
+    assert!(
+        matches!(
+            Pin::new(&mut future).poll(&mut cx),
+            Poll::Ready(Some(((), _)))
+        ),
+        "StreamPendingFuture must return the Pending payload as its result"
+    );
+    assert_eq!(
+        calls.load(Ordering::SeqCst),
+        1,
+        "the adapter must stop at the first Pending"
+    );
+    assert_eq!(counter.count(), 0, "the adapter must not park");
+}
+
+/// An `Init` item from a driving stream is a control state too: the stream is
+/// still starting, and its ready record follows.
+#[test]
+fn init_redrives_a_driving_stream() {
+    let (stream, calls) = ScriptedStream::new(vec![Stream::Init, Stream::Next(7)]);
+    let mut stream = stream.into_next_stream();
+    let counter = WakeCount::default();
+    let waker = counter.waker();
+    let mut cx = Context::from_waker(&waker);
+
+    let poll = Pin::new(&mut stream).poll_next(&mut cx);
+
+    assert_eq!(
+        poll,
+        Poll::Ready(Some(7)),
+        "an Init item from a driving stream must be driven past in one poll"
+    );
+    assert_eq!(
+        calls.load(Ordering::SeqCst),
+        2,
+        "the adapter must pull the Init and the Next"
+    );
+    assert_eq!(
+        counter.count(),
+        0,
+        "the adapter must not park while it makes progress"
+    );
+}
+
+// ============================================================================
+// delayed_parks_a_driving_stream
+// ============================================================================
+
+/// A driving scripted stream that can register a producer wake.
+struct WakingScriptedStream {
+    ops: VecDeque<Stream<u32, ()>>,
+    calls: Arc<AtomicUsize>,
+    producer_wakes: Arc<Mutex<Vec<SendWakeCallback>>>,
+}
+
+impl Iterator for WakingScriptedStream {
+    type Item = Stream<u32, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        self.ops.pop_front()
+    }
+}
+
+impl WakeableStream for WakingScriptedStream {
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        lock(&self.producer_wakes).push(cb);
+        WakeResult::Successful
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        true
+    }
+}
+
+/// `Delayed` asks for a timer, so even a driving stream keeps the old
+/// register-then-recheck-then-park behaviour. The budget must not be spent.
+#[test]
+fn delayed_parks_a_driving_stream() {
+    let calls = Arc::new(AtomicUsize::new(0));
+    let producer_wakes = Arc::new(Mutex::new(Vec::new()));
+    let mut stream = WakingScriptedStream {
+        ops: VecDeque::from(vec![
+            Stream::Delayed(Duration::from_millis(10)),
+            Stream::Delayed(Duration::from_millis(10)),
+            Stream::Next(7),
+        ]),
+        calls: Arc::clone(&calls),
+        producer_wakes: Arc::clone(&producer_wakes),
+    }
+    .into_next_stream();
+    let counter = WakeCount::default();
+    let waker = counter.waker();
+    let mut cx = Context::from_waker(&waker);
+
+    assert_eq!(
+        Pin::new(&mut stream).poll_next(&mut cx),
+        Poll::Pending,
+        "a Delayed item must park"
+    );
+    assert_eq!(
+        calls.load(Ordering::SeqCst),
+        2,
+        "the adapter must pull the Delayed item and recheck it once, not spend the budget"
+    );
+    assert_eq!(
+        counter.count(),
+        0,
+        "the adapter must not self-wake when the stream accepts a wake"
+    );
+    assert_eq!(
+        lock(&producer_wakes).len(),
+        1,
+        "the adapter must register a producer wake for the timer"
     );
 }
 
