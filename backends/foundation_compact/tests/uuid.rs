@@ -10,16 +10,12 @@ fn injected_entropy_sets_the_version_and_variant() {
     .unwrap();
     assert_eq!(id.to_string(), "ffffffff-ffff-4fff-bfff-ffffffffffff");
     assert_eq!(id.to_string().parse(), Ok(id));
-    assert!(
-        "ffffffff-ffff-1fff-bfff-ffffffffffff"
-            .parse::<UuidV4>()
-            .is_err()
-    );
-    assert!(
-        "ffffffff-ffff-4fff-ffff-ffffffffffff"
-            .parse::<UuidV4>()
-            .is_err()
-    );
+    assert!("ffffffff-ffff-1fff-bfff-ffffffffffff"
+        .parse::<UuidV4>()
+        .is_err());
+    assert!("ffffffff-ffff-4fff-ffff-ffffffffffff"
+        .parse::<UuidV4>()
+        .is_err());
     assert_eq!(
         UuidV4::from_entropy(|_| Err("unavailable")),
         Err("unavailable")
