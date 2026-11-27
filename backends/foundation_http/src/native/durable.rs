@@ -22,9 +22,9 @@ use foundation_core::durable::{
     StreamName, StreamOffset,
 };
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::timer::sleep_for;
+use foundation_core::valtron::{timer::sleep_for, StreamExt};
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::client::body_reader::collect_bytes_bounded;
+use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -37,9 +37,59 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Waker};
 use std::time::{Duration, UNIX_EPOCH};
 
+/// The limits of the native HTTP Durable Streams adapter.
+///
+/// Every value is configuration, never a constant. The host stores one in
+/// [`Ctx`] before it mounts [`DurableHandler`].
+#[derive(Clone, Copy, Debug)]
+pub struct DurableHttpConfig {
+    /// The most bytes of a rejected request body the adapter reads and discards
+    /// before it closes the connection.
+    ///
+    /// A body larger than `DurableLimits::max_body_bytes` is refused before it
+    /// is read. The adapter then discards the rest of the body, so the socket
+    /// has no unread bytes at close. The default is 64 MiB. nginx also reads
+    /// and discards a rejected body, but it bounds the work by time only. Go's
+    /// `net/http` discards 256 KiB and then closes. 64 MiB accepts the common
+    /// 10 MB oversized upload and bounds the work.
+    pub linger_bytes: usize,
+    /// The longest the adapter spends discarding a rejected request body.
+    ///
+    /// The default is 5 s, the nginx `lingering_timeout` default. The adapter
+    /// closes a client that stops sending or that keeps sending past the byte
+    /// cap.
+    pub linger_timeout: Duration,
+}
+
+impl Default for DurableHttpConfig {
+    fn default() -> Self {
+        Self {
+            linger_bytes: 64 * 1024 * 1024,
+            linger_timeout: Duration::from_secs(5),
+        }
+    }
+}
+
+impl DurableHttpConfig {
+    /// Set the discard cap for a rejected request body.
+    #[must_use]
+    pub fn with_linger_bytes(mut self, bytes: usize) -> Self {
+        self.linger_bytes = bytes;
+        self
+    }
+
+    /// Set the longest time spent discarding a rejected request body.
+    #[must_use]
+    pub fn with_linger_timeout(mut self, timeout: Duration) -> Self {
+        self.linger_timeout = timeout;
+        self
+    }
+}
+
 /// The Durable Streams HTTP handler.
 pub struct DurableHandler {
     service: Option<Arc<DurableService<DurableStream>>>,
+    config: DurableHttpConfig,
 }
 
 impl ServeFactory for DurableHandler {
@@ -47,10 +97,14 @@ impl ServeFactory for DurableHandler {
         let limits = ctx
             .get::<DurableLimits>()
             .map_or_else(DurableLimits::default, |limits| *limits);
+        let config = ctx
+            .get::<DurableHttpConfig>()
+            .map_or_else(DurableHttpConfig::default, |config| *config);
         Self {
             service: ctx.get::<DurableStream>().map(|stream| {
                 Arc::new(DurableService::with_limits((*stream).clone(), limits))
             }),
+            config,
         }
     }
 }
@@ -215,44 +269,22 @@ impl Serve for DurableHandler {
             });
         let body = req.take_async_body();
         let max_body_bytes = service.limits().max_body_bytes;
+        let config = self.config;
 
         crate::shared::serve::ConnectionResult::Async(Box::pin(async move {
-            // A body larger than the cap is read only up to the cap. Its tail
-            // stays on the connection and corrupts the next request, so refuse
-            // and close the connection.
-            if let Some(expected) = declared_body_len {
-                if expected > max_body_bytes {
-                    tracing::warn!(
-                        expected,
-                        "durable: request body exceeds the cap, closing the connection"
-                    );
-                    return refuse_body(conn, &ctx, 413, "request body is too large").await;
-                }
-            }
-
-            let body = match body {
-                Some(body) => collect_bytes_bounded(body, max_body_bytes).await,
-                None => Vec::new(),
+            let body = match read_request_body(
+                body,
+                declared_body_len,
+                max_body_bytes,
+                config,
+                conn.clone(),
+                &ctx,
+            )
+            .await
+            {
+                Ok(body) => body,
+                Err(outcome) => return outcome,
             };
-
-            // A short body leaves its tail on the connection. That tail then
-            // corrupts the next request line, so close the connection.
-            if short_body(declared_body_len, body.len()) {
-                if let Some(expected) = declared_body_len {
-                    tracing::warn!(
-                        expected,
-                        read = body.len(),
-                        "durable: short request body, closing the connection"
-                    );
-                    return refuse_body(
-                        conn,
-                        &ctx,
-                        400,
-                        "request body is shorter than its declared length",
-                    )
-                    .await;
-                }
-            }
 
             if empty_offset && method == SimpleMethod::GET {
                 let error = StoreError::BadRequest(
@@ -292,6 +324,101 @@ impl Serve for DurableHandler {
                 Err(error) => respond_error(conn, &ctx, &error).await,
             }
         }))
+    }
+}
+
+/// Read the request body, or answer the request and close when it breaks the
+/// cap or its declared length.
+///
+/// A declared body above the cap is refused before it is read. The adapter
+/// writes the response at once. It then reads and discards the rest of the
+/// body. A close with unread bytes sends a reset (RST). The reset can overtake
+/// the response, so the client then reports a write error instead of the 413.
+///
+/// A body of unknown length (a chunked body) passes the cap only after the
+/// adapter reads part of it. The adapter refuses it in the same way and
+/// discards the rest before the close.
+///
+/// A short body leaves its tail on the connection. That tail corrupts the next
+/// request line, so the adapter answers 400 and closes. A body stream that
+/// fails before its end is also refused with 400, because a partial append
+/// would store corrupt data.
+///
+/// # Errors
+/// Returns the [`ServeOutcome`] the caller must return when the adapter has
+/// already answered the request and closed the connection.
+async fn read_request_body(
+    body: Option<AsyncSendSafeBody>,
+    declared_body_len: Option<usize>,
+    max_body_bytes: usize,
+    config: DurableHttpConfig,
+    conn: SharedByteBufferStream<RawStream>,
+    ctx: &Ctx,
+) -> Result<Vec<u8>, ServeOutcome> {
+    if let Some(expected) = declared_body_len {
+        if expected > max_body_bytes {
+            tracing::warn!(
+                expected,
+                "durable: request body exceeds the cap, closing the connection"
+            );
+            let outcome = refuse_body(conn, ctx, 413, "request body is too large").await;
+            if let Some(body) = body {
+                linger_drain(body, config, ctx).await;
+            }
+            return Err(outcome);
+        }
+    }
+
+    let (body, outcome, rest) = match body {
+        Some(body) => {
+            let (collected, outcome, rest) = collect_request_body(body, max_body_bytes).await;
+            (collected, outcome, Some(rest))
+        }
+        None => (Vec::new(), BodyRead::Complete, None),
+    };
+
+    match outcome {
+        BodyRead::OverCap => {
+            tracing::warn!(
+                limit = max_body_bytes,
+                "durable: request body exceeds the cap, closing the connection"
+            );
+            let outcome = refuse_body(conn, ctx, 413, "request body is too large").await;
+            if let Some(rest) = rest {
+                linger_drain(rest, config, ctx).await;
+            }
+            Err(outcome)
+        }
+        BodyRead::Failed => {
+            // The body ended before its frame did. A partial append would
+            // store corrupt data, so refuse the request.
+            tracing::warn!(
+                read = body.len(),
+                "durable: request body read failed, closing the connection"
+            );
+            Err(refuse_body(conn, ctx, 400, "request body ended early").await)
+        }
+        BodyRead::Complete => {
+            if short_body(declared_body_len, body.len()) {
+                if let Some(expected) = declared_body_len {
+                    tracing::warn!(
+                        expected,
+                        read = body.len(),
+                        "durable: short request body, closing the connection"
+                    );
+                    return Err(
+                        refuse_body(
+                            conn,
+                            ctx,
+                            400,
+                            "request body is shorter than its declared length",
+                        )
+                        .await,
+                    );
+                }
+            }
+            Ok(body)
+        }
     }
 }
 
@@ -367,6 +494,83 @@ async fn refuse_body(
         let _ = writer.flush().await;
     }
     ServeOutcome::Close(None)
+}
+
+/// How a bounded request-body read ended.
+enum BodyRead {
+    /// The body ended at or below the cap.
+    Complete,
+    /// The body holds data past the cap.
+    OverCap,
+    /// The body stream failed before the body ended.
+    Failed,
+}
+
+/// Read a request body up to `limit` bytes.
+///
+/// Returns the bytes read, whether the body ended, passed the cap or failed,
+/// and the stream, so the caller can discard the rest. The function pulls one
+/// more item when the body reaches the limit. Only a pull that yields data
+/// proves there is a tail. A body of known length ends at its declared length,
+/// so that pull returns nothing.
+async fn collect_request_body(
+    mut body: AsyncSendSafeBody,
+    limit: usize,
+) -> (Vec<u8>, BodyRead, AsyncSendSafeBody) {
+    let mut collected = Vec::new();
+    while collected.len() < limit {
+        match body.next().await {
+            Some(Ok(bytes)) => {
+                let room = limit - collected.len();
+                if bytes.len() > room {
+                    collected.extend_from_slice(&bytes[..room]);
+                    return (collected, BodyRead::OverCap, body);
+                }
+                collected.extend_from_slice(&bytes);
+            }
+            Some(Err(_)) => return (collected, BodyRead::Failed, body),
+            None => return (collected, BodyRead::Complete, body),
+        }
+    }
+    let outcome = match body.next().await {
+        Some(Ok(bytes)) if !bytes.is_empty() => BodyRead::OverCap,
+        Some(Ok(_)) | None => BodyRead::Complete,
+        Some(Err(_)) => BodyRead::Failed,
+    };
+    (collected, outcome, body)
+}
+
+/// Read and discard the rest of a rejected request body before the adapter
+/// closes the connection.
+///
+/// WHY: a close with unread bytes on the receive side sends a reset (RST). The
+/// reset can overtake the error response, so the client reports `fetch failed`
+/// with `write ECONNRESET` instead of the status. Reading the remainder to its
+/// end lets the close send a normal end-of-stream (FIN).
+///
+/// WHAT: the function reads each chunk and drops it, so the adapter never holds
+/// the body in memory. Two configured limits bound the work: `linger_bytes` and
+/// `linger_timeout`. The drain ends when the client stops sending, passes the
+/// byte cap, or resets the connection.
+async fn linger_drain(mut body: AsyncSendSafeBody, config: DurableHttpConfig, ctx: &Ctx) {
+    use std::future::poll_fn;
+
+    let mut deadline = Box::pin(sleep_for(config.linger_timeout, ctx));
+    let mut drained = 0usize;
+    while drained < config.linger_bytes {
+        let mut next = Box::pin(body.next());
+        let item = poll_fn(|cx| {
+            if deadline.as_mut().poll(cx).is_ready() {
+                return Poll::Ready(None);
+            }
+            next.as_mut().poll(cx)
+        })
+        .await;
+        match item {
+            Some(Ok(bytes)) => drained = drained.saturating_add(bytes.len()),
+            Some(Err(_)) | None => break,
+        }
+    }
 }
 
 async fn respond_error(

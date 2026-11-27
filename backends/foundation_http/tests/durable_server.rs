@@ -11,7 +11,7 @@ use std::time::Duration;
 use foundation_core::durable::{DurableLimits, DurableStream, MemoryVfs};
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::valtron::initialize_pool;
-use foundation_http::native::durable::DurableHandler;
+use foundation_http::native::durable::{DurableHandler, DurableHttpConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::Ctx;
 use foundation_http::ShutdownSignal;
@@ -68,6 +68,55 @@ fn durable_app_with_body_limit(max_body_bytes: usize) -> HttpApp<Arc<dyn Serve>>
     let mut app = HttpApp::with_context(ctx);
     app.fallback::<DurableHandler>();
     app
+}
+
+fn durable_app_with_http_config(
+    limits: DurableLimits,
+    config: DurableHttpConfig,
+) -> HttpApp<Arc<dyn Serve>> {
+    let ctx = Ctx::host();
+    let _ = ctx.get_or_insert(DurableStream::new(Arc::new(MemoryVfs::new()), &ctx));
+    let _ = ctx.get_or_insert(limits);
+    let _ = ctx.get_or_insert(config);
+    let mut app = HttpApp::with_context(ctx);
+    app.fallback::<DurableHandler>();
+    app
+}
+
+/// Read one HTTP/1.1 response head from a raw stream, then read and drop its
+/// declared body. Return the status and the body length.
+fn read_raw_head(stream: &mut std::net::TcpStream) -> (u16, usize) {
+    use std::io::Read;
+
+    let mut head = Vec::new();
+    let mut byte = [0_u8; 1];
+    while !head.ends_with(b"\r\n\r\n") {
+        match stream.read(&mut byte) {
+            Ok(0) => break,
+            Ok(_) => head.push(byte[0]),
+            Err(error) => panic!("read response head: {error}"),
+        }
+    }
+    let head = String::from_utf8_lossy(&head);
+    let status = head
+        .split_whitespace()
+        .nth(1)
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(0);
+    let content_length = head
+        .lines()
+        .find_map(|line| {
+            let lower = line.to_ascii_lowercase();
+            lower
+                .strip_prefix("content-length:")
+                .map(|value| value.trim().parse().unwrap_or(0))
+        })
+        .unwrap_or(0);
+    let mut body = vec![0_u8; content_length];
+    if content_length > 0 {
+        stream.read_exact(&mut body).expect("read response body");
+    }
+    (status, content_length)
 }
 
 fn read_body(body: SendSafeBody) -> Result<String, BoxedError> {
@@ -280,6 +329,259 @@ fn given_an_oversized_body_when_the_client_declares_it_then_the_server_answers_4
     assert!(
         response.starts_with("HTTP/1.1 413"),
         "expected 413 for an oversized body, got: {response}"
+    );
+
+    shutdown.turn_on();
+}
+
+/// A client can still be sending its body when the 413 comes back. The adapter
+/// must read the rest of the body before it closes. A close with unread bytes
+/// sends a reset (RST), and the reset can overtake the response, so the client
+/// reports `fetch failed` with `write ECONNRESET` instead of the 413. This is
+/// the intermittent failure of the reference server suite's large-payload case
+/// (issue #1029).
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn given_an_oversized_body_when_the_client_keeps_writing_then_the_server_discards_it_and_closes_cleanly(
+) {
+    use std::io::{Read, Write};
+    use std::net::TcpStream;
+
+    let _guard = initialize_pool(42, Some(5));
+    let limit = 1024;
+    let (addr, shutdown) = start_server(durable_app_with_body_limit(limit));
+
+    // Create the stream on its own connection.
+    let mut create = TcpStream::connect(addr).expect("connect");
+    create
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set create read timeout");
+    create
+        .write_all(
+            b"PUT /v1/stream/linger HTTP/1.1\r\nHost: test\r\nContent-Type: application/octet-stream\r\nContent-Length: 0\r\n\r\n",
+        )
+        .expect("write create");
+    let mut created = Vec::new();
+    let mut create_buf = [0_u8; 1024];
+    loop {
+        match create.read(&mut create_buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                created.extend_from_slice(&create_buf[..n]);
+                if created.windows(4).any(|window| window == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            Err(error) => panic!("read create response: {error}"),
+        }
+    }
+    let created = String::from_utf8_lossy(&created);
+    assert!(created.starts_with("HTTP/1.1 201"), "create: {created}");
+
+    // The body is larger than the cap and larger than the socket buffers, so
+    // the client cannot finish writing before the server decides.
+    let body_len = 4 * 1024 * 1024;
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    stream
+        .set_write_timeout(Some(Duration::from_secs(5)))
+        .expect("set write timeout");
+    stream
+        .write_all(
+            format!(
+                "POST /v1/stream/linger HTTP/1.1\r\nHost: test\r\nContent-Type: application/octet-stream\r\nContent-Length: {body_len}\r\n\r\n"
+            )
+            .as_bytes(),
+        )
+        .expect("write head");
+
+    // Read the 413 before sending the body, the way a client that reads the
+    // error while it still uploads does.
+    let (status, _) = read_raw_head(&mut stream);
+    assert_eq!(status, 413, "expected 413 for an oversized body");
+
+    // The server discards the body as it arrives, so every write succeeds.
+    let chunk = vec![7_u8; 64 * 1024];
+    let mut written = 0;
+    while written < body_len {
+        stream.write_all(&chunk).unwrap_or_else(|error| {
+            panic!("the server closed before it read the body after {written} bytes: {error}")
+        });
+        written += chunk.len();
+    }
+
+    // With the body fully read, the close is a normal end-of-stream, not a
+    // reset.
+    let mut tail = [0_u8; 64];
+    let read = stream.read(&mut tail).expect("read the clean close");
+    assert_eq!(read, 0, "expected an end-of-stream after the body");
+
+    shutdown.turn_on();
+}
+
+/// A chunked body has no declared length, so the adapter learns it has passed
+/// the cap only after it reads part of it. It must answer 413 and discard the
+/// rest. Before the fix it collected the first `limit` bytes, appended them and
+/// kept the connection; the tail was then parsed as the next request.
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn given_a_chunked_body_over_the_cap_when_the_client_keeps_writing_then_the_server_answers_413_and_discards_it(
+) {
+    use std::io::{Read, Write};
+    use std::net::TcpStream;
+
+    let _guard = initialize_pool(42, Some(5));
+    let limit = 1024;
+    let (addr, shutdown) = start_server(durable_app_with_body_limit(limit));
+
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    stream
+        .set_write_timeout(Some(Duration::from_secs(5)))
+        .expect("set write timeout");
+    stream
+        .write_all(
+            b"POST /v1/stream/chunked-over-limit HTTP/1.1\r\nHost: test\r\nContent-Type: application/octet-stream\r\nTransfer-Encoding: chunked\r\n\r\n",
+        )
+        .expect("write head");
+
+    // One chunk larger than the cap makes the overflow visible.
+    let first = vec![7_u8; limit * 2];
+    stream
+        .write_all(format!("{:x}\r\n", first.len()).as_bytes())
+        .expect("write first chunk size");
+    stream.write_all(&first).expect("write first chunk");
+    stream.write_all(b"\r\n").expect("write first chunk end");
+
+    let (status, _) = read_raw_head(&mut stream);
+    assert_eq!(status, 413, "expected 413 for a chunked body over the cap");
+
+    // The server discards the body as it arrives, so every write succeeds.
+    let chunk = vec![7_u8; 64 * 1024];
+    let mut remaining = 2 * 1024 * 1024;
+    while remaining > 0 {
+        stream
+            .write_all(format!("{:x}\r\n", chunk.len()).as_bytes())
+            .expect("write chunk size");
+        stream.write_all(&chunk).unwrap_or_else(|error| {
+            panic!("the server closed before it read the chunked body: {error}")
+        });
+        stream.write_all(b"\r\n").expect("write chunk end");
+        remaining -= chunk.len();
+    }
+    stream.write_all(b"0\r\n\r\n").expect("write last chunk");
+
+    let mut tail = [0_u8; 64];
+    let read = stream.read(&mut tail).expect("read the clean close");
+    assert_eq!(read, 0, "expected an end-of-stream after the body");
+
+    shutdown.turn_on();
+}
+
+/// A chunked body can end before its last chunk, for example when the client
+/// disconnects. A partial append would store corrupt data, so the adapter
+/// answers 400 and stores nothing.
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn given_a_chunked_body_that_ends_early_when_the_client_half_closes_then_the_server_answers_400_and_stores_nothing(
+) {
+    use std::io::Write;
+    use std::net::{Shutdown, TcpStream};
+
+    let _guard = initialize_pool(42, Some(5));
+    let (addr, shutdown) = start_server(durable_app());
+
+    let mut create = TcpStream::connect(addr).expect("connect");
+    create
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set create read timeout");
+    create
+        .write_all(
+            b"PUT /v1/stream/early HTTP/1.1\r\nHost: test\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n",
+        )
+        .expect("write create");
+    let (status, _) = read_raw_head(&mut create);
+    assert!(status == 200 || status == 201, "create status {status}");
+
+    // One chunk, but no last chunk: the body ends with the half-close.
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    stream
+        .write_all(
+            b"POST /v1/stream/early HTTP/1.1\r\nHost: test\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\n\r\n7\r\npartial\r\n",
+        )
+        .expect("write partial chunked body");
+    stream.shutdown(Shutdown::Write).expect("half close");
+    let (status, _) = read_raw_head(&mut stream);
+    assert_eq!(status, 400, "an early end must be refused");
+
+    // The stream stays empty: no partial append.
+    let mut get = TcpStream::connect(addr).expect("connect");
+    get
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    get.write_all(b"GET /v1/stream/early HTTP/1.1\r\nHost: test\r\n\r\n")
+        .expect("write get");
+    let (status, content_length) = read_raw_head(&mut get);
+    assert_eq!(status, 200, "get status");
+    assert_eq!(content_length, 0, "a partial append must not be stored");
+
+    shutdown.turn_on();
+}
+
+/// A client can stop sending after it reads the 413. The discard must not hold
+/// the connection past `DurableHttpConfig::linger_timeout`.
+#[test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn given_a_rejected_body_when_the_client_stops_sending_then_the_server_closes_at_the_linger_timeout() {
+    use std::io::{Read, Write};
+    use std::net::TcpStream;
+
+    let _guard = initialize_pool(42, Some(5));
+    let limit = 1024;
+    let config = DurableHttpConfig::default().with_linger_timeout(Duration::from_millis(200));
+    let (addr, shutdown) = start_server(durable_app_with_http_config(
+        DurableLimits::default().with_max_body_bytes(limit),
+        config,
+    ));
+
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+    let body_len = 1024 * 1024;
+    stream
+        .write_all(
+            format!(
+                "POST /v1/stream/linger-timeout HTTP/1.1\r\nHost: test\r\nContent-Type: application/octet-stream\r\nContent-Length: {body_len}\r\n\r\n"
+            )
+            .as_bytes(),
+        )
+        .expect("write head");
+    stream.write_all(&vec![7_u8; 4096]).expect("write body part");
+
+    let (status, _) = read_raw_head(&mut stream);
+    assert_eq!(status, 413, "expected 413 for an oversized body");
+
+    // Stop sending. The discard times out and the server closes.
+    let started = std::time::Instant::now();
+    let mut tail = [0_u8; 64];
+    let read = stream.read(&mut tail).expect("read the close");
+    assert_eq!(read, 0, "expected an end-of-stream after the timeout");
+    assert!(
+        started.elapsed() < Duration::from_secs(3),
+        "the server held the connection for {:?}",
+        started.elapsed()
     );
 
     shutdown.turn_on();
