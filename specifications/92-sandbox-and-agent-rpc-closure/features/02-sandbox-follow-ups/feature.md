@@ -29,17 +29,19 @@ The order is severity first, then effort. No row changes a public API unless it 
 | T6 | #1013 | `e2e_build_network` always skips and uses `127.0.0.1:9` | Register it for the libkrun host and start a reachable local server | medium |
 | T7 | #1022 | The layer stream test serves a plain body, so gzip decode is untested | Serve a real gzip layer | low |
 | T8 | #1023 | The differential shell listing never ran and may miss busybox tools | Run it on the Linux host, with forms busybox has, or list through the harness | medium |
-| T9 | #972 | The no-KVM scenario has no CI proof | Start the parent without the device and with `--control`, then probe it; or add a runner without KVM | low |
+| T9 | #972 | The no-KVM scenario has no CI proof | Add **both** forms: (a) start the parent without the `/dev/kvm` device and with `--control`, then probe it (runs on today's KVM runner); (b) the real no-KVM daemon form, which runs on a Mac (Docker there has no `/dev/kvm`) and on any runner without the device | low |
 | T10 | #1008 | A clippy run without `--no-deps` stops in `foundation_compact` and `foundation_jsonschema` | Clear the 19 pedantic lints | low |
+| T11 | #1095 | A Firecracker guest has no network | Add an Ethernet-mode smoltcp device over a TAP in a private network namespace, reusing `foundation_nativeapis::dataplane`; then `NetworkMode::Host` works without host NAT | medium |
 
 ## 3. Design decisions this feature records
 
-- **#978 needs no code.** The unpack child is an `exec` of `agent-slave --unpack-child`, not
-  `fork` plus `chroot`. A threaded process cannot call `fork` and run arbitrary code safely:
-  the child may allocate, lock a mutex that another thread held, or call into code that is not
-  async-signal-safe. The `exec` form starts with one clean thread and a fresh address space,
-  which is the only safe way to change the root. Feature 12's design text changes to the
-  `exec` form; the code stays.
+- **#978 is decided: the code stays on `exec`.** The unpack child is an `exec` of
+  `agent-slave --unpack-child`, not `fork` plus `chroot`. The owner decided this on
+  2026-11-27. A threaded process cannot call `fork` and run arbitrary code safely: the child
+  may allocate, lock a mutex that another thread held, or call into code that is not
+  async-signal-safe. `exec` starts one clean thread and a fresh address space, which is the
+  only safe way to change the root. Feature 12's design text changes to the `exec` form; no
+  code change is made.
 - **#1013 is coverage, not a capability.** The Firecracker guest has no network, so the
   network case belongs to libkrun with block support. The test keeps a skip reason for every
   host that cannot run it.

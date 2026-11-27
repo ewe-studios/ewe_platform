@@ -400,11 +400,7 @@ impl Suite {
     }
 }
 
-async fn test(
-    ctx: TaskContext,
-    options: Options,
-    suites: &'static [Suite],
-) -> TaskResult {
+async fn test(ctx: TaskContext, options: Options, suites: &'static [Suite]) -> TaskResult {
     let root = control(&ctx)?;
     fs::create_dir_all(&root).map_err(TaskError::operation)?;
     let _controller = lock(&ctx, &root.join("controller.lock"), &options).await?;

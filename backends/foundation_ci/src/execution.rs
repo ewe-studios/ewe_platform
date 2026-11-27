@@ -20,6 +20,7 @@ mod dispatch;
 mod errors;
 mod guards;
 mod linux;
+mod live_kms;
 mod locks;
 mod package;
 mod recipes;
@@ -139,6 +140,7 @@ pub fn register(set: &mut TaskSet) -> TaskResult {
     attachments::register(set)?;
     binaries::register(set)?;
     linux::register(set)?;
+    live_kms::register(set)?;
     locks::register(set)?;
     package::register(set)?;
     retry::register(set)?;

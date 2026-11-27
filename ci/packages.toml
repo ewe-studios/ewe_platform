@@ -117,6 +117,15 @@ directory = "infrastructure/sandbox_worker"
 recipe = "sandbox-worker"
 build-members = []
 
+# The deterministic simulation package is its own workspace root, because its
+# build needs `foundation_core` without `multi` and the root workspace turns
+# `multi` on through feature unification (#1048). The recipe runs the standard
+# steps with `--manifest-path` into this directory.
+[groups.foundation_agent_rpc_dst]
+directory = "backends/foundation_agent_rpc_dst"
+recipe = "cargo-directory"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.

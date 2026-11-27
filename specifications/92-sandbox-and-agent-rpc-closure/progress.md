@@ -7,10 +7,10 @@ _Last updated: 2026-11-28._
 | Feature | State |
 |---|---|
 | 00 Live proof on the real services | not started |
-| 01 DST fidelity: the real registry | not started |
+| 01 DST fidelity: the real registry | stage A in review |
 | 02 Sandbox follow-ups | in progress: 11 of 12 issues closed; #1095 left |
 | 03 GCP KMS over gRPC | not started |
-| 04 Live cloud resources with OpenTofu | not started |
+| 04 Live cloud resources with the cloud CLI | done: pull request #1103; four live tests passed on 2026-11-28 |
 
 ## What is already true
 
@@ -24,6 +24,18 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 
 ## Work in review (2026-11-27)
 
+- **Feature 01, stage A (the DST `Wait` hang)** is branch `fix/dst-wait-redrive`. Cause:
+  `Stream::Wait` means "the queue is empty; run the producer and check again". The parking
+  adapters in `stream_future.rs` treated it as `Pending` and parked on a wake that a
+  single-threaded engine never sends. Fix: `WakeableStream` gains `drives_its_producer()`.
+  A driving stream reports `true`, and the five adapters re-poll it on `Wait` with a bounded
+  budget (`DEFAULT_WAIT_REDRIVE_BUDGET`, 100 on native and 1 on wasm). A driving stream whose
+  engine is parked reports `can_make_progress() == false`, so the adapter parks instead of
+  sleeping out the driver's wait budget once per re-poll. A queue-backed stream keeps the old
+  park behaviour. Tests: `wait_redrives_a_driving_stream` (the real `execute` driver under
+  `SimRuntime`, one poll), plus `wait_redrive.rs` (park, bound, reset, wrapper forwarding,
+  parked driving stream, property test). It also fixes #1108 and #1109, which made the default,
+  `multi` and `testing` CI steps red.
 - **Feature 00, task T3 (AWS KMS locally)** is pull request #1055. It adds the endpoint
   override (`AWS_ENDPOINT_URL_KMS`), the moto test, `mise run kms:moto` and the free CI job
   `kms-local`. It also fixes a duplicate `Content-Type` (#1054) and makes `Decrypt` send
@@ -49,8 +61,8 @@ that do not need a Linux host with KVM.
 - The second change closes #977. `UnpackBegin` reads the `ready` line as a readiness
   future, and `UnpackChunk` and `UnpackCommit` write and read through non-blocking pipes
   that park on writability. `tests/slave/unpack.rs` fills every task worker with writers
-  to a probe child that reads nothing for one second, then shows that a queued task runs;
-  one writer streams a 100 MiB archive. The test compiles and runs on Linux only.
+  to a probe child that reads nothing for three seconds, then shows that a queued task
+  runs; one writer streams a 100 MiB archive. The test compiles and runs on Linux only.
 - The third change closes #978 as a design decision. Spec 77 feature 12 section 6.6 now
   names the `exec` child form and the reason, with the decision date 2026-11-27.
 - The fourth change closes #1008. It clears the pedantic lints of `foundation_jsonschema`
@@ -65,6 +77,29 @@ Verified on this host: format, clippy and tests of `foundation_sandbox`,
 `foundation_compact` and `foundation_jsonschema`. The Linux-only test targets could not be
 compiled here because no Linux cross C compiler is installed; the `sandbox-e2e` job
 proves them.
+
+## Feature 04 result (2026-11-28)
+
+`foundation-ci live-kms` passed against the real services:
+
+| Item | Value |
+|---|---|
+| AWS region | `us-east-1` |
+| GCP project, location | `ewestudiosnigeria`, `global` |
+| Tests | 4 passed, 0 failed |
+| Teardown | done: both AWS keys are `PendingDeletion` (7 days) and both aliases are deleted |
+
+The Google Cloud key ring and two key entries stay listed. Google Cloud cannot delete a key
+ring, and it keeps a key entry until every version finishes destruction. The run destroys
+every version.
+
+Two findings from the runs:
+
+- **#1113** (`severity: medium`, fixed): a run after a teardown found a key with every version
+  scheduled for destruction, and the destroyed version was still the primary. The task now
+  creates a version when none is enabled and makes the newest enabled version the primary.
+- **#1114** (`severity: low`, open): the teardown should retry a transient precondition error
+  right after the billing link.
 
 ## Next
 
