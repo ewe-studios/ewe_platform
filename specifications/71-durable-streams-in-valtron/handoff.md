@@ -91,6 +91,12 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
   The first file VFS implementation compiles under `vfs-native`. It needs tests before a commit.
 - Uncommitted: `Cargo.lock`, from the removed test dependency. Check it before the next commit.
 
+## 4.2 Acceptance bar
+
+Owner rule, 2026-11-27: server conformance 338 of 338 with `subscriptions: true`, client
+conformance 269 of 269 with every feature announced, no skip causes by our code, all Rust tests
+and clippy green, and a fresh zero-context agent verifies the claims against the code.
+
 ## 5. Rules that matter here
 
 - Run `ci/durable_conformance.sh` before you call a protocol change done.
