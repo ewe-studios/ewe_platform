@@ -571,6 +571,7 @@ pub struct AwsKmsBackend {
     http: DynNetClient,
     credentials: Option<AwsCredentials>,
     clock: std::sync::Arc<dyn foundation_context::Clock>,
+    endpoint: Option<String>,
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -579,6 +580,7 @@ impl std::fmt::Debug for AwsKmsBackend {
         f.debug_struct("AwsKmsBackend")
             .field("region", &self.region)
             .field("key_id", &self.key_id)
+            .field("endpoint", &self.endpoint)
             .finish_non_exhaustive()
     }
 }
@@ -608,7 +610,66 @@ impl AwsKmsBackend {
             http,
             credentials: None,
             clock,
+            endpoint: None,
         }
+    }
+
+    /// Set the KMS endpoint, for a local emulator.
+    ///
+    /// The default is the regional endpoint, `https://kms.<region>.amazonaws.com`.
+    /// When no endpoint is set here, the `AWS_ENDPOINT_URL_KMS` variable is
+    /// read, which is the convention of the AWS SDK. The `SigV4` canonical host
+    /// and the `Host` header use the endpoint host and port.
+    ///
+    /// The endpoint must be an origin, for example `http://localhost:5000`.
+    #[must_use]
+    pub fn with_endpoint(mut self, endpoint: impl Into<String>) -> Self {
+        self.endpoint = Some(endpoint.into());
+        self
+    }
+
+    /// The endpoint text for this backend.
+    ///
+    /// Order: the endpoint that the builder set, the `AWS_ENDPOINT_URL_KMS`
+    /// variable, then the regional endpoint. An empty value counts as absent.
+    fn endpoint_text(&self) -> String {
+        let configured = self
+            .endpoint
+            .clone()
+            .or_else(|| std::env::var("AWS_ENDPOINT_URL_KMS").ok())
+            .unwrap_or_default();
+        let configured = configured.trim();
+        if configured.is_empty() {
+            format!("https://kms.{}.amazonaws.com", self.region)
+        } else {
+            configured.to_string()
+        }
+    }
+
+    /// Split the endpoint into its request URL and `SigV4` canonical host.
+    ///
+    /// The canonical host carries the port when the endpoint names one, because
+    /// the HTTP client writes the same text into the `Host` header.
+    fn endpoint_parts(&self) -> Result<(String, String), KeyStoreError> {
+        let endpoint = self.endpoint_text();
+        let uri = foundation_core::url::Uri::parse(&endpoint).map_err(|e| {
+            KeyStoreError::KekUnavailable(format!("AWS KMS endpoint {endpoint}: {e}"))
+        })?;
+        let host_name = uri.host_str().ok_or_else(|| {
+            KeyStoreError::KekUnavailable(format!("AWS KMS endpoint {endpoint} has no host"))
+        })?;
+        let path = uri.path();
+        if !path.is_empty() && path != "/" {
+            return Err(KeyStoreError::KekUnavailable(format!(
+                "AWS KMS endpoint {endpoint} must be an origin with no path"
+            )));
+        }
+        let host = match uri.port() {
+            Some(port) => format!("{host_name}:{port}"),
+            None => host_name,
+        };
+        let url = format!("{}/", endpoint.trim_end_matches('/'));
+        Ok((url, host))
     }
 
     /// Credentials from the environment, then from `IMDSv2`.
@@ -682,7 +743,7 @@ impl AwsKmsBackend {
     async fn call(&self, target: &str, body: &str) -> Result<String, KeyStoreError> {
         use sha2::Digest as _;
         let credentials = self.credentials().await?;
-        let host = format!("kms.{}.amazonaws.com", self.region);
+        let (url, host) = self.endpoint_parts()?;
         let now: chrono::DateTime<chrono::Utc> = self.clock.wall_now().into();
         let amz_date = now.format("%Y%m%dT%H%M%SZ").to_string();
         let date = now.format("%Y%m%d").to_string();
@@ -737,14 +798,7 @@ impl AwsKmsBackend {
         if let Some(token) = &credentials.session_token {
             headers.push(("X-Amz-Security-Token".to_string(), token.clone()));
         }
-        request_json(
-            HttpVerb::Post,
-            &self.http,
-            &format!("https://{host}/"),
-            &headers,
-            body,
-        )
-        .await
+        request_json(HttpVerb::Post, &self.http, &url, &headers, body).await
     }
 }
 
