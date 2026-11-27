@@ -98,6 +98,27 @@ at `/Volumes/Outside/GitSources/src.Electric/durable-streams/packages/client-rus
 has no Rust server package; ask the owner for its path if it exists elsewhere. The harness lives
 in `foundation_event_stream`.
 
+## 4.1b Completion bundle (owner rule 2026-11-27)
+
+The remaining gaps are one high-priority bundle, after feature 10 and #1019. Do not close any
+item alone if a later item would reopen it.
+
+1. **#1019 + feature 07 T11 (high).** The wasm bridge preserves the parsed `Content-Length`, with
+   a wasm test. Close #1019.
+2. Feature 05: T6 (DO SQLite and D1), T7 (oracle matrix), T9 (VFS testkit), T10 (per-VFS
+   coverage).
+3. Feature 07: SSE (#963, #947), then the client suite announces every feature.
+4. Feature 06: ConnectRPC, and T12 (the 413 cap from `DurableLimits`).
+5. Feature 08: Continuous Integration (CI) wiring, subscriptions in the gate, the
+   cross-implementation runs.
+6. Feature 09: the S3/R2 VFS.
+7. Features 02 to 04: wake forwarding, deterministic simulation testing (DST) and the full
+   oracle matrix.
+
+The bundle closes only when the two suites are 338 of 338 and 269 of 269 with no skip caused by
+our code, all Rust tests and clippy are green, the cross-runs pass, and a fresh zero-context
+agent confirms it.
+
 ## 4.2 Acceptance bar
 
 Owner rule, 2026-11-27: server conformance 338 of 338 with `subscriptions: true`, client
