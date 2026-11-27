@@ -2189,3 +2189,11 @@ The formatter updates 23 changed Specification 69 source and test files.
 The staged Rust files match the formatter output byte for byte.
 The workspace format check reports 21 remaining files outside this scope.
 [Issue 1184](https://github.com/ewe-studios/ewe_platform/issues/1184)
+
+## 2026-11-28 — Strict Foundation UI package lint
+
+Strict Clippy passes for all default wire, runtime, and browser UI targets on macOS.
+It also passes for the wire reference target and the browser UI tasks and build hook.
+The live channel suite passes ten tests. The vocabulary suite passes three tests.
+The reference integration suite passes 102 tests. Its portable target fixture still matches the saved bytes.
+[Issue 1187](https://github.com/ewe-studios/ewe_platform/issues/1187)
