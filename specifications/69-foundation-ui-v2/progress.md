@@ -2248,3 +2248,9 @@ The pinned workspace formatter passes at `d735d249a`. The formatter changes 23 R
 The CI package passes 40 tests. The task package passes 19 tests.
 Issue 1189 is closed. The clock-parameter guard reports no violations.
 Issue 1180 remains open for the Linux `foundation_core` build recipe.
+
+## Windows project template paths
+
+The native task tests find a mixed separator in the path to the staged project templates.
+Join the environment directory and template suffix through the platform path API.
+Use the existing package generator and native task tests to check template access.
