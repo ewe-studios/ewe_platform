@@ -2260,3 +2260,10 @@ The workflow uses the planner's package names to select the tool setup.
 The Windows Todo shard also installs the WebAssembly target.
 The local plan selects the correct shards. The local setup exports wasm-bindgen 0.2.130.
 The next hosted run verifies the selected setup. [Issue 1195](https://github.com/ewe-studios/ewe_platform/issues/1195)
+
+## Browser package source root
+
+A symlinked Cargo target path can name the generated module directory.
+Resolve the root before the package copies the generated JavaScript files.
+Verify a generated module under the symlinked target and a nested source outside its root.
+[Issue 1197](https://github.com/ewe-studios/ewe_platform/issues/1197)
