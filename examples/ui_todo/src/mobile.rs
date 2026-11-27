@@ -49,6 +49,11 @@ fn todo_core(
 ) -> Result<NativeCoreBuilder, CoreError> {
     let ctx = todo_context(Origin::Host)?;
     if let Some(path) = path {
+        let lease = crate::shared::countdown::NativeCountdownLease::claim(&path)
+            .map_err(|cause| CoreError::Write { detail: cause.to_string() })?;
+        if let Some(lease) = lease {
+            ctx.store(lease);
+        }
         ctx.store(foundation_ui_native::storage::NativeRecordFile::new(
             path.with_added_extension("sqlite3"),
             path,
@@ -98,6 +103,7 @@ fn todo_context(owner: Origin) -> Result<Ctx, CoreError> {
     ctx.store(foundation_ui_runtime::sound::SoundHost(Arc::new(foundation_ui_runtime::sound::PullOutput)));
     if owner == Origin::Server {
         ctx.store(crate::TodoStore::default());
+        crate::shared::countdown::install(&ctx);
     } else {
         crate::install_cache(&ctx);
     }

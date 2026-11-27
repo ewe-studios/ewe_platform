@@ -265,6 +265,39 @@ While the modal is visible, keep accessibility focus inside it. Restore focus to
 
 The owner approves this design and implementation on 2026-11-27.
 
+
+### Chromium countdown verification on 2026-11-27
+
+The browser keeps the same request across a lost request and a lost reply.
+A second tab can add a task while the first tab is blocked. The first tab receives it.
+The first tab restores its pause after a reload. Tab and Escape keep input in the modal.
+The browser checks with the server after a lost release. Input returns after one minute.
+Focus returns to the pause button.
+
+![The pause request waits for a reply](screenshots/web-countdown-pending.png)
+![The browser allows a retry after a lost reply](screenshots/web-countdown-retry.png)
+![The modal shows the countdown](screenshots/web-countdown-blocked.png)
+![The list shows the peer’s task after release](screenshots/web-countdown-resumed.png)
+
+### iPhone countdown verification on 2026-11-27
+
+The iPhone simulator exposes the countdown label and blocks taps on the pause button.
+The pause continues after the app restarts. The timer releases input after one minute.
+Chromium adds a task while the countdown is visible. The iPhone shows the task behind the modal.
+
+![The iPhone shows a peer task during the pause](screenshots/iphone-countdown-peer.png)
+![The iPhone restores input at release](screenshots/iphone-countdown-resumed.png)
+
+### Android countdown verification on 2026-11-27
+
+The Android emulator exposes the countdown label at 130 percent text size.
+The Back button leaves the modal open. The modal hides the list controls from the accessibility tree.
+Chromium adds a task while the countdown is visible. The Android list count increases behind the modal.
+The app restores the pause after a process restart. The test observes release after 62.39 seconds, including polling.
+
+![The Android modal shows the countdown after a peer update](screenshots/android-countdown-peer.png)
+![Android restores input and shows the peer task](screenshots/android-countdown-resumed.png)
+
 ### Browser verification on 2026-11-22
 
 Chrome shows the pending row before the test proxy delivers the addition. The confirmed count stays at zero.

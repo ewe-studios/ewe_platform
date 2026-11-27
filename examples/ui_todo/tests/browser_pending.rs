@@ -3,6 +3,8 @@
 mod browser_server;
 use browser_server::{open_document, with_browser_server};
 use foundation_browser::BrowserDriver;
+#[path = "browser_countdown.rs"]
+mod browser_countdown;
 
 #[test]
 fn pending_changes_survive_concurrent_tabs_and_confirm_independently() {

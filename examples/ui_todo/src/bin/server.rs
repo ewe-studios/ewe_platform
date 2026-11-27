@@ -27,8 +27,9 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
     let ctx = foundation_context::Ctx::try_host()?;
     foundation_core::env::install(&ctx, foundation_core::env::system)?;
+    let storage_ctx = ctx.clone();
     let store = foundation_core::valtron::block_on_future(async move {
-        ui_todo::TodoStore::open(&ctx, &path).await
+        ui_todo::TodoStore::open(&storage_ctx, &path).await
     })?;
     let channel = LiveChannel::resume(
         1,
@@ -36,7 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         BacklogConfig::default(),
         WriterConfig::default(),
     );
-    let app = ui_todo::server::app_with_store(store, channel)?;
+    let app = ui_todo::server::app_with_context(store, channel, ctx)?;
     println!("Open http://{address}/");
     app.server(&address.to_string()).serve_with_listener(
         &listener,

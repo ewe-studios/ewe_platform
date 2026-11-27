@@ -1,5 +1,6 @@
 //! Register the browser and mobile routes for the todo application.
 use crate::TodoStore;
+pub use crate::shared::countdown::CountdownConfig;
 use foundation_context::Ctx;
 use foundation_http::{
     get,
@@ -62,7 +63,24 @@ pub fn app_with_store(
     store: TodoStore,
     channel: LiveChannel,
 ) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
-    let mut app = HttpApp::new_serve();
+    let ctx = Ctx::try_host()?;
+    foundation_core::env::install(&ctx, foundation_core::env::system)?;
+    app_with_context(store, channel, ctx)
+}
+
+/// Build a server with the caller's effect sources and optional countdown limits.
+///
+/// # Errors
+/// Return an error if the effect sources are absent or the server cannot start.
+pub fn app_with_context(
+    store: TodoStore,
+    channel: LiveChannel,
+    ctx: Ctx,
+) -> Result<HttpApp<Arc<dyn Serve>>, Error> {
+    if ctx.get::<foundation_context::env::Env>().is_none() {
+        return Err(foundation_context::env::EnvError::Missing.into());
+    }
+    let mut app = HttpApp::with_context(ctx);
     let ctx = app.context().clone();
     let channels = services::install(&ctx, channel, store)?;
     register(&mut app.router, &ctx, channels)?;

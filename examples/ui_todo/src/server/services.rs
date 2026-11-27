@@ -51,6 +51,7 @@ pub(super) fn install(ctx: &Ctx, web: LiveChannel, store: TodoStore) -> Result<T
         return Err("The Todo store position differs from the live channel position".into());
     }
     crate::install_view_services(ctx, foundation_ui_runtime::action::Origin::Server)?;
+    crate::shared::countdown::install(ctx);
     ctx.store(store);
     ctx.store(Arc::new(BusinessActions) as Arc<dyn ActionRequestPolicy>);
     let channels = TodoFeed(web);

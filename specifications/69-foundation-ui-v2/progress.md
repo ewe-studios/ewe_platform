@@ -1,5 +1,16 @@
 # Spec 69 progress
 
+## Feature 32 — Todo input pause
+
+- Add a named input pause control and modal to the shared Todo view.
+- Keep the list subscription active during an input pause.
+- Request the current pause after a host starts or returns to the foreground.
+- Pass 14 action and store tests. The countdown test uses an injected clock, timer, and identifier source.
+- Pass seven native core tests, including concurrent scopes and restart recovery.
+- Verify Chromium input, live delivery, reload, and release. Save four browser captures.
+- Verify the iPhone simulator pause, restart, accessible label, and release. Save two iPhone captures.
+- Verify the Android emulator pause, Back button, accessible label, restart, live update, and release. Save two Android captures.
+
 ## Todo Server launch on iPhone
 
 Issue [825](https://github.com/ewe-studios/ewe_platform/issues/825) covers the installed server address and the launch screen.

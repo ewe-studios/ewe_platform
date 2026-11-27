@@ -52,6 +52,7 @@ fun RemoteEweScreen(
     connections: ConnectionManager? = null,
     viewDataAction: String? = null,
     onAttached: (NativeCore, NodeStore) -> Unit = { _, _ -> },
+    onViewReady: (EventBridge) -> Unit = {},
 ) {
     EweHost(listOf(endpoint, initialPath, actionPath, transport, connections ?: ""), "Connecting…", modifier, theme) { host ->
         val client = OkHttpClient()
@@ -81,7 +82,9 @@ fun RemoteEweScreen(
         val hello = socket?.let { binding.helloFor(it.requestTag) } ?: binding.hello()
         connection.configure(hello)
         host.apply(requireNotNull(sender.send(hello)) { "Missing server capabilities" }, "capabilities")
-        host.loadView { connection.initial(initialPath) }
+        host.loadView(onInstalled = { onViewReady(checkNotNull(host.bridge)) }) {
+            connection.initial(initialPath)
+        }
     }
 }
 
@@ -94,12 +97,14 @@ fun LocalEweScreen(
     theme: EweTheme = EweTheme(),
     viewDataAction: String? = null,
     onAttached: (NativeCore, NodeStore) -> Unit = { _, _ -> },
+    onViewReady: (EventBridge) -> Unit = {},
 ) {
     EweHost(emptyList(), "Loading…", modifier, theme) { host ->
         val core = createCore()
         host.attach(core, null, viewDataAction = viewDataAction)
         onAttached(core, host.store)
         host.applyInitial(initialFrame(core))
+        onViewReady(checkNotNull(host.bridge))
     }
 }
 
@@ -249,9 +254,13 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
         check(store.receive(frame)) { "Invalid $name frame: ${store.reports.lastOrNull()}" }
     }
 
-    suspend fun loadView(load: suspend () -> ByteArray) {
+    suspend fun loadView(onInstalled: () -> Unit, load: suspend () -> ByteArray) {
         val loader = store.registerLoader(scope, load = load)
-        loader.onInstalled = { ready = true; status = "" }
+        loader.onInstalled = {
+            ready = true
+            status = ""
+            onInstalled()
+        }
         loader.open()
     }
 

@@ -11,11 +11,17 @@ import SwiftUI
   private let load: Loader
   @State private var connection: EventBridge?
   private let theme: EweTheme
+  private let onViewReady: @MainActor (EventBridge) -> Void
   @State private var issue: String?
   @State private var attempt = 0
 
-  public init(theme: EweTheme = EweTheme(), load: @escaping Loader) {
+  public init(
+    theme: EweTheme = EweTheme(),
+    onViewReady: @escaping @MainActor (EventBridge) -> Void = { _ in },
+    load: @escaping Loader
+  ) {
     self.theme = theme
+    self.onViewReady = onViewReady
     self.load = load
   }
 
@@ -48,6 +54,7 @@ import SwiftUI
         let bridge = EventBridge(store: store, core: core)
         guard store.receive(first) else { throw CocoaError(.fileReadCorruptFile) }
         connection = bridge
+        onViewReady(bridge)
       } catch {
         if !Task.isCancelled { issue = error.localizedDescription }
       }

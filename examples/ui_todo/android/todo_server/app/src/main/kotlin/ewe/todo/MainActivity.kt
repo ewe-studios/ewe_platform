@@ -22,6 +22,7 @@ import java.security.MessageDigest
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class MainActivity : ComponentActivity() {
+    private val countdown = TodoCountdown()
     private val foreground = mutableStateOf(false)
     private val game = MathalleyRoute {
         intent.getStringExtra("gameSeed")?.toULongOrNull() ?: SecureRandom().nextLong().toULong()
@@ -50,7 +51,8 @@ class MainActivity : ComponentActivity() {
                     createPersistentTodoCore(NativePlatform.ANDROID, sender, pendingFile).also { core ->
                         core.installResources(AndroidResourceSource(assets))
                     }
-                }, theme = theme, transport = transport, viewDataAction = "host:apply_todo_delivery", onAttached = game::attach)
+                }, theme = theme, transport = transport, viewDataAction = "host:apply_todo_delivery", onAttached = game::attach, onViewReady = countdown::attach)
+                countdown.Run(foreground.value)
                 game.Screen(foreground.value)
             }
         }

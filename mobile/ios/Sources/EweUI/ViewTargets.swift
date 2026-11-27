@@ -52,6 +52,11 @@ public enum ViewTargetError: Error { case invalidName, duplicateName, duplicateV
     return host.childStores[root] ?? host
   }
 
+  /// Check whether this view currently contains an element with the given name.
+  public func containsElement(named name: String) -> Bool {
+    elementNames.values.contains(name)
+  }
+
   /// Give an existing custom control its portable tag and element name.
   public func registerElement(_ name: String, tag: String, node id: UInt32) throws {
     guard Self.validName(name), Self.validName(tag), tag.lowercased() != "view" else { throw ViewTargetError.invalidName }
