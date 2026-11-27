@@ -244,6 +244,27 @@ Ignore a stale release for an older block. Test a lost request and a lost releas
 Verify pointer, keyboard, back navigation, and assistive input on all three hosts.
 Use an injected clock for timing tests. Capture pending, retry, and blocked screens on each host during implementation.
 
+### Proposed implementation and acceptance order
+
+![Proposed Todo countdown with the list behind a modal](screenshots/block-design.svg)
+
+The drawing shows the proposed content. Each renderer uses its native modal and adaptive text sizes.
+
+1. Verify the existing list, filter, dialog, and notification updates on all three hosts. Record each result separately.
+2. Add a Todo action to request the block. Scope the request to the initiating client and its current session.
+3. Reuse the request identifier after a lost response. A retry must return the original block and expiry.
+4. Store the active block on the server. Use the injected clock and identifier source.
+5. Add a named target for the countdown. Keep the list subscription and the current selection during the block.
+6. On restart or reconnect, request the current block. At expiry, reconcile with the server if its release did not arrive.
+7. Restore focus when the block ends. Ignore a release for an earlier block.
+8. Test lost messages, repeated requests, and a second client with an injected clock. Run one real minute on each renderer.
+9. Capture the blocked screen on each host. Check large text, screen reader focus, keyboard input, and back navigation.
+
+Announce the pause and release once. Offer the current time remaining when the user reads the timer.
+While the modal is visible, keep accessibility focus inside it. Restore focus to the initiating control if it still exists.
+
+The owner approves this design and implementation on 2026-11-27.
+
 ### Browser verification on 2026-11-22
 
 Chrome shows the pending row before the test proxy delivers the addition. The confirmed count stays at zero.

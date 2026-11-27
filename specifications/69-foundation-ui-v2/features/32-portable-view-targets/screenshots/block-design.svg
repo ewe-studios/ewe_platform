@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="420" viewBox="0 0 390 420" role="img" aria-labelledby="title detail">
+  <title id="title">Proposed Todo countdown</title>
+  <desc id="detail">A modal shows the remaining time above a dimmed Todo list. Only this device pauses input.</desc>
+  <rect width="390" height="420" rx="16" fill="#f7f8fa"/>
+  <g font-family="system-ui,sans-serif" fill="#192632">
+    <text x="24" y="55" font-size="26" font-weight="bold">Todos</text>
+    <text x="330" y="53" font-size="17">Add</text>
+    <text x="24" y="101" font-size="16">All　　　 Open　　　 Done</text>
+    <path d="M24 123h342M24 351h342" stroke="#bec8ce"/>
+    <text x="24" y="384" font-size="16">1 open todo</text>
+  </g>
+  <rect width="390" height="420" rx="16" fill="#132331" opacity=".46"/>
+  <rect x="32" y="133" width="326" height="166" rx="22" fill="#fff"/>
+  <g font-family="system-ui,sans-serif" text-anchor="middle" fill="#172a38">
+    <text x="195" y="175" font-size="20" font-weight="600">Input paused on this device</text>
+    <text x="195" y="229" font-size="40" font-weight="600">0:42</text>
+    <text x="195" y="268" font-size="16">Todo updates still arrive.</text>
+  </g>
+</svg>
