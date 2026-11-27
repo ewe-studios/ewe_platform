@@ -38,7 +38,7 @@ fn main() {
             Ok(value) => value,
             Err(error) => {
                 let result = failure_result("", "INVALID_ARGUMENT", &error.to_string());
-                sink.push(sequence, result.to_string());
+                sink.push(sequence, &result.to_string());
                 sequence += 1;
                 continue;
             }
@@ -62,14 +62,14 @@ fn main() {
                     let result = smol::block_on(handle_read(
                         &client, &command, &path, provider, binary, &read_ctx,
                     ));
-                    sink.push(mine, result.to_string());
+                    sink.push(mine, &result.to_string());
                 });
                 continue;
             }
         }
 
         let (result, stop) = smol::block_on(handle(&kind, &command, &mut client, &mut state, &ctx));
-        sink.push(mine, result.to_string());
+        sink.push(mine, &result.to_string());
         if stop {
             break;
         }
@@ -98,7 +98,7 @@ impl Sink {
         }
     }
 
-    fn push(&self, sequence: u64, line: String) {
+    fn push(&self, sequence: u64, line: &str) {
         use std::io::Write;
         // Node's readline treats U+2028 and U+2029 as line terminators, so a
         // raw separator inside a result would split the line and break the
@@ -241,12 +241,11 @@ impl foundation_core::durable::client::DynamicHeaders for DynamicProvider {
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         let mut values = Vec::new();
         for (name, (kind, counter)) in &mut state.params {
-            let value = match kind.as_str() {
-                "timestamp" => self.wall_millis(),
-                _ => {
-                    *counter += 1;
-                    counter.to_string()
-                }
+            let value = if kind.as_str() == "timestamp" {
+                self.wall_millis()
+            } else {
+                *counter += 1;
+                counter.to_string()
             };
             values.push((name.clone(), value));
         }
@@ -309,16 +308,11 @@ fn client_error(
 
 #[cfg(not(target_arch = "wasm32"))]
 fn headers_of(command: &serde_json::Value) -> Vec<(String, String)> {
-    command["headers"]
-        .as_object()
-        .map(|map| {
-            map.iter()
-                .filter_map(|(key, value)| {
-                    value.as_str().map(|value| (key.clone(), value.to_string()))
-                })
-                .collect()
-        })
-        .unwrap_or_default()
+    command["headers"].as_object().map_or_default(|map| {
+        map.iter()
+            .filter_map(|(key, value)| value.as_str().map(|value| (key.clone(), value.to_string())))
+            .collect()
+    })
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -338,6 +332,8 @@ fn body_of(command: &serde_json::Value) -> Vec<u8> {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::too_many_arguments)]
+// The dispatcher is one place by design: one command, one arm, no hidden hop.
+#[allow(clippy::too_many_lines)]
 async fn handle(
     kind: &str,
     command: &serde_json::Value,
@@ -579,13 +575,13 @@ async fn handle(
                         .next_offset
                         .clone()
                         .unwrap_or_else(|| "-1".to_string());
-                    let more = handle
+                    let next_page = handle
                         .read()
                         .mode(ReadMode::CatchUp)
                         .offset(next)
                         .send()
                         .await;
-                    match more {
+                    match next_page {
                         Ok(page) if !page.chunks.is_empty() => {
                             count += page.chunks.len();
                             result.chunks.extend(page.chunks);
@@ -695,15 +691,12 @@ async fn handle(
             let mut content_type = state.types.get(path).cloned();
 
             let items: Vec<Vec<u8>> = if kind == "idempotent-append-batch" {
-                command["items"]
-                    .as_array()
-                    .map(|items| {
-                        items
-                            .iter()
-                            .filter_map(|item| item.as_str().map(|value| value.as_bytes().to_vec()))
-                            .collect()
-                    })
-                    .unwrap_or_default()
+                command["items"].as_array().map_or_default(|items| {
+                    items
+                        .iter()
+                        .filter_map(|item| item.as_str().map(|value| value.as_bytes().to_vec()))
+                        .collect()
+                })
             } else {
                 Vec::new()
             };
@@ -997,6 +990,8 @@ fn header_number(headers: &std::collections::BTreeMap<String, String>, name: &st
 
 /// Answer one read on its own thread. The sink keeps the result in order.
 #[cfg(not(target_arch = "wasm32"))]
+// The read path is one place by design: one mode, one result shape.
+#[allow(clippy::too_many_lines)]
 async fn handle_read(
     client: &Client,
     command: &serde_json::Value,
@@ -1035,7 +1030,7 @@ async fn handle_read(
         let result = sse_read(builder, ctx, timeout_ms, max_chunks, wait_for_up_to_date).await;
         return match result {
             Ok(result) => {
-                read_result_json(&result, provider.headers_sent(), provider.params_sent())
+                read_result_json(&result, &provider.headers_sent(), &provider.params_sent())
             }
             Err(error) => client_error("read", &error),
         };
@@ -1056,13 +1051,13 @@ async fn handle_read(
                 .next_offset
                 .clone()
                 .unwrap_or_else(|| "-1".to_string());
-            let more = handle
+            let next_page = handle
                 .read()
                 .mode(ReadMode::CatchUp)
                 .offset(next)
                 .send()
                 .await;
-            match more {
+            match next_page {
                 Ok(page) if !page.chunks.is_empty() => {
                     count += page.chunks.len();
                     result.chunks.extend(page.chunks);
@@ -1122,7 +1117,7 @@ async fn handle_read(
         }
     }
 
-    read_result_json(&result, provider.headers_sent(), provider.params_sent())
+    read_result_json(&result, &provider.headers_sent(), &provider.params_sent())
 }
 
 /// Build one JSON array body from the items of a batch.
@@ -1144,15 +1139,16 @@ fn json_array_body(items: &[Vec<u8>]) -> Vec<u8> {
 #[cfg(not(target_arch = "wasm32"))]
 fn read_result_json(
     result: &ReadResult,
-    headers_sent: serde_json::Map<String, serde_json::Value>,
-    params_sent: serde_json::Map<String, serde_json::Value>,
+    headers_sent: &serde_json::Map<String, serde_json::Value>,
+    params_sent: &serde_json::Map<String, serde_json::Value>,
 ) -> serde_json::Value {
     let chunks: Vec<serde_json::Value> = result
         .chunks
         .iter()
-        .map(|chunk| match std::str::from_utf8(&chunk.data) {
-            Ok(text) => serde_json::json!({ "data": text }),
-            Err(_) => {
+        .map(|chunk| {
+            if let Ok(text) = std::str::from_utf8(&chunk.data) {
+                serde_json::json!({ "data": text })
+            } else {
                 use base64::Engine as _;
                 serde_json::json!({
                     "data": base64::engine::general_purpose::STANDARD.encode(&chunk.data),
@@ -1188,15 +1184,15 @@ async fn sse_read(
     max_chunks: usize,
     wait_for_up_to_date: bool,
 ) -> Result<ReadResult, foundation_core::durable::client::ClientError> {
+    enum Step {
+        Item(Result<Option<ReadChunk>, foundation_core::durable::client::ClientError>),
+        Timeout,
+    }
     let mut read = builder.mode(ReadMode::Sse).open_sse().await?;
     let mut result = ReadResult {
         status: read.status(),
         ..ReadResult::default()
     };
-    enum Step {
-        Item(Result<Option<ReadChunk>, foundation_core::durable::client::ClientError>),
-        Timeout,
-    }
     let timer = ctx.try_timer().map_err(|error| {
         foundation_core::durable::client::ClientError::MissingClock(error.to_string())
     })?;
@@ -1218,8 +1214,8 @@ async fn sse_read(
             }
         };
         match futures_lite::future::or(item, timeout).await {
-            Step::Item(item) => match item? {
-                Some(chunk) => {
+            Step::Item(item) => {
+                if let Some(chunk) = item? {
                     if !chunk.data.is_empty() {
                         result.chunks.push(chunk);
                     }
@@ -1230,12 +1226,11 @@ async fn sse_read(
                     if wait_for_up_to_date && read.up_to_date() {
                         break;
                     }
-                }
-                None => {
+                } else {
                     result.up_to_date = true;
                     break;
                 }
-            },
+            }
             Step::Timeout => {
                 result.up_to_date = true;
                 result.status = 204;
