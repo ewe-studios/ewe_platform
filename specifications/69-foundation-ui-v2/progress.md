@@ -2166,3 +2166,12 @@ The browser transport now documents the errors from its three fallible entry poi
 The Todo changes keep the serialized request and the same state transitions.
 [Todo lint issue](https://github.com/ewe-studios/ewe_platform/issues/1175)
 [Transport documentation issue](https://github.com/ewe-studios/ewe_platform/issues/1183)
+
+## 2026-11-28 — Simulator graphics extent and device ownership
+
+The iPhone simulator passes all three Metal graphics tests.
+The owned surface test rejects the oversized extent with the public surface error.
+The next valid resize presents. Readback finds both expected colors.
+The handoff tests use the original Metal queue and texture and check host refusal.
+The Android 36 Arm emulator passes both owned surface tests and the borrowed Vulkan test.
+[Issue 1186](https://github.com/ewe-studios/ewe_platform/issues/1186)

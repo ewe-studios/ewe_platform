@@ -1619,3 +1619,9 @@ It still uses the same future interface as the native and browser stores.
 A ready future keeps that interface without another scheduler step.
 The countdown request keeps the serialized field name `request`.
 An unused state flag has no reader. Expiry still clears the pending request.
+
+## 2026-11-28 — Simulator graphics extent and device ownership
+
+The native bridge reports an oversized extent as `GraphicsError.IncompatibleSurface`.
+The Swift test checks that public error and presents again on the same graphics owner.
+Keep the borrowed device and the owned surface checks in one simulator run.
