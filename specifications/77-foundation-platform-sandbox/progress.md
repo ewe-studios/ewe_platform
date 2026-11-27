@@ -607,7 +607,8 @@ Features 00 to 05 are on `master` and their tests pass in CI.
     feature 12, with feature 10 merged.
 11. Feature 14 (the Sandboxfile builder): branch `spec77/f14-sandboxfile-builder`, merged
     into pull request #1009.
-12. Feature 15 (registry pull): on branch `spec77/f15-registry-pull`, from feature 14.
+12. Feature 15 (registry pull): branch `spec77/f15-registry-pull`, merged into pull request
+    #1009. No spec 77 feature branch remains.
 
 ## Milestones
 
