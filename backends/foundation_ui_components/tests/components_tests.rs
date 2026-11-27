@@ -4,7 +4,7 @@
 //!
 //! WHAT: separator's pure markup, toggle's signal→`data-pressed` reflection,
 //! and the M6 field binding actually driving the six state signals (the
-//! FieldBinding callbacks invoked through the runtime).
+//! `FieldBinding` callbacks invoked through the runtime).
 //!
 //! HOW: pure components are inspected as `Html`; reactive ones mount through
 //! `App::mock`, `stabilize`, and assert the captured operations / signal values.
@@ -149,8 +149,8 @@ fn field_binding_input_and_blur_drive_state() {
     );
 
     // Initial state.
-    assert_eq!(state.filled.get(), false);
-    assert_eq!(state.touched.get(), false);
+    assert!(!state.filled.get());
+    assert!(!state.touched.get());
     assert_eq!(state.valid.get(), None);
 
     let (focus_id, blur_id, input_id) = *ids.borrow();
@@ -518,7 +518,7 @@ fn scoped_script_builds_primal_script_node() {
 fn composite_behavior_is_a_roving_script() {
     use foundation_ui_components::machinery::composite::{composite_behavior, COMPOSITE_JS};
     let s = composite_behavior();
-    assert!(s.children.is_empty());
+    assert_eq!(s.children, [] as [Html; 0]);
     assert!(s
         .attributes
         .iter()
@@ -655,7 +655,7 @@ fn radio_group_wires_roving_and_move_and_select() {
 fn dismiss_behavior_is_a_light_dismiss_script() {
     use foundation_ui_components::machinery::dismiss::{dismiss_behavior, DISMISS_JS};
     let s = dismiss_behavior();
-    assert!(s.children.is_empty());
+    assert_eq!(s.children, [] as [Html; 0]);
     assert!(s
         .attributes
         .iter()
@@ -681,7 +681,7 @@ fn dismiss_behavior_is_a_light_dismiss_script() {
 fn position_behavior_emits_placement_and_var_contract() {
     use foundation_ui_components::machinery::position::{position_behavior, POSITION_JS};
     let s = position_behavior();
-    assert!(s.children.is_empty());
+    assert_eq!(s.children, [] as [Html; 0]);
     assert!(s
         .attributes
         .iter()
@@ -711,7 +711,7 @@ fn position_behavior_emits_placement_and_var_contract() {
 fn transition_behavior_manages_starting_and_ending_styles() {
     use foundation_ui_components::machinery::transition::{transition_behavior, TRANSITION_JS};
     let s = transition_behavior();
-    assert!(s.children.is_empty());
+    assert_eq!(s.children, [] as [Html; 0]);
     assert!(s
         .attributes
         .iter()
@@ -734,7 +734,7 @@ fn transition_behavior_manages_starting_and_ending_styles() {
 fn scroll_lock_behavior_locks_and_restores() {
     use foundation_ui_components::machinery::scroll_lock::{scroll_lock_behavior, SCROLL_LOCK_JS};
     let s = scroll_lock_behavior();
-    assert!(s.children.is_empty());
+    assert_eq!(s.children, [] as [Html; 0]);
     assert!(s
         .attributes
         .iter()
@@ -828,6 +828,7 @@ fn toolbar_marks_children_as_composite_members() {
 
 #[test]
 fn select_renders_listbox_options_and_hidden_input() {
+    use foundation_ui_components::pickers::SELECT_ALIGN_JS;
     let (app, sent) = App::mock();
     let (ctx, rcv) = app.context();
     let (open, set_open) = ctx.signal(false);
@@ -861,7 +862,6 @@ fn select_renders_listbox_options_and_hidden_input() {
     assert!(ops.iter().any(|op| matches!(op,
         OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-select-scroll") && row.value.as_deref().unwrap_or_default() == "up")),
         "scroll arrows present");
-    use foundation_ui_components::pickers::SELECT_ALIGN_JS;
     assert!(
         SELECT_ALIGN_JS.contains("data-selected") && SELECT_ALIGN_JS.contains("scrollTop"),
         "aligns + scrolls the selected item"
@@ -901,6 +901,7 @@ fn select_is_generic_over_t_with_to_form_value() {
 
 #[test]
 fn navigation_menu_is_nav_with_linked_panels() {
+    use foundation_ui_components::nav_menu::NAV_MENU_JS;
     let (app, sent) = App::mock();
     let (ctx, rcv) = app.context();
     let (active, set_active) = ctx.signal::<Option<String>>(None);
@@ -940,7 +941,6 @@ fn navigation_menu_is_nav_with_linked_panels() {
     assert!(ops.iter().any(|op| matches!(op,
         OperationT { web: Web::WebSetAttribute(ref row), .. } if wire_name(row.attr_id, row.custom_attr.as_deref(), foundation_ui_traits::ATTR_NAMES) == Some("data-nav-content") && row.value.as_deref().unwrap_or_default() == "true")),
         "contents live in the shared viewport");
-    use foundation_ui_components::nav_menu::NAV_MENU_JS;
     assert!(
         NAV_MENU_JS.contains("--popup-width") && NAV_MENU_JS.contains("activation-direction"),
         "viewport measures + slides"
@@ -1206,7 +1206,7 @@ fn toast_swipe_to_dismiss_wired() {
     let (ctx, rcv) = app.context();
     let manager = ToastManager::new(&ctx);
     let _h = toast_viewport(&ctx, &rcv, &manager);
-    assert!(!manager.add(Toast::new("", "Saved")).is_empty());
+    assert_ne!(manager.add(Toast::new("", "Saved")), "");
     app.stabilize().unwrap();
     let ops = all_ops(&sent);
     assert!(ops.iter().any(|op| matches!(op,
@@ -1391,7 +1391,7 @@ fn tabs_selection_drives_aria_and_automatic_mode_selects() {
 fn focus_trap_behavior_traps_and_restores() {
     use foundation_ui_components::machinery::focus_trap::{focus_trap_behavior, FOCUS_TRAP_JS};
     let s = focus_trap_behavior();
-    assert!(s.children.is_empty());
+    assert_eq!(s.children, [] as [Html; 0]);
     assert!(s
         .attributes
         .iter()
@@ -1680,13 +1680,13 @@ fn context_menu_wires_surface_and_contextmenu() {
 
     let (app, sent) = App::mock();
     let (ctx, rcv) = app.context();
-    let (open, _set_open) = ctx.signal(false);
+    let (open, set_open) = ctx.signal(false);
     let _h = context_menu(
         &ctx,
         &rcv,
         MenuConfig::default(),
         &open,
-        _set_open,
+        set_open,
         vec![Slot::from(Html::text("Right-click me"))],
         vec![MenuEntry::Item {
             cfg: ItemConfig::default(),

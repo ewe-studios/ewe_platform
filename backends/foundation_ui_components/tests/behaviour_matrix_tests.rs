@@ -92,7 +92,10 @@ fn fragment_and_anchored_markers_bind_to_the_supplied_parent() {
     let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     assert_eq!(mount_fragment(&ctx, &receiver, swipe_behavior(), 42), 42);
-    assert!(mount_before(&ctx, &receiver, snap_behavior(), 42, 99).is_empty());
+    assert_eq!(
+        mount_before(&ctx, &receiver, snap_behavior(), 42, 99),
+        [] as [u32; 0]
+    );
     app.stabilize().unwrap();
     let batches = sent.borrow();
     let forms: Vec<_> = batches

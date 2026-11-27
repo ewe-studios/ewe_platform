@@ -1755,3 +1755,9 @@ The current generator resolves one Foundation Resources source in the mobile and
 The scratch Git mirror omits unrelated tool submodules and retains the package source bytes.
 The Android emulator tool reports duplicate SDK paths from the installation aliases.
 [Android SDK discovery](https://github.com/ewe-studios/ewe_platform/issues/1206)
+
+## Component integration lint
+
+A strict lint failure can prevent the package test command from running.
+Compare collections directly to show their contents when assertions fail.
+Keep the setup, inputs, and checks of the existing tests.

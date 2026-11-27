@@ -2379,3 +2379,6 @@ The Linux package job stops at 14 strict Clippy diagnostics in two integration t
 Keep the existing assertions and test cases.
 Run the existing Linux strict lint and test commands before delivery.
 [Issue 1208](https://github.com/ewe-studios/ewe_platform/issues/1208)
+
+The Linux AMD64 build passes the exact strict Clippy gate.
+All 56 integration tests pass. Two existing documentation tests stay ignored.
