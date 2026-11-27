@@ -4,9 +4,10 @@ disallowed-methods = [
   { path = "std::time::SystemTime::now", reason = "read ctx.clock().wall_now()" },
   { path = "std::time::Instant::now", reason = "read ctx.clock().now()" },
   # This crate has no `rand` dependency, so `rand::thread_rng` is not reachable.
-  # The reachable global entropy function, `foundation_compact::entropy::fill`,
-  # is banned below.
+  # The reachable global entropy functions, `foundation_compact::entropy::fill`
+  # and the thread RNG, are banned below.
   { path = "foundation_compact::entropy::fill", reason = "read ctx.require_env()?.entropy()" },
+  { path = "foundation_compact::rng::rng", reason = "read ctx.rng()" },
   { path = "foundation_compact::ids::new_scru128", reason = "read ctx.require_env()?.ids()" },
   { path = "foundation_compact::ids::new_scru128_string", reason = "read ctx.require_env()?.ids()" },
 ]
