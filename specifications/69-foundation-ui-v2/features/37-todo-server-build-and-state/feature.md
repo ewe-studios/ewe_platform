@@ -296,3 +296,14 @@ Use the countdown and pending captures referenced above to check the view.
 1. Run the server library and binary Clippy checks with warnings denied.
 2. Run the browser countdown check. Verify pending, retry, and resume.
 3. Run the native client tests. Verify the independent countdown sessions.
+
+### Windows HTTP and browser coverage
+
+The installed browser driver and portable HTTP tests use the available Windows transport.
+The native Todo server uses the Unix HTTP server, including its socket reactor and reply writer.
+Run the native server on a supported host for the mounted package and synchronization checks.
+The required three-host sequence uses Chrome, iPhone, and Android.
+
+Keep the Unix test server and all its existing assertions on Unix.
+Run both configured HTTP test variants and the browser driver tests on Windows.
+Report their actual test results separately from the native Todo server checks.

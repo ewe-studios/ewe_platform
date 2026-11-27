@@ -8,7 +8,7 @@
 //! handler that blocks or sleeps on the worker shows up as a late answer to a
 //! second request.
 
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::io::{Read, Write};
 use std::net::TcpStream;

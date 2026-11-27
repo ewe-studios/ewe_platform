@@ -5,7 +5,7 @@
 //! `foundation_http` H3 server over loopback UDP, and an echo `H3Serve` handler
 //! reflects the request body. Proves the H3 serving layer works, not stubs.
 
-#![cfg(feature = "quic")]
+#![cfg(all(feature = "quic", unix))]
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};

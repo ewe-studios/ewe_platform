@@ -6,6 +6,7 @@
 
 #![cfg(feature = "browser-tests")]
 
+#[cfg(unix)]
 use foundation_browser::test::{Harness, TestConfig};
 use foundation_browser::{BrowserDriver, LaunchConfig};
 use foundation_context::Ctx;
@@ -92,6 +93,7 @@ fn locator_geometry_attributes_style_and_input() {
     assert_eq!(val.as_str(), Some("hello"), "input received typed text");
 }
 
+#[cfg(unix)]
 #[test]
 fn harness_serves_drives_and_tears_down() {
     let harness = Harness::setup(TestConfig {
@@ -111,6 +113,7 @@ fn harness_serves_drives_and_tears_down() {
 }
 
 // The ergonomic form: the macro owns setup + teardown.
+#[cfg(unix)]
 #[foundation_browser::wasm_ui_server(
     html = "<button id='go'>Go</button><div id='out'></div><script>document.getElementById('go').onclick=function(){document.getElementById('out').textContent='ok'}</script>"
 )]
@@ -123,6 +126,7 @@ fn macro_drives_a_served_page(
     Ok(())
 }
 
+#[cfg(unix)]
 #[test]
 fn file_page_source_and_static_directory() {
     use std::io::Write;
@@ -161,6 +165,7 @@ fn file_page_source_and_static_directory() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+#[cfg(unix)]
 #[test]
 fn channel_a_streams_a_frame_to_the_browser() {
     // The page opens the channel-A SSE stream and renders each frame (base64 → text).
@@ -190,6 +195,7 @@ fn channel_a_streams_a_frame_to_the_browser() {
 }
 
 /// The messages the live browser cycles through (mounted, then live updates).
+#[cfg(unix)]
 const MESSAGES: [&str; 4] = [
     "Hello from Rust 👋",
     "Updated live from a Rust signal! ✨",
@@ -198,18 +204,22 @@ const MESSAGES: [&str; 4] = [
 ];
 
 /// 800×800 so a headful window is comfortably visible (no effect headless).
+#[cfg(unix)]
 const WINDOW: Option<(u32, u32)> = Some((800, 800));
 
+#[cfg(unix)]
 fn is_headful() -> bool {
     std::env::var("PRIMAL_TEST_HEADFUL").is_ok()
 }
 
+#[cfg(unix)]
 fn watch_pause(headful: bool) {
     if headful {
         std::thread::sleep(std::time::Duration::from_millis(1400));
     }
 }
 
+#[cfg(unix)]
 fn protocol_page(title: &str, frame: bool, body: &str) -> String {
     let (api, protocol) = if frame {
         ("/__primal/live", "frame")
@@ -229,6 +239,7 @@ fn protocol_page(title: &str, frame: bool, body: &str) -> String {
 
 /// Mount the greeting with EWF1 and update its signal
 /// through every message, asserting each lands in the real browser.
+#[cfg(unix)]
 fn drive_greeting(
     app: foundation_wasm_ui::App,
     page: &foundation_browser::Page,
@@ -259,6 +270,7 @@ fn drive_greeting(
     Ok(())
 }
 
+#[cfg(unix)]
 #[test]
 fn frame_updates_a_real_browser() {
     let headful = is_headful();
@@ -278,6 +290,7 @@ fn frame_updates_a_real_browser() {
     });
 }
 
+#[cfg(unix)]
 #[test]
 fn mode1_html_streams_to_real_browser() {
     let headful = is_headful();
@@ -310,6 +323,7 @@ fn mode1_html_streams_to_real_browser() {
 // HTTPS — the TestServer serves TLS with the bundled localhost dev cert; the
 // browser trusts it (--ignore-certificate-errors). Proves secure-context pages
 // load and a secure-context-only API (crypto.subtle) is available.
+#[cfg(unix)]
 #[test]
 fn https_serves_a_secure_context() {
     let harness = Harness::setup(TestConfig {
@@ -336,6 +350,7 @@ fn https_serves_a_secure_context() {
 // The primal-test helper (spec-43 §6): the runtime's frame instrument +
 // `page.wait_for_reactive` + `page.bounding_boxes`, and the served in-page
 // `window.__primalTest` API.
+#[cfg(unix)]
 #[test]
 fn primal_test_helper_and_reactive_settle() {
     use foundation_wasm_ui::{html, App};
@@ -394,6 +409,7 @@ fn primal_test_helper_and_reactive_settle() {
 // `data:` navigation, so these go through the served HTTP harness). Skipped
 // gracefully when Firefox isn't installed.
 
+#[cfg(unix)]
 fn firefox_or_skip(config: TestConfig) -> Option<Harness> {
     use foundation_browser::{Browser, BrowserError};
     match Harness::setup(TestConfig {
@@ -415,6 +431,7 @@ fn firefox_or_skip(config: TestConfig) -> Option<Harness> {
 // served over HTTP (Firefox blocks top-level `data:` navigation). Same Locator
 // surface — count, geometry, visibility, attributes, computed style, trusted
 // click/hover/fill — over BiDi instead of CDP.
+#[cfg(unix)]
 #[test]
 fn firefox_locator_geometry_attributes_style_and_input() {
     let Some(harness) = firefox_or_skip(TestConfig {
@@ -461,6 +478,7 @@ fn firefox_locator_geometry_attributes_style_and_input() {
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn firefox_frame_updates_a_real_browser() {
     let headful = is_headful();
@@ -481,6 +499,7 @@ fn firefox_frame_updates_a_real_browser() {
     });
 }
 
+#[cfg(unix)]
 #[test]
 fn firefox_mode1_html_streams_to_real_browser() {
     let page = protocol_page("firefox · html", false, "<div id=\"stage\"></div>");
@@ -506,6 +525,7 @@ fn firefox_mode1_html_streams_to_real_browser() {
     });
 }
 
+#[cfg(unix)]
 #[test]
 fn firefox_primal_test_helper_and_reactive_settle() {
     use foundation_wasm_ui::{html, App};
@@ -550,11 +570,13 @@ fn firefox_primal_test_helper_and_reactive_settle() {
     });
 }
 
+#[cfg(unix)]
 fn alloc_str(s: &str) -> String {
     s.to_string()
 }
 
 /// Deliver Rust frame bytes over server-sent events and apply them in Chromium.
+#[cfg(unix)]
 #[test]
 fn ewf1_stream_updates_the_browser() {
     let html = include_str!("fixtures/ewf1-page.html");
@@ -574,16 +596,19 @@ fn ewf1_stream_updates_the_browser() {
 }
 
 /// Compare local and streamed delivery of the same Rust frame.
+#[cfg(unix)]
 #[test]
 fn wasm_and_sse_render_the_same_button() {
     compare_runtime_frame("foundation-ui-runtime.js");
 }
 
+#[cfg(unix)]
 #[test]
 fn compact_runtime_renders_the_same_button() {
     compare_runtime_frame("foundation-ui-runtime.min.js");
 }
 
+#[cfg(unix)]
 fn compare_runtime_frame(runtime: &str) {
     let backends = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
