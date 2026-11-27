@@ -39,10 +39,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install pinned tools
+      - &install-native-protoc
+        name: Install the pinned Protocol Buffers compiler
         run: |
           command -v mise >/dev/null || brew install mise
           mise trust --yes mise.toml
+          mise install --locked --yes protoc
+          echo "$(mise where protoc)/bin" >> "$GITHUB_PATH"
+      - name: Install pinned tools
+        run: |
+          unset ANDROID_SDK_ROOT
           mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
           mise run toolchain:android
       - name: Build the native task command
@@ -54,6 +60,7 @@ jobs:
         run: native-task task run native:release:check-version --tag "$GITHUB_REF_NAME"
       - name: Check platform bindings and build the starter applications
         run: |
+          unset ANDROID_SDK_ROOT
           native-task task run native:bindings:sync-ios --check
           native-task task run native:bindings:sync-android --check
           python3 scripts/ui/check_behaviours.py ios
@@ -77,18 +84,14 @@ jobs:
       - uses: jdx/mise-action@v5.2.10
         with:
           install: false
-      - name: Install the pinned protoc
-        # `foundation_ui_connectrpc`'s build script runs protoc, and this job
-        # builds outside the CI image (issue #875).
-        run: |
-          mise install --locked --yes protoc
-          echo "$(mise where protoc)/bin" >> "$GITHUB_PATH"
+      - *install-native-protoc
       - name: Build the native task command
         run: |
           cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
           echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Build and exercise the Android libraries and examples
         run: |
+          unset ANDROID_SDK_ROOT
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
           mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
@@ -112,6 +115,10 @@ jobs:
         with:
           name: native-candidate
           path: candidate
+      - uses: jdx/mise-action@v5.2.10
+        with:
+          install: false
+      - *install-native-protoc
       - name: Build the native task command
         run: |
           cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
@@ -145,14 +152,14 @@ jobs:
         with:
           name: native-candidate
           path: candidate
+      - *install-native-protoc
       - name: Build the native task command
         run: |
           cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
           echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Resolve both public packages
         run: |
-          command -v mise >/dev/null || brew install mise
-          mise trust --yes mise.toml
+          unset ANDROID_SDK_ROOT
           mise install --locked --yes java gradle http:android-sdk python node
           mise run toolchain:android
           mise exec -- native-task task run native:release:verify --candidate candidate --templates both --public
@@ -171,12 +178,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - *install-native-protoc
       - name: Build the native task command
         run: |
           cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
           echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
       - name: Run the public Android starter
         run: |
+          unset ANDROID_SDK_ROOT
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
           mise install --locked --yes java gradle http:android-sdk python node
