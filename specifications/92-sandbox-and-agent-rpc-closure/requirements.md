@@ -35,8 +35,11 @@ Out of scope:
 - Feature 16 (Docker Sandboxes, `sbx`) is rejected by the owner (spec 77 decision D18).
 - New drivers, new deploy targets and new sandbox images.
 - Spec 69 work, which another person owns.
-- The Dependabot alert #897 (`deno_webidl`): it needs the whole deno set to move, and the
-  move off Deno (`rusty_v8`) is studied separately before any change.
+- The `deno_*` set and issue #139 (replace `deno_core` with the `v8` crate). The study is
+  done: Deno is only the embedded test runtime in `foundation_testbed`, the move is 2,300 to
+  3,000 new lines, and no `deno_*` alert is open. The recommendation is to bump the whole
+  Deno set to `deno_core` 0.413 as one group and keep #139 as the contingency; the assessment
+  is recorded on #139. This spec does not carry that bump.
 
 ## 3. Rules
 
