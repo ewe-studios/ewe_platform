@@ -321,8 +321,11 @@ mod real {
     /// `e2e_build_network`: a network step needs a driver that gives one.
     ///
     /// A Firecracker guest has no network, so the test returns with the reason.
-    /// The Linux host must run this row on libkrun with block support, with a
-    /// local HTTP server at a known address.
+    /// The `libkrun` form in `krun` runs the row on a host with block support.
+    #[allow(
+        dead_code,
+        reason = "a build with both features uses the libkrun form of this row"
+    )]
     pub fn build_network() {
         let Some((ctx, host)) = usable_host() else {
             return;
@@ -803,6 +806,169 @@ find / -xdev \
     }
 }
 
+/// The libkrun form of the network build row (issue #1013).
+///
+/// A Firecracker guest has no network. libkrun gives the guest the host
+/// network, and it needs block device support to run the imported ext4 image.
+#[cfg(feature = "libkrun")]
+mod krun {
+    use std::io::{Read as _, Write as _};
+    use std::net::TcpListener;
+    use std::path::{Path, PathBuf};
+    use std::sync::Arc;
+
+    use foundation_context::Ctx;
+    use foundation_core::env;
+    use foundation_sandbox::native::images::build::executor::ImageBuilder;
+    use foundation_sandbox::native::images::build::BuildOptions;
+    use foundation_sandbox::native::images::import::ImageImporter;
+    use foundation_sandbox::native::images::sandboxfile::Sandboxfile;
+    use foundation_sandbox::native::images::ImageStore;
+    use foundation_sandbox::native::libkrun::driver::LibkrunDriver;
+    use foundation_sandbox::shared::control::{
+        ManagerConfig, MemoryRecordStore, SandboxManager, SandboxProvider,
+    };
+    use foundation_sandbox::shared::driver::SandboxDriver;
+    use foundation_sandbox::shared::host::{HostConfig, SandboxHost};
+
+    /// Whether the image store can start `mkfs.ext4`.
+    fn mkfs_available(config: &HostConfig) -> bool {
+        config.mkfs_ext4_path.is_some()
+            || [
+                "/sbin/mkfs.ext4",
+                "/usr/sbin/mkfs.ext4",
+                "/usr/bin/mkfs.ext4",
+            ]
+            .iter()
+            .any(|path| Path::new(path).exists())
+    }
+
+    /// A libkrun host with block support, or `None` with the printed reason.
+    fn usable_host() -> Option<(Ctx, SandboxHost)> {
+        crate::pool::pool();
+        let ctx = Ctx::host();
+        let effects = env::system(&ctx).ok()?;
+        ctx.store(effects);
+        let exe_dir = std::env::current_exe()
+            .ok()
+            .and_then(|path| path.parent().map(Path::to_path_buf))?;
+        let config = HostConfig::discover(|name| std::env::var(name).ok(), &exe_dir);
+        if !mkfs_available(&config) {
+            eprintln!("skip: mkfs.ext4 is not installed");
+            return None;
+        }
+        let host = SandboxHost::native(config);
+        ctx.store(host.clone());
+        let report = crate::pool::block_on(LibkrunDriver::new().probe(ctx.clone()));
+        if !report.usable {
+            eprintln!("skip: the host cannot run libkrun: {report:?}");
+            return None;
+        }
+        if !report.capabilities.network_host {
+            eprintln!("skip: the libkrun host gives the guest no network");
+            return None;
+        }
+        if !report.capabilities.rootfs_ext4 {
+            eprintln!(
+                "skip: libkrun has no block device support; build it with `BLK=1` for the ext4 image"
+            );
+            return None;
+        }
+        Some((ctx, host))
+    }
+
+    /// A manager over the libkrun driver.
+    fn manager(ctx: &Ctx, host: &SandboxHost) -> Arc<SandboxManager> {
+        Arc::new(SandboxManager::new(
+            ctx.clone(),
+            vec![Arc::new(LibkrunDriver::new())],
+            host.connector.clone(),
+            Arc::new(MemoryRecordStore::default()),
+            ManagerConfig::default(),
+        ))
+    }
+
+    /// A fresh directory below the temporary directory.
+    fn temp_dir(tag: &str) -> PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "ewe-e2e-images-{tag}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |duration| duration.as_nanos())
+        ));
+        let _ = std::fs::remove_dir_all(&path);
+        std::fs::create_dir_all(&path).expect("the temporary directory is made");
+        path
+    }
+
+    /// A server on the host loopback that answers one request.
+    fn start_http_server() -> (String, std::thread::JoinHandle<()>) {
+        let listener =
+            TcpListener::bind("127.0.0.1:0").expect("the test server binds a loopback port");
+        let port = listener
+            .local_addr()
+            .expect("the test server address")
+            .port();
+        let handle = std::thread::spawn(move || {
+            if let Ok((mut stream, _)) = listener.accept() {
+                let mut request = [0_u8; 1024];
+                let _ = stream.read(&mut request);
+                let _ = stream.write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: close\r\n\r\nkrunok",
+                );
+            }
+        });
+        (format!("http://127.0.0.1:{port}/"), handle)
+    }
+
+    /// `e2e_build_network`: a `RUN --network host` step reaches a local server.
+    ///
+    /// Set `EWE_TEST_HTTP_URL` to use a server that the caller started, as the
+    /// other network tests use `EWE_TEST_REGISTRY`. Otherwise the test starts a
+    /// server on the host loopback.
+    pub fn build_network() {
+        let Some((ctx, host)) = usable_host() else {
+            return;
+        };
+        let directory = temp_dir("build-network-krun");
+        let (url, server) = match std::env::var("EWE_TEST_HTTP_URL") {
+            Ok(url) => (url, None),
+            Err(_) => {
+                let (url, server) = start_http_server();
+                (url, Some(server))
+            }
+        };
+        let text =
+            format!("FROM alpine:3.22\nRUN --network host wget -q -T 10 -O /dev/null {url}\n");
+        let store = ImageStore::new(ctx.clone(), host.clone());
+        let control: Arc<dyn SandboxProvider> = manager(&ctx, &host);
+        let importer = ImageImporter::new(
+            ctx.clone(),
+            host.clone(),
+            store.clone(),
+            Arc::clone(&control),
+            None,
+        );
+        let builder =
+            ImageBuilder::new(ctx.clone(), host.clone(), store.clone(), importer, control);
+        let file = Sandboxfile::parse(&text).expect("the build file parses");
+        crate::pool::block_on(builder.build(
+            &file,
+            &directory,
+            BuildOptions {
+                tag: Some("e2e-build-network-krun".to_string()),
+                ..BuildOptions::default()
+            },
+        ))
+        .expect("the network step reaches the host server");
+        if let Some(server) = server {
+            let _ = server.join();
+        }
+        let _ = std::fs::remove_dir_all(&directory);
+    }
+}
+
 /// Writes one file below `root`, with its parent directories.
 #[cfg(all(target_os = "linux", feature = "firecracker"))]
 fn write_file(root: &Path, relative: &str, data: &[u8]) {
@@ -876,11 +1042,30 @@ e2e_test!(
     build_owners,
     "this test needs a Linux host with the firecracker feature"
 );
-e2e_test!(
-    e2e_build_network,
-    build_network,
-    "this test needs a Linux host with the firecracker feature"
-);
+/// `e2e_build_network`: a `RUN --network host` step reaches a local server.
+///
+/// A libkrun host with block support runs the row. A build without libkrun
+/// falls back to the Firecracker row, which prints the reason that a
+/// Firecracker guest has no network.
+#[test]
+fn e2e_build_network() {
+    #[cfg(feature = "libkrun")]
+    {
+        krun::build_network();
+        return;
+    }
+    #[cfg(all(target_os = "linux", feature = "firecracker", not(feature = "libkrun")))]
+    {
+        real::build_network();
+        return;
+    }
+    #[cfg(not(any(
+        feature = "libkrun",
+        all(target_os = "linux", feature = "firecracker")
+    )))]
+    skip("this test needs a libkrun host with block support, or a Linux host with the firecracker feature");
+}
+
 e2e_test!(
     e2e_build_resume,
     build_resume,

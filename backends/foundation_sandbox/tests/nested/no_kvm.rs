@@ -167,7 +167,7 @@ fn e2e_nested_no_kvm_host() {
     let parent = crate::pool::block_on(manager.create(parent_spec()))
         .expect("the parent starts without /dev/kvm");
     let id: SandboxId = parent.id().clone();
-    let mut guard = KillOnDrop {
+    let guard = KillOnDrop {
         handles: Mutex::new(Vec::new()),
     };
     guard
