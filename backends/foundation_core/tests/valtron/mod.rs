@@ -19,6 +19,8 @@ mod clock_injection;
 mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
+#[cfg(all(feature = "test-clock", not(target_family = "wasm")))]
+mod ctx_timer;
 mod ctx_reexport;
 #[cfg(feature = "std")]
 #[cfg(not(target_family = "wasm"))]

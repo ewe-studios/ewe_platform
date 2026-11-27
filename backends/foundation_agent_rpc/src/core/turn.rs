@@ -8,8 +8,8 @@
 //! [`guarded_turn`] (the stream that a registry returns).
 //!
 //! HOW: the stream polls the model events and a timer at the same time. The
-//! timer comes from the injected [`Env`], so a simulation can test it with no
-//! real wait.
+//! timer comes from [`Ctx::timer`], so a simulation can test it with no real
+//! wait.
 
 use std::pin::Pin;
 use std::sync::Arc;
@@ -133,6 +133,10 @@ struct GuardedTurn<E, G> {
     guard: Option<G>,
     abort: Arc<dyn Fn() + Send + Sync>,
     ctx: Ctx,
+    /// The effects bundle. The turn now derives its timer from the context
+    /// ([`Ctx::timer`], spec 92), so this field is not read here; the registry
+    /// still passes it in the `guarded_turn` contract.
+    #[allow(dead_code)]
     env: Env,
     idle_timeout: Duration,
     total_deadline: Option<Instant>,
@@ -149,7 +153,9 @@ where
         let now = self.ctx.clock().now();
         let idle = now + self.idle_timeout;
         let deadline = self.total_deadline.map_or(idle, |total| total.min(idle));
-        self.timer = Some(self.env.timer().sleep_until(self.ctx.clone(), deadline));
+        // Spec 92: the context derives the timer. The `Env` timer is only an
+        // override, so the turn no longer reads `self.env` for it.
+        self.timer = Some(self.ctx.timer().sleep_until(self.ctx.clone(), deadline));
     }
 
     fn finish(&mut self) {

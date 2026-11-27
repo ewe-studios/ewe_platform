@@ -956,15 +956,17 @@ impl SubscriptionEngine {
 
     /// Send one webhook within the delivery timeout.
     ///
-    /// The engine uses the timer from the injected [`foundation_context::env::Env`]. A host that
-    /// installs no `Env` gets no engine bound, and the sender's transport timeouts apply.
+    /// The timer comes from the context ([`Ctx::timer`], spec 92). A bounded
+    /// delivery no longer needs a host-installed `Env` timer and never falls
+    /// back to an unbounded send (GitHub issue #1090). A `delivery_timeout_ms`
+    /// of 0 still disables the engine bound on purpose.
     async fn send_bounded(&self, request: WebhookRequest) -> DeliveryOutcome {
         let timeout_ms = self.config().delivery_timeout_ms;
-        let Some(env) = self.ctx.env().filter(|_| timeout_ms > 0) else {
+        if timeout_ms == 0 {
             return DeliveryOutcome::Answered(self.sender.send(request).await);
-        };
+        }
         let deadline = self.ctx.clock().now() + std::time::Duration::from_millis(timeout_ms);
-        let timer = env.timer().sleep_until(self.ctx.clone(), deadline);
+        let timer = self.ctx.timer().sleep_until(self.ctx.clone(), deadline);
         let send = async move { DeliveryOutcome::Answered(self.sender.send(request).await) };
         let timeout = async move {
             timer.await;

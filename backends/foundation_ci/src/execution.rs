@@ -506,12 +506,7 @@ impl PackageRun<'_> {
             entry.expected_failure.as_deref(),
             self.settings,
         ));
-        let timer = self
-            .ctx
-            .context()
-            .env()
-            .ok_or(TaskError::MissingService("timer"))?
-            .timer();
+        let timer = self.ctx.context().timer();
         let cancel = Cancellation::new();
         let mut child = task_env
             .process
@@ -592,11 +587,7 @@ pub(crate) async fn sleep(ctx: &TaskContext, time: Duration) -> TaskResult {
         .now()
         .checked_add(time)
         .ok_or_else(|| TaskError::operation("Invalid retry time"))?;
-    let timer = ctx
-        .context()
-        .env()
-        .ok_or(TaskError::MissingService("timer"))?
-        .timer();
+    let timer = ctx.context().timer();
     let wait = timer.sleep_until(ctx.context().clone(), until).fuse();
     let cancel = ctx.cancellation().cancelled().fuse();
     futures_util::pin_mut!(wait, cancel);
