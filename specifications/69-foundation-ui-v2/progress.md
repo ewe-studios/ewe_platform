@@ -2268,3 +2268,19 @@ The macro crate uses a path-only database dependency in its migration tests.
 The normalized macro archive omits that development dependency.
 The locked migration fixture passes its expected gap rejection.
 [Publication cycle issue](https://github.com/ewe-studios/ewe_platform/issues/1196)
+
+## Browser package source root
+
+The Chromium package fixture reproduces the generated source failure with a symlinked Cargo target.
+The package resolves the generated directory once and copies each resolved file after its boundary check.
+The fixed fixture publishes the companion module and rejects a nested source link outside its source directory.
+The published output stays byte-identical after the rejected build.
+[Issue 1197](https://github.com/ewe-studios/ewe_platform/issues/1197)
+
+## Hosted native candidate archive
+
+The Apple preview passes both starter builds and both iPhone Todo application suites on Xcode 26.6.
+The uploaded candidate contains the unsigned 0.1.2 archives for source revision `8ce2352b9`.
+Both archive digests match the downloaded build record.
+The Android preview runner remains queued.
+[Verified candidate artifact](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598/artifacts/15234251065)

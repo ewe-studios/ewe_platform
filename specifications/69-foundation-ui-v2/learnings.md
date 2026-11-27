@@ -1693,3 +1693,10 @@ Cargo keeps the versioned dependency when it packages the macro crate.
 The database crate uses the macro crate, so the publish order has a cycle.
 The path-only development entry preserves the local test and removes the dependency from the archive.
 Build the package in a normal clone to verify the normalized manifest.
+
+## Browser package source root
+
+A generated source directory can use a symlink in the Cargo target path.
+Resolve the root and compare it with the resolved file.
+Copy the same resolved file after that check.
+The mixed package fixture covers a valid companion and a nested link outside the source directory.
