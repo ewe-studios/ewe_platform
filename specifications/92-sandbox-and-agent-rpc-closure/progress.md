@@ -65,10 +65,9 @@ The create timeout has two causes.
    failed, and never listened on the slave port. It now also treats the `CLOUDFLARE_*`
    environment as a container (issue #1133).
 
-Local result on macOS with `wrangler dev --local`: a create returns `Created` in about
-1.5 s and the Worker stays healthy. The full end-to-end suite on the local Worker reports
-7 passed and 10 failed. The passed tests include `bad_id`, `not_found`, `token` and
-`model_token`, which all need a live Worker.
+Local result on macOS with `wrangler dev --local`: a create returns `Created` and the Worker
+stays healthy. The local host runs the amd64 container under emulation, so the timings
+depend heavily on the machine load.
 
 The three follow-up defects are fixed on the same branch.
 
@@ -79,6 +78,18 @@ The three follow-up defects are fixed on the same branch.
   compresses a chunked body and omits the header.
 - #1142: the sandbox Durable Object builds its model configuration from `MODEL_*`, so a
   model spec reaches the model driver.
+
+The end-to-end suite on the rebased branch reports 6 passed and 11 failed on this macOS
+host. The passed tests are `bad_id`, `model_token`, `not_found`, `token` and the two
+restart tests. The failing tests are `acceptance`, `container_route`, `large_stream`,
+`list`, `model_sandbox`, `no_internet`, `stale_index`, `stop`, `two_sandboxes`,
+`versions` and `index_put_delete_list`.
+
+Every failure is a create or a stop on the emulated amd64 container under heavy machine
+load. The container misses the 5 s `Info` call deadline (`transport connect failure:
+Timeout occurred`), so the create now retries an `Info` timeout until the boot deadline
+(#1157). `two_sandboxes` needs a contract decision on a relative file path (#1154). The
+native amd64 CI runner must confirm the timings that this host cannot.
 
 ## Feature 04 result (2026-11-28)
 

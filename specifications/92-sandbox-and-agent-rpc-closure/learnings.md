@@ -50,6 +50,13 @@ closed, not when its code compiles.
   - The sandbox Durable Object built `CloudflareConfig::default()`, so its model
     configuration was empty and every model create was `UnsupportedCapability` (#1142).
     The object now reads `MODEL_*` once and passes the result.
+- **A slow container aborts the create.** The readiness wait says it calls `Info` until the
+  slave answers, but a per-call `deadline_exceeded` was fatal. A container that misses one
+  5 s call while it starts ended the create. `deadline_exceeded` is now retryable until the
+  boot deadline (#1157).
+- **A relative file path has no agreed owner.** The e2e writes `tmp/a` and the slave
+  refuses it, because it requires an absolute guest path. Either the slave joins the
+  workdir or the API says that the path is absolute (#1154).
 
 ## The DST turn hang is a `Wait` re-drive (2026-11-27)
 
