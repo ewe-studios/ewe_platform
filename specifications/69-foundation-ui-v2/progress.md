@@ -1828,3 +1828,37 @@ The default limit is one mebibyte. The browser store accepts an override.
 An oversized record reports an error and stays in local storage.
 The native file provider already checks the file size and reads through a bounded reader.
 [Issue 726](https://github.com/ewe-studios/ewe_platform/issues/726)
+
+## Feature 37 native and browser checks
+
+The native storage test binary from `9042cc69d` passes all seven cases again.
+The native record provider, Todo records, and mobile test sources match the combined branch.
+The concurrent core test retains both keys after two independent failures.
+Each retry removes only its own pending key.
+The Chromium application test repeats this sequence across two tabs.
+The WebAssembly (Wasm) storage test runs against two separate browser consumers. All five cases pass.
+[Issue 728](https://github.com/ewe-studios/ewe_platform/issues/728)
+
+Both iPhone simulator suites pass with the Todo package from `8a76496d9`.
+The ordinary data service test receives the fixture item `Buy milk` and the typed missing-record error.
+A separate XCTest opens the installed icon and verifies its SHA-256 hash.
+Android instrumentation streams the same seeded item and checks the missing-record error.
+A separate Android instrumentation test verifies the installed icon.
+Both platforms use the `todo_data_fixture` example under `examples/ui_todo/tests/fixtures`.
+
+The Chromium browser test suites pass six enabled cases at `d23a07603`.
+The browser and iPhone completed synchronized changes through the replay fixture.
+The Android peer task used a separate path for title input. Its first-character wait expired.
+[Issue 1163](https://github.com/ewe-studios/ewe_platform/issues/1163)
+
+The package builds with `cargo build --locked -p ui_todo --profile uat` and the `--release` setting.
+The development check moves the executable and `public/ui_todo` directory together.
+The release check moves only the executable.
+Run `node examples/ui_todo/tests/mounted_package.mjs <binary> <chromium>` for either package.
+For the override, add `static/v2 /api/` after the browser path.
+Commands and devices use scratch stores.
+
+Run `cargo test --locked --profile uat -p ui_todo --features browser-tests` for the browser checks.
+The three targets are `browser_pending`, `browser_resources`, and `todo_browser_tests`.
+Set `PRIMAL_TEST_CHROMIUM_BIN` to Chromium and use one test thread.
+The separate live shared-count case needs three connected hosts.

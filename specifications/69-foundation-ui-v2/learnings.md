@@ -1438,3 +1438,11 @@ Local storage returns a string measured in 16-bit code units.
 The browser counts its encoded bytes before it passes the string across the Wasm boundary.
 The size test uses accented text and an emoji. Chromium rejects a seven-byte limit and accepts eight bytes.
 The second read confirms that the first read leaves the source record in place.
+
+## Mounted browser testing
+
+The browser sends an absolute action address even when the route is on the same origin.
+Interception tests compare the URL path. A raw string comparison does not match that request.
+An input click can bring a Chromium tab to the front. The app then refreshes its countdown over Connect.
+The Connect test opens the local dialog without changing tab visibility.
+It counts requests before and after submission, once the page is ready.

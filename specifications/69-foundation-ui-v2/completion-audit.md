@@ -47,21 +47,27 @@ Use the [specification-wide gates](requirements.md#9-success-criteria-spec-wide)
 
 Numbers follow the [acceptance contract](features/37-todo-server-build-and-state/feature.md#required-verification).
 
-| Checks | Existing evidence | Remaining action |
+| Check | Evidence | Result |
 |---|---|---|
-| 1–3. Persistence | Three server processes prove restart, lookup, initial page, deletion, and retry. The moved development package also reopens its store in a new process. | Link the [durable server record](progress.md#confirmed-todo-records) in the final report. |
-| 4–5. Failure and replay | Tests cover malformed stores, failed writes, cancellation, independent writes, bounded replay, and concurrent snapshots. | Reconcile #728 with native and browser tests. Check the remaining native failure cases in order 3. |
-| 6. Independent data service | The seeded fixture and historical Swift and Kotlin calls cover success and missing records. The production server rejects the retired fixture flag. | Link both native runs to the fixture revision. |
-| 7. Packaging | Clean builds pass with a moved development tree and an embedded release in an empty directory. The default and override layouts pass. | Keep the commands and media results in the final package record. |
-| 8. Browser and native resources | Chromium checks one script, all module media types, separate service routes, named resources, and a game return. Missing inputs preserve the public tree. | Link the browser and native resource verification in the final report. |
-| 9–10. Client behavior | Three clients exchange all four mutations at `b3fa90f7a`. Three Chromium tabs now verify all four mutations across Fetch, WebSocket, and Connect on the mounted package. | Repeat affected paths after transport and packaging fixes. Include the failed-send and dedicated-connection cases. |
-| 11. Retired code | Source review confirms one resource mount, shared browser startup, and the durable store. The framework owns socket callbacks and frame processing. | Link the retired-source review in the final report. |
-| 12. Final evidence | Feature 32 contains pending and retry captures. Results and commands span two specifications and several revisions. | Gather the commit, commands, profiles, platforms, captures, and remaining exceptions in one closure record. |
+| 1. Start and reopen the store | The moved development program opens a new database, adds a record, and opens the same file in a second process. | Pass |
+| 2. Lookup and initial page | The server store test checks the key-value lookup and list. The Chromium fixture checks the saved record on the initial page. | Pass |
+| 3. Deletion and original retry | The server store test reopens the database after deletion. A retry of the original Add does not recreate the record. | Pass |
+| 4. Storage errors and independent updates | The server tests preserve corrupt inputs and survive failed writes. Seven native host tests and the current two-tab test cover separate pending keys. | Pass |
+| 5. Bounded replay and concurrent snapshots | The recovery fixture controls the history size. Store and channel tests check concurrent writers and the matching snapshot position. | Pass |
+| 6. Independent typed data | Swift on the iPhone simulator and Kotlin on the Android emulator received the fixture record and its typed NotFound error. | Pass |
+| 7. Move both package forms | Cargo creates a development executable with its public tree and a standalone release. Both run in scratch directories outside the checkout. | Pass |
+| 8. Resources and failure cases | Chromium checks media, one script, Connect, local actions and named resources. Native bundles open the same icon. Missing inputs preserve the public tree. | Pass |
+| 9. Pending and retry behavior | Current Chromium checks reload, independent retries, and countdown. iPhone pending input, lost reply, retry and confirmation passed. | Android-origin peer retry in progress |
+| 10. Three-host mutations | Browser and iPhone completed all four mutations in the current synchronized run. Each peer observed those changes. | Repeat Android-origin mutations after #1163 |
+| 11. Retired mechanisms | Production source uses one live server, a shared resource mount, and framework browser setup. Seed and replay fixtures remain in tests. | Pass |
+| 12. Record and captures | The report includes tested revisions, build profiles, commands and [Feature 32 captures](features/32-portable-view-targets/feature.md). | Add the final three-host result |
 
-**Browser output decision.** The Feature 37 amendment requests readable and minified application scripts.
-The current build emits only `bundle.js`, and the package test requires that exact result.
-The page requests `/bundle.js`. Confirm the amendment status before changing the output contract. Fix subdirectory loading under either contract.
-See [package output](../../backends/foundation_resources/src/package/browser.rs), [package test](../../examples/ui_todo/tests/server_module.rs), and [page entry](../../examples/ui_todo/web/index.html).
+See the [confirmed record tests](progress.md#confirmed-todo-records) and the [mounted package results](progress.md#mounted-todo-package).
+
+The approved browser build emits one bundle. A page mounted at `/todo/` requests `/todo/pkg/bundle.js`.
+The browser also supports a different asset directory and a separate service address.
+See the [asset path contract](features/37-todo-server-build-and-state/feature.md#standard-paths-and-project-overrides).
+
 
 ### Issue reconciliation
 
