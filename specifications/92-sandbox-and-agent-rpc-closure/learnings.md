@@ -62,6 +62,26 @@ consumer must drive the producer.
    The DST calls the real registry directly for a turn to keep the client reader out of the
    engine. The rest of the calls still go through the transport.
 
+## Stage C: the nested drive and the control states (2026-11-28)
+
+- `EntryList::park` takes the task value out of its slot but keeps the slot, so
+  `active_slots()` counts the task that is being polled. `run_until` read that count to
+  decide "no work", so a drive that starts inside a task never stopped. Fix:
+  `total_active_tasks` subtracts `parked_slots()` as well as sleepers, and `run_until`
+  stops when `total_tasks() == total_parked_tasks()`. A sleeper is not packed, so a timer
+  still waits. Subtract packed before sleepers, because a stale sleeper can otherwise hide
+  a real runnable task.
+- `Stream::Pending` and `Stream::Init` are control states for a stream that drives its own
+  producer. The adapters re-drive them with the same `DEFAULT_WAIT_REDRIVE_BUDGET` as
+  `Wait`. `StreamPendingFuture` is the exception: `Pending` is its result, so it returns
+  `Ready` and re-drives only `Init` and `Wait`. `Delayed` is a timer request and keeps
+  parking.
+- With the adapter fixed, `TurnItems` had no job left: it was a copy of the re-drive policy
+  in the wrong crate. Remove it and use `StreamParkingFutureStream` directly.
+- The real ConnectRPC client spawns its reader task on the engine. The turn is driven
+  inside that task, which is the nested case. `drive()` still polls the client future
+  outside the engine and pumps the engine with `run_until_complete`.
+
 Two traps for the next stage:
 
 1. `SimRuntime::block_on` is not needed. A plain driver that polls the client future and calls

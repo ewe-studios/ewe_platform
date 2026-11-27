@@ -24,6 +24,18 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 
 ## Work in review (2026-11-28)
 
+- **Feature 01, stage C (the nested drive and the other control states)** is branch
+  `fix/nested-drive`, based on stage B. It fixes two `severity: high` defects in
+  `foundation_core`. (1) `total_active_tasks` no longer counts a packed task, which is a
+  task being polled on this thread, and `run_until` stops on `NoWork`/`SpinWait` when only
+  packed tasks remain (#1128). A test drives a nested `run_until` from inside a task. (2)
+  The five parking adapters in `stream_future.rs` re-drive a driving stream on
+  `Stream::Pending` and `Stream::Init`, not only on `Wait`; `Stream::Delayed` keeps its
+  timer and still parks (#1129). `StreamPendingFuture` still returns `Pending` as its
+  result. The DST turn now runs through the real ConnectRPC client over `MemNetwork`, and
+  `TurnItems` is removed from `foundation_ai` because the adapter now covers the case. The
+  four DST tests still pass, including the 32-seed trace test and the injected storage
+  failure.
 - **Feature 01, stage B (the real registry in the DST)** is branch `feat/dst-real-registry`.
   `foundation_ai` splits `testing` into `testing-mock` (the substrate, no thread pool) and
   `testing` (the substrate and `multi`, the old contract). `foundation_agent_rpc` gains `dst`
