@@ -1541,3 +1541,10 @@ This verifies Feature 16 rejection and continuation. Feature 15 also specifies t
 The original Feature 16 comparison mentions a marker-only change.
 The historical script bodies match. Their delimiters, imports and cleanup wrappers have separate changes.
 The original acceptance line stays open for review.
+
+## Todo client action selection
+
+The server keeps the action declarations for controls that run in a client.
+The runtime selects which action bodies to compile.
+Cargo can select both roles for the same test build.
+Private client state and helpers use the same compile selection as the client action bodies.

@@ -2006,3 +2006,15 @@ The public frame test verifies both reports, the retained node, and the followin
 The test fails with UNKNOWN before the fix and passes with 999 after it.
 The Kotlin core suite passes 20 tests.
 [Issue 1171](https://github.com/ewe-studios/ewe_platform/issues/1171)
+
+## Todo server role warnings
+
+The server and maintenance binaries build in the acceptance profile with no compiler warnings.
+The mobile-only library builds with no compiler warnings.
+The WebAssembly (Wasm) client builds with warnings denied in its release profile.
+Run the builds with the `server`, `mobile`, or `web` feature for the corresponding target.
+
+The action target passes all fourteen tests with both roles active.
+The backup target passes all three tests.
+The moved development package passes the Chromium mount and client action checks again.
+[Issue 789](https://github.com/ewe-studios/ewe_platform/issues/789)
