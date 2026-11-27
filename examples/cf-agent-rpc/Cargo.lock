@@ -1355,6 +1355,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
+ "foundation_sandbox",
  "futures",
  "js-sys",
  "prost 0.12.6",
@@ -1770,6 +1771,32 @@ dependencies = [
  "libc",
  "tracing",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "foundation_sandbox"
+version = "0.0.8"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "derive_more",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_core",
+ "foundation_errstacks",
+ "foundation_http",
+ "foundation_macros",
+ "foundation_netio",
+ "futures",
+ "libc",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tracing",
+ "worker",
 ]
 
 [[package]]
