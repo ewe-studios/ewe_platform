@@ -58,7 +58,94 @@ unsafe fn includes(have: *const u32, need: *const u32, count: usize) -> bool {
         .zip(have)
         .all(|(required, actual)| *required == 0 || *actual != 0)
 }
-pub(super) unsafe fn contains(
+// Match by field name because the aggregate records use different field offsets.
+unsafe fn promoted(
+    provided: &BTreeMap<i32, *const vk::BaseInStructure<'static>>,
+    kind: vk::StructureType,
+    required: *const vk::BaseInStructure<'_>,
+) -> Option<bool> {
+    macro_rules! compare {
+        ($($aggregate:ident => {
+            $($individual:ident: $first:ident $(, $field:ident)*;)+
+        })+) => {
+            match kind {
+                $($(
+                    vk::$individual::STRUCTURE_TYPE => {
+                        let aggregate = provided.get(&vk::$aggregate::STRUCTURE_TYPE.as_raw())?;
+                        // The caller supplies a valid Vulkan chain with these structure types.
+                        let have = unsafe { &*aggregate.cast::<vk::$aggregate>() };
+                        let need = unsafe { &*required.cast::<vk::$individual>() };
+                        Some(
+                            (need.$first == vk::FALSE || have.$first != vk::FALSE)
+                            $(&& (need.$field == vk::FALSE || have.$field != vk::FALSE))*
+                        )
+                    }
+                )+)+
+                _ => None,
+            }
+        };
+    }
+    compare! {
+        PhysicalDeviceVulkan11Features => {
+            PhysicalDevice16BitStorageFeatures:
+                storage_buffer16_bit_access, uniform_and_storage_buffer16_bit_access,
+                storage_push_constant16, storage_input_output16;
+            PhysicalDeviceMultiviewFeatures:
+                multiview, multiview_geometry_shader, multiview_tessellation_shader;
+            PhysicalDeviceSamplerYcbcrConversionFeatures: sampler_ycbcr_conversion;
+            PhysicalDeviceShaderDrawParametersFeatures: shader_draw_parameters;
+        }
+        PhysicalDeviceVulkan12Features => {
+            PhysicalDeviceShaderAtomicInt64Features:
+                shader_buffer_int64_atomics, shader_shared_int64_atomics;
+            PhysicalDeviceShaderFloat16Int8Features: shader_float16, shader_int8;
+            PhysicalDeviceDescriptorIndexingFeaturesEXT:
+                shader_input_attachment_array_dynamic_indexing,
+                shader_uniform_texel_buffer_array_dynamic_indexing,
+                shader_storage_texel_buffer_array_dynamic_indexing,
+                shader_uniform_buffer_array_non_uniform_indexing,
+                shader_sampled_image_array_non_uniform_indexing,
+                shader_storage_buffer_array_non_uniform_indexing,
+                shader_storage_image_array_non_uniform_indexing,
+                shader_input_attachment_array_non_uniform_indexing,
+                shader_uniform_texel_buffer_array_non_uniform_indexing,
+                shader_storage_texel_buffer_array_non_uniform_indexing,
+                descriptor_binding_uniform_buffer_update_after_bind,
+                descriptor_binding_sampled_image_update_after_bind,
+                descriptor_binding_storage_image_update_after_bind,
+                descriptor_binding_storage_buffer_update_after_bind,
+                descriptor_binding_uniform_texel_buffer_update_after_bind,
+                descriptor_binding_storage_texel_buffer_update_after_bind,
+                descriptor_binding_update_unused_while_pending,
+                descriptor_binding_partially_bound,
+                descriptor_binding_variable_descriptor_count,
+                runtime_descriptor_array;
+            PhysicalDeviceTimelineSemaphoreFeaturesKHR: timeline_semaphore;
+            PhysicalDeviceBufferDeviceAddressFeaturesKHR:
+                buffer_device_address, buffer_device_address_capture_replay, buffer_device_address_multi_device;
+            PhysicalDeviceVulkanMemoryModelFeaturesKHR:
+                vulkan_memory_model, vulkan_memory_model_device_scope,
+                vulkan_memory_model_availability_visibility_chains;
+        }
+        PhysicalDeviceVulkan13Features => {
+            PhysicalDeviceImageRobustnessFeaturesEXT: robust_image_access;
+            PhysicalDeviceSubgroupSizeControlFeatures: subgroup_size_control, compute_full_subgroups;
+            PhysicalDeviceTextureCompressionASTCHDRFeaturesEXT: texture_compression_astc_hdr;
+            PhysicalDeviceZeroInitializeWorkgroupMemoryFeatures: shader_zero_initialize_workgroup_memory;
+            PhysicalDeviceShaderIntegerDotProductFeaturesKHR: shader_integer_dot_product;
+            PhysicalDeviceMaintenance4FeaturesKHR: maintenance4;
+        }
+    }
+}
+
+/// Compare enabled features with the records from [`super::VulkanPlan::requirements`].
+///
+/// The enabled record can use separate feature structures or Vulkan 1.1, 1.2, and 1.3 aggregate structures.
+///
+/// # Safety
+/// The creation records and their feature pointers must reference valid Vulkan structures for this call.
+#[must_use]
+pub unsafe fn includes_required_device_features(
     actual: &vk::DeviceCreateInfo<'_>,
     required: &vk::DeviceCreateInfo<'_>,
 ) -> bool {
@@ -70,24 +157,28 @@ pub(super) unsafe fn contains(
             &raw const info.features
         });
     // VkPhysicalDeviceFeatures contains only consecutive VkBool32 values.
-    if !unsafe {
-        includes(
-            core.cast(),
-            required.p_enabled_features.cast(),
-            std::mem::size_of::<vk::PhysicalDeviceFeatures>() / 4,
-        )
-    } {
+    if !required.p_enabled_features.is_null()
+        && !unsafe {
+            includes(
+                core.cast(),
+                required.p_enabled_features.cast(),
+                std::mem::size_of::<vk::PhysicalDeviceFeatures>() / 4,
+            )
+        }
+    {
         return false;
     }
     let needed = unsafe { nodes(required.p_next.cast()) };
     needed.into_iter().all(|(kind, ptr)| {
-        let Some(n) = bool_count(vk::StructureType::from_raw(kind)) else {
+        let structure = vk::StructureType::from_raw(kind);
+        let Some(count) = bool_count(structure) else {
             return false;
         };
         let expected = unsafe { ptr.add(1).cast() };
-        let actual = provided
-            .get(&kind)
-            .map_or(std::ptr::null(), |ptr| unsafe { ptr.add(1).cast() });
-        unsafe { includes(actual, expected, n) }
+        if let Some(actual) = provided.get(&kind) {
+            return unsafe { includes(actual.add(1).cast(), expected, count) };
+        }
+        unsafe { promoted(&provided, structure, ptr) }
+            .unwrap_or_else(|| unsafe { includes(std::ptr::null(), expected, count) })
     })
 }

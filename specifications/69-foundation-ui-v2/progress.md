@@ -1964,3 +1964,11 @@ The workflow installs the locked Protocol Buffers and WebAssembly binding comman
 The Maven checker accepts managed external versions and requires the exact candidate version on both Ewe dependencies.
 The branch preview tests version 0.1.2. The shared branch still selects version 0.1.1 for public mobile packages.
 The [second preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46060536936) runs both checks.
+
+## 2026-11-28 — Vulkan aggregate device features
+
+The device lease validator reads promoted feature fields from the Vulkan 1.1, 1.2, and 1.3 aggregate records.
+It accepts the aggregate chain with all required fields and rejects a missing required field.
+Both focused tests pass on the Android 36 Arm emulator and the Linux AMD64 continuous integration image.
+These tests exercise the device creation records without creating a device.
+See [issue 691](https://github.com/ewe-studios/ewe_platform/issues/691).

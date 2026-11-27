@@ -1503,3 +1503,9 @@ The native Todo tests can build the browser server package during setup.
 A WebAssembly build can finish before binding generation starts.
 Install the locked binding command in the same environment as both Todo test suites.
 See [issue 1166](https://github.com/ewe-studios/ewe_platform/issues/1166).
+
+## 2026-11-28 — Vulkan aggregate device features
+
+Vulkan permits a device to enable promoted features in an aggregate record.
+The record can store the same flags at different offsets from the individual structures.
+Compare the named fields. An enabled aggregate record alone does not show that each required feature is enabled.
