@@ -10,7 +10,7 @@ _Last updated: 2026-11-28._
 | 01 DST fidelity: the real registry | stage B in review |
 | 02 Sandbox follow-ups | not started |
 | 03 GCP KMS over gRPC | not started |
-| 04 Live cloud resources with OpenTofu | not started |
+| 04 Live cloud resources with the cloud CLI | done: pull request #1103; four live tests passed on 2026-11-28 |
 
 ## What is already true
 
@@ -60,6 +60,29 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 Local stack verified on this host: moto serves AWS KMS (create, encrypt, decrypt, data key,
 alias) on port 5055; Vault serves Transit on 8200 with its engine enabled by an init service;
 localgcp v0.6.0 serves Cloud KMS on h2c `:8091` and is not yet wired to a client.
+
+## Feature 04 result (2026-11-28)
+
+`foundation-ci live-kms` passed against the real services:
+
+| Item | Value |
+|---|---|
+| AWS region | `us-east-1` |
+| GCP project, location | `ewestudiosnigeria`, `global` |
+| Tests | 4 passed, 0 failed |
+| Teardown | done: both AWS keys are `PendingDeletion` (7 days) and both aliases are deleted |
+
+The Google Cloud key ring and two key entries stay listed. Google Cloud cannot delete a key
+ring, and it keeps a key entry until every version finishes destruction. The run destroys
+every version.
+
+Two findings from the runs:
+
+- **#1113** (`severity: medium`, fixed): a run after a teardown found a key with every version
+  scheduled for destruction, and the destroyed version was still the primary. The task now
+  creates a version when none is enabled and makes the newest enabled version the primary.
+- **#1114** (`severity: low`, open): the teardown should retry a transient precondition error
+  right after the billing link.
 
 ## Next
 

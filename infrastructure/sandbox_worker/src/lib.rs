@@ -183,7 +183,8 @@ pub async fn fetch(
 /// Removes one index entry and logs a failure. A failure does not fail the call.
 async fn remove_index_entry(env: &Env, id: &SandboxId) {
     let index = WorkerSandboxIndex::new(env.clone());
-    if let Err(error) = foundation_sandbox::shared::cloudflare::SandboxIndex::remove(&index, id).await
+    if let Err(error) =
+        foundation_sandbox::shared::cloudflare::SandboxIndex::remove(&index, id).await
     {
         worker::console_warn!("the stale index entry was not removed: {error}");
     }
@@ -191,11 +192,7 @@ async fn remove_index_entry(env: &Env, id: &SandboxId) {
 
 /// Returns the Durable Object response with a body that removes the index
 /// entry when the stream fails after the head.
-fn stream_response(
-    mut response: Response,
-    env: Env,
-    id: SandboxId,
-) -> worker::Result<Response> {
+fn stream_response(mut response: Response, env: Env, id: SandboxId) -> worker::Result<Response> {
     let status = response.status_code();
     let headers = response.headers().clone();
     let body = response.stream()?;

@@ -5291,6 +5291,7 @@ dependencies = [
  "tempfile",
  "toml 0.9.6",
  "toml_edit 0.22.27",
+ "zeroize",
 ]
 
 [[package]]
@@ -6528,6 +6529,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
+ "sha2 0.10.9",
  "sha2 0.11.1",
  "ssh-key",
  "tempfile",
