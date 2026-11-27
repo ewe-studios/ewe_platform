@@ -41,11 +41,7 @@ fn cargo_local(package: &Path, target: &Path) {
     );
 }
 
-#[test]
-fn cargo_tracks_directories_and_recovers_the_public_tree_after_failed_production() {
-    let temp = tempfile::tempdir().unwrap();
-    let app = temp.path().join("app");
-    let target = temp.path().join("custom-target");
+fn write_cargo_hook_fixture(app: &Path, manifest: &str) {
     fs::create_dir_all(app.join("src")).unwrap();
     fs::create_dir(app.join("art")).unwrap();
     let provider = env!("CARGO_MANIFEST_DIR").replace('\\', "/");
@@ -85,10 +81,18 @@ fn main() -> std::io::Result<()> {
 "#,
     )
     .unwrap();
-    let manifest = "[[resource]]\nname='art'\npath='art'\n[[resource]]\nname='version'\ngenerated='revision'\n[[resource]]\nname='browser.js'\npath='browser.js'\ntargets=['web']\n";
     fs::write(app.join("resources.toml"), manifest).unwrap();
     fs::write(app.join("browser.js"), "boot").unwrap();
     fs::write(app.join("art/icon"), "first").unwrap();
+}
+
+#[test]
+fn cargo_tracks_directories_and_recovers_the_public_tree_after_failed_production() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("app");
+    let target = temp.path().join("custom-target");
+    let manifest = "[[resource]]\nname='art'\npath='art'\n[[resource]]\nname='version'\ngenerated='revision'\n[[resource]]\nname='browser.js'\npath='browser.js'\ntargets=['web']\n";
+    write_cargo_hook_fixture(&app, manifest);
     let public = target.join("package-check/public/resource_fixture");
     cargo_local(&app, &target);
     assert!(!public.exists());
