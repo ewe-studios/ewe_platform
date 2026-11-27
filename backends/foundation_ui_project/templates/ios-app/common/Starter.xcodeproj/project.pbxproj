@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+{% if COMPOSED %}
+        AB1089000000000000000001 = {isa = PBXBuildFile; fileRef = AB1089000000000000000002; };
+{% endif %}
 		EE9000030000000000000003 /* EweResources in Resources */ = {isa = PBXBuildFile; fileRef = EE9000030000000000000002; };
 		04FA06790FE0D749D4CA539E /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374E3BE88B5B5D43C094F5C4 /* App.swift */; };
 		64DC40BB08340817AA7DF8A5 /* EweUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9499C8CFB1E1A0AE046613DD /* EweUI */; };
@@ -18,6 +21,9 @@ AA7800000000000000000003 = {isa = PBXBuildFile; fileRef = AA78000000000000000000
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+{% if COMPOSED %}
+        AB1089000000000000000002 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Launch.xcassets; path = EweLaunch/Launch.xcassets; sourceTree = DERIVED_FILE_DIR; };
+{% endif %}
 		EE9000030000000000000002 /* EweResources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = EweResourceStage/EweResources; sourceTree = DERIVED_FILE_DIR; };
 		10A57F877E33D57F047676C8 /* {{ PROJECT_NAME }}.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = {{ PROJECT_NAME }}.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		374E3BE88B5B5D43C094F5C4 /* App.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
@@ -77,6 +83,8 @@ AA7800000000000000000002,
 AA7800000000000000000004,
 {% endif %}
 				374E3BE88B5B5D43C094F5C4 /* App.swift */,
+{% if COMPOSED %}                AB1089000000000000000002,
+{% endif %}
 			);
 			name = App;
 			path = App;
@@ -167,10 +175,10 @@ AA7800000000000000000004,
             files = ();
             inputPaths = ();
             name = "Stage resources";
-            outputPaths = ("$(DERIVED_FILE_DIR)/EweResourceStage/EweResources");
+            outputPaths = ("$(DERIVED_FILE_DIR)/EweResourceStage/EweResources"{% if COMPOSED %}, "$(DERIVED_FILE_DIR)/EweLaunch/Launch.xcassets"{% endif %});
             runOnlyForDeploymentPostprocessing = 0;
             shellPath = /bin/sh;
-            shellScript = "set -eu\nexport PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\"\nexport EWE_RESOURCE_TARGET=apple\nexport EWE_RESOURCE_DEST=\"$DERIVED_FILE_DIR/EweResourceStage\"\nexport EWE_RESOURCE_PAYLOAD=EweResources\nexport CARGO_TARGET_DIR=\"${CARGO_TARGET_DIR:-$PROJECT_TEMP_DIR/resource-producer}\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\ncase \"$CONFIGURATION\" in\n  Release*) profile=release ;;\n  *) profile=dev ;;\nesac\ncargo check --profile \"${EWE_RESOURCE_CARGO_PROFILE:-$profile}\" --manifest-path \"$SRCROOT/{{ RESOURCE_PACKAGE }}/Cargo.toml\" --no-default-features --lib\n";
+            shellScript = "set -eu\nexport PATH=\"${CARGO_HOME:-$HOME/.cargo}/bin:$PATH\"\nexport EWE_RESOURCE_TARGET=apple\n{% if COMPOSED %}export EWE_LAUNCH_DEST=\"$DERIVED_FILE_DIR/EweLaunch\"\n{% endif %}export EWE_RESOURCE_DEST=\"$DERIVED_FILE_DIR/EweResourceStage\"\nexport EWE_RESOURCE_PAYLOAD=EweResources\nexport CARGO_TARGET_DIR=\"${CARGO_TARGET_DIR:-$PROJECT_TEMP_DIR/resource-producer}\"\nunset SDKROOT IPHONEOS_DEPLOYMENT_TARGET\ncase \"$CONFIGURATION\" in\n  Release*) profile=release ;;\n  *) profile=dev ;;\nesac\ncargo check --profile \"${EWE_RESOURCE_CARGO_PROFILE:-$profile}\" --manifest-path \"$SRCROOT/{{ RESOURCE_PACKAGE }}/Cargo.toml\" --no-default-features --lib\n";
         };
 /* End PBXShellScriptBuildPhase section */
 
@@ -180,6 +188,8 @@ AA7800000000000000000004,
 			buildActionMask = 2147483647;
 			files = (
                 EE9000030000000000000003 /* EweResources in Resources */,
+{% if COMPOSED %}                AB1089000000000000000001,
+{% endif %}
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,12 +268,14 @@ AA7800000000000000000001,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
+{% if not COMPOSED %}				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+{% endif %}				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+{% if HOST == "server" %}				INFOPLIST_FILE = App/DebugInfo.plist;
+{% elif COMPOSED %}				INFOPLIST_FILE = App/Info.plist;
+{% endif %}{% if not COMPOSED %}				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+{% endif %}
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = {{ APP_ID }};
@@ -340,12 +352,13 @@ AA7800000000000000000001,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
+{% if not COMPOSED %}				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+{% endif %}				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				{% if COMPOSED %}				INFOPLIST_FILE = App/Info.plist;
+{% else %}				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+{% endif %}
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = {{ APP_ID }};

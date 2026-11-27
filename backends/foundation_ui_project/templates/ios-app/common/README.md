@@ -15,6 +15,7 @@ Run the scheme. Tap **Increment**. The count increases on the device.
 Change the `increment` action in {% if COMPOSED %}`../native-core/src/lib.rs`{% else %}`rust/src/lib.rs`{% endif %}. Run the script again after each Rust change.
 {% else %}
 Set `EWE_SERVER` in the scheme environment. The default address is `http://127.0.0.1:8080`.
+The debug build declares a Hypertext Transfer Protocol (HTTP) exception for `127.0.0.1`. Use Hypertext Transfer Protocol Secure (HTTPS) for other addresses.
 Run the scheme. The screen loads from `GET /open-count`. Tap **Refresh** to send `server:refresh_count` to the server.
 Change the initial route and action in `App/App.swift`.
 
@@ -32,7 +33,12 @@ xcodebuild -project {{ PROJECT_NAME }}.xcodeproj -scheme {{ PROJECT_NAME }} -des
 
 The application imports EweUI {{ VERSION }}. EweUI renders the controls.
 
-## Application resources
+{% if COMPOSED %}## Launch artwork
+
+Replace `../public/icon.png` with an opaque square image. Replace `../public/splash.png` with a centered image.
+Set the light and dark background colors in `../public/launch-theme.toml`. Rebuild to package the updated files.
+
+{% endif %}## Application resources
 
 Declare shared files in `{{ RESOURCE_PACKAGE }}/resources.toml`.
 The project build runs Cargo before packaging the bundle or application assets.

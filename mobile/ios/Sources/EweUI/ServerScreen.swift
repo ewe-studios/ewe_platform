@@ -82,10 +82,11 @@
           EweScreen(store: connection.store, bridge: connection, theme: theme).safeAreaInset(edge: .bottom) {
             if let issue { connectionIssue(issue) }
           }
-        } else if let issue {
-          connectionIssue(issue)
         } else {
-          ProgressView("Connecting")
+          EweStartupView("Connecting", issue: issue, retryTitle: "Reconnect") {
+            issue = nil
+            attempt += 1
+          }
         }
       }
       #if os(iOS)

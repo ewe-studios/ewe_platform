@@ -73,7 +73,7 @@ pub fn stage(public: &Path, target: Target, destination: &Path) -> io::Result<()
         ));
     }
     let splash = public.join("splash.png");
-    image(&splash)?;
+    let splash_picture = image(&splash)?;
     let inputs = tempfile::tempdir()?;
     let name = match target {
         Target::Android => {
@@ -81,7 +81,7 @@ pub fn stage(public: &Path, target: Target, destination: &Path) -> io::Result<()
             "res"
         }
         Target::Apple => {
-            apple::write_assets(inputs.path(), &picture, &splash, &theme.background)?;
+            apple::write_assets(inputs.path(), &picture, &splash_picture, &theme.background)?;
             "Launch.xcassets"
         }
         Target::Web => {

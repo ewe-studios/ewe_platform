@@ -53,10 +53,14 @@ fn the_same_three_source_paths_update_both_native_resource_sets() {
             .into_rgb8();
         assert_eq!(icon.dimensions(), (1024, 1024));
         assert_eq!(icon.get_pixel(0, 0).0, [tint, 0, 0]);
-        assert_eq!(
-            fs::read(catalog.join("EweSplash.imageset/splash.png")).unwrap(),
-            fs::read(public.join("splash.png")).unwrap()
-        );
+        for scale in [1, 2, 3] {
+            let splash =
+                image::open(catalog.join(format!("EweSplash.imageset/splash-{scale}x.png")))
+                    .unwrap()
+                    .into_rgba8();
+            assert_eq!(splash.dimensions(), (96 * scale, 144 * scale));
+            assert_eq!(splash.get_pixel(0, 0).0, [0, tint, 0, 128]);
+        }
         let contents: serde_json::Value = serde_json::from_slice(
             &fs::read(catalog.join("EweLaunchBackground.colorset/Contents.json")).unwrap(),
         )

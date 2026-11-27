@@ -10,8 +10,9 @@ import SwiftUI
   #endif
   private let load: Loader
   @State private var connection: EventBridge?
-    private let theme: EweTheme
+  private let theme: EweTheme
   @State private var issue: String?
+  @State private var attempt = 0
 
   public init(theme: EweTheme = EweTheme(), load: @escaping Loader) {
     self.theme = theme
@@ -24,16 +25,17 @@ import SwiftUI
         EweScreen(store: connection.store, bridge: connection, theme: theme).safeAreaInset(edge: .bottom) {
           if let issue { Text(issue) }
         }
-      } else if let issue {
-        Text(issue)
       } else {
-        ProgressView()
+        EweStartupView("Opening", issue: issue) {
+          issue = nil
+          attempt += 1
+        }
       }
     }
     #if os(iOS)
       .background(HostAnchor(anchor: presenter).frame(width: 0, height: 0))
     #endif
-    .task {
+    .task(id: attempt) {
       guard connection == nil else { return }
       let store = NodeStore()
       #if os(iOS)

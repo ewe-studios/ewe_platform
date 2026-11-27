@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 {% if HOST == "server" %}    <uses-permission android:name="android.permission.INTERNET" />
-{% endif %}    <application android:label="{{ PROJECT_NAME }}" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+{% endif %}    <application android:label="{{ PROJECT_NAME }}" {% if COMPOSED %}android:icon="@mipmap/ewe_launcher" android:theme="@style/EweLaunchTheme"{% if HOST == "server" %} android:networkSecurityConfig="@xml/ewe_server_network"{% endif %}{% else %}android:theme="@android:style/Theme.Material.Light.NoActionBar"{% endif %}>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>

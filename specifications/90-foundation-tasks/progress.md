@@ -613,3 +613,20 @@ Native Windows and macOS guest runs remain open; the local fixtures use a fake S
 
 A stale path requirement blocked every locked Cargo command before this work.
 `foundation_sandbox` asked for `foundation_netio 0.0.18` while the crate was `0.0.19`. The requirement now matches.
+
+## Feature 05 shared native startup
+
+The isolated startup branch imports the approved Android and iOS launch design and editable assets.
+The generator retains the resource build feature for web-only applications. Issue #1057 records the draft failure.
+A generated web-only shared package compiles with the local resource package. Eight command tests pass.
+Two generated projects use one Cargo target directory. Editing all three launch inputs rebuilds the native outputs without a clean.
+The generated iOS server application builds with a local Swift package and simulator framework. Its bundle contains the launch declaration, icon, and assets.
+The generated Android server application builds with local Android modules. Its package contains both framework library architectures.
+Issue #1059 limits Android server traffic exceptions to the emulator host. The iOS debug exception applies only to loopback.
+The generated server app opens on the iPhone simulator. It shows connection progress, server content in both appearances, and the malformed address action.
+The Android server app displays the system launch artwork in light and dark mode. Its recovery action reaches the first view after a malformed address.
+Both on-device apps open and increment without a server. Both server apps recover after a malformed address.
+The property list launch declaration shows the iOS artwork in both appearances. Issue #1061 records the original blank transition.
+The signed Android release app opens its default emulator address and recovers from a malformed address with the exact-host policy.
+The installed iOS Release app reaches its loopback default on iOS 27.0 with no transport exception.
+The design records both system launch appearances, the first view, and recovery from a startup error.

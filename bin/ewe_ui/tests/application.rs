@@ -36,6 +36,18 @@ fn compose_every_selection_and_share_native_inputs() {
         assert!(root.join("application/src/lib.rs").is_file());
         assert!(root.join("application/resources.toml").is_file());
         assert_eq!(root.join("native-core/Cargo.toml").is_file(), mask & 6 != 0);
+        let shared_manifest = std::fs::read_to_string(root.join("application/Cargo.toml")).unwrap();
+        let shared_build = std::fs::read_to_string(root.join("application/build.rs")).unwrap();
+        assert!(shared_manifest.contains("features = [\"build\""));
+        assert_eq!(shared_manifest.contains("mobile-launch"), mask & 6 != 0);
+        assert_eq!(
+            shared_build.contains("launch::stage_from_cargo"),
+            mask & 6 != 0
+        );
+        assert_eq!(
+            shared_build.contains("var_os(\"CARGO_MANIFEST_DIR\")"),
+            mask & 6 != 0
+        );
         if mask & 6 != 0 {
             let theme = std::fs::read_to_string(root.join("public/launch-theme.toml")).unwrap();
             assert!(theme.contains("[background]"));
@@ -50,6 +62,11 @@ fn compose_every_selection_and_share_native_inputs() {
         }
         if mask & 2 != 0 {
             assert!(root.join("android/.gitignore").is_file());
+            let manifest =
+                std::fs::read_to_string(root.join("android/app/src/main/AndroidManifest.xml"))
+                    .unwrap();
+            assert!(manifest.contains("@style/EweLaunchTheme"));
+            assert!(manifest.contains("@mipmap/ewe_launcher"));
             assert!(
                 std::fs::read_to_string(root.join("android/app/build.gradle.kts"))
                     .unwrap()
@@ -57,10 +74,77 @@ fn compose_every_selection_and_share_native_inputs() {
             );
         }
         if mask & 4 != 0 {
-            assert!(root.join("ios/FieldNotes.xcodeproj").is_dir());
+            let project = root.join("ios/FieldNotes.xcodeproj/project.pbxproj");
+            let project = std::fs::read_to_string(project).unwrap();
+            assert!(project.contains("EweLaunch/Launch.xcassets"));
+            assert!(project.contains("INFOPLIST_FILE = App/Info.plist;"));
+            let launch = std::fs::read_to_string(root.join("ios/App/Info.plist")).unwrap();
+            assert!(launch.contains("<key>UILaunchScreen</key>"));
+            assert!(launch.contains("<string>EweSplash</string>"));
         }
         assert!(!cli(tmp.path(), &args).status.success());
     }
+}
+#[test]
+fn server_mobile_projects_use_the_shared_startup_error() {
+    let tmp = tempfile::tempdir().unwrap();
+    let result = cli(
+        tmp.path(),
+        &[
+            "new",
+            "--name",
+            "RemoteNotes",
+            "--target",
+            "android",
+            "--target",
+            "ios",
+            "--app-id",
+            "dev.example.remotenotes",
+            "--host",
+            "server",
+        ],
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let root = tmp.path().join("RemoteNotes");
+    let android = std::fs::read_to_string(
+        root.join("android/app/src/main/kotlin/ewe/starter/MainActivity.kt"),
+    )
+    .unwrap();
+    assert!(
+        android.find("installSplashScreen()").unwrap() < android.find("super.onCreate").unwrap()
+    );
+    assert!(android.contains("toHttpUrlOrNull()"));
+    assert!(android.contains("EweStartupView("));
+
+    let main_manifest = root.join("android/app/src/main/AndroidManifest.xml");
+    assert!(std::fs::read_to_string(main_manifest)
+        .unwrap()
+        .contains("@xml/ewe_server_network"));
+    let config = root.join("android/app/src/main/res/xml/ewe_server_network.xml");
+    let config = std::fs::read_to_string(config).unwrap();
+    assert!(config.contains("<domain includeSubdomains=\"false\">10.0.2.2</domain>"));
+    assert_eq!(config.matches("<domain ").count(), 1);
+    let debug_manifest = root.join("android/app/src/debug/AndroidManifest.xml");
+    assert!(!std::fs::read_to_string(debug_manifest)
+        .unwrap()
+        .contains("usesCleartextTraffic"));
+    let ios = std::fs::read_to_string(root.join("ios/App/App.swift")).unwrap();
+    assert!(ios.contains("EweStartupView("));
+    assert!(ios.contains("Use default server"));
+
+    let project = root.join("ios/RemoteNotes.xcodeproj/project.pbxproj");
+    assert_eq!(
+        std::fs::read_to_string(project)
+            .unwrap()
+            .matches("INFOPLIST_FILE = App/DebugInfo.plist;")
+            .count(),
+        1
+    );
+    assert!(!root.join("native-core").exists());
 }
 #[test]
 fn reject_invalid_inputs_before_creating_a_destination() {
