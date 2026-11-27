@@ -771,7 +771,9 @@ jobs:
     # The runner has Rust and Node; no CI image and no registry credentials
     # are needed, so the job works the same on a fork.
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # The owner approved 30 minutes. The measured busy-host gate is 231.91 s,
+    # and the added live MinIO run is seconds on a warm cache.
+    timeout-minutes: 30
     concurrency:
       # A new push to a pull request cancels the old durable run. Full runs
       # queue and never cancel each other.

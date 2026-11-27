@@ -622,10 +622,10 @@ clippy-runs = ["", "vfs-object-http", "vfs-object-netio", "vfs-preload", "ipc"]
 clippy-deny-warnings = true
 # The crate builds for wasm32 (issue #411): the native and signal modules are
 # gated at the crate root, and only the shared VFS tree compiles. The default
-# set and the `vfs,vfs-search` set that foundation_ai's wasm build enables are
-# both checked.
+# set, the `vfs,vfs-search` set that foundation_ai's wasm build enables, and the
+# `vfs-object-wasm` set that holds the R2 block tier are all checked.
 wasm = "enforce"
-wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
+wasm-runs = ["", "--no-default-features --features vfs,vfs-search", "--no-default-features --features vfs-object-wasm"]
 # `uring_completion_*` and `completion_source_seam` skip on a kernel without
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a
@@ -885,5 +885,6 @@ packages = [
 paths = ["integration/"]
 
 [packages.durable-conformance]
-# Both reference suites, the example server and client, and the cross-runs.
-timeout-minutes = 20
+# Both reference suites, the example server and client, the cross-runs and the
+# live MinIO S3 run. The owner approved 30 minutes.
+timeout-minutes = 30
