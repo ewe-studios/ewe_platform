@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use foundation_context::Ctx;
-use libsql::Connection;
+use libsql_backend::Connection;
 
 use crate::shared::vfs::async_traits::{AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile};
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -15,7 +15,7 @@ use super::path_resolve::resolve_path_async;
 use super::types;
 use super::types::SqliteDentry;
 
-fn le(e: libsql::Error) -> ErrorTrace<VfsError> {
+fn le(e: libsql_backend::Error) -> ErrorTrace<VfsError> {
     ErrorTrace::new(types::libsql_err(e))
 }
 
@@ -154,7 +154,7 @@ impl AsyncVfsFile for SqliteFile {
                 "INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES {}",
                 placeholders
             );
-            let mut values: Vec<libsql::Value> = Vec::with_capacity(chunks.len() * 3);
+            let mut values: Vec<libsql_backend::Value> = Vec::with_capacity(chunks.len() * 3);
             for (idx, chunk) in chunks.iter().enumerate() {
                 values.push(self.ino.into());
                 values.push((idx as i64).into());
