@@ -29,7 +29,7 @@ use core::fmt;
 use core::future::Future;
 use core::pin::Pin;
 use foundation_compact::time::unix_millis;
-use foundation_context::Ctx;
+use foundation_context::{Clock, Ctx};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -907,23 +907,27 @@ pub trait DurableStreamStore {
 
 /// The default protocol store. It wraps a boxed VFS.
 ///
-/// Swap the VFS to change storage. The protocol core and `Ctx` do not change.
+/// Swap the VFS to change storage. The store keeps only the clock that it reads
+/// from the context, never the whole [`Ctx`]. A host may therefore store the
+/// stream in that same context without closing an `Arc` cycle.
 #[derive(Clone)]
 pub struct DurableStream {
     vfs: Arc<dyn DurableStreamVfs>,
-    ctx: Ctx,
+    clock: Arc<dyn Clock>,
 }
 
 impl DurableStream {
     /// Build a stream store over a virtual file system (VFS) with the injected context.
     ///
-    /// The store reads the clock from `ctx`. The host builds the context with the
-    /// real clock.
+    /// The store reads the clock from `ctx` and keeps only that handle. It does
+    /// not keep the context, so the host can insert the stream into the same
+    /// context without an `Arc` cycle. The host builds the context with the real
+    /// clock.
     #[must_use]
     pub fn new(vfs: Arc<dyn DurableStreamVfs>, ctx: &Ctx) -> Self {
         Self {
             vfs,
-            ctx: ctx.clone(),
+            clock: ctx.clock(),
         }
     }
 
@@ -943,7 +947,7 @@ impl DurableStream {
     }
 
     fn now_ms(&self) -> i64 {
-        unix_millis(self.ctx.clock().wall_now())
+        unix_millis(self.clock.wall_now())
     }
 
     fn is_expired(meta: &VfsMeta, now: i64) -> bool {
