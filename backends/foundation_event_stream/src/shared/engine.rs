@@ -31,6 +31,7 @@ use serde::Deserialize;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Write as _;
+use std::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 use std::sync::{Arc, Mutex};
 
 /// The flag a webhook returns to finish synchronously.
@@ -64,6 +65,7 @@ enum QueuePush {
 struct DeliveryQueue {
     bound: usize,
     state: Mutex<QueueState>,
+    drops: AtomicU64,
 }
 
 /// The queue order and the identifiers it holds, so a push is idempotent.
@@ -78,11 +80,17 @@ impl DeliveryQueue {
         Self {
             bound: bound.max(1),
             state: Mutex::new(QueueState::default()),
+            drops: AtomicU64::new(0),
         }
     }
 
     fn bound(&self) -> usize {
         self.bound
+    }
+
+    /// The number of pushes that a full queue refused.
+    fn drops(&self) -> u64 {
+        self.drops.load(AtomicOrdering::Relaxed)
     }
 
     fn push(&self, id: &str) -> QueuePush {
@@ -91,6 +99,7 @@ impl DeliveryQueue {
             return QueuePush::Duplicate;
         }
         if state.order.len() >= self.bound {
+            self.drops.fetch_add(1, AtomicOrdering::Relaxed);
             return QueuePush::Full;
         }
         state.order.push_back(id.to_string());
@@ -148,6 +157,11 @@ pub struct SubscriptionEngine {
     signing: Arc<WebhookSigningKey>,
     sender: Arc<dyn WebhookSender>,
     queue: Arc<DeliveryQueue>,
+    /// The current wake of each subscription that a delivery attempt already took.
+    ///
+    /// The sweep after a drain uses this to skip a wake that waits for a callback. Without it,
+    /// the sweep would deliver the same open wake on every tick.
+    attempted: Arc<Mutex<BTreeMap<String, String>>>,
     notifier: Option<Arc<dyn DeliveryNotifier>>,
 }
 
@@ -172,6 +186,7 @@ impl SubscriptionEngine {
             signing: Arc::new(signing),
             sender,
             queue,
+            attempted: Arc::new(Mutex::new(BTreeMap::new())),
             notifier: None,
         }
     }
@@ -353,6 +368,10 @@ impl SubscriptionEngine {
     pub async fn delete(&self, id: &str) {
         self.ensure_loaded().await;
         if self.store.remove(id).is_some() {
+            self.attempted
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .remove(id);
             if let Err(error) = self.store.persist_tombstone(id).await {
                 tracing::warn!(
                     subscription = id,
@@ -582,6 +601,10 @@ impl SubscriptionEngine {
     /// The call makes at most `delivery_queue_bound` attempts. A delivery that finishes a wake
     /// can queue the next wake; the same call runs it when the bound allows. The call never
     /// waits for a receiver longer than `delivery_timeout_ms` on the injected clock.
+    ///
+    /// After the drain the call queues every open webhook wake that a full queue refused. That
+    /// sweep makes the next call, or the next [`SubscriptionEngine::tick`], deliver the wake
+    /// instead of waiting for the lease to expire and a later append.
     pub async fn drain_deliveries(&self) -> usize {
         let cap = self.queue.bound();
         let mut attempts = 0;
@@ -592,7 +615,70 @@ impl SubscriptionEngine {
             self.deliver(&id).await;
             attempts += 1;
         }
+        self.requeue_dropped_deliveries(self.now_ms());
         attempts
+    }
+
+    /// The number of webhook deliveries that a full queue dropped.
+    ///
+    /// The count never resets, so a host reads it as a running total. A non-zero value with a
+    /// growing trend means that `delivery_queue_bound` is too small for the burst.
+    #[must_use]
+    pub fn delivery_drops(&self) -> u64 {
+        self.queue.drops()
+    }
+
+    /// Queue the open webhook wakes that a full queue refused.
+    ///
+    /// The sweep visits at most `delivery_queue_bound` records, like the drain. It skips a
+    /// pull-wake subscription, a record with no open wake, a record whose next retry is still
+    /// in the future, and a record whose current wake a delivery attempt already took.
+    fn requeue_dropped_deliveries(&self, now: i64) {
+        let cap = self.queue.bound();
+        let due = self.store.with_records(|records| {
+            let mut due = Vec::new();
+            for record in records.values() {
+                if due.len() >= cap {
+                    break;
+                }
+                let Some(wake_id) = record.wake_id.as_deref() else {
+                    continue;
+                };
+                if record.kind != SubscriptionType::Webhook {
+                    continue;
+                }
+                if record.next_attempt_at_ms.is_some_and(|at| at > now) {
+                    continue;
+                }
+                if record.status == SubscriptionStatus::Active
+                    && self.wake_attempted(&record.id, wake_id)
+                {
+                    continue;
+                }
+                due.push(record.id.clone());
+            }
+            due
+        });
+        for id in due {
+            self.enqueue_delivery(&id);
+        }
+    }
+
+    /// True when a delivery attempt already took this wake.
+    fn wake_attempted(&self, id: &str, wake_id: &str) -> bool {
+        self.attempted
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .get(id)
+            .is_some_and(|attempted| attempted == wake_id)
+    }
+
+    /// Record that a delivery attempt takes this wake.
+    fn mark_attempted(&self, id: &str, wake_id: &str) {
+        self.attempted
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .insert(id.to_string(), wake_id.to_string());
     }
 
     /// Queue the webhook retries that are due at `now`.
@@ -884,6 +970,7 @@ impl SubscriptionEngine {
         ) else {
             return;
         };
+        self.mark_attempted(id, &wake_id);
         self.hold_lease_for_attempt(id).await;
         let notification = WakeNotification {
             subscription_id: id.to_string(),

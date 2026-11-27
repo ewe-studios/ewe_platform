@@ -235,6 +235,99 @@ fn two_deliveries_for_one_subscription_arrive_in_order() {
 }
 
 #[test]
+fn a_full_queue_delivers_the_dropped_wake_on_the_next_tick() {
+    let config = SubscriptionConfig::new("v1/stream").with_delivery_queue_bound(1);
+    let harness = harness_with(config, RecordingSender::new());
+    for id in ["wh-first", "wh-second"] {
+        block_on_future_scoped(harness.engine.create_or_confirm(
+            id,
+            webhook_request(
+                "events/*",
+                &format!("http://127.0.0.1:9999/{id}"),
+                Some(30_000),
+            ),
+            BASE,
+        ))
+        .expect("create");
+    }
+    create_stream(&harness, "v1/stream/events/a", true, Some(b"{\"event\":1}"));
+
+    assert_eq!(
+        harness.engine.delivery_drops(),
+        1,
+        "the second wake meets the queue bound"
+    );
+
+    block_on_future_scoped(harness.engine.tick());
+    let requests = harness.sender.requests();
+    assert_eq!(requests.len(), 1, "the first tick delivers one wake");
+    let first: WakeNotification = serde_json::from_slice(&requests[0].body).expect("first body");
+    assert_eq!(first.subscription_id, "wh-first");
+
+    // The clock does not move, so no lease expires. The sweep queued the dropped wake, and the
+    // next tick delivers it.
+    block_on_future_scoped(harness.engine.tick());
+    let requests = harness.sender.requests();
+    assert_eq!(requests.len(), 2, "the next tick delivers the dropped wake");
+    let second: WakeNotification = serde_json::from_slice(&requests[1].body).expect("second body");
+    assert_eq!(second.subscription_id, "wh-second");
+
+    // Each open wake is delivered once. The sweep must not repeat a wake that waits for its
+    // callback.
+    block_on_future_scoped(harness.engine.tick());
+    assert_eq!(
+        harness.sender.requests().len(),
+        2,
+        "the sweep does not repeat an open wake"
+    );
+}
+
+#[test]
+fn the_sweep_waits_for_the_next_retry_time() {
+    let config = SubscriptionConfig::new("v1/stream")
+        .with_retry_delay_range_ms(10_000, 10_000)
+        .with_retry_jitter_percent(0);
+    let harness = harness_with(config, RecordingSender::new());
+    harness.sender.push(WebhookOutcome::TransportError);
+    harness.sender.push(WebhookOutcome::TransportError);
+    block_on_future_scoped(harness.engine.create_or_confirm(
+        "wh-retry",
+        webhook_request("events/*", "http://127.0.0.1:9999/hook", Some(30_000)),
+        BASE,
+    ))
+    .expect("create");
+    create_stream(&harness, "v1/stream/events/a", true, Some(b"{\"event\":1}"));
+
+    assert_eq!(harness.engine.delivery_drops(), 0);
+
+    block_on_future_scoped(harness.engine.tick());
+    assert_eq!(harness.sender.requests().len(), 1, "the first attempt runs");
+    let record = harness
+        .engine
+        .store()
+        .get("wh-retry")
+        .expect("stored record");
+    assert!(record.wake_id.is_some(), "the failed wake stays open");
+    let next_attempt = record.next_attempt_at_ms.expect("scheduled retry");
+    assert!(next_attempt > harness.clock.millis());
+
+    block_on_future_scoped(harness.engine.tick());
+    assert_eq!(
+        harness.sender.requests().len(),
+        1,
+        "the sweep must not queue a wake before its next attempt time"
+    );
+
+    harness.clock.advance(10_000);
+    block_on_future_scoped(harness.engine.tick());
+    assert_eq!(
+        harness.sender.requests().len(),
+        2,
+        "the due retry runs after the retry time"
+    );
+}
+
+#[test]
 fn stalled_send_times_out_on_the_injected_clock() {
     let clock = Arc::new(TestClock::new());
     let sender = Arc::new(StallingSender {
