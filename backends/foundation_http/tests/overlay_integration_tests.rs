@@ -8,7 +8,7 @@
 //! Two nodes form a mesh, B serves HTTP on the overlay, A sends a request
 //! through that client with `OverlayConnector` — zero raw HTTP, zero manual framing.
 
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::sync::Arc;
 use std::time::Duration;

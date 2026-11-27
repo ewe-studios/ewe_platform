@@ -15,6 +15,8 @@
 //! simulated advance proves the wait without a real sleep. The overlay lets a
 //! client close its side on demand, so a write fails with `BrokenPipe`.
 
+#![cfg(unix)]
+
 mod fake_overlay;
 
 use std::io::Write;

@@ -9,7 +9,7 @@
 //! keep-alive after `Keep`, drop-on-shutdown for a still-pending future, and the
 //! connection ending on `Take` and on `Close(Some(_))`.
 
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::future::Future;
 use std::io::{Read, Write};
