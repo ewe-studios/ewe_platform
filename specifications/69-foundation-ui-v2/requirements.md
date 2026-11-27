@@ -433,12 +433,12 @@ in parallel.
 | 29 | [thread-safe-signals](./features/29-thread-safe-signals/feature.md) | Share native signals between threads and preserve local WebAssembly scopes | Existing foundation_signals | Sonnet | Cross-platform | ✅ Complete |
 | 30 | [frame-readers-and-http-routes](./features/30-frame-readers-and-http-routes/feature.md) | Read verified frames from streams and register ordinary server handlers | 01, 03, 05, 07 | Sonnet | Cross-platform | ✅ Complete |
 | 31 | [explicit-control-tags](./features/31-explicit-control-tags/feature.md) | Replace presentation roles with shared control tags | 02, 08, 23 | Sonnet | Cross-platform | ✅ Complete |
-| 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | Partial. See issue 714. |
+| 32 | [portable-view-targets](./features/32-portable-view-targets/feature.md) | Resolve named elements and views across platforms | 08, 11, 31 | Sonnet | Cross-platform | The three hosts pass the Todo peer and countdown checks. Verify spoken feedback at final signoff. |
 | 33 | [view-recovery-after-replay-expires](./features/33-view-recovery-after-replay-expires/feature.md) | Reload the affected view from a consistent snapshot after replay expires | 11, 25, 32 | Sonnet | Cross-platform | ✅ Complete |
 | 34 | [host-gpu-capability](./features/34-host-gpu-capability/feature.md) | Run local Rust graphics and compute on web, iOS, and Android | 10, 21, 22 | Sonnet | Cross-platform | Complete |
 | 35 | [host-owned-gpu-handoff](./features/35-host-owned-gpu-handoff/feature.md) | Request a host device and receive its lease through a local Rust action | 05, 28, 34 | Sonnet | Cross-platform | Complete |
-| 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | In progress in the Mathalley worktree. |
-| 37 | [Todo server, build, and state](./features/37-todo-server-build-and-state/feature.md) | Consolidated Todo redesign and removal checks | 26, 27, 32, 33 and Specification 90 | Sonnet | Cross-platform | Pending implementation |
+| 36 | [mathalley-game-view](./features/36-mathalley-game-view/feature.md) | Play Mathalley in a second todo view and verify graphics and view isolation | All prior features | Sonnet | Cross-platform | Android repeat visits and host sound checks pass. Landscape input verification continues. |
+| 37 | [Todo server, build, and state](./features/37-todo-server-build-and-state/feature.md) | Consolidated Todo redesign and removal checks | 26, 27, 32, 33 and Specification 90 | Sonnet | Cross-platform | Persistence and browser publication checks pass. Subdirectory support and final package verification continue. |
 
 Features 11 and 20 passed the live stream and producer checks before feature 12 removed the old wire.
 
@@ -514,7 +514,7 @@ A feature is complete when its README task and this verification pass. Record th
 
 ## 9. Success criteria (spec-wide)
 
-- All 29 indexed features are complete and verified. Feature 17 puts every pinned tool on each
+- Verify all 36 indexed features. Number 18 is reserved. Track remaining checks in the [closure checklist](completion-audit.md). Feature 17 puts every pinned tool on each
   host: `scripts/toolchain/check.sh` exits 0 on Linux, macOS and Windows CI.
 - Each feature or package README has concrete examples and runnable validation. The documented checks pass.
 - iOS and Android each ship two independent todo examples. Todo Server uses the remote store.

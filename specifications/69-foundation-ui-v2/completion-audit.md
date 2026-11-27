@@ -9,6 +9,25 @@ The status below uses source inspection, existing test records, and the open Git
 
 ### Work order
 
+#### Current assignments and next checks
+
+The combined branch includes the resource publication fix at `aac514c9a`.
+
+| Assignment | Current evidence | Next check |
+|---|---|---|
+| Feature 37 server | The repaired server returns 4,800 complete responses on reused connections. The reactor suite passes on macOS and Linux. | Run the subdirectory fixtures for #839. |
+| Browser navigation | Issue #1143 tracks a separate driver error in page event routing and navigation results. | Test two simultaneous tabs, reload, failed navigation, and navigation within one document. Then verify native connection selection for #1062. |
+| Android sound | Commit `e9c102726` removes the Todo launcher's unconditional mute flag. A host recording contains the three Mathalley intro notes. Mute reduces the recorded level by about 40 decibels. | Check landscape input with side insets for #843. Then verify the failure banner and Back behavior. Physical speaker output remains unverified. |
+
+The earlier Android surface repair passes two scored game visits on the emulator.
+The separate flash report still lacks a confirmed cause.
+The browser publication repair passes both build orders and preserves the served files after a rejected build.
+Commit `64f5f4fb7` keeps the first socket event during reactor registration. The browser driver has separate verification.
+The owner approves Feature 37 steps 3 and 4. Use `pkg/` relative to the application mount for public assets.
+Use `public/` on disk. Test the default mount, a prefix-only proxy, a project override, and relocation.
+Use each released worker for the next independent check. Record the commit, result, and remaining exceptions at each handoff.
+Keep the release consumer checks and all final gates in the work order below.
+
 | Order | Features | Work and exit condition |
 |---|---|---|
 | 1. Keep Android Mathalley visible and interactive | 34–36 | The owner reports that the game flashes, then disappears. Identify the installed build. Distinguish a process crash, unexpected navigation, and a blank surface. Verify sustained visible play and input on first and repeat launch. This check is incomplete. [#1078](https://github.com/ewe-studios/ewe_platform/issues/1078): retire the old drawing surface in the shared host. Test a second consumer and two game visits in one process. Score on both visits and return to the original list. [#1083](https://github.com/ewe-studios/ewe_platform/issues/1083): test sound enabled and explicitly muted with the shared launcher. Check landscape input with side insets (#843). The earlier startup crash (#1074) has a separate verified fix. |
