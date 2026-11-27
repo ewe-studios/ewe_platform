@@ -1,5 +1,11 @@
 # Spec 69 learnings
 
+## Android Todo Server startup address
+
+The launcher starts the activity without the custom server extra. Port forwarding does not supply that extra.
+The app reads its packaged address from a Gradle resource. An explicit valid address takes precedence and is saved.
+The pending input file still uses a hash of the resolved address.
+
 ## Shared web button styles
 
 Ordinary shared buttons use the `.ewe-button` class. The base stylesheet did not include it.

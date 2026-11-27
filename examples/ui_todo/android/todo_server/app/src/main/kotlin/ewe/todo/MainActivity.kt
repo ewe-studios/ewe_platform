@@ -19,7 +19,6 @@ import ewe.ui.compose.RemoteEweScreen
 import io.github.ewe_studios.ewe.core.NativePlatform
 import io.github.ewe_studios.ewe.todo.createPersistentTodoCore
 import java.security.MessageDigest
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class MainActivity : ComponentActivity() {
     private val countdown = TodoCountdown()
@@ -35,7 +34,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         // Use the same native library for both sets of callback tables.
         System.setProperty("uniffi.component.foundation_ui_native.libraryOverride", "ui_todo")
-        val endpoint = (intent.getStringExtra("server") ?: "http://10.0.2.2:8180/").toHttpUrl()
+        val endpoint = resolveTodoServerEndpoint(
+            getSharedPreferences("todo-server", MODE_PRIVATE),
+            intent.getStringExtra("server"),
+            getString(R.string.todo_server_url),
+        )
         val key = MessageDigest.getInstance("SHA-256").digest(endpoint.toString().toByteArray()).joinToString("") { "%02x".format(it) }
         val pendingFile = filesDir.resolve("todo-pending/$key.json").absolutePath
         val theme = if (intent.getBooleanExtra("branded", false))
