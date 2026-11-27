@@ -246,3 +246,21 @@ Issue #556 records the set across the split specifications. It is closed.
   `cargo check -p infrastructure_llama_bindings` passes. CI run `45340309029`
   passes its `Windows 1/1` shard, so the gguf test links and runs on Windows.
   #772 is closed.
+
+## Review findings (2026-11-27)
+
+The audit reviewed exact master commit `39cd005f1` after merge `348620340`. The merged code does
+not prove a full `packages=all` run. The progress note names that run as the intended proof, but
+it gives no run identifier or output.
+
+- Feature 04 remains blocked by [#1048](https://github.com/ewe-studios/ewe_platform/issues/1048).
+  The DST package still inherits root workspace feature unification on this master commit.
+- Pull request [#1049](https://github.com/ewe-studios/ewe_platform/pull/1049) contains the
+  workspace isolation fix, but it is not in this master commit.
+- Feature 04 still uses a scripted catalog. Issue [#908](https://github.com/ewe-studios/ewe_platform/issues/908)
+  tracks the real-registry event-stream gap.
+- Feature 00 T7 still needs Cloudflare credentials and a live OpenRouter smoke test.
+- Feature 06 tests skip when deployment variables are absent. They do not prove a deployed Worker run.
+- Feature 08 key-management code exists, but the history archive remains gzip-only. It does not use
+  a key sealer. Issue [#1051](https://github.com/ewe-studios/ewe_platform/issues/1051) records the fix.
+  Key-store encryption is a separate storage path and does not encrypt history archives.

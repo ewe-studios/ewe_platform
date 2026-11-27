@@ -1356,3 +1356,21 @@ engine is multi and `TaskIterator` alone otherwise. `ExchangeContinuation` is
 **The rule.** A `Send` bound belongs to the crate that owns the engine and its feature. A
 second crate must not define its own copy of that switch. A feature name is not a global
 contract; Cargo unifies it per crate.
+
+## Review findings: archive and verification gaps (2026-11-27)
+
+The audit reviewed exact master commit `39cd005f1` after merge `348620340`.
+
+`core/archive.rs` writes JSON lines into gzip and sends the stream to the blob store. It does not
+call `KeySealer` or `EnvelopeSealer`. Feature 08 K4 requires envelope encryption for each history
+archive object. Issue [#1051](https://github.com/ewe-studios/ewe_platform/issues/1051) records this
+high-severity gap and its scoped fix.
+
+The key-store encryption code in `foundation_auth` protects key records. It does not protect the
+history archive. Key-store encryption does not satisfy K4.
+
+The full `packages=all` run is not independently verified. The progress note calls it proof but
+gives no run output. Issue [#1048](https://github.com/ewe-studios/ewe_platform/issues/1048) still
+affects the DST package on this master commit. Pull request [#1049](https://github.com/ewe-studios/ewe_platform/pull/1049)
+contains the workspace isolation fix. Issue [#908](https://github.com/ewe-studios/ewe_platform/issues/908)
+tracks the real-registry event-stream gap. Feature 00 T7 still needs live Cloudflare credentials.
