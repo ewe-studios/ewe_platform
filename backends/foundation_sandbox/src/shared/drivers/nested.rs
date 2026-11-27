@@ -26,21 +26,118 @@ use crate::shared::driver::{
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::handles::{CreateStream, ExecFileCalls};
 use crate::shared::ids::{DriverId, SandboxId};
+use crate::shared::limits::SandboxLimits;
 use crate::shared::spec::{RootMode, RootSetup, RootSource, SandboxSpec};
 use crate::shared::BoxFuture;
+
+/// The retry policy of the nested child watcher.
+///
+/// The watcher reads the inner state once per interval. A transport error is
+/// not a stopped child, so the watcher keeps polling until the child answers or
+/// the child's boot timeout passes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NestedWatchConfig {
+    /// The time between two state reads.
+    ///
+    /// Default 1 s. A local control plane answers in microseconds, and one
+    /// second keeps the polling load small on a parent with many children.
+    pub poll_interval: Duration,
+}
+
+impl Default for NestedWatchConfig {
+    fn default() -> Self {
+        Self {
+            poll_interval: Duration::from_secs(1),
+        }
+    }
+}
+
+impl NestedWatchConfig {
+    /// Replaces [`Self::poll_interval`].
+    #[must_use]
+    pub fn with_poll_interval(mut self, interval: Duration) -> Self {
+        self.poll_interval = interval;
+        self
+    }
+}
+
+/// What the nested child watcher learned.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WatchOutcome {
+    /// The child stopped, failed or no longer exists.
+    Gone,
+    /// Transport errors lasted for the child's whole boot timeout.
+    Timeout,
+}
+
+/// Watches one child until it is gone or its transport retries time out.
+///
+/// `read` returns the inner state. [`SandboxError::NotFound`] and
+/// [`SandboxError::SandboxStopped`] are the gone cases. Every other error is a
+/// transport error: the watcher keeps polling and gives up only after
+/// `limits.boot_timeout` of retries, counted as the time that it waited.
+pub async fn watch_child<F, Fut>(
+    ctx: &Ctx,
+    limits: &SandboxLimits,
+    config: &NestedWatchConfig,
+    mut read: F,
+) -> WatchOutcome
+where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = SandboxResult<SandboxState>>,
+{
+    // The time spent retrying transport errors, since the last good answer.
+    let mut retried = Duration::ZERO;
+    loop {
+        match read().await {
+            Ok(SandboxState::Stopped | SandboxState::Failed) => return WatchOutcome::Gone,
+            Ok(_) => retried = Duration::ZERO,
+            Err(error)
+                if matches!(
+                    error.current_context(),
+                    SandboxError::NotFound { .. } | SandboxError::SandboxStopped
+                ) =>
+            {
+                return WatchOutcome::Gone;
+            }
+            Err(_) => {
+                if retried >= limits.boot_timeout {
+                    return WatchOutcome::Timeout;
+                }
+                retried = retried.saturating_add(config.poll_interval);
+            }
+        }
+        // The injected timer works on a native host and on wasm.
+        let deadline = ctx.clock().now() + config.poll_interval;
+        if crate::shared::control::wait_until(deadline, ctx)
+            .await
+            .is_err()
+        {
+            return WatchOutcome::Timeout;
+        }
+    }
+}
 
 /// The driver of a micro virtual machine (VM) inside a parent sandbox.
 pub struct NestedDriver {
     /// The manager's own registry. It is set after the manager exists, because
     /// the manager holds this driver.
     inner: Arc<OnceLock<Arc<Inner>>>,
+    /// The retry policy of the child watcher.
+    watch: NestedWatchConfig,
 }
 
 impl NestedDriver {
     /// A driver over the shared registry slot that the manager fills.
     #[must_use]
     pub fn with_slot(slot: Arc<OnceLock<Arc<Inner>>>) -> Self {
-        Self { inner: slot }
+        Self::with_slot_and_watch(slot, NestedWatchConfig::default())
+    }
+
+    /// A driver with a caller's watcher policy.
+    #[must_use]
+    pub fn with_slot_and_watch(slot: Arc<OnceLock<Arc<Inner>>>, watch: NestedWatchConfig) -> Self {
+        Self { inner: slot, watch }
     }
 
     /// The manager that holds this driver, when it is bound.
@@ -123,6 +220,8 @@ impl NestedDriver {
             provider,
             parent_handle,
             parent: parent_id,
+            limits: spec.limits.clone(),
+            watch: self.watch.clone(),
         })
     }
 }
@@ -238,6 +337,8 @@ impl SandboxDriver for NestedDriver {
                 parent_handle,
                 inner: inner_id.clone(),
                 forced: AtomicBool::new(false),
+                limits: record.spec.limits.clone(),
+                watch: self.watch.clone(),
             };
             Ok(Some(Substrate {
                 endpoint: SlaveEndpoint::Parent {
@@ -264,6 +365,8 @@ struct NestedLaunch {
     provider: Arc<SandboxRpcClient>,
     parent_handle: Arc<dyn SubstrateHandle>,
     parent: SandboxId,
+    limits: SandboxLimits,
+    watch: NestedWatchConfig,
 }
 
 impl NestedLaunch {
@@ -278,6 +381,8 @@ impl NestedLaunch {
             parent_handle: Arc::clone(&self.parent_handle),
             inner: inner_id.clone(),
             forced: AtomicBool::new(false),
+            limits: self.limits.clone(),
+            watch: self.watch.clone(),
         };
         Substrate {
             endpoint: SlaveEndpoint::Parent {
@@ -335,6 +440,8 @@ struct NestedHandle {
     parent_handle: Arc<dyn SubstrateHandle>,
     inner: SandboxId,
     forced: AtomicBool,
+    limits: SandboxLimits,
+    watch: NestedWatchConfig,
 }
 
 impl SubstrateHandle for NestedHandle {
@@ -344,8 +451,10 @@ impl SubstrateHandle for NestedHandle {
         let inner = self.inner.clone();
         let parent_handle = Arc::clone(&self.parent_handle);
         let forced = self.forced.load(Ordering::SeqCst);
+        let limits = self.limits.clone();
+        let watch = self.watch.clone();
         Box::pin(async move {
-            let inner_done = Box::pin(poll_stopped(&provider, &inner, &ctx));
+            let inner_done = Box::pin(poll_stopped(&provider, &inner, &ctx, &limits, &watch));
             let parent_done = Box::pin(parent_handle.exited());
             match select(inner_done, parent_done).await {
                 Either::Left(((), _parent)) => SubstrateExit {
@@ -401,27 +510,25 @@ impl SubstrateHandle for NestedHandle {
     }
 }
 
-/// Waits until the inner sandbox is gone, with one `get` every second on the
-/// injected clock.
-async fn poll_stopped(provider: &SandboxRpcClient, inner: &SandboxId, ctx: &Ctx) {
-    loop {
+/// Waits until the inner sandbox is gone, on the injected clock and timer.
+///
+/// A stopped inner sandbox is not ready, so its control plane refuses `get`
+/// with [`SandboxError::SandboxStopped`]; a missing one gives
+/// [`SandboxError::NotFound`]. Both mean the child is gone. Every other error
+/// is a transport error, and the watcher retries it for the child's boot
+/// timeout.
+async fn poll_stopped(
+    provider: &SandboxRpcClient,
+    inner: &SandboxId,
+    ctx: &Ctx,
+    limits: &SandboxLimits,
+    watch: &NestedWatchConfig,
+) {
+    let _ = watch_child(ctx, limits, watch, || async {
         match provider.get(inner.clone()).await {
-            Ok(handle) => {
-                let state = handle.info().state;
-                if matches!(state, SandboxState::Stopped | SandboxState::Failed) {
-                    return;
-                }
-            }
-            // A stopped inner sandbox is not ready, so `get` refuses it.
-            Err(_) => return,
+            Ok(handle) => Ok(handle.info().state),
+            Err(error) => Err(error),
         }
-        // The injected timer works on a native host and on wasm.
-        let deadline = ctx.clock().now() + Duration::from_secs(1);
-        if crate::shared::control::wait_until(deadline, ctx)
-            .await
-            .is_err()
-        {
-            return;
-        }
-    }
+    })
+    .await;
 }

@@ -6,18 +6,21 @@
 //! virtual machine is used.
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_context::Ctx;
 use foundation_core::valtron::SimulatedClock;
 use foundation_sandbox::shared::control::testing::{
     in_memory_connector, in_memory_dual_connector, CountingStore, ScriptedSlave, SimDriver,
     SimSubstrate,
 };
 use foundation_sandbox::shared::control::{
-    ControlService, ManagerConfig, SandboxManager, SandboxProvider,
+    ControlService, ManagerConfig, SandboxManager, SandboxProvider, SandboxState,
 };
 use foundation_sandbox::shared::driver::SubstrateExit;
+use foundation_sandbox::shared::drivers::nested::{watch_child, NestedWatchConfig, WatchOutcome};
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::ids::{DriverId, SandboxId};
 use foundation_sandbox::shared::limits::SandboxLimits;
@@ -38,7 +41,16 @@ struct Setup {
 /// Builds a parent control plane and its inner control plane.
 fn setup(seed: u64, can_control: bool, info_pending: bool) -> Setup {
     let (ctx, clock) = support::ctx(seed);
+    setup_with(ctx, clock, can_control, info_pending)
+}
 
+/// Builds the two control planes over a caller's context and clock.
+fn setup_with(
+    ctx: Ctx,
+    clock: Arc<SimulatedClock>,
+    can_control: bool,
+    info_pending: bool,
+) -> Setup {
     // The inner control plane: a manager with the Firecracker driver.
     let inner_slave = Arc::new(ScriptedSlave::new());
     let inner_driver = Arc::new(SimDriver::new(DriverId::Firecracker));
@@ -264,3 +276,88 @@ fn parent_exit_fails_children() {
         .expect("list")
         .is_empty());
 }
+
+/// A transport error is not a stopped child: the watcher keeps polling.
+#[test]
+fn watcher_retries_a_transport_error() {
+    let _serial = support::serial();
+    let (ctx, _clock, _timer) = support::recording_ctx_resolve_long(36);
+    let limits = SandboxLimits::default();
+    let config = NestedWatchConfig::default();
+    let calls = Arc::new(AtomicUsize::new(0));
+    let outcome = support::block_on(watch_child(&ctx, &limits, &config, || {
+        let calls = Arc::clone(&calls);
+        async move {
+            match calls.fetch_add(1, Ordering::SeqCst) {
+                0 => Err(SandboxError::Rpc {
+                    code: "unavailable".to_string(),
+                    message: "a transport blip".to_string(),
+                }
+                .into()),
+                1 => Ok(SandboxState::Ready),
+                _ => Ok(SandboxState::Stopped),
+            }
+        }
+    }));
+    assert_eq!(outcome, WatchOutcome::Gone);
+    assert_eq!(
+        calls.load(Ordering::SeqCst),
+        3,
+        "the error, the ready read and the stopped read"
+    );
+}
+
+/// Transport errors that outlast the boot timeout end the watch.
+#[test]
+fn watcher_gives_up_after_the_boot_timeout() {
+    let _serial = support::serial();
+    let (ctx, _clock, _timer) = support::recording_ctx_resolve_long(37);
+    let limits = SandboxLimits::default().with_boot_timeout(Duration::from_secs(3));
+    let config = NestedWatchConfig::default();
+    let calls = Arc::new(AtomicUsize::new(0));
+    let outcome = support::block_on(watch_child(&ctx, &limits, &config, || {
+        let calls = Arc::clone(&calls);
+        async move {
+            calls.fetch_add(1, Ordering::SeqCst);
+            Err(SandboxError::Rpc {
+                code: "unavailable".to_string(),
+                message: "a transport blip".to_string(),
+            }
+            .into())
+        }
+    }));
+    assert_eq!(outcome, WatchOutcome::Timeout);
+    assert_eq!(
+        calls.load(Ordering::SeqCst),
+        4,
+        "three waited seconds and the read that passed the limit"
+    );
+}
+
+/// Only `NotFound` and `SandboxStopped` mean the child is gone.
+#[test]
+fn watcher_treats_not_found_and_stopped_as_gone() {
+    let _serial = support::serial();
+    let (ctx, _clock, _timer) = support::recording_ctx(38);
+    let limits = SandboxLimits::default();
+    let config = NestedWatchConfig::default();
+    for error in [
+        SandboxError::NotFound {
+            what: "sandbox".to_string(),
+        },
+        SandboxError::SandboxStopped,
+    ] {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let outcome = support::block_on(watch_child(&ctx, &limits, &config, || {
+            let calls = Arc::clone(&calls);
+            let error = error.clone();
+            async move {
+                calls.fetch_add(1, Ordering::SeqCst);
+                Err(error.into())
+            }
+        }));
+        assert_eq!(outcome, WatchOutcome::Gone, "{error:?} is gone");
+        assert_eq!(calls.load(Ordering::SeqCst), 1, "one read is enough");
+    }
+}
+
