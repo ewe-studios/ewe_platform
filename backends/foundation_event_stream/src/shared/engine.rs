@@ -481,13 +481,11 @@ impl SubscriptionEngine {
         }
         let token = self.new_token();
         let updated = self.store.with_record_mut(id, |slot| {
-            let Some(record) = slot else {
-                return None;
-            };
+            let record = slot?;
             record.holder = Some(worker.to_string());
             record.token = Some(token.clone());
             record.token_generation = record.generation;
-            record.lease_expires_at_ms = Some(now.saturating_add(self.lease_ms(record)));
+            record.lease_expires_at_ms = Some(now.saturating_add(Self::lease_ms(record)));
             record.status = SubscriptionStatus::Active;
             Some(record.clone())
         });
@@ -553,16 +551,14 @@ impl SubscriptionEngine {
         }
         validate_wake(&record, token, &request)?;
         let updated = self.store.with_record_mut(id, |slot| {
-            let Some(record) = slot else {
-                return None;
-            };
+            let record = slot?;
             record.clear_wake();
             Some(record.clone())
         });
         let Some(record) = updated else {
             return Err(SubscriptionError::not_found());
         };
-        self.log_persist(id, self.store.persist(&record).await);
+        Self::log_persist(id, self.store.persist(&record).await);
         if self.has_pending(&record).await {
             let triggered_by = self.first_pending(&record).await;
             self.create_wake(id, &triggered_by).await;
@@ -662,9 +658,7 @@ impl SubscriptionEngine {
         let tail = self.tail_of(&relative).await;
         for id in candidates {
             let outcome = self.store.with_record_mut(&id, |slot| {
-                let Some(record) = slot else {
-                    return None;
-                };
+                let record = slot?;
                 let mut changed = false;
                 if record
                     .pattern
@@ -692,7 +686,7 @@ impl SubscriptionEngine {
                 continue;
             };
             if changed || should_wake {
-                self.log_persist(&id, self.store.persist(&record).await);
+                Self::log_persist(&id, self.store.persist(&record).await);
             }
             if should_wake {
                 self.create_wake(&id, &relative).await;
@@ -783,9 +777,7 @@ impl SubscriptionEngine {
 
     async fn finish_wake(&self, id: &str) -> bool {
         let updated = self.store.with_record_mut(id, |slot| {
-            let Some(record) = slot else {
-                return None;
-            };
+            let record = slot?;
             let snapshot = record.wake_snapshot.clone();
             for (path, offset) in snapshot {
                 if let Some(link) = record.streams.get_mut(&path) {
@@ -803,7 +795,7 @@ impl SubscriptionEngine {
         let Some(record) = updated else {
             return false;
         };
-        self.log_persist(id, self.store.persist(&record).await);
+        Self::log_persist(id, self.store.persist(&record).await);
         if self.has_pending(&record).await {
             let triggered_by = self.first_pending(&record).await;
             // The wake path calls the delivery path, and a finished delivery can create the next
@@ -817,14 +809,12 @@ impl SubscriptionEngine {
 
     async fn extend_lease(&self, id: &str, now: i64) {
         let updated = self.store.with_record_mut(id, |slot| {
-            let Some(record) = slot else {
-                return None;
-            };
-            record.lease_expires_at_ms = Some(now.saturating_add(self.lease_ms(record)));
+            let record = slot?;
+            record.lease_expires_at_ms = Some(now.saturating_add(Self::lease_ms(record)));
             Some(record.clone())
         });
         if let Some(record) = updated {
-            self.log_persist(id, self.store.persist(&record).await);
+            Self::log_persist(id, self.store.persist(&record).await);
         }
     }
 
@@ -841,9 +831,7 @@ impl SubscriptionEngine {
         }
         let now = self.now_ms();
         let created = self.store.with_record_mut(id, |slot| {
-            let Some(record) = slot else {
-                return None;
-            };
+            let record = slot?;
             if !record.is_idle() {
                 return None;
             }
@@ -856,7 +844,7 @@ impl SubscriptionEngine {
                 SubscriptionType::Webhook => {
                     record.token = Some(self.new_token());
                     record.token_generation = record.generation;
-                    record.lease_expires_at_ms = Some(now.saturating_add(self.lease_ms(record)));
+                    record.lease_expires_at_ms = Some(now.saturating_add(Self::lease_ms(record)));
                 }
                 SubscriptionType::PullWake => {
                     record.token = None;
@@ -869,7 +857,7 @@ impl SubscriptionEngine {
         let Some(record) = created else {
             return;
         };
-        self.log_persist(id, self.store.persist(&record).await);
+        Self::log_persist(id, self.store.persist(&record).await);
         match record.kind {
             SubscriptionType::Webhook => self.enqueue_delivery(id),
             SubscriptionType::PullWake => {
@@ -930,16 +918,14 @@ impl SubscriptionEngine {
                 let done =
                     serde_json::from_slice::<DoneFlag>(&response.body).is_ok_and(|flag| flag.done);
                 let updated = self.store.with_record_mut(id, |slot| {
-                    let Some(record) = slot else {
-                        return None;
-                    };
+                    let record = slot?;
                     record.status = SubscriptionStatus::Active;
                     record.retry_count = 0;
                     record.next_attempt_at_ms = None;
                     Some(record.clone())
                 });
                 if let Some(record) = updated {
-                    self.log_persist(id, self.store.persist(&record).await);
+                    Self::log_persist(id, self.store.persist(&record).await);
                 }
                 if done {
                     self.finish_wake(id).await;
@@ -994,14 +980,14 @@ impl SubscriptionEngine {
         let updated = self.store.with_record_mut(id, |slot| {
             let record = slot.filter(|record| record.wake_id.is_some())?;
             let until = now
-                .saturating_add(self.lease_ms(record))
+                .saturating_add(Self::lease_ms(record))
                 .saturating_add(hold);
             record.lease_expires_at_ms =
                 Some(record.lease_expires_at_ms.unwrap_or(until).max(until));
             Some(record.clone())
         });
         if let Some(record) = updated {
-            self.log_persist(id, self.store.persist(&record).await);
+            Self::log_persist(id, self.store.persist(&record).await);
         }
     }
 
@@ -1025,7 +1011,7 @@ impl SubscriptionEngine {
                 record.next_attempt_at_ms = Some(next);
                 // The lease must not expire between retries. Keep it over the next attempt
                 // and its callback window.
-                let until = next.saturating_add(self.lease_ms(record)).saturating_add(
+                let until = next.saturating_add(Self::lease_ms(record)).saturating_add(
                     i64::try_from(self.config().delivery_timeout_ms).unwrap_or(i64::MAX),
                 );
                 record.lease_expires_at_ms =
@@ -1041,7 +1027,7 @@ impl SubscriptionEngine {
             );
         }
         if let Some(record) = updated {
-            self.log_persist(id, self.store.persist(&record).await);
+            Self::log_persist(id, self.store.persist(&record).await);
         }
     }
 
@@ -1055,9 +1041,7 @@ impl SubscriptionEngine {
         });
         for id in expired {
             let updated = self.store.with_record_mut(&id, |slot| {
-                let Some(record) = slot else {
-                    return None;
-                };
+                let record = slot?;
                 tracing::debug!(
                     subscription = id.as_str(),
                     "expiring the subscription lease"
@@ -1068,7 +1052,7 @@ impl SubscriptionEngine {
             let Some(record) = updated else {
                 continue;
             };
-            self.log_persist(&id, self.store.persist(&record).await);
+            Self::log_persist(&id, self.store.persist(&record).await);
             if self.has_pending(&record).await {
                 let triggered_by = self.first_pending(&record).await;
                 self.create_wake(&id, &triggered_by).await;
@@ -1231,11 +1215,11 @@ impl SubscriptionEngine {
 
     async fn persist_record(&self, id: &str) {
         if let Some(record) = self.store.get(id) {
-            self.log_persist(id, self.store.persist(&record).await);
+            Self::log_persist(id, self.store.persist(&record).await);
         }
     }
 
-    fn log_persist(&self, id: &str, result: Result<(), String>) {
+    fn log_persist(id: &str, result: Result<(), String>) {
         if let Err(error) = result {
             tracing::warn!(
                 subscription = id,
@@ -1265,7 +1249,7 @@ impl SubscriptionEngine {
             .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
     }
 
-    fn lease_ms(&self, record: &SubscriptionRecord) -> i64 {
+    fn lease_ms(record: &SubscriptionRecord) -> i64 {
         i64::try_from(record.lease_ttl_ms).unwrap_or(i64::MAX)
     }
 
@@ -1281,10 +1265,16 @@ impl SubscriptionEngine {
             return base;
         }
         let random = self.random_u64() % span.saturating_mul(2).saturating_add(1);
-        let jitter = random as i64 - span as i64;
-        u64::try_from(base as i64 + jitter)
-            .unwrap_or(base)
-            .max(config.min_retry_delay_ms)
+        let jitter = i64::try_from(random)
+            .unwrap_or(i64::MAX)
+            .saturating_sub(i64::try_from(span).unwrap_or(i64::MAX));
+        u64::try_from(
+            i64::try_from(base)
+                .unwrap_or(i64::MAX)
+                .saturating_add(jitter),
+        )
+        .unwrap_or(base)
+        .max(config.min_retry_delay_ms)
     }
 
     fn new_wake_id(&self) -> String {
@@ -1305,6 +1295,12 @@ impl SubscriptionEngine {
 
     fn random_u64(&self) -> u64 {
         let rng = self.ctx.rng();
+        // The mutex poison type comes from the platform context mutex. The closure is portable
+        // across the standard and wasm backends; the function pointer is not.
+        #[expect(
+            clippy::redundant_closure_for_method_calls,
+            reason = "the poison type is platform specific, so the closure keeps the wasm build"
+        )]
         let mut rng = rng.lock().unwrap_or_else(|error| error.into_inner());
         rng.next_u64()
     }

@@ -22,6 +22,20 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   upstream run passed the 6 server subscription tests (6 passed, 332 skipped). The
   `foundation_event_stream` files add no time-source or clock-parameter hit.
 
+  The crate gate is green. `cargo clippy --profile uat -p foundation_event_stream
+  --all-targets --no-deps -- -D warnings` exits 0. This change also fixed the 24 warnings that
+  the gate already reported: `let...else` to `?`, associated helpers for `log_persist` and
+  `lease_ms`, checked integer casts in `retry_delay`, `write!` in place of `format!` on a
+  `String`, a `SnapshotLine` enum in place of `Option<Option<T>>`, a smaller `handle` split into
+  `handle_callback`, `handle_claim`, `handle_ack` and `handle_release`, and one
+  `#[expect(clippy::redundant_closure_for_method_calls)]` with a reason, because the mutex poison
+  type differs on wasm and the closure keeps that build. `cargo test --profile uat -p
+  foundation_event_stream --no-fail-fast` passes 16 of 16, including `crate_builds_wasm`.
+
+  Two medium issues record the remaining gaps: #1089, a full queue drops a wake with no count
+  and no dedicated retry, and #1090, `send_bounded` runs unbounded when `Ctx` holds no `Env`
+  timer. Both wait for later pickup.
+
 - 2026-11-27: issue #1081 closed. The `durable_core_no_valtron` integration crate now runs the
   protocol conformance suite with `foundation_core` `default-features = false` and the features
   `std` and `alloc`: no `valtron`, `test-clock`, `multi` or `vfs-testkit`, no HTTP and no

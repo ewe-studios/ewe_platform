@@ -3,6 +3,9 @@
 use foundation_event_stream::shared::SubscriptionConfig;
 use foundation_event_stream::{durable, Jwks};
 
+/// Compile-time proof that a type is `Send + Sync`.
+fn assert_send_sync<T: Send + Sync>() {}
+
 #[test]
 fn durable_types_match_the_core() {
     let core = foundation_core::durable::StreamName::parse("events/a").expect("valid");
@@ -16,7 +19,6 @@ fn durable_types_match_the_core() {
     let auth_jwks: foundation_auth::shared::jwks::Jwks = jwks;
     assert!(auth_jwks.keys.is_empty());
 
-    fn assert_send_sync<T: Send + Sync>() {}
     assert_send_sync::<foundation_event_stream::SubscriptionEngine>();
     assert_send_sync::<SubscriptionConfig>();
 }
@@ -50,10 +52,9 @@ fn wasm_target_installed() -> bool {
     std::process::Command::new("rustup")
         .args(["target", "list", "--installed"])
         .output()
-        .map(|output| {
+        .is_ok_and(|output| {
             String::from_utf8_lossy(&output.stdout)
                 .lines()
                 .any(|line| line.trim() == "wasm32-unknown-unknown")
         })
-        .unwrap_or(false)
 }

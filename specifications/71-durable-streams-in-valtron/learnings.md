@@ -1001,3 +1001,10 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **A shared manual clock must move `now()`.** The valtron timer reads `Clock::now()`. The test
   clock now returns an origin plus the moved duration, so an advance controls both the wall time
   and the timer. It used to return the real `Instant`.
+- **The clippy fix for a lock closure is not portable.** `clippy::redundant_closure_for_method_calls`
+  asks for `std::sync::PoisonError::into_inner`. On wasm the `Ctx` mutex comes from
+  `foundation_nostd`, so its poison type is different and the crate fails to build. Keep the
+  closure and add `#[expect]` with the reason. The crate's wasm check test catches the mistake.
+- **The crate clippy gate is `-D warnings`.** `[packages.foundation_event_stream]` sets
+  `clippy-deny-warnings = true`, so every warning in the crate is an error. The change fixed 24
+  old warnings and must keep the tree at zero.

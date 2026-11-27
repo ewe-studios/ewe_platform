@@ -83,6 +83,12 @@ impl WebhookSigningKey {
         let mut seed = [0_u8; 32];
         {
             let rng = ctx.rng();
+            // The mutex poison type comes from the platform context mutex. The closure is
+            // portable across the standard and wasm backends; the function pointer is not.
+            #[expect(
+                clippy::redundant_closure_for_method_calls,
+                reason = "the poison type is platform specific, so the closure keeps the wasm build"
+            )]
             let mut rng = rng.lock().unwrap_or_else(|error| error.into_inner());
             for chunk in seed.chunks_mut(8) {
                 let value = rng.next_u64().to_le_bytes();

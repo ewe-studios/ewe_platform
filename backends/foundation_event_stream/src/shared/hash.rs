@@ -5,6 +5,7 @@
 
 use super::model::SubscriptionCreate;
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
 
 /// Hash a normalized configuration as lowercase SHA-256 hexadecimal text.
 #[must_use]
@@ -15,7 +16,7 @@ pub fn stable_config_hash(config: &SubscriptionCreate) -> String {
     let digest = Sha256::digest(bytes);
     let mut out = String::with_capacity(digest.len() * 2);
     for byte in digest {
-        out.push_str(&format!("{byte:02x}"));
+        let _ = write!(out, "{byte:02x}");
     }
     out
 }

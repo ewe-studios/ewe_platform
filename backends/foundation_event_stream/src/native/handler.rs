@@ -150,114 +150,125 @@ async fn handle(
         };
     }
     match tail {
-        "callback" => {
-            let token = match bearer_token(headers) {
-                Some(token) => token,
-                None => {
-                    return respond_error(
-                        conn,
-                        &ctx,
-                        401,
-                        &SubscriptionError::new(
-                            SubscriptionErrorCode::TokenInvalid,
-                            "Missing or malformed Authorization header",
-                        ),
-                    )
-                    .await
-                }
-            };
-            if method != SimpleMethod::POST {
-                return method_not_allowed(conn, &ctx).await;
-            }
-            let request = match parse_body::<AckRequest>(body) {
-                Ok(request) => request,
-                Err(error) => return respond_error(conn, &ctx, 400, &error).await,
-            };
-            match engine.callback(&id, &token, request).await {
-                Ok(response) => respond_json(conn, &ctx, 200, &response).await,
-                Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
-            }
-        }
-        "claim" => {
-            if method != SimpleMethod::POST {
-                return method_not_allowed(conn, &ctx).await;
-            }
-            let request = match parse_body::<ClaimRequest>(body) {
-                Ok(request) => request,
-                Err(error) => return respond_error(conn, &ctx, 400, &error).await,
-            };
-            if request.worker.is_empty() {
-                return respond_error(
-                    conn,
-                    &ctx,
-                    400,
-                    &SubscriptionError::invalid("worker must be a non-empty string"),
-                )
-                .await;
-            }
-            match engine.claim(&id, &request.worker).await {
-                Ok(response) => respond_json(conn, &ctx, 200, &response).await,
-                Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
-            }
-        }
-        "ack" => {
-            let token = match bearer_token(headers) {
-                Some(token) => token,
-                None => {
-                    return respond_error(
-                        conn,
-                        &ctx,
-                        401,
-                        &SubscriptionError::new(
-                            SubscriptionErrorCode::TokenInvalid,
-                            "Missing or malformed Authorization header",
-                        ),
-                    )
-                    .await
-                }
-            };
-            if method != SimpleMethod::POST {
-                return method_not_allowed(conn, &ctx).await;
-            }
-            let request = match parse_body::<AckRequest>(body) {
-                Ok(request) => request,
-                Err(error) => return respond_error(conn, &ctx, 400, &error).await,
-            };
-            match engine.ack(&id, &token, request).await {
-                Ok(response) => respond_json(conn, &ctx, 200, &response).await,
-                Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
-            }
-        }
-        "release" => {
-            let token = match bearer_token(headers) {
-                Some(token) => token,
-                None => {
-                    return respond_error(
-                        conn,
-                        &ctx,
-                        401,
-                        &SubscriptionError::new(
-                            SubscriptionErrorCode::TokenInvalid,
-                            "Missing or malformed Authorization header",
-                        ),
-                    )
-                    .await
-                }
-            };
-            if method != SimpleMethod::POST {
-                return method_not_allowed(conn, &ctx).await;
-            }
-            let request = match parse_body::<AckRequest>(body) {
-                Ok(request) => request,
-                Err(error) => return respond_error(conn, &ctx, 400, &error).await,
-            };
-            match engine.release(&id, &token, request).await {
-                Ok(()) => respond_empty(conn, &ctx, 204).await,
-                Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
-            }
-        }
+        "callback" => handle_callback(engine, ctx, conn, &id, headers, method, body).await,
+        "claim" => handle_claim(engine, ctx, conn, &id, method, body).await,
+        "ack" => handle_ack(engine, ctx, conn, &id, headers, method, body).await,
+        "release" => handle_release(engine, ctx, conn, &id, headers, method, body).await,
         _ => respond_error(conn, &ctx, 404, &SubscriptionError::not_found()).await,
     }
+}
+
+async fn handle_callback(
+    engine: Arc<SubscriptionEngine>,
+    ctx: Ctx,
+    conn: SharedByteBufferStream<RawStream>,
+    id: &str,
+    headers: &SimpleHeaders,
+    method: SimpleMethod,
+    body: &[u8],
+) -> ServeOutcome {
+    let Some(token) = bearer_token(headers) else {
+        return respond_error(conn, &ctx, 401, &missing_bearer()).await;
+    };
+    if method != SimpleMethod::POST {
+        return method_not_allowed(conn, &ctx).await;
+    }
+    let request = match parse_body::<AckRequest>(body) {
+        Ok(request) => request,
+        Err(error) => return respond_error(conn, &ctx, 400, &error).await,
+    };
+    match engine.callback(id, &token, request).await {
+        Ok(response) => respond_json(conn, &ctx, 200, &response).await,
+        Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
+    }
+}
+
+async fn handle_claim(
+    engine: Arc<SubscriptionEngine>,
+    ctx: Ctx,
+    conn: SharedByteBufferStream<RawStream>,
+    id: &str,
+    method: SimpleMethod,
+    body: &[u8],
+) -> ServeOutcome {
+    if method != SimpleMethod::POST {
+        return method_not_allowed(conn, &ctx).await;
+    }
+    let request = match parse_body::<ClaimRequest>(body) {
+        Ok(request) => request,
+        Err(error) => return respond_error(conn, &ctx, 400, &error).await,
+    };
+    if request.worker.is_empty() {
+        return respond_error(
+            conn,
+            &ctx,
+            400,
+            &SubscriptionError::invalid("worker must be a non-empty string"),
+        )
+        .await;
+    }
+    match engine.claim(id, &request.worker).await {
+        Ok(response) => respond_json(conn, &ctx, 200, &response).await,
+        Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
+    }
+}
+
+async fn handle_ack(
+    engine: Arc<SubscriptionEngine>,
+    ctx: Ctx,
+    conn: SharedByteBufferStream<RawStream>,
+    id: &str,
+    headers: &SimpleHeaders,
+    method: SimpleMethod,
+    body: &[u8],
+) -> ServeOutcome {
+    let Some(token) = bearer_token(headers) else {
+        return respond_error(conn, &ctx, 401, &missing_bearer()).await;
+    };
+    if method != SimpleMethod::POST {
+        return method_not_allowed(conn, &ctx).await;
+    }
+    let request = match parse_body::<AckRequest>(body) {
+        Ok(request) => request,
+        Err(error) => return respond_error(conn, &ctx, 400, &error).await,
+    };
+    match engine.ack(id, &token, request).await {
+        Ok(response) => respond_json(conn, &ctx, 200, &response).await,
+        Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
+    }
+}
+
+async fn handle_release(
+    engine: Arc<SubscriptionEngine>,
+    ctx: Ctx,
+    conn: SharedByteBufferStream<RawStream>,
+    id: &str,
+    headers: &SimpleHeaders,
+    method: SimpleMethod,
+    body: &[u8],
+) -> ServeOutcome {
+    let Some(token) = bearer_token(headers) else {
+        return respond_error(conn, &ctx, 401, &missing_bearer()).await;
+    };
+    if method != SimpleMethod::POST {
+        return method_not_allowed(conn, &ctx).await;
+    }
+    let request = match parse_body::<AckRequest>(body) {
+        Ok(request) => request,
+        Err(error) => return respond_error(conn, &ctx, 400, &error).await,
+    };
+    match engine.release(id, &token, request).await {
+        Ok(()) => respond_empty(conn, &ctx, 204).await,
+        Err(error) => respond_error(conn, &ctx, error.status(), &error).await,
+    }
+}
+
+/// The error for a missing or malformed `Authorization` header.
+fn missing_bearer() -> SubscriptionError {
+    SubscriptionError::new(
+        SubscriptionErrorCode::TokenInvalid,
+        "Missing or malformed Authorization header",
+    )
 }
 
 async fn handle_base(

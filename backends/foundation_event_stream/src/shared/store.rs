@@ -15,6 +15,7 @@ use foundation_core::durable::{
 };
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
@@ -123,6 +124,11 @@ pub struct SubscriptionStore {
 
 impl SubscriptionStore {
     /// Build a store over a virtual file system (VFS) and the context `ctx`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the fixed fallback name `__ds/state` is not a valid stream name. That name is
+    /// a protocol constant, so only a change to the constant can cause the panic.
     #[must_use]
     pub fn new(vfs: Arc<dyn DurableStreamVfs>, ctx: &Ctx, config: SubscriptionConfig) -> Self {
         let state_prefix = StreamName::parse(&config.state_prefix())
@@ -203,13 +209,13 @@ impl SubscriptionStore {
                 bytes.extend_from_slice(chunk.as_bytes());
             }
             match parse_snapshot(&bytes) {
-                Some(Some(record)) => {
+                Some(SnapshotLine::Record(record)) => {
                     self.records
                         .lock()
                         .unwrap_or_else(std::sync::PoisonError::into_inner)
-                        .insert(record.id.clone(), record);
+                        .insert(record.id.clone(), *record);
                 }
-                Some(None) => {}
+                Some(SnapshotLine::Deleted) => {}
                 None => tracing::warn!(
                     stream = entry.name.as_str(),
                     "subscription state snapshot is not readable"
@@ -261,7 +267,7 @@ impl SubscriptionStore {
     /// Return a copy of one record.
     #[must_use]
     pub fn get(&self, id: &str) -> Option<SubscriptionRecord> {
-        self.with_record(id, |record| record.cloned())
+        self.with_record(id, clone_record)
     }
 
     /// Return a copy of every record, sorted by identifier.
@@ -383,25 +389,42 @@ impl SubscriptionStore {
         let digest = Sha256::digest(id.as_bytes());
         let mut suffix = String::with_capacity(digest.len() * 2);
         for byte in digest {
-            suffix.push_str(&format!("{byte:02x}"));
+            let _ = write!(suffix, "{byte:02x}");
         }
         StreamName::parse(&format!("{}/{}", self.state_prefix.as_str(), suffix))
             .unwrap_or_else(|_| self.state_prefix.clone())
     }
 }
 
+/// Copy the record out of an optional reference.
+fn clone_record(record: Option<&SubscriptionRecord>) -> Option<SubscriptionRecord> {
+    record.cloned()
+}
+
+/// The last state line of one subscription.
+enum SnapshotLine {
+    /// A deletion marker.
+    Deleted,
+    /// A stored subscription.
+    Record(Box<SubscriptionRecord>),
+}
+
 /// Parse the last snapshot line of a state stream.
 ///
-/// Returns `Some(None)` for a deletion marker, `Some(Some(record))` for a snapshot, and `None`
-/// when the bytes do not hold a readable snapshot.
-fn parse_snapshot(bytes: &[u8]) -> Option<Option<SubscriptionRecord>> {
+/// Returns [`SnapshotLine::Deleted`] for a deletion marker,
+/// [`SnapshotLine::Record`] for a snapshot, and `None` when the bytes do not hold a readable
+/// snapshot.
+fn parse_snapshot(bytes: &[u8]) -> Option<SnapshotLine> {
     let line = bytes
         .split(|byte| *byte == b'\n')
         .rev()
         .find(|line| !line.is_empty())?;
     let value: serde_json::Value = serde_json::from_slice(line).ok()?;
     if value.get("deleted").and_then(serde_json::Value::as_bool) == Some(true) {
-        return Some(None);
+        return Some(SnapshotLine::Deleted);
     }
-    serde_json::from_value(value).ok().map(Some)
+    serde_json::from_value(value)
+        .ok()
+        .map(Box::new)
+        .map(SnapshotLine::Record)
 }
