@@ -1387,3 +1387,5 @@ Candidate staging also compares the release version with the native Rust crate v
 Use the pinned Protocol Buffers compiler in each job that builds the native task command.
 Use the repository's Android Software Development Kit path when the runner has a second SDK path.
 The remote package check needs published inputs and a fresh consumer cache.
+Cargo package listing fails in the linked worktree. The same command lists the files in a full clone.
+Package creation requires public versions for all manifest dependencies, including optional dependencies.

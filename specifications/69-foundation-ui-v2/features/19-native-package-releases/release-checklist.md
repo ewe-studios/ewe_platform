@@ -27,8 +27,22 @@ Use that recorded commit for the Swift Package Manager (SwiftPM) version tag aft
 | Swift package `EweUI` version 0.1.1 | The repository has no matching semantic version tag. The native release endpoint returns 404. |
 
 The public starter checks remain pending until the selected release inputs resolve.
-The Rust crate uses the separate Cargo release workflow.
-Check its public index entry and dependency resolution in a fresh generated project.
+The local Rust package lists its source files from a clean clone.
+Its package check stops at the first missing Cargo dependency.
+The separate Cargo release workflow must publish compatible dependency versions before the resource crate.
+
+| Cargo dependency | Required range | Latest active stable version in the public index |
+|---|---|---|
+| `foundation_codegen` | `^0.2.3` | `0.2.2` |
+| `foundation_wasm_ui` | `^0.1.13` | `0.1.4` |
+| `foundation_http` | `^0.0.17` | `0.0.15` |
+| `foundation_netio` | `^0.0.19` | `0.0.17` |
+
+Check the public index entries and dependency resolution in a fresh generated project.
+[Code generator index](https://index.crates.io/fo/un/foundation_codegen) · [Browser renderer index](https://index.crates.io/fo/un/foundation_wasm_ui) · [HTTP library index](https://index.crates.io/fo/un/foundation_http) · [Network library index](https://index.crates.io/fo/un/foundation_netio)
+
+The [manual candidate run](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) uses the preview branch commit `3bb99148e`.
+This run builds the candidate and its starter checks before any publication request.
 
 ## After explicit release approval
 
