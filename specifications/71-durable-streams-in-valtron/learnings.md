@@ -396,8 +396,9 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   core has no task spawner and a host supplies the transport. A slow receiver delays the append
   by up to the read timeout, and a webhook `lease_ttl_ms` can expire while the delivery is still
   in flight. The reference server uses a fire-and-forget send. This is a throughput limitation,
-  not a protocol error. A host that needs it can supply a sender that enqueues the call.
+  not a protocol error. A host that needs it can supply a sender that enqueues the call. Tracked
+  as issue #1028.
 - **The large-payload test still fails once in a while.** One gate run failed
   `should handle large payload appropriately` with a client-side `ECONNRESET`; the next run
   passed 338 of 338. The earlier 405 flake has a recorded root cause and fix. This run has no
-  server panic and no log line that names the cause.
+  server panic and no log line that names the cause. Tracked as issue #1029.
