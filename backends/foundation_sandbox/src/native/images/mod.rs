@@ -36,6 +36,10 @@ pub mod build;
 #[cfg(feature = "images")]
 pub mod sandboxfile;
 
+/// The registry reference and the registry client (feature 15).
+#[cfg(feature = "images")]
+pub mod registry;
+
 /// The names of `mkfs.ext4` that the store tries on this host.
 const MKFS_CANDIDATES: [&str; 5] = [
     "/sbin/mkfs.ext4",

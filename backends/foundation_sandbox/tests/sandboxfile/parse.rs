@@ -21,7 +21,7 @@ fn reason(text: &str) -> String {
 
 #[test]
 fn parse_table() {
-    // FROM: each source form, and `oci:` is refused.
+    // FROM: each source form.
     for (text, base) in [
         ("FROM alpine:3.22\n", BaseRef::Alpine("3.22".to_string())),
         (
@@ -36,11 +36,17 @@ fn parse_table() {
             "FROM tar:/images/root.tar\n",
             BaseRef::Tar("/images/root.tar".into()),
         ),
+        (
+            "FROM oci:example.com/app:1\n",
+            BaseRef::Oci("example.com/app:1".to_string()),
+        ),
     ] {
         let file = Sandboxfile::parse(text).expect("the FROM line parses");
         assert_eq!(file.steps[0].kind, StepKind::From(base));
     }
-    assert!(reason("FROM oci:example.com/app:1\n").contains("oci:"));
+    // A registry source with no reference or a bad one names the line.
+    assert!(reason("FROM oci:\n").contains("empty"));
+    assert!(reason("FROM oci:not a reference\n").contains("registry reference"));
 
     // The instruction word is not case sensitive.
     let file = Sandboxfile::parse("from alpine:3.22\nworkdir /opt\n").expect("lower case parses");
@@ -198,7 +204,7 @@ proptest! {
 
 /// A step strategy of a file whose printed form is one physical line per step.
 fn file_strategy() -> impl Strategy<Value = Sandboxfile> {
-    let from = (word_strategy(1, 8), 0_u8..5).prop_map(|(value, choice)| {
+    let from = (word_strategy(1, 8), 0_u8..6).prop_map(|(value, choice)| {
         let base = match choice {
             0 => BaseRef::Alpine(value),
             1 => BaseRef::Image(ImageRef::Tag(format!("t{value}"))),
@@ -207,6 +213,7 @@ fn file_strategy() -> impl Strategy<Value = Sandboxfile> {
                 0xabc_u128 + value.len() as u128
             ))),
             3 => BaseRef::Docker(value),
+            4 => BaseRef::Oci("example.com/app:1".to_string()),
             _ => BaseRef::Tar(format!("/images/{value}.tar").into()),
         };
         StepKind::From(base)

@@ -35,6 +35,8 @@ use crate::native::images::import::{
     ImageImporter, ImageSource, ImportEvent, ImportOptions, ImportProgress,
 };
 #[cfg(feature = "images")]
+use crate::native::images::registry::{OciReference, RegistryAuth, RegistryOptions};
+#[cfg(feature = "images")]
 use crate::native::images::ImageStore;
 use crate::native::record::FileRecordStore;
 use crate::native::serve::{bind_control, serve_bound, ServeConfig, ServeError};
@@ -249,7 +251,8 @@ pub enum ImageCommand {
 #[cfg(feature = "images")]
 #[derive(Debug, Args)]
 pub struct ImageImportArgs {
-    /// The source: `docker:NAME`, `tar:PATH` or `alpine:VERSION`.
+    /// The source: `docker:NAME`, `tar:PATH`, `alpine:VERSION` or
+    /// `oci:REFERENCE`.
     pub source: String,
     /// The tag that the image gets.
     #[arg(long)]
@@ -266,6 +269,19 @@ pub struct ImageImportArgs {
     /// Do not pull a Docker image that the daemon does not have.
     #[arg(long = "no-pull")]
     pub no_pull: bool,
+    /// The user name of the registry of an `oci:` source.
+    #[arg(long)]
+    pub username: Option<String>,
+    /// Read the registry password from standard input.
+    ///
+    /// This keeps the password out of the process list and the shell history.
+    #[arg(long = "password-stdin")]
+    pub password_stdin: bool,
+    /// A registry host that this command reaches with `http://`.
+    ///
+    /// Repeat it for each host. A local test registry needs it.
+    #[arg(long = "insecure-registry", value_name = "HOST")]
+    pub insecure_registry: Vec<String>,
 }
 
 /// `image rm`: one tag or key.
@@ -636,6 +652,28 @@ fn image_import(ctx: &Ctx, args: ImageImportArgs) -> i32 {
         env,
         pull: !args.no_pull,
     };
+    // A registry source has its own credentials and its own insecure hosts.
+    let mut registry = None;
+    let mut helper_present = false;
+    let mut direct_credentials = false;
+    if let ImageSource::Oci(text) = &source {
+        let reference = match OciReference::parse(text) {
+            Ok(reference) => reference,
+            Err(error) => return usage(&error.to_string()),
+        };
+        let (auth, helpers) = match registry_auth(&args, &reference.registry) {
+            Ok(auth) => auth,
+            Err(code) => return code,
+        };
+        helper_present = helpers;
+        direct_credentials = auth.is_some();
+        let auth = auth.map_or_default(|auth| vec![(reference.registry.clone(), auth)]);
+        registry = Some(RegistryOptions {
+            auth,
+            allow_insecure: args.insecure_registry.clone(),
+            ..RegistryOptions::default()
+        });
+    }
     let host = match SandboxHost::from_ctx(ctx) {
         Ok(host) => host,
         Err(error) => return failure(&error),
@@ -649,13 +687,16 @@ fn image_import(ctx: &Ctx, args: ImageImportArgs) -> i32 {
     let docker = foundation_deployment_docker::DockerClient::connect_with_defaults()
         .ok()
         .map(|client| Arc::new(client) as Arc<dyn DockerApi>);
-    let importer = ImageImporter::new(
+    let mut importer = ImageImporter::new(
         ctx.clone(),
         host,
         store,
         Arc::clone(&manager) as Arc<dyn SandboxProvider>,
         docker,
     );
+    if let Some(registry) = registry {
+        importer = importer.with_registry(registry);
+    }
     let mut stream = importer.import_with_progress(source, options);
     let report = block_on_future(async move {
         while let Some(event) = stream.next().await {
@@ -679,8 +720,160 @@ fn image_import(ctx: &Ctx, args: ImageImportArgs) -> i32 {
             }
             0
         }
-        Err(error) => failure(&error),
+        Err(error) => {
+            if helper_present
+                && !direct_credentials
+                && matches!(error.current_context(), SandboxError::Unauthorized)
+            {
+                eprintln!(
+                    "agent-sandbox: the Docker configuration names a credential helper, and this command does not run one; pass --username and --password-stdin"
+                );
+            }
+            failure(&error)
+        }
     }
+}
+
+/// The credentials of the registry host of an `oci:` source.
+///
+/// The caller's `--username` and `--password-stdin` win over the Docker
+/// configuration file. The second value says whether the Docker configuration
+/// names a credential helper, which this command does not run.
+#[cfg(feature = "images")]
+fn registry_auth(args: &ImageImportArgs, host: &str) -> Result<(Option<RegistryAuth>, bool), i32> {
+    if let Some(username) = &args.username {
+        if !args.password_stdin {
+            return Err(usage("--username needs --password-stdin"));
+        }
+        let password = password_from_stdin()?;
+        return Ok((
+            Some(RegistryAuth::Basic {
+                username: username.clone(),
+                password,
+            }),
+            false,
+        ));
+    }
+    if args.password_stdin {
+        return Err(usage("--password-stdin needs --username"));
+    }
+    Ok(docker_auth(host))
+}
+
+/// The password from standard input, without its line break.
+#[cfg(feature = "images")]
+fn password_from_stdin() -> Result<Secret, i32> {
+    let mut text = String::new();
+    std::io::stdin()
+        .read_to_string(&mut text)
+        .map_err(|error| usage(&format!("the standard input: {error}")))?;
+    let password = text.strip_suffix('\n').unwrap_or(&text);
+    let password = password.strip_suffix('\r').unwrap_or(password);
+    if password.is_empty() {
+        return Err(usage("--password-stdin read an empty password"));
+    }
+    Ok(Secret::new(password))
+}
+
+/// The credentials of `host` from the Docker configuration file.
+#[cfg(feature = "images")]
+fn docker_auth(host: &str) -> (Option<RegistryAuth>, bool) {
+    let Some(path) = docker_config_path() else {
+        return (None, false);
+    };
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return (None, false);
+    };
+    docker_auth_from_config(&text, host)
+}
+
+/// The path of the Docker configuration file.
+///
+/// `DOCKER_CONFIG` wins over `$HOME/.docker`. This read is at the command-line
+/// boundary; the library never reads it (feature 15, section 4.5).
+#[cfg(feature = "images")]
+fn docker_config_path() -> Option<PathBuf> {
+    if let Some(directory) = std::env::var_os("DOCKER_CONFIG") {
+        return Some(PathBuf::from(directory).join("config.json"));
+    }
+    std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".docker/config.json"))
+}
+
+/// One `auths` entry of the Docker configuration file.
+#[cfg(feature = "images")]
+#[derive(serde::Deserialize)]
+struct DockerConfigAuth {
+    /// The base64 form of `user:password`.
+    #[serde(default)]
+    auth: Option<String>,
+}
+
+/// The part of the Docker configuration file that this command reads.
+#[cfg(feature = "images")]
+#[derive(serde::Deserialize)]
+struct DockerConfigFile {
+    /// The credentials, by registry key.
+    #[serde(default)]
+    auths: std::collections::HashMap<String, DockerConfigAuth>,
+    /// The name of a credential helper program.
+    #[serde(default, rename = "credsStore")]
+    creds_store: Option<String>,
+    /// A credential helper for one registry.
+    #[serde(default, rename = "credHelpers")]
+    cred_helpers: std::collections::HashMap<String, String>,
+}
+
+/// The credentials of `host` from one `~/.docker/config.json` text.
+///
+/// It reads `auths.<host>.auth` only; it never runs a credential helper. The
+/// second value says whether the file names a helper, so the command can tell
+/// the user that it does not read one.
+#[cfg(feature = "images")]
+#[must_use]
+pub fn docker_auth_from_config(text: &str, host: &str) -> (Option<RegistryAuth>, bool) {
+    use base64::prelude::{Engine as _, BASE64_STANDARD};
+
+    let Ok(config) = serde_json::from_str::<DockerConfigFile>(text) else {
+        return (None, false);
+    };
+    let helper_present = config.creds_store.is_some() || !config.cred_helpers.is_empty();
+    let entry = docker_host_keys(host)
+        .iter()
+        .find_map(|key| config.auths.get(key));
+    let auth = entry
+        .and_then(|entry| entry.auth.as_deref())
+        .and_then(|encoded| BASE64_STANDARD.decode(encoded).ok())
+        .and_then(|decoded| String::from_utf8(decoded).ok())
+        .and_then(|text| {
+            let (username, password) = text.split_once(':')?;
+            Some(RegistryAuth::Basic {
+                username: username.to_string(),
+                password: Secret::new(password),
+            })
+        });
+    (auth, helper_present)
+}
+
+/// The Docker configuration keys that name `host`.
+#[cfg(feature = "images")]
+fn docker_host_keys(host: &str) -> Vec<String> {
+    let mut keys = vec![
+        host.to_string(),
+        format!("https://{host}"),
+        format!("http://{host}"),
+        format!("https://{host}/"),
+    ];
+    if host.eq_ignore_ascii_case(crate::native::images::registry::DOCKER_HUB_REGISTRY) {
+        for key in [
+            "https://index.docker.io/v1/",
+            "index.docker.io",
+            "docker.io",
+            "registry-1.docker.io",
+        ] {
+            keys.push(key.to_string());
+        }
+    }
+    keys
 }
 
 /// `image build`: one Sandboxfile becomes one image.
@@ -902,7 +1095,10 @@ fn image_remove(ctx: &Ctx, name: &str) -> i32 {
 fn progress_text(progress: &ImportProgress) -> String {
     match progress {
         ImportProgress::Identifying => "identifying the image source".to_string(),
-        ImportProgress::Pulling => "pulling the Docker image".to_string(),
+        ImportProgress::Pulling { done, total } => match total {
+            Some(total) => format!("pulling the image: {done} of {total} bytes"),
+            None => format!("pulling the image: {done} bytes"),
+        },
         ImportProgress::CacheHit => "the image is already in the store".to_string(),
         ImportProgress::Filling { bytes } => format!("filling the image: {bytes} bytes"),
         ImportProgress::Committing => "committing the image".to_string(),

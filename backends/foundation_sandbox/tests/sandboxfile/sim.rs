@@ -510,3 +510,60 @@ fn progress_queue_bounds_a_paused_consumer() {
     result.expect("the build succeeds after the consumer returns");
     assert_eq!(image_count(&harness), 2, "the image is committed");
 }
+
+// ── FROM oci: (feature 15, section 7) ─────────────────────────────────────
+
+#[test]
+fn build_from_oci() {
+    use crate::images::registry_server::{
+        config_body, descriptor, manifest_body, FakeRegistry, OCI_CONFIG, OCI_MANIFEST,
+    };
+    use foundation_sandbox::shared::spec::{GuestArch, ImageRef};
+
+    let registry = FakeRegistry::start();
+    let architecture = match GuestArch::host() {
+        GuestArch::X86_64 => "amd64",
+        GuestArch::Aarch64 => "arm64",
+    };
+    let config = config_body(architecture, &serde_json::json!({"Cmd": ["/bin/sh"]}));
+    let config_digest = registry.add_blob(config.clone());
+    let layer = b"a registry layer".to_vec();
+    let layer_digest = registry.add_blob(layer.clone());
+    let body = manifest_body(
+        &descriptor(
+            OCI_CONFIG,
+            &config_digest,
+            u64::try_from(config.len()).unwrap(),
+        ),
+        &[descriptor(
+            "application/vnd.oci.image.layer.v1.tar",
+            &layer_digest,
+            u64::try_from(layer.len()).unwrap(),
+        )],
+    );
+    registry.add_manifest("1", OCI_MANIFEST, body);
+
+    let harness = Harness::new("build-from-oci").with_registry(&registry.address().to_string());
+    let text = format!(
+        "FROM oci:{}/test/image:1\nCMD [\"/bin/sh\"]\n",
+        registry.address()
+    );
+    let options = BuildOptions {
+        tag: Some("built".to_string()),
+        ..BuildOptions::default()
+    };
+    let image = harness
+        .build_options(&text, options)
+        .expect("the OCI base builds");
+    assert_eq!(image, ImageRef::Tag("built".to_string()));
+    let (rootfs, manifest) =
+        crate::pool::block_on(harness.store.resolve(&ImageRef::Tag("built".to_string())))
+            .expect("the built image resolves");
+    assert!(rootfs.ends_with("rootfs.ext4"));
+    assert_eq!(manifest.cmd, Some(vec!["/bin/sh".to_string()]));
+    assert!(
+        manifest.source.starts_with("sandboxfile:"),
+        "the built image names the build: {}",
+        manifest.source
+    );
+}

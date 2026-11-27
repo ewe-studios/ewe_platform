@@ -294,3 +294,86 @@ fn cli_image_build_flow() {
     assert_eq!(run(foundation_context::Ctx::host(), cli), 125);
     let _ = std::fs::remove_dir_all(&directory);
 }
+
+/// `image import oci:` parses its registry flags (feature 15, section 6.5).
+#[cfg(feature = "images")]
+#[test]
+fn cli_image_import_oci_parse() {
+    use foundation_sandbox::cli::sandbox::ImageCommand;
+
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "image",
+        "import",
+        "oci:localhost:5000/test/a:1",
+        "--username",
+        "user",
+        "--password-stdin",
+        "--insecure-registry",
+        "localhost:5000",
+        "--insecure-registry",
+        "127.0.0.1:5000",
+        "--tag",
+        "a",
+    ])
+    .expect("the oci import parses");
+    let SandboxCommand::Image(args) = cli.command else {
+        panic!("the command is not image");
+    };
+    let ImageCommand::Import(import) = args.command else {
+        panic!("the sub-command is not import");
+    };
+    assert_eq!(import.source, "oci:localhost:5000/test/a:1");
+    assert_eq!(import.username.as_deref(), Some("user"));
+    assert!(import.password_stdin);
+    assert_eq!(
+        import.insecure_registry,
+        vec!["localhost:5000".to_string(), "127.0.0.1:5000".to_string()]
+    );
+    assert_eq!(import.tag.as_deref(), Some("a"));
+}
+
+/// The Docker configuration gives the registry credentials (feature 15,
+/// section 6.5).
+#[cfg(feature = "images")]
+#[test]
+fn docker_config_auth() {
+    use foundation_sandbox::cli::sandbox::docker_auth_from_config;
+    use foundation_sandbox::native::images::registry::RegistryAuth;
+
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/fixtures/docker/config.json"
+    );
+    let text = std::fs::read_to_string(path).expect("the Docker fixture is read");
+
+    let (auth, helper) = docker_auth_from_config(&text, "registry.example");
+    assert!(helper, "the fixture names a credential helper");
+    match auth {
+        Some(RegistryAuth::Basic { username, password }) => {
+            assert_eq!(username, "user");
+            assert_eq!(password.expose(), "pass");
+        }
+        other => panic!("the registry credentials are Basic: {other:?}"),
+    }
+
+    // The Docker Hub key is an alias of the distribution host.
+    let (auth, _) = docker_auth_from_config(&text, "registry-1.docker.io");
+    match auth {
+        Some(RegistryAuth::Basic { username, password }) => {
+            assert_eq!(username, "hub");
+            assert_eq!(password.expose(), "pass");
+        }
+        other => panic!("the Docker Hub credentials are Basic: {other:?}"),
+    }
+
+    // An unknown host has no credentials, and a helper is still named.
+    let (auth, helper) = docker_auth_from_config(&text, "ghcr.io");
+    assert!(auth.is_none());
+    assert!(helper);
+
+    // A file that is not JSON gives nothing.
+    let (auth, helper) = docker_auth_from_config("not a JSON document", "registry.example");
+    assert!(auth.is_none());
+    assert!(!helper);
+}

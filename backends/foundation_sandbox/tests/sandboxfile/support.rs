@@ -14,10 +14,11 @@ use foundation_sandbox::native::images::build::executor::{
 };
 use foundation_sandbox::native::images::build::BuildOptions;
 use foundation_sandbox::native::images::import::ImageImporter;
+use foundation_sandbox::native::images::registry::RegistryOptions;
 use foundation_sandbox::native::images::sandboxfile::Sandboxfile;
 use foundation_sandbox::native::images::ImageStore;
 use foundation_sandbox::shared::control::testing::{
-    in_memory_connector, FakeProcessSpawner, ScriptedSlave, SimDriver,
+    in_memory_connector, FakeHostFs, FakeProcessSpawner, ScriptedSlave, SimDriver,
 };
 use foundation_sandbox::shared::control::{
     ManagerConfig, MemoryRecordStore, SandboxManager, SandboxProvider,
@@ -100,6 +101,8 @@ pub struct Harness {
     pub host: SandboxHost,
     /// The cache directory.
     pub cache: PathBuf,
+    /// The registry credentials and hosts of a `FROM oci:` base.
+    registry: RegistryOptions,
     /// The owned temporary directory, when this harness owns one.
     _directory: Option<TempDir>,
 }
@@ -172,13 +175,22 @@ impl Harness {
             firecracker_path: None,
             krun_runner_path: None,
             libkrun_path: None,
-            mkfs_ext4_path: Some(PathBuf::from("/bin/mkfs.ext4")),
+            // The fake spawner answers every program, so the path only has to
+            // exist for the store's check. `/bin/sh` exists on every Unix host.
+            mkfs_ext4_path: Some(PathBuf::from("/bin/sh")),
             driver_order: vec![DriverId::Firecracker],
             artifact_limits: ArtifactLimits::default(),
             image_limits: ImageLimits::default(),
         };
         let host = SandboxHost {
-            processes: Arc::new(FakeProcessSpawner::new()),
+            processes: {
+                // The store runs `mkfs.ext4` when a `FROM oci:` base makes a
+                // blank image. The path above is `/bin/sh`, and the fake child
+                // must exit at once.
+                let spawner = Arc::new(FakeProcessSpawner::new());
+                spawner.with_program_output(FakeHostFs::new(), "sh", "");
+                spawner
+            },
             fs: Arc::new(NativeFs),
             connector: Arc::new(NoConnector),
             config: Arc::new(config),
@@ -208,8 +220,22 @@ impl Harness {
             builder,
             host,
             cache,
+            registry: RegistryOptions::default(),
             _directory: owned,
         }
+    }
+
+    /// The harness with a registry that it reaches with `http://`.
+    ///
+    /// A `FROM oci:` step reads the base image from `address`.
+    #[must_use]
+    pub fn with_registry(mut self, address: &str) -> Self {
+        self.registry = RegistryOptions {
+            allow_insecure: vec![address.to_string()],
+            ..RegistryOptions::default()
+        };
+        self.rebuild();
+        self
     }
 
     /// Rebuilds the builder after the driver changed.
@@ -227,7 +253,8 @@ impl Harness {
             self.store.clone(),
             Arc::clone(&manager),
             None,
-        );
+        )
+        .with_registry(self.registry.clone());
         self.builder = ImageBuilder::new(
             self.ctx.clone(),
             self.host.clone(),

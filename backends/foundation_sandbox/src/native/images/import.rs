@@ -44,6 +44,9 @@ use crate::shared::BoxByteStream;
 
 use crate::native::artifacts::ArtifactStore;
 use crate::native::docker::api::{create_body, is_not_found, map_error, DockerApi, LABEL_IMPORT};
+use crate::native::images::registry::{
+    digest_hex, layer_kind, LayerKind, OciDescriptor, OciReference, RegistryClient, RegistryOptions,
+};
 use crate::native::images::ImageStore;
 
 /// The prefix of the text that a source identity is hashed with.
@@ -73,14 +76,17 @@ pub enum ImageSource {
     Tar(PathBuf),
     /// A version of feature 03's Alpine manifest, for example `"3.22"`.
     Alpine(String),
+    /// A reference to a container image in a registry (feature 15).
+    Oci(String),
 }
 
 impl ImageSource {
-    /// Parses a command-line source: `docker:NAME`, `tar:PATH` or
-    /// `alpine:VERSION`.
+    /// Parses a command-line source: `docker:NAME`, `tar:PATH`,
+    /// `alpine:VERSION` or `oci:REFERENCE`.
     ///
     /// # Errors
-    /// The reason, as text, when the value has no known prefix.
+    /// The reason, as text, when the value has no known prefix or its registry
+    /// reference is not valid.
     pub fn parse(value: &str) -> Result<Self, String> {
         if let Some(name) = value.strip_prefix("docker:") {
             if name.is_empty() {
@@ -100,8 +106,15 @@ impl ImageSource {
             }
             return Ok(Self::Alpine(version.to_string()));
         }
+        if let Some(reference) = value.strip_prefix("oci:") {
+            if reference.is_empty() {
+                return Err("the registry reference is empty".to_string());
+            }
+            OciReference::parse(reference).map_err(|error| error.to_string())?;
+            return Ok(Self::Oci(reference.to_string()));
+        }
         Err(format!(
-            "the image source must be docker:NAME, tar:PATH or alpine:VERSION: {value}"
+            "the image source must be docker:NAME, tar:PATH, alpine:VERSION or oci:REFERENCE: {value}"
         ))
     }
 }
@@ -142,8 +155,15 @@ impl Default for ImportOptions {
 pub enum ImportProgress {
     /// The importer reads the source identity.
     Identifying,
-    /// The importer pulls a Docker image.
-    Pulling,
+    /// The importer pulls an image, or one layer of it. `done` is the number of
+    /// bytes that arrived of this body; `total` is its full size when the
+    /// source names it.
+    Pulling {
+        /// The bytes that arrived.
+        done: u64,
+        /// The full body size, when the source gives it.
+        total: Option<u64>,
+    },
     /// The store already has the image.
     CacheHit,
     /// The guest unpacks the export; `bytes` is the number of export bytes
@@ -222,6 +242,7 @@ pub struct ImageImporter {
     store: ImageStore,
     control: Arc<dyn SandboxProvider>,
     docker: Option<Arc<dyn DockerApi>>,
+    registry: RegistryOptions,
 }
 
 impl std::fmt::Debug for ImageImporter {
@@ -254,7 +275,15 @@ impl ImageImporter {
             store,
             control,
             docker,
+            registry: RegistryOptions::default(),
         }
+    }
+
+    /// The importer with the registry credentials and limits of feature 15.
+    #[must_use]
+    pub fn with_registry(mut self, options: RegistryOptions) -> Self {
+        self.registry = options;
+        self
     }
 
     /// The image store behind this importer.
@@ -357,11 +386,13 @@ impl ImageImporter {
         fill.remove_container().await;
         if outcome.is_err() {
             fill.discard(self.host.fs.as_ref()).await;
+        } else if let SourcePlan::Oci(plan) = &identified.plan {
+            self.prune_registry_cache(plan);
         }
         outcome
     }
 
-    /// Steps 3 to 5: open the stream, fill the work image, commit it.
+    /// Steps 3 to 5: open the source, fill the work image, commit it.
     async fn run_fill(
         &self,
         identified: &Identified,
@@ -371,22 +402,98 @@ impl ImageImporter {
         fill: &mut Fill,
         progress: &ProgressSink,
     ) -> SandboxResult<ImportReport> {
+        if let SourcePlan::Oci(plan) = &identified.plan {
+            return self
+                .fill_oci(identified, plan, size_mib, key, fill, progress, options)
+                .await;
+        }
         let stream = self.open_export(identified, fill, progress).await?;
-
-        let work = self.store.create_blank(size_mib).await?;
-        fill.work = Some(work.clone());
-
-        let mut spec = SandboxSpec::new(RootFs::Ext4Image(work.clone()));
-        spec.root_mode = RootMode::Writable;
-        spec.network = NetworkMode::None;
-        let sandbox = self.control.create(spec).await?;
-        fill.sandbox = Some(sandbox.clone());
-
+        let sandbox = self.start_fill(size_mib, fill).await?;
         sandbox
             .unpack("/", stream, export_unpack_options())
             .await
             .map_err(|error| map_unpack_error(error, size_mib))?;
+        self.stop_and_commit(identified, options, key, fill, progress)
+            .await
+    }
 
+    /// Steps 3 to 5 for a registry image: fetch each layer, then unpack it in
+    /// manifest order (feature 15, section 6.4).
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "one call carries the import state, the plan and the progress"
+    )]
+    async fn fill_oci(
+        &self,
+        identified: &Identified,
+        plan: &OciPlan,
+        size_mib: u32,
+        key: &str,
+        fill: &mut Fill,
+        progress: &ProgressSink,
+        options: &ImportOptions,
+    ) -> SandboxResult<ImportReport> {
+        let sandbox = self.start_fill(size_mib, fill).await?;
+        let max = self.host.config.image_limits.max_archive_bytes;
+        for (index, (descriptor, kind)) in plan.layers.iter().enumerate() {
+            let mut reported = 0_u64;
+            let path = plan
+                .client
+                .fetch_blob(&plan.reference, descriptor, &mut |done| {
+                    // One progress value per MiB, so a large layer does not
+                    // fill the stream with one value for each chunk.
+                    if done.saturating_sub(reported) >= PROGRESS_STEP {
+                        reported = done;
+                        progress.progress(ImportProgress::Pulling {
+                            done,
+                            total: Some(descriptor.size),
+                        });
+                    }
+                })
+                .await?;
+            progress.progress(ImportProgress::Pulling {
+                done: descriptor.size,
+                total: Some(descriptor.size),
+            });
+            let reader = self.layer_reader(&path, *kind)?;
+            let stream = file_stream(reader, max, progress.clone());
+            sandbox
+                .unpack("/", stream, oci_unpack_options())
+                .await
+                .map_err(|error| map_layer_unpack_error(error, index, size_mib))?;
+        }
+        self.stop_and_commit(identified, options, key, fill, progress)
+            .await
+    }
+
+    /// Creates the blank work image and starts the fill sandbox on it.
+    async fn start_fill(&self, size_mib: u32, fill: &mut Fill) -> SandboxResult<SandboxHandle> {
+        let work = self.store.create_blank(size_mib).await?;
+        fill.work = Some(work.clone());
+        let mut spec = SandboxSpec::new(RootFs::Ext4Image(work));
+        spec.root_mode = RootMode::Writable;
+        spec.network = NetworkMode::None;
+        let sandbox = self.control.create(spec).await?;
+        fill.sandbox = Some(sandbox.clone());
+        Ok(sandbox)
+    }
+
+    /// Stops the fill sandbox and commits the work image.
+    async fn stop_and_commit(
+        &self,
+        identified: &Identified,
+        options: &ImportOptions,
+        key: &str,
+        fill: &mut Fill,
+        progress: &ProgressSink,
+    ) -> SandboxResult<ImportReport> {
+        let Some(sandbox) = fill.sandbox.clone() else {
+            return Err(SandboxError::Io {
+                op: "fill an image".to_string(),
+                message: "the fill sandbox is gone".to_string(),
+            }
+            .into());
+        };
         let report = sandbox.stop().await?;
         fill.sandbox = None;
         if report.killed {
@@ -396,6 +503,13 @@ impl ImageImporter {
             }
             .into());
         }
+        let Some(work) = fill.work.take() else {
+            return Err(SandboxError::Io {
+                op: "fill an image".to_string(),
+                message: "the work image is gone".to_string(),
+            }
+            .into());
+        };
 
         progress.progress(ImportProgress::Committing);
         let image = self
@@ -407,7 +521,6 @@ impl ImageImporter {
                 key.to_string(),
             )
             .await?;
-        fill.work = None;
         // The committed manifest has the size and the hash that the store read.
         let manifest = self
             .store
@@ -422,6 +535,40 @@ impl ImageImporter {
             dropped_config: identified.dropped.clone(),
             cached: false,
         })
+    }
+
+    /// The decompressing reader of one cached layer.
+    fn layer_reader(
+        &self,
+        path: &Path,
+        kind: LayerKind,
+    ) -> SandboxResult<Box<dyn std::io::Read + Send>> {
+        let reader = self
+            .host
+            .fs
+            .read_stream(path)
+            .map_err(|error| SandboxError::Io {
+                op: "read a cached layer".to_string(),
+                message: format!("{}: {error}", path.display()),
+            })?;
+        Ok(match kind {
+            LayerKind::Plain => reader,
+            LayerKind::Gzip => Box::new(flate2::read::GzDecoder::new(reader)),
+        })
+    }
+
+    /// Removes the oldest blobs when the blob cache passes its size limit.
+    ///
+    /// It never removes a blob of the image that this import just named.
+    fn prune_registry_cache(&self, plan: &OciPlan) {
+        let limits = &self.host.config.image_limits;
+        if let Err(error) = plan.client.prune_blob_cache(
+            limits.blob_cache_max_bytes,
+            limits.blob_cache_min_age,
+            &plan.keep_hexes(),
+        ) {
+            tracing::warn!(%error, "the registry blob cache cannot be pruned");
+        }
     }
 
     /// The source identity, architecture and manifest of one import.
@@ -488,7 +635,54 @@ impl ImageImporter {
                     dropped: Vec::new(),
                 })
             }
+            ImageSource::Oci(text) => self.identify_oci(&text, options).await,
         }
+    }
+
+    /// The source identity, architecture and manifest of one registry image
+    /// (feature 15, section 6.4).
+    async fn identify_oci(&self, text: &str, options: &ImportOptions) -> SandboxResult<Identified> {
+        let reference = OciReference::parse(text)?;
+        let client = RegistryClient::new(
+            self.ctx.clone(),
+            self.host.fs.clone(),
+            self.host.config.cache_dir.clone(),
+            self.registry.clone(),
+        );
+        let resolved = client.resolve_manifest(&reference).await?;
+        let Some(config_descriptor) = resolved.manifest.config.clone() else {
+            return Err(SandboxError::InvalidSpec {
+                field: "manifest".to_string(),
+                reason: format!("the manifest of {reference} has no configuration"),
+            }
+            .into());
+        };
+        let config = client.fetch_config(&reference, &config_descriptor).await?;
+        client.check_arch(&config, &reference)?;
+        let arch = GuestArch::host();
+        let identity = format!(
+            "oci:{}/{}@{}",
+            reference.registry, reference.repository, resolved.digest
+        );
+        let inner = config.config.clone().unwrap_or_default();
+        let (manifest, dropped) = config_to_manifest(&inner, options, arch, &identity);
+        let mut layers = Vec::with_capacity(resolved.manifest.layers.len());
+        for layer in &resolved.manifest.layers {
+            let kind = layer_kind(&layer.media_type)?;
+            layers.push((layer.clone(), kind));
+        }
+        Ok(Identified {
+            identity,
+            arch,
+            plan: SourcePlan::Oci(Box::new(OciPlan {
+                client,
+                reference,
+                config_digest: config_descriptor.digest,
+                layers,
+            })),
+            manifest,
+            dropped,
+        })
     }
 
     /// Pulls one Docker image to its last progress line.
@@ -498,7 +692,10 @@ impl ImageImporter {
         name: &str,
         progress: &ProgressSink,
     ) -> SandboxResult<()> {
-        progress.progress(ImportProgress::Pulling);
+        progress.progress(ImportProgress::Pulling {
+            done: 0,
+            total: None,
+        });
         let stream = api.image_pull(name).await.map_err(map_error)?;
         let timeout = self.host.config.image_limits.pull_timeout;
         read_pull(stream, &self.ctx, timeout).await
@@ -546,6 +743,11 @@ impl ImageImporter {
                     progress.clone(),
                 ))
             }
+            SourcePlan::Oci(_) => Err(SandboxError::InvalidSpec {
+                field: "source".to_string(),
+                reason: "a registry image has one stream for each layer".to_string(),
+            }
+            .into()),
         }
     }
 
@@ -659,6 +861,38 @@ enum SourcePlan {
     Docker { name: String },
     /// A tar file on the host.
     File { path: PathBuf },
+    /// A container image in a registry (feature 15).
+    Oci(Box<OciPlan>),
+}
+
+/// The registry image that one import reads.
+struct OciPlan {
+    /// The client, with the token that the manifest read got.
+    client: RegistryClient,
+    /// The reference that the import read.
+    reference: OciReference,
+    /// The digest of the configuration blob.
+    config_digest: String,
+    /// The layers with their readers, in manifest order.
+    layers: Vec<(OciDescriptor, LayerKind)>,
+}
+
+impl OciPlan {
+    /// The hex names of the blobs that this import named.
+    ///
+    /// The blob cache never removes one of them (feature 15, section 6.4).
+    fn keep_hexes(&self) -> Vec<String> {
+        let mut keep = Vec::with_capacity(self.layers.len() + 1);
+        if let Ok(hex) = digest_hex(&self.config_digest) {
+            keep.push(hex.to_string());
+        }
+        for (descriptor, _) in &self.layers {
+            if let Ok(hex) = digest_hex(&descriptor.digest) {
+                keep.push(hex.to_string());
+            }
+        }
+        keep
+    }
 }
 
 /// The state that a failed import must undo.
@@ -848,6 +1082,19 @@ pub fn export_unpack_options() -> UnpackOptions {
     }
 }
 
+/// The unpack options of one registry layer (feature 15, section 6.4).
+///
+/// A layer carries whiteouts, so a later layer removes or replaces the files of
+/// an earlier one. No entry is skipped: the layer is the image.
+#[must_use]
+pub fn oci_unpack_options() -> UnpackOptions {
+    UnpackOptions {
+        oci_whiteouts: true,
+        skip: Vec::new(),
+        keep_existing_dirs: false,
+    }
+}
+
 /// Maps one architecture word of the daemon to a guest architecture.
 ///
 /// # Errors
@@ -901,6 +1148,35 @@ fn map_unpack_error(error: ErrorTrace<SandboxError>, size_mib: u32) -> ErrorTrac
         }
         .into(),
         _ => error,
+    }
+}
+
+/// Adds the layer index to the error of one layer unpack.
+///
+/// The fault table of feature 15 says the caller sees the unpack error with the
+/// layer index.
+fn map_layer_unpack_error(
+    error: ErrorTrace<SandboxError>,
+    index: usize,
+    size_mib: u32,
+) -> ErrorTrace<SandboxError> {
+    match map_unpack_error(error, size_mib).current_context() {
+        SandboxError::SlaveError {
+            code,
+            errno,
+            message,
+        } => SandboxError::SlaveError {
+            code: *code,
+            errno: *errno,
+            message: format!("layer {index}: {message}"),
+        }
+        .into(),
+        SandboxError::ArtifactTooLarge { limit, message } => SandboxError::ArtifactTooLarge {
+            limit: *limit,
+            message: format!("layer {index}: {message}"),
+        }
+        .into(),
+        other => other.clone().into(),
     }
 }
 
