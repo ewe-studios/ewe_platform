@@ -847,3 +847,13 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   in `trace/mod.rs`: a bare URL and an empty line after a doc comment. The `standard` tree hid
   them, because the item after the comment was disabled. An inner module doc comment and a
   wrapped URL keep both trees clean.
+- **A gate is a schema entry, not a workflow filter.** The Durable Streams conformance gate
+  first ran on every change, then through a job-local path filter. Both broke rule 16. It is now
+  `[gates.durable-conformance]` in `ci/packages.toml`: `foundation-ci affected` decides from the
+  changed files, and `foundation-ci run` executes the recipe. A gate has no crate, so `plan`
+  lists it and keeps it out of the package matrices, and `owner` never maps a file to it.
+- **Select a gate from the changed files, not from the affected set.** The planner builds its
+  reverse graph from the resolver closure, which includes dev-dependencies. A change to
+  `foundation_wasm_ui` therefore marked `foundation_core` as a dependent and selected the gate
+  through an unrelated crate. Reading the file owners of the change keeps the gate on the
+  packages that the owner named.

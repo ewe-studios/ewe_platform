@@ -549,12 +549,15 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all
   landed. The client suite is 267 pass, 2 suite-forced skips, 0 fail.
-- **08-conformance** — 🟡 in progress. The CI gate landed: a Linux job runs both suites on a
-  durable change and on full runs, and the memory VFS conformance test runs in CI. T3
-  (cross-runs) landed in both directions: our client to our server, and the reference Rust
-  client to our server. Our client runs 5 scenarios; the reference client runs 6, including the
-  cursor check for #1065. The valtron suite, the skip register, the report, the runtime matrix
-  and the T1/T2 harness tasks remain.
+- **08-conformance** — 🟡 in progress. The CI gate landed as a `[gates]` entry in
+  `ci/packages.toml`: `foundation-ci run durable-conformance --step test` runs both reference
+  suites, then the two cross-run test targets. `foundation-ci affected` selects the gate from
+  the changed files, on a pull request and on a push. The nightly schedule and a manual dispatch
+  run it in full. The memory VFS conformance test runs in CI. T3 (cross-runs) landed in both
+  directions: our client to our server, and the reference Rust client to our server. Our client
+  runs 5 scenarios; the reference client runs 6, including the cursor check for #1065. The
+  valtron suite, the skip register, the report, the runtime matrix and the T1/T2 harness tasks
+  remain.
 - **09-s3-r2-vfs** — ⏳ not started (0/16)
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server
