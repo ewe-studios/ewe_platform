@@ -2015,10 +2015,19 @@ impl ExecutorState {
                         return ProgressIndicator::CanProgress(Some(State::Pending(duration)));
                     }
 
+                    // Wait for the NEAREST sleeper deadline, not for this
+                    // task's own deadline. The engine must wake at the
+                    // earliest deadline of every registered sleeper. The old
+                    // wait used the current task's duration. It slept past a
+                    // shorter sleeper that was already registered. At that
+                    // late wake both sleepers were due, and the sleeper map
+                    // order decided which one ran first (GitHub issue #1115).
+                    let wait = self.time_until_next_wakeup().unwrap_or(inner);
+
                     // We will send SpinWait but the engine will decide
                     // if it really wants to spin wait or work on other
                     // tasks if CPU thread becomes free.
-                    ProgressIndicator::SpinWait(inner)
+                    ProgressIndicator::SpinWait(wait)
                 } else {
                     // No progress: treat this like other runnable work and go to
                     // the back of the queue. Pushing it to the front let a

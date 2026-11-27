@@ -22,6 +22,7 @@ mod cross_runtime;
 #[cfg(all(feature = "test-clock", not(target_family = "wasm")))]
 mod ctx_timer;
 mod ctx_reexport;
+mod deadline_order;
 #[cfg(feature = "std")]
 #[cfg(not(target_family = "wasm"))]
 mod event_driven_queue_readiness;

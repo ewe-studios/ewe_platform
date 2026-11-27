@@ -645,18 +645,14 @@ fn yield_for_reports_waiting_for_a_long_delay() {
     );
 }
 
-/// Two sleeping tasks resume in deadline order: 10 ms before 300 ms.
-///
-/// The gap is wide on purpose. A loaded JavaScript event loop can delay the
-/// shorter callback past the longer deadline; a 290 ms margin keeps the order
-/// meaningful without making the case a load test.
+/// Two sleeping tasks resume in deadline order: 10 ms before 30 ms.
 #[wasm_test]
 async fn two_parked_tasks_resume_in_deadline_order() {
     initialize_pool(42);
     let order = Arc::new(Mutex::new(Vec::new()));
     let ended = Arc::new(AtomicUsize::new(0));
 
-    for (id, ms) in [(1_u32, 10_u64), (2, 300)] {
+    for (id, ms) in [(1_u32, 10_u64), (2, 30)] {
         spawn()
             .with_task(RecordEnd {
                 inner: SleepingTask::sleep(Duration::from_millis(ms)),
@@ -680,7 +676,7 @@ async fn two_parked_tasks_resume_in_deadline_order() {
     assert_eq!(
         *order,
         vec![1, 2],
-        "the 10 ms task must end before the 300 ms task"
+        "the 10 ms task must end before the 30 ms task"
     );
 }
 

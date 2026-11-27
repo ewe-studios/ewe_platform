@@ -577,10 +577,22 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     ));
     assert_eq!(&*counts.lock().unwrap(), &vec![TaskStatus::Ready(11),]);
 
-    assert_eq!(
-        executor.run_once(),
-        ProgressIndicator::SpinWait(time::Duration::from_millis(5))
-    );
+    // The wait is the nearest sleeper deadline. The engine reads the clock,
+    // and some microseconds pass after the sleeper registers. So the wait
+    // must not exceed the 5 ms deadline, and it must still wait.
+    match executor.run_once() {
+        ProgressIndicator::SpinWait(wait) => {
+            assert!(
+                wait <= time::Duration::from_millis(5),
+                "the engine must not wait past the 5 ms deadline, got {wait:?}"
+            );
+            assert!(
+                wait > time::Duration::ZERO,
+                "the engine must wait for the sleeper, got {wait:?}"
+            );
+        }
+        other => panic!("a single sleeper must ask for a spin wait, got {other:?}"),
+    }
     assert_eq!(&*counts.lock().unwrap(), &vec![TaskStatus::Ready(11),]);
 
     // wait for 5ms and validate we made progress
