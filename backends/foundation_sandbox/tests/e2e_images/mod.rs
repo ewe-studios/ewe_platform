@@ -36,6 +36,7 @@ mod real {
     };
     use foundation_sandbox::native::images::build::BuildOptions;
     use foundation_sandbox::native::images::import::{ImageImporter, ImageSource, ImportOptions};
+    use foundation_sandbox::native::images::registry::RegistryOptions;
     use foundation_sandbox::native::images::sandboxfile::Sandboxfile;
     use foundation_sandbox::native::images::ImageStore;
     use foundation_sandbox::shared::command::Command;
@@ -638,6 +639,168 @@ mod real {
         bytes.push(0);
         bytes
     }
+
+    /// A shell script that lists every path with its type, mode, owner, link
+    /// target and content hash.
+    ///
+    /// It hides the paths that the drivers mount (`/proc`, `/sys`, `/dev`,
+    /// `/run`) and the four entries that `docker export` adds or replaces
+    /// (feature 13, section 6.4).
+    const TREE_LIST: &str = r#"find / -xdev \
+  -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' \
+  -not -path '/run/*' -not -path '/tmp/*' -not -path '/.dockerenv' \
+  -not -path '/etc/hosts' -not -path '/etc/hostname' \
+  -not -path '/etc/resolv.conf' -print | sort | while IFS= read -r path; do
+    stat -c '%n|%F|%a|%u|%g|%N' "$path"
+  done
+find / -xdev \
+  -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' \
+  -not -path '/run/*' -not -path '/tmp/*' -not -path '/.dockerenv' \
+  -not -path '/etc/hosts' -not -path '/etc/hostname' \
+  -not -path '/etc/resolv.conf' -type f -exec sha256sum {} + | sort"#;
+
+    /// `e2e_oci_docker_hub`: the pinned Alpine image comes from Docker Hub.
+    pub fn oci_docker_hub() {
+        let Some((ctx, host)) = usable_host() else {
+            return;
+        };
+        let store = ImageStore::new(ctx.clone(), host.clone());
+        let control = manager(&ctx, &host, &store);
+        let importer = importer(&ctx, &host, &store, control, None);
+        let options = ImportOptions {
+            tag: Some("e2e-oci-hub".to_string()),
+            ..ImportOptions::default()
+        };
+        let report = match crate::pool::block_on(importer.import(
+            ImageSource::Oci("docker.io/library/alpine:3.22".to_string()),
+            options,
+        )) {
+            Ok(report) => report,
+            Err(error) => {
+                eprintln!("skip: the Docker Hub pull failed, perhaps the network is not available: {error}");
+                return;
+            }
+        };
+        assert!(
+            report.manifest.source.starts_with("oci:"),
+            "the source names the registry"
+        );
+        let (stdout, code) = run_in_image(
+            &ctx,
+            &host,
+            &store,
+            "e2e-oci-hub",
+            &["cat", "/etc/alpine-release"],
+        );
+        assert_eq!(code, Some(0), "the release command runs");
+        assert!(
+            !stdout.trim().is_empty(),
+            "the image prints its release line"
+        );
+    }
+
+    /// `e2e_oci_alpine`: a local registry image runs with no Docker daemon in
+    /// the import path.
+    ///
+    /// Set `EWE_TEST_REGISTRY` to a registry that holds `test/alpine:1`, and
+    /// `EWE_TEST_OCI_IMAGE` to another name when needed.
+    pub fn oci_alpine() {
+        let Ok(registry) = std::env::var("EWE_TEST_REGISTRY") else {
+            eprintln!("skip: set EWE_TEST_REGISTRY to a local registry that holds test/alpine:1");
+            return;
+        };
+        let image =
+            std::env::var("EWE_TEST_OCI_IMAGE").unwrap_or_else(|_| "test/alpine:1".to_string());
+        let Some((ctx, host)) = usable_host() else {
+            return;
+        };
+        let store = ImageStore::new(ctx.clone(), host.clone());
+        let control = manager(&ctx, &host, &store);
+        let importer =
+            importer(&ctx, &host, &store, control, None).with_registry(RegistryOptions {
+                allow_insecure: vec![registry.clone()],
+                ..RegistryOptions::default()
+            });
+        let options = ImportOptions {
+            tag: Some("e2e-oci-local".to_string()),
+            ..ImportOptions::default()
+        };
+        let report = crate::pool::block_on(
+            importer.import(ImageSource::Oci(format!("{registry}/{image}")), options),
+        )
+        .expect("the local registry image imports");
+        assert!(report.manifest.source.starts_with("oci:"));
+        let (stdout, code) = run_in_image(
+            &ctx,
+            &host,
+            &store,
+            "e2e-oci-local",
+            &["cat", "/etc/alpine-release"],
+        );
+        assert_eq!(code, Some(0), "the release command runs");
+        assert!(
+            !stdout.trim().is_empty(),
+            "the image prints its release line"
+        );
+    }
+
+    /// `e2e_layers_equal_docker_export`: the registry image and the same image
+    /// through `docker export` give one file tree.
+    pub fn oci_layers_equal_docker_export() {
+        let Ok(registry) = std::env::var("EWE_TEST_REGISTRY") else {
+            eprintln!("skip: set EWE_TEST_REGISTRY to a local registry that holds test/alpine:1");
+            return;
+        };
+        let image =
+            std::env::var("EWE_TEST_OCI_IMAGE").unwrap_or_else(|_| "test/alpine:1".to_string());
+        let Some((ctx, host)) = usable_host() else {
+            return;
+        };
+        let Some(docker) = docker() else {
+            return;
+        };
+        let store = ImageStore::new(ctx.clone(), host.clone());
+        let control = manager(&ctx, &host, &store);
+        let importer =
+            importer(&ctx, &host, &store, control, Some(docker)).with_registry(RegistryOptions {
+                allow_insecure: vec![registry.clone()],
+                ..RegistryOptions::default()
+            });
+        let oci = crate::pool::block_on(importer.import(
+            ImageSource::Oci(format!("{registry}/{image}")),
+            ImportOptions {
+                tag: Some("e2e-oci-tree".to_string()),
+                ..ImportOptions::default()
+            },
+        ))
+        .expect("the registry image imports");
+        let exported = crate::pool::block_on(importer.import(
+            ImageSource::Docker(image),
+            ImportOptions {
+                tag: Some("e2e-docker-tree".to_string()),
+                ..ImportOptions::default()
+            },
+        ))
+        .expect("the Docker image imports");
+        assert_eq!(oci.manifest.arch, exported.manifest.arch);
+        let (oci_tree, oci_code) = run_in_image(
+            &ctx,
+            &host,
+            &store,
+            "e2e-oci-tree",
+            &["/bin/sh", "-c", TREE_LIST],
+        );
+        let (docker_tree, docker_code) = run_in_image(
+            &ctx,
+            &host,
+            &store,
+            "e2e-docker-tree",
+            &["/bin/sh", "-c", TREE_LIST],
+        );
+        assert_eq!(oci_code, Some(0), "the registry image listing runs");
+        assert_eq!(docker_code, Some(0), "the Docker image listing runs");
+        assert_eq!(oci_tree, docker_tree, "the two file trees are equal");
+    }
 }
 
 /// Writes one file below `root`, with its parent directories.
@@ -722,4 +885,19 @@ e2e_test!(
     e2e_build_resume,
     build_resume,
     "this test needs a Linux host with the firecracker feature"
+);
+e2e_test!(
+    e2e_oci_docker_hub,
+    oci_docker_hub,
+    "this test needs a Linux host with the firecracker feature"
+);
+e2e_test!(
+    e2e_oci_alpine,
+    oci_alpine,
+    "this test needs a Linux host with the firecracker feature and EWE_TEST_REGISTRY"
+);
+e2e_test!(
+    e2e_layers_equal_docker_export,
+    oci_layers_equal_docker_export,
+    "this test needs a Linux host with the firecracker feature, a Docker daemon and EWE_TEST_REGISTRY"
 );
