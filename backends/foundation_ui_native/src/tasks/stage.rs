@@ -12,7 +12,7 @@ use std::{
 };
 use zip::ZipArchive;
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Config {
     pub version: String,
     pub repository: String,
@@ -174,10 +174,19 @@ struct Dependencies {
 struct Coordinates {
     group_id: String,
     artifact_id: String,
-    version: String,
+    version: Option<String>,
 }
 
-fn inputs(repo: &Path, config: &Config) -> Result<Vec<PathBuf>, TaskError> {
+/// List the validated publication files in a local Maven repository.
+///
+/// # Errors
+/// Returns an error if a package or its required metadata is invalid or missing.
+pub async fn maven_inputs(repo: &Path, config: &Config) -> Result<Vec<PathBuf>, TaskError> {
+    let (repo, config) = (repo.to_owned(), config.clone());
+    blocking::unblock(move || read_maven_inputs(&repo, &config)).await
+}
+
+fn read_maven_inputs(repo: &Path, config: &Config) -> Result<Vec<PathBuf>, TaskError> {
     let mut files = Vec::new();
     for module in &config.maven_modules {
         let dir = repo
@@ -187,9 +196,10 @@ fn inputs(repo: &Path, config: &Config) -> Result<Vec<PathBuf>, TaskError> {
         let stem = format!("{module}-{}", config.version);
         let pom = dir.join(format!("{stem}.pom"));
         let declaration: Pom = quick_xml::de::from_reader(BufReader::new(
-            File::open(&pom).map_err(TaskError::operation)?,
+            File::open(&pom)
+                .map_err(|error| TaskError::operation(format!("{}: {error}", pom.display())))?,
         ))
-        .map_err(TaskError::operation)?;
+        .map_err(|error| TaskError::operation(format!("{}: {error}", pom.display())))?;
         let c = &declaration;
         if c.group_id != config.maven_group
             || c.artifact_id != *module
@@ -251,7 +261,7 @@ fn inputs(repo: &Path, config: &Config) -> Result<Vec<PathBuf>, TaskError> {
                 if !deps.dependency.iter().any(|d| {
                     d.group_id == config.maven_group
                         && d.artifact_id == *dep
-                        && d.version == config.version
+                        && d.version.as_deref() == Some(config.version.as_str())
                 }) {
                     return Err(TaskError::operation(format!(
                         "Missing runtime dependency {dep}"
@@ -286,7 +296,7 @@ pub(super) async fn maven(
     key: Option<&str>,
     keyring: Option<&Path>,
 ) -> Result<PathBuf, TaskError> {
-    let files = inputs(repo, config)?;
+    let files = maven_inputs(repo, config).await?;
     let temp = tempfile::tempdir_in(stage).map_err(TaskError::operation)?;
     let mut members = Vec::new();
     for original in files {
