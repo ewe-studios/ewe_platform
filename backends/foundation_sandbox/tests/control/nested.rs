@@ -14,7 +14,7 @@ use foundation_context::Ctx;
 use foundation_core::valtron::SimulatedClock;
 use foundation_sandbox::shared::control::testing::{
     in_memory_connector, in_memory_dual_connector, CountingStore, ScriptedSlave, SimDriver,
-    SimSubstrate,
+    SimSubstrate, SubstrateOp,
 };
 use foundation_sandbox::shared::control::{
     ControlService, ManagerConfig, SandboxManager, SandboxProvider, SandboxState,
@@ -36,6 +36,7 @@ struct Setup {
     parent_slave: Arc<ScriptedSlave>,
     parent_substrate: Arc<SimSubstrate>,
     inner_slave: Arc<ScriptedSlave>,
+    inner_substrate: Arc<SimSubstrate>,
 }
 
 /// Builds a parent control plane and its inner control plane.
@@ -94,6 +95,7 @@ fn setup_with(
         parent_slave,
         parent_substrate,
         inner_slave,
+        inner_substrate,
     }
 }
 
@@ -361,3 +363,40 @@ fn watcher_treats_not_found_and_stopped_as_gone() {
     }
 }
 
+/// The outer grace bounds a nested child's stop.
+#[test]
+fn nested_terminate_waits_within_the_outer_grace() {
+    let _serial = support::serial();
+    // A two-second grace is longer than the short-wait threshold of the
+    // recording timer, so the timer stays pending and the inner stop answers.
+    let (ctx, clock, _timer) = support::recording_ctx(39);
+    let setup = setup_with(ctx, clock, true, false);
+    let parent = create_parent(&setup);
+    let mut spec = child_spec(&parent);
+    spec.limits.shutdown_grace = Duration::from_secs(2);
+    let child = support::block_on(setup.outer.create(spec)).expect("the child");
+    let report = support::block_on(setup.outer.stop(child.id().clone())).expect("the child stops");
+    assert!(!report.killed, "the inner stop finished within the grace");
+    assert_eq!(
+        setup.inner_substrate.op_count(SubstrateOp::Kill),
+        0,
+        "no kill before the outer deadline"
+    );
+}
+
+/// A child that outlasts the outer grace is killed.
+#[test]
+fn nested_terminate_kills_after_the_outer_grace() {
+    let _serial = support::serial();
+    // The recording timer answers any short wait at once, so the 50 ms deadline
+    // reaches the child before its own stop does. The forced report is the
+    // outer kill branch: the inner stop alone reports `killed: false`.
+    let (ctx, clock, _timer) = support::recording_ctx(40);
+    let setup = setup_with(ctx, clock, true, false);
+    let parent = create_parent(&setup);
+    let mut spec = child_spec(&parent);
+    spec.limits.shutdown_grace = Duration::from_millis(50);
+    let child = support::block_on(setup.outer.create(spec)).expect("the child");
+    let report = support::block_on(setup.outer.stop(child.id().clone())).expect("the child stops");
+    assert!(report.killed, "the outer deadline forced the child down");
+}

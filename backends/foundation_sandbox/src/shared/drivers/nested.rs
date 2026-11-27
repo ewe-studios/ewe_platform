@@ -467,16 +467,35 @@ impl SubstrateHandle for NestedHandle {
         })
     }
 
-    fn terminate(&self, _grace: Duration) -> BoxFuture<'_, SandboxResult<SubstrateExit>> {
+    fn terminate(&self, grace: Duration) -> BoxFuture<'_, SandboxResult<SubstrateExit>> {
         let provider = Arc::clone(&self.provider);
         let inner = self.inner.clone();
+        let ctx = self.ctx.clone();
         Box::pin(async move {
-            let report = provider.stop(inner).await?;
-            Ok(SubstrateExit {
-                code: report.substrate_exit_code,
-                signal: None,
-                forced: report.killed,
-            })
+            // Ask the inner control plane to stop the child, and wait for it up
+            // to the outer grace. A child that outlasts the outer grace is
+            // killed, so it cannot hold the parent past its own deadline.
+            let deadline = ctx.clock().now() + grace;
+            let stop = provider.stop(inner.clone());
+            let timer = crate::shared::control::wait_until(deadline, &ctx);
+            match select(Box::pin(stop), Box::pin(timer)).await {
+                Either::Left((report, _timer)) => {
+                    let report = report?;
+                    Ok(SubstrateExit {
+                        code: report.substrate_exit_code,
+                        signal: None,
+                        forced: report.killed,
+                    })
+                }
+                Either::Right((_timer, _stop)) => {
+                    let report = provider.kill(inner).await?;
+                    Ok(SubstrateExit {
+                        code: report.substrate_exit_code,
+                        signal: None,
+                        forced: true,
+                    })
+                }
+            }
         })
     }
 
