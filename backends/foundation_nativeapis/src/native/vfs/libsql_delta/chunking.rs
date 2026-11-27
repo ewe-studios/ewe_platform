@@ -2,7 +2,7 @@
 //! File content is stored as ordered chunks in vfs_chunks.
 
 use foundation_context::Ctx;
-use libsql::Connection;
+use libsql_backend::Connection;
 
 use super::types;
 use crate::shared::vfs::error::VfsResult;
@@ -92,7 +92,7 @@ pub async fn write_all_chunks_async(
         "INSERT INTO vfs_chunks (ino, chunk_idx, data) VALUES {}",
         placeholders
     );
-    let mut values: Vec<libsql::Value> = Vec::with_capacity(chunks.len() * 3);
+    let mut values: Vec<libsql_backend::Value> = Vec::with_capacity(chunks.len() * 3);
     for (idx, &chunk) in chunks.iter().enumerate() {
         values.push(ino.into());
         values.push((idx as i64).into());

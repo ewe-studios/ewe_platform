@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use foundation_context::Ctx;
-use libsql::{Connection, Database};
+use libsql_backend::{Connection, Database};
 
 use crate::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -59,8 +59,8 @@ pub struct LibsqlDelta {
     ctx: Ctx,
 }
 
-/// Convert a [`libsql::Error`] into an [`ErrorTrace<VfsError>`].
-fn err(e: libsql::Error) -> ErrorTrace<VfsError> {
+/// Convert a [`libsql_backend::Error`] into an [`ErrorTrace<VfsError>`].
+fn err(e: libsql_backend::Error) -> ErrorTrace<VfsError> {
     ErrorTrace::new(types::libsql_err(e))
 }
 
@@ -115,7 +115,7 @@ impl LibsqlDelta {
     ) -> VfsResult<Self> {
         let path_str = prepare_db_path(db_path.as_ref())?;
         let db = if let Some(ref remote) = config.turso_remote {
-            libsql::Builder::new_remote_replica(
+            libsql_backend::Builder::new_remote_replica(
                 path_str,
                 remote.url.clone(),
                 remote.auth_token.clone(),
@@ -124,7 +124,7 @@ impl LibsqlDelta {
             .await
             .map_err(err)?
         } else {
-            libsql::Builder::new_local(&path_str)
+            libsql_backend::Builder::new_local(&path_str)
                 .build()
                 .await
                 .map_err(err)?
@@ -139,7 +139,7 @@ impl LibsqlDelta {
     ///
     /// Returns [`VfsError::Backend`] if the database cannot be opened.
     pub async fn in_memory(ctx: Ctx) -> VfsResult<Self> {
-        let db = libsql::Builder::new_local(":memory:")
+        let db = libsql_backend::Builder::new_local(":memory:")
             .build()
             .await
             .map_err(err)?;
@@ -576,7 +576,7 @@ impl AsyncDeltaStore for LibsqlDelta {
                 placeholders
             );
             let version_bytes = version_id.to_vec();
-            let mut values: Vec<libsql::Value> = Vec::with_capacity(prefixes.len() * 3);
+            let mut values: Vec<libsql_backend::Value> = Vec::with_capacity(prefixes.len() * 3);
             for prefix in &prefixes {
                 values.push(prefix.clone().into());
                 values.push(path.clone().into());
