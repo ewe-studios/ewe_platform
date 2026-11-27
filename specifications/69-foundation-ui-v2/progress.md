@@ -1798,3 +1798,10 @@ Issue 1146 tracks the separate full-size focus timeout.
 Both staged Android library names and architectures match the provider record.
 The [native package preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) includes the provider and application checks.
 The [unsigned acceptance inventory](completion-audit.md#unsigned-feature-12-14-and-16-checks) records the current checks and remaining evidence.
+
+## Native search input fixture
+
+The reference generator adds the search input to the native presentation fixture.
+The Rust, Swift, and Kotlin packages use the same frame and expected snapshot.
+The Rust reference suite passes 102 tests. The Swift fixture test and six Kotlin conformance tests pass.
+[Issue 1158](https://github.com/ewe-studios/ewe_platform/issues/1158)

@@ -1418,3 +1418,9 @@ A staged Android library proves the copy step. The installed application check n
 Run Node tests with explicit file patterns. The documented directory arguments do not resolve under the pinned Node version.
 The browser behavior comparisons permit disposal hooks and still compare the behavior logic byte for byte.
 Keep historical commit structure and skipped tests visible during acceptance review.
+
+## Native search input fixture
+
+The presentation reference test generates one node for each native presentation kind.
+A new kind changes the generated frame and snapshot.
+Regenerate both files with the reference test. Copy both files to each native package and run its reader test.

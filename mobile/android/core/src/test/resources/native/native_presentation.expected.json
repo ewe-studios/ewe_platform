@@ -39,7 +39,8 @@
         122,
         123,
         124,
-        125
+        125,
+        126
       ],
       "actions": {},
       "state_len": 0,
@@ -244,6 +245,18 @@
     {
       "id": 125,
       "kind": "DRAWING_SURFACE",
+      "text": null,
+      "props": {},
+      "children": [],
+      "actions": {},
+      "state_len": 0,
+      "live": null,
+      "web_view": null,
+      "behaviours": []
+    },
+    {
+      "id": 126,
+      "kind": "SEARCH_INPUT",
       "text": null,
       "props": {},
       "children": [],

@@ -94,8 +94,9 @@ The package plan records the Windows browser test exception under [issue 531](ht
 The Feature 12 record gives the macOS HTTP exception under [issue 546](https://github.com/ewe-studios/ewe_platform/issues/546).
 Use the next available release-lane run for the remaining operating-system checks.
 The Swift host tests run on macOS. Keep an iPhone simulator run separate from the host results.
-The Rust reference suite now passes 102 tests with the regenerated search input fixture.
-[Issue 1158](https://github.com/ewe-studios/ewe_platform/issues/1158) tracks the native fixture checks.
+The Rust reference suite passes 102 tests with the regenerated search input fixture.
+The Swift fixture test and all six Kotlin conformance tests pass with the same files.
+[Issue 1158](https://github.com/ewe-studios/ewe_platform/issues/1158) records the fixture repair.
 The specification checklist stays unsigned while its scenario coverage review is open.
 
 ## Historical audit
