@@ -37,7 +37,6 @@ struct State {
     session: Option<Session>,
     busy: bool,
     retry: bool,
-    expired_request: bool,
     active: Option<Active>,
     initialized: bool,
     released: Option<TodoId>,
@@ -257,11 +256,10 @@ pub(super) async fn pause(ctx: &Context) -> ActionResult {
         state.session = Some(session.clone());
         state.busy = true;
         state.retry = false;
-        state.expired_request = false;
         show_controls(ctx, &state)?;
         Request {
             scope: session.scope,
-            request: attempt.id,
+            operation_id: attempt.id,
             issued_at_ms: attempt.issued_at_ms,
         }
     };
@@ -279,7 +277,6 @@ pub(super) async fn pause(ctx: &Context) -> ActionResult {
             session.pending = None;
             write(ctx, &storage_key(&session), &session).await?;
             state.session = Some(session);
-            state.expired_request = true;
         }
         state.retry = state
             .session

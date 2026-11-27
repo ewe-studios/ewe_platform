@@ -1,5 +1,10 @@
 //! Serialize business changes before their durable write and live publication.
-use super::*;
+#[cfg(all(feature = "server", not(target_family = "wasm")))]
+use super::Arc;
+use super::{
+    error, todo_store, ActionError, ActionResult, AddInput, Context, CreationReceipt, Ctx,
+    ErrorCode, ErrorTrace, RecordChange, StoreState, Todo, TodoDelivery, TodoId, TodoStore, ViewData,
+};
 
 pub(super) enum Command {
     Add(AddInput),
@@ -174,7 +179,9 @@ pub(super) async fn apply(ctx: &Context, command: Command) -> ActionResult {
     delivery.send(ctx)
 }
 
-async fn commit(store: &TodoStore, _host: &Ctx, command: Command) -> CommitResult {
+async fn commit(store: &TodoStore, host: &Ctx, command: Command) -> CommitResult {
+    #[cfg(not(all(feature = "server", not(target_family = "wasm"))))]
+    let _ = host;
     let _writer = store.1.gate.lock().await;
     let (plan, previous) = {
         let state = store
@@ -194,9 +201,9 @@ async fn commit(store: &TodoStore, _host: &Ctx, command: Command) -> CommitResul
         .checked_add(1)
         .ok_or_else(|| error("Todo stream position exhausted"))?;
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
-    let publication = _host
+    let publication = host
         .get::<crate::server::TodoFeed>()
-        .map(|feed| feed.reserve(_host, &change))
+        .map(|feed| feed.reserve(host, &change))
         .transpose()
         .map_err(|cause| error(&cause.to_string()))?;
     #[cfg(all(feature = "server", not(target_family = "wasm")))]
@@ -208,22 +215,21 @@ async fn commit(store: &TodoStore, _host: &Ctx, command: Command) -> CommitResul
             return Err(error("Todo stream position differs from its store"));
         }
         if let Some(database) = &store.1.database {
-            let original = match &receipt {
-                Some(receipt) => receipt.clone(),
-                None => {
-                    let id = match &change {
-                        RecordChange::Upsert(row) => row.id,
-                        RecordChange::Remove(id) => *id,
-                    };
-                    store
-                        .0
-                        .lock()
-                        .unwrap_or_else(std::sync::PoisonError::into_inner)
-                        .creations
-                        .get(&id)
-                        .cloned()
-                        .ok_or_else(|| error("Missing Todo creation receipt"))?
-                }
+            let original = if let Some(receipt) = &receipt {
+                receipt.clone()
+            } else {
+                let id = match &change {
+                    RecordChange::Upsert(row) => row.id,
+                    RecordChange::Remove(id) => *id,
+                };
+                store
+                    .0
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .creations
+                    .get(&id)
+                    .cloned()
+                    .ok_or_else(|| error("Missing Todo creation receipt"))?
             };
             database
                 .save(original, &change, position)

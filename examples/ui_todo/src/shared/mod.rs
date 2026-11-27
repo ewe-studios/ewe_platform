@@ -207,7 +207,7 @@ impl TodoStore {
         (
             state.snapshot(),
             feed.last_sequence(),
-            state.retired_ids.iter().cloned().collect(),
+            state.retired_ids.iter().copied().collect(),
         )
     }
 
@@ -445,6 +445,7 @@ async fn open_add_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult 
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let cache = &mut *cache;
     cache.client.correcting = None;
     if let Some(id) = event.input_value.strip_prefix("correct-add:") {
         let key = format!("add:{id}");
@@ -456,7 +457,7 @@ async fn open_add_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult 
         else {
             return Err(error("This submission is no longer pending"));
         };
-        cache.draft = title.clone();
+        cache.draft.clone_from(title);
         cache.client.correcting = Some(key);
     }
     cache.add_dialog = true;
@@ -669,15 +670,12 @@ async fn apply_todo_delivery(
             .0
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        match &delivery {
-            TodoDelivery::Deleted { id } => {
-                if state.delete_target == Some(*id) {
-                    state.delete_target = None;
-                    dialog(ctx, &state.snapshot())?;
-                }
-                return Ok(());
+        if let TodoDelivery::Deleted { id } = &delivery {
+            if state.delete_target == Some(*id) {
+                state.delete_target = None;
+                dialog(ctx, &state.snapshot())?;
             }
-            _ => {}
+            return Ok(());
         }
         state.ingest(delivery)
     };

@@ -11,7 +11,8 @@ pub(crate) struct Scope {
 pub(crate) struct Request {
     #[serde(flatten)]
     scope: Scope,
-    request: TodoId,
+    #[serde(rename = "request")]
+    operation_id: TodoId,
     issued_at_ms: u64,
 }
 

@@ -7,7 +7,7 @@ const OPEN: &str = "open:mathalley";
 /// Encode the command that opens the Mathalley view.
 ///
 /// # Errors
-/// Return a MessagePack encoding error.
+/// Return a `MessagePack` encoding error.
 pub fn open_command() -> Result<Vec<u8>, rmp_serde::encode::Error> {
     rmp_serde::to_vec(OPEN)
 }

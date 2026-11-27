@@ -149,9 +149,12 @@ pub(super) async fn save(ctx: &Context, previous: &Entries, current: &Entries) -
                 .await
                 .map_err(storage_error);
         }
-        ctx.get::<MemoryStorage>()
-            .ok_or_else(|| error("Missing Todo memory storage"))?
-            .change_records(PREFIX, &inserts, &updates, &removals)
+        let store = ctx
+            .get::<MemoryStorage>()
+            .ok_or_else(|| error("Missing Todo memory storage"))?;
+        // The in-memory store completes the batch in one call.
+        std::future::ready(store.change_records(PREFIX, &inserts, &updates, &removals))
+            .await
             .map_err(storage_error)
     }
 }

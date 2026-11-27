@@ -285,3 +285,14 @@ and [retry list](../32-portable-view-targets/screenshots/chrome-retry.png) as vi
 2. Build the native client and browser lib with warnings denied.
 3. Run the server action tests with both runtime roles available.
 4. Verify the browser bundle still starts and runs a local action.
+
+### Strict lint for the packaged client
+
+The default server build compiles the browser client in a separate Cargo invocation.
+Check the client and server with strict Clippy.
+Keep the serialized countdown request key and the current timer and retry behavior.
+Use the countdown and pending captures referenced above to check the view.
+
+1. Run the server library and binary Clippy checks with warnings denied.
+2. Run the browser countdown check. Verify pending, retry, and resume.
+3. Run the native client tests. Verify the independent countdown sessions.

@@ -35,7 +35,7 @@ impl Default for CountdownConfig {
     fn default() -> Self {
         Self {
             duration: Duration::from_secs(60),
-            receipt_lifetime: Duration::from_secs(15 * 60),
+            receipt_lifetime: Duration::from_mins(15),
             max_receipts: 1024,
             release_wait: Duration::from_secs(2),
         }
@@ -88,7 +88,7 @@ fn millis(duration: Duration) -> u64 {
 fn request_update(ctx: &Context, input: Request) -> Result<Update, ErrorTrace<ActionError>> {
     let Request {
         scope,
-        request,
+        operation_id: request,
         issued_at_ms,
     } = input;
     let service = ctx
