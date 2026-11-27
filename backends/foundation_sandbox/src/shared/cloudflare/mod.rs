@@ -307,6 +307,16 @@ impl CloudflareConfig {
     pub fn new() -> Self {
         Self::default()
     }
+
+    /// The configuration of one sandbox Durable Object.
+    ///
+    /// The Worker reads the model variables once and passes the result, so a
+    /// model spec reaches the model driver (issue #1142). Every other value
+    /// keeps its default.
+    #[must_use]
+    pub fn for_sandbox(name: impl Into<String>, model: ModelConfig) -> Self {
+        Self::default().with_name(name).with_model(Some(model))
+    }
     /// Replaces [`Self::image_name`].
     #[must_use]
     pub fn with_image_name(mut self, value: impl Into<String>) -> Self {

@@ -352,3 +352,15 @@ fn do_driver_no_container_control() {
     assert!(matches!(error, SandboxError::UnsupportedCapability { .. }));
     assert!(driver.containers().is_none());
 }
+
+/// The configuration of one sandbox Durable Object carries the model values of
+/// the Worker, so a model spec reaches the model driver (issue #1142).
+#[test]
+fn sandbox_config_carries_the_model() {
+    let model = ModelConfig::new().with_backend(Some(ModelBackend::CloudflareAi {
+        model: "test".to_string(),
+    }));
+    let config = CloudflareConfig::for_sandbox("abc", model.clone());
+    assert_eq!(config.name, "abc");
+    assert_eq!(config.model, Some(model));
+}

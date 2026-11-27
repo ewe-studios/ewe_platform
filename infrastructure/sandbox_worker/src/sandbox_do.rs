@@ -101,10 +101,13 @@ impl SandboxDo {
         let name = id
             .as_ref()
             .map_or_else(|| "sandbox".to_string(), ToString::to_string);
+        // The model variables are read here, so a model spec reaches the model
+        // driver (issue #1142).
+        let model = crate::model_client::model_config_from_env(&self.env);
         let host = CloudflareHost::from_state(
             &self.state,
             index,
-            CloudflareConfig::default().with_name(name),
+            CloudflareConfig::for_sandbox(name, model),
         )
         .map_err(worker_error_from_sandbox)?
         .with_service(
