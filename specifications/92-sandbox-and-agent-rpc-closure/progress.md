@@ -1,6 +1,6 @@
 # Spec 92 Progress: closing specs 77 and 83
 
-_Last updated: 2026-11-27._
+_Last updated: 2026-11-28._
 
 ## Status at a glance
 
@@ -76,3 +76,32 @@ Two findings from the runs:
    step and now prints the failing value.
 2. Feature 00, task T1: one live run against the owner's account, recorded here.
 3. Feature 00, tasks T3 to T6: the KMS and WebCrypto tests.
+
+## KMS Local hang result (2026-11-28)
+
+**#1169** (`severity: high`) is fixed. The `KMS Local` workflow now passes against moto.
+
+The hang was not the error-body read. A trace of the test shows that moto's `400` body
+(`Content-Length: 34`, `Connection: close`) is read to the end. The test then completed the
+wrong-key check and started its cleanup request. The cleanup never ran. The test's
+`KeyCleanup::drop` called `block_on_future`, then `join`. The `Drop` runs on the pool worker
+that polls the test future. The `join` blocked that poll. The nested drive could not schedule
+the cleanup request. The test watchdog then fired.
+
+Fix: the test awaits `KeyCleanup::schedule_deletions` inside the test future. A
+`catch_unwind` wrapper keeps the cleanup on an assertion failure. A failed test still
+schedules its keys for deletion. No `Drop` blocks a worker.
+
+A second defect came from the focused test. On macOS, a peer-closed TCP socket answers
+`EINVAL` to `SO_RCVTIMEO`. `Connection::set_read_timeout_as` then failed a response that the
+client had already read. **#1172** (`severity: high`, fixed) maps that `EINVAL` for the TCP,
+Unix-domain and TLS arms. The Unix-domain arm already did this.
+
+Tests: `foundation_netio/tests/simple_http/error_body_close_tests.rs` (three local-server
+cases: no interim, an interim, and a body that arrives after the head) and the moto test.
+The KMS test passes in 0.44 s on this host.
+
+The open branch `fix/nested-drive` (#1136) would also hide the hang: it stops the executor
+from counting a packed (being-polled) task as runnable work. This change does not depend on
+it and does not touch `foundation_core`.
+
