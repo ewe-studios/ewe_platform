@@ -4,20 +4,19 @@ description: Project rules and a link to the shared agent configuration.
 version: 1.0.0
 ---
 
-# Project Agent Configuration
+# Codex AI Agent Configuration
 
 ## Mandatory Coordinator Workflow
 
-Claude Code and Codex follow this workflow. The model that starts a user session is the coordinator.
+The model that starts a user session is the coordinator, regardless of which model starts it.
 The coordinator discusses architecture with the owner and writes specifications, feature plans and task briefs.
 Before handoff, the coordinator checks that the specification and brief cover all requirements and acceptance criteria.
 Before implementation, update the feature plan, including its screenshots and design assets, and obtain the owner's explicit approval.
 The owner can explicitly approve implementation when they request the plan update.
 
 Delegate research, implementation, tests, fixes and delivery to worker agents, even for small tasks.
-Use the least costly capable available model for each task, even when a specification names another model.
-Claude Haiku and Codex Luna suit searches and simple tasks. Claude Sonnet and Codex Sol suit harder tasks.
-These are examples, not fixed model requirements.
+Use the least costly model that can do each task correctly.
+Use Luna or an equivalent for searches and simple tasks. Use Sol or an equivalent when the task requires it.
 If only the coordinator's model is available, assign the task to a separate agent that uses the same model.
 
 Give each worker a short, self-contained brief with the scope, files, checks and acceptance criteria.
@@ -26,7 +25,7 @@ Assign clear ownership to avoid duplicate work.
 Review each result against the acceptance criteria before delivery.
 Send gaps back to a worker and review the result again.
 
-This mandatory project rule takes precedence over conflicting instructions in `.agents/AGENTS.md` and its guides.
+This mandatory project rule takes precedence over conflicting delegation instructions in `.agents/AGENTS.md` and its guides.
 
 ## ⚠️ Important Notice
 
