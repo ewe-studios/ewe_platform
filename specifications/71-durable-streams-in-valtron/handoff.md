@@ -91,6 +91,13 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
   The first file VFS implementation compiles under `vfs-native`. It needs tests before a commit.
 - Uncommitted: `Cargo.lock`, from the removed test dependency. Check it before the next commit.
 
+## 4.1a Cross-implementation runs
+
+Feature 08 section 5.2 requires both directions in every category. The reference Rust client is
+at `/Volumes/Outside/GitSources/src.Electric/durable-streams/packages/client-rust`. This checkout
+has no Rust server package; ask the owner for its path if it exists elsewhere. The harness lives
+in `foundation_event_stream`.
+
 ## 4.2 Acceptance bar
 
 Owner rule, 2026-11-27: server conformance 338 of 338 with `subscriptions: true`, client

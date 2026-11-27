@@ -906,6 +906,9 @@ runs them in its own `tests/`. Each VFS crate also has coverage tests for its na
 - A skip that the reference suite itself forces (for example the suite marks a test broken for
   another client) is listed by name, with the suite's reason. It is not counted as a pass.
 - **All Rust tests of every touched crate pass, and clippy is clean.**
+- **Cross-implementation runs pass.** Every suite category and scenario runs in both directions:
+  our server against the reference clients, and our client against the reference servers. See
+  feature 08 section 5.2.
 - **A fresh agent with zero context verifies.** It reads this spec, runs the gates, and checks
   each claim against the code. The implementer does not sign off on its own work.
 

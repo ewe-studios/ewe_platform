@@ -138,6 +138,30 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - A skip that the reference suite forces is named with its reason; it is not a pass.
 - A fresh zero-context agent verifies the claims against the code.
 
+## 5.2 Cross-implementation conformance (owner rule 2026-11-27)
+
+A suite that runs our server and our client only is not enough. Run every category and scenario
+in both directions:
+
+| Direction | Reference side | Status |
+|---|---|---|
+| Our server | TypeScript server suite | passes (332 of 338; subscriptions open) |
+| Our client | TypeScript reference server | passes (208 of 269; SSE open) |
+| Our server | Reference Rust client, `packages/client-rust` | to build |
+| Our client | Reference server (TypeScript now; Rust server when available) | to build |
+
+- The reference Rust client exists at
+  `/Volumes/Outside/GitSources/src.Electric/durable-streams/packages/client-rust` and ships a
+  conformance adapter (`run-conformance-adapter.sh`).
+- This checkout has no Rust server package. If a Rust server exists on another branch or
+  repository, the owner supplies its path. Until then the server side uses the TypeScript server.
+- The runnable harness lives in `foundation_event_stream` (owner instruction) as a
+  `conformance` module or binary. Feature 08 owns the rules and the acceptance; feature 10 owns
+  the crate.
+- Every category runs: basic, append, read, long-poll, HTTP, headers, TTL, content type, HEAD,
+  offsets, edge cases, caching, chunking, read-your-writes, SSE, JSON, property, producer,
+  closure, forks and subscriptions. No skip caused by our code.
+
 ## 6. Verified commands (2026-11-27)
 
 `ci/durable_conformance.sh` runs both suites. It builds the examples, starts the server,
