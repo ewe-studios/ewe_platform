@@ -44,10 +44,16 @@ Check the public index entries and dependency resolution in a fresh generated pr
 The [manual candidate run](https://github.com/ewe-studios/ewe_platform/actions/runs/46053814588) uses the preview branch commit `3bb99148e`.
 This run builds the candidate and its starter checks before any publication request.
 
+## Publication approval record
+
+The GitHub environment query returns zero records for `native-ui-release`.
+The deployment query also returns zero records for that environment.
+Keep the release tag pending until the release owner approves the verified candidate and the protected environment is ready.
+
 ## After explicit release approval
 
 1. Confirm the chosen version and source commit with the release owner.
-2. Confirm access to the protected release environment and the verified Maven namespace.
+2. Configure the protected `native-ui-release` environment and verify the Maven namespace.
 3. Create the approved native release tag. Let the protected job sign and publish the verified inputs.
 4. Check the GitHub asset digests, Swift tag revision and Maven deployment receipt.
 5. Run the public starter checks with clean package caches.

@@ -1754,6 +1754,7 @@ The pinned Android renderer descriptor is unavailable from Maven Central and Goo
 The Swift version tag and native package release are absent.
 A dedicated preview branch matches release version 0.1.2 to the current native crate.
 The preview still requires a passing artifact build and both starter checks.
-The manual candidate run waits for GitHub runners.
+The Apple job passes compiler setup and the native task build. It starts the binding and starter checks.
+The Android job waits for a GitHub runner.
 A clean clone lists the Rust package files. Package creation stops at the missing code generator version.
 [Consumer issue 845](https://github.com/ewe-studios/ewe_platform/issues/845)
