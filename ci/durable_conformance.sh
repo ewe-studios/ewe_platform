@@ -31,6 +31,22 @@ SERVER_PID=""
 SERVER_LOG="$TMP/server-conformance.log"
 CLIENT_LOG="$TMP/client-conformance.log"
 
+# The live S3 run is mandatory in continuous integration (CI). When the require
+# flag is set, every variable must be present, so a misconfigured gate fails
+# instead of skipping the live run.
+if [ "${EWE_REQUIRE_LIVE_S3:-}" = "1" ]; then
+  missing=""
+  for variable in EWE_S3_ENDPOINT EWE_S3_ACCESS_KEY EWE_S3_SECRET_KEY EWE_S3_BUCKET; do
+    if [ -z "${!variable:-}" ]; then
+      missing="${missing} ${variable}"
+    fi
+  done
+  if [ -n "$missing" ]; then
+    echo "FAIL: EWE_REQUIRE_LIVE_S3=1 but these variables are missing:${missing}" >&2
+    exit 1
+  fi
+fi
+
 cleanup() {
   if [ -n "$SERVER_PID" ]; then
     kill "$SERVER_PID" 2>/dev/null || true
@@ -43,6 +59,16 @@ trap cleanup EXIT
 echo "== build =="
 cargo build -p foundation_http --features multi --example durable_server
 cargo build -p foundation_netio --features multi --example durable_client_adapter
+
+echo "== live S3 =="
+if [ -n "${EWE_S3_ENDPOINT:-}" ]; then
+  # The VFS conformance kit, the two-writer compare-and-swap race, the restart
+  # spool replay and the SQL block tier all run against the live service.
+  cargo test --profile uat -p foundation_nativeapis --features vfs-object-netio --test durable_object_vfs
+  echo "live S3: passed against ${EWE_S3_ENDPOINT}"
+else
+  echo "live S3: skipped (EWE_S3_ENDPOINT is not set)"
+fi
 
 echo "== server conformance =="
 DURABLE_ADDR="127.0.0.1:${PORT}" "$ROOT/target/debug/examples/durable_server" &
