@@ -26,7 +26,11 @@ fn command(root: &Path, program: &str, args: &[&str]) -> Output {
 }
 fn fixture() -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
-    let root = dir.path();
+    write_fixture(dir.path());
+    dir
+}
+
+fn write_fixture(root: &Path) {
     write(
         root,
         "Cargo.toml",
@@ -49,8 +53,8 @@ fn fixture() -> tempfile::TempDir {
         "ci/packages.toml",
         "[defaults]\nlinux-only-features=['linux']\nmacos-shards=1\n[packages.tiny-core]\nruns=['','linux']\n[packages.tiny-app]\nwindows-tests='none'\nwindows-reason='missing test tool'\n",
     );
-    dir
 }
+
 #[test]
 fn plan_writes_counts_and_respects_platform_settings() {
     let f = fixture();
@@ -323,6 +327,54 @@ fn shard_execution_continues_and_reports_failures_at_the_end() {
         stderr.contains("failing_example") && stderr.contains("fixture failure text"),
         "{stderr}"
     );
+}
+
+#[test]
+fn package_build_uses_the_callers_checkout_path() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir
+        .path()
+        .join("workspace path with spaces")
+        .join("build script output path")
+        .join("third party fixtures")
+        .join("child package runs");
+    write_fixture(&root);
+    write(
+        &root,
+        "core/build.rs",
+        r#"
+fn main() {
+    let output = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
+    if cfg!(windows) {
+        assert!(!output.to_string_lossy().starts_with(r"\\?\"), "{output:?}");
+    }
+    std::fs::write(output.join("binding.rs"), "const BOUND: bool = true;").unwrap();
+}
+"#,
+    );
+    write(
+        &root,
+        "core/src/lib.rs",
+        r#"#[cfg(test)]
+mod binding {
+    include!(concat!(env!("OUT_DIR"), "/binding.rs"));
+    #[test]
+    fn generated_binding() { assert!(std::hint::black_box(BOUND)); }
+}"#,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_foundation-ci"))
+        .current_dir(root.join("core"))
+        .env_remove("CARGO_TARGET_DIR")
+        .args(["run", "tiny-core", "--step", "test", "--profile", "dev"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("binding::generated_binding ... ok"));
 }
 
 #[test]
