@@ -1,0 +1,118 @@
+# Local AWS KMS test against moto (spec 92 feature 00, task T3)
+#
+# Runs the local AWS KMS test against moto in a service container. The test
+# needs no secret and no cloud account. It creates keys, seals and opens a
+# secret, refuses a wrong key, and schedules deletion.
+#
+# The job runs on a GitHub-hosted ubuntu-latest runner, so it stays in the free
+# plan. It does not need the CI image.
+#
+# Triggers: a pull request that changes the auth or netio crates, a push to
+# master, the nightly schedule and a manual run.
+
+name: KMS Local
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - 'backends/foundation_auth/**'
+      - 'backends/foundation_netio/**'
+      - 'backends/foundation_core/**'
+      - 'backends/foundation_context/**'
+      - 'backends/foundation_compact/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'mise.toml'
+      - 'infrastructure/kms/**'
+      - '.github/workflows/kms-local.yaml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'backends/foundation_auth/**'
+      - 'backends/foundation_netio/**'
+      - 'backends/foundation_core/**'
+      - 'backends/foundation_context/**'
+      - 'backends/foundation_compact/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'mise.toml'
+      - 'infrastructure/kms/**'
+      - '.github/workflows/kms-local.yaml'
+  schedule:
+    - cron: '41 3 * * *' # nightly at 3:41 UTC
+  workflow_dispatch:
+
+# A new push to a pull request cancels the old run of that pull request. Runs on
+# master, the nightly schedule and manual runs queue.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  CARGO_PROFILE_UAT_DEBUG: "0"
+  # moto accepts a shaped SigV4 request with any access key. These values are
+  # not secrets.
+  AWS_ENDPOINT_URL_KMS: http://localhost:5000
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_REGION: us-east-1
+  AWS_DEFAULT_REGION: us-east-1
+
+jobs:
+  kms-local:
+    name: AWS KMS against moto
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      moto:
+        # The digest is the one that `ci/local-services/docker-compose.yml`
+        # pins, so a laptop run and a CI run use the same bytes.
+        image: motoserver/moto@sha256:344e076f31ad1f5ff1ec4492f741e7d42911d1c7a1ef9b1590f56c340b968513
+        ports:
+          - 5000:5000
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          # The auth crate needs no submodule. A recursive checkout of
+          # tools/dawn failed in another workflow.
+          submodules: false
+
+      - name: Install the pinned toolchain
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: kms-local-${{ runner.os }}
+          # Only master writes caches, so pull request runs cannot evict each
+          # other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Wait for moto
+        # The moto API answers 200 when the server is ready. A connection error
+        # fails the attempt.
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl -s -o /dev/null http://localhost:5000/moto-api/; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "moto did not answer within 60 seconds" >&2
+          exit 1
+
+      - name: Run the local AWS KMS test
+        run: cargo test --locked -p foundation_auth --features testing --profile uat kms::aws_local
