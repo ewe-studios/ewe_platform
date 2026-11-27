@@ -55,7 +55,7 @@ async fn imports_keep_receipts_and_conditional_updates_preserve_deletions() {
     use std::collections::BTreeMap;
 
     let dir = TempDir::new().unwrap();
-    let path = dir.path().join("records.sqlite3");
+    let path = dir.path().join("Records ü.sqlite3");
     let open = async || {
         let store = LibsqlStore::new_kv(
             path.to_str().unwrap(),
