@@ -514,41 +514,7 @@ async fn add_peer(screen: &Screen<'_>, title: &str, pending: bool) -> TaskResult
             "Peer titles accept ASCII letters, digits, spaces, hyphens, and underscores",
         ));
     }
-    screen.tap("Add", &["Todos"]).await?;
-    screen.tap("<editor>", &["New todo"]).await?;
-    super::device::wait_for(
-        screen.ctx,
-        screen.timeout,
-        screen.interval,
-        "editor focus",
-        || async {
-            let visible = screen.wait(&["<editor>"], &[]).await?;
-            Ok(visible.contains_key("<focused-editor>")
-                || screen
-                    .find(&["dumpsys", "input_method"], "mInputShown=true")
-                    .await?
-                    .is_some())
-        },
-    )
-    .await?;
-    for (index, c) in title.char_indices() {
-        screen
-            .shell(&[
-                "input",
-                "text",
-                &if c == ' ' {
-                    "%s".to_owned()
-                } else {
-                    c.to_string()
-                },
-            ])
-            .await?;
-        if c != ' ' {
-            screen
-                .wait(&[&title[..index + c.len_utf8()], "New todo"], &[])
-                .await?;
-        }
-    }
+    screen.type_title(title).await?;
     screen.tap("Add", &["New todo"]).await?;
     if pending {
         screen.wait(&[title, "Pending"], &["New todo"]).await?;
