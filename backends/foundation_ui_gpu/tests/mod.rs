@@ -2,7 +2,20 @@
 mod leases;
 mod surfaces;
 use foundation_context::Ctx;
-use foundation_ui_gpu::{GpuConfig, GpuError, GpuService};
+use foundation_ui_gpu::{wgpu::InstanceFlags, GpuConfig, GpuError, GpuService, OwnedInstanceFlags};
+
+#[test]
+fn only_the_ranchu_emulator_drops_vulkan_debug_utilities() {
+    let flags = InstanceFlags::debugging() | InstanceFlags::GPU_BASED_VALIDATION;
+    let policy = OwnedInstanceFlags(flags);
+    assert_eq!(
+        policy.for_android(true, true).0,
+        flags - InstanceFlags::DEBUG
+    );
+    assert_eq!(policy.for_android(true, false).0, flags);
+    assert_eq!(policy.for_android(false, true).0, flags);
+    assert_eq!(policy.for_android(false, false).0, flags);
+}
 
 // WHY: Native graphics state must finish cleanup before the application exits.
 // WHAT: Every service clone can wait for the graphics owner to drop its provider.

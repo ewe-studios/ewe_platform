@@ -23,6 +23,21 @@ mod surfaces;
 pub mod vulkan;
 pub use surfaces::{check_surface_extent, RenderHost, SurfaceId};
 
+/// Host policy for the graphics instances that the service owns.
+#[derive(Clone, Copy, Debug)]
+pub struct OwnedInstanceFlags(pub wgpu::InstanceFlags);
+
+impl OwnedInstanceFlags {
+    /// Remove Vulkan debug utilities on the Ranchu emulator.
+    #[must_use]
+    pub fn for_android(mut self, is_ranchu: bool, is_emulator: bool) -> Self {
+        if is_ranchu && is_emulator {
+            self.0.remove(wgpu::InstanceFlags::DEBUG);
+        }
+        self
+    }
+}
+
 /// Requested features and limits apply to this host's single device.
 #[derive(Clone, Debug)]
 pub struct GpuConfig {
@@ -263,26 +278,34 @@ impl GpuService {
         }
         #[cfg(target_family = "wasm")]
         browser::ensure_available()?;
+        let flags = ctx
+            .get::<OwnedInstanceFlags>()
+            .map_or_else(wgpu::InstanceFlags::default, |policy| policy.0);
         let (work, receiver) = async_channel::bounded(config.queue_capacity);
         let (finished, stopped) = async_channel::bounded(1);
         #[cfg(not(target_family = "wasm"))]
         std::thread::Builder::new()
             .name("foundation-ui-gpu".into())
             .spawn(move || {
-                futures_lite::future::block_on(Self::drive(config, receiver, provider));
+                futures_lite::future::block_on(Self::drive(config, receiver, provider, flags));
                 drop(finished);
             })
             .map_err(|e| GpuError::Unavailable(e.to_string()))?;
         #[cfg(target_family = "wasm")]
         wasm_bindgen_futures::spawn_local(async move {
-            Self::drive(config, receiver, provider).await;
+            Self::drive(config, receiver, provider, flags).await;
             drop(finished);
         });
         Ok((*ctx.get_or_insert(Self { work, stopped })).clone())
     }
-    fn owner(config: GpuConfig, provider: Arc<dyn DeviceProvider>) -> GpuOwner {
+    fn owner(
+        config: GpuConfig,
+        provider: Arc<dyn DeviceProvider>,
+        flags: wgpu::InstanceFlags,
+    ) -> GpuOwner {
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: config.backends,
+            flags,
             ..wgpu::InstanceDescriptor::new_without_display_handle()
         });
         GpuOwner {
@@ -295,8 +318,13 @@ impl GpuService {
             leased_texture: None,
         }
     }
-    async fn drive(config: GpuConfig, receiver: Receiver<Work>, provider: Arc<dyn DeviceProvider>) {
-        let mut owner = Self::owner(config, provider);
+    async fn drive(
+        config: GpuConfig,
+        receiver: Receiver<Work>,
+        provider: Arc<dyn DeviceProvider>,
+        flags: wgpu::InstanceFlags,
+    ) {
+        let mut owner = Self::owner(config, provider, flags);
         while let Ok(job) = receiver.recv().await {
             job(&mut owner).await;
         }

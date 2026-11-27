@@ -1631,3 +1631,12 @@ Follow the peer test setup in the [Todo example guide](../../examples/ui_todo/RE
 - [Chrome confirmation](features/32-portable-view-targets/screenshots/verified-chrome-confirmation.png)
 - [iPhone confirmation](features/32-portable-view-targets/screenshots/verified-iphone-confirmation.png)
 - [Android confirmation accessibility labels](features/32-portable-view-targets/screenshots/verified-android-confirmation.txt)
+
+## Android Mathalley device initialization
+
+The Android 16 Ranchu emulator exits when the graphics device names a Vulkan object.
+The native host omits the Vulkan debug utility extension on this emulator and keeps validation.
+The same Todo installation opens Mathalley, presents Train, and accepts an answer.
+The score changes from zero to 100. Back returns to the same Todo list.
+The application keeps its endpoint and application data during the update.
+A second game visit shows a blank surface in the same process. Issue [1078](https://github.com/ewe-studios/ewe_platform/issues/1078) tracks this separate failure.

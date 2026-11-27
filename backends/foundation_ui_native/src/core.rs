@@ -158,6 +158,10 @@ impl NativeCore {
 
     fn from_transport(config: CoreConfig, server: Option<Arc<Transport>>) -> Arc<Self> {
         let caps = ClientCaps::native_current(config.platform.into());
+        #[cfg(target_os = "android")]
+        if config.platform == NativePlatform::Android {
+            crate::graphics::configure_android_host(&config.ctx);
+        }
         let graphics_ctx = config.ctx.clone();
         Arc::new_cyclic(|core| {
             let mut manager = client_manager_with_caller(
