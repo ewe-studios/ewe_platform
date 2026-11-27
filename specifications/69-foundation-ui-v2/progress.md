@@ -2304,3 +2304,18 @@ Its test-only commit `63c937cee` selects the normal Windows package recipes.
 The planner selects Todo, the native task, the project generator and vectors.
 Two Windows shards can run at once. The product candidate remains isolated until the Windows evidence is available.
 [Windows compatibility preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509)
+
+### Windows storage compatibility
+
+The first Windows Todo build stops in the libSQL 0.6 dependency stack. The native system crate uses a Unix path API.
+The [Windows compatibility preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509) tests source `ec8819205` for issue 1194.
+The source selects libSQL 0.10.0 for all workspace consumers and keeps the Todo local feature.
+On macOS, 14 Todo actions, 15 SQLite virtual file system tests, and 24 vector tests pass.
+The new Todo server reopens a test database from the old package. The initial response contains the original completed item.
+The database crate also passes its default build check and strict lint for both libSQL feature sets.
+The Windows test uses a temporary Todo database with spaces and a Unicode letter in its name.
+
+Issue 519 tracks the separate JSON file-state store. The old Windows suite passes the plain-key compare-and-set test.
+The namespaced test fails. A name with a slash becomes a file name with a colon.
+The full database package remains excluded on Windows. A proposed recipe selects four local libSQL test files.
+The planner schedules that recipe. All 14 selected tests pass on macOS. The Windows result still needs a run.

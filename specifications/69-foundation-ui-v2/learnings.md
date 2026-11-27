@@ -1719,3 +1719,11 @@ A package can keep a passing test result while later documentation changes.
 Compare its test recipe dependencies for each operating system before reusing that result.
 Record tool setup and compiler checks separately from package tests.
 Use an isolated workflow commit for the Windows preview job selection.
+
+### Windows storage compatibility
+
+The Todo server uses the local libSQL store. The JSON file-state store uses a separate path and format.
+A failure in the JSON path does not prevent a direct libSQL test recipe.
+The package runner accepts named test files in `windows-runs`. The plan records only the package that runs.
+The audit must name the selected tests when the package has partial coverage.
+The database test dependency keeps its default features. The proposed recipe limits the test files that run.
