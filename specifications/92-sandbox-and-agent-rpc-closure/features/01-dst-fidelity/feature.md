@@ -67,7 +67,25 @@ No production code changes until four failing tests prove the cause and the laye
 
 Each test has a watchdog. The failing outputs are recorded on the issue, and they decide which layer changes.
 
-## 5. Tasks
+## 5. What the evidence proved (2026-11-27, branch `test/dst-hang-proof`)
+
+The four tests ran before any production change:
+
+| Test | Result | Conclusion |
+|---|---|---|
+| `wait_arm_never_repolls_single_threaded` | **fails** — the future stays `Pending`, the producer advanced 2 of 5 steps, one producer wake registered that only a producer could fire | the `Wait` arm is the defect |
+| `wait_arm_completes_with_a_producer_thread` | passes | the adapter is sound when someone can fire the wake |
+| `sim_honours_depends_readiness` | passes | `SimRuntime` honours a `Depends` wake; the harness is not the defect |
+| `dst_real_registry_turn_hangs_today` | not written | the real registry is gated on `multi` or `worker`, and `SimRuntime` on `not(multi)`; both cannot exist in one build today |
+
+Two extra facts for the tasks:
+
+1. `LocalInstanceRegistry` is `cfg(any(feature = "multi", feature = "worker"))` (`foundation_agent_rpc/src/core/registry/mod.rs:14`), and `multi` pulls `foundation_core/multi`, which removes `SimRuntime`.
+2. `foundation_ai`'s deterministic `testing` provider also needs `multi` (`foundation_ai/Cargo.toml:202`).
+
+So T4 also needs `core::registry::local` and a deterministic model provider to compile without `multi`; otherwise the harness keeps its scripted world.
+
+## 6. Tasks
 
 | Task | Work | Closes |
 |---|---|---|
@@ -76,7 +94,7 @@ Each test has a watchdog. The failing outputs are recorded on the issue, and the
 | T3 | `TurnEvents` and `ExecutionIterator` stay as they are; prove the multi-threaded path is unchanged by its existing tests | — |
 | T4 | Replace the `ScriptedRegistry` in `foundation_agent_rpc_dst` with the real registry; keep the 32-seed determinism test and the injected storage failure | #908 |
 
-## 6. Tests
+## 7. Tests
 
 | Test | Oracle |
 |---|---|
@@ -86,7 +104,7 @@ Each test has a watchdog. The failing outputs are recorded on the issue, and the
 | `dst_same_seed_gives_identical_traces_for_32_seeds` | stateful model |
 | `dst_injected_storage_failure_gives_a_typed_error` | fault |
 
-## 7. Verify
+## 8. Verify
 
 ```bash
 cargo test -p foundation_core --features testing --profile uat sim
@@ -95,7 +113,7 @@ cargo check -p foundation_ai --no-default-features
 cargo test -p foundation_agent_rpc --profile uat native_
 ```
 
-## 8. Done when
+## 9. Done when
 
 The DST run uses the real registry and session, the 32 seeds give the same trace twice, and
 #908 is closed.
