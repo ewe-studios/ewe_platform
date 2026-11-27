@@ -2,6 +2,55 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 09 landed, all 16 tasks. The S3/R2 durable stream VFS
+  lives in `foundation_nativeapis/src/shared/vfs/durable/` (object store
+  contract, head manifest, spool, core) and
+  `foundation_nativeapis/src/native/vfs/{s3,r2,object_http}.rs`. An append
+  writes the local spool and fsyncs. The batcher seals one object per batch
+  (segmented under `<root>/<stream hex>/seg/`, append-only under
+  `<root>/<stream hex>/log/`). The head manifest is the authority. Its CAS uses
+  `If-None-Match: *` and `If-Match`, and a stale ETag returns `412` and a
+  retry. A store without conditional write uses a lease object. Reads load the
+  head, range GET the segments, revalidate the head after the GET and cache the
+  fetched ranges. The lifecycle is Live, Retired, DeleteIssued, Deleted with a
+  24 h grace window; a live or retired object is never deleted.
+
+  Configuration (`ObjectVfsConfig`, builder on every field): layout segmented
+  (default), root `durable`, segment target 256 KiB (Rivet), batch cap 1 MiB,
+  batch age 5 s, parallel PUTs 4 (S3 transfer manager), retry bound 3, publish
+  policy batched, single PUT 8 MiB, part size 8 MiB, fork depth 64, head cache
+  1 s, range cache 16 MiB, grace 24 h, lease timeout 30 s, revalidation
+  retries 2, spool root required. R2 settings are region `auto`, path-style
+  and CRC32. S3 defaults are `us-east-1`, virtual-host, no CRC32.
+
+  Tests: `tests/durable_object_vfs` has 43 tests in four suites. Conformance
+  runs the shared kit on S3 and R2 and on both layouts, and compares S3 with R2.
+  Coverage covers one PUT per batch, multipart, cross-segment range reads,
+  bounded reads, head revalidation, cache dedup, a missing object as an error,
+  two writers with a CAS retry, crash after a segment PUT and idempotent
+  replay, restart from objects, compaction, retention, orphan removal, the
+  lifecycle, partial delete errors, capability probes, the weak-CAS lease,
+  R2 settings, the manifest round trip, both key layouts, the measured PUT
+  count, the batch age, a parallel flush of five streams, orphan cleanup for a
+deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP tests
+  shape S3 requests, sign with SigV4, parse a paged listing, run multipart,
+  check every delete result, map 404/412 and assert the R2 region and CRC32.
+
+  Verification: the full `foundation_nativeapis` test run with
+  `--features vfs-object-http` passes. Clippy with the feature is clean.
+  wasm32 checks pass for the default set and for `vfs,vfs-search`.
+  `check-clock-params` and `check-time-sources` report 0 violations.
+
+  Real service: MinIO and localstack are absent (`which minio localstack`).
+  The HTTP tests use a stub transport. No real-service result is claimed.
+
+  CI: `vfs-object-http` is a new run in `runs`, `clippy-runs`, `macos-runs`
+  and `windows-runs`.
+
+  Open: the socket transport under `ObjectTransport` is the host's injection
+  point; this change ships the S3 REST client and SigV4, not a TCP/TLS client.
+  A real MinIO/R2 run is still needed.
+
 - 2026-11-27: feature 06 T12 landed. The body cap is configuration.
   `DurableLimits::max_body_bytes` holds the largest request body. It has
   `with_max_body_bytes` and an 8 MiB default. The doc comment names the wasm

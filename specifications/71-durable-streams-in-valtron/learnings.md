@@ -706,3 +706,39 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   338, and the one failure was also a timeout. A live probe of a 10 MiB declared
   body answered `413` in 11 ms. The body cap was not the cause. Run the gate on
   a quiet host.
+
+## S3/R2 object-store VFS, feature 09 (2026-11-27)
+
+- **A fork must compare the source's combined length.** The source head holds
+  only published bytes. A source with 10 acknowledged spool bytes has head
+  `len` 0. The first fork create failed with `Conflict` until the check used
+  the combined length (head plus spool). The memory and file VFS never show
+  this gap because their append is the only write.
+- **Trim needs the combined length too.** Capping `trim_from` at the published
+  head `len` silently refused a trim over pending bytes. The cap now uses the
+  combined metadata length, so a read below it answers `Trimmed`.
+- **A model of a lost CAS is not a model of a crash.** A test fault that
+  returns a backend error from `If-Match` models a crash after the segment PUT
+  but cannot exercise the retry. The retry path needs a `PreconditionFailed`
+  fault. Two separate switches keep the two tests honest.
+- **The segment target is a cap, not a batch size.** Compaction joins adjacent
+  segments only while the sum stays under the target. A test that writes one
+  32-byte batch at an 8-byte target gets 8-byte segments that cannot merge.
+  Small appends with a flush between them give mergeable segments.
+- **Count the blocks from the byte count.** A 26-byte batch at an 8-byte target
+  is four objects, not three. The retention test had the wrong expectation.
+- **A canonical URI must not be encoded twice.** The object URL already
+  percent-encodes each key segment. Encoding the path again in the SigV4
+  canonical request changes the signed path and breaks the signature. The
+  canonical URI now takes the path as sent.
+- **Known vectors are cheap.** The empty SHA-256, the SHA-256 of `head` and the
+  CRC32 of `abc` (`NSRBwg==`) check the hash and checksum code without a
+  service. The AWS SigV4 example suite was not used.
+- **The head is revalidated after the body.** A cached head can describe a
+  segment list that a writer replaced during the GET. The reader compares the
+  head ETag after the read, refreshes and repeats within the configured bound.
+  If the bound is reached it returns the bytes it read; a busy writer cannot
+  stall a reader forever.
+- **No local service on this host.** `which minio localstack` found nothing.
+  The stub transport and the in-memory object store are the test doubles. A
+  real-service result needs a quiet host with MinIO.

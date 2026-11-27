@@ -55,6 +55,18 @@ pub mod d1_delta;
 #[cfg(all(feature = "vfs-native", feature = "vfs-r2"))]
 pub mod r2_delta;
 
+/// The Amazon S3 durable stream VFS.
+#[cfg(all(feature = "vfs-object", not(target_arch = "wasm32")))]
+pub mod s3;
+
+/// The Cloudflare R2 durable stream VFS.
+#[cfg(all(feature = "vfs-object", not(target_arch = "wasm32")))]
+pub mod r2;
+
+/// The S3/R2 HTTP object store over an injected transport.
+#[cfg(all(feature = "vfs-object-http", not(target_arch = "wasm32")))]
+pub mod object_http;
+
 #[cfg(feature = "vfs-native")]
 pub use dir_delta::DirectoryDelta;
 #[cfg(feature = "vfs-native")]
