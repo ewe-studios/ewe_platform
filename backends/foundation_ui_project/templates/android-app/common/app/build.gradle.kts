@@ -49,12 +49,16 @@ abstract class StageAppResources @Inject constructor(private val commands: ExecO
     @get:Input abstract val cargoProfile: Property<String>
     @get:Internal abstract val producerDirectory: DirectoryProperty
     @get:OutputDirectory abstract val assets: DirectoryProperty
+{% if COMPOSED %}    @get:OutputDirectory abstract val launchRes: DirectoryProperty
+{% endif %}
 
     @TaskAction
     fun stage() {
         commands.exec {
             workingDir(packageDirectory.get().asFile)
             environment("EWE_RESOURCE_TARGET", "android")
+{% if COMPOSED %}            environment("EWE_LAUNCH_DEST", launchRes.get().asFile.parentFile)
+{% endif %}
             environment("EWE_RESOURCE_DEST", assets.dir("EweResources").get().asFile)
             environment("CARGO_TARGET_DIR", producerDirectory.get().asFile)
             commandLine("cargo", "check", "--profile", cargoProfile.get(), "--manifest-path", "Cargo.toml", "--no-default-features", "--lib")
@@ -70,10 +74,13 @@ extensions.getByType<ApplicationAndroidComponentsExtension>().onVariants { varia
         packageDirectory.set(layout.projectDirectory.dir("../{{ RESOURCE_PACKAGE }}"))
         producerDirectory.set(layout.buildDirectory.dir("resource-producer/${variant.name}"))
         assets.set(layout.buildDirectory.dir("generated/ewe-assets/${variant.name}"))
-        // Cargo tracks the manifest, directories and generated inputs.
+{% if COMPOSED %}        launchRes.set(layout.buildDirectory.dir("generated/ewe-launch/${variant.name}/res"))
+{% endif %}        // Cargo tracks the manifest, directories and generated inputs.
         outputs.upToDateWhen { false }
     }
     variant.sources.assets?.addGeneratedSourceDirectory(task, StageAppResources::assets)
+{% if COMPOSED %}    variant.sources.res?.addGeneratedSourceDirectory(task, StageAppResources::launchRes)
+{% endif %}
 }
 
 {% if COMPOSED and HOST == "on-device" %}

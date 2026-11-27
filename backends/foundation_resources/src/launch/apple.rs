@@ -1,6 +1,6 @@
 use super::{write, Background, DynamicImage, FilterType, ImageFormat};
 use serde_json::{json, Value};
-use std::{fs, io, path::Path};
+use std::{io, path::Path};
 
 fn color(value: &str) -> io::Result<Value> {
     let component = |start| {
@@ -16,7 +16,7 @@ fn color(value: &str) -> io::Result<Value> {
 pub(super) fn write_assets(
     root: &Path,
     icon: &DynamicImage,
-    splash: &Path,
+    splash: &DynamicImage,
     colors: &Background,
 ) -> io::Result<()> {
     let catalog = root.join("Launch.xcassets");
@@ -41,14 +41,23 @@ pub(super) fn write_assets(
         ImageFormat::Png,
     )
     .map_err(io::Error::other)?;
+    let splash_set = catalog.join("EweSplash.imageset");
+    std::fs::create_dir_all(&splash_set)?;
+    let mut images = Vec::new();
+    for scale in [1, 2, 3] {
+        let filename = format!("splash-{scale}x.png");
+        let side = 144 * scale;
+        splash
+            .resize(side, side, FilterType::Lanczos3)
+            .save_with_format(splash_set.join(&filename), ImageFormat::Png)
+            .map_err(io::Error::other)?;
+        images.push(json!({"idiom":"universal","scale":format!("{scale}x"),"filename":filename}));
+    }
     write(
-        &catalog,
-        "EweSplash.imageset/Contents.json",
-        serde_json::to_vec(
-            &json!({"info":info,"images":[{"idiom":"universal","filename":"splash.png"}]}),
-        )?,
+        &splash_set,
+        "Contents.json",
+        serde_json::to_vec(&json!({"info":info,"images":images}))?,
     )?;
-    fs::copy(splash, catalog.join("EweSplash.imageset/splash.png"))?;
     write(
         &catalog,
         "EweLaunchBackground.colorset/Contents.json",

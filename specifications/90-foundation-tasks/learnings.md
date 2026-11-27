@@ -423,3 +423,19 @@ The Nushell wrappers call the typed tasks directly for push, pull, wait-runner, 
 Local fixtures prove binary transfer, failed download preservation, runner status handling, log preservation, and container removal.
 The macOS ARM64 host has Docker, Nushell, SSH, and Xcode.
 It lacks `/dev/kvm` and a Windows guest, so native guest verification needs another host.
+
+## Feature 05 native startup integration
+
+The shared application build script references the resource build module for all target selections.
+The web-only manifest keeps the build feature enabled. Native manifests also enable the mobile launch feature.
+Cargo can reuse build scripts for generated packages with the same name and version.
+Read the manifest directory from the runtime environment to select the current artwork. Issue #1058 records the failure.
+The local integration checks use source packages while the public release inputs remain unavailable. Issue #845 tracks publication.
+Inspect the merged manifest and the built property list to confirm native network policy.
+A nested key written as an Xcode build setting did not create its property list dictionary.
+A held iOS launch shows black for both storyboard probes. The property list declaration shows the image in the same test.
+The Apple catalog supplies scale variants for a 144-point image. A full-size source image fills too much of the launch screen.
+The Android emulator can return a black guest capture with host graphics. Software graphics capture the displayed launch artwork.
+The dark launch test holds the system splash with a temporary callback. It compares the packaged launch resources with the product.
+The installed Android Release app rejects its default HTTP address without an exception.
+The Android server manifest names one emulator host in both build configurations. All other hosts retain the platform default.

@@ -249,7 +249,9 @@ impl Application {
             self.app_id.as_deref().unwrap_or(""),
             self.host.name(),
         )?;
+        let mobile_launch = self.targets.iter().any(|target| *target != Target::Web);
         values.insert("COMPOSED".into(), true.into());
+        values.insert("MOBILE_LAUNCH".into(), mobile_launch.into());
         values.insert("RESOURCE_PACKAGE".into(), "../application".into());
         let renderer = PackageGenerator::new(Directorate::<ProjectTemplates>::default());
         let render = |template: &str, folder: &str| -> Result<(), BoxedError> {
@@ -264,7 +266,7 @@ impl Application {
                     format!("Render {template} at {}: {e}", root.join(folder).display()).into()
                 })
         };
-        if self.targets.iter().any(|target| *target != Target::Web) {
+        if mobile_launch {
             render("mobile-launch", "public")?;
         }
         render("mobile-resources", "application")?;
@@ -283,6 +285,7 @@ impl Application {
             }
             let host = root.join(folder);
             if *target == Target::Ios {
+                render("ios-app/launch", folder)?;
                 let project = host.join("Starter.xcodeproj");
                 let schemes = project.join("xcshareddata/xcschemes");
                 fs::rename(
@@ -292,6 +295,9 @@ impl Application {
                 .map_err(|e| format!("Write iOS scheme for {}: {e}", self.name))?;
                 fs::rename(project, host.join(format!("{}.xcodeproj", self.name)))?;
             } else {
+                if self.host == Host::Server {
+                    render("android-app/launch", folder)?;
+                }
                 mobile::executable(&host.join("gradlew"))?;
             }
             if self.host == Host::OnDevice {

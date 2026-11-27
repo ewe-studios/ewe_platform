@@ -1,0 +1,2 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@android:drawable/sym_def_app_icon" android:inset="0dp" />

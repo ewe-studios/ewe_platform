@@ -239,10 +239,13 @@ Both local and server hosts follow this sequence.
 - Android supplies a launch theme through the Ewe Android library. The generated manifest selects it.
 - The generated activity calls `installSplashScreen()` before `super.onCreate()`. It then displays the Ewe Compose host.
 - The Android theme uses the application icon and a configurable background. It selects the application theme after launch.
-- On iOS, the generator supplies the launch declaration and any required assets in the application target.
+- On iOS, the generator supplies a launch screen property list and a catalog with the named image and colors.
+- The iOS catalog fits the launch image in a 144-point square. It keeps the aspect ratio and transparency.
 - The iOS entry imports `EweUI` for the shared SwiftUI startup view.
 - Each host displays progress while the application starts. It displays an actionable error when startup fails.
 - Local hosts open the first view without a server address or a network connection.
+- Android server builds permit local Hypertext Transfer Protocol (HTTP) to the emulator address `10.0.2.2` only.
+- The iOS server debug build declares an HTTP exception for `127.0.0.1`. Other addresses use the platform transport rules.
 - Generate an application with its own name and icon. Launch it in both host modes on each platform.
 - Check a cold start in light and dark mode. Verify the transition to content and the startup error view.
 
@@ -270,6 +273,20 @@ dark = "#101820"
 6. Android uses the launch theme before Compose starts. iOS uses the named colors and image before SwiftUI starts.
 7. Build each platform with the defaults. Replace all three files and rebuild without cleaning.
 8. Inspect the installed launcher icon and capture the cold start in light and dark modes.
+
+#### iOS simulator evidence
+
+The operating system shows the launch artwork in [light mode](design/ios-server-splash-light.png) and [dark mode](design/ios-server-splash-dark.png).
+The generated server app shows [connection progress](design/ios-server-progress-light.png) before the first view.
+The server supplies the first view in [light mode](design/ios-server-content-light.png) and [dark mode](design/ios-server-content-dark.png).
+A malformed address shows the [startup error and recovery action](design/ios-server-invalid.png). The action opens the [first server view](design/ios-server-recovered.png).
+The on-device application starts without a server. Its [counter reaches one](design/ios-on-device-incremented.png) after one tap.
+
+#### Android emulator evidence
+
+The operating system shows the launch artwork in [light mode](design/android-server-splash-light.png) and [dark mode](design/android-server-splash-dark.png).
+A malformed address shows the [startup error](design/android-server-invalid.png).
+Select **Use default server** to open the [first server view](design/android-server-recovered.png).
 
 ## Human help and agent guide
 

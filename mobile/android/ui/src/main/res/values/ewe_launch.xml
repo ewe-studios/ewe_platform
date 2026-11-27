@@ -1,0 +1,11 @@
+<resources>
+    <color name="ewe_launch_background">#F8FAFC</color>
+    <style name="EweApplicationTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/ewe_launch_background</item>
+    </style>
+    <style name="EweLaunchTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ewe_launch_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ewe_launch_splash</item>
+        <item name="postSplashScreenTheme">@style/EweApplicationTheme</item>
+    </style>
+</resources>

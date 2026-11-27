@@ -1,1 +1,3 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:usesCleartextTraffic="true"/></manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+{% if not COMPOSED %}    <application android:usesCleartextTraffic="true" />
+{% endif %}</manifest>

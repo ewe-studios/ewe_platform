@@ -15,6 +15,7 @@ android {
 }
 kotlin { compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
 dependencies {
+    api(libs.splashscreen)
     api(project(":core"))
     api(project(":binding"))
     api(platform("androidx.compose:compose-bom:${libs.versions.compose.get()}"))

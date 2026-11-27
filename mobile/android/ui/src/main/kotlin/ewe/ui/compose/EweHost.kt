@@ -1,11 +1,17 @@
 package ewe.ui.compose
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalView
 import ewe.ui.android.OkHttpRpcClient
 import io.github.ewe_studios.ewe.core.ConnectSender
@@ -97,6 +103,27 @@ fun LocalEweScreen(
     }
 }
 
+/** Display a startup message and an optional recovery action. */
+@Composable
+fun EweStartupView(
+    message: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String = "Retry",
+    onAction: (() -> Unit)? = null,
+) {
+    Surface(modifier.fillMaxSize()) {
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+        ) {
+            if (onAction == null) CircularProgressIndicator()
+            Text(message)
+            if (onAction != null) TextButton(onClick = onAction) { Text(actionLabel) }
+        }
+    }
+}
+
 @Composable
 private fun EweHost(
     config: List<Any>,
@@ -109,7 +136,8 @@ private fun EweHost(
     val registry = remember { BehaviourRegistry.standard }
     val setup by rememberUpdatedState(start)
     var current by remember { mutableStateOf<ScreenHost?>(null) }
-    DisposableEffect(view, config) {
+    var attempt by remember(config) { mutableIntStateOf(0) }
+    DisposableEffect(view, config, attempt) {
         val store = NodeStore(
             MainGapTimer(), commands = SystemCommandHost(view), supportsBehaviour = registry::supports,
         )
@@ -118,17 +146,23 @@ private fun EweHost(
         host.start(setup)
         onDispose { host.close() }
     }
-    Surface(modifier.fillMaxSize()) {
-        Column {
-            val host = current
-            val status = host?.status ?: loading
-            if (status.isNotEmpty()) {
-                Text(status)
-                if (host?.store?.recovery != null && status != loading) {
-                    androidx.compose.material3.TextButton(onClick = { host.start { it.retryView() } }) { Text("Retry") }
+    val host = current
+    val bridge = host?.bridge
+    if (host == null || bridge == null || !host.ready) {
+        val status = host?.status ?: loading
+        if (status == loading) EweStartupView(status, modifier)
+        else EweStartupView(status, modifier, onAction = { attempt += 1 })
+    } else {
+        Surface(modifier.fillMaxSize()) {
+            Column {
+                if (host.status.isNotEmpty()) {
+                    Text(host.status)
+                    if (host.store.recovery != null && host.status != loading) {
+                        TextButton(onClick = { host.start { it.retryView() } }) { Text("Retry") }
+                    }
                 }
+                EweScreen(host.store, bridge, behaviours = registry, theme = theme, graphics = host.graphics)
             }
-            host?.bridge?.let { EweScreen(host.store, it, behaviours = registry, theme = theme, graphics = host.graphics) }
         }
     }
 }
@@ -136,6 +170,8 @@ private fun EweHost(
 private class ScreenHost(val store: NodeStore, private val loading: String) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val cleanup = mutableListOf<() -> Unit>(store::close)
+    var ready by mutableStateOf(false)
+        private set
     var status by mutableStateOf(loading)
         private set
     var graphics: (() -> io.github.ewe_studios.ewe.core.NativeGraphics)? = null
@@ -215,7 +251,7 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
 
     suspend fun loadView(load: suspend () -> ByteArray) {
         val loader = store.registerLoader(scope, load = load)
-        loader.onInstalled = { status = "" }
+        loader.onInstalled = { ready = true; status = "" }
         loader.open()
     }
 
@@ -225,8 +261,9 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
     }
 
     fun applyInitial(frame: ByteArray) {
-        if (status == loading) status = ""
         apply(frame, "initial")
+        ready = true
+        if (status == loading) status = ""
     }
 
     override fun close() {
@@ -236,7 +273,7 @@ private class ScreenHost(val store: NodeStore, private val loading: String) : Au
             try {
                 close()
             } catch (error: Exception) {
-                if (failure == null) failure = error else failure?.addSuppressed(error)
+                if (failure == null) failure = error else failure.addSuppressed(error)
             }
         }
         cleanup.clear()

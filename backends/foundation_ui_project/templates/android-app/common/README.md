@@ -23,6 +23,7 @@ cargo run -p ui_todo --bin ui_todo -- 127.0.0.1:8180
 
 Change the server address with the `server` launch option.
 The emulator reaches the development computer at `10.0.2.2`.
+The app permits Hypertext Transfer Protocol (HTTP) to that address in both builds. Use Hypertext Transfer Protocol Secure (HTTPS) for other addresses.
 The screen loads from `GET /open-count`. Tap **Refresh** to send `server:refresh_count`.
 Change the route and action in `MainActivity.kt`.
 {% endif %}
@@ -37,7 +38,12 @@ Tap **Increment**. The count increases without a network connection.
 {% endif %}
 The application imports `{{ MAVEN_GROUP }}:ewe-ui:{{ VERSION }}`. The package renders the controls.
 
-## Application resources
+{% if COMPOSED %}## Launch artwork
+
+Replace `../public/icon.png` with an opaque square image. Replace `../public/splash.png` with a centered image.
+Set the light and dark background colors in `../public/launch-theme.toml`. Rebuild to package the updated files.
+
+{% endif %}## Application resources
 
 Declare shared files in `{{ RESOURCE_PACKAGE }}/resources.toml`.
 The project build runs Cargo before packaging the bundle or application assets.
