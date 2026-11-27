@@ -92,6 +92,32 @@ final class SocketActionConnectionTests: XCTestCase {
     XCTAssertTrue(socket.failures.isEmpty)
   }
 
+  @MainActor func testCancellationReleasesTheActionWait() async throws {
+    let socket = ActionSocket()
+    let manager = ConnectionManager(adapters: ["websocket": socket])
+    let connection = try socket.connection(manager)
+    defer { connection.close(); manager.close() }
+    try await handshake(connection, socket: socket, stream: 6)
+    let sent = expectation(description: "Send an action before cancellation")
+    let action = request(6, 2)
+    socket.onSend = { bytes in
+      XCTAssertEqual(bytes, action)
+      sent.fulfill()
+    }
+    let pending = Task { try await connection.send(request: action) }
+    await fulfillment(of: [sent], timeout: 2)
+    pending.cancel()
+    do {
+      _ = try await pending.value
+      XCTFail("Expected cancellation")
+    } catch { XCTAssertTrue(error is CancellationError) }
+
+    let reply = acknowledge(6, 2)
+    socket.events?.deliver(reply)
+    XCTAssertEqual(socket.delivered, [reply])
+    XCTAssertTrue(socket.failures.isEmpty)
+  }
+
   @MainActor func testDisconnectFailsPendingActionAndRecoveryAwaitsCaps() async throws {
     let socket = ActionSocket()
     let manager = ConnectionManager(adapters: ["websocket": socket])
