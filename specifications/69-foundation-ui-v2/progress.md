@@ -1661,13 +1661,6 @@ The one-minute block check belongs to the separate countdown change.
 Run the browser test with `cargo test --locked --profile uat -p ui_todo --features browser-tests --test todo_browser_tests`.
 Follow the peer test setup in the [Todo example guide](../../examples/ui_todo/README.md#verify-list-changes-from-a-browser-peer).
 
-## 2026-11-27 — Android emulator sound policy
-
-The shared native task launcher now enables Android emulator audio by default.
-Set `EWE_ANDROID_MUTE=1` or `EWE_ANDROID_AUDIO=0` for a muted emulator.
-The Todo task uses this shared policy. The previous launcher disabled audio unconditionally.
-Issue [1083](https://github.com/ewe-studios/ewe_platform/issues/1083) records the failure.
-
 - [Chrome confirmation](features/32-portable-view-targets/screenshots/verified-chrome-confirmation.png)
 - [iPhone confirmation](features/32-portable-view-targets/screenshots/verified-iphone-confirmation.png)
 - [Android confirmation accessibility labels](features/32-portable-view-targets/screenshots/verified-android-confirmation.txt)
@@ -1694,3 +1687,14 @@ Back restores the same Todo list after each visit. Android records no crash for 
 Three Android framework tests pass on the same emulator.
 The replacement test verifies a red frame on the new window and rejects the old frame callback.
 The other tests verify two independent windows and a Vulkan device that the host owns.
+
+## 2026-11-28 — Android emulator sound
+
+The shared Android launcher enables sound by default.
+Set `EWE_ANDROID_MUTE=1` or `EWE_ANDROID_AUDIO=0` to mute a new emulator.
+Remove the unconditional mute flag from the Todo launcher so it follows the shared setting.
+
+On the Android 36 ARM64 review device, the emulator output contains the Mathalley intro notes.
+The game shows `SOUND OFF` after the mute tap. The captured signal drops about 40 decibels to the noise floor.
+The host capture measures digital output. A physical speaker check remains open.
+See [issue 1083](https://github.com/ewe-studios/ewe_platform/issues/1083).

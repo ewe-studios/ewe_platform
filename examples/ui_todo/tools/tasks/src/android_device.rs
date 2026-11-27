@@ -315,7 +315,6 @@ async fn run(ctx: &TaskContext, args: Options, todo: bool) -> TaskResult {
             "-port",
             &port.to_string(),
             "-no-window",
-            "-no-audio",
             "-no-snapshot",
             "-no-boot-anim",
             "-partition-size",

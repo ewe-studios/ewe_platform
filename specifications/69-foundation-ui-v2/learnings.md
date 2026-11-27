@@ -1326,3 +1326,17 @@ The lost surface handler tries to configure the surface again. It may delay late
 The Mathalley Android route already streams procedural samples through `AudioTrack`.
 The test task passed `-no-audio` to every new emulator, so speaker verification could not work.
 Keep emulator audio enabled unless the task host requests mute.
+
+## 2026-11-28 — Mathalley sound at the host
+
+The first shared policy change leaves a second mute flag in the Todo launcher.
+Remove that flag so an enabled launch can send samples to the host.
+
+Android AudioFlinger can count frames while the host gets only background noise.
+Compare the output of a known guest tone and the game's expected notes.
+The default VirtIO sound card passes both checks after a full boot.
+The alternative sound card leaves this Android image with no sound device.
+
+A private Core Audio tap captures the emulator output on the host.
+The capture contains the game's three intro notes when sound is on.
+The capture returns to its noise floor when the game shows `SOUND OFF`.

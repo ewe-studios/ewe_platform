@@ -47,7 +47,7 @@ tempfile = { workspace = true, optional = true }
 
 foundation_browser = { path = "../../backends/foundation_browser", optional = true }
 
-foundation_ui_native = { path = "../../backends/foundation_ui_native", version = "0.1.1", optional = true }
+foundation_ui_native = { path = "../../backends/foundation_ui_native", version = "0.1.2", optional = true }
 uniffi = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 
