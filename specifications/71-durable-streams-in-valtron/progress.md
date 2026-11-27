@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: closed #1050 (medium). Three valtron test files read the global thread RNG at 26
+  sites: `single_executor.rs` (5), `self_wake_fairness.rs` (1) and `local_executor.rs` (20).
+  Each file now draws the executor seed from a local `ChaCha8Rng` with a fixed seed constant,
+  so a run replays and no host entropy is read. `foundation_compact::rng::rng` is now in
+  `backends/foundation_core/clippy.toml` `disallowed-methods`, with the five earlier entries
+  kept. Counts: the three modules pass (20 + 1 + 6). Clippy is clean for `multi` and for
+  `multi,test-clock,vfs-testkit`. The CI check tests pass (32). The full `valtron` filter shows
+  one failure, the known #608, which is not related to this change. One call stays in the
+  standalone `integration/wasm_tests` crate; it tests the host-ABI seeding of the global RNG
+  at the host boundary.
+
 - 2026-11-27: feature 05 T6 (partial): the SQL VFS engine and the D1 executor.
   `foundation_core::durable::shared::sql` holds `SqlExecutor` (execute, query and
   an atomic transaction that returns each statement's changed-row count),

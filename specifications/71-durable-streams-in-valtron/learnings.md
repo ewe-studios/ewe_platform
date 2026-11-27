@@ -597,3 +597,9 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   was not stubbed. Issue #1052 names the exact `SqlExecutor` trait and the
   binding to add. The D1 executor is complete and compiles for wasm32, but a DO
   SQLite executor remains the next task.
+- **A test seed comes from a local RNG, not the host.** The valtron tests need
+  one `u64` seed for the executor. A local `ChaCha8Rng::seed_from_u64` with a
+  named constant gives it. The global `foundation_compact::rng::rng` call then
+  goes, so the clippy ban covers the whole crate and a failed run replays from
+  the constant. A host-ABI test still reads the global RNG, because it proves
+  the host boundary, and it lives in a standalone crate.
