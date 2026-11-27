@@ -15,6 +15,10 @@ use super::proxy;
 /// behaviour live in one cohesive place (and keep `ClientConfig`'s boolean
 /// field count manageable).
 #[derive(Debug, Clone)]
+// Four independent redirect switches, each with its own documented default.
+// The lint asks for a smaller struct, but splitting this public config would
+// break callers and hide the switches. Tracked as issue #1024.
+#[allow(clippy::struct_excessive_bools)]
 pub struct RedirectConfig {
     /// Preserve the `Authorization` header when following a cross-host redirect.
     pub preserve_auth_on_redirect: bool,
