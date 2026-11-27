@@ -304,7 +304,8 @@ async fn run(ctx: &TaskContext, args: Options, todo: bool) -> TaskResult {
     };
     ctx.exec(ProcessCommand::new(&device.adb).arg("start-server"))
         .await?;
-    let start = ProcessCommand::new(emulator)
+    let audio = super::android_audio_enabled(&env.devices)?;
+    let start = super::with_android_audio(ProcessCommand::new(emulator), audio)
         .current_dir(&root)
         .env("ANDROID_AVD_HOME", avd)
         .env("ANDROID_SDK_ROOT", sdk)

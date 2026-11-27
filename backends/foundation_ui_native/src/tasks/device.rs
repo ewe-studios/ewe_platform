@@ -11,6 +11,8 @@ impl Options {
     pub(super) fn from_host() -> Self {
         let vars = [
             "ANDROID_HOME",
+            "EWE_ANDROID_AUDIO",
+            "EWE_ANDROID_MUTE",
             "EWE_ANDROID_SERIAL",
             "EWE_IOS_DEVICE",
             "EWE_SIMCTL_BIN",
@@ -34,6 +36,40 @@ impl Options {
     #[must_use]
     pub fn get(&self, key: &str) -> Option<&std::ffi::OsStr> {
         self.vars.get(key).map(OsString::as_os_str)
+    }
+}
+
+/// Return whether a task-created Android emulator should expose audio output.
+///
+/// Audio is enabled by default. Set `EWE_ANDROID_MUTE=1` or
+/// `EWE_ANDROID_AUDIO=0` to disable emulator audio.
+///
+/// # Errors
+/// Returns an error when an audio setting is not a boolean value.
+pub fn android_audio_enabled(options: &Options) -> Result<bool, TaskError> {
+    let value = options
+        .get("EWE_ANDROID_MUTE")
+        .map_or_else(|| options.get("EWE_ANDROID_AUDIO"), Some);
+    let Some(value) = value else { return Ok(true) };
+    let value = value
+        .to_str()
+        .ok_or_else(|| TaskError::operation("Invalid Android audio setting"))?;
+    match value.to_ascii_lowercase().as_str() {
+        "1" | "true" | "yes" | "on" => Ok(options.get("EWE_ANDROID_MUTE").is_none()),
+        "0" | "false" | "no" | "off" => Ok(options.get("EWE_ANDROID_MUTE").is_some()),
+        _ => Err(TaskError::operation(
+            "Android audio setting must be boolean",
+        )),
+    }
+}
+
+/// Apply the shared Android emulator audio policy to a command.
+#[must_use]
+pub fn with_android_audio(command: ProcessCommand, enabled: bool) -> ProcessCommand {
+    if enabled {
+        command
+    } else {
+        command.arg("-no-audio")
     }
 }
 

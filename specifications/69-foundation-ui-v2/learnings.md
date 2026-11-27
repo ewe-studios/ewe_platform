@@ -1274,3 +1274,9 @@ See [issue 1060](https://github.com/ewe-studios/ewe_platform/issues/1060).
 The iPhone test runner can address the installed application by its bundle identifier.
 Keep device results separate from tests that inspect frames only.
 The headless Android emulator can return a black screenshot. Its accessibility tree still identifies the visible controls and messages.
+
+## 2026-11-27 — Android emulator audio
+
+The Mathalley Android route already streams procedural samples through `AudioTrack`.
+The test task passed `-no-audio` to every new emulator, so speaker verification could not work.
+Keep emulator audio enabled unless the task host requests mute.

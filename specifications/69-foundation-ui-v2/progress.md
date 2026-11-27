@@ -1628,6 +1628,13 @@ The one-minute block check belongs to the separate countdown change.
 Run the browser test with `cargo test --locked --profile uat -p ui_todo --features browser-tests --test todo_browser_tests`.
 Follow the peer test setup in the [Todo example guide](../../examples/ui_todo/README.md#verify-list-changes-from-a-browser-peer).
 
+## 2026-11-27 — Android emulator sound policy
+
+The shared native task launcher now enables Android emulator audio by default.
+Set `EWE_ANDROID_MUTE=1` or `EWE_ANDROID_AUDIO=0` for a muted emulator.
+The Todo task uses this shared policy. The previous launcher disabled audio unconditionally.
+Issue [1083](https://github.com/ewe-studios/ewe_platform/issues/1083) records the failure.
+
 - [Chrome confirmation](features/32-portable-view-targets/screenshots/verified-chrome-confirmation.png)
 - [iPhone confirmation](features/32-portable-view-targets/screenshots/verified-iphone-confirmation.png)
 - [Android confirmation accessibility labels](features/32-portable-view-targets/screenshots/verified-android-confirmation.txt)
