@@ -1,6 +1,6 @@
 //! Construct native tool arguments from package settings.
 use super::{CommandStep, Settings};
-use crate::{CiEnvironment, GroupRecipe, Package};
+use crate::{CiEnvironment, GateRecipe, GroupRecipe, Package};
 use foundation_tasks::TaskError;
 use std::path::Path;
 
@@ -257,6 +257,34 @@ fn example_commands(
     }
     Ok(out)
 }
+fn gate_commands(recipe: GateRecipe, profile: &str, step: &str) -> Vec<CommandStep> {
+    if step != "test" {
+        return Vec::new();
+    }
+    match recipe {
+        GateRecipe::DurableConformance => vec![
+            // The reference server and client suites, and the counts the gate
+            // requires.
+            CommandStep::new("bash", ["ci/durable_conformance.sh"]),
+            // The cross-implementation directions: our client against our
+            // server, and the reference Rust client against our server.
+            cargo(&[
+                "test",
+                "--profile",
+                profile,
+                "-p",
+                "foundation_http",
+                "--features",
+                "multi",
+                "--test",
+                "durable_cross_client",
+                "--test",
+                "durable_reference_cross_run",
+            ]),
+        ],
+    }
+}
+
 pub(super) fn commands(
     root: &Path,
     pkg: &Package,
@@ -268,6 +296,9 @@ pub(super) fn commands(
 ) -> Result<Vec<CommandStep>, TaskError> {
     let name = &pkg.name;
     let mut out = Vec::new();
+    if let Some(recipe) = pkg.gate {
+        return Ok(gate_commands(recipe, profile, step));
+    }
     if pkg.recipe == Some(GroupRecipe::WasmRuntimeTests) {
         return Ok(wasm_suite(profile, step, os, host, &pkg.dir));
     }

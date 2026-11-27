@@ -16,6 +16,9 @@ pub struct Package {
     pub dir: String,
     pub needs_llama: bool,
     pub recipe: Option<crate::GroupRecipe>,
+    /// A gate has no crate of its own: it runs the commands of its recipe in
+    /// its own workflow job. It has no directory and is never a matrix entry.
+    pub gate: Option<crate::GateRecipe>,
     pub build_members: Vec<String>,
     pub dependents: BTreeSet<String>,
     pub external: BTreeSet<String>,
@@ -175,6 +178,7 @@ impl Metadata {
                 Package {
                     name: pkg.name.clone(),
                     recipe: None,
+                    gate: None,
                     build_members: Vec::new(),
                     dir: if dir.as_os_str().is_empty() {
                         ".".into()
@@ -256,6 +260,7 @@ impl Workspace {
                     dir,
                     needs_llama,
                     recipe: Some(group.recipe),
+                    gate: None,
                     build_members: group.build_members.clone(),
                     dependents: BTreeSet::new(),
                     external: BTreeSet::new(),
@@ -264,11 +269,60 @@ impl Workspace {
                 },
             );
         }
-        for key in policy.packages.keys() {
-            if !packages.contains_key(key) {
+        Ok(())
+    }
+
+    /// Add the gates of `[gates.*]` to the package list.
+    ///
+    /// A gate is selected like a package: `affected` adds it when one of its
+    /// `packages` changed, or when a changed path starts with one of its
+    /// `paths`. A gate has no directory, so `owner` never maps a file to it.
+    fn add_gates(
+        packages: &mut BTreeMap<String, Package>,
+        policy: &Policy,
+    ) -> Result<(), TaskError> {
+        for (name, gate) in &policy.gates {
+            if packages.contains_key(name) {
                 return Err(TaskError::operation(format!(
-                    "ci/packages.toml names unknown package {key}"
+                    "Gate {name} conflicts with a Cargo package or build group"
                 )));
+            }
+            packages.insert(
+                name.clone(),
+                Package {
+                    name: name.clone(),
+                    dir: String::new(),
+                    needs_llama: false,
+                    recipe: None,
+                    gate: Some(gate.recipe),
+                    build_members: Vec::new(),
+                    dependents: BTreeSet::new(),
+                    external: BTreeSet::new(),
+                    direct_deps: BTreeSet::new(),
+                    features: None,
+                },
+            );
+        }
+        for (name, gate) in &policy.gates {
+            for dependency in &gate.packages {
+                if !packages.contains_key(dependency) {
+                    return Err(TaskError::operation(format!(
+                        "Gate {name} refers to unknown package {dependency}"
+                    )));
+                }
+            }
+            for path in &gate.paths {
+                let path = std::path::Path::new(path);
+                if path.as_os_str().is_empty()
+                    || path.is_absolute()
+                    || path
+                        .components()
+                        .any(|c| matches!(c, std::path::Component::ParentDir))
+                {
+                    return Err(TaskError::operation(format!(
+                        "Gate {name} needs repository-relative path prefixes"
+                    )));
+                }
             }
         }
         Ok(())
@@ -305,6 +359,14 @@ impl Workspace {
         )
         .map_err(TaskError::operation)?;
         Self::add_groups(&mut packages, &root, &policy)?;
+        Self::add_gates(&mut packages, &policy)?;
+        for key in policy.packages.keys() {
+            if !packages.contains_key(key) {
+                return Err(TaskError::operation(format!(
+                    "ci/packages.toml names unknown package {key}"
+                )));
+            }
+        }
         let settings = packages
             .iter()
             .map(|(name, p)| Ok((name.clone(), policy.settings(name, p.features.as_ref())?)))

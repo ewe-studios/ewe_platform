@@ -86,19 +86,22 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       reference server.
 - [x] **T3 — cross-runs.** Our client to our server, and the reference Rust client to our
       server. Tests: `foundation_http/tests/durable_cross_client.rs` (5 scenarios) and
-      `foundation_http/tests/durable_reference_cross_run.rs` (5 scenarios). The scenarios are
+      `foundation_http/tests/durable_reference_cross_run.rs` (6 scenarios). The scenarios are
       create, append, byte-exact catch-up read, long-poll after an append, base64 Server-Sent
       Events (SSE), close and a read that reports the closure, and fork creation and read. The
       reference client is a pinned public git dependency because the crate is not on crates.io.
       The full category matrix still belongs to the conformance suites (T1, T2 and the CI gate);
       this task proves the two directions on the core scenarios.
-- [x] **T4 — CI.** The `durable-conformance` job in `.github/workflows/check.yaml` runs
-      `ci/durable_conformance.sh` on a runner with Rust and Node 20. It runs on every CI run,
-      with no path filter, so a protocol mismatch fails on any change (owner rule 2026-11-27).
-      The script fails on a non-skipped failure
-      and on a count other than 338 server passes or 267 client passes with 2 suite-forced skips.
-      The `foundation_core` test run with `multi,test-clock,vfs-testkit` runs the memory VFS
-      conformance test in CI.
+- [x] **T4 — CI.** The `durable-conformance` job in `.github/workflows/check.yaml` calls
+      `foundation-ci run durable-conformance --step test`. The gate is a first-class entry in
+      `ci/packages.toml`, so `foundation-ci affected` selects it from the changed files (owner
+      correction 2026-11-27; rule 16). A pull request and a push pass `--if-affected`; the
+      nightly schedule and a manual dispatch run the gate in full. The runner has Rust and
+      Node 20. The recipe runs `ci/durable_conformance.sh` and the two cross-implementation
+      test targets. The script fails on a non-skipped
+      failure and on a count other than 338 server passes or 267 client passes with 2
+      suite-forced skips. The `foundation_core` test run with `multi,test-clock,vfs-testkit`
+      runs the memory VFS conformance test in CI.
 - [ ] **T5 — skip register.** Record every skip and its reason. Get owner approval for each.
 - [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
 - [ ] **T7 — report.** Publish the counts and the reference commit with each run.
@@ -135,8 +138,9 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 
 - [ ] The server suite passes against `HttpAdapter` with valtron disabled.
 - [ ] The client suite passes with the Rust adapter.
-- [x] Both cross-runs pass. Each direction runs 5 scenarios: create, append, catch-up read,
-      long-poll, SSE, close and fork. See T3.
+- [x] Both cross-runs pass. Our client to our server runs 5 scenarios; the reference Rust
+      client to our server runs 6. The categories are create, append, catch-up read, long-poll,
+      SSE, close and fork. See T3.
 - [ ] Every skip names an open GitHub issue with a severity. A skip without an issue fails review.
 - [ ] The runtime matrix passes: embedded, DO, Worker, WebSocket, wasm32 and Session.
 - [ ] Every protocol rule has a derived oracle.
@@ -154,17 +158,39 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
 - A skip that the reference suite forces is named with its reason; it is not a pass.
 - A fresh zero-context agent verifies the claims against the code.
 
-## 5.2 Cross-implementation conformance (owner rule 2026-11-27)
+## 5.2 Cross-implementation conformance (owner matrix, 2026-11-27)
 
-A suite that runs our server and our client only is not enough. Run every category and scenario
-in both directions:
+A suite that runs our server and our client only is not enough. The `durable-conformance` job in
+`.github/workflows/check.yaml` requires four directions. When the job runs, it runs all four:
 
-| Direction | Reference side | Status |
-|---|---|---|
-| Our server | TypeScript server suite | passes (332 of 338; subscriptions open) |
-| Our client | TypeScript reference server | passes (208 of 269; SSE open) |
-| Our server | Reference Rust client, `packages/client-rust` | passes (5 cross-run scenarios; `foundation_http/tests/durable_reference_cross_run.rs`) |
-| Our client | Reference server (TypeScript now; Rust server when available) | to build |
+| Direction | Our side | Reference side | Status |
+|---|---|---|---|
+| 1 | Our server | TypeScript server suite | passes (338 of 338) |
+| 2 | Our client | TypeScript client suite, which starts the TypeScript reference server | passes (267 of 269, with the 2 suite-forced Swift skips) |
+| 3 | Our server | TypeScript `fetch` client (inside direction 1), and the reference Rust client, `packages/client-rust` | passes (6 cross-run scenarios; `foundation_http/tests/durable_reference_cross_run.rs`) |
+| 4 | Our server | Our client | passes (5 cross-run scenarios; `foundation_http/tests/durable_cross_client.rs`) |
+
+Direction 3 names two reference clients. The TypeScript `fetch` client is the one that the
+upstream server suite uses, so direction 1 already covers it. The reference Rust client has its
+own test target, which the job runs in the same step as direction 4.
+
+- The gate is a first-class entry of the CI schema. `ci/packages.toml` holds
+  `[gates.durable-conformance]` with `recipe = "durable-conformance"`, the packages that carry
+  the protocol, and the `integration/` path prefix. `foundation-ci run durable-conformance
+  --step test` runs `ci/durable_conformance.sh` for directions 1 and 2, then
+  `cargo test -p foundation_http --features multi --test durable_cross_client --test
+  durable_reference_cross_run` for directions 3 and 4. A failing test fails the job.
+- **When the job runs (owner correction, 2026-11-27).** The gate follows rule 16: it runs when
+  the Durable Streams source changes, not on every change. The job passes `--if-affected` on a
+  pull request and on a push, so `foundation-ci affected` selects the gate from the changed
+  files: a file under `foundation_core`, `foundation_http`, `foundation_netio`,
+  `foundation_event_stream`, `foundation_nativeapis`, `foundation_connectrpc` or
+  `foundation_db`, or a file under `integration/`. A change to a global file selects every
+  entry, the gate included. A push that changes none of these files reports the gate as not
+  affected and runs none of its commands. A base that git cannot compare runs the gate. The
+  nightly schedule and a manual dispatch pass no flag, so the driver runs the gate in full.
+- `foundation-ci plan` lists a selected gate and keeps it out of the package matrices: the gate
+  runs in the `durable-conformance` job, not in a package job of the CI image.
 
 - The reference Rust client runs on the tokio runtime. The cross-run test therefore takes
   `tokio` as a **dev-dependency**, declared once in `[workspace.dependencies]`. Our client core,
@@ -180,8 +206,9 @@ in both directions:
   as a JSON number, and the reference client reads a string, so it ignores the collapsing
   cursor. Reads still pass. The fix changes the field to a string in the server and in the
   client core.
-- This checkout has no Rust server package. If a Rust server exists on another branch or
-  repository, the owner supplies its path. Until then the server side uses the TypeScript server.
+- This checkout has no Rust server package. Direction 2 therefore uses the TypeScript reference
+  server, which the client suite starts. If a Rust server exists on another branch or
+  repository, the owner supplies its path.
 - The runnable harness lives in `foundation_event_stream` (owner instruction) as a
   `conformance` module or binary. Feature 08 owns the rules and the acceptance; feature 10 owns
   the crate.
@@ -212,7 +239,7 @@ npx @durable-streams/server-conformance-tests@0.3.7 --run http://127.0.0.1:4437
 
 The suite starts its own runner. Its default direct run fails to find the test file.
 Run it from a temporary project with a `vitest` file that calls `runConformanceTests`.
-Result: 332 pass, 6 skip, 0 fail.
+Result: 338 pass, 0 skip, 0 fail (the counts that `ci/durable_conformance.sh` requires).
 
 Client suite, against the adapter binary. The runner starts the reference server:
 
@@ -220,12 +247,10 @@ Client suite, against the adapter binary. The runner starts the reference server
 npx @durable-streams/client-conformance-tests --run <adapter-path>
 ```
 
-Result: 198 pass, 0 fail, 71 skip. The skips are Server-Sent Events (SSE), auto mode,
-dynamic headers and streaming. The adapter announces each as unsupported.
+Result: 267 pass, 0 fail, 2 skip (the counts that `ci/durable_conformance.sh` requires). Both
+skips are suite-forced (`Swift implementation broken`).
 
 The harness must set the long-poll timeout to 3 s for the server example. The suite
 waits for a timeout inside a 5 s test limit.
 
-Every skip names an open issue. The six server skips are #1000 (subscriptions). The 61 client
-skips are #963 (the blocking Server-Sent Events poll). A skip without an open issue fails the
-review.
+A skip that no suite forces names an open issue. A skip without an issue fails the review.

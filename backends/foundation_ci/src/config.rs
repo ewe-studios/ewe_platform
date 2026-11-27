@@ -112,6 +112,7 @@ pub(crate) struct Policy {
     pub defaults: Table,
     pub packages: BTreeMap<String, Table>,
     pub groups: BTreeMap<String, Group>,
+    pub gates: BTreeMap<String, Gate>,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
@@ -128,6 +129,28 @@ pub(crate) struct Group {
     pub directory: std::path::PathBuf,
     pub recipe: GroupRecipe,
     pub build_members: Vec<String>,
+}
+
+/// A check outside the Cargo package matrix: a named set of commands that runs
+/// in its own workflow job, selected from the changed packages and paths.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum GateRecipe {
+    DurableConformance,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+pub(crate) struct Gate {
+    #[serde(default)]
+    pub description: String,
+    pub recipe: GateRecipe,
+    /// Workspace packages whose change selects the gate.
+    #[serde(default)]
+    pub packages: Vec<String>,
+    /// Repository-relative path prefixes whose change selects the gate.
+    #[serde(default)]
+    pub paths: Vec<String>,
 }
 
 pub(crate) fn features(run: &str) -> Vec<&str> {

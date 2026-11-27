@@ -11,7 +11,7 @@ pub mod images;
 pub mod toolchain;
 pub mod wire;
 
-pub use config::{ExpectedError, GroupRecipe, Settings};
+pub use config::{ExpectedError, GateRecipe, GroupRecipe, Settings};
 use foundation_tasks::{TaskError, TaskSet};
 pub use workspace::{Package, Workspace};
 

@@ -762,12 +762,12 @@ jobs:
 
   durable-conformance:
     name: Durable conformance
-    # Owner rule (2026-11-27): the gate runs on every CI run, not only when a
-    # durable path changes. A protocol mismatch must fail on any change. This
-    # overrides the usual "affected packages only" rule for this one job.
-    # Runs the two reference Durable Streams conformance suites (server and
-    # client) on every pull request, every push to master and platform/release,
-    # the nightly schedule and manual dispatch.
+    # Owner correction (2026-11-27): the gate runs when the Durable Streams
+    # source changes, like every other package job (rule 16). The `durable-conformance`
+    # gate in ci/packages.toml names the packages and paths that select it, and
+    # `foundation-ci run` decides from the change. The nightly schedule and a
+    # manual dispatch run it in full. When the job runs, it runs the full
+    # four-direction owner matrix and a failing test fails the job.
     # The runner has Rust and Node; no CI image and no registry credentials
     # are needed, so the job works the same on a fork.
     runs-on: ubuntu-latest
@@ -822,7 +822,22 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/master' }}
 
       - name: Run the durable conformance gate
-        run: bash ci/durable_conformance.sh
+        # `foundation-ci run` selects the gate from ci/packages.toml. On a pull
+        # request it diffs against the base; on a push, against the commit
+        # before the push. A base that git cannot compare runs the gate. The
+        # nightly schedule and a manual dispatch run it in full. The gate runs
+        # the four-direction owner matrix:
+        #   1. The reference server suite against our server.
+        #   2. The reference client suite against our client. The suite starts
+        #      the reference server.
+        #   3. Reference clients against our server: the TypeScript `fetch`
+        #      client that the server suite uses (direction 1), and the
+        #      reference Rust client.
+        #   4. Our client against our server.
+        run: >-
+          cargo run --locked --profile uat -p foundation_ci -- run durable-conformance --step test
+          ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+          ${{ github.event_name == 'push' && format('--if-affected --base {0}', github.event.before) || '' }}
 
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.

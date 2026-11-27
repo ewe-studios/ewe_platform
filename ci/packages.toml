@@ -844,3 +844,31 @@ wasm-runs = ["", "--no-default-features"]
 wasm = "enforce"
 # The crate carries no clippy warnings in its default and test trees.
 clippy-deny-warnings = true
+
+# ---------------------------------------------------------------------------
+# Gates: checks outside the Cargo package matrix.
+#
+# A gate owns no crate. `foundation-ci affected` selects it when a changed file
+# belongs to one of its `packages`, or starts with an entry of `paths`.
+# `foundation-ci run <name> --step test` runs its recipe in the gate's own
+# workflow job. `plan` lists a selected gate but never puts it in a matrix.
+
+[gates.durable-conformance]
+description = "The four-direction Durable Streams conformance gate"
+recipe = "durable-conformance"
+# The protocol core, its HTTP adapters and the crates the gate starts.
+packages = [
+  "foundation_core",
+  "foundation_http",
+  "foundation_netio",
+  "foundation_event_stream",
+  "foundation_nativeapis",
+  "foundation_connectrpc",
+  "foundation_db",
+]
+# Integration crates sit outside the dependency graph of the packages above.
+paths = ["integration/"]
+
+[packages.durable-conformance]
+# Both reference suites, the example server and client, and the cross-runs.
+timeout-minutes = 20
