@@ -658,15 +658,17 @@ metadata, error codes and stream envelopes.
 |---|---|
 | Create | `Create` unary |
 | Append | `Append` unary |
-| Read | `Read` server stream |
+| Read | `Read` unary, one bounded page |
 | Live read | `Subscribe` server stream |
 | Head | `Head` unary |
 | Close | `Close` unary |
 | Delete | `Delete` unary |
 | Fork | `Fork` unary |
 
-A live read is the same core state machine. The RPC stream carries `Chunk` values and a final
-status that mirrors `ResumeCursor`. It does not use SSE frames, ETags or `Stream-Cursor`.
+`Read` returns one bounded page, the same page the HTTP adapter sends. `Subscribe` is the live
+stream: one page at open, then one page per append or close; it ends after the stream closes and
+stops when the client cancels. The stream carries `Chunk` values and a final status that mirrors
+`ResumeCursor`. It does not use SSE frames, ETags or `Stream-Cursor`.
 
 ### 3.10 Client core (feature 07)
 
