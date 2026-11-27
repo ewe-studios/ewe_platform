@@ -51,6 +51,16 @@ Framework providers own tool invocation, change tracking, output directories, va
 Use those same providers for command-line tasks. Retire `examples/ui_todo/build-module.sh` and migrate its callers.
 A clean Cargo build must prepare the browser application without a separate script or a prebuilt module.
 
+### Standard paths and project overrides
+
+The framework supplies a standard location for each packaged asset and a default base for application routes.
+The project can override these locations in `build.rs`. The build records the effective locations in the existing generated project configuration.
+The browser entry already imports `moduleUrl` from `ewe-app-config.js`. Extend this configuration for the remaining locations.
+Generate the page links from the same settings. The browser needs the script location before it can load the configuration.
+Resolve package paths relative to the application mount. Keep an explicitly configured service endpoint independent of the asset location.
+Test the standard layout and a project override below a subdirectory. Check the script, style, icon, modules, game, resources, and service calls.
+Verify that the override requires no matching path edit in Todo.
+
 ### Proposed browser output amendment
 
 Produce readable `bundle.js` and minified `bundle.min.js` in development and release builds.

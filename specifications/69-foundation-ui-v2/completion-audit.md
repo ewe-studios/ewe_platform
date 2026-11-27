@@ -1,5 +1,62 @@
 # Specification 69 completion audit
 
+## Closure checklist, 27 November 2026
+
+The audit uses `resume/combined` at `71466b255`. The specification contains 36 feature documents. Number 18 is reserved.
+Use this checklist before the older findings below. Start no new feature until Specification 69 closes.
+An open issue can describe a fix already present on this branch. Check the code and test before assigning implementation.
+The status below uses source inspection, existing test records, and the open GitHub issues. This audit does not repeat the platform suites.
+
+### Work order
+
+| Order | Features | Work and exit condition |
+|---|---|---|
+| 1. Finish active Android repairs | 34–36 | [#1078](https://github.com/ewe-studios/ewe_platform/issues/1078): retire the old drawing surface in the shared host. Test a second consumer and two game visits in one process. Score on both visits and return to the original list. [#1083](https://github.com/ewe-studios/ewe_platform/issues/1083): test sound enabled and explicitly muted with the shared launcher. Check landscape input with side insets (#843). The earlier startup crash (#1074) has a separate verified fix. |
+| 2. Stabilize the browser package | 27, 37 | Fix subdirectory requests (#839). Check the staging collision when a mobile build follows a browser build (#1060). Diagnose the navigation stall (#784). Verify installation under a subdirectory before testing all hosts together. See the two-script decision below. |
+| 3. Close delivery and display defects | 11, 23, 25, 32, 33, 37 | Respect explicit dedicated native connections during replay (#1062). Verify failed asynchronous sends (#727), bounded pending reads (#726), and concurrent pending records (#728). Fix unreadable dark rows (#1069) and check the Android failure banner (#849). Reproduce the Android Back timeout (#692) and partial title (#737) before trusting those checks. |
+| 4. Verify public consumers | 17, 19, 21, 22, 24 | Check public release inputs (#845) now, while local repairs run. Verify matching Rust and Android packages. Build and run independent Apple and Android starters using published inputs. Record versions and the source commit. Local packages only prove local consumption. Check variant isolation (#800) and the pinned Android tool check (#615). |
+| 5. Complete acceptance evidence | 12, 14, 16, 20, 23, 32, 34–37 | Reconcile the unsigned Feature 12, 14 and 16 checks with tests and documented historical exceptions. Verify browser behavior parity and migration fixtures. Check spoken VoiceOver and TalkBack feedback. Record emulator, simulator and physical device coverage separately. Finish the Feature 37 table below. |
+| 6. Close the specification | All | Run affected package tests, strict lint, formatting, generation, toolchain checks, and documented examples. Record results for each required operating system. Check the shared frame fixture on Rust, TypeScript, Swift and Kotlin. Reconcile open issues with fixes. Update the feature index and reports before closing. |
+
+**Feature coverage.** The earlier audit records implementation or tests for 01–11, 13, 15, 20–22 and 24–31.
+It also records working paths for 17, 23, and 32–35. The table above identifies the remaining checks and shared dependencies.
+Feature 18 requires no work. Feature 19 has an external release dependency. Features 36 and 37 remain open.
+Feature 32's named-target migration and countdown have later verification. Do not reopen the entire migration from the older audit.
+Use the [specification-wide gates](requirements.md#9-success-criteria-spec-wide) for final sign-off.
+
+### Feature 37 acceptance ledger
+
+Numbers follow the [acceptance contract](features/37-todo-server-build-and-state/feature.md#required-verification).
+
+| Checks | Existing evidence | Remaining action |
+|---|---|---|
+| 1–3. Persistence | Three server processes prove restart, lookup, initial page, deletion, and retry. The store suite also checks the list and key lookup. | Link the [durable server record](progress.md#confirmed-todo-records) in the final report. |
+| 4–5. Failure and replay | Tests cover malformed stores, failed writes, cancellation, independent writes, bounded replay, and concurrent snapshots. | Reconcile #728 with native and browser tests. Check the remaining native failure cases in order 3. |
+| 6. Independent data service | The seeded fixture and historical Swift and Kotlin calls cover success and missing records. The production server rejects the retired fixture flag. | Link both native runs to the fixture revision. |
+| 7. Packaging | The moved development server serves its database and resources. A separate release run serves embedded resources outside the checkout. | Record a clean target build, moved development tree, and standalone Todo release against the final packaging revision. Resolve #1060 first. Verify the [standard paths and project overrides](features/37-todo-server-build-and-state/feature.md#standard-paths-and-project-overrides). |
+| 8. Browser and native resources | Existing runs cover one script request, Connect calls, native icon reads, and the packaged game. | Fix #839. Test script and binary requests below a subdirectory, missing build inputs, and the selected output contract. |
+| 9–10. Client behavior | Three clients exchange all four mutations at `b3fa90f7a`. Separate suites check retry identifiers, delayed replies, drafts, filters, and duplicate delivery. | Repeat affected paths after transport and packaging fixes. Include the failed-send and dedicated-connection cases. |
+| 11. Retired code | Production startup uses the durable store, one static resource handler, and shared browser startup. The old module build script is gone. | Check all retired mechanisms against the final source, including moved wrappers and manual frame handling. |
+| 12. Final evidence | Feature 32 contains pending and retry captures. Results and commands span two specifications and several revisions. | Gather the commit, commands, profiles, platforms, captures, and remaining exceptions in one closure record. |
+
+**Browser output decision.** The Feature 37 amendment requests readable and minified application scripts.
+The current build emits only `bundle.js`, and the package test requires that exact result.
+The page requests `/bundle.js`. Confirm the amendment status before changing the output contract. Fix subdirectory loading under either contract.
+See [package output](../../backends/foundation_resources/src/package/browser.rs), [package test](../../examples/ui_todo/tests/server_module.rs), and [page entry](../../examples/ui_todo/web/index.html).
+
+### Issue reconciliation
+
+- Commits `74202df65`, `1a10ee15a`, and `eee45d716` address #837, #879, and #722. All three are ancestors of the audit baseline.
+- GitHub still lists those three issues as open. Confirm their existing test records and reconcile the issue states.
+- Issues #715, #828, #782, #732, and #714 are closed. Preserve their evidence for relocation, fixture removal, host restart, and native delivery.
+- Check graphics shutdown and validation issues #696, #700, #701, #713 and #691 against Features 34 and 35.
+- Check migration fixture #712, wire lint #846, replay backlog #548, and missing-clock handling #619 against the final package gates.
+- Check the first-install timeout (#831) against the launcher verification. The reviewed launcher and #1074 are already delivered.
+- Track server idle activity (#673) and unused Todo server code (#789). Address each if it blocks an acceptance or warning gate.
+- Keep unrelated task commands and dependency cleanup outside this queue. Record an external dependency only when a named acceptance check needs it.
+
+## Historical audit
+
 ## Scope
 
 The review covers all 35 feature documents in the combined worktree at base commit `279a5fa2b`, including local changes.

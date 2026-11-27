@@ -1,5 +1,17 @@
 # Spec 69 progress
 
+## Specification 69 closure audit
+
+The [completion audit](completion-audit.md) records the state of 36 features at `71466b255`.
+Feature 18 is reserved. The baseline includes the approved Feature 36 plan and the Ranchu startup repair.
+The shared Android drawing surface and Feature 37 acceptance stay open.
+Finish Android repairs first. Then stabilize browser packaging and close delivery and display defects.
+Verify public package inputs in parallel. Collect final platform evidence and run the specification-wide gates.
+
+Feature 37 has durable server evidence for restart, retrieval, listing, and deletion retries.
+The final release still needs the clean-target package check and subdirectory requests.
+Repeat the affected three-host paths on the final package. Record each command, build profile, platform, and source revision.
+
 ## Android Todo Server startup address
 
 - Read the default address from the Android project settings.

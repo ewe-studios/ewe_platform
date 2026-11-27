@@ -1,5 +1,16 @@
 # Spec 69 learnings
 
+## Specification 69 closure audit
+
+An open issue can refer to a fix that is already in the source tree.
+The baseline includes commits for Android library staging, the Android continuation bound, and phone-sized drawing surfaces.
+Issues #837, #879, and #722 stay open. Link the existing test records before deciding whether more implementation is necessary.
+The corrected landscape sampler reaches the recorded scenes. Complete the full replay required by #843.
+
+A standalone local build proves local package use. Published Rust and Android packages need separate consumer checks.
+A three-host pass applies to its recorded commit and package. Repeat affected checks after packaging or transport changes.
+The current Todo package loads one script from the site root. The Feature 37 ledger separates subdirectory support from the proposed two-script output.
+
 ## Android Todo Server startup address
 
 The launcher starts the activity without the custom server extra. Port forwarding does not supply that extra.
