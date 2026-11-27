@@ -339,14 +339,39 @@ async fn ensure_gcp_key(ctx: &TaskContext, project: &str, location: &str, key: &
 /// encrypt: every version is `DESTROY_SCHEDULED`. A version takes a day to
 /// finish destruction, so the task is not repeatable without this step.
 ///
-/// WHAT/HOW: list the versions; when none is `ENABLED`, create one. The first
-/// run creates version 1 with the key and this returns at once.
+/// WHAT/HOW: when no version is `ENABLED`, create one as the primary. When an
+/// `ENABLED` version exists but it is not the primary, make the newest one the
+/// primary. The first run creates version 1 with the key and this returns at
+/// once.
 async fn ensure_gcp_version(
     ctx: &TaskContext,
     project: &str,
     location: &str,
     key: &str,
 ) -> TaskResult {
+    let enabled = enabled_gcp_versions(ctx, project, location, key).await?;
+    let Some(newest) = enabled.last() else {
+        return create_gcp_version(ctx, project, location, key).await;
+    };
+    // An enabled version from an earlier run can exist while the primary is
+    // still the destroyed one. `Encrypt` without a version uses the primary.
+    let primary = gcp_primary(ctx, project, location, key).await?;
+    if enabled.contains(&primary) {
+        return Ok(());
+    }
+    let newest = newest.as_str();
+    let version_id = newest.rsplit('/').next().unwrap_or(newest).trim();
+    set_gcp_primary(ctx, project, location, key, version_id).await
+}
+
+/// The names of the key's `ENABLED` versions, in the order that Cloud KMS
+/// lists them.
+async fn enabled_gcp_versions(
+    ctx: &TaskContext,
+    project: &str,
+    location: &str,
+    key: &str,
+) -> Result<Vec<String>, TaskError> {
     let listed = capture(
         ctx,
         gcloud(
@@ -361,7 +386,7 @@ async fn ensure_gcp_version(
                 key,
                 "--keyring",
                 RING,
-                "--format=value(state)",
+                "--format=value(name,state)",
             ],
         ),
         Mode::Echo,
@@ -373,9 +398,59 @@ async fn ensure_gcp_version(
             listed.stderr.trim()
         )));
     }
-    if listed.stdout.lines().any(|line| line.trim() == "ENABLED") {
-        return Ok(());
+    Ok(listed
+        .stdout
+        .lines()
+        .filter_map(|line| {
+            let mut fields = line.split('\t');
+            let name = fields.next().unwrap_or_default().trim();
+            let state = fields.next().unwrap_or_default().trim();
+            (state == "ENABLED").then(|| name.to_string())
+        })
+        .collect())
+}
+
+/// The full name of the key's primary version.
+async fn gcp_primary(
+    ctx: &TaskContext,
+    project: &str,
+    location: &str,
+    key: &str,
+) -> Result<String, TaskError> {
+    let described = capture(
+        ctx,
+        gcloud(
+            project,
+            location,
+            &[
+                "kms",
+                "keys",
+                "describe",
+                key,
+                "--keyring",
+                RING,
+                "--format=value(primary.name)",
+            ],
+        ),
+        Mode::Echo,
+    )
+    .await?;
+    if !described.ok {
+        return Err(TaskError::operation(format!(
+            "gcloud key {key} describe: {}",
+            described.stderr.trim()
+        )));
     }
+    Ok(described.stdout.trim().to_string())
+}
+
+/// Create one key version and make it the primary.
+async fn create_gcp_version(
+    ctx: &TaskContext,
+    project: &str,
+    location: &str,
+    key: &str,
+) -> TaskResult {
     println!("live-kms: creating a GCP key version for {key}: no version is enabled");
     let created = capture(
         ctx,
@@ -391,7 +466,7 @@ async fn ensure_gcp_version(
                 key,
                 "--keyring",
                 RING,
-                // The destroyed version stays the primary otherwise, and
+                // A destroyed version stays the primary otherwise, and
                 // `Encrypt` without a version uses the primary.
                 "--primary",
             ],
@@ -405,6 +480,44 @@ async fn ensure_gcp_version(
         Err(TaskError::operation(format!(
             "gcloud key version {key}: {}",
             created.stderr.trim()
+        )))
+    }
+}
+
+/// Point the key's primary version at an enabled version.
+async fn set_gcp_primary(
+    ctx: &TaskContext,
+    project: &str,
+    location: &str,
+    key: &str,
+    version_id: &str,
+) -> TaskResult {
+    println!("live-kms: setting GCP key version {version_id} of {key} as the primary");
+    let flag = format!("--primary-version={version_id}");
+    let updated = capture(
+        ctx,
+        gcloud(
+            project,
+            location,
+            &[
+                "kms",
+                "keys",
+                "update",
+                key,
+                "--keyring",
+                RING,
+                flag.as_str(),
+            ],
+        ),
+        Mode::Echo,
+    )
+    .await?;
+    if updated.ok {
+        Ok(())
+    } else {
+        Err(TaskError::operation(format!(
+            "gcloud key {key} primary version: {}",
+            updated.stderr.trim()
         )))
     }
 }
