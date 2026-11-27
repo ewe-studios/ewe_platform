@@ -15,7 +15,7 @@ app_identity = { path = "../application" }
 wasm-bindgen = { version = "0.2", optional = true }
 
 [build-dependencies]
-foundation_resources = { version = "0.1.1", default-features = false, features = ["browser-package"] }
+foundation_resources = { {% if MOBILE_LAUNCH %}git = "https://github.com/{{ REPOSITORY }}.git", tag = "native-ui-v{{ VERSION }}"{% else %}version = "0.1.1"{% endif %}, default-features = false, features = ["browser-package"] }
 app_identity = { path = "../application" }
 
 [workspace]

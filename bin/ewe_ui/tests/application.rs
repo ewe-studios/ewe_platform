@@ -38,6 +38,20 @@ fn compose_every_selection_and_share_native_inputs() {
         assert_eq!(root.join("native-core/Cargo.toml").is_file(), mask & 6 != 0);
         let shared_manifest = std::fs::read_to_string(root.join("application/Cargo.toml")).unwrap();
         let shared_build = std::fs::read_to_string(root.join("application/build.rs")).unwrap();
+        let shared_resource = shared_manifest
+            .lines()
+            .find(|line| line.starts_with("foundation_resources = "))
+            .unwrap();
+        let (resource_source, _) = shared_resource.split_once(", default-features = ").unwrap();
+        if mask & 1 != 0 {
+            let web_manifest = std::fs::read_to_string(root.join("web/Cargo.toml")).unwrap();
+            let browser_resource = web_manifest
+                .lines()
+                .find(|line| line.starts_with("foundation_resources = "))
+                .unwrap();
+            assert!(browser_resource.starts_with(resource_source));
+            assert!(browser_resource.contains(r#"features = ["browser-package"]"#));
+        }
         assert!(shared_manifest.contains("features = [\"build\""));
         assert_eq!(shared_manifest.contains("mobile-launch"), mask & 6 != 0);
         assert_eq!(
@@ -58,7 +72,23 @@ fn compose_every_selection_and_share_native_inputs() {
                 assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
             }
             let core = std::fs::read_to_string(root.join("native-core/Cargo.toml")).unwrap();
+            let native_source = core
+                .lines()
+                .find_map(|line| line.strip_prefix("foundation_ui_native = "))
+                .unwrap()
+                .strip_suffix(" }")
+                .unwrap();
+            assert!(native_source.contains(r#"tag = "native-ui-v"#));
+            assert_eq!(
+                resource_source,
+                format!("foundation_resources = {native_source}")
+            );
             assert!(!core.contains("foundation_resources"));
+        } else {
+            assert_eq!(
+                resource_source,
+                r#"foundation_resources = { version = "0.1.1""#
+            );
         }
         if mask & 2 != 0 {
             assert!(root.join("android/.gitignore").is_file());

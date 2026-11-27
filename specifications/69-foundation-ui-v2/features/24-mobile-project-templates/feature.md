@@ -124,3 +124,16 @@ This change uses the existing Android application template and does not change i
 3. Repeat in the opposite build order. Check that each variant keeps its own files.
 4. Run the existing shared-directory test for an older template.
 5. Verify that a failed producer keeps the last successful output for each variant.
+
+
+## Rust source for composed mobile applications
+
+Use the native release Git tag for the application resource build and the native core.
+The browser resource step in a mixed application uses the same tag.
+A web-only application keeps its current registry dependency.
+Keep the build, mobile launch, and browser packaging features for their current steps.
+
+Generate each supported target selection with the installed command.
+Compare both resource source declarations with the native core tag.
+Resolve the candidate revision in a temporary consumer and inspect its lock file.
+[Public consumer issue](https://github.com/ewe-studios/ewe_platform/issues/845)
