@@ -188,3 +188,11 @@ SwiftPM supports checksummed binary targets. Swift Package Index accepts public 
 
 Android documents Maven publication for libraries. Maven Central defines the required publication files and metadata.
 [Android library publication](https://developer.android.com/build/publish-library/upload-library) · [Maven Central requirements](https://central.sonatype.org/publish/requirements/)
+
+
+## Crate archive prerequisite
+
+The migration fixture uses a path-only development dependency on the database crate.
+Cargo removes this dependency from the published macro package.
+Run the workspace cycle check, the locked migration fixture, and the macro archive check.
+[Publication cycle issue](https://github.com/ewe-studios/ewe_platform/issues/1196)
