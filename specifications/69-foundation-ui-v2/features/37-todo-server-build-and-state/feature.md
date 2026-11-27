@@ -1,6 +1,6 @@
 # Feature 37. Simplify Todo startup, packaging, and state
 
-Status: Required implementation work. This document is the acceptance contract for the Todo redesign.
+Status: The twelve acceptance checks pass. See the [acceptance ledger](../../completion-audit.md#feature-37-acceptance-ledger).
 
 ## Terms
 

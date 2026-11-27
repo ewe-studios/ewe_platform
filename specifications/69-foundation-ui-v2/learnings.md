@@ -1482,3 +1482,10 @@ Read current speech before moving focus. The first movement can pass the title o
 Reset VoiceOver before direct taps. An aborted test can leave it enabled.
 A standard automated double tap did not activate the spoken Delete command.
 The speech result has the focused utterance. It has no history for counting all countdown announcements.
+
+## Three-host Todo verification
+
+The mounted Chrome page and two native hosts can use one scratch server through a replay gate.
+The gate holds an action without blocking the other hosts.
+A failed reply changes the sender's pending row to a retry row.
+The confirmed row reaches both peers with the same identifier after retry.

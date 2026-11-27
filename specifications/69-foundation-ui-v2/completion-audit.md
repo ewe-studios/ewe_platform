@@ -39,7 +39,7 @@ Keep the release consumer checks and all final gates in the work order below.
 
 **Feature coverage.** The earlier audit records implementation or tests for 01–11, 13, 15, 20–22 and 24–31.
 It also records working paths for 17, 23, and 32–35. The table above identifies the remaining checks and shared dependencies.
-Feature 18 requires no work. Feature 19 has an external release dependency. Features 36 and 37 remain open.
+Feature 18 requires no work. Feature 19 has an external release dependency. Feature 36 remains open. The Feature 37 ledger below records its verification.
 Feature 32's named-target migration and countdown have later verification. Do not reopen the entire migration from the older audit.
 Use the [specification-wide gates](requirements.md#9-success-criteria-spec-wide) for final sign-off.
 
@@ -57,10 +57,10 @@ Numbers follow the [acceptance contract](features/37-todo-server-build-and-state
 | 6. Independent typed data | Swift on the iPhone simulator and Kotlin on the Android emulator received the fixture record and its typed NotFound error. | Pass |
 | 7. Move both package forms | Cargo creates a development executable with its public tree and a standalone release. Both run in scratch directories outside the checkout. | Pass |
 | 8. Resources and failure cases | Chromium checks media, one script, Connect, local actions and named resources. Native bundles open the same icon. Missing inputs preserve the public tree. | Pass |
-| 9. Pending and retry behavior | Current Chromium checks reload, independent retries, and countdown. iPhone pending input, lost reply, retry and confirmation passed. | Android-origin peer retry in progress |
-| 10. Three-host mutations | Browser and iPhone completed all four mutations in the current synchronized run. Each peer observed those changes. | Repeat Android-origin mutations after #1163 |
+| 9. Pending and retry behavior | Chromium checks reload, independent retries, and countdown. Both native apps show pending and retry for held or failed adds. Peer filter and draft state stay intact. | Pass |
+| 10. Three-host mutations | Chrome, the iPhone simulator, and the Android emulator each add, complete, reopen, and delete. Both peers verify each change. | Pass |
 | 11. Retired mechanisms | Production source uses one live server, a shared resource mount, and framework browser setup. Seed and replay fixtures remain in tests. | Pass |
-| 12. Record and captures | The report includes tested revisions, build profiles, commands and [Feature 32 captures](features/32-portable-view-targets/feature.md). | Add the final three-host result |
+| 12. Record and captures | See the [commands and tested revisions](progress.md#feature-37-three-host-verification) and [Feature 32 captures](features/32-portable-view-targets/feature.md). | Pass |
 
 See the [confirmed record tests](progress.md#confirmed-todo-records) and the [mounted package results](progress.md#mounted-todo-package).
 

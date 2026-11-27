@@ -1916,3 +1916,29 @@ The resource build separates layout validation, page generation, and publication
 All six staging tests and both runtime tests pass.
 Clippy passes with warnings denied for `foundation_resources` with `browser-package,server` and all targets.
 The rebuilt development Todo passes the mounted Chromium check again.
+
+## Feature 37 three-host verification
+
+The synchronized test passes with Chrome, the iOS 27 simulator, and the Android 16 emulator.
+Each client adds, completes, reopens, and deletes one Todo.
+The other clients see each mutation. The peer filter and draft keep their state.
+Both native apps show a pending addition and then a retry after the proxy returns an error.
+Retry confirms the same operation. Chrome applies the change after its live feed resumes.
+
+The replay server uses the mounted package from `8a76496d9` and the reactor fix in `64f5f4fb7`.
+The Rust Chromium checks include the navigation fix in `474404fc2`.
+The Android peer helper uses the verified source in `142966ed7`.
+The Apple application uses the scratch TodoServer build. The Android emulator uses installed Todo Server 0.1.0.
+The separate socket tests cover the native transport changes in `e6004d9a8`.
+The reported mobile results use a simulator and an emulator.
+
+Build the fixtures with `cargo build --locked --profile uat -p ui_todo --examples`.
+Start `node examples/ui_todo/tests/mobile-list-peer.mjs` from the repository root.
+Set `EWE_TODO_PEER_ADB` to the Android Debug Bridge executable and select the emulator with `EWE_TODO_PEER_ANDROID_SERIAL`.
+Use the printed server and driver addresses as the two XCTest runner variables.
+Set `TEST_RUNNER_EWE_TODO_PEER_ANDROID=1`.
+Run the TodoServer scheme with `testBrowserPeerUpdatesRowsWithoutReplacingFilterOrDraft`.
+See the [list check](../../examples/ui_todo/README.md#verify-list-changes-from-a-browser-peer).
+
+The browser and native pending and retry screenshots remain in the [Feature 32 captures](features/32-portable-view-targets/feature.md).
+The [acceptance ledger](completion-audit.md#feature-37-acceptance-ledger) records all twelve checks.
