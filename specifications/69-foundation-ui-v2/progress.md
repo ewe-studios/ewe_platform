@@ -5,7 +5,9 @@
 The [completion audit](completion-audit.md) records the state of 36 features at `71466b255`.
 Feature 18 is reserved. The baseline includes the approved Feature 36 plan and the Ranchu startup repair.
 The shared Android drawing surface and Feature 37 acceptance stay open.
-Finish Android repairs first. Then stabilize browser packaging and close delivery and display defects.
+First, reproduce the owner’s report that Android Mathalley flashes, then disappears.
+Record the installed build and check for a crash, navigation, or a blank surface.
+Verify sustained visible play and input on the first and second launch. Then stabilize browser packaging and close delivery defects.
 Verify public package inputs in parallel. Collect final platform evidence and run the specification-wide gates.
 
 Feature 37 has durable server evidence for restart, retrieval, listing, and deletion retries.
