@@ -1675,3 +1675,13 @@ Its Enter path keeps focus but does not activate the button in this test.
 The Linux `foundation_core` build recipe runs the repository time-source guard.
 The scoped Specification 69 plan omits that recipe. Its failing calls belong to the Agent RPC shutdown path.
 The wait uses real elapsed time. A simulated request clock must not extend its host shutdown budget.
+
+## Native package platform test prerequisites
+
+A Windows verbatim path preserves separators in a string suffix.
+Join the environment path and suffix with the platform path type before the embed derive opens the directory.
+The native task tests compile and exercise the same embedded templates.
+
+A Todo server test also builds its browser assets.
+Use the shard's package list to install the pinned browser binding program before that test.
+The separate macOS build job and native preview have their own setup.

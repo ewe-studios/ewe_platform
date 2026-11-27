@@ -2248,3 +2248,15 @@ The pinned workspace formatter passes at `d735d249a`. The formatter changes 23 R
 The CI package passes 40 tests. The task package passes 19 tests.
 Issue 1189 is closed. The clock-parameter guard reports no violations.
 Issue 1180 remains open for the Linux `foundation_core` build recipe.
+
+## Native package platform test prerequisites
+
+The scoped Windows shard passes its graphics test. The native task build fails while it opens the staged project templates.
+The embedded path now uses the platform path join. The local packager suite passes 10 tests. The native task integration suite passes 29 tests.
+The next Windows run verifies the original path from Cargo's output directory. [Issue 1193](https://github.com/ewe-studios/ewe_platform/issues/1193)
+
+The macOS Todo package test needs the locked WebAssembly binding tool.
+The workflow uses the planner's package names to select the tool setup.
+The Windows Todo shard also installs the WebAssembly target.
+The local plan selects the correct shards. The local setup exports wasm-bindgen 0.2.130.
+The next hosted run verifies the selected setup. [Issue 1195](https://github.com/ewe-studios/ewe_platform/issues/1195)
