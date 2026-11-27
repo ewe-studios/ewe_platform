@@ -73,7 +73,8 @@ The 61 client skips are SSE only. The adapter announces `sse: false`.
 4. Feature 07: the valtron client wrapper. Resolved: the client core is in
    `foundation_core::durable::client`, and both valtron wrappers are in
    `foundation_core::durable::valtron`. `foundation_netio` implements the transport trait.
-5. Feature 10: subscriptions. A new `foundation_event_stream` crate owns the work. It reuses
+5. Feature 10: subscriptions. A new `foundation_event_stream` crate owns the work. It re-exports
+   `foundation_core::durable` as `foundation_event_stream::durable`, and reuses
    `foundation_auth::shared::jwks` for signing keys and the JWKS endpoint. The six skipped server
    tests must pass, and the gate must set `subscriptions: true`.
 6. Feature 08: the CI wiring. `ci/durable_conformance.sh` is the command to call.

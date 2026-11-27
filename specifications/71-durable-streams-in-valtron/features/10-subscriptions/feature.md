@@ -48,12 +48,17 @@ subscriptions and brings the pieces together. The server core stays transport-ne
   `foundation_auth::shared::jwks::{Jwk, Jwks, JwksManager}` and the signing key types. Do not
   add a second key model or a second key endpoint.
 - The object store and the streams come from `foundation_core::durable`.
+- `foundation_event_stream` re-exports `foundation_core::durable` as
+  `foundation_event_stream::durable`. A host imports the stream types and the subscription API from
+  one crate. The re-export carries the whole durable module, not a copy of the types.
 - A host supplies the key source and the HTTP transport. The crate reads no global.
 
 ## 4. Tasks
 
 - [ ] **T0 — crate.** Create `foundation_event_stream` with `shared/`, `native/` and `cf/`
-      layout. Re-export the `foundation_auth` JWKS types it uses. Test: `crate_builds_wasm`.
+      layout. Re-export `foundation_core::durable` as `foundation_event_stream::durable`. Re-export
+      the `foundation_auth` JWKS types it uses. Tests: `crate_builds_wasm`,
+      `durable_types_match_the_core`.
 - [ ] **T1 — core state.** Configuration, hash, generation, lease and snapshot. Tests:
       `config_hash_is_stable`, `generation_fences_stale_claim`.
 - [ ] **T2 — control endpoints.** Create, confirm, add and remove streams, list. Tests:
