@@ -24,6 +24,18 @@ the shell environment and in `~/.userenv`, which unblocks spec 83 feature 00 tas
 
 ## Work in review (2026-11-27)
 
+- **Feature 01, stage A (the DST `Wait` hang)** is branch `fix/dst-wait-redrive`. Cause:
+  `Stream::Wait` means "the queue is empty; run the producer and check again". The parking
+  adapters in `stream_future.rs` treated it as `Pending` and parked on a wake that a
+  single-threaded engine never sends. Fix: `WakeableStream` gains `drives_its_producer()`.
+  A driving stream reports `true`, and the five adapters re-poll it on `Wait` with a bounded
+  budget (`DEFAULT_WAIT_REDRIVE_BUDGET`, 100 on native and 1 on wasm). A driving stream whose
+  engine is parked reports `can_make_progress() == false`, so the adapter parks instead of
+  sleeping out the driver's wait budget once per re-poll. A queue-backed stream keeps the old
+  park behaviour. Tests: `wait_redrives_a_driving_stream` (the real `execute` driver under
+  `SimRuntime`, one poll), plus `wait_redrive.rs` (park, bound, reset, wrapper forwarding,
+  parked driving stream, property test). It also fixes #1108 and #1109, which made the default,
+  `multi` and `testing` CI steps red.
 - **Feature 00, task T3 (AWS KMS locally)** is pull request #1055. It adds the endpoint
   override (`AWS_ENDPOINT_URL_KMS`), the moto test, `mise run kms:moto` and the free CI job
   `kms-local`. It also fixes a duplicate `Content-Type` (#1054) and makes `Decrypt` send
