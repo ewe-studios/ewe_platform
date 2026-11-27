@@ -143,6 +143,23 @@ same gate passed 338 of 338 and 267 of 269 runnable on a quiet host.
 - A timeout under external load is an environment result. Record the load and rerun. Do not
   weaken a test.
 
+## 4.5 Gap order (owner request 2026-11-27)
+
+Finish in this order. The first item that is not blocked starts now.
+
+1. #1077 WebSocket durable transport. Running.
+2. #1081 The conformance gate builds with `multi`, which enables valtron. Requirement 8 says the
+   gate runs with the valtron layer off. Add that path, or correct the requirement with evidence.
+3. #1028 Webhook delivery runs inline and delays an append. Move it behind a queue and a worker
+   driven by the injected clock.
+4. #1064 Add the hosted object-store transports: native S3 over foundation_netio, wasm R2 over
+   foundation_db. Add a MinIO service run to CI for the S3 path.
+5. #1056 The wasm build with `wasm-fetch` and default features fails in foundation_core.
+6. #1080 A wasm32 runtime proof, beyond the build checks.
+7. #1029 The large-payload client reset.
+8. #1063 The wasm unused import warning.
+9. #1082 The two suite-forced skips. Keep the register current; close when it is recorded.
+
 ## 5. Rules that matter here
 
 - Run `ci/durable_conformance.sh` before you call a protocol change done.
