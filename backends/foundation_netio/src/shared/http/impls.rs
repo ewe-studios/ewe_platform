@@ -5798,7 +5798,7 @@ impl<T: std::io::Read + Send + Sync> std::io::Read for ChunkedBodyReader<T> {
                     self.pending = bytes;
                     self.cursor = 0;
                 }
-                Some(Ok(ChunkedData::Trailers(_) | ChunkedData::DataEnded)) => {
+                Some(Ok(ChunkedData::Trailers(_) | ChunkedData::DataEnded)) | None => {
                     self.done = true;
                     return Ok(0);
                 }
@@ -5807,10 +5807,6 @@ impl<T: std::io::Read + Send + Sync> std::io::Read for ChunkedBodyReader<T> {
                 }
                 Some(Err(err)) => {
                     return Err(std::io::Error::other(err.to_string()));
-                }
-                None => {
-                    self.done = true;
-                    return Ok(0);
                 }
             }
         }

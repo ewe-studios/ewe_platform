@@ -214,7 +214,7 @@ impl futures_core::Stream for NativeSseStream {
                     }
                     self.repolled = true;
                     match &self.read_wake {
-                        Some(source) if source(cx.waker()) => continue,
+                        Some(source) if source(cx.waker()) => {}
                         _ => {
                             self.repolled = false;
                             cx.waker().wake_by_ref();

@@ -293,8 +293,7 @@ fn client_error(
             *status,
         ),
         ClientError::InvalidArgument { .. } => ("INVALID_ARGUMENT", None),
-        ClientError::MissingClock(_) => ("INTERNAL_ERROR", None),
-        ClientError::Detached => ("INTERNAL_ERROR", None),
+        ClientError::MissingClock(_) | ClientError::Detached => ("INTERNAL_ERROR", None),
     };
     let mut result = failure_result(command_type, code, &error.to_string());
     if let Some(status) = status {

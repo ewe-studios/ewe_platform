@@ -52,11 +52,11 @@ fn run_with_one_reconnect() -> (String, usize, Vec<String>) {
         .unwrap()
         .with_max_retries(3);
 
-    let mut stream = execute(task, None).expect("execute");
+    let stream = execute(task, None).expect("execute");
     let mut text = String::new();
     let mut markers = 0;
     let mut order = Vec::new();
-    while let Some(item) = stream.next() {
+    for item in stream {
         if let Stream::Next(parse_result) = item {
             match parse_result.event {
                 Event::Reconnect => {
