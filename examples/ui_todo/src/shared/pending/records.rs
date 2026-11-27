@@ -1,5 +1,8 @@
 //! Store each pending request under its operation identifier.
-use super::{error, ActionError, Context, Entries, ErrorTrace, Pending, PendingChange};
+use super::{Pending, PendingChange};
+use crate::shared::{error, ActionError, Context, ErrorTrace};
+
+pub(super) type Entries = BTreeMap<String, Pending>;
 #[cfg(not(all(feature = "web", target_family = "wasm")))]
 use foundation_db::{KeyValueStore, MemoryStorage};
 #[cfg(all(feature = "mobile", not(target_family = "wasm")))]

@@ -1,30 +1,33 @@
 //! Shared todo views and actions for server and on-device stores.
 pub use foundation_compact::uuid::UuidV4 as TodoId;
 pub(crate) mod countdown;
-pub(crate) mod pending;
-#[cfg(not(target_family = "wasm"))]
-mod mutations;
 #[cfg(all(feature = "server", not(target_family = "wasm")))]
 mod durable;
+#[cfg(not(target_family = "wasm"))]
+mod mutations;
+pub(crate) mod pending;
 use pending::{retry_todo, submit_delete, submit_todo};
 pub use pending::{Pending, PendingChange};
 
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
+use foundation_ui_runtime::action::ViewData;
 use foundation_ui_runtime::action::{
     ActionError, ActionRegistry, ActionResult, Context, Interaction, RegistrationError,
 };
 use foundation_ui_runtime::state::{
     install_state_signer, HmacStateSigner, StateConfig, StateError,
 };
-use foundation_ui_runtime::view::{
-    full_view, place, template_types::Html, PlacementKind, Target, ViewIds,
-};
+use foundation_ui_runtime::view::{full_view, template_types::Html, ViewIds};
 use foundation_ui_runtime::{action, html};
-use foundation_ui_runtime::action::ViewData;
 use foundation_ui_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
+
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    use foundation_ui_runtime::view::{place, PlacementKind, Target};
+}
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Filter {
@@ -67,19 +70,61 @@ struct CommitServices {
     writer: Option<mutations::Writer>,
 }
 
+struct HostRole<const ENABLED: bool>;
+
+trait HostCache {
+    type State: Clone + Default;
+
+    fn filter(state: &Self::State) -> Filter;
+    fn install(ctx: &Ctx);
+}
+
+impl HostCache for HostRole<false> {
+    type State = ();
+
+    fn filter((): &Self::State) -> Filter {
+        Filter::All
+    }
+
+    fn install(_: &Ctx) {}
+}
+
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    #[derive(Clone, Default)]
+    struct ClientState {
+        filter: Filter,
+        query: String,
+        search_rows: Option<Vec<Todo>>,
+        correcting: Option<String>,
+        deferred: std::collections::BTreeMap<u64, RecordChange>,
+    }
+
+    impl HostCache for HostRole<true> {
+        type State = ClientState;
+
+        fn filter(state: &Self::State) -> Filter {
+            state.filter.clone()
+        }
+
+        fn install(ctx: &Ctx) {
+            pending::install(ctx);
+            countdown::install_host(ctx);
+        }
+    }
+}
+
+type ActiveRole = HostRole<{ foundation_ui_runtime::__ewe_action_host!(@enabled) }>;
+
 #[derive(Clone, Default)]
 struct StoreState {
     items: Vec<Todo>,
-    filter: Filter,
+    client: <ActiveRole as HostCache>::State,
     position: u64,
-    query: String,
     pending: std::collections::BTreeMap<String, Pending>,
-    search_rows: Option<Vec<Todo>>,
-    correcting: Option<String>,
     add_dialog: bool,
     delete_target: Option<TodoId>,
     draft: String,
-    deferred: std::collections::BTreeMap<u64, RecordChange>,
     removed: std::collections::BTreeMap<TodoId, u64>,
     retired_ids: std::collections::BTreeSet<TodoId>,
     #[cfg(not(target_family = "wasm"))]
@@ -105,7 +150,7 @@ impl StoreState {
     fn snapshot(&self) -> TodoApp {
         TodoApp {
             items: self.items.clone(),
-            filter: self.filter.clone(),
+            filter: ActiveRole::filter(&self.client),
             add_dialog: self.add_dialog,
             delete_target: self.delete_target,
             draft: self.draft.clone(),
@@ -304,16 +349,19 @@ pub(crate) fn page_tree(state: &TodoApp) -> Html {
     </Stack> }
 }
 
-fn replace(ctx: &Context, name: &str, tree: Html) -> ActionResult {
-    place(
-        ctx,
-        ctx.receiver(),
-        PlacementKind::Swap,
-        Target::from(name),
-        None,
-        Some(tree),
-        None::<&()>,
-    )
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    fn replace(ctx: &Context, name: &str, tree: Html) -> ActionResult {
+        place(
+            ctx,
+            ctx.receiver(),
+            PlacementKind::Swap,
+            Target::from(name),
+            None,
+            Some(tree),
+            None::<&()>,
+        )
+    }
 }
 
 pub(crate) fn open_count(count: usize) -> Html {
@@ -354,34 +402,38 @@ async fn refresh_count(ctx: &Context, _event: Interaction<()>) -> ActionResult {
     )
 }
 
-fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
-    let cancel = html! {<CancelButton on:tap={close_dialog}>Cancel</CancelButton>};
-    let confirmation = state.delete_target.map(|id| {
-        html! {
-            <ConfirmationDialog>
-                <SheetTitle>Delete this todo?</SheetTitle>
-                <DestructiveButton value={id.to_string()} on:tap={submit_delete}>Confirm</DestructiveButton>
-                {cancel.clone()}
-            </ConfirmationDialog>
-        }
-    });
-    let tree = html! { <Stack id="dialog">
-        <Either condition={state.add_dialog}>
-            <Left>{confirmation}</Left>
-            <Right><Modal a11y_label="New todo"><BottomSheet>
-                <SheetTitle>New todo</SheetTitle>
-                <TextInput placeholder="Todo title" a11y_label="Todo title" value={state.draft.as_str()} on:change={edit_draft} on:submit={submit_todo}/>
-                {cancel.clone()}
-                <SubmitButton>Add</SubmitButton>
-            </BottomSheet></Modal></Right>
-        </Either>
-    </Stack> };
-    replace(ctx, "#dialog", tree)
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
+        let cancel = html! {<CancelButton on:tap={close_dialog}>Cancel</CancelButton>};
+        let confirmation = state.delete_target.map(|id| {
+            html! {
+                <ConfirmationDialog>
+                    <SheetTitle>Delete this todo?</SheetTitle>
+                    <DestructiveButton value={id.to_string()} on:tap={submit_delete}>Confirm</DestructiveButton>
+                    {cancel.clone()}
+                </ConfirmationDialog>
+            }
+        });
+        let tree = html! { <Stack id="dialog">
+            <Either condition={state.add_dialog}>
+                <Left>{confirmation}</Left>
+                <Right><Modal a11y_label="New todo"><BottomSheet>
+                    <SheetTitle>New todo</SheetTitle>
+                    <TextInput placeholder="Todo title" a11y_label="Todo title" value={state.draft.as_str()} on:change={edit_draft} on:submit={submit_todo}/>
+                    {cancel.clone()}
+                    <SubmitButton>Add</SubmitButton>
+                </BottomSheet></Modal></Right>
+            </Either>
+        </Stack> };
+        replace(ctx, "#dialog", tree)
+    }
 }
 
 #[action(host)]
 async fn open_mathalley(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    let signal = crate::mathalley::route::open_command().map_err(|cause| error(&cause.to_string()))?;
+    let signal =
+        crate::mathalley::route::open_command().map_err(|cause| error(&cause.to_string()))?;
     ctx.receiver().data_in_view(signal);
     Ok(())
 }
@@ -393,7 +445,7 @@ async fn open_add_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult 
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    cache.correcting = None;
+    cache.client.correcting = None;
     if let Some(id) = event.input_value.strip_prefix("correct-add:") {
         let key = format!("add:{id}");
         let Some(Pending {
@@ -405,7 +457,7 @@ async fn open_add_dialog(ctx: &Context, event: Interaction<()>) -> ActionResult 
             return Err(error("This submission is no longer pending"));
         };
         cache.draft = title.clone();
-        cache.correcting = Some(key);
+        cache.client.correcting = Some(key);
     }
     cache.add_dialog = true;
     cache.delete_target = None;
@@ -419,7 +471,7 @@ async fn open_delete_dialog(ctx: &Context, event: Interaction<()>) -> ActionResu
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    cache.correcting = None;
+    cache.client.correcting = None;
     cache.add_dialog = false;
     cache.delete_target = Some(id);
     dialog(ctx, &cache.snapshot())
@@ -431,7 +483,7 @@ async fn close_dialog(ctx: &Context, _event: Interaction<()>) -> ActionResult {
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    cache.correcting = None;
+    cache.client.correcting = None;
     cache.add_dialog = false;
     cache.delete_target = None;
     cache.draft.clear();
@@ -450,8 +502,8 @@ async fn filter_todos(ctx: &Context, event: Interaction<()>) -> ActionResult {
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    guard.filter = filter;
-    replace(ctx, "#todo-filter", filters(&guard.filter))?;
+    guard.client.filter = filter;
+    replace(ctx, "#todo-filter", filters(&guard.client.filter))?;
     guard.select_search();
     guard.render_rows(ctx)
 }
@@ -474,29 +526,32 @@ async fn search_todos(ctx: &Context, event: Interaction<()>) -> ActionResult {
         .0
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
-    cache.query = event.input_value;
+    cache.client.query = event.input_value;
     cache.select_search();
     cache.render_rows(ctx)
 }
 
-impl StoreState {
-    fn select_search(&mut self) {
-        let query = self.query.trim().to_lowercase();
-        self.search_rows = (!query.is_empty()).then(|| {
-            self.items
-                .iter()
-                .filter(|item| item.text.to_lowercase().contains(&query))
-                .cloned()
-                .collect()
-        });
-    }
-    fn render_rows(&self, ctx: &Context) -> ActionResult {
-        let mut state = self.snapshot();
-        if let Some(rows) = &self.search_rows {
-            state.items.clone_from(rows);
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    impl StoreState {
+        fn select_search(&mut self) {
+            let query = self.client.query.trim().to_lowercase();
+            self.client.search_rows = (!query.is_empty()).then(|| {
+                self.items
+                    .iter()
+                    .filter(|item| item.text.to_lowercase().contains(&query))
+                    .cloned()
+                    .collect()
+            });
         }
-        let query = self.query.trim().to_lowercase();
-        replace(ctx, "#todo-list", list(&state, &query))
+        fn render_rows(&self, ctx: &Context) -> ActionResult {
+            let mut state = self.snapshot();
+            if let Some(rows) = &self.client.search_rows {
+                state.items.clone_from(rows);
+            }
+            let query = self.client.query.trim().to_lowercase();
+            replace(ctx, "#todo-list", list(&state, &query))
+        }
     }
 }
 
@@ -554,44 +609,52 @@ impl StoreState {
             }
         }
     }
+}
 
-    fn ingest(&mut self, delivery: TodoDelivery) -> bool {
-        let before = self.position;
-        let snapshot = match delivery {
-            TodoDelivery::Retired { id } => return self.retired_ids.insert(id),
-            TodoDelivery::Snapshot {
-                position,
-                items,
-                retired_ids,
-            } if position >= self.position => {
-                self.retired_ids.extend(retired_ids);
-                self.items = items;
-                self.position = position;
-                self.deferred.retain(|seq, _| *seq > position);
-                true
-            }
-            TodoDelivery::Committed { position, change } if position > self.position => {
-                self.deferred.entry(position).or_insert(change);
-                false
-            }
-            _ => return false,
-        };
-        while let Some(next) = self.position.checked_add(1) {
-            let Some(change) = self.deferred.remove(&next) else {
-                break;
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    impl StoreState {
+        fn ingest(&mut self, delivery: TodoDelivery) -> bool {
+            let before = self.position;
+            let snapshot = match delivery {
+                TodoDelivery::Retired { id } => return self.retired_ids.insert(id),
+                TodoDelivery::Snapshot {
+                    position,
+                    items,
+                    retired_ids,
+                } if position >= self.position => {
+                    self.retired_ids.extend(retired_ids);
+                    self.items = items;
+                    self.position = position;
+                    self.client.deferred.retain(|seq, _| *seq > position);
+                    true
+                }
+                TodoDelivery::Committed { position, change } if position > self.position => {
+                    self.client.deferred.entry(position).or_insert(change);
+                    false
+                }
+                _ => return false,
             };
-            if let RecordChange::Remove(id) = &change {
-                self.removed.insert(*id, next);
+            while let Some(next) = self.position.checked_add(1) {
+                let Some(change) = self.client.deferred.remove(&next) else {
+                    break;
+                };
+                if let RecordChange::Remove(id) = &change {
+                    self.removed.insert(*id, next);
+                }
+                self.apply_change(&change);
+                self.position = next;
             }
-            self.apply_change(&change);
-            self.position = next;
+            snapshot || self.position != before
         }
-        snapshot || self.position != before
     }
 }
 
 #[action(host)]
-async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDelivery>>) -> ActionResult {
+async fn apply_todo_delivery(
+    ctx: &Context,
+    event: Interaction<(), Option<TodoDelivery>>,
+) -> ActionResult {
     let Some(delivery) = event.input_value else {
         return Ok(());
     };
@@ -631,7 +694,7 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDe
             .0
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if state.search_rows.is_none() || snapshot || reconciled.changed {
+        if state.client.search_rows.is_none() || snapshot || reconciled.changed {
             state.render_rows(ctx)?;
         }
         replace(
@@ -640,10 +703,10 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDe
             open_count(state.items.iter().filter(|r| !r.done).count()),
         )?;
         if snapshot {
-            if !state.query.is_empty() {
-                replace(ctx, "#todo-search", search_input(&state.query))?;
+            if !state.client.query.is_empty() {
+                replace(ctx, "#todo-search", search_input(&state.client.query))?;
             }
-            replace(ctx, "#todo-filter", filters(&state.filter))?;
+            replace(ctx, "#todo-filter", filters(&state.client.filter))?;
             if state.add_dialog || state.delete_target.is_some() {
                 dialog(ctx, &state.snapshot())?;
             }
@@ -662,7 +725,11 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
 
 #[action(server)]
 async fn toggle_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    mutations::apply(ctx, mutations::Command::Toggle(todo_id(&event.input_value)?)).await
+    mutations::apply(
+        ctx,
+        mutations::Command::Toggle(todo_id(&event.input_value)?),
+    )
+    .await
 }
 
 #[action(server)]
@@ -687,8 +754,7 @@ async fn initialize_todos(ctx: &Context, _event: Interaction<()>) -> ActionResul
 /// Install the local display cache.
 pub fn install_cache(ctx: &Ctx) {
     ctx.store(TodoStore::default());
-    pending::install(ctx);
-    countdown::install_host(ctx);
+    ActiveRole::install(ctx);
 }
 
 fn action_registry(

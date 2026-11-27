@@ -119,6 +119,10 @@ impl NativeCountdownLease {
 
 mod host;
 
-pub(crate) use host::install_host;
+foundation_ui_runtime::__ewe_action_host! {
+    @items
+    pub(crate) use host::install_host;
+    pub(super) use host::{apply, restore_view};
+}
 pub(super) use host::Tick;
-pub(super) use host::{apply, button, pause_todo_input, restore_view, tick_todo_countdown};
+pub(super) use host::{button, pause_todo_input, tick_todo_countdown};

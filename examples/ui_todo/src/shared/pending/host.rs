@@ -1,40 +1,19 @@
-//! Save unconfirmed Todo requests before a host sends them.
-use super::{dialog, error, todo_store, AddInput, StoreState};
+//! Keep pending actions in the client store until the server confirms them.
+use super::{
+    records::{self, Entries},
+    Pending, PendingChange,
+};
+use crate::shared::{dialog, error, todo_id, todo_store, AddInput, StoreState};
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_ui_runtime::action::{ActionError, ActionResult, Context, Interaction};
 use foundation_ui_wire::ErrorCode;
-use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-pub(crate) mod records;
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum PendingChange {
-    Add {
-        #[serde(alias = "creation_id")]
-        id: super::TodoId,
-        title: String,
-    },
-    Delete {
-        id: super::TodoId,
-    },
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Pending {
-    pub change: PendingChange,
-    pub retry: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub validation: Option<String>,
-}
-
-type Entries = BTreeMap<String, Pending>;
 
 struct Outbox {
     initialized: futures_util::lock::Mutex<bool>,
 }
 
-pub(super) fn install(ctx: &Ctx) {
+pub(in crate::shared) fn install(ctx: &Ctx) {
     #[cfg(not(all(feature = "web", target_family = "wasm")))]
     ctx.store(foundation_db::MemoryStorage::new());
     ctx.store(Outbox {
@@ -79,11 +58,13 @@ async fn change_pending<T>(
     Ok(result)
 }
 
-pub(super) async fn restore(ctx: &Context) -> ActionResult {
-    change_pending(ctx, |_| Ok((false, ()))).await
+foundation_ui_runtime::__ewe_action_mobile! {
+    @items
+    pub(in crate::shared) async fn restore(ctx: &Context) -> ActionResult {
+        change_pending(ctx, |_| Ok((false, ()))).await
+    }
 }
 
-#[foundation_ui_runtime::action(host)]
 pub(super) async fn submit_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
     let title = event.input_value;
     if title.trim().is_empty() {
@@ -104,9 +85,8 @@ pub(super) async fn submit_todo(ctx: &Context, event: Interaction<()>) -> Action
     .await
 }
 
-#[foundation_ui_runtime::action(host)]
 pub(super) async fn submit_delete(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    let id = super::todo_id(&event.input_value)?;
+    let id = todo_id(&event.input_value)?;
     submit(
         ctx,
         format!("delete:{id}"),
@@ -115,7 +95,6 @@ pub(super) async fn submit_delete(ctx: &Context, event: Interaction<()>) -> Acti
     .await
 }
 
-#[foundation_ui_runtime::action(host)]
 pub(super) async fn retry_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
     submit(ctx, event.input_value, None).await
 }
@@ -138,6 +117,7 @@ async fn submit(ctx: &Context, key: String, proposed: Option<PendingChange>) -> 
                 .0
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .client
                 .correcting
                 .clone();
             if let Some(previous) = correction {
@@ -165,7 +145,7 @@ async fn submit(ctx: &Context, key: String, proposed: Option<PendingChange>) -> 
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         if close_dialog {
-            state.correcting = None;
+            state.client.correcting = None;
             state.add_dialog = false;
             state.delete_target = None;
             state.draft.clear();
@@ -211,12 +191,12 @@ async fn failed(ctx: &Context, key: &str, validation: Option<String>) -> ActionR
     Ok(())
 }
 
-pub(super) struct Reconciled {
-    pub(super) changed: bool,
-    pub(super) added: bool,
+pub(in crate::shared) struct Reconciled {
+    pub(in crate::shared) changed: bool,
+    pub(in crate::shared) added: bool,
 }
 
-pub(super) async fn reconcile(
+pub(in crate::shared) async fn reconcile(
     ctx: &Context,
     snapshot: bool,
 ) -> Result<Reconciled, ErrorTrace<ActionError>> {
@@ -250,7 +230,7 @@ pub(super) async fn reconcile(
             .0
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if let Some(rows) = &mut state.search_rows {
+        if let Some(rows) = &mut state.client.search_rows {
             rows.retain(|row| !deleted.contains(&row.id));
         }
     }

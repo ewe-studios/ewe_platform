@@ -1,11 +1,11 @@
-//! Reconcile one host pause and render its current time.
-use super::{wall_ms, Block, Current, Request, Scope, TodoId, Update};
+//! Keep the local countdown state and reconcile it with server replies.
+use super::{button, pause_todo_input, Tick};
+use crate::shared::countdown::{wall_ms, Block, Current, Request, Scope, TodoId, Update};
 use crate::shared::{error, replace};
 use foundation_context::{env::Env, Ctx, Instant};
 use foundation_errstacks::ErrorTrace;
 use foundation_ui_runtime::{
-    action,
-    action::{ActionError, ActionResult, Context, Interaction},
+    action::{ActionError, ActionResult, Context},
     html,
     view::template_types::Html,
 };
@@ -41,13 +41,6 @@ struct State {
     active: Option<Active>,
     initialized: bool,
     released: Option<TodoId>,
-}
-
-#[derive(Deserialize)]
-pub(crate) struct Tick {
-    session: Option<TodoId>,
-    #[serde(default)]
-    refresh: bool,
 }
 
 type ActionValue<T> = Result<T, ErrorTrace<ActionError>>;
@@ -100,7 +93,7 @@ async fn load(ctx: &Context, external_session: Option<TodoId>) -> ActionValue<Se
 
 #[cfg(all(feature = "mobile", not(target_family = "wasm")))]
 fn native_file(ctx: &Context) -> Option<Arc<foundation_ui_native::storage::NativeRecordFile>> {
-    ctx.get::<super::NativeCountdownLease>()?;
+    ctx.get::<crate::shared::countdown::NativeCountdownLease>()?;
     ctx.get::<foundation_ui_native::storage::NativeRecordFile>()
 }
 
@@ -169,10 +162,6 @@ async fn write(ctx: &Context, key: &str, session: &Session) -> ActionResult {
             .await
             .map_err(|cause| error(&cause.to_string()))
     }
-}
-
-pub(crate) fn button(enabled: bool) -> Html {
-    html! { <Button id="todo-pause-button" enabled={enabled} on:tap={pause_todo_input}>Pause input for one minute</Button> }
 }
 
 fn show_controls(ctx: &Context, state: &State) -> ActionResult {
@@ -245,11 +234,7 @@ pub(in crate::shared) async fn restore_view(ctx: &Context) -> ActionResult {
     Ok(())
 }
 
-#[action(host)]
-pub(in crate::shared) async fn pause_todo_input(
-    ctx: &Context,
-    _event: Interaction<()>,
-) -> ActionResult {
+pub(super) async fn pause(ctx: &Context) -> ActionResult {
     let state = state(ctx)?;
     let request = {
         let mut state = state.lock().await;
@@ -305,16 +290,12 @@ pub(in crate::shared) async fn pause_todo_input(
     Ok(())
 }
 
-#[action(host)]
-pub(in crate::shared) async fn tick_todo_countdown(
-    ctx: &Context,
-    event: Interaction<(), Tick>,
-) -> ActionResult {
+pub(super) async fn tick(ctx: &Context, input: Tick) -> ActionResult {
     let state = state(ctx)?;
     let query = {
         let mut state = state.lock().await;
         if state.session.is_none() {
-            let session = load(ctx, event.input_value.session).await?;
+            let session = load(ctx, input.session).await?;
             state.retry = session.pending.is_some();
             state.session = Some(session);
             replace(ctx, "#todo-pause-button", button(true))?;
@@ -327,7 +308,7 @@ pub(in crate::shared) async fn tick_todo_countdown(
             .active
             .as_ref()
             .is_some_and(|active| remaining(ctx, active) <= 1);
-        if state.initialized && !event.input_value.refresh && !needs_release {
+        if state.initialized && !input.refresh && !needs_release {
             return Ok(());
         }
         Current {

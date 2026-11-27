@@ -271,3 +271,17 @@ Exchange an application message and close the independent socket. Verify Todo ca
 
 Review the production diff and the acceptance evidence before marking this feature complete.
 An earlier passing test for a predecessor feature does not establish completion of this redesign.
+
+## Compile the server without client implementation helpers
+
+The server renders controls that name client actions. It needs their names and input types.
+It does not run the client bodies.
+Use the runtime's existing host selection for the private state and implementation helpers.
+Keep the shared action declarations, reply formats, storage records, and rendering contracts.
+Use the existing [pending list](../32-portable-view-targets/screenshots/chrome-pending.png)
+and [retry list](../32-portable-view-targets/screenshots/chrome-retry.png) as visual references.
+
+1. Build the default server with warnings denied.
+2. Build the native client and browser lib with warnings denied.
+3. Run the server action tests with both runtime roles available.
+4. Verify the browser bundle still starts and runs a local action.
