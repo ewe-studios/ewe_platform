@@ -128,13 +128,14 @@ conformance 269 of 269 with every feature announced and no skip, all Rust tests 
 green, and a fresh zero-context agent verifies the claims against the code.
 
 Update 2026-11-27: the upstream client suite marks two base64 Server-Sent Events (SSE) cases
-with `skip: "Swift implementation broken"` for every client. Our client supports both cases.
-`ci/durable_conformance.sh` removes those two markers in the installed suite and runs all 269
-cases. A skip in the gate is a failure.
+with `skip: "Swift implementation broken"`. The gate does not patch the upstream suite. It keeps
+the 267 passed and 2 skipped counts and requires that both skips carry that reason. Our own
+client tests cover the same two behaviours (a multiline event and a 4096-byte payload across
+lines) and the gate runs them in its base64 SSE coverage step.
 
-Status 2026-11-27: met on this host. The gate with live MinIO reports server 338 of 338, client
-269 passed, 0 failed, 0 skipped, exit 0. The fresh verifier checked 19 claims against head
-`3f5377519`; its only superseded item is the skip count, which is now 269 of 269.
+Status 2026-11-27: met on this host. The gate reports server 338 of 338, client 267 passed and
+2 upstream-forced skips, our base64 SSE coverage passed, and exit 0. The fresh verifier checked
+19 claims against head `3f5377519`; its skip item matches this policy.
 
 ## 4.3 One pull request
 

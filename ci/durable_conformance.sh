@@ -6,9 +6,10 @@
 #
 # The gate passes only when:
 #   - the server suite reports 338 passed (338) with no skip;
-#   - the client suite reports 269 passed, 0 failed and no skip. The suite
-#     marks two base64 SSE cases with a Swift-only skip; the gate removes those
-#     two markers before the run, because our client supports both cases.
+#   - the client suite reports 267 passed, 0 failed, and 2 skips, and both skips
+#     carry the upstream reason "Swift implementation broken"; the upstream suite
+#     is not patched. Our own client tests cover the same two base64 SSE cases and
+#     the gate runs them in the coverage step below.
 #
 # Usage: ci/durable_conformance.sh
 #
@@ -113,24 +114,6 @@ echo "== client conformance =="
 if ! (
   cd "$TMP"
   npm install --silent @durable-streams/client-conformance-tests@0.2.13
-  # The upstream suite marks two base64 Server-Sent Events (SSE) cases with
-  # `skip: "Swift implementation broken"` for every client. Our client supports
-  # both, so remove the two markers and run the full suite. The count check
-  # below fails if the suite file changes shape.
-  suite_case="$TMP/node_modules/@durable-streams/client-conformance-tests/test-cases/consumer/read-sse-base64.yaml"
-  python3 - "$suite_case" <<'PY'
-import pathlib
-import sys
-
-path = pathlib.Path(sys.argv[1])
-text = path.read_text()
-marker = 'skip: "Swift implementation broken"'
-count = text.count(marker)
-if count != 2:
-    raise SystemExit(f"expected 2 suite-forced skips in {path}, found {count}")
-path.write_text(text.replace(marker, ""))
-print(f"removed {count} suite-forced skips from {path.name}")
-PY
   npx @durable-streams/client-conformance-tests \
     --run "$ROOT/target/debug/examples/durable_client_adapter"
 ) 2>&1 | tee "$CLIENT_LOG"; then
@@ -155,10 +138,34 @@ if [ "$failed" -ne 0 ]; then
   echo "FAIL: the client suite has ${failed} failed test(s)" >&2
   exit 1
 fi
-if [ "$passed" -ne 269 ] || [ "$skipped" -ne 0 ] || [ "$total" -ne 269 ]; then
-  echo "FAIL: the client suite must report 269 passed and 0 skipped of 269 tests" >&2
+if [ "$passed" -ne 267 ] || [ "$skipped" -ne 2 ] || [ "$total" -ne 269 ]; then
+  echo "FAIL: the client suite must report 267 passed and 2 skipped of 269 tests" >&2
   exit 1
 fi
+
+# Each skip prints as "  o <name> (skipped: <reason>)". Only the two upstream
+# suite-forced Swift skips are allowed.
+skip_lines="$(grep -E '\(skipped' "$CLIENT_LOG" || true)"
+skip_count="$(printf '%s\n' "$skip_lines" | grep -c . || true)"
+if [ "$skip_count" -ne 2 ]; then
+  echo "FAIL: the client suite must skip exactly 2 tests, not ${skip_count}" >&2
+  printf '%s\n' "$skip_lines" >&2
+  exit 1
+fi
+bad_skips="$(printf '%s\n' "$skip_lines" | grep -v 'Swift implementation broken' || true)"
+if [ -n "$bad_skips" ]; then
+  echo "FAIL: a client skip has a reason other than the suite-forced Swift skip" >&2
+  printf '%s\n' "$bad_skips" >&2
+  exit 1
+fi
+
+echo "== our base64 SSE coverage =="
+# The upstream suite forces two base64 Server-Sent Events (SSE) cases to skip
+# for every client. We do not patch the upstream suite. Our client tests cover
+# the same two behaviours (a multiline event and a 4096-byte payload split
+# across lines), so the gate runs them here.
+cargo test --profile uat -p foundation_core --features test-clock --test mod base64
+echo "our base64 SSE coverage: passed"
 
 echo "== Durable Object transport matrix =="
 # The DO driver needs Node, wrangler and worker-build. Use the pinned wrangler
@@ -182,4 +189,4 @@ echo "== local Cloudflare R2 block store =="
 cargo test --profile uat -p foundation_nativeapis --features r2-wrangler --test r2_wrangler
 echo "local R2: the block store round trip passed under wrangler"
 
-echo "== done: server 338 passed (338), client 269 passed, 0 failed, 0 skipped =="
+echo "== done: server 338 passed (338), client 267 passed, 0 failed, 2 upstream-forced skips, our base64 SSE coverage passed =="

@@ -116,10 +116,13 @@ _Caption: Conformance gates the merge. Valtron tests are separate._
       failure and on a count other than 338 server passes or 267 client passes with 2
       suite-forced skips. The `foundation_core` test run with `multi,test-clock,vfs-testkit`
       runs the memory VFS conformance test in CI.
-- [x] **T5 — no skip.** The two upstream cases marked `Swift implementation broken`
-      (`read-sse-base64.yaml`) are unmarked in the installed suite by the gate, and all 269
-      client cases run. The server suite has no skip. Issue #1082 records the upstream markers
-      and is closed.
+- [x] **T5 — skip register and own coverage.** The upstream suite marks two base64 SSE cases
+      with `Swift implementation broken` (`read-sse-base64.yaml`). The gate does not patch the
+      upstream suite; it requires 267 passed and 2 skipped, both with that reason. Our own client
+      tests cover the same behaviours
+      (`given_a_multiline_base64_event_when_it_is_read_then_it_decodes_to_the_text`,
+      `given_a_large_base64_payload_split_across_lines_when_it_is_read_then_it_decodes_exactly`)
+      and the gate runs them. The server suite has no skip. Issue #1082 is closed.
 - [ ] **T6 — valtron suite.** Run the reader, writer, wait and wake tests separately.
 - [x] **T7 — report.** `features/08-conformance/report.md` holds the gate command, the suite
       versions and commit, the recorded counts, the four-direction matrix and the runtime matrix.

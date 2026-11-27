@@ -2,15 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-27: strict gate, no skip, hosted stores and wasm proof. `bash ci/durable_conformance.sh`
-  with live MinIO: server 338 passed (338); client 269 passed, 0 failed, 0 skipped; DO matrix
-  eight scenarios; local R2 block store; exit 0. The gate removes the two upstream
-  `Swift implementation broken` markers in the installed suite, so a skip is now a failure.
+- 2026-11-27: strict gate, hosted stores and wasm proof. `bash ci/durable_conformance.sh` with
+  live MinIO: server 338 passed (338); client 267 passed, 0 failed, 2 upstream-forced skips; DO
+  matrix eight scenarios; local R2 block store; our own base64 SSE coverage; exit 0. The gate
+  does not patch the upstream suite; our client tests cover the two skipped behaviours.
   MinIO has a local compose service in `docker-compose.services.yaml` (profile `object-store`).
   #1056 fixed: `turso` and `libsql` no longer pull `multi`, so the default `foundation_db` build
   works for wasm32. #1080 fixed: `durable_core_roundtrip_over_memory_vfs` runs over `MemoryVfs`
-  on the `js-foundation-wasm` host. #1115 records a wasm deadline-order case that fails in
-  isolation; the executor needs the fix.
+  on the `js-foundation-wasm` host. #1115 fixed: the local executor now waits on the nearest
+  sleeper deadline, so the wasm deadline-order case passes.
 - 2026-11-27: feature 08 T12 (Durable Object CI fixes). The gate uses the project wrangler pin,
   `npx --yes wrangler@4.156.2` (`WRANGLER_VERSION` in `mise.toml`), not a global npm install.
   `tests/do_driver.rs` resolves `WRANGLER_BIN`, then `npx --yes wrangler@<version>`, then
