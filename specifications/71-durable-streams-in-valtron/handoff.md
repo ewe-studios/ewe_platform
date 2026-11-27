@@ -160,6 +160,16 @@ Finish in this order. The first item that is not blocked starts now.
 8. #1063 The wasm unused import warning.
 9. #1082 The two suite-forced skips. Keep the register current; close when it is recorded.
 
+## 4.6 Transport conformance matrix (owner rule 2026-11-27)
+
+Every transport surface runs the same scenario suite: HTTP, WebSocket, ConnectRPC, and any
+transport added later. The upstream suites remain the HTTP gate. A transport without an upstream
+suite must replicate the scenarios and pass them.
+
+- One driver-based test crate runs each scenario through each transport and compares the results.
+- A new transport is not done until its driver passes the suite.
+- A transport may change the encoding, never the protocol outcome.
+
 ## 5. Rules that matter here
 
 - Run `ci/durable_conformance.sh` before you call a protocol change done.
