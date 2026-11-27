@@ -49,10 +49,10 @@ concurrency:
 jobs:
   sandbox-e2e:
     runs-on: ubuntu-latest
-    # The first microVM run pulls an image and boots a real guest. Together
-    # with the static slave build it needs more than 60 minutes. A run that
-    # reached 60 minutes was cancelled, not failed (run 45867743472).
-    timeout-minutes: 90
+    # The job builds the static slave, builds the nested host image and runs
+    # the real microVM tests. It reached 90 minutes and was cancelled, not
+    # failed, so allow 150 minutes.
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4.4.0
         with:
@@ -88,14 +88,33 @@ jobs:
           # profile never restores here.
           key: sandbox-e2e-${{ runner.os }}-agent
 
-      - name: Download the pinned Firecracker release
+      - name: Read the pinned Firecracker version
+        id: firecracker
         run: |
           version=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['firecracker_version'])")
           sha=$(python3 -c "import tomllib; print(tomllib.load(open('ci/sandbox.toml', 'rb'))['firecracker_x86_64_sha256'])")
-          url="https://github.com/firecracker-microvm/firecracker/releases/download/v${version}/firecracker-v${version}-x86_64.tgz"
-          curl -fsSL "$url" -o /tmp/firecracker.tgz
-          echo "$sha  /tmp/firecracker.tgz" | sha256sum -c -
-          tar -xzf /tmp/firecracker.tgz -C /tmp
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the pinned Firecracker tarball
+        uses: actions/cache@v4
+        with:
+          path: .cache/firecracker.tgz
+          # The key names the release version and the published asset checksum
+          # from ci/sandbox.toml, so the tarball is downloaded once per release.
+          key: firecracker-${{ runner.os }}-${{ steps.firecracker.outputs.version }}-${{ steps.firecracker.outputs.sha }}
+
+      - name: Download the pinned Firecracker release
+        run: |
+          version="${{ steps.firecracker.outputs.version }}"
+          sha="${{ steps.firecracker.outputs.sha }}"
+          mkdir -p .cache
+          if [ ! -f .cache/firecracker.tgz ]; then
+            url="https://github.com/firecracker-microvm/firecracker/releases/download/v${version}/firecracker-v${version}-x86_64.tgz"
+            curl -fsSL "$url" -o .cache/firecracker.tgz
+          fi
+          echo "$sha  .cache/firecracker.tgz" | sha256sum -c -
+          tar -xzf .cache/firecracker.tgz -C /tmp
           sudo install "/tmp/release-v${version}-x86_64/firecracker-v${version}-x86_64" \
             /usr/local/bin/firecracker
           firecracker --version
