@@ -2348,3 +2348,14 @@ The Windows HTTP client library cross-check passes without TLS, with and without
 The intended Windows package command needs the Windows C headers for the `ring` build.
 Run the prepared Windows recipes on a Windows runner before removing the shared test exclusions.
 [Windows package follow-up](https://github.com/ewe-studios/ewe_platform/issues/1203)
+
+## Windows HTTP overlay test dependency
+
+The hosted Windows HTTP build stops at Unix imports in the WireGuard test dependency.
+Limit that dependency to Unix. The overlay round trip keeps its existing Unix condition.
+Locked Windows dependency graphs omit WireGuard in both Hypertext Transfer Protocol (HTTP) recipes.
+On macOS, the overlay round trip passes with `multi,quic`.
+Windows library checks pass with `netio-core` and `netio-core,multi`.
+The two full Windows test type checks require the Windows C software development kit (SDK).
+Run both recipes on a Windows host before changing the opt-out.
+[Issue 531](https://github.com/ewe-studios/ewe_platform/issues/531) · [Hosted failure](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956/job/140785098454)

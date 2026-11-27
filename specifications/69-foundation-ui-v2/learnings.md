@@ -1752,3 +1752,11 @@ Feature 37 names the browser, iPhone, and Android for its synchronized mutations
 That check uses a native server on a supported host.
 The Windows compiler check and driver tests do not establish Windows Todo serving.
 [Original Windows log](https://github.com/ewe-studios/ewe_platform/actions/runs/43132412804/job/130900138730)
+
+## Windows HTTP overlay test dependency
+
+Cargo resolves test dependencies even when a platform condition excludes their test source.
+The WireGuard dependency serves only the Unix overlay round trip.
+Give the test dependency the same platform condition as the test.
+The local Windows cross-check reaches the native Transport Layer Security (TLS) library.
+That build requires the Windows C header `assert.h`.
