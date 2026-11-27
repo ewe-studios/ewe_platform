@@ -12,7 +12,7 @@
 //! Self-contained: raw `std::net::TcpStream` client + `std` timing only, so it
 //! needs no HTTP client / macro deps. Gated on `multi` (the executor the server
 //! runs handler tasks on); empty otherwise.
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::io::{Read, Write};
 use std::sync::atomic::{AtomicU64, Ordering};

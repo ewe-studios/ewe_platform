@@ -14,6 +14,9 @@
 //! fanning `method → events`; commands block on a per-request channel. Browser
 //! processes + sockets are RAII guards so a test's setup/teardown is
 //! deterministic on success, error, or panic (spec-43 phase-1 §0).
+//!
+//! The browser driver uses the native client transport on Windows.
+//! The local HTTP test server, its harness, and `wasm_ui_server` require Unix.
 
 #![allow(clippy::module_name_repetitions)]
 
@@ -28,6 +31,7 @@ pub mod locator;
 pub mod pause;
 pub mod runtime;
 pub mod supervisor;
+#[cfg(unix)]
 pub mod test;
 
 pub use browser::{BrowserDriver, Page};
@@ -40,4 +44,5 @@ pub use pause::WaitConfig;
 
 /// `#[wasm_ui_server]` — boot a server + browser for a test, with deterministic
 /// teardown (see the macro docs).
+#[cfg(unix)]
 pub use foundation_macros::wasm_ui_server;

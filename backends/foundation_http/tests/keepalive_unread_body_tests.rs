@@ -4,7 +4,7 @@
 //! body is itself a request line for a real route, so the old behaviour
 //! answered it — request smuggling.
 
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::io::{Read, Write};
 use std::net::TcpStream;
