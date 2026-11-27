@@ -56,7 +56,18 @@ If the turn still stalls after this change, the remaining suspect is the single-
 driver not honouring a `Depends` readiness wake (`SimRuntime`). That is a harness fix, not a
 change to `ExecutionIterator`.
 
-## 4. Tasks
+## 4. The evidence comes first
+
+No production code changes until four failing tests prove the cause and the layer:
+
+1. `wait_arm_never_repolls_single_threaded` — the adapter returns `Pending` on `Wait` while the producer still has items, and nothing re-polls it.
+2. `wait_arm_completes_with_a_producer_thread` — the same stream completes when another thread advances the producer. The difference is the engine, not the adapter.
+3. `dst_real_registry_turn_hangs_today` — one turn over the real `LocalInstanceRegistry` and `AgentSession` on `SimRuntime` does not finish. A watchdog makes it fail in seconds, never hang CI.
+4. `sim_honours_depends_readiness` — a task waiting on an `EventReadiness` resumes when a push fires it. If this passes, the harness honours readiness and the `Wait` arm is the only defect; if it fails, the fix belongs in `SimRuntime`.
+
+Each test has a watchdog. The failing outputs are recorded on the issue, and they decide which layer changes.
+
+## 5. Tasks
 
 | Task | Work | Closes |
 |---|---|---|
@@ -65,7 +76,7 @@ change to `ExecutionIterator`.
 | T3 | `TurnEvents` and `ExecutionIterator` stay as they are; prove the multi-threaded path is unchanged by its existing tests | — |
 | T4 | Replace the `ScriptedRegistry` in `foundation_agent_rpc_dst` with the real registry; keep the 32-seed determinism test and the injected storage failure | #908 |
 
-## 5. Tests
+## 6. Tests
 
 | Test | Oracle |
 |---|---|
@@ -75,7 +86,7 @@ change to `ExecutionIterator`.
 | `dst_same_seed_gives_identical_traces_for_32_seeds` | stateful model |
 | `dst_injected_storage_failure_gives_a_typed_error` | fault |
 
-## 6. Verify
+## 7. Verify
 
 ```bash
 cargo test -p foundation_core --features testing --profile uat sim
@@ -84,7 +95,7 @@ cargo check -p foundation_ai --no-default-features
 cargo test -p foundation_agent_rpc --profile uat native_
 ```
 
-## 7. Done when
+## 8. Done when
 
 The DST run uses the real registry and session, the 32 seeds give the same trace twice, and
 #908 is closed.
