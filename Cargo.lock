@@ -4085,6 +4085,7 @@ dependencies = [
  "foundation_http",
  "foundation_macros",
  "foundation_netio",
+ "serde",
  "serde_json",
  "serial_test",
 ]
@@ -6563,6 +6564,7 @@ dependencies = [
  "foundation_db",
  "foundation_errstacks",
  "foundation_macros",
+ "foundation_netio",
  "foundation_nostd",
  "foundation_reactor",
  "foundation_vfs",
@@ -6572,6 +6574,7 @@ dependencies = [
  "hex",
  "hmac 0.13.0",
  "io-uring",
+ "js-sys",
  "libc",
  "libsql 0.9.30",
  "nfsserve",
@@ -6590,6 +6593,8 @@ dependencies = [
  "tracing-test",
  "turso",
  "uuid",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
  "windows-sys 0.59.0",
 ]
 
