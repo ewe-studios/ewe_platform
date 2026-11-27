@@ -66,7 +66,7 @@ impl worker::DurableObject for SandboxDo {
             }
         };
         let parts = simple_request(&request, &body)?;
-        let Some(control) = self.control(Some(id)).await? else {
+        let Some(control) = self.control(Some(id.clone())).await? else {
             return connect_error_response(
                 &request,
                 &[],
@@ -75,7 +75,11 @@ impl worker::DurableObject for SandboxDo {
                 },
             );
         };
-        worker_response(control.handle(parts).await)
+        let parts = control.handle(parts).await;
+        // The Durable Object console line makes the next failing run show that
+        // the request reached this object and which status it answered.
+        worker::console_log!("sandbox {} {} -> {}", id, request.path(), parts.status);
+        worker_response(parts)
     }
 
     async fn alarm(&self) -> worker::Result<worker::Response> {

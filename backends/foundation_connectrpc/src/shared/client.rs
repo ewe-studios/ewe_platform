@@ -1849,9 +1849,11 @@ async fn with_deadline_at<T>(
     // engine inside the poll; a wasm task that waits on it re-enters the engine
     // and can reach a binding from a stale instance (issue #1125). Keep the
     // valtron sleeper only when the context has no environment.
-    let sleeper = match ctx.require_env() {
+    let sleeper: std::pin::Pin<Box<dyn Future<Output = ()> + Send>> = match ctx.require_env() {
         Ok(env) => env.timer().sleep_until(ctx.clone(), deadline),
-        Err(_) => Box::pin(valtron::sleep_async(remaining, &ctx)),
+        Err(_) => Box::pin(foundation_compact::SendWrapper::new(valtron::sleep_async(
+            remaining, &ctx,
+        ))),
     };
     match futures::future::select(call, sleeper).await {
         futures::future::Either::Left((result, _sleeper)) => result,
