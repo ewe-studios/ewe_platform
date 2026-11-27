@@ -90,7 +90,7 @@ fn turso_insert_if_absent_is_atomic() {
 }
 
 /// The libsql backend is an optional feature; the test runs when it is on.
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 #[valtron_test(threads = 8, timeout = 60000)]
 fn libsql_insert_if_absent_is_atomic() {
     let store = foundation_db::LibsqlStore::in_memory(foundation_context::Ctx::host())

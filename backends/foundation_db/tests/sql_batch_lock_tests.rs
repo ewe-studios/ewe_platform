@@ -69,7 +69,7 @@ async fn open_turso_file(path: &str) -> foundation_db::StorageResult<foundation_
     foundation_db::TursoStorage::new(path, foundation_context::Ctx::host()).await
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 async fn open_libsql_file(path: &str) -> foundation_db::StorageResult<foundation_db::LibsqlStore> {
     foundation_db::LibsqlStore::new_kv(path, None, foundation_context::Ctx::host()).await
 }

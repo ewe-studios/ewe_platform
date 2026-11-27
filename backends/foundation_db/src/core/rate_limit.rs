@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use foundation_context::Ctx;
@@ -21,7 +21,7 @@ use foundation_context::Ctx;
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use futures_lite::StreamExt;
@@ -29,21 +29,21 @@ use futures_lite::StreamExt;
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use crate::core::backends::unix_now_secs;
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use crate::core::errors::{StorageError, StorageResult};
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use crate::core::storage_provider::{DataValue, QueryStore};
@@ -55,7 +55,7 @@ use crate::core::storage_provider::{DataValue, QueryStore};
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 pub(crate) const CREATE_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS rate_limits (\
@@ -76,7 +76,7 @@ pub(crate) const CREATE_TABLE_SQL: &str = "CREATE TABLE IF NOT EXISTS rate_limit
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 pub(crate) const RECORD_SQL: &str = "INSERT INTO rate_limits (id, key, count, window_start, window_end) VALUES (?, ?, 1, ?, ?) \
@@ -90,7 +90,7 @@ pub(crate) const RECORD_SQL: &str = "INSERT INTO rate_limits (id, key, count, wi
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 pub(crate) const SELECT_SQL: &str = "SELECT count, window_start FROM rate_limits WHERE key = ?";
@@ -142,7 +142,7 @@ impl RateLimitEntry {
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
@@ -170,7 +170,7 @@ pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
@@ -214,7 +214,7 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 pub(crate) async fn sql_reset<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<()> {
@@ -231,7 +231,7 @@ pub(crate) async fn sql_reset<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> S
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 async fn sql_entry<Q: QueryStore + ?Sized>(
@@ -262,7 +262,7 @@ async fn sql_entry<Q: QueryStore + ?Sized>(
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 fn to_i64(secs: u64) -> StorageResult<i64> {

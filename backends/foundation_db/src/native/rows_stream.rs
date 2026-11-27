@@ -12,7 +12,7 @@
 //! function that converts each raw row into the desired type. Each use site provides
 //! its own transformation closure specific to the type being extracted.
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 use futures_lite::future::block_on;
 
 // ============================================================================
@@ -24,14 +24,14 @@ use futures_lite::future::block_on;
 /// Generic over output type `T` which must be `Send + 'static`.
 /// Accepts a transformation function `F: FnMut(&libsql::Row) -> Result<T, StorageError>`.
 /// Owns `libsql::Rows` directly on the worker thread.
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 pub struct LibsqlRowsIterator<T, F> {
     rows: libsql::Rows,
     transform: F,
     _marker: core::marker::PhantomData<T>,
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 impl<T, F> LibsqlRowsIterator<T, F>
 where
     T: Send + 'static,
@@ -47,7 +47,7 @@ where
     }
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 impl<T, F> Iterator for LibsqlRowsIterator<T, F>
 where
     T: Send + 'static,

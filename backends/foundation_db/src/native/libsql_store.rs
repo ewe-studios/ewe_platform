@@ -222,6 +222,7 @@ enum LibsqlMode {
     /// `StateStore`. Table name = `{project}_{stage}_resources`.
     State { table_name: String },
     /// `StateStore` with Turso remote sync. Table name = `{project}_{stage}_resources`.
+    #[cfg(feature = "libsql")]
     StateRemote { table_name: String },
 }
 
@@ -248,6 +249,7 @@ enum LibsqlMode {
 pub struct LibsqlStore {
     conn: Arc<libsql::Connection>,
     gate: ConnGate,
+    #[cfg(feature = "libsql")]
     db: Option<Arc<libsql::Database>>,
     mode: LibsqlMode,
 }
@@ -289,6 +291,7 @@ impl LibsqlStore {
         Ok(Self {
             conn: Arc::new(conn),
             gate: ConnGate::new(ctx),
+            #[cfg(feature = "libsql")]
             db: None,
             mode: LibsqlMode::KeyValue { encryption_key },
         })
@@ -324,6 +327,7 @@ impl LibsqlStore {
         Ok(Self {
             conn: Arc::new(conn),
             gate: ConnGate::new(ctx),
+            #[cfg(feature = "libsql")]
             db: None,
             mode: LibsqlMode::State { table_name },
         })
@@ -336,6 +340,7 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the remote connection fails.
+    #[cfg(feature = "libsql")]
     pub async fn new_state_remote(
         local_path: &str,
         turso_url: &str,
@@ -390,6 +395,8 @@ impl LibsqlStore {
     ///   3. `LIBSQL_LOCAL_PATH` or `DEPLOYMENT_STATE_DB` → local SQLite
     ///   4. Default: `{project_dir}/.deployment/state.db` → local SQLite
     ///
+    /// Remote configuration requires the `libsql` feature.
+    ///
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
@@ -399,7 +406,17 @@ impl LibsqlStore {
         stage: &str,
         ctx: Ctx,
     ) -> StorageResult<Self> {
+        #[cfg(not(feature = "libsql"))]
+        if std::env::var_os("TURSO_DATABASE_URL").is_some()
+            || std::env::var_os("LIBSQL_TURSO_URL").is_some()
+        {
+            return Err(StorageError::Unsupported(
+                "libsql replica configuration requires the libsql feature".to_string(),
+            ));
+        }
+
         // Remote Turso
+        #[cfg(feature = "libsql")]
         if let (Ok(url), Ok(token)) = (
             std::env::var("TURSO_DATABASE_URL"),
             std::env::var("TURSO_AUTH_TOKEN"),
@@ -410,6 +427,7 @@ impl LibsqlStore {
         }
 
         // Embedded replica via libsql env
+        #[cfg(feature = "libsql")]
         if let (Ok(url), Ok(token)) = (
             std::env::var("LIBSQL_TURSO_URL"),
             std::env::var("LIBSQL_TURSO_TOKEN"),
@@ -430,7 +448,9 @@ impl LibsqlStore {
 
     fn state_table(&self) -> &str {
         match &self.mode {
-            LibsqlMode::State { table_name } | LibsqlMode::StateRemote { table_name } => table_name,
+            LibsqlMode::State { table_name } => table_name,
+            #[cfg(feature = "libsql")]
+            LibsqlMode::StateRemote { table_name } => table_name,
             LibsqlMode::KeyValue { .. } => unreachable!("state_table called on KV mode"),
         }
     }
@@ -1143,6 +1163,7 @@ impl StateStore for LibsqlStore {
             .map_err(|e| StorageError::SqlConversion(format!("deleted count: {e}")))
     }
 
+    #[cfg(feature = "libsql")]
     async fn sync_remote(&self) -> StorageResult<()> {
         let _guard = self.write().await?;
         if let (LibsqlMode::StateRemote { .. }, Some(db)) = (&self.mode, &self.db) {

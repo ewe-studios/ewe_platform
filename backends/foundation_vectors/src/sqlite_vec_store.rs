@@ -27,7 +27,7 @@
 
 use std::path::Path;
 
-use libsql::{Builder, Connection};
+use libsql_backend::{Builder, Connection};
 
 use crate::metric::DistanceMetric;
 use crate::store::{
@@ -341,7 +341,7 @@ impl SqliteVecVectorStore {
             .conn
             .query(
                 "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-                libsql::params![table],
+                libsql_backend::params![table],
             )
             .await
             .map_err(be("look up table"))?;
@@ -373,13 +373,13 @@ impl VectorStore for SqliteVecVectorStore {
         let tx = self.conn.transaction().await.map_err(be("begin"))?;
         tx.execute(
             &format!("DELETE FROM {table} WHERE external_id = ?"),
-            libsql::params![entry.id.clone()],
+            libsql_backend::params![entry.id.clone()],
         )
         .await
         .map_err(be("replace"))?;
         tx.execute(
             &format!("INSERT INTO {table}(external_id, embedding, metadata) VALUES (?, ?, ?)"),
-            libsql::params![entry.id, blob, meta],
+            libsql_backend::params![entry.id, blob, meta],
         )
         .await
         .map_err(be("insert"))?;
@@ -395,7 +395,7 @@ impl VectorStore for SqliteVecVectorStore {
             .conn
             .execute(
                 &format!("DELETE FROM {table} WHERE external_id = ?"),
-                libsql::params![id],
+                libsql_backend::params![id],
             )
             .await
             .map_err(be("delete"))?;
@@ -424,7 +424,7 @@ impl VectorStore for SqliteVecVectorStore {
                     "SELECT external_id, distance FROM {table} \
                      WHERE embedding MATCH ? AND k = ? ORDER BY distance"
                 ),
-                libsql::params![vec_blob(query), k],
+                libsql_backend::params![vec_blob(query), k],
             )
             .await
             .map_err(be("query vec0"))?;
@@ -453,7 +453,7 @@ impl VectorStore for SqliteVecVectorStore {
             .conn
             .query(
                 &format!("SELECT embedding, metadata FROM {table} WHERE external_id = ?"),
-                libsql::params![id],
+                libsql_backend::params![id],
             )
             .await
             .map_err(be("get"))?;

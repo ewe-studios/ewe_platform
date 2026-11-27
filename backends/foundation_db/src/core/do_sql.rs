@@ -30,7 +30,7 @@ use crate::core::errors::{StorageError, StorageResult};
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 use crate::core::storage_provider::RateLimiterStore;
@@ -343,7 +343,7 @@ impl BlobStore for DoSqlStore {
 #[cfg(any(
     feature = "turso",
     feature = "d1",
-    feature = "libsql",
+    feature = "libsql-local",
     all(target_family = "wasm", feature = "wasm-bindgen-storage")
 ))]
 #[async_trait]

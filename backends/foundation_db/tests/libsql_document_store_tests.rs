@@ -8,7 +8,7 @@
 //! delete.
 //!
 //! Gated behind the `libsql` feature.
-#![cfg(feature = "libsql")]
+#![cfg(feature = "libsql-local")]
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::{DocumentStore, LibsqlStore, SqlDocumentStore};

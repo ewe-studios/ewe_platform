@@ -11,7 +11,7 @@
 //! # Storage Providers
 //!
 //! - Turso - `SQLite`-compatible embedded/remote database with sync API
-//! - libsql - Local/remote `SQLite` with sync API
+//! - libsql - Local `SQLite` with `libsql-local`. The `libsql` feature also supports remote replicas.
 //! - Cloudflare D1 - Edge `SQLite` for Cloudflare Workers
 //! - Cloudflare R2 - Object storage for larger blobs
 //! - In-Memory - Ephemeral storage for development/testing
@@ -23,6 +23,9 @@
 // `recursion_depth_exceeding_limit`). Raise the limit instead of flattening the
 // chain: the depth is in the external `turso` dependency, not here.
 #![recursion_limit = "256"]
+
+#[cfg(all(feature = "libsql-local", not(target_arch = "wasm32")))]
+extern crate libsql_backend as libsql;
 
 // Shared — always compiled
 pub mod core;

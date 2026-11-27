@@ -147,7 +147,7 @@ fn namespaced_store_set_if_version() {
     .block();
 }
 
-#[cfg(feature = "libsql")]
+#[cfg(feature = "libsql-local")]
 #[valtron_test(threads = 8, timeout = 60000)]
 fn libsql_store_set_if_version() {
     use foundation_db::LibsqlStore;

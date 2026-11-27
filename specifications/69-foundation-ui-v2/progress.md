@@ -14,6 +14,15 @@
 - Retain the appearance of the Add, filter, completion, and delete controls. [Issue 1067](https://github.com/ewe-studios/ewe_platform/issues/1067)
 - Verify both theme preferences with populated rows. Verify the dark browser surface with a test setting.
 
+## Todo local database build
+
+- Select local-only libsql for the Todo server and native storage.
+- Keep the existing libsql feature for callers that use remote replicas.
+- Check the locked server, iPhone, and Android build graphs. Only the local database code remains.
+- Pass 13 database tests, 14 Todo server tests, and seven native Todo tests on macOS.
+- Compile the existing replica feature and the SQLite vector store.
+- [Issue 1070](https://github.com/ewe-studios/ewe_platform/issues/1070) tracks the extra database dependencies.
+
 ## Feature 32 — Todo input pause
 
 - Add a named input pause control and modal to the shared Todo view.

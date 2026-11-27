@@ -1,7 +1,7 @@
 //! `LibsqlStore` as a `StateStore` on a local database: CRUD, the SQL
 //! prefix overrides, and the `find_by_*` queries against the stored columns.
 
-#![cfg(feature = "libsql")]
+#![cfg(feature = "libsql-local")]
 
 use chrono::Utc;
 use foundation_core::valtron::valtron_test;
@@ -174,4 +174,38 @@ async fn delete_removes_and_missing_is_ok() {
     store.delete("never-there").await.unwrap();
     assert!(store.get("a").await.unwrap().is_none());
     assert_eq!(store.count().await.unwrap(), 4);
+}
+
+#[cfg(not(feature = "libsql"))]
+#[valtron_test]
+async fn local_store_rejects_replica_configuration() {
+    const TEST_CASE: &str = "EWE_TEST_LIBSQL_REPLICA_URL";
+    if let Some(variable) = std::env::var_os(TEST_CASE) {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(std::env::var_os(variable).is_some());
+        let result =
+            LibsqlStore::from_env_state(dir.path(), "test", "dev", foundation_context::Ctx::host())
+                .await;
+        assert!(matches!(
+            result,
+            Err(foundation_db::StorageError::Unsupported(_))
+        ));
+        assert!(!dir.path().join(".deployment").exists());
+        return;
+    }
+
+    for variable in ["TURSO_DATABASE_URL", "LIBSQL_TURSO_URL"] {
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", "local_store_rejects_replica_configuration"])
+            .env_clear()
+            .env(TEST_CASE, variable)
+            .env(variable, "https://replica.invalid")
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+    }
 }
