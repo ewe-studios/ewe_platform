@@ -1805,3 +1805,18 @@ The reference generator adds the search input to the native presentation fixture
 The Rust, Swift, and Kotlin packages use the same frame and expected snapshot.
 The Rust reference suite passes 102 tests. The Swift fixture test and six Kotlin conformance tests pass.
 [Issue 1158](https://github.com/ewe-studios/ewe_platform/issues/1158)
+
+## 2026-11-28 — Android features 23 and 32
+
+The isolated Android local fixture submits from the keyboard, completes a row, selects Done, and preserves a row after Cancel.
+The server fixture confirms removal of the selected row. Its current record is empty.
+
+TalkBack speech reaches the host output.
+The recordings identify Add, the selected All filter, the unchecked Complete box, the checked Reopen box, and Delete.
+Direct touch exploration reaches Delete on the same screen. These results use recorded speech.
+
+The countdown test uses 130 percent text size. Back keeps the pause in effect.
+The accessibility tree hides the background controls while the modal is open.
+An independent client adds a Todo during the pause. The Android app shows it behind the modal.
+A restart preserves the pause. Input returns after 67.82 seconds, including polling.
+The countdown check uses the rendered frame and accessibility tree.

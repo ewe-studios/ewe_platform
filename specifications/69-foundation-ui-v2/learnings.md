@@ -1424,3 +1424,10 @@ Keep historical commit structure and skipped tests visible during acceptance rev
 The presentation reference test generates one node for each native presentation kind.
 A new kind changes the generated frame and snapshot.
 Regenerate both files with the reference test. Copy both files to each native package and run its reader test.
+
+## 2026-11-28 — Android speech and countdown checks
+
+An accessibility label does not prove that a screen reader speaks the label.
+Enable touch exploration and use the emulator touch device. Confirm that the target app has focus before recording.
+Keep speech recordings separate from accessibility tree results.
+On the countdown check, use a second client with its own session. Capture the peer update before the modal closes.
