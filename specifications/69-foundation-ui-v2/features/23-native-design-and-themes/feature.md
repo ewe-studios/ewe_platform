@@ -208,3 +208,22 @@ Pending titles follow the same search rules as confirmed titles.
 | Pixel | [Light](design/android-search-light.png) and [large dark text](design/android-search-dark-large.png) | [Search with the keyboard open](design/android-search-keyboard.png) |
 | iPhone | [Light](design/ios-native-search.png) and [large dark text](design/ios-dark-native-search.png) | [Attached sheet](design/ios-entry-attached.png) and [keyboard](design/ios-entry-keyboard.png) |
 | iPhone with large dark text | [Search](design/ios-dark-native-search.png) | [Attached sheet](design/ios-dark-entry-attached.png) and [keyboard](design/ios-dark-entry-keyboard.png) |
+
+## Browser list color scheme
+
+The browser changes the row text color when the system selects a dark appearance.
+The page canvas remains white. A populated title has a contrast ratio of approximately 1.45 to 1.
+[Issue 1069](https://github.com/ewe-studios/ewe_platform/issues/1069) tracks this problem.
+
+- [Current light list](design/browser-light-list-before.png)
+- [Current dark list](design/browser-dark-list-before.png)
+
+Declare support for light and dark appearances in the Todo page template.
+This declaration makes the standard browser canvas and form colors follow the selected appearance.
+Keep the existing theme token values and controls.
+
+1. Load a populated Todo list in Chromium with each appearance.
+2. Check that populated row titles and dialog text have a contrast ratio of at least 4.5 to 1.
+3. Use the keyboard to reach the filter and dialog controls. Check that you can see the focus outline.
+4. Complete a Todo. Check its state, count, and filter placement.
+5. Capture the list and open dialog in each appearance.
