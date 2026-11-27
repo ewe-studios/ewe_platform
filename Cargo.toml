@@ -85,9 +85,6 @@ wasm-bindgen-futures = "=0.4.80"
 web-sys = "=0.3.107"
 js-sys = "=0.3.107"
 clap = { version = "4.6", features = ["derive", "string"] }
-# The reference Durable Streams client needs the tokio runtime, and two test
-# crates already use tokio directly. Each crate adds only its own features.
-tokio = { version = "1.53.1" }
 libc = "0.2"
 tempfile = "3.27"
 windows-sys = "0.61"

@@ -74,7 +74,9 @@ libc = "0.2"
 # already builds libsql for foundation_db; this crate reuses the same version.
 libsql = "0.6"
 serial_test = { workspace = true }
-tokio = { workspace = true, features = ["macros", "rt"] }
+# The external reference Durable Streams client needs tokio in the cross-run
+# test. No shipped code uses it.
+tokio = { version = "1.53.1", features = ["macros", "rt"] }
 smol = "2"
 
 [features]

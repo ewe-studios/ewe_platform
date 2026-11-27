@@ -89,8 +89,8 @@ foundation_event_stream = { path = "../foundation_event_stream" }
 # from `packages/client-rust` of the public durable-streams repository. The
 # client is not published on crates.io, so the public commit is pinned.
 durable-streams = { git = "https://github.com/durable-streams/durable-streams", rev = "461b40267aabd644558f9b19dbb9507dd5f691cf" }
-# The reference client runs on the tokio runtime.
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time", "net"] }
+# The external reference client runs on the tokio runtime. Dev only.
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "time", "net"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
 async-trait = "0.1"
