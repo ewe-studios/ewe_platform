@@ -46,6 +46,8 @@ pub enum BaseRef {
     Image(ImageRef),
     /// An image name or identifier in the local Docker daemon.
     Docker(String),
+    /// A container image in a registry (feature 15).
+    Oci(String),
     /// A tar file of a root file system on the host.
     Tar(PathBuf),
 }
@@ -261,6 +263,7 @@ fn print_base(base: &BaseRef) -> String {
         BaseRef::Image(ImageRef::Tag(tag)) => format!("image:{tag}"),
         BaseRef::Image(ImageRef::Key(key)) => format!("image:{key}"),
         BaseRef::Docker(name) => format!("docker:{name}"),
+        BaseRef::Oci(reference) => format!("oci:{reference}"),
         BaseRef::Tar(path) => format!("tar:{}", path.display()),
     }
 }
@@ -486,12 +489,17 @@ fn parse_base(value: &str, line: u32) -> SandboxResult<BaseRef> {
         }
         return Ok(BaseRef::Tar(PathBuf::from(path)));
     }
-    if value.starts_with("oci:") {
-        return Err(invalid(line, "oci: is not available in this build"));
+    if let Some(reference) = value.strip_prefix("oci:") {
+        if reference.is_empty() {
+            return Err(invalid(line, "the registry reference is empty"));
+        }
+        crate::native::images::registry::OciReference::parse(reference)
+            .map_err(|_| invalid(line, "the registry reference is not valid"))?;
+        return Ok(BaseRef::Oci(reference.to_string()));
     }
     Err(invalid(
         line,
-        "FROM needs alpine:<version>, image:<tag-or-key>, docker:<name> or tar:<path>",
+        "FROM needs alpine:<version>, image:<tag-or-key>, docker:<name>, tar:<path> or oci:<reference>",
     ))
 }
 

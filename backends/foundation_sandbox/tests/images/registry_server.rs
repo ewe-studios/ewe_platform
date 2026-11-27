@@ -22,6 +22,41 @@ use std::thread::JoinHandle;
 use std::time::Duration;
 
 use foundation_sandbox::native::artifacts::sha256_hex;
+use serde_json::json;
+
+/// The media type of an image manifest.
+pub const OCI_MANIFEST: &str = "application/vnd.oci.image.manifest.v1+json";
+/// The media type of an image configuration.
+pub const OCI_CONFIG: &str = "application/vnd.oci.image.config.v1+json";
+
+/// One descriptor JSON object.
+#[must_use]
+pub fn descriptor(media_type: &str, digest: &str, size: u64) -> serde_json::Value {
+    json!({"mediaType": media_type, "digest": digest, "size": size})
+}
+
+/// One image manifest body.
+#[must_use]
+pub fn manifest_body(config: &serde_json::Value, layers: &[serde_json::Value]) -> Vec<u8> {
+    serde_json::to_vec(&json!({
+        "schemaVersion": 2,
+        "mediaType": OCI_MANIFEST,
+        "config": config,
+        "layers": layers,
+    }))
+    .expect("the manifest encodes")
+}
+
+/// One image configuration body for `architecture`.
+#[must_use]
+pub fn config_body(architecture: &str, config: &serde_json::Value) -> Vec<u8> {
+    serde_json::to_vec(&json!({
+        "architecture": architecture,
+        "os": "linux",
+        "config": config,
+    }))
+    .expect("the configuration encodes")
+}
 
 /// The token that the token service gives when the test gives none.
 pub const TEST_TOKEN: &str = "test-token";
@@ -143,6 +178,8 @@ pub struct State {
     pub manifest_serves: HashMap<String, usize>,
     /// A status that overrides every blob answer.
     pub blob_status: Option<(u16, String)>,
+    /// A status that overrides every manifest answer.
+    pub manifest_status: Option<(u16, String)>,
     /// A redirect base for every blob answer, such as `http://127.0.0.2:9`.
     pub redirect_blobs_to: Option<String>,
     /// How the server asks for credentials.
@@ -360,6 +397,9 @@ fn answer(state: &mut State, request: &RecordedRequest) -> Answer {
 fn manifest_answer(state: &mut State, request: &RecordedRequest, reference: &str) -> Answer {
     if !authorized(state, request) {
         return challenge_answer(state, request);
+    }
+    if let Some(status) = &state.manifest_status {
+        return (status.0, "Error", Vec::new(), text_body(&status.1));
     }
     let Some(manifest) = state.manifests.get(reference).cloned() else {
         return (404, "Not Found", Vec::new(), text_body("no manifest"));

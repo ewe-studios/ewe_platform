@@ -424,6 +424,7 @@ impl RegistryClient {
     ) -> SandboxResult<PathBuf> {
         let path = self.blob_path(&descriptor.digest)?;
         if self.fs.exists(&path) && self.fs.file_size(&path)? == descriptor.size {
+            self.mark_used(&path);
             progress(descriptor.size);
             return Ok(path);
         }
@@ -445,11 +446,76 @@ impl RegistryClient {
         if let Err(error) = self.fs.rename(&temporary, &path) {
             let _ = self.fs.remove_file(&temporary);
             if self.fs.exists(&path) {
+                self.mark_used(&path);
                 return Ok(path);
             }
             return Err(error);
         }
+        self.mark_used(&path);
         Ok(path)
+    }
+
+    /// Removes the least recently used blobs until the cache is under its
+    /// limit.
+    ///
+    /// It never removes one of the blobs in `keep`, which the running import
+    /// named (feature 15, section 6.4).
+    ///
+    /// # Errors
+    /// [`SandboxError::Io`] when the blob directory cannot be listed.
+    pub fn prune_blob_cache(&self, max_bytes: u64, keep: &[String]) -> SandboxResult<()> {
+        let directory = self
+            .cache_dir
+            .join(BLOB_CACHE)
+            .join(BLOB_DIR)
+            .join(BLOB_ALGORITHM);
+        if !self.fs.exists(&directory) {
+            return Ok(());
+        }
+        let mut entries = Vec::new();
+        let mut total = 0_u64;
+        for path in self.fs.read_dir(&directory)? {
+            let Some(name) = path
+                .file_name()
+                .and_then(std::ffi::OsStr::to_str)
+                .map(str::to_string)
+            else {
+                continue;
+            };
+            // A `.used` marker and a `.tmp-` file are not blobs.
+            if Path::new(&name).extension().is_some() {
+                continue;
+            }
+            let size = self.fs.file_size(&path).unwrap_or(0);
+            let used = self
+                .fs
+                .modified(&path.with_extension("used"))
+                .or_else(|| self.fs.modified(&path));
+            total = total.saturating_add(size);
+            entries.push((used, size, path, name));
+        }
+        if total <= max_bytes {
+            return Ok(());
+        }
+        entries.sort_by_key(|entry| entry.0);
+        for (_, size, path, name) in entries {
+            if total <= max_bytes {
+                break;
+            }
+            if keep.iter().any(|kept| kept == &name) {
+                continue;
+            }
+            if self.fs.remove_file(&path).is_ok() {
+                total = total.saturating_sub(size);
+            }
+            let _ = self.fs.remove_file(&path.with_extension("used"));
+        }
+        Ok(())
+    }
+
+    /// Records the last use of one cached blob.
+    fn mark_used(&self, path: &Path) {
+        let _ = self.fs.write(&path.with_extension("used"), b"");
     }
 
     /// Streams one blob into `temporary`, checks its size and its digest, and

@@ -280,6 +280,13 @@ pub struct ImageLimits {
     /// The importer counts the export chunks and stops one that passes this
     /// limit (feature 13, invariant I1).
     pub max_archive_bytes: u64,
+    /// The most bytes that the registry blob cache keeps.
+    ///
+    /// Default 20 GiB: the same value as
+    /// [`BuildLimits::cache_max_bytes`]. When the cache passes this size, the
+    /// importer removes the blobs whose last use is oldest, and never one that
+    /// the running import named (feature 15, section 6.4).
+    pub blob_cache_max_bytes: u64,
 }
 
 impl Default for ImageLimits {
@@ -289,6 +296,7 @@ impl Default for ImageLimits {
             work_max_age: Duration::from_hours(24),
             pull_timeout: Duration::from_mins(10),
             max_archive_bytes: 16 * 1024 * 1024 * 1024,
+            blob_cache_max_bytes: 20 * 1024 * 1024 * 1024,
         }
     }
 }
@@ -325,6 +333,13 @@ impl ImageLimits {
     #[must_use]
     pub fn with_max_archive_bytes(mut self, value: u64) -> Self {
         self.max_archive_bytes = value;
+        self
+    }
+
+    /// Replaces [`Self::blob_cache_max_bytes`].
+    #[must_use]
+    pub fn with_blob_cache_max_bytes(mut self, value: u64) -> Self {
+        self.blob_cache_max_bytes = value;
         self
     }
 }

@@ -520,6 +520,13 @@ impl ImageBuilder {
                 let (path, manifest) = self.store.resolve(&report.image).await?;
                 Ok((path, manifest, report.cached))
             }
+            BaseRef::Oci(reference) => {
+                let report = self
+                    .import_base(ImageSource::Oci(reference.clone()), options)
+                    .await?;
+                let (path, manifest) = self.store.resolve(&report.image).await?;
+                Ok((path, manifest, report.cached))
+            }
         }
     }
 

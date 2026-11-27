@@ -902,7 +902,10 @@ fn image_remove(ctx: &Ctx, name: &str) -> i32 {
 fn progress_text(progress: &ImportProgress) -> String {
     match progress {
         ImportProgress::Identifying => "identifying the image source".to_string(),
-        ImportProgress::Pulling => "pulling the Docker image".to_string(),
+        ImportProgress::Pulling { done, total } => match total {
+            Some(total) => format!("pulling the image: {done} of {total} bytes"),
+            None => format!("pulling the image: {done} bytes"),
+        },
         ImportProgress::CacheHit => "the image is already in the store".to_string(),
         ImportProgress::Filling { bytes } => format!("filling the image: {bytes} bytes"),
         ImportProgress::Committing => "committing the image".to_string(),
