@@ -2372,3 +2372,10 @@ The Swift manifest assertion fails before the canonical checkout fix.
 The separate project crate links on Windows and defines zero tests.
 Its generated project assertions run in the command-line application crate.
 [Native shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509/job/140763397493) · [Project shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46074778509/job/140763397530)
+
+## UI component Linux test lint
+
+The Linux package job stops at 14 strict Clippy diagnostics in two integration tests.
+Keep the existing assertions and test cases.
+Run the existing Linux strict lint and test commands before delivery.
+[Issue 1208](https://github.com/ewe-studios/ewe_platform/issues/1208)
