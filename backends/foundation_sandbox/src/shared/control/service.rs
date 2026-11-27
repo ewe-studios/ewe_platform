@@ -2,7 +2,6 @@
 
 use std::pin::Pin;
 use std::sync::Arc;
-use std::task::Poll;
 use std::time::Duration;
 
 use foundation_connectrpc::shared::transport::Transport;
@@ -171,41 +170,63 @@ impl SandboxService for ControlService {
 
     async fn create(
         &self,
-        _ctx: RpcCtx,
+        ctx: RpcCtx,
         request: Request<CreateRequest>,
     ) -> ConnectResult<Pin<Box<dyn FuturesStream<Item = ConnectResult<CreateEvent>> + Send>>> {
-        let mut iterator = self.control.create_with_progress(request.msg.spec);
+        let iterator = self.control.create_with_progress(request.msg.spec);
+        let poll_interval = self.limits.create_poll_interval;
         let max_error_message = self.limits.max_error_message;
-        let stream = futures::stream::poll_fn(move |context| loop {
-            match iterator.next() {
-                None => return Poll::Ready(None),
-                Some(Stream::Pending(progress)) => {
-                    return Poll::Ready(Some(Ok(CreateEvent::Progress(progress))));
+        let call_ctx = ctx.ctx.clone();
+        let stream = futures::stream::unfold(
+            (iterator, call_ctx),
+            move |(mut iterator, call_ctx)| async move {
+                loop {
+                    match iterator.next() {
+                        None => return None,
+                        Some(Stream::Pending(progress)) => {
+                            return Some((
+                                Ok(CreateEvent::Progress(progress)),
+                                (iterator, call_ctx),
+                            ));
+                        }
+                        Some(Stream::Next(result)) => {
+                            let event = match result {
+                                Ok(handle) => Ok(CreateEvent::Created(handle.info())),
+                                Err(error) => Err(ErrorTrace::new(
+                                    error.current_context().to_connect(max_error_message),
+                                )),
+                            };
+                            return Some((event, (iterator, call_ctx)));
+                        }
+                        Some(Stream::Wait) => {
+                            // The create progress iterator is a driving stream:
+                            // it runs its producer inside `next()`. `Wait` means
+                            // "the queue is empty; check again", not "the
+                            // producer is asleep". Pulling it again in this poll
+                            // is a synchronous loop. A wasm host has one thread,
+                            // so that loop starves its event loop: the create
+                            // can never finish and the Durable Object stops
+                            // answering (issue #1125). Park on the injected timer
+                            // so the host runs, then pull again.
+                            if crate::shared::control::wait_until(
+                                call_ctx.clock().now() + poll_interval,
+                                &call_ctx,
+                            )
+                            .await
+                            .is_err()
+                            {
+                                tracing::warn!(
+                                    "the create stream has no timer to yield on; it polls at once"
+                                );
+                            }
+                        }
+                        Some(
+                            Stream::Ignore | Stream::Init | Stream::Delayed(_) | Stream::Spread(_),
+                        ) => {}
+                    }
                 }
-                Some(Stream::Next(result)) => {
-                    let event = match result {
-                        Ok(handle) => Ok(CreateEvent::Created(handle.info())),
-                        Err(error) => Err(ErrorTrace::new(
-                            error.current_context().to_connect(max_error_message),
-                        )),
-                    };
-                    return Poll::Ready(Some(event));
-                }
-                Some(Stream::Wait) => {
-                    // The create progress iterator is a driving stream: it runs
-                    // its producer inside `next()`. `Wait` means "the queue is
-                    // empty; check again", not "the producer is asleep".
-                    // Re-pulling it in this poll is a synchronous loop, and a
-                    // timer wait would drive the engine from inside this poll,
-                    // which re-enters the create task and crashed the wasm
-                    // instance on the runner (issue #1125). Yield to the host;
-                    // the executor polls this stream again.
-                    context.waker().wake_by_ref();
-                    return Poll::Pending;
-                }
-                Some(Stream::Ignore | Stream::Init | Stream::Delayed(_) | Stream::Spread(_)) => {}
-            }
-        });
+            },
+        );
         Ok(Box::pin(stream))
     }
 
