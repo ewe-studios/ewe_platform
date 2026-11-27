@@ -1570,3 +1570,30 @@ They also check list updates, frozen search results, and retry after restart.
 Issue [714](https://github.com/ewe-studios/ewe_platform/issues/714) remains open.
 Check list updates, filter state, dialogs, and notifications in Chrome and both installed mobile applications.
 The separate one-minute block demonstration remains open.
+
+## 2026-11-27 — Todo renderer verification
+
+These checks cover the Todo list, filters, dialogs, and notifications before the countdown change.
+
+- Chrome loads the packaged browser application. The server and browser action test passes with two tabs.
+- It checks row changes, the selected Done filter, and the draft while the peer adds a row.
+- It checks Add cancellation, delete confirmation, and the notification on the client that adds the row.
+- The installed iPhone application keeps the Done filter and the typed draft while Chrome adds a row.
+- It displays the completed row and removes it after the connection resumes. A local Add displays the confirmation.
+- The installed Android application hides an open row under Done and keeps the Add dialog during the tested changes.
+- Its independent check opens and cancels the Add dialog. It then adds, completes, reopens, and deletes a row.
+- A local Add shows the row, one confirmed open item, and the **Todo added** notification.
+
+The full peer test passes in 322 seconds with Chrome 157, an iPhone 17 simulator, and Android 16.
+Each peer adds, completes, reopens, and deletes one row. The other two peers show each row change.
+The test holds and fails one Add from each phone. Retrying confirms the original row.
+The server, replay fixture, and Android package use the combined source at `b3fa90f7a`.
+The iPhone runner directs the test to the installed Todo Server application on iOS 27.0.
+The one-minute block check belongs to the separate countdown change.
+
+Run the browser test with `cargo test --locked --profile uat -p ui_todo --features browser-tests --test todo_browser_tests`.
+Follow the peer test setup in the [Todo example guide](../../examples/ui_todo/README.md#verify-list-changes-from-a-browser-peer).
+
+- [Chrome confirmation](features/32-portable-view-targets/screenshots/verified-chrome-confirmation.png)
+- [iPhone confirmation](features/32-portable-view-targets/screenshots/verified-iphone-confirmation.png)
+- [Android confirmation accessibility labels](features/32-portable-view-targets/screenshots/verified-android-confirmation.txt)

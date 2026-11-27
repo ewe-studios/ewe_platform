@@ -1,0 +1,15 @@
+Android 16 Automated Test Device accessibility labels after a confirmed local Add.
+
+Todos
+Add
+Play Mathalley
+Search todos
+Filter todos
+Open
+Done
+All
+Complete
+Android full verification
+Delete
+1 open todo
+Todo added

@@ -1223,3 +1223,18 @@ The Todo mobile tests run the Rust core on macOS with iPhone and Android configu
 They read the operations in the resulting frames.
 Use the installed iPhone and Android applications to verify how Swift and Kotlin apply those frames.
 Use the shared peer test for list changes and filter state. Check dialogs and notifications in each renderer.
+
+## 2026-11-27 — Todo renderer test artifacts
+
+A cached Android application rejects the current typed action input. Incoming row data also fails to decode.
+A current Android application passes when it uses the same source tree as the server.
+Keep the Java archive, generated bindings, and Rust library from the same revision.
+
+The Todo server's browser files disappear from the shared profile output during a mobile build.
+The server and browser tests still pass when they read their own packaged files.
+Keep the server executable and its browser files together in a separate directory during native builds.
+See [issue 1060](https://github.com/ewe-studios/ewe_platform/issues/1060).
+
+The iPhone test runner can address the installed application by its bundle identifier.
+Keep device results separate from tests that inspect frames only.
+The headless Android emulator can return a black screenshot. Its accessibility tree still identifies the visible controls and messages.
