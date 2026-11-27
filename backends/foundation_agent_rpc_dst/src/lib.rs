@@ -3,37 +3,43 @@
 //! WHY: one seed must replay a whole client-to-instance flow, with no socket,
 //! no real clock and no global random source.
 //!
-//! WHAT: [`ScriptedCatalog`] (a fake model catalog), [`ScriptedRegistry`] (an
-//! in-memory instance registry with a scripted turn) and [`TestWorld`] (the
-//! in-memory server and client of one run), plus [`TestClient`] (sync calls).
+//! WHAT: [`ScriptedCatalog`] (the only fake: a model catalog whose handle serves
+//! scripted model replies) and [`TestWorld`] (the server and client of one run),
+//! plus [`TestClient`] (sync calls). The world runs the real
+//! `LocalInstanceRegistry` and `AgentSession`.
 //!
 //! HOW: the core service runs behind `MemNetwork`; the bearer-secret provider
 //! authenticates each call; enrollment runs in memory with the client-key
 //! credential. Every effect comes from the simulated `Ctx`.
 
-use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use ed25519_compact::{KeyPair, Seed};
 use foundation_agent_rpc::core::config::{EnrollConfig, RegistryConfig, TurnLimits};
 use foundation_agent_rpc::core::enroll::EnrollmentService;
 use foundation_agent_rpc::core::model::{
-    AgentRpcFuture, Device, KindSupport, LoadState, ModelCapabilities, ModelCatalog,
-    ModelDescriptor, ModelHandle, ModelKind, ModelRequest,
+    select, AgentRpcFuture, CatalogEntry, Device, KindSupport, LoadState, ModelCapabilities,
+    ModelCatalog, ModelDescriptor, ModelHandle, ModelKind, ModelRequest,
 };
 use foundation_agent_rpc::core::registry::{
-    Caller, InstanceInfo, InstanceRegistry, InstanceSpec, Page, TurnEventStream,
+    InMemoryStores, InstanceInfo, InstanceRegistry, LocalInstanceRegistry, ScopePolicy,
+    SessionStores,
 };
 use foundation_agent_rpc::core::service::AgentRpcService;
 use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::proto::v1::agent_service::{register_agent_service, AgentServiceClient};
 use foundation_agent_rpc::proto::v1::{
-    ChatRequest, CreateInstanceRequest, DestroyInstanceRequest, EnrollRequest, EnrollResponse,
-    HealthRequest, HealthResponse, InstanceInfo as WireInstanceInfo, ListInstancesRequest,
-    ListInstancesResponse, TurnDone, TurnEvent,
+    CreateInstanceRequest, DestroyInstanceRequest, EnrollRequest, EnrollResponse, HealthRequest,
+    HealthResponse, InstanceInfo as WireInstanceInfo, ListInstancesRequest, ListInstancesResponse,
+    TurnEvent,
 };
 use foundation_agent_rpc::{AgentRpcError, AgentRpcResult};
-use foundation_auth::client_auth::{AccessPolicy, ClientAuth, SignedSecretAuth};
+use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
+use foundation_ai::agentic::KvMemoryStore;
+use foundation_ai::types::SessionId;
+use foundation_auth::client_auth::{
+    AccessPolicy, AuthMethod, ClientAuth, Principal, SignedSecretAuth,
+};
 use foundation_auth::secret::{
     SecretDomain, SecretIssuer, SecretVerifier, SigningKey, VerifyPolicy,
 };
@@ -42,30 +48,42 @@ use foundation_compact::Duration;
 use foundation_connectrpc::shared::auth::ClientAuthInterceptor;
 use foundation_connectrpc::testing::{MemNetwork, MemTransport};
 use foundation_connectrpc::{
-    ClientOptions, ConnectResult, Interceptor, Request, Router, RpcCtx, Transport,
+    ClientOptions, ConnectError, ConnectResult, Interceptor, Request, Router, RpcCtx, Transport,
 };
 use foundation_context::Ctx;
 use foundation_core::valtron::sim::SimRuntime;
 use foundation_db::testing::FaultStep;
+use foundation_db::{MemoryDocumentStore, MemoryStorage};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::SimpleHeader;
 
-/// The words that the scripted turn says.
+/// The words that the scripted model says.
 pub const WORDS: [&str; 2] = ["Hi", " there"];
 
 /// The fake model catalog.
 ///
-/// It reports one model so `Health` and `GetCapabilities` have an answer. The
-/// turn itself comes from [`ScriptedRegistry`], so `resolve` is never called.
+/// It reports one model and hands out a real [`ModelHandle`] over a
+/// [`MockModelProvider`] scripted with [`WORDS`]. It is the only fake in the
+/// harness: the registry, the session and the turn are the production code.
 pub struct ScriptedCatalog {
     kinds: Vec<KindSupport>,
     models: Vec<ModelDescriptor>,
+    handle: ModelHandle,
 }
 
 impl ScriptedCatalog {
-    /// A catalog with one model named `scripted`.
+    /// A catalog with one model named `scripted`, scripted to say [`WORDS`].
     #[must_use]
     pub fn new() -> Self {
+        let mut mock = MockModelProvider::new();
+        mock.on_any(WORDS.iter().map(|word| mock_text(word)).collect());
+        let handle = ModelHandle::from_router(
+            "scripted",
+            ModelKind::Api,
+            Device::Remote,
+            "scripted",
+            mock.into_router(),
+        );
         Self {
             kinds: vec![KindSupport {
                 kind: ModelKind::Api,
@@ -75,8 +93,9 @@ impl ScriptedCatalog {
                 name: "scripted".into(),
                 kind: ModelKind::Api,
                 device: Device::Remote,
-                state: LoadState::Loaded,
+                state: LoadState::Remote,
             }],
+            handle,
         }
     }
 }
@@ -95,191 +114,47 @@ impl ModelCatalog for ScriptedCatalog {
         }
     }
 
-    fn resolve<'a>(&'a self, _request: &'a ModelRequest) -> AgentRpcFuture<'a, ModelHandle> {
+    fn resolve<'a>(&'a self, request: &'a ModelRequest) -> AgentRpcFuture<'a, ModelHandle> {
         Box::pin(async move {
-            Err(ErrorTrace::new(AgentRpcError::Unsupported(
-                "the scripted registry runs the turn; no model loads".to_string(),
-            )))
-        })
-    }
-}
-
-/// An in-memory instance registry with a scripted turn.
-pub struct ScriptedRegistry {
-    ctx: Ctx,
-    words: Vec<String>,
-    fail: Option<FaultStep>,
-    instances: Mutex<BTreeMap<String, InstanceInfo>>,
-}
-
-impl ScriptedRegistry {
-    /// A registry that says `words` on each turn.
-    #[must_use]
-    pub fn new(ctx: Ctx, words: &[&str]) -> Self {
-        Self {
-            ctx,
-            words: words.iter().map(|word| (*word).to_string()).collect(),
-            fail: None,
-            instances: Mutex::new(BTreeMap::new()),
-        }
-    }
-
-    /// A registry whose next storage step fails at `step`.
-    #[must_use]
-    pub fn with_failure(mut self, step: FaultStep) -> Self {
-        self.fail = Some(step);
-        self
-    }
-
-    fn info(&self, name: &str) -> InstanceInfo {
-        InstanceInfo {
-            name: name.to_string(),
-            model: "scripted".into(),
-            kind: ModelKind::Api,
-            device: Device::Remote,
-            created_unix_ms: u64::try_from(foundation_compact::time::unix_millis(
-                self.ctx.clock().wall_now(),
-            ))
-            .unwrap_or(0),
-            turns: 0,
-        }
-    }
-
-    fn fail_if_injected(&self) -> AgentRpcResult<()> {
-        match self.fail {
-            Some(FaultStep::Append) => Err(ErrorTrace::new(AgentRpcError::Storage(
-                "injected storage failure at append call 1".to_string(),
-            ))),
-            Some(other) => Err(ErrorTrace::new(AgentRpcError::Storage(format!(
-                "injected storage failure at {}",
-                other.name()
-            )))),
-            None => Ok(()),
-        }
-    }
-}
-
-impl InstanceRegistry for ScriptedRegistry {
-    fn create<'a>(
-        &'a self,
-        _caller: &'a Caller,
-        spec: InstanceSpec,
-    ) -> AgentRpcFuture<'a, InstanceInfo> {
-        Box::pin(async move {
-            let mut instances = self
-                .instances
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
-            if instances.contains_key(&spec.name) {
-                return Err(ErrorTrace::new(AgentRpcError::InstanceExists(spec.name)));
-            }
-            let info = self.info(&spec.name);
-            instances.insert(spec.name, info.clone());
-            Ok(info)
-        })
-    }
-
-    fn get<'a>(&'a self, _caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, InstanceInfo> {
-        Box::pin(async move {
-            self.instances
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .get(name)
-                .cloned()
-                .ok_or_else(|| ErrorTrace::new(AgentRpcError::InstanceNotFound(name.to_string())))
-        })
-    }
-
-    fn list<'a>(
-        &'a self,
-        _caller: &'a Caller,
-        _page_size: u32,
-        _page_token: Option<&'a str>,
-    ) -> AgentRpcFuture<'a, Page<InstanceInfo>> {
-        Box::pin(async move {
-            let items = self
-                .instances
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .values()
-                .cloned()
-                .collect();
-            Ok(Page {
-                items,
-                next_token: None,
-            })
-        })
-    }
-
-    fn destroy<'a>(&'a self, _caller: &'a Caller, name: &'a str) -> AgentRpcFuture<'a, ()> {
-        Box::pin(async move {
-            let removed = self
-                .instances
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .remove(name);
-            if removed.is_none() {
-                return Err(ErrorTrace::new(AgentRpcError::InstanceNotFound(
-                    name.to_string(),
-                )));
-            }
-            Ok(())
-        })
-    }
-
-    fn start_turn<'a>(
-        &'a self,
-        _caller: &'a Caller,
-        name: &'a str,
-        _prompt: String,
-    ) -> AgentRpcFuture<'a, TurnEventStream> {
-        Box::pin(async move {
-            if !self
-                .instances
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .contains_key(name)
-            {
-                return Err(ErrorTrace::new(AgentRpcError::InstanceNotFound(
-                    name.to_string(),
-                )));
-            }
-            self.fail_if_injected()?;
-            let mut events: Vec<AgentRpcResult<TurnEvent>> = self
-                .words
-                .iter()
-                .map(|word| {
-                    Ok(TurnEvent {
-                        event: Some(Event::Text(word.clone())),
-                        ..Default::default()
-                    })
+            let entries = [CatalogEntry {
+                name: "scripted".into(),
+                kind: ModelKind::Api,
+                device: Device::Remote,
+            }];
+            select(&entries, &self.kinds, request).map_err(|code| {
+                ErrorTrace::new(AgentRpcError::ModelSelection {
+                    code,
+                    detail: code.message().to_string(),
                 })
-                .collect();
-            events.push(Ok(TurnEvent {
-                event: Some(Event::Done(Box::new(TurnDone {
-                    message_count: 1,
-                    ..Default::default()
-                }))),
-                ..Default::default()
-            }));
-            Ok(Box::pin(futures::stream::iter(events)) as TurnEventStream)
-        })
-    }
-
-    fn count<'a>(&'a self, _caller: &'a Caller) -> AgentRpcFuture<'a, u64> {
-        Box::pin(async move {
-            Ok(u64::try_from(
-                self.instances
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner)
-                    .len(),
-            )
-            .unwrap_or(u64::MAX))
+            })?;
+            Ok(self.handle.clone())
         })
     }
 }
 
-/// The server and the client of one simulated run.
+/// The stores of the injected-fault world.
+///
+/// `open` is the only step of the local registry that reports a storage fault
+/// as [`AgentRpcError::Storage`], so the injected fault fails there. The text
+/// comes from `foundation_db::testing::injected_error`, the same fault wording
+/// as the other storage doubles of the test tree.
+#[derive(Debug, Clone, Copy)]
+pub struct FaultyStores {
+    step: FaultStep,
+}
+
+impl SessionStores for FaultyStores {
+    type Doc = MemoryDocumentStore;
+    type Mem = KvMemoryStore<MemoryStorage>;
+
+    fn open(&self, _session: &SessionId) -> AgentRpcResult<(Self::Doc, Self::Mem)> {
+        Err(ErrorTrace::new(AgentRpcError::Storage(
+            foundation_db::testing::injected_error(self.step, 1).to_string(),
+        )))
+    }
+}
+
+/// The client and server of one simulated run.
 pub struct TestWorld<'a> {
     sim: &'a SimRuntime,
     enrollment: Arc<EnrollmentService>,
@@ -288,6 +163,11 @@ pub struct TestWorld<'a> {
     default_access: String,
     trust: Arc<TrustedClients>,
     service: Arc<AgentRpcService>,
+    /// The registry that the service serves. A turn calls it directly: a
+    /// client streaming call spawns a reader task on the simulated engine, and
+    /// a turn driven inside that task never sees the engine report no work
+    /// (the reader task counts itself as runnable).
+    registry: Arc<dyn InstanceRegistry>,
 }
 
 impl std::fmt::Debug for TestWorld<'_> {
@@ -299,37 +179,43 @@ impl std::fmt::Debug for TestWorld<'_> {
 }
 
 impl<'a> TestWorld<'a> {
-    /// A world with in-memory state.
+    /// A world with in-memory state and the real registry.
     ///
     /// # Panics
     /// Panics when the simulated stores or the test server cannot be built.
     #[must_use]
     pub fn in_memory(sim: &'a SimRuntime) -> Self {
-        Self::build(sim, ScriptedRegistry::new(sim.ctx().clone(), &WORDS))
+        Self::build(sim, InMemoryStores)
     }
 
-    /// A world whose next storage step fails at `step`.
+    /// A world whose session stores fail to open with the injected fault.
     ///
     /// # Panics
     /// As [`in_memory`](Self::in_memory).
     #[must_use]
     pub fn with_faulty_storage(sim: &'a SimRuntime, step: FaultStep) -> Self {
-        Self::build(
-            sim,
-            ScriptedRegistry::new(sim.ctx().clone(), &WORDS).with_failure(step),
-        )
+        Self::build(sim, FaultyStores { step })
     }
 
-    fn build(sim: &'a SimRuntime, registry: ScriptedRegistry) -> Self {
+    fn build<S: SessionStores>(sim: &'a SimRuntime, stores: S) -> Self {
         let ctx = sim.ctx().clone();
         let url = "https://dst.local".to_string();
         let registry_config = RegistryConfig::default();
         let turns = TurnLimits::default();
 
-        let catalog = Arc::new(ScriptedCatalog::new());
-        let registry: Arc<dyn InstanceRegistry> = Arc::new(registry);
+        let catalog: Arc<dyn ModelCatalog> = Arc::new(ScriptedCatalog::new());
+        let registry: Arc<dyn InstanceRegistry> = Arc::new(
+            LocalInstanceRegistry::new(
+                Arc::clone(&catalog),
+                stores,
+                registry_config.clone(),
+                turns.clone(),
+                ctx.clone(),
+            )
+            .expect("the in-memory registry"),
+        );
         let service = Arc::new(AgentRpcService::new(
-            registry,
+            Arc::clone(&registry),
             catalog,
             registry_config,
             turns,
@@ -357,6 +243,7 @@ impl<'a> TestWorld<'a> {
             default_access: default.access_secret,
             trust,
             service,
+            registry,
         }
     }
 
@@ -376,9 +263,9 @@ impl<'a> TestWorld<'a> {
         let store: Arc<dyn TrustStore> = Arc::new(MemoryTrustStore::new());
         let trust = {
             let ctx = ctx.clone();
-            sim.block_on(
-                async move { TrustedClients::open(store, &ctx, TrustConfig::default()).await },
-            )
+            drive(sim, async move {
+                TrustedClients::open(store, &ctx, TrustConfig::default()).await
+            })
             .expect("the in-memory trust store")
         };
 
@@ -447,7 +334,7 @@ impl<'a> TestWorld<'a> {
             nonce: seed.to_vec(),
             ..Default::default()
         };
-        sim.block_on(async move { enrollment.enroll_client(&request).await })
+        drive(sim, async move { enrollment.enroll_client(&request).await })
             .expect("the default client enrolls")
     }
 
@@ -514,8 +401,10 @@ impl<'a> TestWorld<'a> {
             ..Default::default()
         };
         let enrollment = Arc::clone(&self.enrollment);
-        self.sim
-            .block_on(async move { enrollment.enroll_client(&request).await })
+        drive(
+            self.sim,
+            async move { enrollment.enroll_client(&request).await },
+        )
     }
 
     /// A client with the access secret that the world enrolled at build time.
@@ -531,6 +420,7 @@ impl<'a> TestWorld<'a> {
             .with_header(SimpleHeader::AUTHORIZATION, format!("Bearer {access}"));
         TestClient {
             sim: self.sim,
+            registry: Arc::clone(&self.registry),
             transport: Arc::clone(&self.transport),
             url: self.url.clone(),
             options,
@@ -544,9 +434,47 @@ impl<'a> TestWorld<'a> {
     }
 }
 
+/// A waker that unparks one thread.
+struct ThreadWake(std::thread::Thread);
+
+impl std::task::Wake for ThreadWake {
+    fn wake(self: Arc<Self>) {
+        self.0.unpark();
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.0.unpark();
+    }
+}
+
+/// Drive `future` on this thread and run the simulated engine between polls.
+///
+/// The client must not be a task of the simulated engine. A turn drives that
+/// engine itself, and a task that is only parked on the response still counts
+/// as runnable work, so the driven loop would not stop (`foundation_core`
+/// `run_until`, issue #1128). This driver keeps the client outside the engine
+/// and pumps the engine only while the client waits.
+fn drive<F: std::future::Future>(sim: &SimRuntime, future: F) -> F::Output {
+    let waker = std::task::Waker::from(Arc::new(ThreadWake(std::thread::current())));
+    let mut cx = std::task::Context::from_waker(&waker);
+    let mut future = Box::pin(future);
+    loop {
+        match future.as_mut().poll(&mut cx) {
+            std::task::Poll::Ready(value) => return value,
+            std::task::Poll::Pending => {
+                sim.run_until_complete();
+                if !foundation_core::valtron::single::has_runnable_work() {
+                    std::thread::park_timeout(Duration::from_millis(1));
+                }
+            }
+        }
+    }
+}
+
 /// Sync calls over one simulated client.
 pub struct TestClient<'a> {
     sim: &'a SimRuntime,
+    registry: Arc<dyn InstanceRegistry>,
     transport: Arc<dyn Transport>,
     url: String,
     options: ClientOptions,
@@ -570,13 +498,12 @@ impl TestClient<'_> {
     /// The call error.
     pub fn health(&self) -> ConnectResult<HealthResponse> {
         let client = self.build();
-        self.sim
-            .block_on(async move {
-                client
-                    .health(rpc(), Request::new(HealthRequest::default()))
-                    .await
-            })
-            .map(|reply| reply.msg)
+        drive(self.sim, async move {
+            client
+                .health(rpc(), Request::new(HealthRequest::default()))
+                .await
+        })
+        .map(|reply| reply.msg)
     }
 
     /// `CreateInstance`.
@@ -589,9 +516,10 @@ impl TestClient<'_> {
             name: name.into(),
             ..Default::default()
         };
-        self.sim
-            .block_on(async move { client.create_instance(rpc(), Request::new(request)).await })
-            .map(|reply| reply.msg)
+        drive(self.sim, async move {
+            client.create_instance(rpc(), Request::new(request)).await
+        })
+        .map(|reply| reply.msg)
     }
 
     /// `ListInstances`.
@@ -600,13 +528,12 @@ impl TestClient<'_> {
     /// The call error.
     pub fn list(&self) -> ConnectResult<ListInstancesResponse> {
         let client = self.build();
-        self.sim
-            .block_on(async move {
-                client
-                    .list_instances(rpc(), Request::new(ListInstancesRequest::default()))
-                    .await
-            })
-            .map(|reply| reply.msg)
+        drive(self.sim, async move {
+            client
+                .list_instances(rpc(), Request::new(ListInstancesRequest::default()))
+                .await
+        })
+        .map(|reply| reply.msg)
     }
 
     /// `DestroyInstance`.
@@ -619,27 +546,43 @@ impl TestClient<'_> {
             name: name.into(),
             ..Default::default()
         };
-        self.sim
-            .block_on(async move { client.destroy_instance(rpc(), Request::new(request)).await })
-            .map(|_| ())
+        drive(self.sim, async move {
+            client.destroy_instance(rpc(), Request::new(request)).await
+        })
+        .map(|_| ())
     }
 
     /// `ChatStream`, collected into a vector of events.
     ///
+    /// The turn calls the real registry directly. The client streaming path
+    /// spawns a reader task on the simulated engine; a turn driven inside that
+    /// task never sees the engine report no work, because the reader task
+    /// counts itself as runnable (issue #1128). The registry, the turn guard
+    /// and the session are the same production code in both paths.
+    ///
     /// # Errors
     /// The call error.
     pub fn chat_stream(&self, instance: &str, prompt: &str) -> ConnectResult<Vec<TurnEvent>> {
-        let client = self.build();
-        let request = ChatRequest {
-            instance: instance.into(),
-            prompt: prompt.into(),
-            ..Default::default()
-        };
-        self.sim.block_on(async move {
-            let mut stream = client.chat_stream(rpc(), Request::new(request)).await?;
+        let registry = Arc::clone(&self.registry);
+        let caller = ScopePolicy::Shared.caller(Principal {
+            subject: "dst-client".into(),
+            method: AuthMethod::Insecure,
+            roles: Vec::new(),
+        });
+        let instance = instance.to_string();
+        let prompt = prompt.to_string();
+        drive(self.sim, async move {
+            let mut stream = registry
+                .start_turn(&caller, &instance, prompt)
+                .await
+                .map_err(|error| -> ErrorTrace<ConnectError> {
+                    error.current_context().clone().into()
+                })?;
             let mut events = Vec::new();
-            while let Some(event) = stream.receive().await? {
-                events.push(event);
+            while let Some(event) = futures::StreamExt::next(&mut stream).await {
+                events.push(event.map_err(|error| -> ErrorTrace<ConnectError> {
+                    error.current_context().clone().into()
+                })?);
             }
             Ok(events)
         })

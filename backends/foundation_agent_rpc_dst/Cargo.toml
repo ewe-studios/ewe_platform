@@ -19,8 +19,11 @@ description = "Deterministic simulation tests for the agent RPC proof of concept
 resolver = "3"
 
 [dependencies]
-# The core only: no thread pool, no TLS, no SQLite.
-foundation_agent_rpc = { path = "../foundation_agent_rpc", version = "0.0.4", default-features = false }
+# The core only: no thread pool, no TLS, no SQLite. `dst` adds the core
+# registry, the guarded turn and the `foundation_ai` mock substrate.
+foundation_agent_rpc = { path = "../foundation_agent_rpc", version = "0.0.4", default-features = false, features = ["dst"] }
+# The scripted model provider behind the real `ModelHandle`, without `multi`.
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["testing-mock"] }
 # The simulation runtime (`SimRuntime`) and the single-threaded engine.
 foundation_core = { path = "../foundation_core", version = "0.0.23", default-features = false, features = ["testing"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
