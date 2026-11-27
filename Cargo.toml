@@ -18,6 +18,10 @@ members = [
 
 exclude = [
   "artefacts/*",
+  # backends/foundation_agent_rpc_dst is its own workspace root: the
+  # deterministic simulation build must not inherit `multi` from the root
+  # workspace's feature unification (#1048).
+  "backends/foundation_agent_rpc_dst",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
   # infrastructure/sandbox_worker is its own workspace root: it builds for
