@@ -3,10 +3,13 @@
 //! The client speaks the wire protocol over an injected transport. It owns no
 //! socket and no runtime.
 
+use super::dynamic::DynamicHeaders;
+use super::retry::RetryPolicy;
 use super::transport::{
     ClientRequest, ClientResponse, ClientTransport, HttpMethod, TransportError,
 };
 use crate::durable::{ContentType, StreamName};
+use foundation_context::Ctx;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -17,6 +20,20 @@ pub struct ClientConfig {
     pub base_url: String,
     /// The headers every request carries.
     pub default_headers: Vec<(String, String)>,
+}
+
+/// The client behaviour that a stream handle inherits.
+///
+/// The values come from [`DurableClient`] and can be changed with its builder
+/// methods. A clone is cheap, so every handle holds the set it was built with.
+#[derive(Clone, Default)]
+struct ClientSettings {
+    /// When to repeat a request.
+    retry: RetryPolicy,
+    /// The injected clock and random number generator.
+    ctx: Option<Ctx>,
+    /// The provider of headers and query parameters for each request.
+    dynamic_headers: Option<Arc<dyn DynamicHeaders>>,
 }
 
 /// A client failure.
@@ -53,6 +70,28 @@ pub enum ClientError {
     Parse(String),
     /// The method is not available on this surface.
     NotSupported(String),
+    /// The client used every attempt and the failure stayed transient.
+    RetryExhausted {
+        /// The number of attempts that ran, including the first one.
+        attempts: u32,
+        /// The last status, when the failure was a status.
+        status: Option<u16>,
+        /// A bounded message body or the transport message.
+        body: String,
+        /// The response headers of the last attempt.
+        headers: BTreeMap<String, String>,
+    },
+    /// A configuration value is not usable.
+    InvalidArgument {
+        /// The field name.
+        field: String,
+        /// What is wrong with the value.
+        message: String,
+    },
+    /// A retry needs a timer, but the [`Ctx`] has none.
+    MissingClock(String),
+    /// The producer was detached.
+    Detached,
 }
 
 impl core::fmt::Display for ClientError {
@@ -69,6 +108,23 @@ impl core::fmt::Display for ClientError {
             }
             Self::Parse(message) => write!(f, "parse error: {message}"),
             Self::NotSupported(message) => write!(f, "not supported: {message}"),
+            Self::RetryExhausted {
+                attempts,
+                status,
+                body,
+                ..
+            } => match status {
+                Some(status) => write!(
+                    f,
+                    "retry exhausted after {attempts} attempts: unexpected status {status}: {body}"
+                ),
+                None => write!(f, "retry exhausted after {attempts} attempts: {body}"),
+            },
+            Self::InvalidArgument { field, message } => {
+                write!(f, "invalid argument: {field}: {message}")
+            }
+            Self::MissingClock(message) => write!(f, "missing clock: {message}"),
+            Self::Detached => f.write_str("the producer is detached"),
         }
     }
 }
@@ -153,13 +209,42 @@ pub struct AppendResult {
 pub struct DurableClient {
     transport: Arc<dyn ClientTransport>,
     config: ClientConfig,
+    settings: ClientSettings,
 }
 
 impl DurableClient {
-    /// Build a client.
+    /// Build a client with the default retry policy and no clock.
+    ///
+    /// A client with no clock does not retry: a retry wait needs an injected
+    /// clock. Call [`Self::with_ctx`] to enable retry.
     #[must_use]
     pub fn new(transport: Arc<dyn ClientTransport>, config: ClientConfig) -> Self {
-        Self { transport, config }
+        Self {
+            transport,
+            config,
+            settings: ClientSettings::default(),
+        }
+    }
+
+    /// Use this retry policy for every request.
+    #[must_use]
+    pub fn with_retry_policy(mut self, retry: RetryPolicy) -> Self {
+        self.settings.retry = retry;
+        self
+    }
+
+    /// Use this [`Ctx`] for the retry clock and the jitter source.
+    #[must_use]
+    pub fn with_ctx(mut self, ctx: Ctx) -> Self {
+        self.settings.ctx = Some(ctx);
+        self
+    }
+
+    /// Evaluate this provider for every request the client sends.
+    #[must_use]
+    pub fn with_dynamic_headers(mut self, provider: Arc<dyn DynamicHeaders>) -> Self {
+        self.settings.dynamic_headers = Some(provider);
+        self
     }
 
     /// Return a handle for a stream name.
@@ -183,6 +268,7 @@ impl DurableClient {
             path,
             headers: self.config.default_headers.clone(),
             extra_query: Vec::new(),
+            settings: self.settings.clone(),
         }
     }
 }
@@ -195,6 +281,7 @@ pub struct StreamHandle {
     path: String,
     headers: Vec<(String, String)>,
     extra_query: Vec<(String, String)>,
+    settings: ClientSettings,
 }
 
 impl StreamHandle {
@@ -202,6 +289,18 @@ impl StreamHandle {
     #[must_use]
     pub fn path(&self) -> &str {
         &self.path
+    }
+
+    /// The retry policy of this handle.
+    #[must_use]
+    pub fn retry_policy(&self) -> &RetryPolicy {
+        &self.settings.retry
+    }
+
+    /// The clock and random source of this handle, when it has one.
+    #[must_use]
+    pub fn ctx(&self) -> Option<&Ctx> {
+        self.settings.ctx.as_ref()
     }
 
     /// Return a copy of this handle that adds these headers to every request.
@@ -220,6 +319,37 @@ impl StreamHandle {
         clone
     }
 
+    /// Return a copy of this handle that evaluates this provider for every
+    /// request.
+    #[must_use]
+    pub fn with_dynamic_headers(&self, provider: Arc<dyn DynamicHeaders>) -> Self {
+        let mut clone = self.clone();
+        clone.settings.dynamic_headers = Some(provider);
+        clone
+    }
+
+    /// Run `attempt` under this handle's retry policy.
+    ///
+    /// The closure receives the one-based attempt number. It runs again after a
+    /// transient failure, so it can rebuild the request and evaluate dynamic
+    /// headers again.
+    ///
+    /// # Errors
+    ///
+    /// Returns the permanent failure, [`ClientError::RetryExhausted`] after the
+    /// last attempt, or [`ClientError::MissingClock`] when the handle has a
+    /// [`Ctx`] with no timer. A handle with no [`Ctx`] does not retry.
+    pub async fn with_retry<T, F, Fut>(&self, attempt: F) -> Result<T, ClientError>
+    where
+        F: FnMut(u32) -> Fut,
+        Fut: core::future::Future<Output = Result<T, ClientError>>,
+    {
+        self.settings
+            .retry
+            .execute(self.settings.ctx.as_ref(), attempt)
+            .await
+    }
+
     fn request(
         &self,
         method: HttpMethod,
@@ -228,15 +358,14 @@ impl StreamHandle {
         body: Vec<u8>,
     ) -> ClientRequest {
         let mut all = self.headers.clone();
+        if let Some(provider) = &self.settings.dynamic_headers {
+            all.extend(provider.headers());
+        }
         all.extend_from_slice(headers);
         let mut query = query.to_string();
-        for (name, value) in &self.extra_query {
-            if !query.is_empty() {
-                query.push('&');
-            }
-            query.push_str(name);
-            query.push('=');
-            query.push_str(value);
+        append_query(&mut query, &self.extra_query);
+        if let Some(provider) = &self.settings.dynamic_headers {
+            append_query(&mut query, &provider.query());
         }
         let url = if query.is_empty() {
             self.url.clone()
@@ -276,14 +405,27 @@ impl StreamHandle {
         if closed {
             headers.push(("stream-closed".to_string(), "true".to_string()));
         }
-        let response = self
-            .transport
-            .send(self.request(HttpMethod::Put, "", &headers, data))
-            .await?;
-        outcome(&self.path, &response, false)
+        self.with_retry(|_attempt| {
+            let handle = self.clone();
+            let headers = headers.clone();
+            let body = data.clone();
+            async move {
+                let response = handle
+                    .transport
+                    .send(handle.request(HttpMethod::Put, "", &headers, body))
+                    .await
+                    .map_err(ClientError::from)?;
+                outcome(&handle.path, &response, false)
+            }
+        })
+        .await
     }
 
     /// Append a message.
+    ///
+    /// A plain append does not retry: a repeated write could duplicate data.
+    /// An append with a producer retries, because the producer sends the same
+    /// sequence and the server deduplicates it.
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a refused append.
@@ -310,11 +452,25 @@ impl StreamHandle {
         if close {
             headers.push(("stream-closed".to_string(), "true".to_string()));
         }
-        let response = self
-            .transport
-            .send(self.request(HttpMethod::Post, "", &headers, data))
-            .await?;
-        outcome(&self.path, &response, producer.is_some())
+        let producer_write = producer.is_some();
+        let send = |_attempt: u32| {
+            let handle = self.clone();
+            let headers = headers.clone();
+            let body = data.clone();
+            async move {
+                let response = handle
+                    .transport
+                    .send(handle.request(HttpMethod::Post, "", &headers, body))
+                    .await
+                    .map_err(ClientError::from)?;
+                outcome(&handle.path, &response, producer_write)
+            }
+        };
+        if producer_write {
+            self.with_retry(send).await
+        } else {
+            send(1).await
+        }
     }
 
     /// Read stream metadata.
@@ -322,29 +478,18 @@ impl StreamHandle {
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
     pub async fn head(&self) -> Result<HeadResult, ClientError> {
-        let response = self
-            .transport
-            .send(self.request(HttpMethod::Head, "", &[], Vec::new()))
-            .await?;
-        match response.status {
-            200 => Ok(HeadResult {
-                status: 200,
-                offset: response.header("stream-next-offset").map(str::to_string),
-                content_type: response.header("content-type").map(str::to_string),
-                ttl_seconds: response
-                    .header("stream-ttl")
-                    .and_then(|value| value.parse().ok()),
-                expires_at: response.header("stream-expires-at").map(str::to_string),
-                closed: response.header("stream-closed") == Some("true"),
-            }),
-            404 => Err(ClientError::NotFound {
-                path: self.path.clone(),
-            }),
-            410 => Err(ClientError::Gone {
-                path: self.path.clone(),
-            }),
-            status => Err(unexpected(status, &response)),
-        }
+        self.with_retry(|_attempt| {
+            let handle = self.clone();
+            async move {
+                let response = handle
+                    .transport
+                    .send(handle.request(HttpMethod::Head, "", &[], Vec::new()))
+                    .await
+                    .map_err(ClientError::from)?;
+                head_outcome(&handle.path, &response)
+            }
+        })
+        .await
     }
 
     /// Delete the stream.
@@ -352,23 +497,34 @@ impl StreamHandle {
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
     pub async fn delete(&self) -> Result<u16, ClientError> {
-        let response = self
-            .transport
-            .send(self.request(HttpMethod::Delete, "", &[], Vec::new()))
-            .await?;
-        match response.status {
-            200 | 204 => Ok(response.status),
-            404 => Err(ClientError::NotFound {
-                path: self.path.clone(),
-            }),
-            410 => Err(ClientError::Gone {
-                path: self.path.clone(),
-            }),
-            status => Err(unexpected(status, &response)),
-        }
+        self.with_retry(|_attempt| {
+            let handle = self.clone();
+            async move {
+                let response = handle
+                    .transport
+                    .send(handle.request(HttpMethod::Delete, "", &[], Vec::new()))
+                    .await
+                    .map_err(ClientError::from)?;
+                match response.status {
+                    200 | 204 => Ok(response.status),
+                    404 => Err(ClientError::NotFound {
+                        path: handle.path.clone(),
+                    }),
+                    410 => Err(ClientError::Gone {
+                        path: handle.path.clone(),
+                    }),
+                    status => Err(unexpected(status, &response)),
+                }
+            }
+        })
+        .await
     }
 
     /// Close the stream, optionally with a final message.
+    ///
+    /// A plain close does not retry, for the same reason as a plain append. A
+    /// producer closes through [`super::producer::Producer::close`], which is
+    /// safe to retry.
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
@@ -456,8 +612,7 @@ impl ReadBuilder {
     /// Send a conditional read with this entity tag.
     #[must_use]
     pub fn if_none_match(mut self, tag: impl Into<String>) -> Self {
-        self.headers
-            .push(("if-none-match".to_string(), tag.into()));
+        self.headers.push(("if-none-match".to_string(), tag.into()));
         self
     }
 
@@ -517,6 +672,16 @@ impl ReadBuilder {
                 "use ReadBuilder::open_sse for Server-Sent Events".to_string(),
             ));
         }
+        self.handle
+            .with_retry(|_attempt| {
+                let builder = self.clone();
+                async move { builder.send_once().await }
+            })
+            .await
+    }
+
+    /// Send one read attempt.
+    async fn send_once(&self) -> Result<ReadResult, ClientError> {
         let request = self.request();
         let response = self.handle.transport.send(request).await?;
 
@@ -553,7 +718,7 @@ impl ReadBuilder {
                 path: self.handle.path.clone(),
             }),
             400 => Err(ClientError::InvalidOffset(
-                self.offset.unwrap_or_default(),
+                self.offset.clone().unwrap_or_default(),
             )),
             status => Err(unexpected(status, &response)),
         }
@@ -683,9 +848,7 @@ impl SseRead {
                     let mut parts = vec![decode(&event.data, self.decode_base64)?];
                     loop {
                         let Some(following) = next_event(&mut self.inner).await else {
-                            return Ok(Some(ReadChunk {
-                                data: join(parts),
-                            }));
+                            return Ok(Some(ReadChunk { data: join(parts) }));
                         };
                         let following = following?;
                         match following.event_type.as_deref() {
@@ -791,6 +954,41 @@ fn unexpected_open(status: u16, open: &super::transport::SseOpen) -> ClientError
         status,
         body: String::new(),
         headers,
+    }
+}
+
+/// Build the result of a head request.
+fn head_outcome(path: &str, response: &ClientResponse) -> Result<HeadResult, ClientError> {
+    match response.status {
+        200 => Ok(HeadResult {
+            status: 200,
+            offset: response.header("stream-next-offset").map(str::to_string),
+            content_type: response.header("content-type").map(str::to_string),
+            ttl_seconds: response
+                .header("stream-ttl")
+                .and_then(|value| value.parse().ok()),
+            expires_at: response.header("stream-expires-at").map(str::to_string),
+            closed: response.header("stream-closed") == Some("true"),
+        }),
+        404 => Err(ClientError::NotFound {
+            path: path.to_string(),
+        }),
+        410 => Err(ClientError::Gone {
+            path: path.to_string(),
+        }),
+        status => Err(unexpected(status, response)),
+    }
+}
+
+/// Append query parameters to a query string.
+fn append_query(query: &mut String, params: &[(String, String)]) {
+    for (name, value) in params {
+        if !query.is_empty() {
+            query.push('&');
+        }
+        query.push_str(name);
+        query.push('=');
+        query.push_str(value);
     }
 }
 

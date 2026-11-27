@@ -111,15 +111,22 @@ impl StreamHandle {
       and `given_a_missing_stream_when_delete_runs_then_the_error_names_the_path`
       (`tests/durable/client.rs`). The core carries `ClientError::Parse` and
       `ClientError::NotFound { path }`.
-- [ ] **T5 — retry.** `500`, `503`, `429`, exhaustion and no-retry rules. Tests:
-      `retries_transient_errors`, `does_not_retry_404`, `retry_exhaustion_is_an_error`.
-      Open: the client core (`foundation_core/src/durable/shared/client/core.rs`) has no retry
-      policy or backoff. Retry exists only in the conformance adapter
-      `foundation_netio/examples/durable_client_adapter.rs`. Issue #1135.
-- [ ] **T6 — producer.** Batching, epoch, sequence, auto-claim, dedup, close and detach. Tests:
-      `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`.
-      Open: the client core has no `ProducerBuilder`, batching, epoch, auto-claim or detach.
-      These exist only in the adapter example. Issue #1135.
+- [x] **T5 — retry.** `500`, `503`, `429`, exhaustion and no-retry rules. `RetryPolicy` in
+      `foundation_core/src/durable/shared/client/retry.rs` retries `429`, `500`, `502`, `503`,
+      `504` and transport errors. It honours `Retry-After` (seconds or an HTTP date), bounds the
+      attempt count and uses jittered exponential backoff. The clock and the jitter source come
+      from the client `Ctx`. A plain append does not retry; a producer append does. Exhaustion
+      returns `ClientError::RetryExhausted`. Tests in `tests/durable/client.rs`:
+      `given_a_429_with_retry_after_when_a_read_runs_then_it_waits_and_retries`,
+      `does_not_retry_404`, `given_a_409_when_a_read_runs_then_it_is_not_retried`,
+      `retry_exhaustion_is_an_error`.
+- [x] **T6 — producer.** `ProducerBuilder` and `Producer` in
+      `foundation_core/src/durable/shared/client/producer.rs` track the producer identifier, the
+      epoch and the sequence through the existing `Producer-Id`/`Producer-Epoch`/`Producer-Seq`
+      headers. They retry duplicates safely, auto-claim a new epoch on a fencing `403`, batch by
+      `max_batch_items` and `max_batch_bytes`, and support close and detach. Tests:
+      `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`,
+      `given_a_producer_when_two_appends_run_then_the_sequences_advance`.
 - [x] **T7 — dynamic headers and validation.** Per-request headers and config validation. Tests:
       `dynamic_header_counter`, `invalid_epoch_is_rejected`.
 - [x] **T8 — adapter.** JSON-line commands and results. Normalize success statuses. Test:
@@ -135,9 +142,11 @@ impl StreamHandle {
       driver. Test: `wasm_client_roundtrip`.
 - [ ] **T12 — oracles.** Differential, conformance, property and failure injection oracles.
       Tests: `client_matches_reference`, `client_suite_passes`, `retry_is_bounded`.
-      Open: no test with these names exists. The reference client suite passes 267 of 269 with
-      2 suite-forced skips (feature 08). There is no retry-bound oracle because the core has no
-      retry.
+      Done: the conformance oracle runs in `ci/durable_conformance.sh` against the reference
+      client suite (267 pass, 2 suite-forced skips). The retry bound is the test
+      `retry_exhaustion_is_an_error` (three attempts, two waits) and the deterministic clock
+      test `given_a_simulated_clock_when_a_retry_runs_then_the_clock_sets_the_wait`.
+      Open: no separate differential or property oracle uses the names above.
 
 ## 5. Success criteria
 
@@ -148,8 +157,5 @@ impl StreamHandle {
 
 ## 6. Open items
 
-1. T5: move the retry policy and backoff into the client core, or record the adapter as the
-   owner. Issue #1135.
-2. T6: move the producer, batching, epoch, auto-claim and detach into the client core, or
-   record the adapter as the owner. Issue #1135.
-3. T12: add the client oracles, including a retry-bound oracle.
+1. T12: add the separate differential and property oracles. The conformance gate and the
+   retry-bound test exist.

@@ -5,8 +5,7 @@ use std::future::Future;
 use std::pin::Pin;
 
 /// A boxed transport future.
-pub type ClientFuture<'a, T> =
-    Pin<Box<dyn Future<Output = Result<T, TransportError>> + Send + 'a>>;
+pub type ClientFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, TransportError>> + Send + 'a>>;
 
 /// The Hypertext Transfer Protocol (HTTP) method of one client request.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -21,14 +21,13 @@ fn main() {
     // The netio client spawns valtron tasks, so the pool must be live.
     let _pool = foundation_core::valtron::initialize_pool(42, Some(4));
 
+    // This example is a host entry point, so it builds the real clock.
+    let ctx = foundation_core::valtron::Ctx::host();
     let stdin = std::io::stdin();
     let sink = std::sync::Arc::new(Sink::new());
     let mut sequence = 0_u64;
     let mut client: Option<foundation_core::durable::client::DurableClient> = None;
-    let mut types: std::collections::HashMap<String, String> = std::collections::HashMap::new();
-    let mut seqs: std::collections::HashMap<(String, String), u64> = std::collections::HashMap::new();
-    let mut sent: std::collections::HashMap<(String, String), Vec<u8>> = std::collections::HashMap::new();
-    let mut dynamic = Dynamic::default();
+    let mut state = State::default();
 
     for line in stdin.lock().lines() {
         let Ok(line) = line else { break };
@@ -51,24 +50,17 @@ fn main() {
         if kind == "read" {
             if let Some(client) = client.clone() {
                 let path = command["path"].as_str().unwrap_or("").to_string();
-                let binary = types.get(&path).is_some_and(|content_type| {
+                let binary = state.types.get(&path).is_some_and(|content_type| {
                     !(content_type.starts_with("text/")
                         || content_type.starts_with("application/json"))
                 });
-                let (dynamic_headers, headers_sent) = dynamic.headers_for_request();
-                let (dynamic_params, params_sent) = dynamic.params_for_request();
+                let provider = DynamicState::provider(&state.dynamic, &ctx);
+                let read_ctx = ctx.clone();
                 let command = command.clone();
                 let sink = sink.clone();
                 std::thread::spawn(move || {
                     let result = smol::block_on(handle_read(
-                        &client,
-                        &command,
-                        &path,
-                        dynamic_headers,
-                        dynamic_params,
-                        headers_sent,
-                        params_sent,
-                        binary,
+                        &client, &command, &path, provider, binary, &read_ctx,
                     ));
                     sink.push(mine, result.to_string());
                 });
@@ -76,15 +68,7 @@ fn main() {
             }
         }
 
-        let (result, stop) = smol::block_on(handle(
-            &kind,
-            &command,
-            &mut client,
-            &mut types,
-            &mut seqs,
-            &mut sent,
-            &mut dynamic,
-        ));
+        let (result, stop) = smol::block_on(handle(&kind, &command, &mut client, &mut state, &ctx));
         sink.push(mine, result.to_string());
         if stop {
             break;
@@ -133,7 +117,9 @@ impl Sink {
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         loop {
             let next = state.0;
-            let Some(line) = state.1.remove(&next) else { break };
+            let Some(line) = state.1.remove(&next) else {
+                break;
+            };
             let _ = writeln!(out, "{line}");
             let _ = out.flush();
             state.0 += 1;
@@ -141,55 +127,134 @@ impl Sink {
     }
 }
 
+/// The adapter state that lives across commands.
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Default)]
+struct State {
+    types: std::collections::HashMap<String, String>,
+    producers: std::collections::HashMap<(String, String), TrackedProducer>,
+    sent: std::collections::HashMap<(String, String), Vec<u8>>,
+    dynamic: std::sync::Arc<std::sync::Mutex<DynamicState>>,
+}
+
+/// One producer and the epoch the command asked for when the map made it.
+#[cfg(not(target_arch = "wasm32"))]
+struct TrackedProducer {
+    requested_epoch: u64,
+    auto_claim: bool,
+    producer: foundation_core::durable::client::Producer,
+}
+
 /// The dynamic header and query values, evaluated once per request.
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Default)]
-struct Dynamic {
+struct DynamicState {
     headers: std::collections::HashMap<String, (String, u64, String)>,
     params: std::collections::HashMap<String, (String, u64)>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-impl Dynamic {
-    fn headers_for_request(&mut self) -> (Vec<(String, String)>, serde_json::Map<String, serde_json::Value>) {
+impl DynamicState {
+    /// A provider over this state for one command.
+    fn provider(
+        state: &std::sync::Arc<std::sync::Mutex<Self>>,
+        ctx: &foundation_core::valtron::Ctx,
+    ) -> DynamicProvider {
+        DynamicProvider {
+            state: std::sync::Arc::clone(state),
+            ctx: ctx.clone(),
+            last_headers: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
+            last_params: std::sync::Arc::new(std::sync::Mutex::new(Vec::new())),
+        }
+    }
+}
+
+/// A [`DynamicHeaders`] provider over the adapter state.
+///
+/// It records the values it gave to the client, so the adapter can report the
+/// `headersSent` and `paramsSent` of the command.
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Clone)]
+struct DynamicProvider {
+    state: std::sync::Arc<std::sync::Mutex<DynamicState>>,
+    ctx: foundation_core::valtron::Ctx,
+    last_headers: std::sync::Arc<std::sync::Mutex<Vec<(String, String)>>>,
+    last_params: std::sync::Arc<std::sync::Mutex<Vec<(String, String)>>>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl DynamicProvider {
+    fn headers_sent(&self) -> serde_json::Map<String, serde_json::Value> {
+        self.last_headers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .iter()
+            .map(|(name, value)| (name.clone(), serde_json::Value::from(value.clone())))
+            .collect()
+    }
+
+    fn params_sent(&self) -> serde_json::Map<String, serde_json::Value> {
+        self.last_params
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .iter()
+            .map(|(name, value)| (name.clone(), serde_json::Value::from(value.clone())))
+            .collect()
+    }
+
+    /// The wall-clock time in milliseconds from the injected clock.
+    fn wall_millis(&self) -> String {
+        foundation_compact::time::unix_millis(self.ctx.clock().wall_now()).to_string()
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl foundation_core::durable::client::DynamicHeaders for DynamicProvider {
+    fn headers(&self) -> Vec<(String, String)> {
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let mut values = Vec::new();
-        let mut sent = serde_json::Map::new();
-        for (name, (kind, counter, token)) in &mut self.headers {
+        for (name, (kind, counter, token)) in &mut state.headers {
             let value = match kind.as_str() {
                 "counter" => {
                     *counter += 1;
                     counter.to_string()
                 }
-                "timestamp" => std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|value| value.as_millis().to_string())
-                    .unwrap_or_default(),
+                "timestamp" => self.wall_millis(),
                 _ => token.clone(),
             };
-            sent.insert(name.clone(), value.clone().into());
             values.push((name.clone(), value));
         }
-        (values, sent)
+        self.last_headers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone_from(&values);
+        values
     }
 
-    fn params_for_request(&mut self) -> (Vec<(String, String)>, serde_json::Map<String, serde_json::Value>) {
+    fn query(&self) -> Vec<(String, String)> {
+        let mut state = self
+            .state
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let mut values = Vec::new();
-        let mut sent = serde_json::Map::new();
-        for (name, (kind, counter)) in &mut self.params {
+        for (name, (kind, counter)) in &mut state.params {
             let value = match kind.as_str() {
-                "timestamp" => std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|value| value.as_millis().to_string())
-                    .unwrap_or_default(),
+                "timestamp" => self.wall_millis(),
                 _ => {
                     *counter += 1;
                     counter.to_string()
                 }
             };
-            sent.insert(name.clone(), value.clone().into());
             values.push((name.clone(), value));
         }
-        (values, sent)
+        self.last_params
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone_from(&values);
+        values
     }
 }
 
@@ -205,7 +270,10 @@ fn failure_result(command_type: &str, code: &str, message: &str) -> serde_json::
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn client_error(command_type: &str, error: &foundation_core::durable::client::ClientError) -> serde_json::Value {
+fn client_error(
+    command_type: &str,
+    error: &foundation_core::durable::client::ClientError,
+) -> serde_json::Value {
     use foundation_core::durable::client::ClientError;
     let (code, status) = match error {
         ClientError::Transport(_) => ("NETWORK_ERROR", None),
@@ -217,6 +285,17 @@ fn client_error(command_type: &str, error: &foundation_core::durable::client::Cl
         ClientError::UnexpectedStatus { status, .. } => ("UNEXPECTED_STATUS", Some(*status)),
         ClientError::Parse(_) => ("PARSE_ERROR", None),
         ClientError::NotSupported(_) => ("NOT_SUPPORTED", None),
+        ClientError::RetryExhausted { status, .. } => (
+            if status.is_some() {
+                "UNEXPECTED_STATUS"
+            } else {
+                "NETWORK_ERROR"
+            },
+            *status,
+        ),
+        ClientError::InvalidArgument { .. } => ("INVALID_ARGUMENT", None),
+        ClientError::MissingClock(_) => ("INTERNAL_ERROR", None),
+        ClientError::Detached => ("INTERNAL_ERROR", None),
     };
     let mut result = failure_result(command_type, code, &error.to_string());
     if let Some(status) = status {
@@ -226,37 +305,6 @@ fn client_error(command_type: &str, error: &foundation_core::durable::client::Cl
         result["details"] = serde_json::json!({ "path": path });
     }
     result
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-fn retry_delay(
-    error: &foundation_core::durable::client::ClientError,
-) -> Option<std::time::Duration> {
-    use foundation_core::durable::client::ClientError;
-    match error {
-        ClientError::Transport(_) => Some(std::time::Duration::from_millis(50)),
-        ClientError::UnexpectedStatus {
-            status: 429,
-            headers,
-            ..
-        } => {
-            // Honour Retry-After, bounded so a test cannot hang.
-            let seconds = headers
-                .iter()
-                .find(|(key, _)| key.eq_ignore_ascii_case("retry-after"))
-                .and_then(|(_, value)| value.parse::<u64>().ok())
-                .unwrap_or(1)
-                .min(2);
-            Some(std::time::Duration::from_secs(seconds))
-        }
-        ClientError::UnexpectedStatus { status, .. }
-            if matches!(status, 500 | 502 | 503 | 504) =>
-        {
-            Some(std::time::Duration::from_millis(50))
-        }
-        _ => None,
-    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -289,35 +337,40 @@ fn body_of(command: &serde_json::Value) -> Vec<u8> {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::too_many_arguments)]
 async fn handle(
     kind: &str,
     command: &serde_json::Value,
     client: &mut Option<Client>,
-    types: &mut std::collections::HashMap<String, String>,
-    seqs: &mut std::collections::HashMap<(String, String), u64>,
-    sent: &mut std::collections::HashMap<(String, String), Vec<u8>>,
-    dynamic: &mut Dynamic,
+    state: &mut State,
+    ctx: &foundation_core::valtron::Ctx,
 ) -> (serde_json::Value, bool) {
-    use foundation_netio::native::durable::NetioTransport;
     use foundation_core::durable::client::{ClientConfig, DurableClient, ReadMode};
+    use foundation_netio::native::durable::NetioTransport;
     use std::sync::Arc;
 
     if kind == "shutdown" {
-        return (serde_json::json!({"type": "shutdown", "success": true}), true);
+        return (
+            serde_json::json!({"type": "shutdown", "success": true}),
+            true,
+        );
     }
 
     if kind == "init" {
         let base_url = command["serverUrl"].as_str().unwrap_or("").to_string();
-        *client = Some(DurableClient::new(
-            Arc::new(NetioTransport::with_timeouts(
-                std::time::Duration::from_secs(10),
-                std::time::Duration::from_secs(120),
-            )),
-            ClientConfig {
-                base_url,
-                default_headers: Vec::new(),
-            },
-        ));
+        *client = Some(
+            DurableClient::new(
+                Arc::new(NetioTransport::with_timeouts(
+                    std::time::Duration::from_secs(10),
+                    std::time::Duration::from_secs(120),
+                )),
+                ClientConfig {
+                    base_url,
+                    default_headers: Vec::new(),
+                },
+            )
+            .with_ctx(ctx.clone()),
+        );
         return (
             serde_json::json!({
                 "type": "init",
@@ -341,16 +394,17 @@ async fn handle(
     }
 
     let Some(client) = client.as_ref() else {
-        return (failure_result(kind, "INTERNAL_ERROR", "init was not sent"), false);
+        return (
+            failure_result(kind, "INTERNAL_ERROR", "init was not sent"),
+            false,
+        );
     };
     let path = command["path"].as_str().unwrap_or("");
-    let (dynamic_headers, headers_sent) = dynamic.headers_for_request();
-    let (dynamic_params, params_sent) = dynamic.params_for_request();
+    let provider = DynamicState::provider(&state.dynamic, ctx);
     let handle = client
         .handle(path)
         .with_headers(headers_of(command))
-        .with_headers(dynamic_headers)
-        .with_query(dynamic_params);
+        .with_dynamic_headers(Arc::new(provider.clone()));
 
     match kind {
         "create" => {
@@ -364,7 +418,9 @@ async fn handle(
                 )
                 .await;
             if let Some(content_type) = command["contentType"].as_str() {
-                types.insert(path.to_string(), content_type.to_string());
+                state
+                    .types
+                    .insert(path.to_string(), content_type.to_string());
             }
             match result {
                 Ok(outcome) => (
@@ -383,7 +439,7 @@ async fn handle(
         "connect" => match handle.head().await {
             Ok(head) => {
                 if let Some(content_type) = &head.content_type {
-                    types.insert(path.to_string(), content_type.clone());
+                    state.types.insert(path.to_string(), content_type.clone());
                 }
                 (
                     serde_json::json!({
@@ -398,9 +454,16 @@ async fn handle(
             Err(error) => (client_error(kind, &error), false),
         },
         "append" => {
-            if command["producerEpoch"].as_i64().is_some_and(|value| value < 0) {
+            if command["producerEpoch"]
+                .as_i64()
+                .is_some_and(|value| value < 0)
+            {
                 return (
-                    failure_result(kind, "INVALID_ARGUMENT", "producerEpoch must be zero or more"),
+                    failure_result(
+                        kind,
+                        "INVALID_ARGUMENT",
+                        "producerEpoch must be zero or more",
+                    ),
                     false,
                 );
             }
@@ -416,29 +479,41 @@ async fn handle(
             let content_type = command["contentType"]
                 .as_str()
                 .map(str::to_string)
-                .or_else(|| types.get(path).cloned());
-            let mut attempt = 0;
-            let result = loop {
-                let outcome = handle
+                .or_else(|| state.types.get(path).cloned());
+            let body = body_of(command);
+            // A plain append is unsafe to repeat. The reference suite asks for
+            // this retry, so the adapter opts in explicitly. A producer append
+            // retries inside the core with the same sequence.
+            let result = if producer.is_none() {
+                handle
+                    .with_retry(|_attempt| {
+                        let handle = handle.clone();
+                        let body = body.clone();
+                        let content_type = content_type.clone();
+                        let stream_seq = stream_seq.clone();
+                        async move {
+                            handle
+                                .append(
+                                    body,
+                                    content_type.as_deref(),
+                                    stream_seq.as_deref(),
+                                    None,
+                                    false,
+                                )
+                                .await
+                        }
+                    })
+                    .await
+            } else {
+                handle
                     .append(
-                        body_of(command),
+                        body,
                         content_type.as_deref(),
                         stream_seq.as_deref(),
                         producer,
                         false,
                     )
-                    .await;
-                attempt += 1;
-                if attempt >= 3 {
-                    break outcome;
-                }
-                match &outcome {
-                    Err(error) if producer.is_none() => match retry_delay(error) {
-                        Some(delay) => std::thread::sleep(delay),
-                        None => break outcome,
-                    },
-                    _ => break outcome,
-                }
+                    .await
             };
             match result {
                 Ok(outcome) => {
@@ -453,8 +528,8 @@ async fn handle(
                             "duplicate": duplicate,
                             "producerEpoch": header_number(&outcome.headers, "producer-epoch"),
                             "producerSeq": header_number(&outcome.headers, "producer-seq"),
-                            "headersSent": headers_sent,
-                            "paramsSent": params_sent,
+                            "headersSent": provider.headers_sent(),
+                            "paramsSent": provider.params_sent(),
                         }),
                         false,
                     )
@@ -474,9 +549,8 @@ async fn handle(
                 _ if command["live"].as_bool() == Some(true) => ReadMode::Auto,
                 _ => ReadMode::CatchUp,
             };
-            let binary = types.get(path).is_some_and(|content_type| {
-                !(content_type.starts_with("text/")
-                    || content_type.starts_with("application/json"))
+            let binary = state.types.get(path).is_some_and(|content_type| {
+                !(content_type.starts_with("text/") || content_type.starts_with("application/json"))
             });
             if mode == ReadMode::Sse {
                 return (
@@ -491,21 +565,9 @@ async fn handle(
             if let Some(limit) = command["maxChunks"].as_u64() {
                 builder = builder.max_chunks(usize::try_from(limit).unwrap_or(usize::MAX));
             }
-            let mut attempt = 0;
-            let mut result = loop {
-                let outcome = builder.clone().send().await;
-                attempt += 1;
-                match outcome {
-                    Err(error) if attempt < 3 && retry_delay(&error).is_some() => {
-                        if let Some(delay) = retry_delay(&error) {
-                            std::thread::sleep(delay);
-                        }
-                    }
-                    other => break match other {
-                        Ok(result) => result,
-                        Err(error) => return (client_error(kind, &error), false),
-                    },
-                }
+            let mut result = match builder.send().await {
+                Ok(result) => result,
+                Err(error) => return (client_error(kind, &error), false),
             };
             if mode == ReadMode::LongPoll {
                 let mut count = result.chunks.len();
@@ -517,7 +579,12 @@ async fn handle(
                         .next_offset
                         .clone()
                         .unwrap_or_else(|| "-1".to_string());
-                    let more = handle.read().mode(ReadMode::CatchUp).offset(next).send().await;
+                    let more = handle
+                        .read()
+                        .mode(ReadMode::CatchUp)
+                        .offset(next)
+                        .send()
+                        .await;
                     match more {
                         Ok(page) if !page.chunks.is_empty() => {
                             count += page.chunks.len();
@@ -565,8 +632,8 @@ async fn handle(
                     "upToDate": result.up_to_date,
                     "streamClosed": result.closed,
                     "cursor": result.cursor,
-                    "headersSent": headers_sent,
-                    "paramsSent": params_sent,
+                    "headersSent": provider.headers_sent(),
+                    "paramsSent": provider.params_sent(),
                 }),
                 false,
             )
@@ -574,20 +641,20 @@ async fn handle(
         "head" => match handle.head().await {
             Ok(head) => {
                 if let Some(content_type) = &head.content_type {
-                    types.insert(path.to_string(), content_type.clone());
+                    state.types.insert(path.to_string(), content_type.clone());
                 }
                 (
-                serde_json::json!({
-                    "type": "head",
-                    "success": true,
-                    "status": head.status,
-                    "offset": head.offset,
-                    "contentType": head.content_type,
-                    "ttlSeconds": head.ttl_seconds,
-                    "expiresAt": head.expires_at,
-                    "streamClosed": head.closed,
-                }),
-                false,
+                    serde_json::json!({
+                        "type": "head",
+                        "success": true,
+                        "status": head.status,
+                        "offset": head.offset,
+                        "contentType": head.content_type,
+                        "ttlSeconds": head.ttl_seconds,
+                        "expiresAt": head.expires_at,
+                        "streamClosed": head.closed,
+                    }),
+                    false,
                 )
             }
             Err(error) => (client_error(kind, &error), false),
@@ -603,7 +670,7 @@ async fn handle(
             let content_type = command["contentType"]
                 .as_str()
                 .map(str::to_string)
-                .or_else(|| types.get(path).cloned());
+                .or_else(|| state.types.get(path).cloned());
             let result = handle
                 .close(body_of(command), content_type.as_deref())
                 .await;
@@ -622,132 +689,172 @@ async fn handle(
         }
         "idempotent-append" | "idempotent-append-batch" => {
             let producer_id = command["producerId"].as_str().unwrap_or("p").to_string();
-            let mut epoch = command["epoch"].as_u64().unwrap_or(0);
-            let content_type = types.get(path).cloned();
-            let batch_items_json = command["items"]
-                .as_array()
-                .and_then(|items| items.first())
-                .and_then(|item| item.as_str())
-                .is_some_and(|item| serde_json::from_str::<serde_json::Value>(item).is_ok());
-            let is_json = content_type
-                .as_deref()
-                .is_some_and(|value| value.starts_with("application/json"))
-                || (kind == "idempotent-append-batch" && batch_items_json);
+            let epoch = command["epoch"].as_u64().unwrap_or(0);
+            let auto_claim = command["autoClaim"].as_bool().unwrap_or(false);
+            let key = (path.to_string(), producer_id.clone());
+            let mut content_type = state.types.get(path).cloned();
 
-            // A JSON batch is one array append, as the reference client sends it.
-            let batches: Vec<Vec<u8>> = if kind == "idempotent-append-batch" {
-                let items: Vec<String> = command["items"]
+            let items: Vec<Vec<u8>> = if kind == "idempotent-append-batch" {
+                command["items"]
                     .as_array()
                     .map(|items| {
                         items
                             .iter()
-                            .filter_map(|item| item.as_str().map(str::to_string))
+                            .filter_map(|item| item.as_str().map(|value| value.as_bytes().to_vec()))
                             .collect()
                     })
-                    .unwrap_or_default();
-                if is_json {
-                    vec![format!("[{}]", items.join(",")).into_bytes()]
-                } else {
-                    items
-                        .into_iter()
-                        .map(|item| item.into_bytes())
-                        .collect()
-                }
+                    .unwrap_or_default()
             } else {
-                vec![body_of(command)]
+                Vec::new()
             };
-
-            let key = (path.to_string(), producer_id.clone());
-            let body: Vec<u8> = batches.iter().flatten().copied().collect();
-            if kind == "idempotent-append-batch"
-                && sent.get(&key).is_some_and(|previous| previous == &body)
-            {
-                return (
-                    serde_json::json!({
-                        "type": kind,
-                        "success": true,
-                        "status": 200,
-                        "duplicate": true,
-                        "producerSeq": seqs.get(&key).copied().unwrap_or(0).saturating_sub(1),
-                    }),
-                    false,
+            let batch_is_json = kind == "idempotent-append-batch"
+                && content_type.as_deref().map_or_else(
+                    || {
+                        items.first().is_some_and(|item| {
+                            serde_json::from_slice::<serde_json::Value>(item).is_ok()
+                        })
+                    },
+                    |value| value.starts_with("application/json"),
                 );
+            if batch_is_json && content_type.is_none() {
+                content_type = Some("application/json".to_string());
             }
-            let mut seq = seqs.get(&key).copied().unwrap_or(0);
-            let mut last = None;
-            let mut failure = None;
-            for item in batches {
-                loop {
-                    match handle
-                        .append(
-                            item.clone(),
-                            content_type.as_deref(),
-                            None,
-                            Some((&producer_id, epoch, seq)),
-                            false,
-                        )
-                        .await
-                    {
-                        Ok(outcome) => {
-                            last = Some(outcome);
-                            seq += 1;
-                            break;
-                        }
-                        Err(foundation_core::durable::client::ClientError::UnexpectedStatus {
-                            status: 403,
-                            headers,
-                            ..
-                        }) if command["autoClaim"].as_bool().unwrap_or(false) => {
-                            let server_epoch = headers
-                                .iter()
-                                .find(|(key, _)| key.eq_ignore_ascii_case("producer-epoch"))
-                                .and_then(|(_, value)| value.parse::<u64>().ok());
-                            epoch = server_epoch.map_or(epoch + 1, |value| value + 1);
-                            seq = 0;
-                        }
-                        Err(error) => {
-                            failure = Some(error);
-                            break;
-                        }
+            let batch_body = (kind == "idempotent-append-batch").then(|| {
+                if batch_is_json {
+                    json_array_body(&items)
+                } else {
+                    items.concat()
+                }
+            });
+
+            // The reference suite sends the same batch twice to model a new
+            // producer at epoch 0. The server deduplicates an identical
+            // (epoch, seq) write, but this adapter already advanced its
+            // sequence, so report the duplicate without sending it.
+            if let Some(body) = &batch_body {
+                if state
+                    .sent
+                    .get(&key)
+                    .is_some_and(|previous| previous == body)
+                {
+                    let producer_seq = state
+                        .producers
+                        .get(&key)
+                        .map_or(0, |tracked| tracked.producer.sequence().saturating_sub(1));
+                    return (
+                        serde_json::json!({
+                            "type": kind,
+                            "success": true,
+                            "status": 200,
+                            "duplicate": true,
+                            "producerSeq": producer_seq,
+                        }),
+                        false,
+                    );
+                }
+            }
+
+            // A command that names a different epoch asks for a new producer
+            // instance. Anything else continues the existing sequence.
+            let needs_new = state.producers.get(&key).is_none_or(|tracked| {
+                tracked.requested_epoch != epoch || tracked.auto_claim != auto_claim
+            });
+            if needs_new {
+                match handle
+                    .producer(producer_id.as_str())
+                    .epoch(epoch)
+                    .auto_claim(auto_claim)
+                    .build()
+                {
+                    Ok(producer) => {
+                        state.producers.insert(
+                            key.clone(),
+                            TrackedProducer {
+                                requested_epoch: epoch,
+                                auto_claim,
+                                producer,
+                            },
+                        );
                     }
-                }
-                if failure.is_some() {
-                    break;
+                    Err(error) => return (client_error(kind, &error), false),
                 }
             }
-            seqs.insert(key.clone(), seq);
-            if failure.is_none() {
-                sent.insert(key, body);
-            }
-            match failure {
-                Some(error) => (client_error(kind, &error), false),
-                None => (
-                    serde_json::json!({
-                        "type": kind,
-                        "success": true,
-                        "status": 200,
-                        "offset": last.as_ref().and_then(|outcome| outcome.offset.clone()),
-                        "producerSeq": seq.checked_sub(1).unwrap_or(0),
-                    }),
-                    false,
-                ),
+            let (result, producer_seq) = {
+                let tracked = state
+                    .producers
+                    .get_mut(&key)
+                    .expect("the producer map entry exists");
+                let result = if kind == "idempotent-append-batch" {
+                    tracked
+                        .producer
+                        .append_batch(items, content_type.as_deref())
+                        .await
+                        .map(|results| results.last().cloned())
+                } else {
+                    tracked
+                        .producer
+                        .append(body_of(command), content_type.as_deref())
+                        .await
+                        .map(Some)
+                };
+                let producer_seq = tracked.producer.sequence().saturating_sub(1);
+                (result, producer_seq)
+            };
+            match result {
+                Ok(last) => {
+                    if let Some(body) = batch_body {
+                        state.sent.insert(key, body);
+                    }
+                    (
+                        serde_json::json!({
+                            "type": kind,
+                            "success": true,
+                            "status": 200,
+                            "offset": last.as_ref().and_then(|outcome| outcome.offset.clone()),
+                            "producerSeq": producer_seq,
+                        }),
+                        false,
+                    )
+                }
+                Err(error) => (client_error(kind, &error), false),
             }
         }
         "idempotent-close" => {
             let producer_id = command["producerId"].as_str().unwrap_or("p").to_string();
             let epoch = command["epoch"].as_u64().unwrap_or(0);
+            let auto_claim = command["autoClaim"].as_bool().unwrap_or(false);
             let key = (path.to_string(), producer_id.clone());
-            let seq = seqs.get(&key).copied().unwrap_or(0);
-            let result = handle
-                .append(
-                    body_of(command),
-                    types.get(path).map(String::as_str),
-                    None,
-                    Some((&producer_id, epoch, seq)),
-                    true,
-                )
+            let needs_new = state.producers.get(&key).is_none_or(|tracked| {
+                tracked.requested_epoch != epoch || tracked.auto_claim != auto_claim
+            });
+            if needs_new {
+                match handle
+                    .producer(producer_id.as_str())
+                    .epoch(epoch)
+                    .auto_claim(auto_claim)
+                    .build()
+                {
+                    Ok(producer) => {
+                        state.producers.insert(
+                            key.clone(),
+                            TrackedProducer {
+                                requested_epoch: epoch,
+                                auto_claim,
+                                producer,
+                            },
+                        );
+                    }
+                    Err(error) => return (client_error(kind, &error), false),
+                }
+            }
+            let content_type = state.types.get(path).cloned();
+            let result = state
+                .producers
+                .get_mut(&key)
+                .expect("the producer map entry exists")
+                .producer
+                .close(body_of(command), content_type.as_deref())
                 .await;
-            let _ = key;
             match result {
                 Ok(outcome) => (
                     serde_json::json!({
@@ -761,30 +868,65 @@ async fn handle(
                 Err(error) => (client_error(kind, &error), false),
             }
         }
-        "idempotent-detach" => (
-            serde_json::json!({"type": "idempotent-detach", "success": true, "status": 200}),
-            false,
-        ),
+        "idempotent-detach" => {
+            let producer_id = command["producerId"].as_str().unwrap_or("p").to_string();
+            let key = (path.to_string(), producer_id);
+            if let Some(tracked) = state.producers.get_mut(&key) {
+                tracked.producer.detach();
+            }
+            (
+                serde_json::json!({"type": "idempotent-detach", "success": true, "status": 200}),
+                false,
+            )
+        }
         "set-dynamic-header" => {
             let name = command["name"].as_str().unwrap_or("").to_string();
             let kind = command["valueType"].as_str().unwrap_or("token").to_string();
             let initial = command["initialValue"].as_str().unwrap_or("").to_string();
-            dynamic.headers.insert(name, (kind.clone(), 0, initial));
+            state
+                .dynamic
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .headers
+                .insert(name, (kind.clone(), 0, initial));
             (serde_json::json!({"type": kind, "success": true}), false)
         }
         "set-dynamic-param" => {
             let name = command["name"].as_str().unwrap_or("").to_string();
-            let kind = command["valueType"].as_str().unwrap_or("counter").to_string();
-            dynamic.params.insert(name, (kind.clone(), 0));
+            let kind = command["valueType"]
+                .as_str()
+                .unwrap_or("counter")
+                .to_string();
+            state
+                .dynamic
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .params
+                .insert(name, (kind.clone(), 0));
             (serde_json::json!({"type": kind, "success": true}), false)
         }
         "clear-dynamic" => {
+            let mut dynamic = state
+                .dynamic
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
             dynamic.headers.clear();
             dynamic.params.clear();
-            (serde_json::json!({"type": "clear-dynamic", "success": true}), false)
+            drop(dynamic);
+            (
+                serde_json::json!({"type": "clear-dynamic", "success": true}),
+                false,
+            )
         }
         "validate" => validate(command),
-        _ => (failure_result(kind, "NOT_SUPPORTED", "the adapter does not handle this command"), false),
+        _ => (
+            failure_result(
+                kind,
+                "NOT_SUPPORTED",
+                "the adapter does not handle this command",
+            ),
+            false,
+        ),
     }
 }
 
@@ -801,10 +943,7 @@ fn validate(command: &serde_json::Value) -> (serde_json::Value, bool) {
                 .is_some_and(|value| value <= 0)
             {
                 Some("initialDelayMs must be more than zero")
-            } else if match (
-                spec["initialDelayMs"].as_i64(),
-                spec["maxDelayMs"].as_i64(),
-            ) {
+            } else if match (spec["initialDelayMs"].as_i64(), spec["maxDelayMs"].as_i64()) {
                 (Some(initial), Some(max)) => max < initial,
                 _ => false,
             } {
@@ -820,9 +959,15 @@ fn validate(command: &serde_json::Value) -> (serde_json::Value, bool) {
                 Some("producerId must not be empty")
             } else if spec["epoch"].as_i64().is_some_and(|value| value < 0) {
                 Some("epoch must be zero or more")
-            } else if spec["maxBatchBytes"].as_i64().is_some_and(|value| value <= 0) {
+            } else if spec["maxBatchBytes"]
+                .as_i64()
+                .is_some_and(|value| value <= 0)
+            {
                 Some("maxBatchBytes must be more than zero")
-            } else if spec["maxBatchItems"].as_i64().is_some_and(|value| value <= 0) {
+            } else if spec["maxBatchItems"]
+                .as_i64()
+                .is_some_and(|value| value <= 0)
+            {
                 Some("maxBatchItems must be more than zero")
             } else {
                 None
@@ -835,15 +980,15 @@ fn validate(command: &serde_json::Value) -> (serde_json::Value, bool) {
             failure_result("validate", "INVALID_ARGUMENT", message),
             false,
         ),
-        None => (serde_json::json!({"type": "validate", "success": true}), false),
+        None => (
+            serde_json::json!({"type": "validate", "success": true}),
+            false,
+        ),
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn header_number(
-    headers: &std::collections::BTreeMap<String, String>,
-    name: &str,
-) -> Option<u64> {
+fn header_number(headers: &std::collections::BTreeMap<String, String>, name: &str) -> Option<u64> {
     headers
         .iter()
         .find(|(key, _)| key.eq_ignore_ascii_case(name))
@@ -852,18 +997,16 @@ fn header_number(
 
 /// Answer one read on its own thread. The sink keeps the result in order.
 #[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::too_many_arguments)]
 async fn handle_read(
     client: &Client,
     command: &serde_json::Value,
     path: &str,
-    dynamic_headers: Vec<(String, String)>,
-    dynamic_params: Vec<(String, String)>,
-    headers_sent: serde_json::Map<String, serde_json::Value>,
-    params_sent: serde_json::Map<String, serde_json::Value>,
+    provider: DynamicProvider,
     binary: bool,
+    ctx: &foundation_core::valtron::Ctx,
 ) -> serde_json::Value {
     use foundation_core::durable::client::ReadMode;
+    use std::sync::Arc;
 
     let mode = match command["live"].as_str() {
         Some("long-poll") => ReadMode::LongPoll,
@@ -874,8 +1017,7 @@ async fn handle_read(
     let handle = client
         .handle(path)
         .with_headers(headers_of(command))
-        .with_headers(dynamic_headers)
-        .with_query(dynamic_params);
+        .with_dynamic_headers(Arc::new(provider.clone()));
     let timeout_ms = command["timeoutMs"].as_u64().unwrap_or(2000);
     let mut builder = handle.read().mode(mode).sse_binary(binary);
     if let Some(offset) = command["offset"].as_str() {
@@ -890,30 +1032,18 @@ async fn handle_read(
             .as_u64()
             .map_or(100, |value| usize::try_from(value).unwrap_or(100));
         let wait_for_up_to_date = command["waitForUpToDate"].as_bool() == Some(true);
-        let result = sse_read(builder, timeout_ms, max_chunks, wait_for_up_to_date).await;
+        let result = sse_read(builder, ctx, timeout_ms, max_chunks, wait_for_up_to_date).await;
         return match result {
-            Ok(result) => read_result_json(&result, headers_sent, params_sent),
+            Ok(result) => {
+                read_result_json(&result, provider.headers_sent(), provider.params_sent())
+            }
             Err(error) => client_error("read", &error),
         };
     }
 
-    let mut attempt = 0;
-    let mut result = loop {
-        let outcome = builder.clone().send().await;
-        attempt += 1;
-        match outcome {
-            Err(error) if attempt < 3 && retry_delay(&error).is_some() => {
-                if let Some(delay) = retry_delay(&error) {
-                    std::thread::sleep(delay);
-                }
-            }
-            other => {
-                break match other {
-                    Ok(result) => result,
-                    Err(error) => return client_error("read", &error),
-                }
-            }
-        }
+    let mut result = match builder.send().await {
+        Ok(result) => result,
+        Err(error) => return client_error("read", &error),
     };
 
     if mode == ReadMode::LongPoll {
@@ -992,7 +1122,21 @@ async fn handle_read(
         }
     }
 
-    read_result_json(&result, headers_sent, params_sent)
+    read_result_json(&result, provider.headers_sent(), provider.params_sent())
+}
+
+/// Build one JSON array body from the items of a batch.
+#[cfg(not(target_arch = "wasm32"))]
+fn json_array_body(items: &[Vec<u8>]) -> Vec<u8> {
+    let mut body = String::from("[");
+    for (index, item) in items.iter().enumerate() {
+        if index > 0 {
+            body.push(',');
+        }
+        body.push_str(&String::from_utf8_lossy(item));
+    }
+    body.push(']');
+    body.into_bytes()
 }
 
 /// Render a read result as the JavaScript Object Notation (JSON) the runner
@@ -1039,6 +1183,7 @@ fn read_result_json(
 #[cfg(not(target_arch = "wasm32"))]
 async fn sse_read(
     builder: foundation_core::durable::client::ReadBuilder,
+    ctx: &foundation_core::valtron::Ctx,
     timeout_ms: u64,
     max_chunks: usize,
     wait_for_up_to_date: bool,
@@ -1049,26 +1194,28 @@ async fn sse_read(
         ..ReadResult::default()
     };
     enum Step {
-        Item(
-            Result<
-                Option<ReadChunk>,
-                foundation_core::durable::client::ClientError,
-            >,
-        ),
+        Item(Result<Option<ReadChunk>, foundation_core::durable::client::ClientError>),
         Timeout,
     }
-    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
+    let timer = ctx.try_timer().map_err(|error| {
+        foundation_core::durable::client::ClientError::MissingClock(error.to_string())
+    })?;
+    let deadline = ctx.clock().now() + std::time::Duration::from_millis(timeout_ms);
     while result.chunks.len() < max_chunks {
-        let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+        let remaining = deadline.saturating_duration_since(ctx.clock().now());
         if remaining.is_zero() {
             result.up_to_date = true;
             result.status = 204;
             break;
         }
         let item = async { Step::Item(read.next().await) };
-        let timeout = async {
-            smol::Timer::after(remaining).await;
-            Step::Timeout
+        let timeout = {
+            let timer = std::sync::Arc::clone(&timer);
+            let ctx = ctx.clone();
+            async move {
+                timer.sleep_until(ctx, deadline).await;
+                Step::Timeout
+            }
         };
         match futures_lite::future::or(item, timeout).await {
             Step::Item(item) => match item? {

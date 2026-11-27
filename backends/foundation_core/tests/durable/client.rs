@@ -3,11 +3,12 @@
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
-use foundation_core::durable::StreamName;
 use foundation_core::durable::client::{
     ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientSseStream,
-    ClientTransport, DurableClient, ReadMode, ReadResult, SseEvent, SseOpen, SseRead, TransportError,
+    ClientTransport, DurableClient, DynamicHeaders, ReadMode, ReadResult, RetryPolicy, SseEvent,
+    SseOpen, SseRead, TransportError,
 };
+use foundation_core::durable::StreamName;
 
 #[derive(Clone, Default)]
 struct SseHeadSpec {
@@ -79,7 +80,12 @@ impl ClientTransport for MockTransport {
 
     fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, SseOpen> {
         self.requests.lock().expect("requests").push(request);
-        let events = self.events.lock().expect("events").drain(..).collect::<Vec<_>>();
+        let events = self
+            .events
+            .lock()
+            .expect("events")
+            .drain(..)
+            .collect::<Vec<_>>();
         let head = self.sse_head.lock().expect("sse head").clone();
         Box::pin(async move {
             let stream =
@@ -134,7 +140,13 @@ fn given_a_client_when_it_creates_a_stream_then_it_sends_a_put_with_the_configur
             b"",
         )]);
         let result = handle(transport.clone())
-            .create(Some("application/json"), Some(60), None, false, b"abc".to_vec())
+            .create(
+                Some("application/json"),
+                Some(60),
+                None,
+                false,
+                b"abc".to_vec(),
+            )
             .await
             .expect("create");
 
@@ -221,11 +233,7 @@ fn given_a_json_stream_when_a_read_runs_then_it_returns_one_chunk_per_message() 
             &[("content-type", "application/json")],
             br#"[{"n":1},{"n":2}]"#,
         )]);
-        let result = handle(transport)
-            .read()
-            .send()
-            .await
-            .expect("read");
+        let result = handle(transport).read().send().await.expect("read");
 
         assert_eq!(result.chunks.len(), 1);
         assert_eq!(result.chunks[0].data, br#"[{"n":1},{"n":2}]"#);
@@ -431,7 +439,10 @@ fn given_a_base64_sse_payload_when_a_binary_read_runs_then_it_decodes_the_bytes(
         let transport = MockTransport::with(vec![]);
         transport.events.lock().expect("events").extend([
             sse("data", "SGVsbG8="),
-            sse("control", r#"{"streamNextOffset":"00ff","streamClosed":true}"#),
+            sse(
+                "control",
+                r#"{"streamNextOffset":"00ff","streamClosed":true}"#,
+            ),
         ]);
         let read = handle(transport)
             .read()
@@ -778,4 +789,382 @@ fn given_a_client_reader_when_pages_arrive_then_it_yields_them_in_order() {
         }
     }
     assert_eq!(bytes, b"abcd");
+}
+
+// ---- Retry, producer and dynamic-header scenarios (issue #1135) ----
+
+/// A timer that records each deadline and resolves at once.
+#[derive(Default)]
+struct RecordingTimer {
+    calls: Mutex<Vec<(foundation_context::Instant, foundation_context::Instant)>>,
+}
+
+impl RecordingTimer {
+    /// The requested waits, measured against the clock that produced them.
+    fn delays(&self) -> Vec<foundation_context::Duration> {
+        self.calls
+            .lock()
+            .expect("timer calls")
+            .iter()
+            .map(|(now, deadline)| deadline.saturating_duration_since(*now))
+            .collect()
+    }
+}
+
+impl foundation_core::env::Timer for RecordingTimer {
+    fn sleep_until(
+        &self,
+        ctx: foundation_context::Ctx,
+        deadline: foundation_context::Instant,
+    ) -> foundation_core::env::TimerFuture {
+        self.calls
+            .lock()
+            .expect("timer calls")
+            .push((ctx.clock().now(), deadline));
+        Box::pin(async {})
+    }
+}
+
+/// A context with a real monotonic clock and a timer that never blocks.
+fn retry_ctx() -> (foundation_context::Ctx, std::sync::Arc<RecordingTimer>) {
+    let clock: std::sync::Arc<dyn foundation_context::Clock> =
+        std::sync::Arc::new(foundation_context::MonotonicClock::new());
+    let ctx = foundation_context::Ctx::fixed(clock);
+    let timer = std::sync::Arc::new(RecordingTimer::default());
+    ctx.store(foundation_core::env::Env::new(
+        timer.clone(),
+        std::sync::Arc::new(foundation_core::env::SeededEntropy::new(9)),
+        std::sync::Arc::new(foundation_core::env::CounterSource::new(1)),
+    ));
+    (ctx, timer)
+}
+
+fn retrying_client(
+    transport: std::sync::Arc<MockTransport>,
+    ctx: foundation_context::Ctx,
+    policy: RetryPolicy,
+) -> DurableClient {
+    DurableClient::new(
+        transport,
+        ClientConfig {
+            base_url: "http://server".to_string(),
+            default_headers: Vec::new(),
+        },
+    )
+    .with_ctx(ctx)
+    .with_retry_policy(policy)
+}
+
+fn header(request: &ClientRequest, name: &str) -> Option<String> {
+    request
+        .headers
+        .iter()
+        .find(|(key, _)| key.eq_ignore_ascii_case(name))
+        .map(|(_, value)| value.clone())
+}
+
+/// A provider whose header value counts the attempts.
+#[derive(Default)]
+struct CounterHeader {
+    next: std::sync::atomic::AtomicU64,
+}
+
+impl DynamicHeaders for CounterHeader {
+    fn headers(&self) -> Vec<(String, String)> {
+        let value = self.next.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+        vec![("x-attempt".to_string(), value.to_string())]
+    }
+}
+
+#[test]
+fn given_a_429_with_retry_after_when_a_read_runs_then_it_waits_and_retries() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, timer) = retry_ctx();
+        let transport = MockTransport::with(vec![
+            response(429, &[("retry-after", "1")], b""),
+            response(200, &[("content-type", "text/plain")], b"ok"),
+        ]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default().jitter(0.0));
+        let result = client
+            .stream(&StreamName::parse("v1/stream/orders").expect("name"))
+            .read()
+            .send()
+            .await
+            .expect("a retried read");
+
+        assert_eq!(result.chunks[0].data, b"ok");
+        assert_eq!(transport.requests.lock().expect("requests").len(), 2);
+        let delays = timer.delays();
+        assert_eq!(delays.len(), 1, "one wait before the retry");
+        assert!(
+            delays[0] >= foundation_context::Duration::from_millis(999)
+                && delays[0] <= foundation_context::Duration::from_secs(1),
+            "the wait is the server Retry-After value, got {:?}",
+            delays[0]
+        );
+    });
+}
+
+#[test]
+fn given_a_409_when_a_read_runs_then_it_is_not_retried() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, timer) = retry_ctx();
+        let transport = MockTransport::with(vec![response(409, &[], b"conflict")]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let error = client
+            .stream(&StreamName::parse("v1/stream/orders").expect("name"))
+            .read()
+            .send()
+            .await
+            .expect_err("a conflict");
+
+        assert!(matches!(
+            error,
+            ClientError::UnexpectedStatus { status: 409, .. }
+        ));
+        assert_eq!(transport.requests.lock().expect("requests").len(), 1);
+        assert_eq!(
+            timer.delays(),
+            [] as [foundation_context::Duration; 0],
+            "no wait is needed"
+        );
+    });
+}
+
+#[test]
+fn does_not_retry_404() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, timer) = retry_ctx();
+        let transport = MockTransport::with(vec![response(404, &[], b"")]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let error = client
+            .stream(&StreamName::parse("v1/stream/missing").expect("name"))
+            .read()
+            .send()
+            .await
+            .expect_err("missing");
+
+        assert!(matches!(error, ClientError::NotFound { .. }));
+        assert_eq!(transport.requests.lock().expect("requests").len(), 1);
+        assert_eq!(
+            timer.delays(),
+            [] as [foundation_context::Duration; 0],
+            "no wait is needed"
+        );
+    });
+}
+
+#[test]
+fn retry_exhaustion_is_an_error() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, timer) = retry_ctx();
+        let transport = MockTransport::with(vec![
+            response(500, &[], b"one"),
+            response(500, &[], b"two"),
+            response(500, &[], b"three"),
+        ]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default().jitter(0.0));
+        let error = client
+            .stream(&StreamName::parse("v1/stream/orders").expect("name"))
+            .read()
+            .send()
+            .await
+            .expect_err("an exhausted read");
+
+        match error {
+            ClientError::RetryExhausted {
+                attempts,
+                status,
+                body,
+                ..
+            } => {
+                assert_eq!(attempts, 3);
+                assert_eq!(status, Some(500));
+                assert_eq!(body, "three");
+            }
+            other => panic!("unexpected error: {other}"),
+        }
+        assert_eq!(transport.requests.lock().expect("requests").len(), 3);
+        assert_eq!(timer.delays().len(), 2, "two waits between three attempts");
+    });
+}
+
+#[test]
+fn given_a_producer_when_two_appends_run_then_the_sequences_advance() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let transport = MockTransport::with(vec![response(200, &[], b""), response(200, &[], b"")]);
+        let mut producer = handle(transport.clone())
+            .producer("p1")
+            .build()
+            .expect("a producer");
+        producer
+            .append(b"a".to_vec(), Some("text/plain"))
+            .await
+            .expect("first append");
+        producer
+            .append(b"b".to_vec(), Some("text/plain"))
+            .await
+            .expect("second append");
+
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(header(&requests[0], "producer-id").as_deref(), Some("p1"));
+        assert_eq!(header(&requests[0], "producer-epoch").as_deref(), Some("0"));
+        assert_eq!(header(&requests[0], "producer-seq").as_deref(), Some("0"));
+        assert_eq!(header(&requests[1], "producer-seq").as_deref(), Some("1"));
+        assert_eq!(producer.sequence(), 2);
+    });
+}
+
+#[test]
+fn producer_deduplicates_retry() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, _timer) = retry_ctx();
+        let transport =
+            MockTransport::with(vec![response(500, &[], b"down"), response(204, &[], b"")]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let mut producer = client
+            .handle("/v1/stream/orders")
+            .producer("p1")
+            .build()
+            .expect("a producer");
+        let result = producer
+            .append(b"x".to_vec(), Some("text/plain"))
+            .await
+            .expect("a retried append");
+
+        assert!(result.duplicate, "a 204 is a duplicate");
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(requests.len(), 2);
+        assert_eq!(
+            header(&requests[0], "producer-seq"),
+            header(&requests[1], "producer-seq"),
+            "a retry repeats the sequence"
+        );
+        assert_eq!(header(&requests[1], "producer-seq").as_deref(), Some("0"));
+        assert_eq!(producer.sequence(), 1, "the sequence advances once");
+    });
+}
+
+#[test]
+fn auto_claim_moves_epoch() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, _timer) = retry_ctx();
+        let transport = MockTransport::with(vec![
+            response(403, &[("producer-epoch", "5")], b"fenced"),
+            response(200, &[], b""),
+        ]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let mut producer = client
+            .handle("/v1/stream/orders")
+            .producer("p1")
+            .epoch(0)
+            .auto_claim(true)
+            .build()
+            .expect("a producer");
+        let result = producer
+            .append(b"recovered".to_vec(), Some("text/plain"))
+            .await
+            .expect("an auto-claimed append");
+
+        assert_eq!(result.status, 200);
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(header(&requests[0], "producer-epoch").as_deref(), Some("0"));
+        assert_eq!(header(&requests[1], "producer-epoch").as_deref(), Some("6"));
+        assert_eq!(header(&requests[1], "producer-seq").as_deref(), Some("0"));
+        assert_eq!(producer.epoch(), 6);
+    });
+}
+
+#[test]
+fn dynamic_header_counter() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, _timer) = retry_ctx();
+        let transport = MockTransport::with(vec![
+            response(500, &[], b"down"),
+            response(200, &[("content-type", "text/plain")], b"ok"),
+        ]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default())
+            .with_dynamic_headers(std::sync::Arc::new(CounterHeader::default()));
+        client
+            .handle("/v1/stream/orders")
+            .read()
+            .send()
+            .await
+            .expect("a retried read");
+
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(header(&requests[0], "x-attempt").as_deref(), Some("1"));
+        assert_eq!(
+            header(&requests[1], "x-attempt").as_deref(),
+            Some("2"),
+            "the provider runs once per attempt"
+        );
+    });
+}
+
+#[test]
+fn detach_does_not_close() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let transport = MockTransport::with(Vec::new());
+        let mut producer = handle(transport.clone())
+            .producer("p1")
+            .build()
+            .expect("a producer");
+        producer.detach();
+
+        assert!(producer.is_detached());
+        let error = producer
+            .append(b"x".to_vec(), Some("text/plain"))
+            .await
+            .expect_err("a detached producer");
+        assert!(matches!(error, ClientError::Detached));
+        assert_eq!(
+            transport.requests.lock().expect("requests").len(),
+            0,
+            "detach and a refused append send nothing"
+        );
+    });
+}
+
+#[cfg(feature = "test-clock")]
+#[test]
+fn given_a_simulated_clock_when_a_retry_runs_then_the_clock_sets_the_wait() {
+    use foundation_context::Clock as _;
+    use foundation_core::valtron::SimulatedClock;
+
+    foundation_core::valtron::block_on_future_scoped(async {
+        let clock = std::sync::Arc::new(SimulatedClock::new(foundation_context::Duration::ZERO));
+        let ctx = foundation_context::Ctx::fixed(clock.clone());
+        let timer = std::sync::Arc::new(RecordingTimer::default());
+        ctx.store(foundation_core::env::Env::new(
+            timer.clone(),
+            std::sync::Arc::new(foundation_core::env::SeededEntropy::new(11)),
+            std::sync::Arc::new(foundation_core::env::CounterSource::new(1)),
+        ));
+        let transport =
+            MockTransport::with(vec![response(500, &[], b"down"), response(200, &[], b"")]);
+        let client = retrying_client(
+            transport,
+            ctx,
+            RetryPolicy::default()
+                .initial_backoff(foundation_context::Duration::from_millis(250))
+                .jitter(0.0),
+        );
+        client
+            .handle("/v1/stream/orders")
+            .read()
+            .send()
+            .await
+            .expect("a retried read");
+
+        assert_eq!(
+            timer.delays(),
+            vec![foundation_context::Duration::from_millis(250)]
+        );
+        assert_eq!(
+            clock.elapsed(),
+            foundation_context::Duration::ZERO,
+            "the wait came from the simulated clock, not real time"
+        );
+    });
 }
