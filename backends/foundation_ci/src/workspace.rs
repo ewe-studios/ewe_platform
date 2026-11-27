@@ -24,6 +24,7 @@ pub struct Package {
 }
 pub struct Workspace {
     pub root: PathBuf,
+    pub(crate) command_root: PathBuf,
     pub packages: BTreeMap<String, Package>,
     pub settings: BTreeMap<String, Settings>,
     pub(crate) policy: Policy,
@@ -291,15 +292,17 @@ impl Workspace {
     /// Returns an error when Cargo, the group paths, or package settings are invalid.
     pub async fn load(ctx: &TaskContext) -> Result<Self, TaskError> {
         let env = ctx.require::<CiEnvironment>()?;
-        let root = env
+        let checkout = env
             .root
             .ancestors()
             .find(|p| p.join("ci/packages.toml").is_file())
             .ok_or_else(|| {
                 TaskError::operation("Run this command in a checkout with ci/packages.toml")
-            })?
-            .canonicalize()
-            .map_err(TaskError::operation)?;
+            })?;
+        let root = checkout.canonicalize().map_err(TaskError::operation)?;
+        // Windows canonical paths add a verbatim prefix. Keep the caller's
+        // spelling for tools that do not understand that prefix.
+        let command_root = if cfg!(windows) { checkout } else { &root }.to_path_buf();
         let file = capture(
             ctx,
             ProcessCommand::new("cargo")
@@ -322,6 +325,7 @@ impl Workspace {
             .collect::<Result<_, TaskError>>()?;
         Ok(Self {
             root,
+            command_root,
             packages,
             settings,
             policy,

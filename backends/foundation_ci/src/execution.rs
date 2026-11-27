@@ -419,7 +419,7 @@ impl PackageRun<'_> {
             .get("CARGO_TARGET_DIR")
             .filter(|s| !s.is_empty())
             .map_or_else(
-                || self.ws.root.join("target"),
+                || self.ws.command_root.join("target"),
                 |p| Path::new(&p).join(self.ws.root.file_name().unwrap_or_default()),
             );
         println!("{}: target dir {}", self.name, target.display());
@@ -464,7 +464,7 @@ impl PackageRun<'_> {
         target: &Path,
         deny: bool,
     ) -> Result<(ProcessCommand, String), TaskError> {
-        let mut cmd = command.current_dir(&self.ws.root);
+        let mut cmd = command.current_dir(&self.ws.command_root);
         for (key, value) in self.settings.platform_env(self.os) {
             if self.env.get(key).is_none() {
                 cmd = cmd.env(key, value);
