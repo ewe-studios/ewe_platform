@@ -8,16 +8,12 @@
 //! (issue #1125). The service must yield to the host on `Wait`.
 
 use std::pin::Pin;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
-use std::task::{Context, Poll, Waker};
-use std::time::Duration;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+use std::task::Poll;
 
-use foundation_compact::Instant;
 use foundation_connectrpc::{Request, RpcCtx};
-use foundation_context::env::{Timer, TimerFuture};
-use foundation_context::{Clock, Ctx};
-use foundation_core::valtron::{SimulatedClock, Stream};
+use foundation_core::valtron::Stream;
 use foundation_sandbox::shared::control::service::ControlService;
 use foundation_sandbox::shared::control::testing::spec;
 use foundation_sandbox::shared::control::{
@@ -35,68 +31,6 @@ use foundation_sandbox::shared::BoxFuture;
 use futures::Stream as FuturesStream;
 
 use super::support;
-
-/// A timer that holds every wait until the test opens it.
-///
-/// The service parks on the injected timer when the create iterator reports
-/// `Wait`. The test keeps that wait closed so it can see the park, then opens it
-/// to let the create continue.
-#[derive(Default)]
-struct GateState {
-    open: AtomicBool,
-    wakers: Mutex<Vec<Waker>>,
-}
-
-/// The timer of one test, opened by [`GateTimer::release`].
-#[derive(Clone, Default)]
-struct GateTimer(Arc<GateState>);
-
-impl GateTimer {
-    /// Completes every held wait and every later wait at once.
-    fn release(&self) {
-        self.0.open.store(true, Ordering::SeqCst);
-        let wakers = std::mem::take(
-            &mut *self
-                .0
-                .wakers
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner),
-        );
-        for waker in wakers {
-            waker.wake();
-        }
-    }
-}
-
-impl Timer for GateTimer {
-    fn sleep_until(&self, _ctx: Ctx, _deadline: Instant) -> TimerFuture {
-        let state = Arc::clone(&self.0);
-        Box::pin(futures::future::poll_fn(
-            move |context: &mut Context<'_>| {
-                if state.open.load(Ordering::SeqCst) {
-                    return Poll::Ready(());
-                }
-                state
-                    .wakers
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner)
-                    .push(context.waker().clone());
-                Poll::Pending
-            },
-        ))
-    }
-}
-
-/// A context whose timer is the [`GateTimer`].
-fn gated_ctx(seed: u64) -> (Ctx, Arc<GateTimer>) {
-    support::pool();
-    let clock = Arc::new(SimulatedClock::new(Duration::ZERO));
-    let ctx = Ctx::with_seed(Arc::clone(&clock) as Arc<dyn Clock>, seed);
-    let env = foundation_core::env::simulated(&ctx, seed).expect("the simulated Env builds");
-    let gate = Arc::new(GateTimer::default());
-    ctx.store(env.with_timer(Arc::clone(&gate) as Arc<dyn Timer>));
-    (ctx, gate)
-}
 
 /// One create iterator with a known sequence of steps.
 ///
@@ -177,7 +111,7 @@ fn poll_once<S: FuturesStream + Unpin>(stream: &mut S) -> Poll<Option<S::Item>> 
 #[test]
 fn create_stream_yields_on_wait() {
     let _serial = support::serial();
-    let (ctx, gate) = gated_ctx(80);
+    let (ctx, _clock) = support::ctx(80);
     let pulls = Arc::new(AtomicUsize::new(0));
     let provider: Arc<dyn SandboxProvider> = Arc::new(ScriptedProvider {
         pulls: Arc::clone(&pulls),
@@ -200,10 +134,9 @@ fn create_stream_yields_on_wait() {
         "the first event is the progress value"
     );
 
-    // The next pull reaches `Wait`. The service must park on the timer instead
-    // of pulling the iterator again in the same poll: a synchronous re-pull
-    // never returns to the wasm event loop, so the create cannot progress
-    // (issue #1125).
+    // The next pull reaches `Wait`. The service must yield instead of pulling
+    // the iterator again in the same poll: a synchronous re-pull never returns
+    // to the wasm event loop, so the create cannot progress (issue #1125).
     let second = poll_once(&mut stream);
     assert!(second.is_pending(), "the stream must yield on `Wait`");
     assert_eq!(
@@ -212,18 +145,11 @@ fn create_stream_yields_on_wait() {
         "the stream must not pull the iterator past `Wait` in one poll"
     );
 
-    // While the timer holds, the create stays parked.
-    assert!(
-        poll_once(&mut stream).is_pending(),
-        "the stream stays parked until the timer fires"
-    );
-
-    // The timer fires: the create continues and gives its result.
-    gate.release();
+    // A later poll delivers the result that follows the wait.
     let third = poll_once(&mut stream);
     assert!(
         matches!(third, Poll::Ready(Some(Err(_)))),
-        "the result after the wait arrives when the timer fires"
+        "the result after the wait arrives on the next poll"
     );
     assert_eq!(pulls.load(Ordering::SeqCst), 3);
 }

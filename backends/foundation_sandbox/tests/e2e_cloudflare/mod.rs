@@ -17,6 +17,7 @@ use foundation_netio::shared::client::request_task::HttpExchange;
 use foundation_netio::shared::http::{SimpleHeader, SimpleMethod};
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use foundation_sandbox::native::connect::ConnectAddr;
+use foundation_sandbox::shared::cloudflare::CloudflareConfig;
 use foundation_sandbox::shared::command::{Command as SandboxCommand, ExecEvent};
 use foundation_sandbox::shared::control::{
     SandboxHandle, SandboxInfo, SandboxProvider, SandboxRpcClient, SandboxState,
@@ -93,11 +94,16 @@ fn which(program: &str) -> bool {
 }
 
 /// A remote client with a token, or without one.
+///
+/// The create deadline is the Worker's container boot deadline, not the unary
+/// call deadline. A cold container start on a slow runner took about 24 s, and
+/// the Worker keeps a create for up to `CloudflareConfig::boot_timeout`.
 fn client(token: Option<&str>) -> SandboxRpcClient {
     let url = worker_url().expect("the test skipped without a URL");
-    let control =
-        SandboxRpcClient::connect(Ctx::host(), ConnectAddr::Url(url), SandboxLimits::default())
-            .expect("the Worker transport builds");
+    let limits =
+        SandboxLimits::default().with_boot_timeout(CloudflareConfig::default().boot_timeout);
+    let control = SandboxRpcClient::connect(Ctx::host(), ConnectAddr::Url(url), limits)
+        .expect("the Worker transport builds");
     match token {
         Some(token) => control.with_token(Secret::new(token)),
         None => control,
