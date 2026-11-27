@@ -14,7 +14,7 @@ fn main() {
 
     // The delay before the drain: long enough for the test to observe that a
     // queued task runs while every writer waits.
-    const DRAIN_DELAY: Duration = Duration::from_millis(1_000);
+    const DRAIN_DELAY: Duration = Duration::from_millis(3_000);
 
     let mut stdout = std::io::stdout();
     if writeln!(stdout, "ready").is_err() || stdout.flush().is_err() {

@@ -52,10 +52,12 @@ async fn write_archive(
     let mut offset = 0_u64;
     while (offset as usize) < bytes {
         let take = CHUNK.min(bytes - (offset as usize));
-        sessions.chunk(&upload, offset, &chunk[..take]).await?;
+        sessions
+            .chunk(upload.as_str(), offset, &chunk[..take])
+            .await?;
         offset = offset.saturating_add(u64::try_from(take).unwrap_or(u64::MAX));
     }
-    sessions.commit(&upload, offset).await
+    sessions.commit(upload.as_str(), offset).await
 }
 
 /// Waits until `condition` holds or `timeout` passes.
@@ -133,10 +135,10 @@ fn unpack_writes_park_on_a_slow_reader() {
     }))
     .expect("submit the progress task");
 
-    // The probe child reads nothing for one second, so a blocking writer holds
-    // its worker for that whole second. The queued task must still run.
+    // The probe child reads nothing for three seconds, so a blocking writer
+    // holds its worker for that whole time. The queued task must still run.
     assert!(
-        wait_for(Duration::from_millis(800), || progress
+        wait_for(Duration::from_millis(2_000), || progress
             .load(Ordering::SeqCst)),
         "the progress task runs while every writer waits: the writes park"
     );
