@@ -237,8 +237,55 @@ mod slave_program {
     }
 }
 
+/// The image commands parse into the expected variants (feature 13, 14).
+///
+/// The `image` sub-command and its variants exist only with the `images`
+/// feature. The sandbox end-to-end job builds the test target without it, so
+/// every image test is gated.
+#[cfg(feature = "images")]
 #[test]
-fn cli_image_build_parse() {
+fn cli_image_commands_parse() {
+    use foundation_sandbox::cli::sandbox::ImageCommand;
+
+    // `image import`: the source and its options.
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "image",
+        "import",
+        "docker:alpine:3.22",
+        "--tag",
+        "base",
+        "--size-mib",
+        "256",
+        "--cmd",
+        "[\"/bin/sh\"]",
+        "--env",
+        "A=1",
+        "--no-pull",
+    ])
+    .expect("the image import command parses");
+    let SandboxCommand::Image(image) = cli.command else {
+        panic!("the command is not image");
+    };
+    let ImageCommand::Import(import) = image.command else {
+        panic!("the sub-command is not import");
+    };
+    assert_eq!(import.source, "docker:alpine:3.22");
+    assert_eq!(import.tag.as_deref(), Some("base"));
+    assert_eq!(import.size_mib, Some(256));
+    assert_eq!(import.cmd.as_deref(), Some("[\"/bin/sh\"]"));
+    assert_eq!(import.env, vec!["A=1".to_string()]);
+    assert!(import.no_pull);
+
+    // `image list`.
+    let cli = SandboxCli::try_parse_from(["agent-sandbox", "image", "list"])
+        .expect("the image list command parses");
+    let SandboxCommand::Image(image) = cli.command else {
+        panic!("the command is not image");
+    };
+    assert!(matches!(image.command, ImageCommand::List));
+
+    // `image build`.
     let cli = SandboxCli::try_parse_from([
         "agent-sandbox",
         "image",
@@ -256,7 +303,7 @@ fn cli_image_build_parse() {
     let SandboxCommand::Image(image) = cli.command else {
         panic!("the command is not image");
     };
-    let foundation_sandbox::cli::sandbox::ImageCommand::Build(args) = image.command else {
+    let ImageCommand::Build(args) = image.command else {
         panic!("the sub-command is not build");
     };
     assert_eq!(
@@ -274,13 +321,65 @@ fn cli_image_build_parse() {
     let SandboxCommand::Image(image) = cli.command else {
         panic!("the command is not image");
     };
-    let foundation_sandbox::cli::sandbox::ImageCommand::Build(args) = image.command else {
+    let ImageCommand::Build(args) = image.command else {
         panic!("the sub-command is not build");
     };
     assert_eq!(args.file, None);
     assert_eq!(args.context, std::path::PathBuf::from("."));
+
+    // `run --image` keeps the image in the spec and the program after `--`.
+    let cli = SandboxCli::try_parse_from([
+        "agent-sandbox",
+        "run",
+        "--image",
+        "app",
+        "--",
+        "echo",
+        "hello",
+    ])
+    .expect("the run --image command parses");
+    let SandboxCommand::Run(args) = cli.command else {
+        panic!("the command is not run");
+    };
+    assert_eq!(args.spec.image.as_deref(), Some("app"));
+    assert_eq!(args.program, vec!["echo", "hello"]);
 }
 
+/// The image commands exit with the code of their feature.
+#[cfg(all(feature = "images", unix))]
+#[test]
+fn cli_image_command_exit_codes() {
+    use foundation_sandbox::cli::sandbox::{run, SandboxCli};
+    use foundation_sandbox::shared::host::{HostConfig, SandboxHost};
+
+    // A source that no image source parses is a usage error.
+    let cli = SandboxCli::try_parse_from(["agent-sandbox", "image", "import", "nonsense"])
+        .expect("the import command parses");
+    assert_eq!(run(foundation_context::Ctx::host(), cli), 64);
+
+    // `image list` over an empty cache prints nothing and exits with 0.
+    crate::pool::pool();
+    let directory = std::env::temp_dir().join(format!(
+        "ewe-images-list-{}-{}",
+        std::process::id(),
+        std::line!()
+    ));
+    let _ = std::fs::remove_dir_all(&directory);
+    std::fs::create_dir_all(&directory).expect("the test directory is made");
+    let ctx = foundation_context::Ctx::host();
+    let config = HostConfig {
+        cache_dir: directory.join("cache"),
+        state_dir: directory.join("state"),
+        ..HostConfig::default()
+    };
+    ctx.store(SandboxHost::native(config));
+    let cli = SandboxCli::try_parse_from(["agent-sandbox", "image", "list"])
+        .expect("the list command parses");
+    assert_eq!(run(ctx, cli), 0);
+    let _ = std::fs::remove_dir_all(&directory);
+}
+
+#[cfg(feature = "images")]
 #[test]
 fn cli_image_build_flow() {
     use foundation_sandbox::cli::sandbox::{run, SandboxCli};
