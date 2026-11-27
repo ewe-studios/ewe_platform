@@ -242,7 +242,7 @@ impl KeyRecord {
     /// characters of its SHA-256.
     #[must_use]
     pub fn kid(&self) -> String {
-        let digest = crate::fingerprint::sha256_hex(&self.public_key_bytes());
+        let digest = crate::fingerprint::public_fingerprint_hex(&self.public_key_bytes());
         digest.chars().take(16).collect()
     }
 

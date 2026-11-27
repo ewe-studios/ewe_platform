@@ -18,7 +18,7 @@ use std::sync::Arc;
 use base64::Engine as _;
 use foundation_compact::crypto::chacha::{open_with, seal_with, ChaChaKey};
 use foundation_compact::crypto::SecureBytes;
-use foundation_context::env::Env;
+use foundation_context::env::{EntropySourceExt as _, Env};
 use zeroize::Zeroizing;
 
 #[cfg(not(target_family = "wasm"))]
@@ -157,12 +157,10 @@ impl EnvelopeSealer {
     }
 
     fn random<const N: usize>(&self) -> Result<[u8; N], KeyStoreError> {
-        let mut bytes = [0u8; N];
         self.env
             .entropy()
-            .fill(&mut bytes)
-            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))?;
-        Ok(bytes)
+            .fill_new::<N>()
+            .map_err(|e| KeyStoreError::Seal(format!("entropy source: {e}")))
     }
 }
 

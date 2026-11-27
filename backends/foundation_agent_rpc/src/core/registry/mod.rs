@@ -24,7 +24,7 @@ use std::pin::Pin;
 
 use base64::Engine;
 use foundation_auth::client_auth::Principal;
-use foundation_auth::fingerprint::sha256_hex;
+use foundation_auth::fingerprint::public_fingerprint_hex;
 use futures::Stream;
 
 use crate::core::model::{AgentRpcFuture, Device, ModelKind, ModelRequest};
@@ -81,7 +81,7 @@ impl ScopePolicy {
     pub fn scope_for(self, principal: &Principal) -> Scope {
         match self {
             Self::Shared => Scope::Shared,
-            Self::PerOwner => Scope::Owner(sha256_hex(principal.subject.as_bytes())),
+            Self::PerOwner => Scope::Owner(public_fingerprint_hex(principal.subject.as_bytes())),
         }
     }
 

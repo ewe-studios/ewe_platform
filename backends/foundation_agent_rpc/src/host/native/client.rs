@@ -19,6 +19,7 @@ use std::time::Duration;
 
 use foundation_auth::client_auth::Principal;
 use foundation_connectrpc::{ClientOptions, H1Transport, Request, RpcCtx, Transport};
+use foundation_context::env::EntropySourceExt as _;
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::netcap::ssl::SSLConnector;
@@ -201,7 +202,6 @@ async fn enroll_checked(
 ) -> foundation_connectrpc::ConnectResult<ClientIdentity> {
     let (key_pem, csr_pem) =
         generate_csr_seeded(client_name, ctx).map_err(|error| error.current_context().clone())?;
-    let mut nonce = [0_u8; 32];
     let env = ctx
         .env()
         .ok_or_else(|| {
@@ -210,8 +210,9 @@ async fn enroll_checked(
             ))
         })
         .map_err(|error| error.current_context().clone())?;
-    env.entropy()
-        .fill(&mut nonce)
+    let nonce: [u8; 32] = env
+        .entropy()
+        .fill_new()
         .map_err(|error| {
             ErrorTrace::new(AgentRpcError::Config(format!("enrollment nonce: {error}")))
         })
@@ -251,7 +252,7 @@ async fn enroll_checked(
         .await?
         .msg;
 
-    let csr_hash = foundation_auth::fingerprint::sha256(csr_pem.as_bytes());
+    let csr_hash = foundation_auth::fingerprint::public_fingerprint(csr_pem.as_bytes());
     let proof_ok = token
         .verifying_key()
         .verify_enroll_proof(
