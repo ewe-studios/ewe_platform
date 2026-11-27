@@ -2322,9 +2322,12 @@ The namespaced test fails. A name with a slash becomes a file name with a colon.
 The full database package remains excluded on Windows. A proposed recipe selects four local libSQL test files.
 The planner schedules that recipe. All 14 selected tests pass on macOS.
 The [next Windows run](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956) tests the partial recipe at preview commit `47cfbf6f4`.
-It checks for the generated binding and compares native and mixed path forms.
-It also runs ordinary Cargo from a new short-path checkout.
-The batch test reopens a database with a space and Unicode letter in its name.
+The standard Windows job finds no generated binding file. It stops before the four test targets run.
+Three compiler controls read a present binding with ordinary, native verbatim, and mixed paths.
+Ordinary Cargo passes the Unicode reopen test from a new short-path checkout.
+The test drops both handles before reopening the database. It confirms the import receipt and deletion.
+The candidate at `f9f370a28` keeps the discovered checkout path for Windows package commands.
+Use the standard package recipe to verify this candidate on Windows. Compare the external copy status on both paths.
 Issue 519 still records the excluded full database suite.
 
 ### Physical phone handoff

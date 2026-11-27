@@ -180,7 +180,7 @@ Issue 1182 fixes the missing macro import. Issue 1195 adds the Todo binding prog
 The Windows native task fails on the staged template path. Issue 1193 changes the path join.
 The Windows Todo example fails in the old database dependency. Issue 1194 tracks the compatibility preview.
 The libSQL 0.10 candidate stops in the generated bindings path on Windows. Both Todo and vector tests remain pending. [Issue 1205](https://github.com/ewe-studios/ewe_platform/issues/1205)
-A follow-up runs four direct local libSQL test files. The full Windows database exclusion stays in effect under issue 519. [Windows diagnostic run](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956)
+The follow-up stops before its four local libSQL test targets. Ordinary Cargo passes one Unicode reopen test in a scratch checkout. The full Windows database exclusion stays in effect under issue 519. [Windows diagnostic run](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956)
 
 ## Apple screen reader checks
 

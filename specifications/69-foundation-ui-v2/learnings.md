@@ -1727,8 +1727,10 @@ A failure in the JSON path does not prevent a direct libSQL test recipe.
 The package runner accepts named test files in `windows-runs`. The plan records only the package that runs.
 The audit must name the selected tests when the package has partial coverage.
 The database test dependency keeps its default features. The proposed recipe limits the test files that run.
-The libSQL 0.10 preview stops while it reads generated bindings from a verbatim Windows path.
-The check must verify that the generated file exists before it assigns the cause to path syntax.
+The Windows package executor starts Cargo with a canonical checkout path and sets a canonical default target.
+The generated binding file is absent after that build. The compiler loads all three forms when the file exists.
+Ordinary Cargo creates the file in a short-path checkout. Its single reopen test passes.
+The two runs use different shells. A direct copy test must record the copy status and file presence in each shell.
 
 A physical application launch uses its built-in server address outside the Xcode scheme.
 Keep the scratch server on loopback and use an approved device-reachable endpoint.
