@@ -37,6 +37,8 @@ closed, not when its code compiles.
   The remote create uses the Worker's container boot deadline
   (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream; a runner create took
   23.8 s, so the unary `rpc_timeout` (5 s) or the spec `boot_timeout` (10 s) were too short.
+  A call deadline in `foundation_connectrpc` now also uses the environment timer when the
+  context has one, so a client wait inside a task does not drive the engine either.
 - **`fix/dst-wait-redrive` (#1116):** it changes the five parking stream-to-future
   adapters. It does not change this hand-written loop, so it would not fix this failure.
   It stays useful for the adapters. Its sibling issues #1128 and #1129 cover the
