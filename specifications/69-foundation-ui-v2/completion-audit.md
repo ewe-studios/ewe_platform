@@ -129,6 +129,27 @@ The scoped plan waits for hosted operating-system suites.
 | 16. Matrix, identifiers, lowering, and version gate | `every_behaviour_and_component_matches_the_shipped_matrix`, `component_lists_match_machinery_calls`, `scoped_script_and_behaviours_belong_to_the_parent`, and `version_1_client_gets_no_behaviour` check the current declarations and wire output. |
 | 16. Platform dispatch and known or unknown bindings | The writer checks native and web fields. The browser all-forms fixture reports all three mobile fields. The browser behaviour tests cover registry lookup and cleanup. Swift and Kotlin conformance fixtures store known behaviours. `testSharedBindingsAndSettings` and `standardBehavioursReachCompose` check the bindings. `RuntimeTest.unknownBehaviourReportsPreserveNamesAndApplyTheNextRow` checks both unknown forms in Kotlin. |
 
+## Revision coverage after the scoped run
+
+The scoped run uses commit `89fde9934`. This comparison uses commit `b6a9a4e78`.
+[Scoped operating-system run](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113)
+
+| Change after the tested revision | Coverage record |
+|---|---|
+| HTTP connection handling and wire subscription initialization | The affected Cargo recipes need results from the new source. Keep the HTTP platform exceptions. |
+| Standalone browser runtime | The new runtime affects browser and resource consumers. The new testbed staging assertion has a focused two-test result. Windows testbed tests have exception 531. |
+| iPhone keyboard and Android replay assertions | The targeted simulator and emulator checks pass. The native preview exercises both changes on hosted runners. |
+| Documentation and the browser test task description | The test command and tool versions stay the same. The package tests can use earlier evidence. |
+
+For each platform, check the configured recipe with the Cargo dependency tree.
+Use its normal, build and development dependencies with that platform's target.
+The relevant recipes for the database, reactor, compact and UI traits have unchanged inputs.
+Reuse their successful test steps from the scoped run.
+
+The current changed package set contains the browser, HTTP, resources, UI components, graphics, native, runtime, wire, WebAssembly UI and Todo packages.
+Add the direct testbed change when it needs a configured package test.
+The follow-up applies only to missing test evidence after the first run reports its results.
+
 ## Apple screen reader checks
 
 The Todo app on the iOS 27 simulator uses VoiceOver speech through Xcode 27.2.

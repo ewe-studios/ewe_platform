@@ -2116,6 +2116,8 @@ With the test repair, Xcode 27.2 passes search and entry in both appearances and
 The installed Android test checks successful repeated deletion. The task expected an old refusal result.
 The scratch emulator reports success after both deletion attempts and both missing-record checks.
 [Issue 1181](https://github.com/ewe-studios/ewe_platform/issues/1181)
+The [application test preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598) uses revision `8ce2352b9` with both repairs.
+The [revision coverage ledger](completion-audit.md#revision-coverage-after-the-scoped-run) tracks package evidence after the operating-system run's source commit.
 
 ## 2026-11-28 — Standalone browser runtime
 
