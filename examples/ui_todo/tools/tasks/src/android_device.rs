@@ -228,7 +228,7 @@ impl Device<'_> {
                     "delivered targeted expiry.",
                 )
                 .await?;
-                self.instrument(&["-e", "server", &url], "Second delete refused:")
+                self.instrument(&["-e", "server", &url], "Repeated delete succeeded.")
                     .await?;
                 self.start(&url).await?;
                 self.ui("server-delete").await?;
