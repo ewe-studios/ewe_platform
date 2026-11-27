@@ -203,9 +203,14 @@ Use `SearchInput` when a query filters content as the user types.
 The change action receives the current query. Clearing the field sends an empty string.
 Vocabulary version 13 adds this control. Older clients receive a `TextInput`.
 
+Register a host action named `search_todos` before installing the view.
+
 ```rust
-html! { <SearchInput id="todo-search" a11y_label="Search todos"
-    placeholder="Search todos" value={query.to_owned()} on:change={search_todos}/> }
+use foundation_ui_runtime::html;
+
+let query = "milk";
+let _input = html! { <SearchInput id="todo-search" a11y_label="Search todos"
+    placeholder="Search todos" value={query.to_owned()} on:change="host:search_todos"/> };
 ```
 
 If the action queues state and then returns an error, the host receives the error and drops the queued output.
