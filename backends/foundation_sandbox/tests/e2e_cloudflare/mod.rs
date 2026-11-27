@@ -97,11 +97,15 @@ fn which(program: &str) -> bool {
 ///
 /// The create deadline is the Worker's container boot deadline, not the unary
 /// call deadline. A cold container start on a slow runner took about 24 s, and
-/// the Worker keeps a create for up to `CloudflareConfig::boot_timeout`.
+/// the Worker keeps a create for up to `CloudflareConfig::boot_timeout`. The
+/// read and call timeout is the container call deadline: the first call to a
+/// cold container took about 5 s on the runner.
 fn client(token: Option<&str>) -> SandboxRpcClient {
     let url = worker_url().expect("the test skipped without a URL");
-    let limits =
-        SandboxLimits::default().with_boot_timeout(CloudflareConfig::default().boot_timeout);
+    let worker = CloudflareConfig::default();
+    let limits = SandboxLimits::default()
+        .with_boot_timeout(worker.boot_timeout)
+        .with_rpc_timeout(worker.call_timeout);
     let control = SandboxRpcClient::connect(Ctx::host(), ConnectAddr::Url(url), limits)
         .expect("the Worker transport builds");
     match token {
