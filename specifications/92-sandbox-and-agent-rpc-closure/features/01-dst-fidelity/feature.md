@@ -21,11 +21,12 @@ session build, the turn guard, shutdown and destroy are under test (#908 part b)
 ## 2. The problem, in plain words
 
 The turn emits events through a future stream. That stream is built with
-`into_future_stream`, which **parks the caller's thread** when the loop waits
-(`foundation_core/src/valtron/stream_future.rs:352`). On a multi-threaded engine another
-worker makes progress, so parking is fine. On the single-threaded simulation engine the
-producer needs the same thread that is parked, so no event ever arrives, and the first turn
-hangs.
+`into_future_stream` (`foundation_core/src/valtron/stream_future.rs:373`). It is not a
+blocking call: it registers the caller's waker and returns `Pending`. The wait it registers
+is the defect. For `Stream::Wait`, the engine's meaning is "the queue is empty; the executor
+should yield and re-check". On a multi-threaded pool another worker advances the producer and
+fires the wake. On the single-threaded simulation engine nobody else runs, so the wake is
+never sent, and the first turn hangs.
 
 ## 3. The fix
 
