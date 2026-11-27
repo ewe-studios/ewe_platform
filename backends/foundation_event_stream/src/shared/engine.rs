@@ -1043,7 +1043,7 @@ impl SubscriptionEngine {
 
     /// Send one webhook within the delivery timeout.
     ///
-    /// The timer comes from the context ([`Ctx::timer`], spec 92). A bounded
+    /// The timer comes from the context ([`Ctx::timer`], spec 94). A bounded
     /// delivery no longer needs a host-installed `Env` timer and never falls
     /// back to an unbounded send (GitHub issue #1090). A `delivery_timeout_ms`
     /// of 0 still disables the engine bound on purpose.

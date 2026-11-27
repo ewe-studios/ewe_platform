@@ -1,6 +1,6 @@
 //! A move of the injected clock wakes a sleep that came from `Ctx::timer`.
 //!
-//! WHY: the default timer derives from the context clock (spec 92). A
+//! WHY: the default timer derives from the context clock (spec 94). A
 //! `SimulatedClock` moves only when a test moves it, so a sleep on that clock
 //! must learn about the move with no real wait. `SimulatedClock::advance` calls
 //! `foundation_context::timer::notify_clock_advanced` for this reason.
