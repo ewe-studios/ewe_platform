@@ -63,7 +63,9 @@ describe("ewe durable streams server", () => {
   runConformanceTests({ baseUrl: "${SERVER_URL}", subscriptions: true })
 })
 EOF
-  npx vitest run server-conformance.test.ts
+  # The vitest default is 5 s per test. A loaded CI host needs room for the
+  # property tests; the assertions do not change.
+  npx vitest run server-conformance.test.ts --testTimeout=30000
 ) 2>&1 | tee "$SERVER_LOG"; then
   echo "FAIL: the server conformance suite reported a failure" >&2
   exit 1

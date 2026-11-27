@@ -131,6 +131,18 @@ All of spec 71 lands in one pull request: #1025 (draft) from `spec-durable-strea
 Commits land on the branch; do not open a per-feature pull request. The draft becomes ready only
 when the completion bundle closes and the acceptance bar holds.
 
+## 4.4 Gate environment
+
+The strict gate needs a quiet host. On 2026-11-27 a shared machine ran an Android emulator and a
+headless Chrome at high CPU from other worktrees. Under that load the property tests were
+interrupted by the test timeout (not assertions), and the server suite reported 337 of 338. The
+same gate passed 338 of 338 and 267 of 269 runnable on a quiet host.
+
+- Run `ci/durable_conformance.sh` on a quiet host before the pull request becomes ready.
+- The script sets a 30 s vitest timeout. Assertions do not change.
+- A timeout under external load is an environment result. Record the load and rerun. Do not
+  weaken a test.
+
 ## 5. Rules that matter here
 
 - Run `ci/durable_conformance.sh` before you call a protocol change done.
