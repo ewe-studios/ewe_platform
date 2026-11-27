@@ -100,12 +100,28 @@ extension View {
         .ignoresSafeArea()
         .onTapGesture(perform: dismiss)
         .accessibilityHidden(true)
-      VStack { content() }
+      if bottomAligned {
+        panel
+      } else {
+        panel
+          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
+          .padding(.horizontal, 16)
+      }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .eweLayerHost()
     .interactiveDismissDisabled()
     .accessibilityAction(.escape, dismiss)
+  }
+
+  @ViewBuilder private var panel: some View {
+    if case .text(let label) = node.props[.a11yLabel] {
+      VStack { content() }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(label)
+    } else {
+      VStack { content() }
+    }
   }
 }
 

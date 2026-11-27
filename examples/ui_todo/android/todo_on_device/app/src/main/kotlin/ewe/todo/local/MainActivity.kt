@@ -1,5 +1,6 @@
 package ewe.todo.local
 
+import ewe.todo.TodoCountdown
 import ewe.ui.android.AndroidResourceSource
 import java.security.SecureRandom
 import ewe.todo.game.MathalleyRoute
@@ -20,6 +21,7 @@ import io.github.ewe_studios.ewe.todo.createLocalTodoCore
 import io.github.ewe_studios.ewe.todo.initialTodoFrame
 
 class MainActivity : ComponentActivity() {
+    private val countdown = TodoCountdown()
     private val foreground = mutableStateOf(false)
     private val game = MathalleyRoute {
         intent.getStringExtra("gameSeed")?.toULongOrNull() ?: SecureRandom().nextLong().toULong()
@@ -46,7 +48,9 @@ class MainActivity : ComponentActivity() {
                     theme = theme,
                     viewDataAction = "host:apply_todo_delivery",
                     onAttached = game::attach,
+                    onViewReady = countdown::attach,
                 )
+                countdown.Run(foreground.value)
                 game.Screen(foreground.value)
             }
         }

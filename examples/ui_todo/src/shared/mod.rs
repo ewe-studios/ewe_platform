@@ -1,5 +1,6 @@
 //! Shared todo views and actions for server and on-device stores.
 pub use foundation_compact::uuid::UuidV4 as TodoId;
+pub(crate) mod countdown;
 pub(crate) mod pending;
 #[cfg(not(target_family = "wasm"))]
 mod mutations;
@@ -294,9 +295,12 @@ pub(crate) fn page_tree(state: &TodoApp) -> Html {
         <NavigationTitle>Todos</NavigationTitle>
         <ToolbarButton on:tap={open_add_dialog}>Add</ToolbarButton>
         <Button on:tap={open_mathalley}>Play Mathalley</Button>
+        {countdown::button(false)}
+        <Stack id="todo-pause-control"/>
         {search}
         {controls}{rows}{footer}
         <Text id="notification"/><Stack id="dialog"/>
+        <Stack id="todo-countdown"/>
     </Stack> }
 }
 
@@ -509,6 +513,7 @@ pub(crate) enum RecordChange {
 
 #[derive(Serialize, Deserialize)]
 pub(crate) enum TodoDelivery {
+    Countdown(countdown::Update),
     Snapshot {
         position: u64,
         items: Vec<Todo>,
@@ -590,6 +595,10 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDe
     let Some(delivery) = event.input_value else {
         return Ok(());
     };
+    let delivery = match delivery {
+        TodoDelivery::Countdown(update) => return countdown::apply(ctx, update).await,
+        other => other,
+    };
     let store = todo_store(ctx)?;
     let snapshot = matches!(delivery, TodoDelivery::Snapshot { .. });
     let changed = {
@@ -640,6 +649,9 @@ async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDe
             }
         }
     }
+    if snapshot {
+        countdown::restore_view(ctx).await?;
+    }
     Ok(())
 }
 
@@ -676,6 +688,7 @@ async fn initialize_todos(ctx: &Context, _event: Interaction<()>) -> ActionResul
 pub fn install_cache(ctx: &Ctx) {
     ctx.store(TodoStore::default());
     pending::install(ctx);
+    countdown::install_host(ctx);
 }
 
 fn action_registry(
@@ -695,6 +708,16 @@ fn action_registry(
     registry.register_for(owner, submit_delete)?;
     registry.register_for(owner, retry_todo)?;
     registry.register_for(owner, refresh_count)?;
+    registry.register_for(owner, countdown::pause_todo_input)?;
+    registry.register_for_with_input(owner, countdown::tick_todo_countdown, |input| {
+        input.decode::<countdown::Tick>()
+    })?;
+    registry.register_for_with_input(owner, countdown::request_countdown, |input| {
+        input.decode::<countdown::Request>()
+    })?;
+    registry.register_for_with_input(owner, countdown::current_countdown, |input| {
+        input.decode::<countdown::Current>()
+    })?;
     registry.register_for(owner, add_todo)?;
     registry.register_for(owner, toggle_todo)?;
     registry.register_for_with_input(owner, confirm_delete, |input| {

@@ -3,7 +3,9 @@ import EweUI
 import SwiftUI
 
 @main struct TodoOnDeviceApp: App {
+  @StateObject private var countdown = TodoCountdown()
   @StateObject private var game = MathalleyRoute()
+  @Environment(\.scenePhase) private var scenePhase
   private let theme = Result {
     if ProcessInfo.processInfo.environment["EWE_TODO_THEME"] == "branded" {
       return try EweTheme(manifest: Data(todoThemeManifest().utf8))
@@ -16,7 +18,7 @@ import SwiftUI
       Group { switch theme {
       case .failure(let error): Text(error.localizedDescription)
       case .success(let theme):
-        LocalScreen(theme: theme) { store in
+        LocalScreen(theme: theme, onViewReady: countdown.attach) { store in
           let core = try createLocalTodoCore(platform: .ios)
           core.installResources(source: BundleResourceSource())
           let first = try await initialTodoFrame(core: core)
@@ -26,6 +28,7 @@ import SwiftUI
           $0 == "dark" ? .dark : $0 == "light" ? .light : nil
         })
       } }
+      .todoCountdown(countdown, phase: scenePhase)
       .fullScreenCover(isPresented: $game.visible, onDismiss: game.returned) {
         if let core = game.core { MathalleyScreen(core: core) }
       }

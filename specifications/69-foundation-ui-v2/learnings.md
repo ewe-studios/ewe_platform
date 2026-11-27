@@ -1,5 +1,18 @@
 # Spec 69 learnings
 
+## Feature 32 — Todo input pause
+
+- A private action reply keeps pause state out of the live feed that all Todo clients share.
+- Use `HttpApp::with_context` to preserve injected entries. The `with_ctx` constructor starts with an empty entry map.
+- A browser can copy session storage when it opens a tab. A browser lock separates concurrent copies.
+- A browser without Web Locks uses a new scope on load. It cannot recover a previous document’s pause.
+- One native core holds the file lock for the persistent scope. Additional cores use separate temporary scopes.
+- The host measures remaining time with its monotonic clock. The server sends a duration and confirms the release.
+- [Issue 1062](https://github.com/ewe-studios/ewe_platform/issues/1062) tracks dedicated connections when native replay is enabled.
+- Dispatch Android actions before entering the native bridge. The test app stops responding with immediate dispatch.
+- A future can wake a waiting caller while it holds a lock. Immediate resumption can try to take that lock.
+- [Issue 1066](https://github.com/ewe-studios/ewe_platform/issues/1066) records the Android action dispatch failure.
+
 ## Todo Server launch on iPhone
 
 A simulator launch argument applies to one process. The installed app needs its server address in its bundle.

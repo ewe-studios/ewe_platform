@@ -41,6 +41,26 @@ public struct EventInput: Sendable {
       }
     }
   }
+  /// Find a named element in the view without exposing its renderer handle.
+  public func containsElement(_ name: String, inView view: String) -> Bool {
+    store.viewStore(named: view)?.containsElement(named: name) == true
+  }
+
+  /// Send typed input to a host action in a named view.
+  public func triggerStructured<E: Encodable>(_ reference: String, inView view: String, value: E) async throws {
+    guard let destination = store.viewStore(named: view) else { throw ViewTargetError.missingView }
+    let bytes = try JSONEncoder().encode(value)
+    let input = EventInput(nodeId: 0, eventName: "host", value: "", checked: false, parentNode: 0, state: Data(), json: bytes)
+    if let reply = try await core.trigger(reference: reference, event: input) {
+      try Task.checkCancellation()
+      guard destination.receive(reply) else { throw CocoaError(.fileReadCorruptFile) }
+    }
+  }
+
+  public func reportError(_ code: String, _ message: String) {
+    store.error(code, message)
+  }
+
   public func send(_ event: EventId, node: UInt32, value: String = "", checked: Bool = false) {
     submit(event, node: node, value: value, checked: checked, json: nil)
   }

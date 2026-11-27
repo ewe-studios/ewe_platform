@@ -4,7 +4,9 @@ import EweUI
 import SwiftUI
 
 @main struct TodoServerApp: App {
+  @StateObject private var countdown = TodoCountdown()
   @StateObject private var game = MathalleyRoute()
+  @Environment(\.scenePhase) private var scenePhase
   private let theme = Result {
     if ProcessInfo.processInfo.environment["EWE_TODO_THEME"] == "branded" {
       return try EweTheme(manifest: Data(todoThemeManifest().utf8))
@@ -22,6 +24,7 @@ import SwiftUI
   var body: some Scene {
     WindowGroup {
       content
+        .todoCountdown(countdown, phase: scenePhase)
         .fullScreenCover(isPresented: $game.visible, onDismiss: game.returned) {
           if let core = game.core { MathalleyScreen(core: core) }
         }
@@ -42,7 +45,7 @@ import SwiftUI
       {
         let key = SHA256.hash(data: Data(url.absoluteString.utf8)).map { String(format: "%02x", $0) }.joined()
         let file = URL.applicationSupportDirectory.appending(path: "TodoPending/\(key).json").path
-        ServerScreen(base: url, initial: "initial", transport: actionTransport(url), theme: theme) { transport, store in
+        ServerScreen(base: url, initial: "initial", transport: actionTransport(url), theme: theme, onViewReady: countdown.attach) { transport, store in
           let core = try createPersistentTodoCore(platform: .ios, transport: transport, storageFile: file)
           core.installResources(source: BundleResourceSource())
           return try game.attach(core, store: store, viewDataAction: "host:apply_todo_delivery")

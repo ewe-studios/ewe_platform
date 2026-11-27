@@ -24,18 +24,21 @@
     let session: URLSession
     @State private var connection: EventBridge?
     private let theme: EweTheme
+    private let onViewReady: @MainActor (EventBridge) -> Void
     @State private var issue: String?
     @State private var attempt = 0
 
     public init(
       base: URL, initial: String, transport: ActionTransport = .http,
       connections: ConnectionManager? = nil, session: URLSession = .shared, theme: EweTheme = EweTheme(),
+      onViewReady: @escaping @MainActor (EventBridge) -> Void = { _ in },
       create: @escaping CoreFactory
     ) {
       self.base = base
       self.initial = initial
       self.session = session
       self.theme = theme
+      self.onViewReady = onViewReady
       self.managed = connections
       self.prepare = { viewTransport, store in
         let sender: HostTransport
@@ -142,7 +145,10 @@
         let loader = store.registerLoader {
           try await readInitial(transport.viewRequest(base.appending(path: initial)), limit: limit)
         }
-        loader.onInstalled = { self.issue = nil }
+        loader.onInstalled = { [weak bridge] in
+          self.issue = nil
+          if let bridge { onViewReady(bridge) }
+        }
         store.onError = { code, message in self.issue = code + " " + message }
         store.onLiveTransportRecovered = { message in
           if self.issue == "Transport " + message { self.issue = nil }

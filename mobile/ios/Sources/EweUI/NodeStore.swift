@@ -20,7 +20,7 @@ import Observation
   @ObservationIgnored var childStores: [UInt32: NodeStore] = [:]
   @ObservationIgnored var viewRoots: [String: UInt32] = [:]
   @ObservationIgnored var elementTags: [UInt32: String] = [:]
-  @ObservationIgnored var elementNames: [UInt32: String] = [:]
+  var elementNames: [UInt32: String] = [:]
   @ObservationIgnored var records: [UInt32: NodeRecord] = [1: NodeRecord(1, .stack)]
   public internal(set) var reports: [Report] = []
   @ObservationIgnored var commandLog: [[String: Any]] = []

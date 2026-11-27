@@ -597,3 +597,81 @@ async fn mobile_storage_uses_the_full_legacy_filename_for_each_namespace() {
         assert_eq!(keys, [format!("pending/add:{id}")]);
     }
 }
+
+/// WHY: One persistent store can serve two open native hosts.
+/// WHAT: Use separate countdown scopes and recover the first scope after restart.
+#[valtron_test]
+async fn native_countdown_scopes_are_private_across_concurrent_cores() {
+    use foundation_ui_wire::{
+        writer::{FrameHeader, write_caps},
+        ServerActionT, ServerCapsT, SCHEMA_VERSION,
+    };
+
+    #[derive(Default)]
+    struct Capture(std::sync::Mutex<Vec<String>>);
+
+    #[async_trait::async_trait]
+    impl HostTransport for Capture {
+        async fn send(&self, request: Vec<u8>) -> Result<Option<Vec<u8>>, CoreError> {
+            let frame = read_frame(&request, &WireLimits::default()).unwrap();
+            let action = frame.kind_as_frame_request().unwrap().action().unwrap();
+            let input = action.input().unwrap().json().unwrap().bytes();
+            let data: serde_json::Value = serde_json::from_slice(input).unwrap();
+            let session = data["session"].as_str().unwrap().to_owned();
+            self.0.lock().unwrap().push(session);
+            Err(CoreError::Transport { detail: "Drop the status reply".into() })
+        }
+    }
+
+    async fn send_query(core: &NativeCore) {
+        let reply = core.trigger_structured(
+            "host:tick_todo_countdown".into(),
+            EventInput::receiving_view(),
+            br#"{"refresh":true}"#.to_vec(),
+        ).await;
+        match reply {
+            Err(_) => {}
+            Ok(Some(bytes)) => {
+                let frame = read_frame(&bytes, &WireLimits::default()).unwrap();
+                let response = frame.kind_as_frame_message().unwrap();
+                assert!(response.messages().unwrap().iter().any(|message| {
+                    message.control().and_then(|control| control.error()).is_some()
+                }));
+            }
+            Ok(None) => panic!("A missing reply must report an error"),
+        }
+    }
+
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("todos.json");
+    let transport = Arc::new(Capture::default());
+    let open = || {
+        let core = ui_todo::create_persistent_todo_core(
+            NativePlatform::Android,
+            transport.clone(),
+            path.to_str().unwrap().to_owned(),
+        ).unwrap();
+        let mut caps = ServerCapsT::default();
+        caps.schema_version = SCHEMA_VERSION;
+        caps.vocabulary_version = foundation_ui_wire::vocab::VOCABULARY_VERSION;
+        let mut status = ServerActionT::default();
+        status.name = Some("current_countdown".into());
+        caps.actions = Some(vec![status]);
+        let header = FrameHeader { stream_id: 1, sequence_id: 1, ack: 0 };
+        core.apply_caps_frame(write_caps(&caps, header, &WriterConfig::default()).unwrap()).unwrap();
+        core.set_frame_listener(Arc::new(LocalFrames::default()));
+        core
+    };
+
+    let primary = open();
+    let other = open();
+    send_query(&primary).await;
+    send_query(&other).await;
+    drop(primary);
+    send_query(&open()).await;
+    drop(other);
+    let sessions = transport.0.lock().unwrap();
+    assert_eq!(sessions.len(), 3);
+    assert_ne!(sessions[0], sessions[1]);
+    assert_eq!(sessions[0], sessions[2]);
+}

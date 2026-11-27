@@ -31,6 +31,116 @@ export async function openResource(name) {
     return (await resourceHost).open(name);
 }
 
+async function tabSession() {
+    const key = "ewe.todo.countdown-session";
+    if (!navigator.locks) return crypto.randomUUID();
+    let session = sessionStorage.getItem(key) ?? crypto.randomUUID();
+    for (;;) {
+        const release = await new Promise((resolve, reject) => {
+            navigator.locks.request(key + ":" + session, {ifAvailable: true}, async lock => {
+                if (!lock) {
+                    resolve(null);
+                    return;
+                }
+                await new Promise(unlock => resolve(unlock));
+            }).catch(reject);
+        });
+        if (release) {
+            window.addEventListener("pagehide", event => {
+                if (!event.persisted) release();
+            });
+            break;
+        }
+        session = crypto.randomUUID();
+    }
+    sessionStorage.setItem(key, session);
+    return session;
+}
+
+async function runCountdown(manager, page) {
+    const session = await tabSession();
+    let pending = false;
+    let refresh = true;
+    let timer;
+    let paused = false;
+    const announcement = document.querySelector("#pause-announcement");
+
+    function schedule() {
+        clearTimeout(timer);
+        if (paused) timer = setTimeout(tick, 1000);
+    }
+
+    async function tick(force = false) {
+        if (pending || (!force && document.hidden && !paused)) return;
+        pending = true;
+        const reconcile = refresh;
+        refresh = false;
+        try {
+            await manager.deliverHostPayload("host:tick_todo_countdown", page, {session, refresh: reconcile});
+        } catch (error) {
+            manager.onError({code: "Countdown", detail: String(error)});
+        } finally {
+            pending = false;
+            if (refresh && !document.hidden) void tick();
+            else schedule();
+        }
+    }
+
+    function resume() {
+        refresh = true;
+        if (!document.hidden) void tick();
+    }
+
+    function keepFocusInModal(event) {
+        const title = page.querySelector("#todo-pause-modal[open] #todo-pause-title");
+        if (event.key !== "Tab" || !title) return;
+        event.preventDefault();
+        title.focus();
+    }
+
+    const observer = new MutationObserver(() => {
+        const modal = page.querySelector("#todo-pause-modal[open]");
+        if (Boolean(modal) === paused) return;
+        paused = Boolean(modal);
+        announcement.textContent = paused ? "" : "Input resumed";
+        if (paused) {
+            const title = modal.querySelector("#todo-pause-title");
+            if (title) {
+                title.tabIndex = 0;
+                title.focus();
+            }
+        } else {
+            page.querySelector("#todo-pause-button")?.focus();
+        }
+        schedule();
+    });
+    observer.observe(page, {childList: true, subtree: true, attributes: true, attributeFilter: ["open"]});
+    document.addEventListener("visibilitychange", resume);
+    document.addEventListener("keydown", keepFocusInModal, {capture: true});
+    window.addEventListener("online", resume);
+    const socket = manager.deps.server;
+    const onOpen = socket?.onOpen;
+    if (typeof onOpen === "function") {
+        socket.onOpen = async () => {
+            await onOpen.call(socket);
+            resume();
+        };
+    }
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) resume();
+    });
+    window.addEventListener("pagehide", event => {
+        clearTimeout(timer);
+        if (event.persisted) return;
+        observer.disconnect();
+        document.removeEventListener("visibilitychange", resume);
+        document.removeEventListener("keydown", keepFocusInModal, {capture: true});
+        window.removeEventListener("online", resume);
+        if (typeof onOpen === "function") socket.onOpen = onOpen;
+    });
+    await tick(true);
+}
+
 async function boot() {
     const moduleLoader = new WasmLoader();
     const params = new URL(location.href).searchParams;
@@ -59,6 +169,7 @@ async function boot() {
             game.open();
         }
     }, { capture: true });
+    if (!params.has("count")) await runCountdown(manager, document.querySelector("#page"));
     window.todoReady = true;
 }
 globalThis.todoResources = { open: openResource };

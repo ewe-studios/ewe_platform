@@ -8,6 +8,43 @@ import EweWire
 import FlatBuffers
 
 final class TodoTests: XCTestCase {
+  @MainActor func testInputPauseExpiresAfterRestart() throws {
+    guard let address = ProcessInfo.processInfo.environment["EWE_TODO_URL"] else {
+      throw XCTSkip("Supply the Todo server address")
+    }
+    continueAfterFailure = false
+    let app = XCUIApplication()
+    app.launchEnvironment["EWE_TODO_URL"] = address
+    app.launch()
+
+    let pause = app.buttons["Pause input for one minute"]
+    let title = app.staticTexts["Input paused on this device"].firstMatch
+    let timer = app.staticTexts.matching(NSPredicate(format: "label ENDSWITH %@", "seconds remaining")).firstMatch
+    XCTAssertTrue(pause.waitForExistence(timeout: 20))
+    let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: pause)
+    XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 10), .completed)
+    let started = ContinuousClock.now
+    pause.tap()
+    XCTAssertTrue(title.waitForExistence(timeout: 10))
+    XCTAssertTrue(timer.exists)
+    XCTAssertFalse(pause.isHittable)
+    let blocked = XCTAttachment(screenshot: app.screenshot())
+    blocked.name = "Input paused"
+    blocked.lifetime = .keepAlways
+    add(blocked)
+
+    app.terminate()
+    app.launch()
+    XCTAssertTrue(title.waitForExistence(timeout: 15))
+    XCTAssertTrue(title.waitForNonExistence(timeout: 65))
+    XCTAssertGreaterThanOrEqual(started.duration(to: .now), .seconds(59))
+    XCTAssertTrue(pause.isHittable)
+    let resumed = XCTAttachment(screenshot: app.screenshot())
+    resumed.name = "Input resumed"
+    resumed.lifetime = .keepAlways
+    add(resumed)
+  }
+
   @MainActor func testIndependentWebSocket() async throws {
     let env = ProcessInfo.processInfo.environment
     guard let echo = env["EWE_SOCKET_ECHO"] else { throw XCTSkip("Supply a WebSocket echo endpoint") }
