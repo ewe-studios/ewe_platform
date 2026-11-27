@@ -2382,3 +2382,12 @@ Run the existing Linux strict lint and test commands before delivery.
 
 The Linux AMD64 build passes the exact strict Clippy gate.
 All 56 integration tests pass. Two existing documentation tests stay ignored.
+
+## Resource build hook Linux test lint
+
+Extract the fixture setup from the existing Cargo build hook test.
+The exact Linux AMD64 strict Clippy commands pass with both server feature sets.
+The feature sets are `mobile-launch,server` and `browser-package,server`.
+The Cargo hook suite with `mobile-launch,server` passes both tests.
+It checks directory changes, rejected inputs, recovery, and both external consumer profiles.
+[Issue 1209](https://github.com/ewe-studios/ewe_platform/issues/1209)

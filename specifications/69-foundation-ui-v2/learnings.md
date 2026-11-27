@@ -1761,3 +1761,10 @@ The Android emulator tool reports duplicate SDK paths from the installation alia
 A strict lint failure can prevent the package test command from running.
 Compare collections directly to show their contents when assertions fail.
 Keep the setup, inputs, and checks of the existing tests.
+
+## Resource build hook test lint
+
+The Linux lint counts 101 lines in the test against a maximum of 100.
+Move fixture setup into a helper. Keep the test commands and assertions together.
+The rejection case checks that an incomplete input leaves published files intact.
+The external consumer checks a live file and embedded bytes in separate build profiles.
