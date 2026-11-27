@@ -1379,3 +1379,9 @@ A mount with no sharing choice can use that capability to select a managed conne
 An explicit dedicated mount uses its own stream cursor and a direct connection by default.
 Keep-alive is a separate policy. The manager can retain a dedicated connection without sharing it.
 Two retained dedicated mounts at the same endpoint must open two connections.
+
+## 2026-11-28 — Dialog Back test
+
+Repeat the Back test in isolation, in its class, and in the full suite.
+On the Android 36 review emulator, the existing key event dismisses the dialog once in all three runs.
+See [issue 692](https://github.com/ewe-studios/ewe_platform/issues/692).

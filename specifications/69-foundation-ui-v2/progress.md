@@ -1746,3 +1746,10 @@ A keep-alive request retains a separate connection for each dedicated mount at t
 The Android core suite passes 19 tests. The Swift host suite passes 25 tests.
 Both suites reproduce the wrong connection selection before the fix.
 [Issue 1062](https://github.com/ewe-studios/ewe_platform/issues/1062)
+
+## 2026-11-28 — Android dialog Back
+
+The Android 36 ARM64 emulator passes the isolated dialog Back test and all four tests in its class.
+The full Android user interface test suite passes all ten tests.
+The Back test checks one dismissal and the removal of the dialog. No source change is necessary.
+See [issue 692](https://github.com/ewe-studios/ewe_platform/issues/692).
