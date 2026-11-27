@@ -144,14 +144,17 @@ follows the repository layout.
         constants.
       - This tiering builds on the R2 layout in feature 09. The SQLite VFS is the owner of both
         tables; feature 09 owns the object format.
-- [ ] **T7 — oracles.** Crash and recovery, model, differential and resource oracles. Tests:
-      `restart_preserves_stream`, `backends_match_model`, `read_is_bounded`.
+- [x] **T7 — oracles.** Crash and recovery, model, differential and resource oracles. Tests:
+      `restart_preserves_stream`, `backends_match_model`, `read_is_bounded`. The differential
+      oracle runs the shared kit on the memory and file VFS and compares the observations. The
+      restart oracle writes, drops, reopens the same root and reads. The resource oracle reads
+      with the configured page limits and proves each page stays bounded.
 - [x] **T8 — no valtron or runtime.** The VFS and `DurableStream` build with valtron and sockets
       disabled.
-- [ ] **T9 — VFS testkit.** Export the shared VFS conformance scenarios from `foundation_core`
-      behind a test-only feature. Test: `every_vfs_runs_the_same_scenarios`.
-- [ ] **T10 — coverage.** Add coverage tests for each VFS native path. Record the covered
-      methods and the uncovered branches.
+- [x] **T9 — VFS testkit.** Export the shared VFS conformance scenarios from `foundation_core`
+      behind the `vfs-testkit` feature. Test: `every_vfs_runs_the_same_scenarios`.
+- [x] **T10 — coverage.** Add coverage tests for each VFS native path. Record the covered
+      methods and the uncovered branches. Both VFS crates call every `DurableStreamVfs` method.
 
 ## 5. Success criteria
 

@@ -236,6 +236,62 @@ proptest! {
 
 proptest! {
     #[test]
+    fn paged_reads_are_bounded_and_reassemble(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..40), 1..12),
+        page in 1_usize..24,
+    ) {
+        let (pages, collected, model) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let name = StreamName::parse("events/paged").expect("valid name");
+            let stream = streams.stream(name);
+
+            stream.create(CreateSpec::default()).await.expect("create");
+            let mut model = Vec::new();
+            for chunk in &chunks {
+                stream
+                    .append(AppendRequest::new(Chunk::new(chunk.clone())))
+                    .await
+                    .expect("append");
+                model.extend_from_slice(chunk);
+            }
+
+            let mut collected = Vec::new();
+            let mut from = ReadFrom::Start;
+            let mut pages = 0_usize;
+            loop {
+                let page_out = stream
+                    .read(ReadRequest {
+                        from: from.clone(),
+                        limit: ReadLimit::new(Some(page), None),
+                    })
+                    .await
+                    .expect("bounded read");
+                let bytes: Vec<u8> = page_out
+                    .chunks
+                    .iter()
+                    .flat_map(|chunk| chunk.as_bytes().to_vec())
+                    .collect();
+                assert!(bytes.len() <= page, "a page never exceeds the limit");
+                collected.extend_from_slice(&bytes);
+                pages += 1;
+                assert!(pages <= model.len() + 2, "each page makes progress");
+                if page_out.cursor.up_to_date {
+                    break;
+                }
+                from = ReadFrom::Offset(page_out.cursor.next);
+            }
+            (pages, collected, model)
+        });
+
+        prop_assert_eq!(collected, model);
+        prop_assert!(pages >= 1);
+    }
+}
+
+proptest! {
+    #[test]
     fn stream_seq_accepts_increasing_values_only(
         values in prop::collection::vec(1_u64..1_000, 1..10),
     ) {

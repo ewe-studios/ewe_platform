@@ -14,6 +14,8 @@ pub mod client;
 mod memory;
 mod service;
 pub mod valtron;
+#[cfg(feature = "vfs-testkit")]
+pub mod vfs_testkit;
 pub mod wire;
 
 pub use memory::MemoryVfs;

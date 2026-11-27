@@ -9,6 +9,8 @@ mod client;
 #[cfg(not(target_arch = "wasm32"))]
 mod conformance_edges;
 #[cfg(not(target_arch = "wasm32"))]
+mod coverage_memory;
+#[cfg(not(target_arch = "wasm32"))]
 mod fork;
 #[cfg(not(target_arch = "wasm32"))]
 mod json;
@@ -33,3 +35,5 @@ mod types;
 mod valtron_producer;
 #[cfg(not(target_arch = "wasm32"))]
 mod valtron_reader;
+#[cfg(all(not(target_arch = "wasm32"), feature = "vfs-testkit"))]
+mod vfs_conformance;

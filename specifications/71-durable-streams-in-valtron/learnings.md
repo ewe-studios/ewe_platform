@@ -487,3 +487,30 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   `sse-base64-large-payload-4kb` are skipped by the suite itself with
   "Swift implementation broken". No client can run them. Our own client-core tests cover the
   same rules.
+
+## VFS testkit and oracles (2026-11-27)
+
+- **A differential oracle finds faults a conformance test misses.** The shared kit ran the same
+  scenario on the memory and file VFS. The file VFS passed its own direct tests, which always
+  passed a finite read limit. The oracle used the core default (`ReadLimit::max_bytes = None`),
+  which becomes `usize::MAX`. The file VFS then sized a buffer with `vec![0; usize::MAX]` and
+  panicked. Issue #1041 records it; the fix bounds the buffer by the bytes that remain in the
+  own log. A VFS must accept `usize::MAX` as a limit.
+- **The core turns "no limit" into `usize::MAX`.** Every VFS must treat that value as "read to the
+  end of the data it holds", not as an allocation size. Bound the read by the stored length.
+- **A factory per scenario keeps runs independent.** `run_all` builds a fresh store and clock for
+  each scenario. A shared store would carry metadata from one scenario into the next and hide a
+  fault.
+- **The store clock is the wall clock.** `DurableStream` reads `ctx.clock().wall_now()`. A test
+  that moves `SimulatedClock` must call `advance_wall`, not `advance`; the monotonic offset does
+  not change the time-to-live (TTL) window.
+- **The two VFS implementations differ on a soft-deleted `read_at`.** `MemoryVfs::read_at` reads
+  through a soft-deleted entry; `FileVfs::read_at` returns `Gone`. A fork reads its source through
+  the internal chain on both, and the store checks `meta` first, so the protocol never sees the
+  difference. Issue #1042 records it for one documented contract.
+- **The kit lives behind a feature, not in a test module.** `vfs-testkit` enables `std` and
+  `test-clock`, so a VFS crate adds one dev-dependency line. The module is `pub` under that
+  feature and is absent from a normal build.
+- **A coverage test can record what it does not reach.** The fork-depth limits, the I/O error
+  branches and the malformed-metadata parser need a fault injection or a deep chain. Naming them
+  in `progress.md` is better than a silent gap.

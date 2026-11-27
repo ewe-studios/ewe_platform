@@ -92,6 +92,11 @@ multi = ["std", "alloc"]  # Multi-threaded executor requires std
 # (the `Ctx` module is std-gated).
 test-clock = ["std"]
 
+# A shared conformance kit for `DurableStreamVfs` implementations. A VFS crate
+# enables it in its dev-dependencies and runs the same scenarios. It needs
+# `std` and the simulated clock. Test-only.
+vfs-testkit = ["std", "test-clock"]
+
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 # Each also picks foundation_compact's matching wasm32 time/entropy backend.
 js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen", "foundation_context/wasm-bindgen"]

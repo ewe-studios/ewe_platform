@@ -96,7 +96,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.23", features = 
 turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock"] }
+foundation_core = { path = "../foundation_core", version = "0.0.23", features = ["test-clock", "vfs-testkit"] }
 # The signal delivery tests measure elapsed time with the foundation_compact
 # instant type. The library dependency is optional (the `vfs` features), so the
 # test target needs its own entry.

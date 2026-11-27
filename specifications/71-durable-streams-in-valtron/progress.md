@@ -2,6 +2,27 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 05 T7, T9 and T10 landed. The shared kit lives in
+  `foundation_core::durable::vfs_testkit` behind the `vfs-testkit` feature. It runs nine scenarios:
+  create, append, read byte-exact, bounded pages, fork prefix, fork append, soft-delete and
+  cascade, time-to-live (TTL) slide with an injected clock, and version conflict. A
+  `StoreFactory` builds a fresh store and clock per scenario; `run_all` returns
+  `ScenarioObservation` values that the differential oracle compares.
+  `backends_match_model` compares the memory and file VFS. `restart_preserves_stream` drops and
+  reopens the file root. `read_is_bounded` reads with page limits of 1, 3, 7 and 20 bytes.
+  Coverage tests call every `DurableStreamVfs` method on both VFS implementations: `create`,
+  `append`, `append_with_meta`, `read_at`, `meta`, `touch`, `trim`, `close`, `remove`, `list` and
+  `notifier`. Counts: core durable 113 pass, file VFS 15 pass. Clippy is clean for the new and
+  changed code. Closed bug #1041 (high): the file VFS allocated `vec![0; usize::MAX]` when a read
+  had no page limit. Opened #1042 (low): the memory and file VFS differ on `read_at` for a
+  soft-deleted entry.
+  Uncovered branches: both `read_chain` fork-depth limits (a chain deeper than 64 or the
+  configured file limit); the file VFS input/output (I/O) error branches (permission, read,
+  rename, directory removal); `StoredMeta::parse` malformed-record branches; the file `cascade`
+  skip branches; the file create-rollback branches; the `usize` conversion fallbacks (unreachable
+  on a 64-bit host); the poisoned-mutex fallbacks; and `VfsError::Unsupported`, which neither VFS
+  returns.
+
 - 2026-11-27: feature 07 Server-Sent Events (SSE) landed. The client core returns an `SseOpen`
   head (status, headers, stream) from `ClientTransport::open_sse`, so a 404 or 410 answers from
   the head and `stream-sse-data-encoding` decides base64. The SSE read is a `futures_core::Stream`

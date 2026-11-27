@@ -5,6 +5,9 @@
 //! Each test builds a VFS over a fresh temporary directory. The VFS methods
 //! return ready futures, so the sync boundary drives them directly.
 
+mod coverage;
+mod oracle;
+
 use foundation_core::durable::{
     ContentType, DurableStreamVfs, ForkInfo, StreamName, VfsError, VfsFuture, VfsMeta, VfsOffset,
     WriterState,

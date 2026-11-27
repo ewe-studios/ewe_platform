@@ -191,10 +191,16 @@ impl FileVfs {
         }
         if out.len() < limit {
             let own_at = at.saturating_sub(base);
+            // The own log holds `len - base` bytes. Bound the buffer by the
+            // bytes that remain, so a caller that passes `usize::MAX` as the
+            // limit (the core does when no page limit is set) does not ask
+            // for an impossible allocation.
+            let own_len = stored.len.saturating_sub(base);
+            let available = own_len.saturating_sub(own_at);
+            let want = (limit - out.len()).min(usize::try_from(available).unwrap_or(usize::MAX));
             let path = self.dir(name).join("data");
             let mut file = fs::File::open(path).map_err(io_error)?;
             file.seek(SeekFrom::Start(own_at)).map_err(io_error)?;
-            let want = limit - out.len();
             let mut buffer = vec![0_u8; want];
             let read = file.read(&mut buffer).map_err(io_error)?;
             buffer.truncate(read);
@@ -457,8 +463,7 @@ impl StoredMeta {
                 }
                 "stream_seq" => {
                     let value = parts.next().ok_or_else(bad)?;
-                    stored.stream_seq =
-                        Some(StreamSeq::from_bytes(unhex(value).ok_or_else(bad)?));
+                    stored.stream_seq = Some(StreamSeq::from_bytes(unhex(value).ok_or_else(bad)?));
                 }
                 _ => {}
             }
@@ -728,7 +733,9 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
                 let Some(name_hex) = entry.file_name().to_str().map(str::to_string) else {
                     continue;
                 };
-                let Some(bytes) = unhex(&name_hex) else { continue };
+                let Some(bytes) = unhex(&name_hex) else {
+                    continue;
+                };
                 let Ok(text) = String::from_utf8(bytes) else {
                     continue;
                 };
