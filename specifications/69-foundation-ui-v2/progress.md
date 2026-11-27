@@ -1737,3 +1737,12 @@ The Android host applies the status bar inset while it shows a live failure bann
 The Android 36 test moves the banner from y=0 to y=128, below the status bar.
 After Retry, the normal Todo title uses its original bounds.
 See [issue 849](https://github.com/ewe-studios/ewe_platform/issues/849).
+
+## Native dedicated connections during replay
+
+Android and iOS use the dedicated connection for an explicit dedicated mount after replay negotiation.
+A dedicated connection resumes from its own stream cursor.
+A keep-alive request retains a separate connection for each dedicated mount at the same endpoint.
+The Android core suite passes 19 tests. The Swift host suite passes 25 tests.
+Both suites reproduce the wrong connection selection before the fix.
+[Issue 1062](https://github.com/ewe-studios/ewe_platform/issues/1062)

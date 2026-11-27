@@ -1371,3 +1371,11 @@ Apply the inset to the parent of the live banner and the screen only while the b
 The parent consumes the inset, so the screen's top app bar does not add it again.
 Test a live channel drop through a separate local proxy. Restore the proxy before tapping Retry.
 The default Hypertext Transfer Protocol (HTTP) action path recovers. WebSocket actions have a separate retry failure in [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).
+
+## Native dedicated connections during replay
+
+The server can offer subscription replay to the whole view.
+A mount with no sharing choice can use that capability to select a managed connection.
+An explicit dedicated mount uses its own stream cursor and a direct connection by default.
+Keep-alive is a separate policy. The manager can retain a dedicated connection without sharing it.
+Two retained dedicated mounts at the same endpoint must open two connections.

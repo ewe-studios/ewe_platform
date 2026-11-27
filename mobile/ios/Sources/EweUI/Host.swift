@@ -154,7 +154,7 @@ extension Channel {
       return
     }
     if let connections, connections.supports(spec.transport),
-      spec.shared == true || store.subscriptionReplay || spec.keepAlive {
+      spec.keepAlive || (spec.shared ?? store.subscriptionReplay) {
       do {
         open[id] = try LiveSubscription(manager: connections, spec: spec, endpoint: url, mount: id, store: store)
       } catch { store.error("Transport", String(describing: error)) }

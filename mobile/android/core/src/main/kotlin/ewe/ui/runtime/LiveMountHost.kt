@@ -80,7 +80,7 @@ class LiveMountHost(
             try {
                 val ch =
                     if (connections != null && connections.supports(spec.transport) &&
-                        (spec.shared == true || spec.keepAlive || store.subscriptionReplay)) {
+                        (spec.keepAlive || (spec.shared ?: store.subscriptionReplay))) {
                         val subscription = connections.nextTag()
                         var session: ULong? = null
                         val latestOnly = spec.transport == LiveTransport.Sse && spec.shared == true

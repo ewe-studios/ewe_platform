@@ -146,3 +146,17 @@ Keep existing HTTP and on-device examples working. Document the configuration, f
 - [Swift server screen](../../../../mobile/ios/Sources/EweUI/ServerScreen.swift)
 - [Android screen setup](../../../../mobile/android/ui/src/main/kotlin/ewe/ui/compose/EweHost.kt)
 - [Todo server dispatcher setup](../../../../examples/ui_todo/src/server.rs)
+
+## Native connection selection during replay
+
+Subscription replay sends frames after a mount's last applied sequence number.
+Use the server's replay capability to select the connection only when the mount leaves sharing unspecified.
+An explicit dedicated mount opens its own connection with its stream and cursor.
+An explicit keep-alive request retains that connection under the connection manager.
+A retained dedicated mount has its own managed connection even if another mount uses the same endpoint.
+
+Check these rules in the Android and iOS host tests.
+Enable server replay and attach dedicated, shared, and unspecified mounts at one endpoint.
+Verify each direct connection uses its own cursor.
+Detach retained dedicated mounts and verify their separate connections stay open until the manager closes them.
+[Issue 1062](https://github.com/ewe-studios/ewe_platform/issues/1062)

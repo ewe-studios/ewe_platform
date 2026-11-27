@@ -229,6 +229,77 @@ class RuntimeTest {
     }
 
     @Test
+    fun dedicatedMountUsesItsOwnConnectionDuringReplay() {
+        val store = NodeStore(Clock())
+        val caps = frame({ b ->
+            val server = ServerCaps.createServerCaps(b, CapsStatus.Ok, 1u, 1u, 9u, 0u, 0, true, 0u)
+            Message.createMessage(b, 0, 0, Control.createControl(b, server, 0, 0, 0))
+        })
+        assertTrue(store.receive(caps))
+        assertTrue(store.subscriptionReplay)
+        val direct = mutableListOf<Pair<ULong, ULong>>()
+        var directClosed = 0
+        val factory = object : ChannelFactory {
+            override fun open(
+                endpoint: String, transport: UByte, streamId: ULong, resumeFrom: ULong,
+                onFrame: (ByteArray) -> Unit, onClose: (Throwable?) -> Unit,
+            ): Channel {
+                direct += streamId to resumeFrom
+                return Channel { directClosed++ }
+            }
+        }
+        var managedOpened = 0
+        var managedClosed = 0
+        val manager = ConnectionManager()
+        manager.register(LiveTransport.WebSocket) { _, _ ->
+            managedOpened++
+            Channel { managedClosed++ }
+        }
+
+        fun attach(id: UInt, stream: ULong, cursor: ULong, sharing: UByte, keepAlive: Boolean = false) {
+            assertTrue(store.receive(frame(
+                shared(UiOperation.LiveMount) { b ->
+                    LiveMount.createLiveMount(
+                        b, id, LiveKind.Stream, stream, LiveTransport.WebSocket, b.createString("/live"),
+                        cursor, sharing, keepAlive,
+                    )
+                },
+                shared(UiOperation.AppendChild) { AppendChild.createAppendChild(it, 1u, id) },
+            )))
+        }
+
+        manager.use {
+            LiveMountHost(store, factory, manager).use {
+                store.setCursor(9u, 23u)
+                attach(50u, 9u, 19u, ConnectionSharing.Dedicated)
+                attach(51u, 10u, 51u, ConnectionSharing.Dedicated)
+                assertEquals(listOf(9uL to 23uL, 10uL to 51uL), direct)
+                assertEquals(0, managedOpened)
+
+                store.setCursor(9u, 24u)
+                store.onGap?.invoke(9u, 24u)
+                assertEquals(listOf(9uL to 23uL, 10uL to 51uL, 9uL to 24uL), direct)
+                assertEquals(1, directClosed)
+
+                attach(52u, 11u, 0u, ConnectionSharing.TransportDefault)
+                attach(53u, 12u, 0u, ConnectionSharing.Shared)
+                assertEquals(1, managedOpened)
+                attach(54u, 13u, 0u, ConnectionSharing.Dedicated, keepAlive = true)
+                attach(55u, 14u, 0u, ConnectionSharing.Dedicated, keepAlive = true)
+                assertEquals(3, managedOpened)
+                assertTrue(store.receive(frame(
+                    shared(UiOperation.Remove) { Remove.createRemove(it, 54u) },
+                    shared(UiOperation.Remove) { Remove.createRemove(it, 55u) },
+                )))
+                assertEquals(0, managedClosed)
+            }
+            assertEquals(3, directClosed)
+            assertEquals(1, managedClosed)
+        }
+        assertEquals(3, managedClosed)
+    }
+
+    @Test
     fun mobileCommandsAndViews() {
         val calls = mutableListOf<UShort>()
         val store =
