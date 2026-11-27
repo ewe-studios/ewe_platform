@@ -1454,3 +1454,11 @@ The sequence number identifies the reply within one stream. Include the stream i
 A reply can arrive after the local timeout. Deliver it through the existing reply path so it can confirm the pending operation.
 A reconnect can open the socket before it receives the new capabilities. Wait for those capabilities before loading the view.
 On Android, answer a peer close frame. A callback for completed closure alone can leave recovery waiting for that answer.
+
+## Focused feature gates
+
+Use the current CI executable with the current package configuration.
+The older executable does not know the sandbox worker recipe.
+Cargo metadata also needs compatible versions for optional path dependencies.
+The six-package plan works after the database dependency uses the workspace version.
+A passing compile-fail test can still report unused dependency patches in its nested build.

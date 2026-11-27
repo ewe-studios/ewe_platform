@@ -1877,3 +1877,12 @@ Row Try again saves one confirmed Todo. The isolated database contains one match
 The Android core and user interface suites pass 19 and 5 tests. The Swift suite passes 28 tests.
 The Swift checks use a test channel on macOS.
 See [issue 727](https://github.com/ewe-studios/ewe_platform/issues/727) and [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).
+
+## Focused feature gates
+
+The retired application programming interface (API) compile-fail test passes.
+The nested build reports three unused dependency patches.
+The TypeScript wire reader passes 12 fixture tests. FlatBuffers compiler 25.9.23 confirms the generated files match.
+Seven runtime lowering tests and three component behaviour matrix tests pass.
+The continuous integration (CI) planner selects all six requested packages after the database version repair.
+This check tests plan generation. The operating-system runs remain separate.

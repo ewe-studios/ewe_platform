@@ -105,6 +105,12 @@ The Swift fixture test and all six Kotlin conformance tests pass with the same f
 [Issue 1158](https://github.com/ewe-studios/ewe_platform/issues/1158) records the fixture repair.
 The specification checklist stays unsigned while its scenario coverage review is open.
 
+The retired API compile-fail test passes and reports three unused patch notices from its nested build.
+The TypeScript wire reader passes 12 fixtures. The FlatBuffers generation check passes.
+The runtime lowering suite passes seven tests. The component matrix suite passes three tests.
+The CI planner selects the six requested crates after commit `6cde9ca0c`.
+The plan check does not run the outstanding operating-system suites.
+
 ## Historical audit
 
 ## Scope
