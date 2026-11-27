@@ -648,3 +648,38 @@ The spec does not invent a new runtime. It names the contract and binds those pi
   goes, so the clippy ban covers the whole crate and a failed run replays from
   the constant. A host-ABI test still reads the global RNG, because it proves
   the host boundary, and it lives in a standalone crate.
+
+## ConnectRPC adapter (2026-11-27)
+
+- **Generated services name the crate, so the crate aliases itself.** The
+  codegen emits `foundation_connectrpc::…` paths because it targets a consumer
+  crate. Inside `foundation_connectrpc` that path does not resolve. `extern
+  crate self as foundation_connectrpc;` in `lib.rs` fixes it with one line.
+- **An `async fn` in a trait is not `Send` by default.** A generic adapter over
+  `D: DurableDriver` cannot prove that `store().read(..)` is `Send`, so the
+  generated `+ Send` handler signature fails to compile. The adapter is
+  concrete over `DurableStream`, the same choice as the HTTP adapter. The host
+  swaps the VFS, not the adapter.
+- **The first stream page opens the RPC stream.** The generated
+  `server_stream_handler` sends the response head together with the first
+  message. A live read that waits for data before its first message blocks the
+  generated client in `subscribe().await`. `Subscribe` sends one page at open,
+  even when it is empty. The page carries the current cursor and
+  `up_to_date = true`. The test then appends and receives the next page.
+- **Register the wake before the read.** An append that lands between the read
+  and the wait is otherwise lost until the next append. The stream arms the
+  notifier first, reads second, and arms again after each emitted page.
+- **The status table is one row per `StoreError`.** `Gone` maps to `NotFound`
+  because Connect has no "gone" code. `Trimmed` maps to `OutOfRange`.
+  `ConfigConflict` maps to `AlreadyExists`. A pure test loops over every
+  variant, so a new variant fails the test until the table names it.
+- **`block_on_future_scoped` can drive a real wire test.** The client transport
+  needs the process-wide valtron pool, but the test thread can block in
+  `block_on_future_scoped` while pool workers pump the call. Start one pool per
+  test with `initialize_pool(seed, Some(8))` and run the tests with
+  `serial_test`, because the pool is process-wide. The server can serve Connect
+  over HTTP/2 cleartext, which avoids the HTTP/1.1 worker-starvation problem.
+- **`requirements.md` 3.9 and the T9 brief differ on `Read`.** The section table
+  lists `Read` as a server stream. The brief makes `Read` one bounded page and
+  `Subscribe` the live stream. The brief wins for this task, so the proto has
+  seven unary calls and one streaming call.

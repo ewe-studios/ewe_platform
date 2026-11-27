@@ -94,7 +94,9 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       Tests: `etag_varies_with_closure`, `if_none_match_is_304`, `cursor_is_monotonic`.
 - [ ] **T8 — security.** `nosniff`, CORP, CORS exposure and `429`. Tests:
       `security_headers_on_all_responses`, `cors_exposes_stream_headers`.
-- [ ] **T9 — ConnectRPC.** The eight methods and the live stream. Test:
+- [x] **T9 — ConnectRPC.** The eight methods and the live stream. The generated
+      `ewe.durable.v1.DurableStreamService` maps create, append, read (one bounded page), head,
+      close, delete and fork; `Subscribe` is the server stream. Test:
       `rpc_stream_resumes_from_offset`, `http_and_rpc_return_same_chunks`.
 - [ ] **T12 — body cap is configuration.** Move the adapter body cap from the constant
       `MAX_BODY_BYTES` to `DurableLimits::max_body_bytes` (default 8 MiB, builder method). A

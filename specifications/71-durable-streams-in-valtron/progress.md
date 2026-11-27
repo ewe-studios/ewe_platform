@@ -2,6 +2,40 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-27: feature 06 T9 landed. The Durable Streams `ConnectRPC` surface is
+  `ewe.durable.v1.DurableStreamService` in
+  `backends/foundation_connectrpc/proto/ewe/durable/v1/durable.proto`. The
+  generated trait, register function, typed client and procedure paths land in
+  `backends/foundation_connectrpc/src/shared/durable/`. `Create`, `Append`,
+  `Read`, `Head`, `Close`, `Delete` and `Fork` are unary; `Read` returns one
+  bounded page. `Subscribe` is a server stream: it sends one page at open, then
+  one page per append or close, and ends after the close. It waits on the
+  stream notifier before each read, so it never polls. It stops on the call
+  cancel signal.
+
+  The status table is one documented row for each `StoreError` variant. It
+  reuses the HTTP intent: not found, gone, conflict, closed, bad request, rate
+  limited and internal. The adapter is concrete over `DurableStream`; the host
+  swaps the VFS, not the adapter.
+
+  Tests: `tests/durable_stream_service_tests.rs` has 6 tests and they pass with
+  the generated client over Connect on HTTP/2 cleartext. The names are
+  `every_operation_round_trips_over_the_generated_client`,
+  `refusals_map_to_connect_codes_over_the_wire`,
+  `the_status_table_covers_every_core_refusal`,
+  `subscribe_delivers_an_append_after_the_stream_opens`,
+  `rpc_stream_resumes_from_offset` and `http_and_rpc_return_same_chunks`.
+  Clippy is clean for the crate. The wasm32 check with
+  `--no-default-features --features rpc` passes. `check-clock-params` and
+  `check-time-sources` report no violation.
+
+  Deviation: `requirements.md` section 3.9 lists `Read` as a server stream. The
+  T9 brief defines `Read` as one bounded page and `Subscribe` as the live
+  stream. This change follows the brief. The full crate test run has one
+  pre-existing macOS failure, issue #858
+  (`panic_in_handler_becomes_internal_via_recover`); it fails at the base commit
+  too and is not related to this change.
+
 - 2026-11-27: feature 05 T6 done. This closes issue #1052. The Durable Object
   (DO) SQLite executor is `foundation_db::DoSqlExecutor` in
   `backends/foundation_db/src/wasm/wasm_storage/do_sql_executor.rs`. It runs
@@ -333,10 +367,11 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   executor. Issue #1052 is closed. Both executors pass the shared VFS kit on
   real local bindings under `wrangler dev --local`: `/run` on a SQLite-backed
   Durable Object and `/run-d1` on D1.
-- **06-http-rpc-surface** — 🟡 in progress (10/11). `DurableService`/`DurableLimits`, JSON mode,
+- **06-http-rpc-surface** — 🟡 in progress (9/12). `DurableService`/`DurableLimits`, JSON mode,
   the ETag/cache/cursor helpers, the error-status/header table, the header/offset parsers, the
-  request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff` and the full
-  server conformance run landed. ConnectRPC and `429` remain.
+  request adapter, `304`, long-poll, SSE, forks, `Expires-At`, CORS, `nosniff`, the full
+  server conformance run and the `ConnectRPC` service landed. `429`, the oracles and the
+  configurable body cap remain.
 - **07-durable-streams-client** — 🟢 done (11/11). The client core, transport injection,
   catch-up, long-poll, auto and SSE reads, the native transport, the adapter, the client
   conformance run, batching, dynamic headers, validation features and the SSE head/stream all
