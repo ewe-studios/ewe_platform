@@ -4,4 +4,6 @@ mod conformance;
 mod coverage;
 #[cfg(feature = "vfs-object-http")]
 mod http;
+#[cfg(feature = "vfs-object-netio")]
+mod netio;
 mod support;

@@ -19,6 +19,7 @@ foundation_nostd = { path = "../foundation_nostd", version = "0.0.10", optional 
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", optional = true, default-features = false, features = ["std"] }
 foundation_db = { path = "../foundation_db", version = "0.0.11", optional = true, default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.17", optional = true }
 foundation_vfs = { workspace = true, optional = true }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
 
@@ -412,6 +413,12 @@ vfs-object = ["vfs", "dep:futures-util"]
 # The HTTP client half: S3 REST request shaping and the AWS Signature Version 4
 # (SigV4) signature over an injected transport.
 vfs-object-http = ["vfs-object", "dep:hmac", "dep:sha2"]
+
+# The native transport for the HTTP object store. It sends the shaped request
+# over the foundation_netio client, which owns Transmission Control Protocol
+# (TCP) and Transport Layer Security (TLS). Native only: the spool needs a local
+# file system and the client opens real sockets.
+vfs-object-netio = ["vfs-object-http", "dep:foundation_netio", "foundation_netio/multi"]
 
 # Ptrace syscall interception (Linux only, nix raw ptrace backend)
 vfs-ptrace-nix = ["vfs-native", "dep:nix"]

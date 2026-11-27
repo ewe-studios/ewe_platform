@@ -67,6 +67,14 @@ pub mod r2;
 #[cfg(all(feature = "vfs-object-http", not(target_arch = "wasm32")))]
 pub mod object_http;
 
+/// The native transport for the HTTP object store, over `foundation_netio`.
+#[cfg(all(feature = "vfs-object-netio", not(target_arch = "wasm32")))]
+pub mod object_netio;
+
+/// The block tier for the SQL VFS over the S3/R2 object store.
+#[cfg(all(feature = "vfs-object-http", not(target_arch = "wasm32")))]
+pub mod s3_blocks;
+
 #[cfg(feature = "vfs-native")]
 pub use dir_delta::DirectoryDelta;
 #[cfg(feature = "vfs-native")]
