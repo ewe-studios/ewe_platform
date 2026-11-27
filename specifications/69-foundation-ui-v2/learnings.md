@@ -1462,3 +1462,15 @@ The older executable does not know the sandbox worker recipe.
 Cargo metadata also needs compatible versions for optional path dependencies.
 The six-package plan works after the database dependency uses the workspace version.
 A passing compile-fail test can still report unused dependency patches in its nested build.
+
+## Android peer title input
+
+The peer helper sent one key at a time. It accepted keyboard visibility before the editor held focus.
+The regular Android helper waits for editor focus and the complete title.
+The peer helper now uses the same input sequence.
+
+## Database version resolution
+
+Cargo permits dependency declarations in tables and inline values.
+The first dependency search missed five version fields in tables.
+The workspace and all eleven standalone manifests that use this database now resolve with their lockfiles.

@@ -1886,3 +1886,13 @@ The TypeScript wire reader passes 12 fixture tests. FlatBuffers compiler 25.9.23
 Seven runtime lowering tests and three component behaviour matrix tests pass.
 The continuous integration (CI) planner selects all six requested packages after the database version repair.
 This check tests plan generation. The operating-system runs remain separate.
+
+The Android peer test now uses the editor focus and full-title check used by the regular Android task.
+Android and Chrome complete the held Add, failed reply, retry, confirmation, Complete, Reopen, and Delete.
+Chrome sees the same identifier after retry. The Android capture records pending and retry states.
+The synchronized test with the iPhone simulator remains in progress.
+[Issue 1163](https://github.com/ewe-studios/ewe_platform/issues/1163)
+
+The locked metadata check passes for the full workspace and eleven standalone manifests.
+The six-package continuous integration plan succeeds.
+[Issue 1164](https://github.com/ewe-studios/ewe_platform/issues/1164)
