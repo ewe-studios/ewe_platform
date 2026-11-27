@@ -1730,3 +1730,10 @@ The patched local Todo app reaches Gumball in portrait and landscape on the Andr
 The replay finds the left edge of the landscape game at pixel 128 and calculates a tap inside answer 8.
 Android stops the app during the input dispatch timeout. The score change remains unverified.
 See [issue 843](https://github.com/ewe-studios/ewe_platform/issues/843) and [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
+
+## 2026-11-28 — Android failure banner
+
+The Android host applies the status bar inset while it shows a live failure banner.
+The Android 36 test moves the banner from y=0 to y=128, below the status bar.
+After Retry, the normal Todo title uses its original bounds.
+See [issue 849](https://github.com/ewe-studios/ewe_platform/issues/849).

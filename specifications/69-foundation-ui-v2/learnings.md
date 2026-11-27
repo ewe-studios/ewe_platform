@@ -1364,3 +1364,10 @@ A frame can show the rotated game before Android completes the focus change.
 The inset detector finds a landscape game surface with bounds from (128, 189) to (2400, 1017).
 The tap at (1176, 866) lies in the first answer. Android reports an input dispatch timeout before scoring.
 The app main thread waits in `HardwareRenderer.setStopped`. See [issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146).
+
+## 2026-11-28 — Android failure banner inset
+
+Apply the inset to the parent of the live banner and the screen only while the banner is visible.
+The parent consumes the inset, so the screen's top app bar does not add it again.
+Test a live channel drop through a separate local proxy. Restore the proxy before tapping Retry.
+The default Hypertext Transfer Protocol (HTTP) action path recovers. WebSocket actions have a separate retry failure in [issue 1148](https://github.com/ewe-studios/ewe_platform/issues/1148).
