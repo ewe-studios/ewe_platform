@@ -89,3 +89,13 @@ The Android task expects a result from the old repeated delete test.
 One follow-up preview includes both application test corrections.
 The iPhone simulator passes both keyboard tests with Xcode 27.2.
 The Android emulator reports success after both delete requests and both missing-record checks.
+
+## Verified hosted candidate
+
+The hosted Apple job builds both starters and passes both iPhone Todo suites on Xcode 26.6.
+The artifact stores the unsigned 0.1.2 candidate for source revision `8ce2352b998ba6966360843e2caa5c900ad630f2`.
+The Swift checksum manifest revision is `d1040fb8204ac145cf5ae2189082e74372489547`.
+The downloaded archives match both SHA-256 values in the build record.
+The Apple archive contains iPhone, iPhone simulator, and macOS slices.
+The Android archive contains the 0.1.2 core, binding, and renderer modules.
+[Verified candidate artifact](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598/artifacts/15234251065)
