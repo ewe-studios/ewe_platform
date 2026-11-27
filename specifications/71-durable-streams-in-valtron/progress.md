@@ -697,10 +697,21 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
   driver matrix and the oracles remain. The no-valtron protocol core is proven by
   `durable_core_no_valtron` (11 tests). The HTTP server keeps the valtron executor for its
   socket surface; issue #1081 is closed.
-- **09-s3-r2-vfs** — ⏳ not started (0/16)
+- **09-s3-r2-vfs** — 🟢 done (16/16). The `ObjectStore` contract, the segmented and
+  append-only key layouts, the head manifest CAS, the local spool, the batcher, the read path
+  with range GETs, crash recovery, compaction and retention, the provider settings and the
+  delete results landed. Feature 11 adds the native transport and the live S3 run.
 - **10-subscriptions** — 🟢 done (7/7). The `foundation_event_stream` crate holds the
   transport-neutral engine, the native handlers and the webhook sender. The six server
   conformance tests pass and the gate shows 0 skips.
+- **11-hosted-object-transports** — 🟢 done (7/7). `NetioObjectTransport` sends the shaped S3
+  request over `foundation_netio` and reads a bounded body; it skips the body of a HEAD, 204
+  or 304 response. `S3BlockStore` serves the SQL VFS block tier. The live MinIO run passes
+  the shared VFS kit, the two-writer CAS race, the restart replay and the SQL block tier
+  (53 tests, 4.56 s). The R2 binding gains a conditional put and a bare `etag`; `R2BlockStore`
+  passes the Worker route on local R2 and D1 under `wrangler dev --local`, and the wasm32
+  build check passes. The durable gate starts MinIO with `alpine/minio`
+  `RELEASE.2025-10-15T17-29-55Z` (the official `minio/minio` image is no longer public).
 
 ## Next steps
 

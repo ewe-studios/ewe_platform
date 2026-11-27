@@ -175,13 +175,18 @@ The read path:
       coverage tests. Tests: `s3_vfs_conformance`, `r2_vfs_conformance`, `s3_vfs_coverage`,
       `r2_vfs_coverage`, `both_layouts_pass_the_same_scenarios`.
 - [x] **T11 — differential.** Run S3 and R2 against the same scenarios with a local emulator.
-      Test: `s3_and_r2_agree`. Note: MinIO and localstack are absent on this host
-      (`which minio localstack` finds nothing). The differential runs on the
-      in-memory object store. No real-service result is claimed.
+      Test: `s3_and_r2_agree`. Feature 11 adds the live run: `live_s3_conformance` runs the
+      shared kit against a real MinIO service, `live_s3_two_writers_one_cas_wins` proves the
+      CAS race, `live_s3_restart_replays_the_spool` proves the restart replay, and
+      `live_sql_vfs_flushes_to_s3` proves the block tier. The live run passes against MinIO
+      `RELEASE.2025-10-15T17-29-55Z`. The official `minio/minio` image is no longer public,
+      so the run uses `alpine/minio` with the same release tag.
 - [x] **T12 — performance.** Measure batch latency, PUT count and throughput. Record the
       defaults and the result. Note: the test measures object PUT count and bytes
       (a 256 KiB batch is one object PUT) and asserts the defaults. It does not
-      assert wall time. No real-service latency is claimed.
+      assert wall time. The live MinIO run measured 53 tests in 4.56 s on a warm build;
+      the gate itself measured 231.91 s on a busy host. No real-service latency is
+      claimed.
 - [x] **T13 — publish revalidation and cache fill.** Revalidate the head after a GET. Fill the
       segment cache in the background and deduplicate fills. Tests:
       `missing_object_is_an_error`, `cache_fill_is_deduplicated`.

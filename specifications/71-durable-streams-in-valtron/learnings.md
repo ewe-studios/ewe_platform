@@ -1008,3 +1008,29 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The crate clippy gate is `-D warnings`.** `[packages.foundation_event_stream]` sets
   `clippy-deny-warnings = true`, so every warning in the crate is an error. The change fixed 24
   old warnings and must keep the tree at zero.
+
+## Feature 11: hosted object-store transports (2026-11-27)
+
+- **A HEAD response has no body, even when it names a length.** The transport read the body of
+  every response. A HEAD names the object size in `Content-Length` and sends no bytes, so the
+  read waited for data that never came. Each wait ended at the 30 s DNS deadline, because the
+  netio executor parks the resolving task to that bound. Skip the body for a HEAD, a 204, a
+  304 and a 1xx status. The conformance run went from minutes to 4.56 s.
+- **The request builder sets `Host` from the URL.** Do not copy the store's `host` header into
+  the prepared request. A second value sends two `Host` headers and breaks the signature.
+- **`run_all` borrows a `&dyn StoreFactory`, so its future is not `Send`.** The netio client
+  needs the valtron pool, and `#[valtron_test]` requires a `Send` future. Feature 11 keeps a
+  small local runner that owns the factory and calls the same public scenario functions.
+- **The official MinIO image is no longer public.** `docker pull minio/minio:<tag>` is refused
+  in 2026. `alpine/minio` publishes the same MinIO release tags and pulls. The image runs as
+  root because the anonymous `/data` volume is not writable by its default user.
+- **R2 `onlyIf` compares the bare etag.** The `httpEtag` getter returns the quoted HTTP form;
+  a conditional put must send the bare hexadecimal `etag`. A stale etag makes the put resolve
+  to `null`, not reject.
+- **The wasm binding types are re-exported under `wasm-bindgen-storage`, not
+  `wasm-bindgen-bindings`.** A crate that enables only the binding feature reaches them at
+  `foundation_db::wasm::bindgen::{R2Bucket, R2Object}`.
+- **The R2 block store runs for real under `wrangler dev --local`.** workerd and Miniflare
+  give a real local R2 bucket and D1 database. The `integration/r2_blocks` fixture runs the
+  block put, the idempotent retry, the exact range read and the SQL VFS flush and vacuumed
+  read. No mock bucket is needed.

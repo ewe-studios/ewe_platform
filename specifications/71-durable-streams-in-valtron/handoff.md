@@ -17,6 +17,8 @@ This file states the exact state of the work and the next steps. Read it before 
 | Core durable tests | 81 pass | `cargo test -p foundation_core --features multi,test-clock --test mod durable` |
 | HTTP adapter tests | 30 pass | `cargo test -p foundation_http --test durable_adapter` |
 | Client core tests | 24 pass | `cargo test -p foundation_netio --features multi --test foundation_netio_tests durable` |
+| Live S3 VFS on MinIO | 53 pass | `cargo test --profile uat -p foundation_nativeapis --features vfs-object-netio --test durable_object_vfs` |
+| R2 block store on local R2 | 1 pass | `cargo test --profile uat -p foundation_nativeapis --features r2-wrangler --test r2_wrangler` |
 
 The 61 client skips are SSE only. The adapter announces `sse: false`.
 
@@ -153,7 +155,8 @@ Finish in this order. The first item that is not blocked starts now.
 3. #1028 Webhook delivery runs inline and delays an append. Move it behind a queue and a worker
    driven by the injected clock.
 4. #1064 Add the hosted object-store transports: native S3 over foundation_netio, wasm R2 over
-   foundation_db. Add a MinIO service run to CI for the S3 path.
+   foundation_db. Add a MinIO service run to CI for the S3 path. Done in feature 11; the live
+   MinIO run and the local R2 run pass.
 5. #1056 The wasm build with `wasm-fetch` and default features fails in foundation_core.
 6. #1080 A wasm32 runtime proof, beyond the build checks.
 7. #1029 The large-payload client reset.
@@ -173,6 +176,23 @@ suite must replicate the scenarios and pass them.
 - A new transport adds one driver and runs the same scenario list unchanged. It is not done
   until its driver passes the suite.
 - A transport may change the encoding, never the protocol outcome.
+
+## 4.7 Feature 11 result (2026-11-27)
+
+- **Native transport.** `NetioObjectTransport` sends the shaped request over `foundation_netio`
+  and reads the body with `collect_bytes_bounded`. It skips the body of a HEAD, 204, 304 or 1xx
+  response; reading a HEAD body stalled each request to the 30 s DNS deadline. Commit
+  `46d5abca4`, `4bc770d7a`.
+- **Live S3.** The shared VFS kit, the two-writer CAS race, the restart replay and the SQL block
+  tier pass against MinIO `RELEASE.2025-10-15T17-29-55Z` (53 tests, 4.56 s). The official
+  `minio/minio` image is no longer public; CI and the local run use `alpine/minio` with the same
+  release tag.
+- **Wasm R2.** The R2 binding gains a conditional put and a bare `etag`. `R2BlockStore` passes
+  the Worker route on local R2 and D1 under `wrangler dev --local`. The wasm32 build check
+  passes for `vfs-object-wasm`.
+- **CI.** The durable job starts MinIO, sets the `EWE_S3_*` variables and
+  `EWE_REQUIRE_LIVE_S3=1`, and allows 30 minutes. The gate script fails when the require flag is
+  set and a variable is missing.
 
 ## 5. Rules that matter here
 
