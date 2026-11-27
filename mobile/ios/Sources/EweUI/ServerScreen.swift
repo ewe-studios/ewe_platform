@@ -19,7 +19,8 @@
     #endif
     let base: URL
     let initial: String
-    let prepare: @MainActor (URLActionTransport, NodeStore) async throws -> NativeActionCore
+    private let prepare: @MainActor (URLActionTransport, NodeStore) async throws
+      -> (NativeActionCore, SocketActionConnection?)
     private var managed: ConnectionManager?
     let session: URLSession
     @State private var connection: EventBridge?
@@ -66,7 +67,7 @@
             throw CoreError.Transport(detail: "Missing server capabilities")
           }
           try core.applyCapsFrame(caps)
-          return core
+          return (core, socket)
         } catch { socket?.close(); throw error }
       }
     }
@@ -140,11 +141,12 @@
         let transport = URLActionTransport(maxFrameBytes: store.maxFrameBytes, session: session) {
           URLRequest(url: endpoint)
         }
-        let core = try await prepare(transport, store)
+        let (core, socket) = try await prepare(transport, store)
         let bridge = EventBridge(store: store, core: core)
         let limit = store.maxFrameBytes
         let loader = store.registerLoader {
-          try await readInitial(transport.viewRequest(base.appending(path: initial)), limit: limit)
+          try await socket?.awaitReady()
+          return try await readInitial(transport.viewRequest(base.appending(path: initial)), limit: limit)
         }
         loader.onInstalled = { [weak bridge] in
           self.issue = nil

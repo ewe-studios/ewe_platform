@@ -106,6 +106,11 @@ class OkHttpChannelFactory(
                             } else if (listening()) deliver(bytes.toByteArray())
                         }
 
+                        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                            webSocket.close(1000, null)
+                            finish(null)
+                        }
+
                         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) =
                             finish(null)
 

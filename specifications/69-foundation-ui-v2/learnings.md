@@ -1431,3 +1431,11 @@ An accessibility label does not prove that a screen reader speaks the label.
 Enable touch exploration and use the emulator touch device. Confirm that the target app has focus before recording.
 Keep speech recordings separate from accessibility tree results.
 On the countdown check, use a second client with its own session. Capture the peer update before the modal closes.
+
+## 2026-11-28 — Native socket action recovery
+
+A WebSocket send queues a message for transfer. An action reply shows that the server processed the action.
+The sequence number identifies the reply within one stream. Include the stream identifier when matching replies.
+A reply can arrive after the local timeout. Deliver it through the existing reply path so it can confirm the pending operation.
+A reconnect can open the socket before it receives the new capabilities. Wait for those capabilities before loading the view.
+On Android, answer a peer close frame. A callback for completed closure alone can leave recovery waiting for that answer.
