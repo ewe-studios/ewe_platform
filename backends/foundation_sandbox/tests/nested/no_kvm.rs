@@ -61,9 +61,8 @@ fn usable_host(tag: &str) -> Option<(Ctx, SandboxHost)> {
     ctx.store(effects);
     let exe_dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
     let mut config = HostConfig::discover(|name| std::env::var(name).ok(), &exe_dir);
-    let base = std::env::var_os("EWE_NESTED_STATE_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(std::env::temp_dir);
+    let base =
+        std::env::var_os("EWE_NESTED_STATE_DIR").map_or_else(std::env::temp_dir, PathBuf::from);
     config.state_dir = base.join(format!("ewe-nested-no-kvm-{}-{tag}", std::process::id()));
     let _ = std::fs::remove_dir_all(&config.state_dir);
     let host = SandboxHost::native(config);
