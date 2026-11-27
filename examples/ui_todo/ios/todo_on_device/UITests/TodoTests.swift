@@ -73,7 +73,7 @@ final class TodoTests: XCTestCase {
     let cancel = app.buttons["Cancel"]
     let submit = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable })
     XCTAssertLessThanOrEqual(max(submit.frame.maxY, cancel.frame.maxY), keyboard.frame.minY + 1)
-    typeWithKeyboard("Review search", keyboard)
+    typeWithKeyboard("Review search", in: input, keyboard)
     capture(app, "ios-\(appearance)-entry-keyboard")
     submit.tap()
     let row = app.staticTexts["Review search"]
@@ -120,7 +120,7 @@ final class TodoTests: XCTestCase {
       let visible = expectation(for: visibleKeyboard, evaluatedWith: keyboard)
       wait(for: [visible], timeout: 5)
       XCTAssertTrue(keyboard.keys.allElementsBoundByIndex.contains { $0.isHittable })
-      typeWithKeyboard(title, keyboard)
+      typeWithKeyboard(title, in: input, keyboard)
       XCTAssertGreaterThan(app.frame.intersection(keyboard.frame).height, 100)
       let cancelButton = app.buttons["Cancel"]
       let submitButton = try XCTUnwrap(app.buttons.matching(identifier: "Add").allElementsBoundByIndex.first { $0.isHittable })
@@ -143,14 +143,20 @@ final class TodoTests: XCTestCase {
     }
   }
 
-  /// Tap the software keys to keep the keyboard visible for the capture.
-  private func typeWithKeyboard(_ text: String, _ keyboard: XCUIElement) {
+  /// Keep the software keyboard visible for the capture.
+  private func typeWithKeyboard(_ text: String, in field: XCUIElement, _ keyboard: XCUIElement) {
     for character in text {
-      let label = character == " " ? "space" : String(character)
+      if character == " " {
+        field.typeText(" ")
+        continue
+      }
+      let label = String(character)
       let key = keyboard.keys.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
       XCTAssertTrue(key.exists, "Missing software key \(label)")
       key.tap()
     }
+    XCTAssertTrue(keyboard.exists)
+    XCTAssertEqual(field.value as? String, text)
   }
 
   private func capture(_ app: XCUIApplication, _ name: String) {
