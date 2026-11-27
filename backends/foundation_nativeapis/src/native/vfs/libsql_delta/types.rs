@@ -2,14 +2,14 @@
 
 use std::time::{Duration, SystemTime};
 
-use libsql::Row;
+use libsql_backend::Row;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::types::{Checksum, VfsEntryState, VfsFileType, VfsMetadata};
 use foundation_errstacks::ErrorTrace;
 
 /// Convert a libsql error to a VfsError.
-pub fn libsql_err(e: libsql::Error) -> VfsError {
+pub fn libsql_err(e: libsql_backend::Error) -> VfsError {
     VfsError::Backend {
         message: e.to_string(),
     }

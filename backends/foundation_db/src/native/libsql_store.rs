@@ -164,7 +164,7 @@ fn libsql_rows<T: Send + 'static, G: Send + 'static>(
 ) -> StateStoreStream<T> {
     Box::pin(try_stream! {
         let _guard = guard;
-        let mut stmt = conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
+        let stmt = conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
         let mut rows = stmt.query(params).await.map_err(|e| StorageError::Backend(e.to_string()))?;
         while let Some(row) = rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
             yield map(&row)?;
@@ -183,7 +183,7 @@ async fn libsql_count(
     sql: &str,
     params: Vec<libsql::Value>,
 ) -> StorageResult<usize> {
-    let mut stmt = conn
+    let stmt = conn
         .prepare(sql)
         .await
         .map_err(|e| StorageError::Backend(e.to_string()))?;
@@ -751,7 +751,7 @@ impl LibsqlStore {
     ) -> impl AsyncStream<Item = StorageResult<SqlRow>> + Send {
         try_stream! {
             let _guard = guard;
-            let mut stmt = conn.prepare(&sql).await
+            let stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query(params).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
@@ -775,7 +775,7 @@ impl LibsqlStore {
     ) -> impl AsyncStream<Item = StorageResult<String>> + Send {
         try_stream! {
             let _guard = guard;
-            let mut stmt = conn.prepare(&sql).await
+            let stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query([param]).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
@@ -938,7 +938,7 @@ impl StateStore for LibsqlStore {
             "SELECT {STATE_COLUMNS} FROM {} WHERE id = ?",
             self.state_table()
         );
-        let mut stmt = self
+        let stmt = self
             .conn
             .prepare(&sql)
             .await
