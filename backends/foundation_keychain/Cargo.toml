@@ -87,6 +87,11 @@ aes = "0.8.4"
 cbc = "0.1.2"
 hmac = "0.12.1"
 hkdf = "0.12.4"
+# The Bitwarden client test reproduces the app's HKDF and HMAC with the
+# digest-0.10 `sha2`, which `hkdf` 0.12, `hmac` 0.12 and `pbkdf2` 0.12 use.
+# The workspace `sha2` is 0.11 for the production code; the two majors are
+# recorded beside the workspace entry (root rule 17).
+sha2_010 = { package = "sha2", version = "0.10.9" }
 async-trait = "0.1"
 tracing-test = { workspace = true }
 tracing-subscriber = { workspace = true }
