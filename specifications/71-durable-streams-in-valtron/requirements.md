@@ -574,6 +574,15 @@ The HTTP adapter maps `DurableService` to HTTP. It owns every wire rule.
 | `DELETE` | no body | `204` | `404`, `410` |
 | Other | | `405` | |
 
+**Body cap.** `DurableLimits::max_body_bytes` sets the largest append body. The default is
+8 MiB: the wasm bridge default, below the Cloudflare 100 MB cap and above the nginx 1 MiB
+default. A declared `Content-Length` over the cap answers `413` and closes the connection, so no
+tail reaches the next request. The parser preserves the `Content-Length` of a parsed request; it
+does not rewrite the body framing.
+
+**No skip.** The server conformance suite runs with `subscriptions: true`. The target is 338 of
+338. See section 7.1.
+
 **Headers.** Request: `Content-Type`, `If-None-Match`, `Accept-Encoding`, `Stream-Seq`,
 `Stream-TTL`, `Stream-Expires-At`, `Stream-Closed`, `Producer-Id`, `Producer-Epoch`,
 `Producer-Seq`, `Stream-Forked-From`, `Stream-Fork-Offset`, `Stream-Fork-Sub-Offset`.
@@ -712,6 +721,14 @@ Two composition rules:
   `block_on_future` for a `Send + 'static` future, or `block_on_future_scoped` for a borrowed,
   non-`Send` future. The scoped form parks the caller's thread. The tests add no second
   executor: no `smol`, no `tokio`.
+
+### 3.12 Subscriptions (feature 10)
+
+The reserved `__ds` prefix holds the subscription control APIs. A subscription is a durable
+cursor that wakes a worker when named streams have data. Delivery is by signed webhook or by
+pull-wake with a lease and a generation fence. `foundation_event_stream` owns the work. It
+re-exports `foundation_core::durable` and reuses `foundation_auth` for signing keys and the JSON
+Web Key Set (JWKS) endpoint. See feature 10.
 
 ## 4. Features
 
