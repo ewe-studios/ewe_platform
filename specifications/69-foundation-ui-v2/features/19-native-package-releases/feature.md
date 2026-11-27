@@ -188,3 +188,10 @@ SwiftPM supports checksummed binary targets. Swift Package Index accepts public 
 
 Android documents Maven publication for libraries. Maven Central defines the required publication files and metadata.
 [Android library publication](https://developer.android.com/build/publish-library/upload-library) · [Maven Central requirements](https://central.sonatype.org/publish/requirements/)
+
+## Version 0.1.2 candidate preview
+
+Prepare the candidate on a dedicated branch. Match the release settings to the current Rust native crate version.
+Fix the pinned Protocol Buffers compiler and Android SDK selection in the preview.
+Run the branch workflow to check both packaged starters.
+The [draft release checklist](release-checklist.md) records the public inputs and publication steps.

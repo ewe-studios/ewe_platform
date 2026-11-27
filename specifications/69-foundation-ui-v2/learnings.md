@@ -1379,3 +1379,11 @@ A mount with no sharing choice can use that capability to select a managed conne
 An explicit dedicated mount uses its own stream cursor and a direct connection by default.
 Keep-alive is a separate policy. The manager can retain a dedicated connection without sharing it.
 Two retained dedicated mounts at the same endpoint must open two connections.
+
+## Public native package preview
+
+The native release tag check compares the tag with the release configuration.
+Candidate staging also compares the release version with the native Rust crate version.
+Use the pinned Protocol Buffers compiler in each job that builds the native task command.
+Use the repository's Android Software Development Kit path when the runner has a second SDK path.
+The remote package check needs published inputs and a fresh consumer cache.

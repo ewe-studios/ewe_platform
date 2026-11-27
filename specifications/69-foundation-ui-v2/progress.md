@@ -1746,3 +1746,12 @@ A keep-alive request retains a separate connection for each dedicated mount at t
 The Android core suite passes 19 tests. The Swift host suite passes 25 tests.
 Both suites reproduce the wrong connection selection before the fix.
 [Issue 1062](https://github.com/ewe-studios/ewe_platform/issues/1062)
+
+## Public native package preview
+
+The public consumer check finds no crate entry for `foundation_resources` in the Cargo sparse index.
+The pinned Android renderer descriptor is unavailable from Maven Central and Google Maven.
+The Swift version tag and native package release are absent.
+A dedicated preview branch matches release version 0.1.2 to the current native crate.
+The preview still requires a passing artifact build and both starter checks.
+[Consumer issue 845](https://github.com/ewe-studios/ewe_platform/issues/845)
