@@ -2145,3 +2145,12 @@ The runtime guide passes 12 runnable examples and retains two existing exclusion
 The audit lists the package gates for features 01 through 13, 17, 20, and 27 through 31.
 The global time source guard reports two agent shutdown calls. The clock parameter guard passes.
 [Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180)
+
+## 2026-11-28 — Simulator graphics extent and device ownership
+
+The iPhone simulator passes all three Metal graphics tests.
+The owned surface test rejects the oversized extent with the public surface error.
+The next valid resize presents. Readback finds both expected colors.
+The handoff tests use the original Metal queue and texture and check host refusal.
+The Android 36 Arm emulator passes both owned surface tests and the borrowed Vulkan test.
+[Issue 1186](https://github.com/ewe-studios/ewe_platform/issues/1186)

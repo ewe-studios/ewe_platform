@@ -1600,3 +1600,9 @@ Use the standalone examples with their own Cargo manifests and profiles.
 Install the locked JavaScript dependencies before checking generated wire bindings.
 Verify each WebAssembly entropy backend at runtime. The compact probes check both a working host and an absent entropy source.
 The time source guard now runs through the repository's Rust check command.
+
+## 2026-11-28 — Simulator graphics extent and device ownership
+
+The native bridge reports an oversized extent as `GraphicsError.IncompatibleSurface`.
+The Swift test checks that public error and presents again on the same graphics owner.
+Keep the borrowed device and the owned surface checks in one simulator run.

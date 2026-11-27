@@ -75,7 +75,7 @@ final class GraphicsTests: XCTestCase {
     do {
       try await a.resize(width: UInt32.max, height: 1)
       XCTFail("The device must reject oversized targets")
-    } catch GraphicsError.Unsupported {}
+    } catch GraphicsError.IncompatibleSurface {}
     try await a.resize(width: size, height: size)
     let b = try await gpu.attach(name: "second", layer: right, width: size, height: size)
     try await a.resize(width: 0, height: 0)
