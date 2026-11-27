@@ -115,6 +115,51 @@ Move reusable logic from repository scripts into callable providers. Keep packag
 Providers may invoke Cargo, the project's Gradle wrapper, Xcode, and device tools through the task process interface.
 An installed framework command must work with the generated application and its declared dependencies outside the framework checkout.
 
+### Proposed shared application run tasks
+
+The application registers the tasks from `foundation_ui_native` in its own task set.
+The application supplies its server entry point, address, resource location, and supported targets.
+The provider owns the task names, argument checks, device selection, browser launch, and process handling.
+The application can add its own tasks beside these commands.
+
+| Command from the application directory | Expected result |
+|---|---|
+| `cargo run` | Run the default application operation. Todo serves its web application. |
+| `cargo run task serve` | Run the application server in this terminal. Print the browser address after the listener binds. |
+| `cargo run task web` | Open the configured server address in the default browser. Reuse the server that the developer starts with `serve`. |
+| `cargo run task android` | Select an Android device. Build, install, and open the application through the existing native provider. |
+| `cargo run task ios` | Select an Apple device on a supported host. Build, install, and open the application through the existing native provider. |
+| `cargo run task desktop` | Expose this command only when the application declares a supported desktop target and a launch provider. |
+
+```mermaid
+flowchart LR
+    User[Cargo command] --> App[Application task set]
+    App --> Shared[foundation_ui_native run tasks]
+    Shared --> Server[Application server]
+    Shared --> Browser[System browser]
+    Shared --> Devices[Existing device providers]
+```
+
+The application declares its capabilities once. Each command uses that declaration.
+
+Register the shared commands in the same `TaskSet` as the example commands.
+Use `TaskRunner` to dispatch both sets of names. Reject duplicate names during registration.
+Reuse the device selection and launch functions in `foundation_ui_native::tasks::project`.
+Use `foundation_ui_project` for application metadata. Keep the installed `ewe_ui` executable outside the application dependency graph.
+Use the existing server entry point directly. A server task must never start the default Cargo command recursively.
+The web task opens the published address, including its port and subpath. It leaves the foreground server under user control.
+
+1. Use the existing task registry and the native build, install, and device operations. Keep application code in the application.
+2. Preserve existing Todo address and database arguments. Support explicit device selection when several devices are available.
+3. Run the server in the foreground. Forward cancellation, stream output, report bind failures, and preserve the exit status.
+4. Pass paths and addresses as separate process arguments. Use the host browser launcher on Linux, macOS, and Windows.
+5. Report missing platform tools and unsupported targets before starting a build. Keep mobile tool dependencies out of the browser application.
+6. Exercise the public commands in Todo and a second application. Include an installed generator consumer outside the repository.
+7. Check paths with spaces, occupied ports, ambiguous device names, browser launch failures, and cancellation.
+8. Run portable task tests on Linux, macOS, and Windows. Check Apple launch behavior on macOS.
+
+The proposed change requires owner approval before implementation.
+
 ### Implement task operations in Rust
 
 Write task logic directly in reusable Rust functions. This includes file staging, argument validation, device selection, process supervision, and test assertions.
