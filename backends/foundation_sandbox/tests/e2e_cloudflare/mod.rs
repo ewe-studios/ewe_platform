@@ -201,6 +201,46 @@ fn docker_containers() -> Vec<String> {
         .collect()
 }
 
+/// The names of the Docker containers of the sandbox application.
+///
+/// The failure message of the stop test prints them, so a run can name a
+/// container that was not the runtime proxy.
+fn docker_container_names() -> Vec<String> {
+    let output = Command::new(DOCKER)
+        .args(["ps", "--format", "{{.Names}} {{.Image}}"])
+        .output();
+    let Ok(output) = output else {
+        return Vec::new();
+    };
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter(|line| line.contains(CONTAINER_NAME))
+        .filter(|line| !line.contains("-proxy"))
+        .filter(|line| !line.contains("proxy-everything"))
+        .filter_map(|line| line.split_whitespace().next().map(str::to_string))
+        .collect()
+}
+
+/// Waits until no workload container is listed, or the deadline passes.
+///
+/// The container runtime removes a destroyed container from `docker ps` after
+/// the destroy call returns, so the stop check gives it a short time. A
+/// remaining container is returned for the failure message.
+fn wait_for_no_docker_containers(timeout: Duration) -> Vec<String> {
+    // The test has no injected clock: it counts 250 ms polls. It runs on the
+    // real local runtime, so the wall-clock rule of the core libraries does not
+    // apply here.
+    let polls = (timeout.as_millis() / 250).max(1);
+    for _ in 0..polls {
+        let containers = docker_containers();
+        if containers.is_empty() {
+            return containers;
+        }
+        std::thread::sleep(Duration::from_millis(250));
+    }
+    docker_containers()
+}
+
 /// Every byte of one file stream.
 async fn read_all(handle: &SandboxHandle, path: &str) -> Vec<u8> {
     let mut stream = handle.read_file(path).await.expect("the file read");
@@ -511,7 +551,15 @@ fn e2e_cloudflare_two_sandboxes() {
         let control = client(Some(&token()));
         let first = create(&control, container_spec(), "the first create").await;
         let second = create(&control, container_spec(), "the second create").await;
+        // A write does not make missing parent directories. The relative path
+        // joins the workdir, so `/workspace/tmp` must exist first (issue #1154).
+        first
+            .run(SandboxCommand::new(["mkdir", "-p", "/workspace/tmp"]))
+            .await
+            .expect("the directory");
         write_file(&first, "tmp/a", b"first").await;
+        // The same relative path in the second sandbox names a missing file
+        // under its own workdir, so the read is `NotFound`.
         let result = second.read_file("tmp/a").await;
         assert!(
             result
@@ -571,10 +619,17 @@ fn e2e_cloudflare_large_stream() {
         let mut events = handle.events();
         let mut total = 0_usize;
         let mut frames = 0_u64;
+        // The command prints `x` then a newline, over and over. A frame can
+        // split a pair, so the check follows the pattern across frame
+        // boundaries instead of expecting every frame to hold whole pairs.
+        let mut expected = b'x';
         while let Some(event) = events.next().await {
             match event.expect("the event stream") {
                 ExecEvent::Stdout(data) => {
-                    assert_eq!(data.len() % 2, 0, "the pattern is two bytes");
+                    for &byte in &data {
+                        assert_eq!(byte, expected, "the x and newline pattern is in order");
+                        expected = if expected == b'x' { b'\n' } else { b'x' };
+                    }
                     total += data.len();
                     frames += 1;
                 }
@@ -606,9 +661,11 @@ fn e2e_cloudflare_stop() {
             ))),
             "Get after a stop is NotFound"
         );
+        let left = wait_for_no_docker_containers(Duration::from_secs(10));
+        let names = docker_container_names();
         assert!(
-            docker_containers().is_empty(),
-            "no Docker container of {CONTAINER_NAME} is left"
+            left.is_empty(),
+            "no Docker container of {CONTAINER_NAME} is left; left: {names:?}"
         );
     });
 }

@@ -389,6 +389,53 @@ fn cleanup_does_not_read_a_gone_container() {
     );
 }
 
+/// A cleanup retries a destroy that the kill could not finish.
+///
+/// A failed destroy must not mark the container as destroyed. The cleanup is
+/// the second chance; if it skips the destroy, the container leaks (issue
+/// #1125).
+#[test]
+fn cleanup_retries_a_failed_destroy() {
+    let h = Harness::new(31, true, false);
+    let driver = CloudflareContainerDriver::new(
+        h.host.clone(),
+        connector(&h) as Arc<dyn foundation_sandbox::shared::host::SlaveConnector>,
+    );
+    let (_, result) = launch_result(&driver, &h, spec());
+    let substrate = result.expect("a result").expect("the launch works");
+    let handle = substrate.handle;
+    h.container
+        .fail_next_destroy("the runtime refused the destroy");
+    block_on(handle.kill()).expect("the kill answers");
+    assert_eq!(h.container.destroy_count(), 1, "the kill tries once");
+    block_on(handle.cleanup()).expect("the cleanup succeeds");
+    assert_eq!(
+        h.container.destroy_count(),
+        2,
+        "the cleanup tries the destroy again"
+    );
+}
+
+/// A cleanup does not destroy a container that a stop already destroyed.
+#[test]
+fn cleanup_does_not_destroy_a_container_twice() {
+    let h = Harness::new(32, true, false);
+    let driver = CloudflareContainerDriver::new(
+        h.host.clone(),
+        connector(&h) as Arc<dyn foundation_sandbox::shared::host::SlaveConnector>,
+    );
+    let (_, result) = launch_result(&driver, &h, spec());
+    let substrate = result.expect("a result").expect("the launch works");
+    let handle = substrate.handle;
+    block_on(handle.kill()).expect("the kill answers");
+    block_on(handle.cleanup()).expect("the cleanup succeeds");
+    assert_eq!(
+        h.container.destroy_count(),
+        1,
+        "the cleanup leaves the destroyed container alone"
+    );
+}
+
 /// The container call deadline has a documented default and a builder.
 #[test]
 fn call_timeout_configuration() {

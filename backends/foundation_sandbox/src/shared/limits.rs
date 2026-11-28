@@ -514,8 +514,12 @@ impl SandboxLimits {
     }
 
     /// The deadline of one create: the driver launch, the readiness wait and
-    /// `Prepare`. It is the value of [`Self::boot_timeout`], read through this
-    /// method so a boundary module never names the limit itself.
+    /// `Prepare`.
+    ///
+    /// A create runs the driver launch, the readiness wait and `Prepare`, so
+    /// its deadline is the boot deadline and not the deadline of one call.
+    /// The remote client and the server read this one value. Reading it
+    /// through this method keeps the limit's name out of a boundary module.
     #[must_use]
     pub fn create_deadline(&self) -> Duration {
         self.boot_timeout
