@@ -13,10 +13,10 @@ use std::cell::RefCell;
 use std::sync::Arc;
 
 use foundation_agent_rpc::core::config::{RegistryConfig, TurnLimits};
-use foundation_agent_rpc::core::model::{
-    ApiModelConfig, InstanceSpec, LocalInstanceRegistry, ModelRequest, RemoteCatalog,
+use foundation_agent_rpc::core::model::{ApiModelConfig, ModelRequest, RemoteCatalog};
+use foundation_agent_rpc::core::registry::{
+    Caller, InMemoryStores, InstanceSpec, LocalInstanceRegistry, ScopePolicy,
 };
-use foundation_agent_rpc::core::registry::{InMemoryStores, ScopePolicy};
 use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::AgentRpcError;
 use foundation_auth::client_auth::{AuthMethod, Principal};
@@ -171,12 +171,12 @@ pub async fn openrouter_turn(
 }
 
 /// Ends the OpenRouter conversation of one sandbox, when there is one.
-pub async fn close_openrouter(config: &DemoConfig, sandbox_id: &str) {
-    let Ok(Some(Ok(registry))) = OPENROUTER.with(|slot| slot.borrow().as_ref().cloned()) else {
+pub async fn close_openrouter(sandbox_id: &str) {
+    let Some(Ok(registry)) = OPENROUTER.with(|slot| slot.borrow().as_ref().cloned()) else {
         return;
     };
-    let _ = &config;
-    let _ = registry.destroy(&caller(), sandbox_id).await;
+    let caller = caller();
+    let _ = registry.destroy(&caller, sandbox_id).await;
 }
 
 /// One agent turn on the model in the sandbox container. The answer streams.
@@ -192,7 +192,7 @@ pub async fn container_turn(
     let id = sandbox_id
         .parse::<foundation_sandbox::shared::ids::SandboxId>()
         .map_err(|error| format!("the sandbox identifier {sandbox_id}: {error}"))?;
-    sandbox::container_model(env, &id, config.container_model_port, prompt).await
+    sandbox::container_model(env, &id, config.container_model_port, prompt, config).await
 }
 
 /// The one OpenRouter registry of this isolate, or the reason it did not build.
@@ -265,7 +265,7 @@ fn build_openrouter(
 }
 
 /// The one caller of the demo: a shared scope with a fixed local subject.
-fn caller() -> foundation_agent_rpc::core::registry::Caller {
+fn caller() -> Caller {
     ScopePolicy::Shared.caller(Principal {
         subject: "demo".to_string(),
         method: AuthMethod::SignedSecret {

@@ -26,6 +26,11 @@ pub struct DemoConfig {
     pub command_max_argv: usize,
     /// The most bytes of one command. Default 4 KiB.
     pub command_max_bytes: usize,
+    /// The most bytes of one control API JSON body. Default 128 KiB.
+    pub control_body_max_bytes: usize,
+    /// The most bytes of one error or unary answer that the demo reads.
+    /// Default 2 KiB: enough for one Connect error message.
+    pub error_text_max_bytes: usize,
     /// The port of the model server in the sandbox container. Default 8081.
     pub container_model_port: u16,
     /// The provider name that the container model reports. Default
@@ -33,7 +38,8 @@ pub struct DemoConfig {
     pub container_model_name: String,
     /// The Workers AI model id. Default `@cf/meta/llama-3.1-8b-instruct`.
     pub workers_ai_model: String,
-    /// The OpenRouter base URL. Default `https://openrouter.ai/api/v1`.
+    /// The OpenRouter base URL. Default `https://openrouter.ai/api`: the
+    /// provider appends `/v1/chat/completions`.
     pub openrouter_base_url: String,
     /// The OpenRouter model id. Default `google/gemma-4-31b-it:free`: a free
     /// model, so one demo turn costs no money.
@@ -56,10 +62,12 @@ impl Default for DemoConfig {
             prompt_max_bytes: 4 * 1024,
             command_max_argv: 32,
             command_max_bytes: 4 * 1024,
+            control_body_max_bytes: 128 * 1024,
+            error_text_max_bytes: 2 * 1024,
             container_model_port: 8081,
             container_model_name: "container-model".to_string(),
             workers_ai_model: "@cf/meta/llama-3.1-8b-instruct".to_string(),
-            openrouter_base_url: "https://openrouter.ai/api/v1".to_string(),
+            openrouter_base_url: "https://openrouter.ai/api".to_string(),
             openrouter_model: "google/gemma-4-31b-it:free".to_string(),
             agent_system_prompt:
                 "You are a concise assistant. Answer in one short sentence.".to_string(),
@@ -84,6 +92,16 @@ impl DemoConfig {
             prompt_max_bytes: number(env, "PROMPT_MAX_BYTES", defaults.prompt_max_bytes)?,
             command_max_argv: number(env, "COMMAND_MAX_ARGV", defaults.command_max_argv)?,
             command_max_bytes: number(env, "COMMAND_MAX_BYTES", defaults.command_max_bytes)?,
+            control_body_max_bytes: number(
+                env,
+                "CONTROL_BODY_MAX_BYTES",
+                defaults.control_body_max_bytes,
+            )?,
+            error_text_max_bytes: number(
+                env,
+                "ERROR_TEXT_MAX_BYTES",
+                defaults.error_text_max_bytes,
+            )?,
             container_model_port: number(
                 env,
                 "CONTAINER_MODEL_PORT",

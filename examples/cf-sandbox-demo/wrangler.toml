@@ -30,12 +30,16 @@ PROMPT_MAX_BYTES = "4096"
 # The most arguments and bytes of one command.
 COMMAND_MAX_ARGV = "32"
 COMMAND_MAX_BYTES = "4096"
+# The largest control JSON body, and the largest error text that the API reads.
+CONTROL_BODY_MAX_BYTES = "131072"
+ERROR_TEXT_MAX_BYTES = "2048"
 # The model server in the sandbox container.
 CONTAINER_MODEL_PORT = "8081"
 CONTAINER_MODEL_NAME = "container-model"
 # The three model ids.
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+# The provider appends `/v1/chat/completions`, so the base stops at `/api`.
+OPENROUTER_BASE_URL = "https://openrouter.ai/api"
 OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 OPENROUTER_SECRET = "OPENROUTER_API_KEY"
 # The system prompt of the OpenRouter conversation.

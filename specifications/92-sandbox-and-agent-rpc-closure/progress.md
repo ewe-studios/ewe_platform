@@ -12,6 +12,7 @@ _Last updated: 2026-11-28._
 | 03 GCP KMS over gRPC | in review: pull request #1121, conflicts resolved |
 | 04 Live cloud resources with the CLI | done: pull request #1103 merged; four live tests passed on 2026-11-28 |
 | 05 Remove the auth back edge from connectrpc | planned: after #1121, fixes #1107 and #756 |
+| 06 Cloudflare demo: sandbox and agent RPC | in review: `examples/cf-sandbox-demo` with the three model paths |
 
 ## What is already true
 
@@ -209,3 +210,27 @@ every version.
 2. One full `packages=all` run on the final master; close #1104 with its `sandbox-e2e` link.
 3. Feature 05 after #1121.
 4. The Cloudflare demo under `examples/`, after #1144 merges.
+
+## Feature 06: the Cloudflare demo
+
+`examples/cf-sandbox-demo` is one Worker, one container image and one page.
+
+- The Worker re-exports the three Durable Object (DO) classes of
+  `infrastructure/sandbox_worker` and adds its own `fetch` entry. The
+  `sandbox_worker` crate gained an `entry` feature (on by default) so one
+  WebAssembly (wasm) module holds one `fetch` export.
+- The page shows the count from the sandbox index `List`, one tab per sandbox,
+  a command console, a file write and read, and one agent turn per tab.
+- The three model paths are the Workers AI `AI` binding, OpenRouter through the
+  agent RPC catalog, and a deterministic model server inside the sandbox
+  container on port 8081, reached through `ContainerService/Fetch`.
+- `mise run deploy` builds the static slave, the container model server and the
+  Worker module, deploys `ewe-sandbox-demo` and sets `OPENROUTER_API_KEY`.
+  `mise run test` runs the preview proof with teardown. `mise run destroy`
+  removes the persistent Worker.
+
+The live run needs a Cloudflare API token with Workers Scripts Edit, Containers
+Edit and Workers AI Read. The owner's `CLOUDFLARE_WORKERS_AI_API_TOKEN` in the
+shell lists Workers scripts but the Containers API answers `Authentication
+error`, so it cannot deploy the container. The demo URL and the per-tab results
+are added here after a token with those permissions runs `mise run deploy`.

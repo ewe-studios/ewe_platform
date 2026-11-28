@@ -13,9 +13,6 @@ use crate::agent::{self, ModelPath};
 use crate::config::DemoConfig;
 use crate::sandbox;
 
-/// The largest JSON body of one control request. Default 128 KiB.
-const MAX_BODY_BYTES: usize = 128 * 1024;
-
 /// One control API request.
 pub async fn handle(
     mut request: Request,
@@ -63,7 +60,7 @@ fn probe() -> worker::Result<Response> {
 
 /// `GET /api/sandboxes`: the count and one tab per sandbox.
 async fn list(env: &Env, config: &DemoConfig) -> worker::Result<Response> {
-    let sandboxes = match sandbox::list(env).await {
+    let sandboxes = match sandbox::list(env, config).await {
         Ok(sandboxes) => sandboxes,
         Err(error) => return error_response(502, &error),
     };
@@ -106,7 +103,7 @@ async fn create(
     env: &Env,
     config: &DemoConfig,
 ) -> worker::Result<Response> {
-    let body: CreateBody = match json_body(request, MAX_BODY_BYTES).await {
+    let body: CreateBody = match json_body(request, config.control_body_max_bytes).await {
         Ok(body) => body,
         Err(message) => return error_response(400, &message),
     };
@@ -120,7 +117,7 @@ async fn create(
             ),
         );
     }
-    let current = match sandbox::list(env).await {
+    let current = match sandbox::list(env, config).await {
         Ok(current) => current.len(),
         Err(error) => return error_response(502, &error),
     };
@@ -202,18 +199,18 @@ fn line(value: serde_json::Value) -> Result<Vec<u8>, worker::Error> {
 
 /// `DELETE /api/sandboxes`: stops every sandbox.
 async fn stop_all(env: &Env, config: &DemoConfig) -> worker::Result<Response> {
-    let sandboxes = match sandbox::list(env).await {
+    let sandboxes = match sandbox::list(env, config).await {
         Ok(sandboxes) => sandboxes,
         Err(error) => return error_response(502, &error),
     };
     let mut stopped = 0_usize;
     let mut failures = Vec::new();
     for sandbox in &sandboxes {
-        match sandbox::stop(env, &sandbox.id).await {
+        match sandbox::stop(env, &sandbox.id, config).await {
             Ok(()) => stopped += 1,
             Err(error) => failures.push(json!({ "id": sandbox.id.as_str(), "error": error })),
         }
-        agent::close_openrouter(config, sandbox.id.as_str()).await;
+        agent::close_openrouter(sandbox.id.as_str()).await;
     }
     let status = if failures.is_empty() { 200 } else { 500 };
     json_status(
@@ -227,9 +224,9 @@ async fn stop(env: &Env, config: &DemoConfig, id: &str) -> worker::Result<Respon
     let Ok(id) = id.parse::<foundation_sandbox::shared::ids::SandboxId>() else {
         return error_response(400, "the sandbox identifier is not valid");
     };
-    match sandbox::stop(env, &id).await {
+    match sandbox::stop(env, &id, config).await {
         Ok(()) => {
-            agent::close_openrouter(config, id.as_str()).await;
+            agent::close_openrouter(id.as_str()).await;
             Response::from_json(&json!({ "stopped": id.as_str() }))
         }
         Err(error) => error_response(502, &error),
@@ -336,7 +333,7 @@ async fn write_file(
             ),
         );
     }
-    match sandbox::write_file(env, &id, &body.path, data).await {
+    match sandbox::write_file(env, &id, &body.path, data, config).await {
         Ok(size) => Response::from_json(&json!({ "written": size, "path": body.path })),
         Err(error) => error_response(502, &error),
     }
@@ -351,7 +348,7 @@ async fn read_file(request: &Request, env: &Env, id: &str) -> worker::Result<Res
     let path = match request.url() {
         Ok(url) => url
             .query_pairs()
-            .find(|(name, _)| name == "path")
+            .find(|(name, _)| name.as_ref() == "path")
             .map(|(_, value)| value.into_owned()),
         Err(_) => None,
     };
@@ -361,7 +358,7 @@ async fn read_file(request: &Request, env: &Env, id: &str) -> worker::Result<Res
     if let Err(message) = check_path(&path) {
         return error_response(400, &message);
     }
-    match sandbox::read_file(env, &id, &path).await {
+    match sandbox::read_file(env, &id, &path, config).await {
         Ok(response) => with_id(response, &id),
         Err(error) => error_response(502, &error),
     }
@@ -404,7 +401,7 @@ async fn chat(
             ),
         );
     }
-    let sandboxes = match sandbox::list(env).await {
+    let sandboxes = match sandbox::list(env, config).await {
         Ok(sandboxes) => sandboxes,
         Err(error) => return error_response(502, &error),
     };
@@ -416,7 +413,8 @@ async fn chat(
     let result = match path {
         ModelPath::WorkersAi => agent::workers_ai_turn(env, config, &prompt).await,
         ModelPath::OpenRouter => {
-            agent::openrouter_turn(env, config, &crate::ctx(), id.as_str(), &prompt).await
+            let ctx = crate::ctx();
+            agent::openrouter_turn(env, config, &ctx, id.as_str(), &prompt).await
         }
         ModelPath::Container => agent::container_turn(env, config, id.as_str(), &prompt).await,
     };

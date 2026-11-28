@@ -169,51 +169,77 @@ cleanup() {
             >> "${LOG_DIR}/delete.log" 2>&1 || true
     fi
 
-    # Wait up to 180 s for the deployment and the container to go away.
+    # Wait up to 180 s for the deployment and the container to go away. The
+    # lists are JSON, so a table header never hides a remaining entry.
     local deadline=$(( $(date +%s) + 180 ))
     local worker_left="unknown"
     local container_left="unknown"
+    local container_id=""
     while [ "$(date +%s)" -lt "${deadline}" ]; do
-        wrangler deployments list --name "${NAME}" --config "${PREVIEW_CONFIG}" \
-            > "${LOG_DIR}/deployments.txt" 2>&1 || true
-        wrangler containers list > "${LOG_DIR}/containers.txt" 2>&1 || true
-        if grep -q "${NAME}" "${LOG_DIR}/deployments.txt" 2>/dev/null; then
-            worker_left="yes"
+        if wrangler deployments list --name "${NAME}" --config "${PREVIEW_CONFIG}" --json \
+            > "${LOG_DIR}/deployments.json" 2>"${LOG_DIR}/deployments.err"; then
+            worker_left="$(python3 - "${LOG_DIR}/deployments.json" <<'PY'
+import json
+import sys
+try:
+    entries = json.load(open(sys.argv[1], encoding="utf-8"))
+except (ValueError, OSError):
+    entries = []
+print("yes" if entries else "no")
+PY
+)"
         else
+            # A deleted Worker has no deployment list.
             worker_left="no"
         fi
-        if grep -q "${CONTAINER}" "${LOG_DIR}/containers.txt" 2>/dev/null; then
-            container_left="yes"
-        else
-            container_left="no"
-        fi
-        [ "${worker_left}" = "no" ] && [ "${container_left}" = "no" ] && break
-        sleep 5
-    done
-    if [ "${container_left}" = "yes" ]; then
-        # A container that the Worker delete left behind is deleted by id.
-        local container_id
-        container_id="$(grep "${CONTAINER}" "${LOG_DIR}/containers.txt" | head -1 | awk '{print $1}')"
-        if [ -n "${container_id}" ]; then
-            wrangler containers delete "${container_id}" >> "${LOG_DIR}/containers-delete.log" 2>&1 || true
-            sleep 5
-            wrangler containers list > "${LOG_DIR}/containers.txt" 2>&1 || true
-            if grep -q "${CONTAINER}" "${LOG_DIR}/containers.txt" 2>/dev/null; then
+        if wrangler containers list --json > "${LOG_DIR}/containers.json" 2>"${LOG_DIR}/containers.err"; then
+            container_id="$(python3 - "${LOG_DIR}/containers.json" "${CONTAINER}" <<'PY'
+import json
+import sys
+try:
+    entries = json.load(open(sys.argv[1], encoding="utf-8"))
+except (ValueError, OSError):
+    entries = []
+for entry in entries:
+    if sys.argv[2] in json.dumps(entry):
+        print(entry.get("id") or entry.get("application_id") or "")
+        break
+PY
+)"
+            if [ -n "${container_id}" ]; then
                 container_left="yes"
             else
                 container_left="no"
             fi
+        else
+            container_left="unknown"
+        fi
+        [ "${worker_left}" = "no" ] && [ "${container_left}" = "no" ] && break
+        sleep 5
+    done
+    if [ "${container_left}" = "yes" ] && [ -n "${container_id}" ]; then
+        # A container that the Worker delete left behind is deleted by id.
+        wrangler containers delete "${container_id}" >> "${LOG_DIR}/containers-delete.log" 2>&1 || true
+        sleep 5
+        if wrangler containers list --json > "${LOG_DIR}/containers.json" 2>/dev/null \
+            && ! grep -q "${CONTAINER}" "${LOG_DIR}/containers.json"; then
+            container_left="no"
         fi
     fi
     say "teardown: Worker deployment remains: ${worker_left}"
     say "teardown: container ${CONTAINER} remains: ${container_left}"
-    say "teardown: wrangler deployments list:"
-    sed -n '1,20p' "${LOG_DIR}/deployments.txt" 2>/dev/null | sed 's/^/  /' | tee -a "${SUMMARY_FILE}" >/dev/null
-    say "teardown: wrangler containers list (matching lines):"
-    grep "${CONTAINER}" "${LOG_DIR}/containers.txt" 2>/dev/null | sed 's/^/  /' | tee -a "${SUMMARY_FILE}" >/dev/null || say "  (none)"
+    say "teardown: wrangler deployments list (JSON):"
+    sed -n '1,20p' "${LOG_DIR}/deployments.json" 2>/dev/null | sed 's/^/  /' | tee -a "${SUMMARY_FILE}" >/dev/null || true
+    say "teardown: wrangler containers list, matching lines:"
+    if grep -q "${CONTAINER}" "${LOG_DIR}/containers.json" 2>/dev/null; then
+        grep "${CONTAINER}" "${LOG_DIR}/containers.json" | sed 's/^/  /' | tee -a "${SUMMARY_FILE}" >/dev/null
+    else
+        say "  (none)"
+    fi
     if [ "${worker_left}" = "yes" ] || [ "${container_left}" = "yes" ]; then
         say "TEARDOWN FAILED: the preview left a Worker or a container behind"
         FAILED=$((FAILED + 1))
+        status=1
     fi
     rm -f "${PREVIEW_CONFIG}"
     say ""
@@ -225,6 +251,9 @@ cleanup() {
     fi
     say "the preview URL was ${URL:-none}"
     say "the logs are in ${LOG_DIR}"
+    if [ "${FAILED}" -ne 0 ]; then
+        status=1
+    fi
     exit "${status}"
 }
 trap cleanup EXIT INT TERM

@@ -8,7 +8,6 @@
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use base64::Engine as _;
 use foundation_sandbox::shared::container::PortRequest;
 use foundation_sandbox::shared::ids::SandboxId;
 use foundation_sandbox::shared::rpc::messages::{
@@ -37,9 +36,6 @@ const CONTAINER_PREFIX: &str = "/ewe.sandbox.container.v1.ContainerService/";
 const CONNECT_JSON: &str = "application/connect+json";
 /// The Connect unary content type.
 const JSON: &str = "application/json";
-/// The base64 engine of the JSON byte fields.
-const BASE64: base64::engine::general_purpose::GeneralPurpose =
-    base64::engine::general_purpose::STANDARD;
 
 /// One sandbox of the index, as the page shows it.
 #[derive(Clone, Debug)]
@@ -56,7 +52,7 @@ pub struct Sandbox {
 ///
 /// # Errors
 /// The text of a failed call.
-pub async fn list(env: &Env) -> Result<Vec<Sandbox>, String> {
+pub async fn list(env: &Env, config: &DemoConfig) -> Result<Vec<Sandbox>, String> {
     let response = forward(
         env,
         INDEX_BINDING,
@@ -67,7 +63,7 @@ pub async fn list(env: &Env) -> Result<Vec<Sandbox>, String> {
         None,
     )
     .await?;
-    let response = unary_value(response).await?;
+    let response = unary_value(response, config.error_text_max_bytes).await?;
     let listed: ListResponse = serde_json::from_value(response)
         .map_err(|error| format!("the List answer is not a sandbox list: {error}"))?;
     let mut sandboxes: Vec<Sandbox> = listed
@@ -117,7 +113,7 @@ pub async fn create(env: &Env, config: &DemoConfig) -> Result<SandboxId, String>
         return Err(format!(
             "the create answered status {}: {}",
             response.status_code(),
-            bounded_body(response).await
+            bounded_body(response, config.error_text_max_bytes).await
         ));
     }
     let mut frames = Box::pin(ConnectFrames::new(response)?);
@@ -171,13 +167,15 @@ pub async fn exec(
         return Err(format!(
             "the exec answered status {}: {}",
             response.status_code(),
-            bounded_body(response).await
+            bounded_body(response, config.error_text_max_bytes).await
         ));
     }
     let frames = ConnectFrames::new(response)?;
-    let stream = frames.map(|item| match item {
-        Ok(value) => Ok(exec_text(value)),
-        Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
+    let stream = frames.map(|item| -> Result<Vec<u8>, worker::Error> {
+        match item {
+            Ok(value) => Ok(exec_text(value)),
+            Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
+        }
     });
     text_response(stream)
 }
@@ -191,6 +189,7 @@ pub async fn write_file(
     id: &SandboxId,
     path: &str,
     data: Vec<u8>,
+    config: &DemoConfig,
 ) -> Result<u64, String> {
     let begin: serde_json::Value = unary_typed(
         env,
@@ -203,6 +202,7 @@ pub async fn write_file(
                 mode: 0o644,
             },
         },
+        config,
     )
     .await?;
     let upload_id = begin
@@ -222,6 +222,7 @@ pub async fn write_file(
                 data: data.clone(),
             },
         },
+        config,
     )
     .await?;
     let committed: serde_json::Value = unary_typed(
@@ -235,6 +236,7 @@ pub async fn write_file(
                 size: u64::try_from(data.len()).unwrap_or(u64::MAX),
             },
         },
+        config,
     )
     .await?;
     Ok(committed
@@ -247,7 +249,12 @@ pub async fn write_file(
 ///
 /// # Errors
 /// The text of a failed call.
-pub async fn read_file(env: &Env, id: &SandboxId, path: &str) -> Result<Response, String> {
+pub async fn read_file(
+    env: &Env,
+    id: &SandboxId,
+    path: &str,
+    config: &DemoConfig,
+) -> Result<Response, String> {
     let body = serde_json::to_vec(&Scoped {
         sandbox_id: id.to_string(),
         inner: FileReadRequest {
@@ -269,16 +276,18 @@ pub async fn read_file(env: &Env, id: &SandboxId, path: &str) -> Result<Response
         return Err(format!(
             "the file read answered status {}: {}",
             response.status_code(),
-            bounded_body(response).await
+            bounded_body(response, config.error_text_max_bytes).await
         ));
     }
     let frames = ConnectFrames::new(response)?;
-    let stream = frames.map(|item| match item {
-        Ok(value) => match serde_json::from_value::<FileChunk>(value) {
-            Ok(chunk) => Ok(chunk.data),
-            Err(error) => Ok(format!("\n[decode error: {error}]\n").into_bytes()),
-        },
-        Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
+    let stream = frames.map(|item| -> Result<Vec<u8>, worker::Error> {
+        match item {
+            Ok(value) => match serde_json::from_value::<FileChunk>(value) {
+                Ok(chunk) => Ok(chunk.data),
+                Err(error) => Ok(format!("\n[decode error: {error}]\n").into_bytes()),
+            },
+            Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
+        }
     });
     text_response(stream)
 }
@@ -287,23 +296,23 @@ pub async fn read_file(env: &Env, id: &SandboxId, path: &str) -> Result<Response
 ///
 /// # Errors
 /// The text of a failed call.
-pub async fn stop(env: &Env, id: &SandboxId) -> Result<(), String> {
+pub async fn stop(env: &Env, id: &SandboxId, config: &DemoConfig) -> Result<(), String> {
+    let body = serde_json::to_vec(&SandboxRef {
+        sandbox_id: id.to_string(),
+    })
+    .map_err(|error| format!("the stop body: {error}"))?;
     let response = forward(
         env,
         SANDBOX_BINDING,
         id.as_str(),
         &format!("{SANDBOX_PREFIX}Stop"),
         JSON,
-        serde_json::to_vec(&SandboxRef {
-            sandbox_id: id.to_string(),
-        })
-        .map_err(|error| format!("the stop body: {error}"))?
-        .as_slice(),
+        &body,
         Some(id),
     )
     .await?;
     let status = response.status_code();
-    let body = bounded_body(response).await;
+    let body = bounded_body(response, config.error_text_max_bytes).await;
     if (200..300).contains(&status) {
         Ok(())
     } else {
@@ -321,6 +330,7 @@ pub async fn container_model(
     id: &SandboxId,
     port: u16,
     prompt: &str,
+    config: &DemoConfig,
 ) -> Result<Response, String> {
     let body = serde_json::to_vec(&ContainerFetchRequest {
         container_id: id.to_string(),
@@ -350,7 +360,7 @@ pub async fn container_model(
         return Err(format!(
             "the container model answered status {}: {}",
             response.status_code(),
-            bounded_body(response).await
+            bounded_body(response, config.error_text_max_bytes).await
         ));
     }
     let mut frames = Box::pin(ConnectFrames::new(response)?);
@@ -381,19 +391,21 @@ pub async fn container_model(
             None => return Err("the container model ended before its head".to_string()),
         }
     }
-    let stream = frames.map(|item| match item {
-        Ok(value) => match serde_json::from_value::<ContainerFetchEvent>(value) {
-            Ok(ContainerFetchEvent::Chunk { data }) => Ok(data),
-            Ok(ContainerFetchEvent::Head { .. }) => Ok(Vec::new()),
-            Err(error) => Ok(format!("\n[decode error: {error}]\n").into_bytes()),
-        },
-        Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
+    let stream = frames.map(|item| -> Result<Vec<u8>, worker::Error> {
+        match item {
+            Ok(value) => match serde_json::from_value::<ContainerFetchEvent>(value) {
+                Ok(ContainerFetchEvent::Chunk { data }) => Ok(data),
+                Ok(ContainerFetchEvent::Head { .. }) => Ok(Vec::new()),
+                Err(error) => Ok(format!("\n[decode error: {error}]\n").into_bytes()),
+            },
+            Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
+        }
     });
-    stream_response(stream, "text/plain").with_content_type(&content_type)
+    stream_response(stream, &content_type)
 }
 
 /// One streamed response with a text content type.
-fn text_response<S>(stream: S) -> Result<Response, String>
+pub(crate) fn text_response<S>(stream: S) -> Result<Response, String>
 where
     S: Stream<Item = Result<Vec<u8>, worker::Error>> + 'static,
 {
@@ -417,21 +429,6 @@ where
         .map_err(|error| format!("the response headers: {error}"))
 }
 
-/// A small extension that sets a second content type on a streamed response.
-trait WithContentType {
-    fn with_content_type(self, content_type: &str) -> Result<Response, String>;
-}
-
-impl WithContentType for Response {
-    fn with_content_type(self, content_type: &str) -> Result<Response, String> {
-        let headers = self.headers();
-        headers
-            .set("content-type", content_type)
-            .map_err(|error| format!("the content type: {error}"))?;
-        Ok(self)
-    }
-}
-
 /// The text of one `Exec` event.
 fn exec_text(value: serde_json::Value) -> Vec<u8> {
     let Ok(message) = serde_json::from_value::<ExecEventMsg>(value) else {
@@ -451,7 +448,13 @@ fn exec_text(value: serde_json::Value) -> Vec<u8> {
 }
 
 /// One unary call with a JSON request and a JSON answer.
-async fn unary_typed<S, T>(env: &Env, id: &SandboxId, method: &str, body: &S) -> Result<T, String>
+async fn unary_typed<S, T>(
+    env: &Env,
+    id: &SandboxId,
+    method: &str,
+    body: &S,
+    config: &DemoConfig,
+) -> Result<T, String>
 where
     S: serde::Serialize,
     T: DeserializeOwned,
@@ -467,14 +470,14 @@ where
         Some(id),
     )
     .await?;
-    let value = unary_value(response).await?;
+    let value = unary_value(response, config.error_text_max_bytes).await?;
     serde_json::from_value(value).map_err(|error| format!("the {method} answer: {error}"))
 }
 
 /// One unary response as a JSON value, with a status check.
-async fn unary_value(response: Response) -> Result<serde_json::Value, String> {
+async fn unary_value(response: Response, max: usize) -> Result<serde_json::Value, String> {
     let status = response.status_code();
-    let body = bounded_body(response).await;
+    let body = bounded_body(response, max).await;
     if !(200..300).contains(&status) {
         return Err(format!("the call answered status {status}: {body}"));
     }
@@ -482,11 +485,11 @@ async fn unary_value(response: Response) -> Result<serde_json::Value, String> {
 }
 
 /// The bounded text of a small response body.
-async fn bounded_body(response: Response) -> String {
+async fn bounded_body(mut response: Response, max: usize) -> String {
     match response.bytes().await {
         Ok(bytes) => {
             let text = String::from_utf8_lossy(&bytes).into_owned();
-            text.chars().take(2_048).collect()
+            text.chars().take(max).collect()
         }
         Err(error) => format!("(the body could not be read: {error})"),
     }
@@ -639,8 +642,3 @@ impl Stream for ConnectFrames {
     }
 }
 
-/// The base64 text of one byte field.
-#[must_use]
-pub fn base64_text(data: &[u8]) -> String {
-    BASE64.encode(data)
-}
