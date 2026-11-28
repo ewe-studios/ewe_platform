@@ -125,19 +125,34 @@ jobs:
         run: |
           cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
           echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
+      # The signing task needs push access to find draft assets on retries.
+      - name: Create a release token for signing
+        id: sign-token
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
+          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
+          permission-contents: write
       - name: Sign the verified files
         env:
           SIGNING_KEY: ${{ secrets.NATIVE_GPG_PRIVATE_KEY }}
-          GH_TOKEN: ${{ secrets.NATIVE_RELEASE_TOKEN }}
+          GH_TOKEN: ${{ steps.sign-token.outputs.token }}
           FINGERPRINT: ${{ vars.NATIVE_GPG_FINGERPRINT }}
         run: native-task task run native:release:sign-job --candidate candidate --out signed --public-key "$RUNNER_TEMP/native-release-public.asc"
       - uses: actions/upload-artifact@v4
         with:
           name: signed-native-packages-${{ github.run_attempt }}
           path: signed/
+      - name: Create a fresh release token for publication
+        id: publish-token
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
+          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
+          permission-contents: write
       - name: Publish verified packages
         env:
-          GH_TOKEN: ${{ secrets.NATIVE_RELEASE_TOKEN }}
+          GH_TOKEN: ${{ steps.publish-token.outputs.token }}
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           NATIVE_GPG_FINGERPRINT: ${{ vars.NATIVE_GPG_FINGERPRINT }}
