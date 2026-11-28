@@ -747,6 +747,11 @@ impl SignalGate {
 enum ExecScript {
     Events(Vec<ExecEventMsg>),
     Error(SandboxError),
+    /// These messages, then a stream error.
+    StreamError {
+        before: Vec<ExecEventMsg>,
+        error: SandboxError,
+    },
     Gated {
         before: Vec<ExecEventMsg>,
         exit: ExecEventMsg,
@@ -923,6 +928,15 @@ impl ScriptedSlave {
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
             .push_back(ExecScript::Events(messages));
+    }
+
+    /// Makes the next `Exec` stream send `before`, then a stream error.
+    pub fn with_exec_stream_error(&self, before: Vec<ExecEventMsg>, error: SandboxError) {
+        self.inner
+            .exec_scripts
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .push_back(ExecScript::StreamError { before, error });
     }
 
     /// Makes the next `Exec` call fail.
@@ -1187,6 +1201,12 @@ impl SlaveService for ScriptedSlave {
             ExecScript::Events(messages) => Ok(Box::pin(futures::stream::iter(
                 messages.into_iter().map(Ok),
             ))),
+            ExecScript::StreamError { before, error } => {
+                let mut items: Vec<ConnectResult<ExecEventMsg>> =
+                    before.into_iter().map(Ok).collect();
+                items.push(Err(slave_connect_error(&error)));
+                Ok(Box::pin(futures::stream::iter(items)))
+            }
             ExecScript::Gated { before, exit, gate } => {
                 self.inner
                     .gates
