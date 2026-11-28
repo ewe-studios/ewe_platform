@@ -140,9 +140,10 @@ pub enum ExportBody {
     /// `count` chunks of `size` zero bytes, made as the stream is read.
     ///
     /// The feature 13 stream test uses 200 MiB and never holds it in memory.
-    /// It is constructed by the layer stream test of #1022; until that change
-    /// merges, no test in this branch builds the variant.
-    #[allow(dead_code)]
+    #[allow(
+        dead_code,
+        reason = "the image import tests of feature 13 construct this variant"
+    )]
     Chunks {
         /// The chunk count.
         count: usize,

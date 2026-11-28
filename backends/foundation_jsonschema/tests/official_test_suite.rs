@@ -1,7 +1,7 @@
 //! Official JSON Schema Test Suite integration.
 //!
 //! Runs test cases from the official JSON-Schema-Test-Suite
-//! (https://github.com/json-schema-org/JSON-Schema-Test-Suite)
+//! (<https://github.com/json-schema-org/JSON-Schema-Test-Suite>)
 //! against our validator to verify spec compliance.
 
 use foundation_jsonschema::{Draft, ValidationOptions};

@@ -19,7 +19,7 @@ pub mod progress;
 pub mod serialization;
 pub mod session;
 pub mod steering;
-#[cfg(any(test, feature = "testing"))]
+#[cfg(any(test, feature = "testing", feature = "testing-mock"))]
 pub mod testing;
 pub mod token_ledger;
 pub mod tool_impl;

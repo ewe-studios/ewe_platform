@@ -279,6 +279,22 @@ fn await_slave_backoff() {
     );
 }
 
+/// A container that is still starting can miss one `Info` call deadline. The
+/// readiness wait retries until the boot deadline, so the create succeeds.
+///
+/// Fails on the old code: a `deadline_exceeded` answer ended the create at once.
+#[test]
+fn await_slave_retries_an_info_timeout() {
+    let _serial = support::serial();
+    let (ctx, _clock, _timer) = support::recording_ctx(11);
+    let slave = Arc::new(ScriptedSlave::new());
+    slave.with_info_timeouts(1);
+    let sim = driver(support::driver_id());
+    let (manager, _store) = support::simple_manager(ctx, sim, slave);
+    let handle = support::block_on(manager.create(spec())).expect("create");
+    assert_eq!(handle.info().state, SandboxState::Ready);
+}
+
 #[test]
 fn store_error_in_create_fails() {
     let _serial = support::serial();

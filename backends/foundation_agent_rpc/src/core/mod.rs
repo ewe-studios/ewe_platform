@@ -23,5 +23,5 @@ pub mod enroll;
 pub mod model;
 pub mod registry;
 pub mod service;
-#[cfg(any(feature = "multi", feature = "worker"))]
+#[cfg(any(feature = "multi", feature = "worker", feature = "dst"))]
 pub mod turn;

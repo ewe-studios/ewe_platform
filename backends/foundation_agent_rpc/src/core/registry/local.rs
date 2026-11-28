@@ -670,10 +670,15 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                 .session()
                 .run_turn_stream(prompt)
                 .map_err(|error| AgentRpcError::Inference(error.to_string()))?;
+            let events = turn.events();
+            // The single-threaded DST build has a `!Send` event stream; wrap it
+            // so the generated service trait accepts it. See `DstSendStream`.
+            #[cfg(all(feature = "dst", not(any(feature = "multi", feature = "worker"))))]
+            let events = crate::core::turn::DstSendStream::new(events);
             let session = instance.session().clone();
             let abort: Arc<dyn Fn() + Send + Sync> = Arc::new(move || session.abort());
             Ok(guarded_turn(
-                turn.events(),
+                events,
                 (guard, active),
                 abort,
                 self.shutdown.clone(),
