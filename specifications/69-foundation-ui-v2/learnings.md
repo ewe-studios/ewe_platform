@@ -1818,3 +1818,11 @@ Keep historical acceptance wording and link the later governing behavior.
 Give the WireGuard test dependency the same Unix condition as its overlay test.
 The portable HTTP tests run on Windows without that dependency.
 The platform plan can select those tests while keeping the server fixtures on Unix.
+
+## Windows generated database bindings
+
+The libSQL build script trusts the copy tool when it reports success.
+The short verbatim target reports success without a file. The deep verbatim target reports a missing path.
+Both shells create the file with ordinary short and deep paths. The compiler reads a present binding with either path form.
+Keep the discovered checkout path for child processes. Keep canonical paths for workspace comparisons.
+[Windows differential run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306826)

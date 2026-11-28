@@ -2326,9 +2326,13 @@ The standard Windows job finds no generated binding file. It stops before the fo
 Three compiler controls read a present binding with ordinary, native verbatim, and mixed paths.
 Ordinary Cargo passes the Unicode reopen test from a new short-path checkout.
 The test drops both handles before reopening the database. It confirms the import receipt and deletion.
-The candidate at `f9f370a28` keeps the discovered checkout path for Windows package commands.
-Use the standard package recipe to verify this candidate on Windows. Compare the external copy status on both paths.
-Issue 519 still records the excluded full database suite.
+The package executor keeps the discovered checkout path for Windows child processes.
+The standard recipe passes all 14 local libSQL tests with the 0.10 candidate. The executor regression also passes.
+Git Bash and PowerShell controls create the file at ordinary short and deep paths.
+The short verbatim path reports success without a file. The deep verbatim path fails with a missing path error.
+Todo and vector tests still need a run with the corrected executor.
+Issue 519 records the excluded full database suite. The partial recipe still needs the matching product dependency graph.
+[Windows differential run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306826)
 
 ### Physical phone handoff
 
