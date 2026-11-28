@@ -168,8 +168,8 @@ The workflow asks for access to this repository only. Credential values and Cent
 The `native-ui-release` environment contains `CENTRAL_USERNAME` and `CENTRAL_PASSWORD`.
 The environment requires review by `influx6`. GitHub allows the person who starts the run to approve it.
 Sonatype lists the Ubuntu and OpenPGP keyservers for its public key lookup.
-Both return HTTP status 404 for the configured fingerprint. The MIT server does not respond to the lookup.
-Confirm public signing key retrieval before publication.
+The initial fingerprint lookups at Ubuntu and OpenPGP return HTTP status 404. The MIT lookup does not respond.
+The release start record below verifies public key retrieval after upload.
 [Central keyserver requirements](https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key)
 
 Build and preview an updated release revision that contains the App token workflow.
@@ -218,5 +218,15 @@ Both downloaded archives match the manifest digests.
 | `EweCoreFFI.xcframework.zip` | `3cc972369ddce78b1f31684be0f0e902facfc1b9e8d6d5595ad4b074dd75cc66` |
 | `android-publication.zip` | `28099ac9a8ef72bf9baa9c29302a30da196ef08ee24124104c2b196d5f50b9a9` |
 
-The integrated revision still needs owner approval before any release tag push.
+The owner approves the integrated revision after public key verification. See the release start record below.
 [Integrated unsigned candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46106592555/artifacts/15250267442)
+
+### Approved 0.1.2 release start
+
+The owner approves native release 0.1.2 at integrated commit `b00b5e70c99f433822af9e872e454e5da394e6e7` after public key verification.
+GNU Privacy Guard (GnuPG) verifies that the export contains only public key packets.
+It uploads the OpenPGP certificate to the Ubuntu keyserver over the secure HTTP Keyserver Protocol (HKPS).
+A separate empty keyring retrieves the certificate and confirms fingerprint `9650A201269A0768F5D34DCC03A01ECE6BC5C71F`.
+The remote `native-ui-v0.1.2` tag resolves to the approved commit.
+The tag run repeats the candidate checks before the publication job requests environment approval.
+[Tag run](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056)

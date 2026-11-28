@@ -1874,3 +1874,9 @@ Check the rule and the public signing key before any release tag push.
 Merging master kept the package version and changed both archive digests.
 Use the unsigned manifest from the exact integrated revision to verify its archive bytes and Swift checksum commit.
 [Integrated unsigned candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46106592555/artifacts/15250267442)
+
+## Public signing key retrieval
+
+A successful upload response alone does not confirm a public key lookup.
+Use a fresh keyring to retrieve the certificate and compare its full fingerprint before pushing the release tag.
+[Central public key requirements](https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key)
