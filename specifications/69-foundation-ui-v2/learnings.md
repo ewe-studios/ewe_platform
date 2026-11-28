@@ -1,5 +1,18 @@
 # Spec 69 learnings
 
+## Android countdown and physical Mathalley checks
+
+The Android user interface can load Todos when its staged native library has older host actions.
+A structured countdown request then returns the typed `UnknownAction` error before it uses the server.
+The native library staged in both application directories matches the older installed library.
+Rebuild and stage the native library when the application adds host actions.
+The intact Mathalley attachment registers the named Todo view. A temporary probe without that attachment gives a separate test error.
+[Countdown issue 1245](https://github.com/ewe-studios/ewe_platform/issues/1245) · [Probe correction 1260](https://github.com/ewe-studios/ewe_platform/issues/1260)
+
+An Android audio focus grant and an output track establish the application path to the audio system.
+A speaker check also needs a person or a recording at the physical output.
+Returning from Home tests application lifecycle and does not establish an independent audio interruption.
+
 ## macOS HTTP slow-client event stream
 
 The old fixture sleeps after each one-byte client read.

@@ -25,6 +25,8 @@ done
 
 Select one emulator in Android Debug Bridge (ADB) before installing. Run the example commands with `mise exec -- adb` when needed.
 The native build copies the application library to each app. Both apps compile the same generated application bindings from `generated/`.
+Run the native build again when a Todo host action changes. Then rebuild and install the Android package.
+If the countdown reports a missing action reference, check the staged library and repeat both steps.
 
 ## Test on a device
 
