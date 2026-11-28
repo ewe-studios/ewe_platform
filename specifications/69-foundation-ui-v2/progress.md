@@ -1,5 +1,16 @@
 # Spec 69 progress
 
+## Android rotation replay on the review emulator
+
+The final task build passes two full runs on the Android 36 review emulator.
+The emulator displays a settled 2400 by 1080 game frame and focuses the game window.
+The first tap at (1176,866) advances Gumball. The explicit Back to Todos action succeeds on both runs.
+On the final run, the first tap starts 12.66 seconds after the rotation request and returns in 129 milliseconds.
+The application exit list contains only the older Application Not Responding (ANR) exit.
+The first boot shows a System UI interruption. A later trial stops when the display sleeps.
+The two full passes use a temporary awake setting. The test restores the setting and stops the emulator.
+[Focus issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146)
+
 ## Samsung rotation, texture, and audio checks
 
 The Samsung SM-A5560 reaches the Gumball result from the first settled landscape tap at (1120,889).

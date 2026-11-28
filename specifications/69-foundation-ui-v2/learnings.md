@@ -1,5 +1,13 @@
 # Spec 69 learnings
 
+## Android rotation replay on the review emulator
+
+An asleep display returns no focused window for the test to inspect.
+On the fresh emulator boot, the task times out before the first landscape tap under this condition.
+A temporary awake setting permits the full replay on the same device.
+The two completed trials do not show a new Todo application timeout.
+The older application exit record remains separate from the System UI interruption.
+
 ## Samsung rotation and audio output
 
 Android can report a landscape display size before its rotation animation ends.
