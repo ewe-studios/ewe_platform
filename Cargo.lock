@@ -6391,6 +6391,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_gcp_kms"
+version = "0.0.1"
+dependencies = [
+ "buffa",
+ "buffa-build",
+ "buffa-types",
+ "foundation_auth",
+ "foundation_compact",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_core",
+ "sha2 0.11.1",
+]
+
+[[package]]
 name = "foundation_html"
 version = "0.0.8"
 dependencies = [
