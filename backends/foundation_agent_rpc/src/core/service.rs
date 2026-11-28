@@ -16,9 +16,9 @@ use std::sync::Arc;
 use buffa::Message;
 use foundation_auth::client_auth::Principal;
 use foundation_connectrpc::{
-    get_auth_artifact, get_auth_info, ConnectError, ConnectResult, ErrorDetail, Request, Response,
-    Router, RpcCtx,
+    ConnectError, ConnectResult, ErrorDetail, Request, Response, Router, RpcCtx,
 };
+use foundation_connectrpc_auth::{get_auth_artifact, get_auth_info};
 use foundation_errstacks::ErrorTrace;
 use futures::StreamExt;
 

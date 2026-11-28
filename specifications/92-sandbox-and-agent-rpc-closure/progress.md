@@ -11,7 +11,7 @@ _Last updated: 2026-11-28._
 | 02 Sandbox follow-ups | in review: pull request #1111, 12 issues closed, #1104 fixed |
 | 03 GCP KMS over gRPC | in review: pull request #1121, conflicts resolved |
 | 04 Live cloud resources with the CLI | done: pull request #1103 merged; four live tests passed on 2026-11-28 |
-| 05 Remove the auth back edge from connectrpc | planned: after #1121, fixes #1107 and #756 |
+| 05 Remove the auth back edge from connectrpc | in review: new crate `foundation_connectrpc_auth`; fixes #1107 and #756 |
 
 ## What is already true
 
@@ -226,8 +226,46 @@ every version.
 - **#1114** (`severity: low`, open): the teardown should retry a transient precondition error
   right after the billing link.
 
+## Feature 05 result (2026-11-28)
+
+The auth layer now sits above the RPC crate.
+
+- New crate `backends/foundation_connectrpc_auth` holds the moved
+  `foundation_connectrpc/src/shared/auth.rs`: `AuthFunc`, `JwtAuthenticator`,
+  `CompositeAuthenticator`, `PerProcedureAuth`, `AuthzInterceptor`,
+  `ClientAuthInterceptor`, `authenticate_request`, `bearer_token`,
+  `infer_protocol` and `infer_procedure`.
+- `foundation_connectrpc` declares no `foundation_auth` on native or wasm, and
+  the `auth` feature is gone from the crate and from `rpc`.
+  `cargo tree -p foundation_connectrpc -e normal` prints no `foundation_auth`.
+  This closes #1107 (the package cycle) and #756 (the wasm glue in `rpc`).
+- `foundation_agent_rpc` and `foundation_agent_rpc_dst` import the interceptor
+  and the caller lookup from the new crate.
+- The moved `auth_tests` pass 26 tests and `client_auth_interceptor_tests` pass
+  4 tests in the new crate. The `foundation_connectrpc` suite passes 275 tests
+  across 36 targets, and the `foundation_agent_rpc` suite passes 149 tests
+  across 32 target results.
+- Every nested `Cargo.lock` that takes the two crates by path is regenerated,
+  and `cargo run -p foundation_ci -- check-lockfiles` passes. That command also
+  found 17 stale lockfiles from the spec 71 merge, now refreshed (#1239).
+- The wasm `rpc` check passes with zero warnings. `web-sys` is optional now and
+  only `wasm-fetch` enables it: the auth removal had left it unused.
+- Clippy passes with `--no-deps` and `-D warnings`, the flags that `ci.py`
+  uses. Without `--no-deps`, a pre-existing `unused_async` warning in
+  `foundation_db` fails the run; #1226 records it.
+- `foundation_gcp_kms` and the `foundation_agent_rpc_dst` workspace build, so
+  the cycle is gone for both crates that need the RPC client and `foundation_auth`.
+- The pull request is #1228.
+
 ## Today's findings
 
+- **#1239** (`high`, fixed by feature 05): the spec 71 merge left 17 nested `Cargo.lock`
+  files stale, so `ci.py check-lockfiles` failed on master. Each one is regenerated.
+- **#1236** (`high`, fixed by feature 05): `foundation_agent_rpc/tests/native_shutdown_tests.rs`
+  passed a stale `env` argument to `guarded_turn`, so `cargo test -p foundation_agent_rpc`
+  did not compile on master. The test now matches the six-argument signature.
+- **#1226** (`low`, open): `foundation_db` reports `unused_async` on native without
+  `turso` or `libsql`. CI does not see it because clippy runs with `--no-deps`.
 - **#1125** (`high`, fixed by #1144): `ControlService::create` spun on `Stream::Wait` in a
   synchronous loop on the single-threaded wasm host, so the Durable Object stopped answering.
 - **#1133** (`high`, fixed by #1144): the slave did not recognise the Cloudflare container
@@ -245,7 +283,7 @@ every version.
 1. Merge the open pull requests in the order the continuous integration (CI) agent holds:
    #1144 → #1121 → #1111 → #1112 → #1130 → #1136 → #1123.
 2. One full `packages=all` run on the final master; close #1104 with its `sandbox-e2e` link.
-3. Feature 05 after #1121.
+3. Review feature 05: the new `foundation_connectrpc_auth` crate is in review.
 4. The Cloudflare demo under `examples/`, after #1144 merges.
 
 ## Feature 02 task T11: the Firecracker guest network (2026-11-28)

@@ -1,18 +1,20 @@
-//! Auth module — authentication & authorization for `ConnectRPC`.
+//! Authentication and authorization for `ConnectRPC`.
 //!
-//! WHY: `ConnectRPC` middleware needs authentication (bearer token extraction, JWT
-//! verification, composite auth chains, per-procedure auth configuration, and
-//! scope-based authorization interceptors).
+//! WHY: `foundation_connectrpc` must not depend on `foundation_auth`. The two
+//! crates are layers: this crate builds on the RPC crate. The old back edge
+//! made a package cycle (#1107) and pulled wasm-bindgen glue into the `rpc`
+//! feature (#756).
 //!
-//! WHAT: The single normalized auth result ([`AuthInfo`]), the [`AuthFunc`] trait
-//! (with a blanket impl for async closures), JWT / composite / per-procedure
-//! authenticators, an [`AuthzInterceptor`] for scope checks, bearer token
-//! extraction, protocol/procedure inference helpers, and an
-//! [`authenticate_request`] HTTP-middleware utility.
+//! WHAT: The single normalized auth result ([`AuthInfo`]), the [`AuthFunc`]
+//! trait (with a blanket impl for async closures), JWT / composite /
+//! per-procedure authenticators, an [`AuthzInterceptor`] for scope checks,
+//! bearer token extraction, protocol/procedure inference helpers, the
+//! [`ClientAuthInterceptor`], and an [`authenticate_request`] HTTP-middleware
+//! utility.
 //!
-//! HOW: The entire module is gated on `cfg(feature = "auth")`. It reuses
-//! `foundation_auth` types and follows the Decision 09 / Decision 06 patterns
-//! from the connectrpc spec.
+//! HOW: The crate depends on `foundation_connectrpc` with no auth feature and
+//! on `foundation_auth`. It reuses the `foundation_auth` types and follows the
+//! Decision 09 / Decision 06 patterns from the connectrpc spec.
 //!
 //! # Design note: Sync vs Send
 //!
@@ -39,14 +41,14 @@ use foundation_netio::shared::http::{
     SimpleOutgoingResponse, SimpleUrl,
 };
 
-use crate::shared::context::RpcCtx;
-use crate::shared::error::{Code, ConnectError, ConnectResult};
-use crate::shared::error_writer::{status_from_code, ErrorWriter};
-use crate::shared::interceptor::{
+use foundation_connectrpc::shared::context::RpcCtx;
+use foundation_connectrpc::shared::error::{Code, ConnectError, ConnectResult};
+use foundation_connectrpc::shared::error_writer::{status_from_code, ErrorWriter};
+use foundation_connectrpc::shared::interceptor::{
     Interceptor, StreamCall, StreamingClientFunc, StreamingHandlerFunc, UnaryCall, UnaryFunc,
 };
-use crate::shared::protocol::canonicalize_content_type;
-use crate::shared::transport::BoxFuture;
+use foundation_connectrpc::shared::protocol::canonicalize_content_type;
+use foundation_connectrpc::shared::transport::BoxFuture;
 
 // ============================================================================
 // B1: AuthInfo — the single normalized auth result (Decision 09 A6)

@@ -20,7 +20,6 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", fe
 foundation_macros = { workspace = true }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.6", optional = true }
-foundation_auth = { path = "../foundation_auth", version = "0.0.17", optional = true, default-features = false }
 buffa = { version = "0.9.2", features = ["json"] }
 bytes = "1.5"
 futures = "0.3"
@@ -55,8 +54,10 @@ foundation_http = { path = "../foundation_http", version = "0.0.17", default-fea
 # off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false }
 # The streaming response sink holds a JS `Response` behind a `SendWrapper`.
-web-sys = { workspace = true, features = ["Response"] }
-foundation_auth = { path = "../foundation_auth", version = "0.0.17", optional = true, default-features = false, features = ["wasm"] }
+# Only the `wasm-fetch` build compiles it, so the dependency is optional and
+# that feature enables it. A wasm `rpc` build stays free of wasm-bindgen glue
+# (#756).
+web-sys = { workspace = true, features = ["Response"], optional = true }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -94,11 +95,13 @@ prost-types = { workspace = true }
 default = ["rpc_multi"]
 # The in-memory network and transport for deterministic simulation tests.
 testing = []
-# `rpc` is the full single-threaded library surface: every codec, auth, and all
+# `rpc` is the full single-threaded library surface: every codec and all
 # compressors. Consumers pick `rpc` (single-threaded) or `rpc_multi` (adds the
 # multi-threaded valtron executor); `default-features = false` + `rpc` keeps a
-# lean build. The individual flags below stay addressable for fine-grained use.
-rpc = ["arrow", "auth", "zstd", "brotli", "netio-defaults"]
+# lean build. Auth lives in `foundation_connectrpc_auth`, so it adds no
+# `foundation_auth` dependency or wasm glue here (#756). The individual flags
+# below stay addressable for fine-grained use.
+rpc = ["arrow", "zstd", "brotli", "netio-defaults"]
 rpc_multi = ["rpc", "foundation_core/multi", "foundation_http/multi"]
 
 # The HTTP server and client surface of `foundation_http` and
@@ -114,8 +117,6 @@ arrow = ["dep:foundation_arrow"]
 # Additional compressors (gzip is always available via flate2).
 zstd = ["dep:zstd"]
 brotli = ["dep:brotli"]
-# Auth module — requires foundation_auth.
-auth = ["dep:foundation_auth"]
 
 # HTTP/3 over QUIC (F35). Pulls quinn-proto through netio's `quic` feature.
 h3 = ["foundation_netio/quic", "foundation_http/quic"]
@@ -124,7 +125,7 @@ h3 = ["foundation_netio/quic", "foundation_http/quic"]
 # writes to it. It brings wasm-bindgen glue, so the owned-harness package
 # (`integration/wasm_owned`) leaves it off and runs the pure-Rust paths only.
 # Every wasm build that uses `H1Transport` must enable it (spec 88 feature 03).
-wasm-fetch = ["foundation_netio/wasm-fetch", "foundation_http/wasm-fetch"]
+wasm-fetch = ["foundation_netio/wasm-fetch", "foundation_http/wasm-fetch", "dep:web-sys"]
 
 # Tests that use the valtron pool need the multi-threaded executor (`rpc_multi`).
 # HTTP/3 transport capabilities (F35).
@@ -161,10 +162,6 @@ name = "conformance_tests"
 required-features = ["rpc_multi"]
 
 [[test]]
-name = "auth_tests"
-required-features = ["rpc_multi"]
-
-[[test]]
 name = "h2_streaming_tests"
 required-features = ["rpc_multi"]
 
@@ -198,9 +195,3 @@ required-features = ["rpc_multi"]
 
 [lints]
 workspace = true
-
-# Spec 81 feature 00, task T11: the ClientAuth interceptor.
-[[test]]
-name = "client_auth_interceptor_tests"
-path = "tests/client_auth_interceptor_tests.rs"
-required-features = ["rpc_multi"]

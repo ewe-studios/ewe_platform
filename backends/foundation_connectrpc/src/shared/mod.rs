@@ -5,8 +5,6 @@
 //! under [`crate::native`]; wasm reuses these shared modules with
 //! `foundation_netio`'s platform-selecting client/websocket wrappers underneath.
 
-#[cfg(feature = "auth")]
-pub mod auth;
 pub mod client;
 pub mod codec;
 pub mod compression;

@@ -5059,6 +5059,7 @@ dependencies = [
  "foundation_auth",
  "foundation_compact",
  "foundation_connectrpc",
+ "foundation_connectrpc_auth",
  "foundation_connectrpc_codegen",
  "foundation_context",
  "foundation_core",
@@ -6054,7 +6055,6 @@ dependencies = [
  "concurrent-queue",
  "flate2",
  "foundation_arrow",
- "foundation_auth",
  "foundation_compact",
  "foundation_connectrpc_codegen",
  "foundation_context",
@@ -6077,6 +6077,20 @@ dependencies = [
  "tracing",
  "web-sys",
  "zstd",
+]
+
+[[package]]
+name = "foundation_connectrpc_auth"
+version = "0.0.1"
+dependencies = [
+ "bytes",
+ "foundation_auth",
+ "foundation_connectrpc",
+ "foundation_context",
+ "foundation_errstacks",
+ "foundation_netio",
+ "futures",
+ "serde_json",
 ]
 
 [[package]]
