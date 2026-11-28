@@ -216,3 +216,37 @@ fn unmasked_frame_triggers_close_and_drain() {
     );
     assert!(task.next_status(Ctx::host()).is_none());
 }
+
+#[test]
+fn server_retires_a_socket_after_actual_peer_eof() {
+    for prefix in [&[][..], &[0x81][..], &[0x81, 0x83][..]] {
+        let (server, mut client) = tcp_pair();
+        let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
+        let (tx, _rx) = Pipe::with_depth(8);
+        let ctx = Ctx::fixed(std::sync::Arc::new(
+            foundation_context::MonotonicClock::new(),
+        ));
+        let mut task =
+            WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None, ctx.clone());
+        client.write_all(prefix).unwrap();
+        assert!(matches!(
+            task.next_status(ctx.clone()),
+            Some(TaskStatus::Delayed(_))
+        ));
+        client.shutdown(std::net::Shutdown::Write).unwrap();
+        let started = Instant::now();
+        loop {
+            match task.next_status(ctx.clone()) {
+                None => break,
+                Some(TaskStatus::Delayed(delay)) => {
+                    assert!(
+                        started.elapsed() < Duration::from_secs(2),
+                        "EOF stayed pending after {prefix:?}"
+                    );
+                    std::thread::sleep(delay);
+                }
+                _ => panic!("EOF should retire the socket"),
+            }
+        }
+    }
+}

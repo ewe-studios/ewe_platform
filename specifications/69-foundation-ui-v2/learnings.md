@@ -1787,3 +1787,6 @@ Use native path components to compare the files that the generator writes.
 A socket read can return part of an upgrade header.
 Read the full bounded header and join the endpoint thread before accepting a test result.
 A failed handshake hid the raw socket close defect in the previous fixture.
+
+A native server uses the same socket reader as the client.
+Retire a live TCP read at end of stream. Keep caller-fed empty chunks as pending.

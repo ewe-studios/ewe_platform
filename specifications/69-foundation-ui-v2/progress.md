@@ -2427,3 +2427,11 @@ The raw socket close and idle timeout tests pass with the WebSocket client repai
 All 20 default browser tests and strict Clippy pass on macOS.
 The next Windows browser run checks both fixture changes.
 [Fixture issue](https://github.com/ewe-studios/ewe_platform/issues/1211) · [Socket close issue](https://github.com/ewe-studios/ewe_platform/issues/1212)
+
+### Native WebSocket server shutdown
+
+The real nonblocking socket test reproduces a server poll after peer end of stream.
+The server now retires the connection after raw end of stream.
+It still parks on a would-block or timeout result. A received Close frame still drains the task.
+The 176 focused WebSocket tests pass with both socket paths.
+[Issue 1214](https://github.com/ewe-studios/ewe_platform/issues/1214)
