@@ -2459,3 +2459,16 @@ The dated completion ledger checks current issue states against the feature crit
 It records the remaining hosted tests, physical checks, release access, and historical decisions.
 The original workspace dependency warning command passes without warnings.
 [Completion ledger](completion-audit.md#remaining-closure-ledger-28-november-2026) · [Issue 596](https://github.com/ewe-studios/ewe_platform/issues/596)
+
+## Windows HTTP and project generator proof
+
+Hosted Windows runs 82 portable HTTP tests in each of the default and `multi,quic` recipes.
+Both runs pass with zero ignored tests from the selected suites.
+The plan enables these two recipes. HTTP serving and its integration fixtures require Unix.
+The dependency build reports the existing NetIO warnings in issue 489.
+[HTTP shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306861) · [Issue 489](https://github.com/ewe-studios/ewe_platform/issues/489)
+
+The Windows generator shard passes all eight application tests.
+The matching source renders the templates with the same byte lookup keys.
+The Windows packager test correction and the browser fixtures need separate runs.
+[Generator shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306868) · [Issue 1211](https://github.com/ewe-studios/ewe_platform/issues/1211)

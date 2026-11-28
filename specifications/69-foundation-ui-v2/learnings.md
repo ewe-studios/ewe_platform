@@ -1812,3 +1812,9 @@ Use the current package commands to check earlier lint repairs on the target hos
 Check live issue titles and states before recording a closure.
 Check the exact issue command when the source or its dependency declarations already changed.
 Keep historical acceptance wording and link the later governing behavior.
+
+## Windows HTTP test scope
+
+Give the WireGuard test dependency the same Unix condition as its overlay test.
+The portable HTTP tests run on Windows without that dependency.
+The platform plan can select those tests while keeping the server fixtures on Unix.
