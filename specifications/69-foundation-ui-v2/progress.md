@@ -2645,3 +2645,12 @@ The preview commit changes only the test workflow.
 
 [Hosted Windows storage run](https://github.com/ewe-studios/ewe_platform/actions/runs/46144926975)
 [Todo server platform plan](features/37-todo-server-build-and-state/feature.md#windows-storage-and-server-completion)
+
+### Windows dependency checkout
+
+The first Windows jobs stop during the Git checkout for the pinned Durable Streams dependency.
+The retry uses a short Cargo home. It passes all 13 libSQL tests with zero ignored tests.
+The tests use the locked dependency graph and the UAT profile on Windows Server 2025.
+
+[Checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1268)
+[Passing libSQL job](https://github.com/ewe-studios/ewe_platform/actions/runs/46146043319/job/140982229052)

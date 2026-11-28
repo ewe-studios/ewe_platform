@@ -1957,3 +1957,12 @@ Use the workspace alias for both. Keep local tests on the core feature when they
 Select the four libSQL test targets directly to verify the upgrade on Windows while the file store opt-out applies.
 
 [Hosted Windows storage run](https://github.com/ewe-studios/ewe_platform/actions/runs/46144926975)
+
+### Use a short Cargo home on Windows
+
+Cargo resolves pinned Git sources before it builds a selected workspace package.
+The Durable Streams checkout includes a tracked Swift file with a 178-character relative path.
+The runner's default Cargo home gives this file a 261-character checkout path.
+Use the short Windows Cargo home and keep the dependency revision fixed.
+
+[Checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1268)
