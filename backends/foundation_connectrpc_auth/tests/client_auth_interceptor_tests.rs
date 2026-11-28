@@ -13,12 +13,12 @@ use foundation_auth::client_auth::{
     AuthError, AuthFuture, AuthInfo, AuthMethod, CallCredentials, ClientAuth, Principal,
 };
 use foundation_auth::AuthContext;
-use foundation_connectrpc_auth::{get_auth_info, ClientAuthInterceptor};
 use foundation_connectrpc::shared::context::{
     IdempotencyLevel, RequestContext, RpcCtx, Spec, StreamType,
 };
 use foundation_connectrpc::shared::error::Code;
 use foundation_connectrpc::shared::interceptor::{Interceptor, UnaryCall, UnaryFunc, UnaryReply};
+use foundation_connectrpc_auth::{get_auth_info, ClientAuthInterceptor};
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 
 fn block_on<F: Future>(fut: F) -> F::Output {

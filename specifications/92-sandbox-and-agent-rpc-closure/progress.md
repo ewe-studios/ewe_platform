@@ -188,6 +188,26 @@ every version.
 - **#1114** (`severity: low`, open): the teardown should retry a transient precondition error
   right after the billing link.
 
+## Feature 05 result (2026-11-28)
+
+The auth layer now sits above the RPC crate.
+
+- New crate `backends/foundation_connectrpc_auth` holds the moved
+  `foundation_connectrpc/src/shared/auth.rs`: `AuthFunc`, `JwtAuthenticator`,
+  `CompositeAuthenticator`, `PerProcedureAuth`, `AuthzInterceptor`,
+  `ClientAuthInterceptor`, `authenticate_request`, `bearer_token`,
+  `infer_protocol` and `infer_procedure`.
+- `foundation_connectrpc` declares no `foundation_auth` on native or wasm, and
+  the `auth` feature is gone from the crate and from `rpc`.
+  `cargo tree -p foundation_connectrpc -e normal` prints no `foundation_auth`.
+  This closes #1107 (the package cycle) and #756 (the wasm glue in `rpc`).
+- `foundation_agent_rpc` and `foundation_agent_rpc_dst` import the interceptor
+  and the caller lookup from the new crate.
+- The moved `auth_tests` pass 26 tests and `client_auth_interceptor_tests` pass
+  4 tests in the new crate.
+- Every nested `Cargo.lock` that takes the two crates by path is regenerated,
+  so `cargo metadata --locked` passes for each one.
+
 ## Today's findings
 
 - **#1125** (`high`, fixed by #1144): `ControlService::create` spun on `Stream::Wait` in a

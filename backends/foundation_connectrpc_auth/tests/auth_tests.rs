@@ -111,7 +111,10 @@ fn test_infer_protocol_connect_unary() {
         .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
         .build()
         .expect("valid request");
-    assert_eq!(foundation_connectrpc_auth::infer_protocol(&req), Some("connect"));
+    assert_eq!(
+        foundation_connectrpc_auth::infer_protocol(&req),
+        Some("connect")
+    );
 }
 
 #[test]
@@ -122,7 +125,10 @@ fn test_infer_protocol_connect_streaming() {
         .add_header(SimpleHeader::CONTENT_TYPE, "application/connect+proto")
         .build()
         .expect("valid request");
-    assert_eq!(foundation_connectrpc_auth::infer_protocol(&req), Some("connect"));
+    assert_eq!(
+        foundation_connectrpc_auth::infer_protocol(&req),
+        Some("connect")
+    );
 }
 
 #[test]
@@ -147,7 +153,10 @@ fn test_infer_protocol_grpc() {
         .add_header(SimpleHeader::CONTENT_TYPE, "application/grpc+proto")
         .build()
         .expect("valid request");
-    assert_eq!(foundation_connectrpc_auth::infer_protocol(&req), Some("grpc"));
+    assert_eq!(
+        foundation_connectrpc_auth::infer_protocol(&req),
+        Some("grpc")
+    );
 }
 
 #[test]
