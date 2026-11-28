@@ -30,7 +30,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-f
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # Client auth: the certificate authority, the trust store and the mutual-TLS
 # (mTLS) verifier and configuration builders (spec 87).
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["secret"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false, features = ["secret"] }
 base64 = "0.22"
 zeroize = { workspace = true }
 derive_more = { version = "2.1", features = ["display", "error"] }

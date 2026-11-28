@@ -12,7 +12,7 @@ keywords.workspace = true
 [dependencies]
 # The `KmsBackend` trait, the key-store error and the secret reference.
 # The `secret` feature brings the key store, which holds `KmsBackend`.
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["secret"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false, features = ["secret"] }
 # The sealed plaintext type of the `KmsBackend` trait.
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # The h2c transport and the protobuf codec of the client. The default features

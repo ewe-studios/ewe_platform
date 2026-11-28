@@ -5122,7 +5122,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "argon2",
  "async-trait",
@@ -5175,6 +5175,7 @@ dependencies = [
  "uuid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-bindgen-test",
  "web-sys",
  "webauthn-rs",
  "x509-parser 0.18.1",

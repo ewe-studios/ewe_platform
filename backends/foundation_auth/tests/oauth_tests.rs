@@ -1,5 +1,8 @@
 //! Native OAuth client tests.
 
+// The native OAuth client is absent on wasm32.
+#![cfg(not(target_arch = "wasm32"))]
+
 use std::sync::Arc;
 
 use foundation_auth::native::oauth::NativeOAuth;

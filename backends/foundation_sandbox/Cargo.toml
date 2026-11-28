@@ -24,7 +24,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.25" }
 # `Secret` and `extract_bearer_token` (spec 86). The crate never defines a
 # second secret type. `default-features = false` keeps the database, JWT and
 # signed-secret providers out of this crate.
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 async-trait = { workspace = true }

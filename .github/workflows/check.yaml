@@ -339,6 +339,17 @@ jobs:
         if: matrix.package == 'wasm-tests'
         run: mise run test:browsers:chromium
 
+      - name: Test the WebCrypto sealer in a headless browser
+        # Spec 92 feature 00 T6. The sealer imports a non-extractable WebCrypto
+        # key; only a browser proves that the key cannot be exported.
+        if: matrix.package == 'wasm-tests'
+        run: |
+          mise install github:wasm-bindgen/wasm-bindgen
+          cargo run --locked --profile uat -p foundation_testbed \
+            --no-default-features --features wasm --bin wasm-testbed -- \
+            test bindgen-web backends/foundation_auth \
+            --features secret,wasm-kek --headless
+
       - name: test
         env:
           # The CDP wire trace only on a manual run (spec 88 T8).
