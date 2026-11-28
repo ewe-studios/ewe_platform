@@ -75,7 +75,10 @@ pub struct WebSocketOpenState {
     /// Read wait for the next frame, carried from the connect config.
     pub idle_timeout: Duration,
     pub assembler: crate::websocket::shared::assembler::MessageAssembler,
-    pub decoder: WebSocketFrameDecoder,
+    /// Buffer pool retained for users of this connection state.
+    pub buffer_pool: Arc<foundation_core::io::buffer_pool::BytesPool>,
+    /// Reusable frame payload buffer retained for users of this connection state.
+    pub frame_buffer: bytes::BytesMut,
 }
 
 /// Connecting state data.
@@ -157,6 +160,7 @@ where
     R: DnsResolver + Send + 'static,
 {
     state: Option<WebSocketState>,
+    decoder: WebSocketFrameDecoder,
     pool: Arc<HttpConnectionPool<R>>,
 }
 
@@ -205,6 +209,7 @@ where
                 // 75 s is the nginx `keepalive_timeout` default.
                 idle_timeout: Duration::from_secs(75),
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -246,6 +251,7 @@ where
                 // 75 s is the nginx `keepalive_timeout` default.
                 idle_timeout: Duration::from_secs(75),
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -313,6 +319,7 @@ where
                 // WebSocket has no body size to scale it from.
                 idle_timeout: read_timeout,
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -365,6 +372,7 @@ where
                 // WebSocket has no body size to scale it from.
                 idle_timeout: read_timeout,
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -703,7 +711,10 @@ where
                                         timeout_calculator: state.timeout_calculator,
                                         idle_timeout: state.idle_timeout,
                                         assembler: crate::websocket::shared::assembler::MessageAssembler::default(),
-                                        decoder: WebSocketFrameDecoder::new(),
+                                        buffer_pool: Arc::new(
+                                            foundation_core::io::buffer_pool::BytesPool::new(8192, 4),
+                                        ),
+                                        frame_buffer: bytes::BytesMut::new(),
                                     },
                                 ))));
 
@@ -878,7 +889,7 @@ where
                     read_timeout,
                 );
 
-                match open_state.decoder.read_frame(&mut open_state.stream) {
+                match self.decoder.read_frame(&mut open_state.stream) {
                     Ok(frame) => {
                         // Validate frame
                         debug!(
