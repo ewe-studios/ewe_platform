@@ -7,14 +7,13 @@
 //! protocol/procedure inference, `JwtAuthenticator`, `CompositeAuthenticator`,
 //! `PerProcedureAuth`, `AuthzInterceptor`, and `authenticate_request`.
 //!
-//! HOW: Feature-gated on `auth + rpc_multi`.
-
-#![cfg(all(test, feature = "auth", feature = "rpc_multi"))]
+//! HOW: The suite moved here with the auth module (spec 92 feature 05).
 
 use foundation_auth::AuthContext;
-use foundation_connectrpc::CompositeAuthenticator;
-use foundation_connectrpc::PerProcedureAuth;
-use foundation_connectrpc::{bearer_token, AuthFunc, AuthInfo, Interceptor};
+use foundation_connectrpc::Interceptor;
+use foundation_connectrpc_auth::{
+    bearer_token, AuthFunc, AuthInfo, CompositeAuthenticator, PerProcedureAuth,
+};
 use foundation_netio::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleUrl,
 };
@@ -112,7 +111,7 @@ fn test_infer_protocol_connect_unary() {
         .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
         .build()
         .expect("valid request");
-    assert_eq!(foundation_connectrpc::infer_protocol(&req), Some("connect"));
+    assert_eq!(foundation_connectrpc_auth::infer_protocol(&req), Some("connect"));
 }
 
 #[test]
@@ -123,7 +122,7 @@ fn test_infer_protocol_connect_streaming() {
         .add_header(SimpleHeader::CONTENT_TYPE, "application/connect+proto")
         .build()
         .expect("valid request");
-    assert_eq!(foundation_connectrpc::infer_protocol(&req), Some("connect"));
+    assert_eq!(foundation_connectrpc_auth::infer_protocol(&req), Some("connect"));
 }
 
 #[test]
@@ -135,7 +134,7 @@ fn test_infer_protocol_grpc_web() {
         .build()
         .expect("valid request");
     assert_eq!(
-        foundation_connectrpc::infer_protocol(&req),
+        foundation_connectrpc_auth::infer_protocol(&req),
         Some("grpc-web")
     );
 }
@@ -148,7 +147,7 @@ fn test_infer_protocol_grpc() {
         .add_header(SimpleHeader::CONTENT_TYPE, "application/grpc+proto")
         .build()
         .expect("valid request");
-    assert_eq!(foundation_connectrpc::infer_protocol(&req), Some("grpc"));
+    assert_eq!(foundation_connectrpc_auth::infer_protocol(&req), Some("grpc"));
 }
 
 #[test]
@@ -159,7 +158,7 @@ fn test_infer_protocol_unknown() {
         .with_method(SimpleMethod::POST)
         .build()
         .expect("valid request");
-    assert!(foundation_connectrpc::infer_protocol(&req).is_none());
+    assert!(foundation_connectrpc_auth::infer_protocol(&req).is_none());
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +173,7 @@ fn test_infer_procedure_standard_url() {
         "http://example.com/connectrpc.greet.v1.GreetService/Greet".to_string(),
     );
     assert_eq!(
-        foundation_connectrpc::infer_procedure(&url),
+        foundation_connectrpc_auth::infer_procedure(&url),
         Some("/connectrpc.greet.v1.GreetService/Greet".to_string())
     );
 }
@@ -185,7 +184,7 @@ fn test_infer_procedure_deep_path() {
         "http://example.com/v1/packages/pkg.Service/Method".to_string(),
     );
     assert_eq!(
-        foundation_connectrpc::infer_procedure(&url),
+        foundation_connectrpc_auth::infer_procedure(&url),
         Some("/pkg.Service/Method".to_string())
     );
 }
@@ -193,7 +192,7 @@ fn test_infer_procedure_deep_path() {
 #[test]
 fn test_infer_procedure_root_path() {
     let url = foundation_netio::shared::http::SimpleUrl::url_only("http://example.com".to_string());
-    assert!(foundation_connectrpc::infer_procedure(&url).is_none());
+    assert!(foundation_connectrpc_auth::infer_procedure(&url).is_none());
 }
 
 #[test]
@@ -201,7 +200,7 @@ fn test_infer_procedure_single_segment() {
     let url = foundation_netio::shared::http::SimpleUrl::url_only(
         "http://example.com/just-one".to_string(),
     );
-    assert!(foundation_connectrpc::infer_procedure(&url).is_none());
+    assert!(foundation_connectrpc_auth::infer_procedure(&url).is_none());
 }
 
 // ---------------------------------------------------------------------------
@@ -361,7 +360,7 @@ fn test_jwt_authenticator_valid_token() {
     };
 
     let authenticator =
-        foundation_connectrpc::JwtAuthenticator::new(config).expect("valid authenticator");
+        foundation_connectrpc_auth::JwtAuthenticator::new(config).expect("valid authenticator");
 
     // Create signed claims
     let claims = serde_json::json!({
@@ -417,7 +416,7 @@ fn test_jwt_authenticator_invalid_token() {
     };
 
     let authenticator =
-        foundation_connectrpc::JwtAuthenticator::new(config).expect("valid authenticator");
+        foundation_connectrpc_auth::JwtAuthenticator::new(config).expect("valid authenticator");
 
     // Garbage token
     let headers = {
@@ -446,7 +445,7 @@ fn test_authz_interceptor_grants_access() {
     use foundation_netio::shared::http::Extensions;
     use std::sync::Arc;
 
-    let interceptor = foundation_connectrpc::AuthzInterceptor::new(vec!["read".to_string()]);
+    let interceptor = foundation_connectrpc_auth::AuthzInterceptor::new(vec!["read".to_string()]);
 
     // Build a RpcCtx with AuthInfo containing a token with "read" scope
     let mut ext = Extensions::new();
@@ -493,7 +492,7 @@ fn test_authz_interceptor_denies_insufficient_scope() {
     use foundation_netio::shared::http::Extensions;
     use std::sync::Arc;
 
-    let interceptor = foundation_connectrpc::AuthzInterceptor::new(vec!["admin".to_string()]);
+    let interceptor = foundation_connectrpc_auth::AuthzInterceptor::new(vec!["admin".to_string()]);
 
     let mut ext = Extensions::new();
     let mut auth_ctx = AuthContext::new("/test".to_string(), None, None);
@@ -558,7 +557,7 @@ fn test_authenticate_request_success() {
 
     let error_writer = foundation_connectrpc::ErrorWriter::new();
 
-    let result = futures::executor::block_on(foundation_connectrpc::authenticate_request(
+    let result = futures::executor::block_on(foundation_connectrpc_auth::authenticate_request(
         &auth,
         &mut request,
         &error_writer,
@@ -602,7 +601,7 @@ fn test_authenticate_request_failure() {
 
     let error_writer = foundation_connectrpc::ErrorWriter::new();
 
-    let result = futures::executor::block_on(foundation_connectrpc::authenticate_request(
+    let result = futures::executor::block_on(foundation_connectrpc_auth::authenticate_request(
         &auth,
         &mut request,
         &error_writer,
@@ -620,13 +619,13 @@ fn test_authenticate_request_failure() {
 // Spec 86 S6: `AuthInfo` has one home
 // ---------------------------------------------------------------------------
 
-/// WHY: `AuthInfo` moved to `foundation_auth` and connectrpc re-exports it.
+/// WHY: `AuthInfo` lives in `foundation_auth`, and this crate re-exports it.
 /// WHAT: Both paths name the same type, so a value passes from one to the
 /// other with no conversion.
 #[test]
 fn auth_info_single_home() {
     let context = AuthContext::new("/test".to_string(), None, None);
-    let from_connectrpc: AuthInfo = foundation_connectrpc::AuthInfo::new(context);
-    let from_auth: foundation_auth::AuthInfo = from_connectrpc;
-    let _: foundation_connectrpc::AuthInfo = from_auth;
+    let from_layer: AuthInfo = AuthInfo::new(context);
+    let from_auth: foundation_auth::AuthInfo = from_layer;
+    let _: AuthInfo = from_auth;
 }

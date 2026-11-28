@@ -1,6 +1,6 @@
 //! Spec 81 feature 00, task T11: the `ConnectRPC` `ClientAuthInterceptor`.
 //!
-//! `cargo test -p foundation_connectrpc --test client_auth_interceptor_tests`
+//! `cargo test -p foundation_connectrpc_auth --test client_auth_interceptor_tests`
 //! runs them.
 
 use std::future::Future;
@@ -13,7 +13,7 @@ use foundation_auth::client_auth::{
     AuthError, AuthFuture, AuthInfo, AuthMethod, CallCredentials, ClientAuth, Principal,
 };
 use foundation_auth::AuthContext;
-use foundation_connectrpc::shared::auth::{get_auth_info, ClientAuthInterceptor};
+use foundation_connectrpc_auth::{get_auth_info, ClientAuthInterceptor};
 use foundation_connectrpc::shared::context::{
     IdempotencyLevel, RequestContext, RpcCtx, Spec, StreamType,
 };

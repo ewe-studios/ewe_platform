@@ -11,7 +11,7 @@ _Last updated: 2026-11-28._
 | 02 Sandbox follow-ups | in review: pull request #1111, 12 issues closed, #1104 fixed |
 | 03 GCP KMS over gRPC | in review: pull request #1121, conflicts resolved |
 | 04 Live cloud resources with the CLI | done: pull request #1103 merged; four live tests passed on 2026-11-28 |
-| 05 Remove the auth back edge from connectrpc | planned: after #1121, fixes #1107 and #756 |
+| 05 Remove the auth back edge from connectrpc | in review: new crate `foundation_connectrpc_auth`; fixes #1107 and #756 |
 
 ## What is already true
 
@@ -207,5 +207,5 @@ every version.
 1. Merge the open pull requests in the order the continuous integration (CI) agent holds:
    #1144 → #1121 → #1111 → #1112 → #1130 → #1136 → #1123.
 2. One full `packages=all` run on the final master; close #1104 with its `sandbox-e2e` link.
-3. Feature 05 after #1121.
+3. Review feature 05: the new `foundation_connectrpc_auth` crate is in review.
 4. The Cloudflare demo under `examples/`, after #1144 merges.

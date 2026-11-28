@@ -5,10 +5,11 @@
 //! reaches a Cloud KMS emulator on the same machine, which accepts the same
 //! calls without a credential.
 //!
-//! WHY A SEPARATE CRATE: Cargo rejects the cycle
-//! `foundation_auth -> foundation_connectrpc -> foundation_auth`. The second
-//! edge is the optional `auth` feature of `foundation_connectrpc` (issue
-//! #1107). This crate sits above both crates and closes no cycle.
+//! WHY A SEPARATE CRATE: this backend sits above `foundation_auth` and
+//! `foundation_connectrpc`, so it keeps the Cloud KMS protobuf surface out of
+//! the key-store trait. The old optional `auth` edge of
+//! `foundation_connectrpc` closed a Cargo cycle here; spec 92 feature 05
+//! removed it (issue #1107).
 //!
 //! WHAT: [`GcpKmsGrpcBackend`], a [`KmsBackend`](foundation_auth::keystore::KmsBackend)
 //! over the Cloud KMS gRPC API, its [`GcpKmsGrpcConfig`], the generated Cloud

@@ -24,7 +24,7 @@ end-to-end today, over a real loopback socket:
 | HTTP/2 transport (client `H2Transport` + server `ConnectRpcServeH2`) | ✅ working |
 | Codecs: protobuf (buffa), JSON, Arrow | ✅ working |
 | Compression: gzip (+ optional zstd, brotli) | ✅ working |
-| Auth middleware (`auth` feature) | ✅ working |
+| Auth middleware (crate `foundation_connectrpc_auth`) | ✅ working |
 | Code generation: proto (build.rs / protoc) + code-first macro | ✅ working |
 | gRPC status trailers (client-visible) | ⏳ trailers consumed by h2 pump, not forwarded |
 | HTTP/3, WebSocket transports | ⏳ pending |
@@ -721,26 +721,26 @@ macro_rules! greet_service_rpc_definitions { (common) => { ... }; (server) => { 
 
 ---
 
-## Authentication (feature `auth`)
+## Authentication
 
-Port of authn-go's middleware onto `foundation_auth`. An async `AuthFunc` produces
-a concrete `AuthInfo`; `AuthzInterceptor`, `JwtAuthenticator`,
-`CompositeAuthenticator`, and `PerProcedureAuth` compose over it. Requires the
-`auth` feature (on by default via `rpc`).
+The auth middleware lives in `foundation_connectrpc_auth`, a layer above this
+crate (spec 92 feature 05). That crate reuses the connectrpc interceptor and
+context types and depends on `foundation_auth`. This crate does not depend on
+`foundation_auth`, so the `rpc` feature carries no wasm-bindgen auth glue
+(#756).
 
 ## Feature flags
 
 | Feature | Effect |
 |---|---|
-| `rpc` | Full single-threaded library surface: all codecs + auth + all compressors |
+| `rpc` | Full single-threaded library surface: all codecs + all compressors |
 | `rpc_multi` | `rpc` + the multi-threaded valtron executor (**default**) |
 | `arrow` | Arrow columnar codec (`foundation_arrow`) |
-| `auth` | Auth middleware (`foundation_auth`) |
 | `zstd`, `brotli` | Extra compressors (gzip is always available) |
 
 For a lean build, `default-features = false` plus `features = ["rpc"]` drops the
 multi executor; dropping `rpc` in favour of individual flags drops
-`foundation_arrow` / `foundation_auth`.
+`foundation_arrow`.
 
 ## Error model
 
@@ -754,8 +754,7 @@ telemetry.
 
 `foundation_core` (valtron execution + async readiness), `foundation_http` /
 `foundation_netio` (HTTP server/client + wire types), `foundation_errstacks`
-(error traces), `buffa` (protobuf), optional `foundation_arrow` (columnar) and
-`foundation_auth` (authn).
+(error traces), `buffa` (protobuf) and optional `foundation_arrow` (columnar).
 
 ## License
 

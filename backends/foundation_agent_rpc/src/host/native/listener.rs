@@ -19,7 +19,7 @@ use foundation_auth::mtls::{
     server_config_mutual, server_config_optional_mutual, server_config_server_auth,
 };
 use foundation_compact::Duration;
-use foundation_connectrpc::shared::auth::ClientAuthInterceptor;
+use foundation_connectrpc_auth::ClientAuthInterceptor;
 use foundation_connectrpc::{ConnectRpcServe, ConnectRpcServeH2, Interceptor, Router};
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;

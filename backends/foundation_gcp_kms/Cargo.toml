@@ -16,9 +16,9 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-fea
 # The sealed plaintext type of the `KmsBackend` trait.
 foundation_compact = { path = "../foundation_compact", version = "0.2.7" }
 # The h2c transport and the protobuf codec of the client. The default features
-# are off: the default set includes `auth`, which depends on `foundation_auth`;
-# that dependency closes a cycle here, because this crate depends on
-# `foundation_auth` (issue #1107).
+# are off because this crate needs neither the multi-threaded executor nor the
+# extra codecs. The old `auth` back edge that closed a cycle here is gone
+# (issue #1107, spec 92 feature 05).
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false }
 # The runtime of the generated messages, and the Google well-known types those
 # messages name (for example `google.protobuf.Timestamp`).

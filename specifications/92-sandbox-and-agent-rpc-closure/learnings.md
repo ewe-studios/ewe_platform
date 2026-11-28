@@ -107,6 +107,27 @@ Two lessons:
    symptom names. The `400` response had `Content-Length: 34` and `Connection: close`. The
    body reader returned all 34 bytes, then `None`.
 
+## Feature 05: the auth layer moves above the RPC crate (2026-11-28)
+
+- **An optional dependency still closes a package cycle.** Cargo rejects
+  `foundation_gcp_kms -> foundation_auth -> foundation_connectrpc ->
+  foundation_auth` even when the last edge is optional and its feature is off.
+  The edge must be deleted, not disabled (#1107).
+- **A feature that carries wasm glue pollutes every consumer.** The old `auth`
+  feature sat in `rpc`, so every wasm build of `foundation_connectrpc` linked
+  `foundation_auth` and its `wasm` feature. The auth code now lives in
+  `foundation_connectrpc_auth`, so `rpc` has no `foundation_auth` dependency
+  (#756).
+- **A module move must move its tests.** The two suites moved with the file and
+  changed only their import paths. The old `#![cfg(feature = "auth")]` gate went
+  away: the new crate always compiles auth.
+- **A moved module still names its old internals.** Every `crate::shared::...`
+  path became `foundation_connectrpc::shared::...`. The connectrpc modules are
+  public, so the new crate needs no new re-exports.
+- **A nested workspace pins the old edge too.** `cargo metadata --locked` fails
+  for every nested `Cargo.lock` that lists `foundation_auth` under
+  `foundation_connectrpc`. Regenerate each lockfile after the manifest change.
+
 ## macOS refuses a timeout on a peer-closed socket (2026-11-28)
 
 The focused local-server test failed before it reached the body read. The server wrote the

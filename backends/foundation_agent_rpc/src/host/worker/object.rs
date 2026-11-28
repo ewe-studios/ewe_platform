@@ -23,7 +23,7 @@ use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::types::SessionId;
 use foundation_auth::client_auth::{AuthMethod, ForwardedPrincipalAuth, Principal};
 use foundation_compact::ids::Id;
-use foundation_connectrpc::shared::auth::ClientAuthInterceptor;
+use foundation_connectrpc_auth::ClientAuthInterceptor;
 use foundation_connectrpc::{Interceptor, Router};
 use foundation_context::Ctx;
 use foundation_db::wasm::bindgen::cf::R2Bucket;
