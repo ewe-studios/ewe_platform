@@ -5,7 +5,7 @@
 //! HTTP requests via the platform client (`HttpClientBuilder::resolve_to`),
 //! and verifies the responses.
 
-#![cfg(feature = "multi")]
+#![cfg(all(feature = "multi", unix))]
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;

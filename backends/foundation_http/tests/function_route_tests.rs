@@ -47,7 +47,7 @@ impl Serve for Alias {
 
 #[test]
 fn mount_reuses_one_handler_across_aliases() {
-    let mut app = HttpApp::new_serve();
+    let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::with_ctx(Ctx::host());
     app.mount(Alias).unwrap();
     let exact = app.router.dispatch(&SimpleMethod::POST, "/action").unwrap();
     let named = app
@@ -135,7 +135,7 @@ fn invalid_alias_leaves_the_router_unchanged() {
         }
     }
     let mut router = Router::<Arc<dyn Serve>>::new();
-    let mut app = HttpApp::new_serve();
+    let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::with_ctx(Ctx::host());
     assert_eq!(
         router.mount(Invalid).unwrap_err().to_string(),
         app.mount(Invalid).unwrap_err().to_string()

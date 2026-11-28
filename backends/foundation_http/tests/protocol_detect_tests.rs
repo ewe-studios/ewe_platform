@@ -12,7 +12,7 @@
 //! The refusal runs on a pool worker, so the test records events with its own
 //! global subscriber: `tracing-test` keeps only the events of the test thread.
 
-#![cfg(not(target_family = "wasm"))]
+#![cfg(unix)]
 
 mod fake_overlay;
 

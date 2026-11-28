@@ -122,11 +122,13 @@ fn with_context_shares_the_callers_ctx() {
 #[test]
 fn plain_constructors_still_build() {
     let _: HttpApp<()> = HttpApp::new();
+    #[cfg(unix)]
     let serve: HttpApp<Arc<dyn foundation_http::native::serve::Serve>> = HttpApp::new_serve();
     let writer: WriterApp = HttpApp::new_writer();
     let web: HttpApp<Arc<dyn foundation_http::shared::serve_web::WebServe>> = HttpApp::new_web();
 
     // The engine-minimum elements are present on every plain constructor.
+    #[cfg(unix)]
     serve.context().assert_minimum();
     writer.context().assert_minimum();
     web.context().assert_minimum();

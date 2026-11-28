@@ -499,9 +499,7 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
-# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
-windows-tests = "none"
-windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+# Run the portable HTTP client fixtures on Windows. Server fixtures require Unix.
 # tests/integration_tests.rs (and the other server suites) are gated on
 # `multi`; without this run CI never compiled or ran them. `quic` adds the
 # HTTP/3 server suite (tests/http3_server_tests.rs).
