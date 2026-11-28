@@ -22,7 +22,9 @@
 //! decoder is additive.
 
 use foundation_core::io::{AccumulatingBuffer, DecodeError, DecodeStep, IncrementalDecoder};
-use std::io::Read;
+use std::io::{self, Read};
+
+use super::error::WebSocketError;
 
 use super::frame::{apply_mask, Opcode, WebSocketFrame};
 
@@ -141,22 +143,38 @@ impl WebSocketFrameDecoder {
             payload,
         })
     }
-}
 
-impl Default for WebSocketFrameDecoder {
-    fn default() -> Self {
-        Self::new()
+    /// Read one frame from a socket, retaining partial bytes across retries.
+    ///
+    /// # Errors
+    /// Returns the socket error or a protocol error. A zero-byte socket read
+    /// returns unexpected end of stream.
+    pub fn read_frame(&mut self, source: &mut impl Read) -> Result<WebSocketFrame, WebSocketError> {
+        loop {
+            match self.parse_buffer().map_err(|error| match error {
+                DecodeError::Io(error) => WebSocketError::IoError(error),
+                DecodeError::Protocol(message) => WebSocketError::ProtocolError(message.into()),
+            })? {
+                DecodeStep::Frame(frame) => return Ok(frame),
+                DecodeStep::Pending => {
+                    // The shared socket reader fills the requested slice before
+                    // returning. Request only bytes needed for the current frame.
+                    let remaining = match self.phase {
+                        HeaderPhase::Base { pos } => 2 - pos,
+                        HeaderPhase::ExtLen { need, pos, .. } => need - pos,
+                        HeaderPhase::Mask { pos, .. } => 4 - pos,
+                        HeaderPhase::Payload => self.payload_len - self.payload.len(),
+                    };
+                    if self.buffer.fill_from(&mut SocketRead(source, remaining))? == 0 {
+                        return Err(io::Error::from(io::ErrorKind::WouldBlock).into());
+                    }
+                }
+            }
+        }
     }
-}
 
-impl IncrementalDecoder for WebSocketFrameDecoder {
-    type Frame = WebSocketFrame;
-
-    // Long by design: decodes header, lengths and mask in one pass.
     #[allow(clippy::too_many_lines)]
-    fn step(&mut self, src: &mut impl Read) -> Result<DecodeStep<Self::Frame>, DecodeError> {
-        self.buffer.fill_from(src)?;
-
+    fn parse_buffer(&mut self) -> Result<DecodeStep<WebSocketFrame>, DecodeError> {
         loop {
             match self.phase {
                 HeaderPhase::Base { pos } => {
@@ -264,6 +282,44 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                     }
                     return Ok(DecodeStep::Pending);
                 }
+            }
+        }
+    }
+}
+
+impl Default for WebSocketFrameDecoder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+struct SocketRead<'a, R>(&'a mut R, usize);
+
+impl<R: Read> Read for SocketRead<'_, R> {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        let length = buffer.len().min(self.1);
+        let buffer = &mut buffer[..length];
+        loop {
+            match self.0.read(buffer) {
+                Ok(0) if !buffer.is_empty() => {
+                    return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+                }
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+                result => return result,
+            }
+        }
+    }
+}
+
+impl IncrementalDecoder for WebSocketFrameDecoder {
+    type Frame = WebSocketFrame;
+
+    fn step(&mut self, source: &mut impl Read) -> Result<DecodeStep<Self::Frame>, DecodeError> {
+        match self.parse_buffer()? {
+            frame @ DecodeStep::Frame(_) => Ok(frame),
+            DecodeStep::Pending => {
+                self.buffer.fill_from(source)?;
+                self.parse_buffer()
             }
         }
     }

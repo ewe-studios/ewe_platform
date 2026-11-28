@@ -186,40 +186,8 @@ impl WebSocketFrame {
     /// # Panics
     /// Never panics.
     pub fn decode(reader: &mut impl Read) -> Result<Self, WebSocketError> {
-        // Read the first header byte using `read` (not `read_exact`) to preserve
-        // WouldBlock/TimedOut errors. `read_exact` converts these to UnexpectedEof,
-        // which makes it impossible for callers to distinguish "no data yet" from
-        // "connection closed."
         let mut header = [0u8; 2];
-        let first_byte_read = match reader.read(&mut header[..1]) {
-            Ok(0) => {
-                tracing::debug!(
-                    "Received Ok(0) — no data available yet on TCP stream, signal retry"
-                );
-
-                // On a TCP stream, Ok(0) doesn't necessarily mean EOF.
-                // The stream may simply have no data available yet.
-                // Return WouldBlock so callers retry on the next poll cycle.
-                return Err(WebSocketError::IoError(std::io::Error::new(
-                    std::io::ErrorKind::WouldBlock,
-                    "zero bytes read from stream, retry later",
-                )));
-            }
-            Ok(n) => {
-                tracing::debug!(
-                    "Read first header byte: {:#04x} (read {} bytes)",
-                    header[0],
-                    n
-                );
-                true
-            }
-            Err(e) => {
-                tracing::debug!("Error occured reading data into buf: {:?}", e);
-                // Propagate WouldBlock/TimedOut directly so callers can retry
-                return Err(WebSocketError::IoError(e));
-            }
-        };
-        debug_assert!(first_byte_read);
+        reader.read_exact(&mut header[..1])?;
 
         // IMPORTANT: From this point on, we have consumed the first header byte.
         // Any I/O error (timeout, WouldBlock) means the stream is now in an
@@ -422,33 +390,8 @@ impl WebSocketFrame {
         reader: &mut impl Read,
         payload_buf: &mut BytesMut,
     ) -> Result<Self, WebSocketError> {
-        // Read the first header byte using `read` (not `read_exact`) to preserve
-        // WouldBlock/TimedOut errors.
         let mut header = [0u8; 2];
-        let first_byte_read = match reader.read(&mut header[..1]) {
-            Ok(0) => {
-                tracing::debug!(
-                    "Received Ok(0) — no data available yet on TCP stream, signal retry"
-                );
-                return Err(WebSocketError::IoError(std::io::Error::new(
-                    std::io::ErrorKind::WouldBlock,
-                    "zero bytes read from stream, retry later",
-                )));
-            }
-            Ok(n) => {
-                tracing::debug!(
-                    "Read first header byte: {:#04x} (read {} bytes)",
-                    header[0],
-                    n
-                );
-                true
-            }
-            Err(e) => {
-                tracing::debug!("Error occurred reading data into buf: {:?}", e);
-                return Err(WebSocketError::IoError(e));
-            }
-        };
-        debug_assert!(first_byte_read);
+        reader.read_exact(&mut header[..1])?;
 
         // Helper macro for partial read errors
         let map_partial_read_err = |e: WebSocketError| -> WebSocketError {

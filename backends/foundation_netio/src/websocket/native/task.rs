@@ -30,6 +30,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, info, instrument, trace, warn};
 
+use crate::websocket::shared::decoder::WebSocketFrameDecoder;
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
 use crate::websocket::shared::handshake::{
@@ -66,7 +67,7 @@ pub struct WebSocketConnectInfo {
 /// WHY: Extract Open state data into a separate struct to avoid cloning
 /// when transitioning Open→Open. Uses `Option.take()` for zero-copy moves.
 ///
-/// Added buffer pool and reusable buffer for zero-copy frame parsing.
+/// Receive state for an established WebSocket connection.
 pub struct WebSocketOpenState {
     pub stream: foundation_core::io::ioutils::SharedByteBufferStream<RawStream>,
     pub outbound_rx: PipeReceiver<WebSocketMessage>,
@@ -74,9 +75,9 @@ pub struct WebSocketOpenState {
     /// Read wait for the next frame, carried from the connect config.
     pub idle_timeout: Duration,
     pub assembler: crate::websocket::shared::assembler::MessageAssembler,
-    /// Buffer pool for zero-copy frame reading
+    /// Buffer pool retained for users of this connection state.
     pub buffer_pool: Arc<foundation_core::io::buffer_pool::BytesPool>,
-    /// Reusable buffer for frame payload reading
+    /// Reusable frame payload buffer retained for users of this connection state.
     pub frame_buffer: bytes::BytesMut,
 }
 
@@ -159,6 +160,7 @@ where
     R: DnsResolver + Send + 'static,
 {
     state: Option<WebSocketState>,
+    decoder: WebSocketFrameDecoder,
     pool: Arc<HttpConnectionPool<R>>,
 }
 
@@ -207,6 +209,7 @@ where
                 // 75 s is the nginx `keepalive_timeout` default.
                 idle_timeout: Duration::from_secs(75),
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -248,6 +251,7 @@ where
                 // 75 s is the nginx `keepalive_timeout` default.
                 idle_timeout: Duration::from_secs(75),
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -315,6 +319,7 @@ where
                 // WebSocket has no body size to scale it from.
                 idle_timeout: read_timeout,
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -367,6 +372,7 @@ where
                 // WebSocket has no body size to scale it from.
                 idle_timeout: read_timeout,
             })))),
+            decoder: WebSocketFrameDecoder::new(),
             pool,
         })
     }
@@ -698,11 +704,6 @@ where
                                 let queue =
                                     state.outbound_rx.expect("delivery_queue must be provided");
 
-                                // Create buffer pool for zero-copy frame reading (8KB buffers, 4 pre-allocated)
-                                let buffer_pool = Arc::new(
-                                    foundation_core::io::buffer_pool::BytesPool::new(8192, 4),
-                                );
-
                                 self.state = Some(WebSocketState::Open(Some(Box::new(
                                     WebSocketOpenState {
                                         stream,
@@ -710,7 +711,9 @@ where
                                         timeout_calculator: state.timeout_calculator,
                                         idle_timeout: state.idle_timeout,
                                         assembler: crate::websocket::shared::assembler::MessageAssembler::default(),
-                                        buffer_pool,
+                                        buffer_pool: Arc::new(
+                                            foundation_core::io::buffer_pool::BytesPool::new(8192, 4),
+                                        ),
                                         frame_buffer: bytes::BytesMut::new(),
                                     },
                                 ))));
@@ -886,11 +889,7 @@ where
                     read_timeout,
                 );
 
-                // Use pooled buffer for zero-copy frame reading
-                match WebSocketFrame::decode_with_buffer(
-                    &mut open_state.stream,
-                    &mut open_state.frame_buffer,
-                ) {
+                match self.decoder.read_frame(&mut open_state.stream) {
                     Ok(frame) => {
                         // Validate frame
                         debug!(
@@ -989,12 +988,11 @@ where
                             }
                         }
                     }
-                    Err(WebSocketError::IoError(ref e))
-                        if e.kind() == std::io::ErrorKind::UnexpectedEof =>
+                    Err(WebSocketError::IoError(error))
+                        if error.kind() == std::io::ErrorKind::UnexpectedEof =>
                     {
-                        error!("Connection closed (EOF) - error details: {:?}", e);
                         self.state = Some(WebSocketState::Closed(None));
-                        None
+                        Some(TaskStatus::Ready(Err(WebSocketError::IoError(error))))
                     }
                     Err(WebSocketError::IoError(ref e))
                         if e.kind() == std::io::ErrorKind::WouldBlock
