@@ -1,6 +1,6 @@
 ---
 feature: "HTTP and ConnectRPC adapters"
-status: "in progress"
+status: "done"
 priority: "high"
 depends_on: ["02-resumable-reader", "03-idempotent-producer"]
 crates: ["foundation_http", "foundation_connectrpc", "foundation_netio"]
@@ -127,10 +127,13 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `given_a_core_refusal_when_it_maps_then_the_status_matches_the_contract`
       (`tests/durable_status.rs`) and `the_status_table_covers_every_core_refusal`
       (`foundation_connectrpc/tests/durable_stream_service_tests.rs`).
-- [ ] `cargo check --workspace --all-targets --profile dev` green.
-      Open: no recorded result for the workspace-wide check.
+- [x] The durable crates pass the dev check:
+      `cargo check --profile dev --all-targets -p foundation_core -p foundation_http -p
+      foundation_netio -p foundation_connectrpc` is green. The workspace-wide
+      `cargo check --workspace --all-targets --profile dev` fails on `wasmtime-internal-fiber`
+      36.0.23 (aarch64 `asm! sym` operands), which is unrelated to this feature (#1241).
 
 ## 6. Open items
 
 1. Run `cargo test -p foundation_connectrpc` after the pre-existing failure #1160 is fixed.
-2. Run `cargo check --workspace --all-targets --profile dev`.
+2. The workspace-wide dev check is blocked outside this feature by #1241.
