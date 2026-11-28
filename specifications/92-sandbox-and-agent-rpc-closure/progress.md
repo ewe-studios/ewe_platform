@@ -259,3 +259,43 @@ binding directly. The OpenRouter tab uses the agent RPC catalog.
 The demo URL and the per-tab results are added here after a machine with the
 token permissions and enough free disk runs `mise run deploy` and
 `mise run test`.
+
+### The user-interface controls (2026-11-28)
+
+Branch `feat/cf-demo-ui` adds these controls to the page:
+
+- A sandbox strip below the create buttons. One card holds each sandbox, with
+  its own message box. The strip reads the index again after every create and
+  every destroy.
+- A central chat tab. The Worker route `POST /api/chat` resolves
+  `@name message` against the index and calls that sandbox. An unknown name
+  answers the names that exist. A message without `@name` is refused.
+- A Refresh button for the index. The page does not reload.
+- An Evidence panel in each sandbox tab. It runs `hostname`, `uname -a`,
+  `head -n 3 /etc/os-release`, and `uptime` in the sandbox. It shows the
+  sandbox identifier and the Durable Object name from the API.
+- A metadata line above each answer: the model path, its service, its address
+  and its protocol. The Worker sends the values in the response headers
+  `x-ewe-model-path`, `x-ewe-model`, `x-ewe-model-service`,
+  `x-ewe-model-address`, `x-ewe-model-protocol`, `x-ewe-sandbox-id` and
+  `x-ewe-sandbox-name`. `GET /api/sandboxes` sends the same values as JSON
+  fields, with `name`, `do_name` and `do_binding`.
+
+`cargo check --target wasm32-unknown-unknown --release` passes. The release
+profile finished in 5 minutes 43 seconds on 2026-11-28.
+
+The preview Worker
+`https://ewe-sandbox-demo-ui-k3f9.trinoxf.workers.dev` deployed with the Kiri
+Docker runtime on 2026-11-28. The probe answers 200. The page holds the
+sandbox strip, the Refresh button, the central chat, the Evidence panel and
+the metadata text. `GET /api/sandboxes` answers zero sandboxes with a maximum
+of three. `POST /api/chat` with `@sandbox-1 hello` answers 409 and
+`there are no sandboxes; create one first`. The create stream answers
+`the /ewe.sandbox.control.v1.SandboxService/Create call: Error: Durable Object
+exceeded its CPU time limit and was reset.`, so the three-sandbox checks wait
+for the create CPU fix. The preview Worker, its container and its managed
+image are deleted. The persistent `ewe-sandbox-demo` is untouched.
+
+**#1266** (`severity: medium`, open): `mise run deploy` ignores
+`EWE_DEMO_NAME`, so it overwrites the persistent demo. A preview deploy writes
+its own `wrangler.preview.toml`, as `test/live.sh` does.
