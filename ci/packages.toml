@@ -397,9 +397,6 @@ runs = [""]
 clippy-deny-warnings = true
 
 [packages.foundation_jsonschema]
-# 14 pedantic warnings; clear them and delete this override (#441).
-clippy-deny-warnings = false
-reason = "14 pedantic warnings; clear them and delete this override (#441)"
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
 # (ewe-studios/ewe_platform#49).

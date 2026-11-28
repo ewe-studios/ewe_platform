@@ -14,7 +14,7 @@ use foundation_deployment_docker::client::body::LogStream as DockerLogStream;
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 
 use foundation_deployment_docker::generated::json::{
-    ContainerConfig, ContainerInspectResponse, ContainerSummary, HostConfig, Resources,
+    ContainerConfig, ContainerInspectResponse, ContainerSummary, HostConfig,
 };
 use foundation_deployment_docker::generated::wait::ContainerWaitResponse;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
@@ -395,6 +395,14 @@ fn control_body(spec: &ContainerSpec) -> foundation_deployment_docker::client::C
         ..ContainerConfig::default()
     };
     let host = HostConfig {
+        memory: spec
+            .resources
+            .memory_mib
+            .map(|mib| i64::from(mib) * 1_048_576),
+        nano_cpus: spec
+            .resources
+            .vcpus
+            .map(|vcpus| i64::from(vcpus) * 1_000_000_000),
         network_mode: Some(
             match spec.network {
                 NetworkMode::Host => "bridge",
@@ -407,18 +415,7 @@ fn control_body(spec: &ContainerSpec) -> foundation_deployment_docker::client::C
         auto_remove: Some(false),
         ..HostConfig::default()
     };
-    let resources = Resources {
-        memory: spec
-            .resources
-            .memory_mib
-            .map(|mib| i64::from(mib) * 1_048_576),
-        nano_cpus: spec
-            .resources
-            .vcpus
-            .map(|vcpus| i64::from(vcpus) * 1_000_000_000),
-        ..Resources::default()
-    };
-    create_body(config, host, resources)
+    create_body(config, host)
 }
 
 /// Whether an inspect answer says that the container runs.

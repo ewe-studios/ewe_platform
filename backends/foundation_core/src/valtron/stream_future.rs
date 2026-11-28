@@ -2,6 +2,12 @@
 //!
 //! Wrapper types that convert any [`StreamIterator`] into standard Rust `Future`
 //! and `Stream` types, bridging valtron's sync iterator model with async code.
+//!
+//! A stream that drives its own producer (`WakeableStream::drives_its_producer`)
+//! is re-polled on `Wait`, `Init` and `Pending` while it can make progress, with
+//! a bounded budget. On a single-threaded engine no other thread sends the wake
+//! that a parked adapter waits for, so parking on those control states would
+//! stall the stream. `Delayed` keeps its timer behaviour and still parks.
 
 use core::future::Future;
 use core::pin::Pin;
@@ -86,13 +92,17 @@ where
                         }
                     }
                 }
-                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                Some(Stream::Pending(_) | Stream::Init | Stream::Wait)
+                    if iter.drives_its_producer() && iter.can_make_progress() =>
+                {
                     // A driving stream runs its producer inside `next()`. On a
                     // single-threaded engine no other thread sends a wake, so
-                    // re-poll instead of parking. Bound the re-polls so a stream
-                    // that never makes progress still yields to the executor.
-                    // A parked engine reports `can_make_progress() == false`; it
-                    // keeps the old register-then-park behaviour below.
+                    // re-poll instead of parking. A `Pending` progress hint or
+                    // an `Init` is a control state here, not an item to wait
+                    // for. Bound the re-polls so a stream that never makes
+                    // progress still yields to the executor. A parked engine
+                    // reports `can_make_progress() == false`; it keeps the old
+                    // register-then-park behaviour below.
                     if wait_redrive_budget == 0 {
                         let waker = cx.waker().clone();
                         let _ = iter.wake_send(Box::new(move || waker.wake()));
@@ -202,13 +212,17 @@ where
                 Some(Stream::Ignore) => {
                     wait_redrive_budget = this.wait_redrive_budget;
                 }
-                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                Some(Stream::Pending(_) | Stream::Init | Stream::Wait)
+                    if iter.drives_its_producer() && iter.can_make_progress() =>
+                {
                     // A driving stream runs its producer inside `next()`. On a
                     // single-threaded engine no other thread sends a wake, so
-                    // re-poll instead of parking. Bound the re-polls so a stream
-                    // that never makes progress still yields to the executor.
-                    // A parked engine reports `can_make_progress() == false`; it
-                    // keeps the old register-then-park behaviour below.
+                    // re-poll instead of parking. A `Pending` progress hint or
+                    // an `Init` is a control state here, not an item to wait
+                    // for. Bound the re-polls so a stream that never makes
+                    // progress still yields to the executor. A parked engine
+                    // reports `can_make_progress() == false`; it keeps the old
+                    // register-then-park behaviour below.
                     if wait_redrive_budget == 0 {
                         let waker = cx.waker().clone();
                         let _ = iter.wake_send(Box::new(move || waker.wake()));
@@ -328,13 +342,18 @@ where
                 Some(Stream::Ignore) => {
                     wait_redrive_budget = this.wait_redrive_budget;
                 }
-                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                Some(Stream::Init | Stream::Wait)
+                    if iter.drives_its_producer() && iter.can_make_progress() =>
+                {
                     // A driving stream runs its producer inside `next()`. On a
                     // single-threaded engine no other thread sends a wake, so
-                    // re-poll instead of parking. Bound the re-polls so a stream
-                    // that never makes progress still yields to the executor.
-                    // A parked engine reports `can_make_progress() == false`; it
-                    // keeps the old register-then-park behaviour below.
+                    // re-poll instead of parking. `Pending` is this adapter's
+                    // result and is returned above, so only an `Init` or a
+                    // `Wait` is a control state to drive past here. Bound the
+                    // re-polls so a stream that never makes progress still
+                    // yields to the executor. A parked engine reports
+                    // `can_make_progress() == false`; it keeps the old
+                    // register-then-park behaviour below.
                     if wait_redrive_budget == 0 {
                         let waker = cx.waker().clone();
                         let _ = iter.wake_send(Box::new(move || waker.wake()));
@@ -445,10 +464,11 @@ where
 /// the same item type as the raw lens.
 ///
 /// HOW: On `Next(v)`/`Spread(items)` returns `Ready(Some(..))`; on
-/// `Wait`/`Pending`/`Delayed`/`Init` registers a wake through
-/// [`WakeableStream::wake`] and parks (falling back to a `wake_by_ref()` self-wake
-/// when the iterator reports `NotSupported`); on `Ignore` loops; on `None` returns
-/// `Ready(None)` permanently.
+/// `Wait`/`Init`/`Pending` from a driving stream re-polls with the bounded
+/// budget; on any other `Wait`/`Pending`/`Delayed`/`Init` registers a wake
+/// through [`WakeableStream::wake`] and parks (falling back to a
+/// `wake_by_ref()` self-wake when the iterator reports `NotSupported`); on
+/// `Ignore` loops; on `None` returns `Ready(None)` permanently.
 pub struct StreamParkingFutureStream<SI: StreamIterator> {
     inner: Option<SI>,
     /// Whether the async consumer has announced itself to the stream (see
@@ -503,13 +523,17 @@ where
                 Some(Stream::Ignore) => {
                     wait_redrive_budget = this.wait_redrive_budget;
                 }
-                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                Some(Stream::Pending(_) | Stream::Init | Stream::Wait)
+                    if iter.drives_its_producer() && iter.can_make_progress() =>
+                {
                     // A driving stream runs its producer inside `next()`. On a
                     // single-threaded engine no other thread sends a wake, so
-                    // re-poll instead of parking. Bound the re-polls so a stream
-                    // that never makes progress still yields to the executor.
-                    // A parked engine reports `can_make_progress() == false`; it
-                    // keeps the old register-then-park behaviour below.
+                    // re-poll instead of parking. A `Pending` progress hint or
+                    // an `Init` is a control state here, not an item to wait
+                    // for. Bound the re-polls so a stream that never makes
+                    // progress still yields to the executor. A parked engine
+                    // reports `can_make_progress() == false`; it keeps the old
+                    // register-then-park behaviour below.
                     if wait_redrive_budget == 0 {
                         let waker = cx.waker().clone();
                         let _ = iter.wake_send(Box::new(move || waker.wake()));
@@ -574,10 +598,12 @@ where
 /// on iterator exhaustion, enabling `while let Some(chunk) = body.next().await`.
 ///
 /// HOW: On `Next(v)` returns `Ready(Some(v))`; on `Spread` buffers every `Done`
-/// payload and drains them one per poll; on `Wait`/`Pending`/`Delayed`/`Init`
-/// registers a wake through [`WakeableStream::wake`] and parks (falling back to
-/// a `wake_by_ref()` self-wake when the iterator reports `NotSupported`); on
-/// `Ignore` loops; on `None` returns `Ready(None)` permanently.
+/// payload and drains them one per poll; on `Wait`/`Init`/`Pending` from a
+/// driving stream re-polls with the bounded budget; on any other
+/// `Wait`/`Pending`/`Delayed`/`Init` registers a wake through
+/// [`WakeableStream::wake`] and parks (falling back to a `wake_by_ref()`
+/// self-wake when the iterator reports `NotSupported`); on `Ignore` loops; on
+/// `None` returns `Ready(None)` permanently.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub struct StreamNextStream<SI: StreamIterator> {
     inner: Option<SI>,
@@ -644,13 +670,17 @@ where
                 Some(Stream::Ignore) => {
                     wait_redrive_budget = this.wait_redrive_budget;
                 }
-                Some(Stream::Wait) if iter.drives_its_producer() && iter.can_make_progress() => {
+                Some(Stream::Pending(_) | Stream::Init | Stream::Wait)
+                    if iter.drives_its_producer() && iter.can_make_progress() =>
+                {
                     // A driving stream runs its producer inside `next()`. On a
                     // single-threaded engine no other thread sends a wake, so
-                    // re-poll instead of parking. Bound the re-polls so a stream
-                    // that never makes progress still yields to the executor.
-                    // A parked engine reports `can_make_progress() == false`; it
-                    // keeps the old register-then-park behaviour below.
+                    // re-poll instead of parking. A `Pending` progress hint or
+                    // an `Init` is a control state here, not an item to wait
+                    // for. Bound the re-polls so a stream that never makes
+                    // progress still yields to the executor. A parked engine
+                    // reports `can_make_progress() == false`; it keeps the old
+                    // register-then-park behaviour below.
                     if wait_redrive_budget == 0 {
                         let waker = cx.waker().clone();
                         let _ = iter.wake_send(Box::new(move || waker.wake()));

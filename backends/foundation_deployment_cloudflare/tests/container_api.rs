@@ -260,9 +260,85 @@ fn set_route_creates_the_route() {
     assert!(requests[0].contains(r#""script":"ewe-sandbox""#));
 }
 
-/// The traffic switch posts the version at 100 percent.
+/// The traffic switch posts the version at 100 percent, then reads the account
+/// subdomain for the Worker address.
 #[test]
 fn promote_switches_traffic() {
+    let (address, server) = mock_server(vec![
+        (
+            200,
+            envelope(
+                r#"{"id":"deployment-1","created_on":"2026-01-01T00:00:00Z","source":"api","strategy":"percentage","versions":[]}"#,
+            ),
+        ),
+        (200, envelope(r#"{"subdomain":"example"}"#)),
+    ]);
+    let api = GeneratedCloudflareApi::new(
+        HttpClientBuilder::new().build(),
+        "account",
+        "ewe-sandbox",
+        format!("http://{address}"),
+        Secret::new("token"),
+    );
+    let _pool = initialize_pool(21, Some(3));
+    let promotion = block_on_future(async move { api.promote("ewe-sandbox", "v1", None).await })
+        .expect("the promote");
+    assert_eq!(promotion.deployment_id.as_str(), "deployment-1");
+    assert_eq!(
+        promotion.worker_url,
+        "https://ewe-sandbox.example.workers.dev"
+    );
+
+    let requests = server.join().expect("the server thread");
+    assert!(
+        requests[0].starts_with("POST /accounts/account/workers/scripts/ewe-sandbox/deployments ")
+    );
+    assert!(requests[0].contains(r#""strategy":"percentage""#));
+    assert!(requests[0].contains(r#""version_id":"v1""#));
+    assert!(requests[0].contains(r#""percentage":100"#));
+    assert!(
+        requests[1].starts_with("GET /accounts/account/workers/subdomain "),
+        "the promote reads the account subdomain: {}",
+        requests[1]
+    );
+}
+
+/// A refused subdomain read falls back to the bare workers.dev address.
+#[test]
+fn promote_without_subdomain_falls_back() {
+    let (address, server) = mock_server(vec![
+        (
+            200,
+            envelope(
+                r#"{"id":"deployment-1","created_on":"2026-01-01T00:00:00Z","source":"api","strategy":"percentage","versions":[]}"#,
+            ),
+        ),
+        (404, "{}".to_string()),
+    ]);
+    let api = GeneratedCloudflareApi::new(
+        HttpClientBuilder::new().build(),
+        "account",
+        "ewe-sandbox",
+        format!("http://{address}"),
+        Secret::new("token"),
+    );
+    let _pool = initialize_pool(23, Some(3));
+    let promotion = block_on_future(async move { api.promote("ewe-sandbox", "v1", None).await })
+        .expect("the promote");
+    assert_eq!(promotion.worker_url, "https://ewe-sandbox.workers.dev");
+
+    let requests = server.join().expect("the server thread");
+    assert_eq!(requests.len(), 2, "the deployment and the subdomain read");
+    assert!(
+        requests[1].starts_with("GET /accounts/account/workers/subdomain "),
+        "the subdomain read happens before the fallback: {}",
+        requests[1]
+    );
+}
+
+/// A plan route is the Worker address, so the promote reads no subdomain.
+#[test]
+fn promote_uses_the_first_route() {
     let (address, server) = mock_server(vec![(
         200,
         envelope(
@@ -276,19 +352,21 @@ fn promote_switches_traffic() {
         format!("http://{address}"),
         Secret::new("token"),
     );
-    let _pool = initialize_pool(21, Some(3));
-    let promotion = block_on_future(async move { api.promote("ewe-sandbox", "v1").await })
-        .expect("the promote");
-    assert_eq!(promotion.deployment_id.as_str(), "deployment-1");
-    assert_eq!(promotion.worker_url, "https://ewe-sandbox.workers.dev");
+    let _pool = initialize_pool(24, Some(3));
+    let route = Route {
+        pattern: "sandbox.example.com/*".to_string(),
+        zone: Some("zone-1".to_string()),
+    };
+    let promotion =
+        block_on_future(async move { api.promote("ewe-sandbox", "v1", Some(&route)).await })
+            .expect("the promote");
+    assert_eq!(promotion.worker_url, "https://sandbox.example.com");
 
     let requests = server.join().expect("the server thread");
+    assert_eq!(requests.len(), 1, "a plan route skips the subdomain read");
     assert!(
         requests[0].starts_with("POST /accounts/account/workers/scripts/ewe-sandbox/deployments ")
     );
-    assert!(requests[0].contains(r#""strategy":"percentage""#));
-    assert!(requests[0].contains(r#""version_id":"v1""#));
-    assert!(requests[0].contains(r#""percentage":100"#));
 }
 
 /// A status read finds the live deployment, and a missing one is a rollback.

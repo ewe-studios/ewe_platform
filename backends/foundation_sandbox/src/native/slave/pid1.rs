@@ -11,16 +11,34 @@ use super::sys;
 /// The mode of a directory that this file makes.
 const DIR_MODE: u32 = 0o755;
 
-/// Whether this process runs in a container.
+/// Whether the process runs in a container.
 ///
 /// Docker writes `/.dockerenv` and Podman writes `/run/.containerenv`. A
 /// container runtime owns the mount namespace and the loopback interface, and a
 /// container's process identifier (PID) 1 has no right to change them. The
 /// slave then skips the virtual machine boot duties and ends with an exit
 /// instead of a power off (feature 10).
+///
+/// The Cloudflare container runtime writes neither marker. It sets
+/// `CLOUDFLARE_DEPLOYMENT_ID` and `CLOUDFLARE_DURABLE_OBJECT_ID` in the
+/// container environment, so the slave checks those too (issue #1133).
 #[must_use]
 pub fn in_container() -> bool {
-    Path::new("/.dockerenv").exists() || Path::new("/run/.containerenv").exists()
+    container_from_markers(
+        Path::new("/.dockerenv").exists(),
+        Path::new("/run/.containerenv").exists(),
+        std::env::var_os("CLOUDFLARE_DURABLE_OBJECT_ID").is_some()
+            || std::env::var_os("CLOUDFLARE_DEPLOYMENT_ID").is_some(),
+    )
+}
+
+/// Whether these container markers say that the process runs in a container.
+///
+/// A test builds the three values, so it needs no container and no environment
+/// change.
+#[must_use]
+pub fn container_from_markers(dockerenv: bool, containerenv: bool, cloudflare: bool) -> bool {
+    dockerenv || containerenv || cloudflare
 }
 
 /// Mounts the kernel file systems, sets the loopback interface up, opens the

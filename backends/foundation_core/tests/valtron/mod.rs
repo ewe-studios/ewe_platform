@@ -103,6 +103,10 @@ mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]
 mod multi_workers;
+#[cfg(feature = "testing")]
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod nested_drive;
 #[cfg(not(feature = "multi"))]
 #[cfg(not(target_family = "wasm"))]
 mod non_sendable_split_observer_wake;

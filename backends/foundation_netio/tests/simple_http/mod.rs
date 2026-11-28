@@ -31,6 +31,7 @@ mod cookie_tests;
 mod dns_async_tests;
 mod dns_tests;
 mod eof_handling_tests;
+mod error_body_close_tests;
 mod errors_tests;
 mod expect_continue_timeout_tests;
 mod f51_unified_client_tests;

@@ -17,7 +17,7 @@ use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     ClientOptions, ConnectError, H1Transport, Request, RpcCtx, ServerStream,
 };
-use foundation_core::valtron::{block_on_future, initialize_pool};
+use foundation_core::valtron::block_on_future;
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::HttpClientBuilder;
 
@@ -423,19 +423,21 @@ impl Caller {
     }
 }
 
-/// Drives one future on the test pool.
+/// Drives one future on the shared test pool.
 ///
 /// # Panics
 /// When the pool cannot start.
+///
+/// The test binary has one engine. A second pool that keeps its lifecycle
+/// guard blocks every later `crate::pool::pool()` call, because the gate is
+/// process wide. That leak held the serve tests and the unpack test until the
+/// job was cancelled (issue #1104).
 pub fn block_on<F>(future: F) -> F::Output
 where
     F: std::future::Future + Send + 'static,
     F::Output: Send + 'static,
 {
-    static POOL: OnceLock<()> = OnceLock::new();
-    POOL.get_or_init(|| {
-        std::mem::forget(initialize_pool(1, Some(4)));
-    });
+    crate::pool::pool();
     block_on_future(future)
 }
 
@@ -455,6 +457,32 @@ pub fn limits() -> SlaveLimits {
         max_unpack_bytes: 16 * 1024 * 1024 * 1024,
         max_unpack_path_bytes: 4096,
     }
+}
+
+/// The host directory that the plain-root tests use as a work directory.
+///
+/// `EWE_SANDBOX_WORK_ROOT` sets the base first, then `RUNNER_TEMP`, then the
+/// system temporary directory. The process makes one directory below the base
+/// and owns it, so the slave never has to change the mode of a shared
+/// directory such as `/tmp` (issue #1105).
+#[must_use]
+pub fn work_root() -> PathBuf {
+    static ROOT: OnceLock<PathBuf> = OnceLock::new();
+    ROOT.get_or_init(|| {
+        let base = std::env::var_os("EWE_SANDBOX_WORK_ROOT")
+            .or_else(|| std::env::var_os("RUNNER_TEMP"))
+            .map_or_else(std::env::temp_dir, PathBuf::from);
+        let path = base.join(format!("ewe-slave-work-{}", std::process::id()));
+        std::fs::create_dir_all(&path).expect("the work root is made");
+        path
+    })
+    .clone()
+}
+
+/// A `Prepare` request whose work directory is the harness work root.
+#[must_use]
+pub fn plain_prepare_work() -> PrepareRequest {
+    plain_prepare(&work_root().display().to_string())
 }
 
 /// A `Prepare` request with a plain root.

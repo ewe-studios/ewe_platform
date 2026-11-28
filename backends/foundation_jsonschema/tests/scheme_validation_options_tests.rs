@@ -1,4 +1,4 @@
-//! Unit tests — ValidationOptions schema accessor methods.
+//! Unit tests — `ValidationOptions` schema accessor methods.
 
 use foundation_jsonschema::scheme;
 use serde_json::json;

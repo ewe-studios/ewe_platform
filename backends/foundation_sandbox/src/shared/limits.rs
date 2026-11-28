@@ -32,6 +32,17 @@ pub struct SandboxLimits {
     /// Default 5 s. The calls are local or one hop.
     #[serde(with = "duration_millis")]
     pub rpc_timeout: Duration,
+    /// The time that a create stream waits before it polls again after `Wait`.
+    ///
+    /// The create progress iterator runs its producer inside `next()`. `Wait`
+    /// means that its queue is empty and that it must run again. A synchronous
+    /// re-poll blocks the event loop of a wasm host, so the service parks on
+    /// the injected timer for this interval first.
+    ///
+    /// Default 4 ms: the wait-check interval of the single-threaded valtron
+    /// executor (`DEFAULT_WAIT_CHECK_INTERVAL` in `foundation_core`).
+    #[serde(with = "duration_millis")]
+    pub create_poll_interval: Duration,
     /// The largest message that a server reads.
     ///
     /// Default 4 MiB: the default maximum message size of the gRPC protocol.
@@ -90,6 +101,7 @@ impl Default for SandboxLimits {
             boot_timeout: Duration::from_secs(10),
             shutdown_grace: Duration::from_secs(5),
             rpc_timeout: Duration::from_secs(5),
+            create_poll_interval: Duration::from_millis(4),
             max_message_bytes: 4 * 1024 * 1024,
             chunk_bytes: 64 * 1024,
             max_exec_sessions: 128,
@@ -501,6 +513,18 @@ impl SandboxLimits {
         self
     }
 
+    /// The deadline of one create: the driver launch, the readiness wait and
+    /// `Prepare`.
+    ///
+    /// A create runs the driver launch, the readiness wait and `Prepare`, so
+    /// its deadline is the boot deadline and not the deadline of one call.
+    /// The remote client and the server read this one value. Reading it
+    /// through this method keeps the limit's name out of a boundary module.
+    #[must_use]
+    pub fn create_deadline(&self) -> Duration {
+        self.boot_timeout
+    }
+
     /// Replaces [`Self::shutdown_grace`].
     #[must_use]
     pub fn with_shutdown_grace(mut self, value: Duration) -> Self {
@@ -512,6 +536,13 @@ impl SandboxLimits {
     #[must_use]
     pub fn with_rpc_timeout(mut self, value: Duration) -> Self {
         self.rpc_timeout = value;
+        self
+    }
+
+    /// Replaces [`Self::create_poll_interval`].
+    #[must_use]
+    pub fn with_create_poll_interval(mut self, value: Duration) -> Self {
+        self.create_poll_interval = value;
         self
     }
 
@@ -598,6 +629,7 @@ impl SandboxLimits {
         !self.boot_timeout.is_zero()
             && !self.shutdown_grace.is_zero()
             && !self.rpc_timeout.is_zero()
+            && !self.create_poll_interval.is_zero()
             && self.max_message_bytes > 0
             && self.chunk_bytes > 0
             && self.max_exec_sessions > 0

@@ -198,8 +198,14 @@ candle-gpu = ["candle-cuda"]
 # Multi-threaded executor
 multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi", "foundation_auth/turso", "foundation_netio/multi", "foundation_nativeapis/multi"]
 
-# Test substrate (F21): MockModelProvider, MockTool, message builders
-testing = ["toolbox", "multi"]
+# Test substrate (F21): MockModelProvider, MockTool, message builders.
+#
+# `testing-mock` is the substrate alone. It needs no thread pool, so a
+# deterministic simulation build can use the mocks next to the single-threaded
+# `SimRuntime`. `testing` keeps the old contract for every existing caller: the
+# substrate and the `multi` executor.
+testing-mock = ["toolbox"]
+testing = ["testing-mock", "multi"]
 
 # live-model-tests: integration tests that need a LARGE or DOWNLOADED model
 # (SmolLM2, Gemma-4, the qwen GGUF the llama-server runs) or a live cloud API

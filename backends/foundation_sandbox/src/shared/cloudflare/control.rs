@@ -447,6 +447,9 @@ impl DoControlPlane {
         };
         let mut limits = limits;
         limits.boot_timeout = host.config.boot_timeout;
+        // A cold container or model Durable Object takes seconds to answer its
+        // first call, so one call uses the container call deadline (issue #1125).
+        limits.rpc_timeout = host.config.call_timeout;
 
         let connector = Arc::new(PortConnector {
             container: Arc::clone(&host.container),
