@@ -1,0 +1,13 @@
+{
+  "body": {
+    "kind": "text",
+    "value": "stream is closed"
+  },
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "status": 409,
+  "stream_closed": "true",
+  "stream_next_offset": "0000000000000010",
+  "stream_up_to_date": null,
+  "x_error_kind": "closed"
+}

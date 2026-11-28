@@ -107,11 +107,12 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `oversized_body_answers_413_from_the_limit`.
 - [x] **T10 — server conformance.** Run the reference suite against `DurableHandler`. Record every
       failure and skip. Do not close the feature until it passes.
-- [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
+- [x] **T11 — oracles.** Specification, conformance, golden, failure injection and security
       oracles. Tests: `status_table_matches`, `server_suite_passes`,
       `injected_error_is_typed`, `security_headers_present`. The status table, the reference
-      server suite, the failure-injection oracle and the security oracle pass. Open: no golden
-      oracle exists (#1167).
+      server suite, the failure-injection oracle and the security oracle pass. The golden
+      oracle is `golden_durable_http` in `tests/golden_durable_http.rs`; it drives 11 steps of
+      the HTTP surface and compares 11 fixtures in `tests/golden/durable_http/` (#1167).
 
 ## 5. Success criteria
 
@@ -131,6 +132,5 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 
 ## 6. Open items
 
-1. T11: add the golden oracle (#1167).
-2. Run `cargo test -p foundation_connectrpc` after the pre-existing failure #1160 is fixed.
-3. Run `cargo check --workspace --all-targets --profile dev`.
+1. Run `cargo test -p foundation_connectrpc` after the pre-existing failure #1160 is fixed.
+2. Run `cargo check --workspace --all-targets --profile dev`.
