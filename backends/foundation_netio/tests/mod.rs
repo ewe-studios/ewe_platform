@@ -6,6 +6,9 @@ mod native;
 mod netcap;
 // `RawStream` exists only on native targets, so this suite is native-only.
 #[cfg(not(target_family = "wasm"))]
+mod raw_stream_shutdown;
+// `RawStream` exists only on native targets, so this suite is native-only.
+#[cfg(not(target_family = "wasm"))]
 mod read_wake_source_tests;
 mod simple_http;
 mod tcp_and_tls;
