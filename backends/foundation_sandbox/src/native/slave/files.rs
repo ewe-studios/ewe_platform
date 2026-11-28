@@ -1,9 +1,9 @@
 //! The file calls: the uploads and the reads.
 //!
-//! A path is absolute and cannot leave the root of the programs. Every open
-//! goes through `openat2` with `RESOLVE_IN_ROOT` on a directory descriptor of
-//! the root, so a symbolic link, also an absolute one, resolves inside the
-//! root.
+//! A path is absolute, or it joins the work directory of the sandbox and cannot
+//! leave it (issue #1154). Every open goes through `openat2` with
+//! `RESOLVE_IN_ROOT` on a directory descriptor of the root, so a symbolic link,
+//! also an absolute one, resolves inside the root.
 
 use std::collections::HashMap;
 use std::ffi::CString;
@@ -50,6 +50,7 @@ struct Upload {
 /// The uploads and the root of one prepared slave.
 pub struct Files {
     root: Arc<OwnedFd>,
+    workdir: String,
     uploads: Mutex<HashMap<UploadId, Upload>>,
     ctx: Ctx,
     chunk_bytes: usize,
@@ -65,6 +66,7 @@ impl Files {
     /// The operating system error of the root open.
     pub fn new(
         root: &Path,
+        workdir: &str,
         ctx: Ctx,
         chunk_bytes: u32,
         max_uploads: u32,
@@ -76,6 +78,7 @@ impl Files {
         let directory = sys::open_path(&path, libc::O_PATH | libc::O_DIRECTORY, 0)?;
         Ok(Arc::new(Self {
             root: Arc::new(directory),
+            workdir: workdir.to_string(),
             uploads: Mutex::new(HashMap::new()),
             ctx,
             chunk_bytes: (chunk_bytes as usize).clamp(1, READ_CHUNK_BYTES),
@@ -98,7 +101,9 @@ impl Files {
     /// parent directory is missing, `PermissionDenied`, `TooManySessions` when
     /// the upload count is at its limit, and `Io`.
     pub fn begin(&self, path: &str, mode: u32) -> SandboxResult<UploadId> {
-        let (parent, name) = split_guest_path(path)?;
+        let resolved = crate::shared::spec::resolve_guest_path(&self.workdir, path)
+            .ok_or_else(|| bad_path(path))?;
+        let (parent, name) = split_guest_path(&resolved)?;
         if self.lock().len() >= self.max_uploads {
             return Err(SandboxError::TooManySessions.into());
         }
@@ -259,8 +264,10 @@ impl Files {
     /// A `BadRequest` for a path that leaves the root or names a directory,
     /// `NotFound`, `PermissionDenied` and `Io`.
     pub fn read_file(&self, path: &str) -> SandboxResult<FileReadStream> {
-        let (_, _) = split_guest_path(path)?;
-        let path_c = CString::new(path).map_err(|_| bad_path(path))?;
+        let resolved = crate::shared::spec::resolve_guest_path(&self.workdir, path)
+            .ok_or_else(|| bad_path(path))?;
+        let (_, _) = split_guest_path(&resolved)?;
+        let path_c = CString::new(resolved.as_str()).map_err(|_| bad_path(path))?;
         let file = sys::open_in_root(self.root.as_raw_fd(), &path_c, libc::O_RDONLY, 0)
             .map_err(|error| read_error(path, &error))?;
         if sys::is_directory(file.as_raw_fd())

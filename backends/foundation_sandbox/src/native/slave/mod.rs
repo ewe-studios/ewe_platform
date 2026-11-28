@@ -302,6 +302,7 @@ impl Slave {
         let limits = prepared.limits();
         let opened = Files::new(
             &prepared.exec_root,
+            prepared.workdir(),
             self.ctx.clone(),
             limits.chunk_bytes,
             limits.max_exec_sessions,

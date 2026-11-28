@@ -298,3 +298,38 @@ fn spec_new_defaults() {
     assert_eq!(spec.limits, SandboxLimits::default());
     assert_eq!(spec.driver, None::<DriverId>);
 }
+
+/// A relative guest path joins the work directory (issue #1154).
+#[test]
+fn a_relative_guest_path_joins_the_workdir() {
+    use foundation_sandbox::shared::spec::resolve_guest_path;
+
+    assert_eq!(
+        resolve_guest_path("/workspace", "tmp/a").as_deref(),
+        Some("/workspace/tmp/a")
+    );
+    assert_eq!(
+        resolve_guest_path("/workspace", "./tmp/./a").as_deref(),
+        Some("/workspace/tmp/a")
+    );
+    assert_eq!(
+        resolve_guest_path("/workspace", "tmp/b/../a").as_deref(),
+        Some("/workspace/tmp/a")
+    );
+    assert_eq!(
+        resolve_guest_path("/workspace", "/etc/x").as_deref(),
+        Some("/etc/x")
+    );
+}
+
+/// A relative path that leaves the work directory is refused (issue #1154).
+#[test]
+fn a_relative_guest_path_cannot_leave_the_workdir() {
+    use foundation_sandbox::shared::spec::resolve_guest_path;
+
+    assert_eq!(resolve_guest_path("/workspace", "../x"), None);
+    assert_eq!(resolve_guest_path("/workspace", "tmp/../../x"), None);
+    assert_eq!(resolve_guest_path("/workspace", ""), None);
+    assert_eq!(resolve_guest_path("/workspace", "."), None);
+    assert_eq!(resolve_guest_path("workspace", "tmp/a"), None);
+}
