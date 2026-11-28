@@ -165,11 +165,25 @@ The repository lists both registrar App credential names and the signing fingerp
 The organization stores the Central user token pair. Its signing key secret selects only this repository.
 The organization lists `eweplatform-runner-registrar` with Contents write and access to all repositories.
 The workflow asks for access to this repository only. Credential values and Central namespace membership still need separate proof.
-The repository environment list does not contain `native-ui-release`. The named environment lookup returns 404.
-Configure the protected environment and its designated reviewer before pushing a native release tag.
+The `native-ui-release` environment contains `CENTRAL_USERNAME` and `CENTRAL_PASSWORD`.
+The environment has no protection rules. Set the approved reviewer before pushing a native release tag.
+Sonatype lists the Ubuntu and OpenPGP keyservers for its public key lookup.
+Both return HTTP status 404 for the configured fingerprint. The MIT server does not respond to the lookup.
+Confirm public signing key retrieval before publication.
+[Central keyserver requirements](https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key)
 
 Build and preview an updated release revision that contains the App token workflow.
 Obtain owner approval for that exact revision before the tag push.
 The previous approval remains specific to `4e4a50b9d230cb536f092f11bd689be60c2bf9d1`.
 A tag at that commit runs its original workflow and requires the original token input.
 [Current workflow](../../../../.github/workflows/native-ui-release.yml) · [Publication setup](../../../../bin/ewe_ui/docs/operations/publishing.md)
+
+### Updated 0.1.2 preview
+
+Commit `26315e7ff2063639de10b94051f909d7239c90e4` contains the registrar token workflow.
+Its only file difference from the earlier 0.1.2 proposal is the native release workflow.
+The release configuration, embedded generator configuration, and native crate all select 0.1.2.
+The manual preview starts the candidate and Android example jobs without a release tag.
+The refreshed Maven and GitHub lookups find no public 0.1.2 release.
+Wait for the preview result before asking for approval of this exact commit.
+[Updated native preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076)

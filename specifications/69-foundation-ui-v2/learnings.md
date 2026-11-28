@@ -1859,3 +1859,11 @@ A credential change in another branch does not change the tagged workflow.
 The registrar GitHub App installation token expires after one hour. The Central polling limit is 30 minutes by default.
 Create the publication token after the signed artifact upload to keep its full lifetime for publication.
 [Native release workflow](../../.github/workflows/native-ui-release.yml)
+
+## Native release preview with App tokens
+
+A workflow-only child commit preserves the prior candidate's package inputs.
+The new manifest must record the child commit as its source revision.
+The environment can exist with publication secrets and no reviewer rule.
+Check the rule and the public signing key before any release tag push.
+[Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076)

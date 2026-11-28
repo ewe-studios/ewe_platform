@@ -2516,3 +2516,11 @@ The protected native job creates a registrar GitHub App token before signing and
 Each token requests Contents write for the current repository. Token creation failure stops the job.
 The updated release source needs a preview and owner approval. The protected environment and public checks remain pending.
 [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#release-prerequisites-for-the-updated-workflow)
+
+## Native release preview with App tokens
+
+The exact 0.1.2 preview revision changes only the native release workflow.
+The manual preview runs the candidate and Android example jobs.
+The environment exists with the two Central secret names. Its reviewer rule remains pending.
+The configured public signing key does not resolve on the two responding keyservers.
+[Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076) · [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#updated-012-preview)
