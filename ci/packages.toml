@@ -649,7 +649,7 @@ wasm-runs = [""]
 # caught in CI. `vfs-object-netio` compiles the native S3 transport and its
 # `TcpListener` tests; its live tests skip without `EWE_S3_ENDPOINT` and run in
 # the `durable-conformance` gate, which starts MinIO.
-runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow", "vfs-object-http", "vfs-object-netio"]
+runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "netstack,tap", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow", "vfs-object-http", "vfs-object-netio"]
 # At zero clippy warnings in the default build, the `vfs-preload` shim tree
 # (spec 70 feature 113) and the `ipc` message bus (issue #487): a new one fails CI.
 clippy-runs = ["", "vfs-object-http", "vfs-object-netio", "vfs-preload", "ipc"]
@@ -673,7 +673,7 @@ container-options = "--security-opt seccomp=unconfined"
 # handler (default `signal`), the polling watcher (`watcher-macos`), the Mach
 # port IPC transport (`vfs-ipc`) and the userspace data plane (`netstack`). The
 # `tun` (needs root), `uring`, `ptrace`, FUSE and preload sets are Linux-only.
-macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc", "vfs-object-http"]
+macos-runs = ["", "fd", "watcher-macos", "netstack", "netstack,tap", "vfs-native,vfs-ipc", "vfs-object-http"]
 # Windows runs (job `windows-test`): the Windows signal handler (default
 # `signal`), the polling watcher (`watcher-windows`) and the named-pipe IPC
 # transport (`ipc`). `fd`, `uring`, `ptrace`, FUSE and preload are Unix-only.

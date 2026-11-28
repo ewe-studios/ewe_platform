@@ -56,6 +56,7 @@ js-sys = { workspace = true, optional = true }
 # no_std / alloc only — the "phy" is us (the Tunn plaintext side), so no std/phy-* features.
 smoltcp = { version = "0.12", default-features = false, features = [
     "medium-ip",
+    "medium-ethernet",
     "proto-ipv4",
     "proto-ipv6",
     "socket-tcp",
@@ -473,6 +474,9 @@ vfs-preload = ["vfs-native"]
 # WireGuard overlay data plane (spec-55, feature 00).
 # `netstack` = smoltcp userspace TCP/IP stack (cross-target, default data plane).
 netstack = ["dep:smoltcp"]
+# `tap` = Ethernet TAP data plane: an Ethernet-mode netstack over `/dev/net/tun` in
+# TAP mode (Linux), used by the Firecracker guest network (spec 92, feature 02).
+tap = ["netstack"]
 # `tun` = kernel TUN device data plane (native-only, privileged). Implies `netstack`
 # because the `DataPlane` trait and overlay socket handle types live with the netstack.
 tun = ["netstack", "poll", "fd"]

@@ -27,11 +27,17 @@ use std::time::Instant;
 #[cfg(feature = "netstack")]
 pub mod netstack;
 
+#[cfg(feature = "tap")]
+pub mod tap;
+
 #[cfg(feature = "tun")]
 pub mod tun;
 
 #[cfg(feature = "netstack")]
 pub use netstack::{NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp};
+
+#[cfg(feature = "tap")]
+pub use tap::{TapConfig, TapDataPlane, TapDevice};
 
 /// WHY: The data plane is sans-I/O and driven by a valtron task; when a socket's
 /// readiness changes the plane must be able to wake the task(s) blocked on it without

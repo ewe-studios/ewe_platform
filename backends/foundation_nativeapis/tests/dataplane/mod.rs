@@ -365,6 +365,30 @@ fn netstack_listener_backlog_limit_refuses_then_recovers() {
 }
 
 // ---------------------------------------------------------------------------
+// Kernel TAP (privileged; ignored without CAP_NET_ADMIN)
+// ---------------------------------------------------------------------------
+
+/// The real TAP device opens in TAP mode and reports the configured MTU.
+#[cfg(all(feature = "tap", target_os = "linux"))]
+#[test]
+#[traced_test]
+#[ignore = "requires CAP_NET_ADMIN / root to open /dev/net/tun"]
+fn tap_device_opens_on_linux() {
+    use foundation_nativeapis::dataplane::tap::{FrameIo as _, TapConfig, TapDevice};
+
+    let config = TapConfig::new("ewe-tap-test0").with_mtu(1280);
+    let mut device = TapDevice::open(&config).expect("open tap");
+    assert_eq!(device.name(), "ewe-tap-test0");
+    assert_eq!(device.mtu(), 1280, "the configured MTU is kept");
+    // A fresh device has nothing to read yet.
+    let mut buf = [0u8; 2048];
+    match device.read_frame(&mut buf) {
+        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {}
+        other => panic!("expected WouldBlock on empty tap, got {other:?}"),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Kernel TUN (privileged; ignored without CAP_NET_ADMIN)
 // ---------------------------------------------------------------------------
 
@@ -417,4 +441,226 @@ fn netstack_read_while_connecting_is_would_block_not_eof() {
         .read(&mut buf)
         .expect_err("a connecting stream has not reached end of stream");
     assert_eq!(err.kind(), std::io::ErrorKind::WouldBlock);
+}
+
+// ---------------------------------------------------------------------------
+// Ethernet TAP path (runs on every operating system with an in-memory wire)
+// ---------------------------------------------------------------------------
+
+/// The addresses of the Ethernet test link.
+#[cfg(feature = "tap")]
+const TAP_HOST_IP: [u8; 4] = [169, 254, 169, 1];
+/// The peer address on the Ethernet test link.
+const TAP_GUEST_IP: [u8; 4] = [169, 254, 169, 2];
+/// The media access control (MAC) address of the stack interface.
+const TAP_HOST_MAC: [u8; 6] = [0x06, 0x00, 0xac, 0x10, 0x00, 0x01];
+/// The MAC address of the peer.
+const TAP_GUEST_MAC: [u8; 6] = [0x06, 0x00, 0xac, 0x10, 0x00, 0x02];
+
+#[cfg(feature = "tap")]
+/// One end of an in-memory Ethernet wire.
+struct FakeWire {
+    inbound: std::sync::Arc<std::sync::Mutex<std::collections::VecDeque<Vec<u8>>>>,
+    outbound: std::sync::Arc<std::sync::Mutex<std::collections::VecDeque<Vec<u8>>>>,
+    mtu: usize,
+}
+
+#[cfg(feature = "tap")]
+impl foundation_nativeapis::dataplane::tap::FrameIo for FakeWire {
+    fn read_frame(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let frame = self
+            .inbound
+            .lock()
+            .expect("the wire mutex is not poisoned")
+            .pop_front();
+        match frame {
+            Some(frame) => {
+                let len = frame.len().min(buf.len());
+                buf[..len].copy_from_slice(&frame[..len]);
+                Ok(len)
+            }
+            None => Err(std::io::Error::new(
+                std::io::ErrorKind::WouldBlock,
+                "the wire is empty",
+            )),
+        }
+    }
+
+    fn write_frame(&mut self, frame: &[u8]) -> std::io::Result<usize> {
+        self.outbound
+            .lock()
+            .expect("the wire mutex is not poisoned")
+            .push_back(frame.to_vec());
+        Ok(frame.len())
+    }
+
+    fn mtu(&self) -> usize {
+        self.mtu
+    }
+}
+
+#[cfg(feature = "tap")]
+/// Two ends of one in-memory Ethernet wire.
+fn wire_pair() -> (FakeWire, FakeWire) {
+    let first = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::new()));
+    let second = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::new()));
+    (
+        FakeWire {
+            inbound: std::sync::Arc::clone(&first),
+            outbound: std::sync::Arc::clone(&second),
+            mtu: 1500,
+        },
+        FakeWire {
+            inbound: std::sync::Arc::clone(&second),
+            outbound: std::sync::Arc::clone(&first),
+            mtu: 1500,
+        },
+    )
+}
+
+#[cfg(feature = "tap")]
+/// One Ethernet stack over one end of the in-memory wire.
+fn ethernet_plane(
+    wire: FakeWire,
+    ip: [u8; 4],
+    mac: [u8; 6],
+) -> foundation_nativeapis::dataplane::tap::TapDataPlane<FakeWire> {
+    let ctx = foundation_context::Ctx::fixed(std::sync::Arc::new(
+        foundation_context::MonotonicClock::new(),
+    ));
+    let config = NetStackConfig::new(std::net::IpAddr::V4(std::net::Ipv4Addr::from(ip)), 30)
+        .with_ethernet(mac)
+        .with_gateway(std::net::Ipv4Addr::from(TAP_HOST_IP));
+    foundation_nativeapis::dataplane::tap::TapDataPlane::new(wire, config, 64, &ctx)
+}
+
+#[cfg(feature = "tap")]
+/// Pump both ends of the wire until `done` answers true, or give up after a bound.
+fn pump_ethernet(
+    host: &mut foundation_nativeapis::dataplane::tap::TapDataPlane<FakeWire>,
+    guest: &mut foundation_nativeapis::dataplane::tap::TapDataPlane<FakeWire>,
+    mut done: impl FnMut() -> bool,
+) {
+    let now = Instant::now();
+    for _ in 0..500 {
+        host.service(now).expect("host services the wire");
+        guest.service(now).expect("guest services the wire");
+        if done() {
+            return;
+        }
+    }
+}
+
+/// WHY: the Ethernet mode of the data plane is the path a Firecracker guest uses: the
+/// TAP carries Ethernet frames, so the stack must resolve an address, complete a
+/// transmission control protocol (TCP) handshake and answer with frames of its own.
+///
+/// WHAT: Two Ethernet stacks are wired back to back, as the guest and the host TAP
+/// ends are. The guest opens a connection to a listener on the host stack, sends one
+/// request and reads one reply.
+///
+/// HOW: An in-memory [`FakeWire`] pair stands in for the TAP descriptors, so the test
+/// needs no privileges and runs on every operating system.
+#[cfg(feature = "tap")]
+#[test]
+#[traced_test]
+fn tap_ethernet_stack_connects_and_replies() {
+    use foundation_nativeapis::dataplane::tap::TapDataPlane;
+
+    let (host_wire, guest_wire) = wire_pair();
+    let mut host: TapDataPlane<FakeWire> = ethernet_plane(host_wire, TAP_HOST_IP, TAP_HOST_MAC);
+    let mut guest: TapDataPlane<FakeWire> = ethernet_plane(guest_wire, TAP_GUEST_IP, TAP_GUEST_MAC);
+
+    // The socket API takes `&mut self`; a clone shares the same stack state.
+    let mut host_stack = host.stack().clone();
+    let mut listener = host_stack
+        .tcp_listen(SocketAddr::from((
+            std::net::Ipv4Addr::from(TAP_HOST_IP),
+            8080,
+        )))
+        .expect("the host stack listens");
+    let mut guest_stack = guest.stack().clone();
+    let client = guest_stack
+        .tcp_connect(SocketAddr::from((
+            std::net::Ipv4Addr::from(TAP_HOST_IP),
+            8080,
+        )))
+        .expect("the guest connects");
+
+    let mut server_side = None;
+    pump_ethernet(&mut host, &mut guest, || {
+        if server_side.is_none() {
+            if let Ok(accepted) = listener.accept() {
+                server_side = Some(accepted);
+            }
+        }
+        server_side.is_some() && client.may_send()
+    });
+    let server_side = server_side.expect("the host accepted the guest connection");
+    assert!(client.may_send(), "the guest side is established");
+    assert_eq!(
+        server_side.peer_addr(),
+        SocketAddr::from((
+            std::net::Ipv4Addr::from(TAP_GUEST_IP),
+            client.local_addr().port()
+        )),
+        "the accepted connection names the guest"
+    );
+
+    // Guest -> host request.
+    let request = b"GET /tap HTTP/1.0\r\n\r\n";
+    let mut sent = 0;
+    for _ in 0..100 {
+        if sent < request.len() {
+            if let Ok(n) = client.write(&request[sent..]) {
+                sent += n;
+            }
+        }
+        pump_ethernet(&mut host, &mut guest, || sent >= request.len());
+    }
+    assert_eq!(sent, request.len(), "the guest sent the whole request");
+
+    let mut got = Vec::new();
+    let mut scratch = [0u8; 256];
+    for _ in 0..100 {
+        match server_side.read(&mut scratch) {
+            Ok(0) => break,
+            Ok(n) => got.extend_from_slice(&scratch[..n]),
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {}
+            Err(err) => panic!("the host read failed: {err}"),
+        }
+        if got.len() >= request.len() {
+            break;
+        }
+        pump_ethernet(&mut host, &mut guest, || false);
+    }
+    assert_eq!(&got, request, "the host received the request intact");
+
+    // Host -> guest reply.
+    let reply = b"HTTP/1.0 200 OK\r\n\r\nok";
+    let mut sent = 0;
+    for _ in 0..100 {
+        if sent < reply.len() {
+            if let Ok(n) = server_side.write(&reply[sent..]) {
+                sent += n;
+            }
+        }
+        pump_ethernet(&mut host, &mut guest, || sent >= reply.len());
+    }
+    assert_eq!(sent, reply.len(), "the host sent the whole reply");
+
+    let mut got = Vec::new();
+    for _ in 0..100 {
+        match client.read(&mut scratch) {
+            Ok(0) => break,
+            Ok(n) => got.extend_from_slice(&scratch[..n]),
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {}
+            Err(err) => panic!("the guest read failed: {err}"),
+        }
+        if got.len() >= reply.len() {
+            break;
+        }
+        pump_ethernet(&mut host, &mut guest, || false);
+    }
+    assert_eq!(&got, reply, "the guest received the reply intact");
 }
