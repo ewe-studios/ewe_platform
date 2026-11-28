@@ -208,7 +208,8 @@ The auth layer now sits above the RPC crate.
   across 36 targets, and the `foundation_agent_rpc` suite passes 149 tests
   across 32 target results.
 - Every nested `Cargo.lock` that takes the two crates by path is regenerated,
-  so `cargo metadata --locked` passes for each one.
+  and `cargo run -p foundation_ci -- check-lockfiles` passes. That command also
+  found 17 stale lockfiles from the spec 71 merge, now refreshed (#1239).
 - The wasm `rpc` check passes with zero warnings. `web-sys` is optional now and
   only `wasm-fetch` enables it: the auth removal had left it unused.
 - Clippy passes with `--no-deps` and `-D warnings`, the flags that `ci.py`
@@ -220,6 +221,8 @@ The auth layer now sits above the RPC crate.
 
 ## Today's findings
 
+- **#1239** (`high`, fixed by feature 05): the spec 71 merge left 17 nested `Cargo.lock`
+  files stale, so `ci.py check-lockfiles` failed on master. Each one is regenerated.
 - **#1236** (`high`, fixed by feature 05): `foundation_agent_rpc/tests/native_shutdown_tests.rs`
   passed a stale `env` argument to `guarded_turn`, so `cargo test -p foundation_agent_rpc`
   did not compile on master. The test now matches the six-argument signature.

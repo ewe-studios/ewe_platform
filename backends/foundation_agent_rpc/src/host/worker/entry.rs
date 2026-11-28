@@ -22,8 +22,8 @@ use foundation_auth::secret::{
     SecretDomain, SecretVerifier, SigningAlgorithm, VerifyPolicy, VerifyingKey,
 };
 use foundation_auth::trust::{SqlTrustStore, TrustedClients};
-use foundation_connectrpc_auth::ClientAuthInterceptor;
 use foundation_connectrpc::{Interceptor, Router};
+use foundation_connectrpc_auth::ClientAuthInterceptor;
 use foundation_context::Ctx;
 use foundation_db::wasm::bindgen::cf::D1Database;
 use foundation_db::D1WasmStorage;

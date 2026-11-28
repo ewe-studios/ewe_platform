@@ -130,6 +130,11 @@ Two lessons:
 - **A pipe hides the exit code of `cargo fmt --check`.** `cargo fmt ... | head`
   reports the exit code of `head`. Run the check without a pipe, or read zsh's
   `pipestatus`, or a formatting failure looks like a pass.
+- **A shared dependency change must refresh every nested lock.** The spec 71
+  merge changed the workspace dependencies and left 17 nested `Cargo.lock` files
+  stale. `check-lockfiles` checks every tracked nested lock, so one workspace
+  change can fail the gate repo-wide (#1239). Run the command before a merge,
+  not only after a feature change.
 - **A signature change must move every caller.** Master's `guarded_turn` lost
   the `env` argument, but `native_shutdown_tests` still passed it, so the
   `foundation_agent_rpc` test suite did not compile on master (#1236). A merge
