@@ -14,6 +14,25 @@ Specs 77 and 83 merged with three kinds of debt:
 This spec exists to pay those debts. A feature of this spec is done when its issues are
 closed, not when its code compiles.
 
+## Feature 00 tasks T5 and T6 (2026-11-28)
+
+- **A skip can look like a pass.** The Vault test started a dev container, but a Vault dev
+  server mounts no secrets engine. The key call returned 404, the test returned, and the run
+  was green. The test now enables Transit, and the job fails when the output names a skip.
+- **A test filter can match no case and still pass.** The `kms_tests` target root is
+  `tests/kms/mod.rs`, so its cases are top-level modules. The filter `kms::kms_vault_transit`
+  selected nothing; the filter `kms_vault_transit` selects the test. The job now also fails
+  when the output does not name the case.
+- **A wasm test build compiles every target of the crate.** `wasm-testbed ... bindgen-web`
+  runs `cargo build --tests` for the package, so every native test target and
+  dev-dependency must also build for wasm32. The native suites now declare
+  `cfg(not(target_arch = "wasm32"))`, and their file-system and database dev-dependencies
+  use the same cfg. `socket2` (through `foundation_testing`) was the first failure.
+- **Cranelift cannot build wasm.** mise sets `CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift`.
+  A direct `cargo build --target wasm32-unknown-unknown` then fails with "Support for this
+  target has not been implemented yet". Use `--profile uat`, or unset the variable; the
+  wasm-testbed tool removes it for its nested build.
+
 ## Feature 02: sandbox follow-ups (2026-11-28)
 
 - **A plain layer body hides the decode.** The layer stream test must serve a real gzip

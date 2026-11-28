@@ -6,7 +6,7 @@ _Last updated: 2026-11-28._
 
 | Feature | State |
 |---|---|
-| 00 Live proof on the real services | in review: pull request #1144 fixes the Cloudflare create stall; #1055 (moto) merged |
+| 00 Live proof on the real services | in review: pull request #1144 fixes the Cloudflare create stall; #1055 (moto) merged; T5 (Vault Transit) and T6 (WebCrypto) wait on `feature/vault-webcrypto` |
 | 01 DST fidelity: the real registry | stages A merged (#1116); stage B #1130 and stage C #1136 in review |
 | 02 Sandbox follow-ups | in review: pull request #1111, 12 issues closed, #1104 fixed |
 | 03 GCP KMS over gRPC | in review: pull request #1121, conflicts resolved |
@@ -166,6 +166,41 @@ every container after the first. The production runtime is not affected.
 A native boundary test also caught that `shared/control/service.rs` read `boot_timeout`
 directly. `SandboxLimits::create_deadline()` gives the value, and the remote client reads
 that accessor.
+
+## Feature 00 tasks T5 and T6: Vault Transit and WebCrypto (2026-11-28)
+
+**T5, Vault Transit in the sandbox job.** The test now reads `VAULT_ADDR` and `VAULT_TOKEN`.
+When `VAULT_ADDR` is set, it uses the dev server of
+`ci/local-services/docker-compose.yml`. When it is absent, the test starts the same pinned
+image in a container. A Vault dev server mounts no secrets engine, so the test now enables
+Transit before it creates the derived key. Before this change the key call returned 404 and
+the test returned as a skip, so the backend had no live proof.
+
+The `sandbox-e2e` job starts the compose services with `--wait`, runs
+`cargo test -p foundation_auth --features testing --profile uat kms_vault_transit`, and
+stops the services with a trap on every path. The job fails when the output names a skip,
+and when the output holds no `vault_transit_seals_and_opens` case. The filter has no `kms::`
+prefix: the target root is `tests/kms/mod.rs`, so the test is
+`kms_vault_transit::vault_transit_seals_and_opens`. A `kms::` filter selects no case and
+looks green.
+
+Local result: the compose services were up, and the test binary ran with
+`VAULT_ADDR=http://127.0.0.1:8200`: `1 passed; 0 failed`.
+
+**T6, WebCrypto in the browser job.** `foundation_auth/tests/wasm/webcrypto_sealer_tests.rs`
+is a `wasm-bindgen-test` target. It seals a payload, opens it back, refuses a different
+record and proves that `crypto.subtle.exportKey` rejects the sealer's key. The `wasm-tests`
+job runs it in headless Chromium with
+`wasm-testbed test bindgen-web backends/foundation_auth --features secret,wasm-kek`.
+
+`WebCryptoSealer::crypto_key()` is new public API, so `foundation_auth` moves to `0.0.17`
+and every workspace consumer matches. The native test suites are marked native only, and
+their file-system and database dev-dependencies sit behind
+`cfg(not(target_arch = "wasm32"))`. Without that, the wasm test build compiled them and
+failed in `socket2`.
+
+Local result: headless Chromium ran the case through `wasm-testbed`:
+`1 passed; 0 failed`.
 
 ## Feature 04 result (2026-11-28)
 
