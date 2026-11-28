@@ -201,6 +201,46 @@ fn docker_containers() -> Vec<String> {
         .collect()
 }
 
+/// The names of the Docker containers of the sandbox application.
+///
+/// The failure message of the stop test prints them, so a run can name a
+/// container that was not the runtime proxy.
+fn docker_container_names() -> Vec<String> {
+    let output = Command::new(DOCKER)
+        .args(["ps", "--format", "{{.Names}} {{.Image}}"])
+        .output();
+    let Ok(output) = output else {
+        return Vec::new();
+    };
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter(|line| line.contains(CONTAINER_NAME))
+        .filter(|line| !line.contains("-proxy"))
+        .filter(|line| !line.contains("proxy-everything"))
+        .filter_map(|line| line.split_whitespace().next().map(str::to_string))
+        .collect()
+}
+
+/// Waits until no workload container is listed, or the deadline passes.
+///
+/// The container runtime removes a destroyed container from `docker ps` after
+/// the destroy call returns, so the stop check gives it a short time. A
+/// remaining container is returned for the failure message.
+fn wait_for_no_docker_containers(timeout: Duration) -> Vec<String> {
+    // The test has no injected clock: it counts 250 ms polls. It runs on the
+    // real local runtime, so the wall-clock rule of the core libraries does not
+    // apply here.
+    let polls = (timeout.as_millis() / 250).max(1);
+    for _ in 0..polls {
+        let containers = docker_containers();
+        if containers.is_empty() {
+            return containers;
+        }
+        std::thread::sleep(Duration::from_millis(250));
+    }
+    docker_containers()
+}
+
 /// Every byte of one file stream.
 async fn read_all(handle: &SandboxHandle, path: &str) -> Vec<u8> {
     let mut stream = handle.read_file(path).await.expect("the file read");
@@ -621,9 +661,11 @@ fn e2e_cloudflare_stop() {
             ))),
             "Get after a stop is NotFound"
         );
+        let left = wait_for_no_docker_containers(Duration::from_secs(10));
+        let names = docker_container_names();
         assert!(
-            docker_containers().is_empty(),
-            "no Docker container of {CONTAINER_NAME} is left"
+            left.is_empty(),
+            "no Docker container of {CONTAINER_NAME} is left; left: {names:?}"
         );
     });
 }
