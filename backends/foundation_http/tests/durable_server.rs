@@ -25,13 +25,23 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serial_test::serial;
 
+/// How long an idle keep-alive connection survives in these tests.
+///
+/// A raw-socket test has no retry: if the server closes the connection between
+/// two requests, the next read fails. The tests also hold one connection across
+/// many requests, so an idle timeout near a scheduling pause turns an unrelated
+/// delay into a failure (issue #1127). Keep this longer than the longest test
+/// watchdog (120 s in this file), so only the test's own `shutdown` can end an
+/// idle connection while the test runs.
+const TEST_IDLE_TIMEOUT: Duration = Duration::from_secs(120);
+
 fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
     let config = ServerConfig::defaults()
-        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(TEST_IDLE_TIMEOUT));
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let server = HttpServer::with_config(app, &bind_addr, config);
 
@@ -684,9 +694,13 @@ fn given_many_put_get_pairs_on_one_connection_when_they_run_then_every_read_is_2
     use std::io::{BufRead, BufReader, Read, Write};
     use std::net::TcpStream;
 
-    fn read_response(reader: &mut BufReader<TcpStream>) -> (u16, String) {
+    /// Read one response and name the request in any failure, so an
+    /// intermittent reset says which step of which pair broke the connection.
+    fn read_response(reader: &mut BufReader<TcpStream>, request: &str) -> (u16, String) {
         let mut status_line = String::new();
-        reader.read_line(&mut status_line).expect("status line");
+        reader
+            .read_line(&mut status_line)
+            .unwrap_or_else(|error| panic!("{request} response status line: {error}"));
         let status: u16 = status_line
             .split_whitespace()
             .nth(1)
@@ -695,7 +709,9 @@ fn given_many_put_get_pairs_on_one_connection_when_they_run_then_every_read_is_2
         let mut content_length = 0_usize;
         loop {
             let mut line = String::new();
-            reader.read_line(&mut line).expect("header");
+            reader
+                .read_line(&mut line)
+                .unwrap_or_else(|error| panic!("{request} response header: {error}"));
             if line == "\r\n" || line.is_empty() {
                 break;
             }
@@ -704,7 +720,9 @@ fn given_many_put_get_pairs_on_one_connection_when_they_run_then_every_read_is_2
             }
         }
         let mut body = vec![0_u8; content_length];
-        reader.read_exact(&mut body).expect("body");
+        reader
+            .read_exact(&mut body)
+            .unwrap_or_else(|error| panic!("{request} response body: {error}"));
         (status, String::from_utf8_lossy(&body).into_owned())
     }
 
@@ -715,22 +733,81 @@ fn given_many_put_get_pairs_on_one_connection_when_they_run_then_every_read_is_2
     let mut writer = stream.try_clone().expect("clone");
     let mut reader = BufReader::new(stream);
 
-    for _ in 0..20 {
+    for iteration in 0..20 {
         writer
             .write_all(
                 b"PUT /v1/stream/keepalive HTTP/1.1\r\nHost: test\r\nContent-Type: text/plain\r\nContent-Length: 7\r\n\r\ninitial",
             )
-            .expect("put");
-        let (status, _) = read_response(&mut reader);
+            .unwrap_or_else(|error| panic!("pair {iteration} put write: {error}"));
+        let (status, _) = read_response(&mut reader, &format!("pair {iteration} put"));
         assert!(status == 200 || status == 201, "put status {status}");
 
         writer
             .write_all(b"GET /v1/stream/keepalive HTTP/1.1\r\nHost: test\r\n\r\n")
-            .expect("get");
-        let (status, body) = read_response(&mut reader);
+            .unwrap_or_else(|error| panic!("pair {iteration} get write: {error}"));
+        let (status, body) = read_response(&mut reader, &format!("pair {iteration} get"));
         assert_eq!(status, 200, "get status");
         assert_eq!(body, "initial");
     }
 
     shutdown.turn_on();
+}
+
+/// A keep-alive read re-arms the socket edge before each read attempt. After a
+/// large frame is drained, a smaller frame must arm the readiness again: the
+/// kqueue selector reports a readable event only when the byte count grows
+/// unless the edge was re-armed. Re-arming after the frame lands (at the park)
+/// instead leaves the reader parked until its deadline — the keep-alive stall
+/// of issue #1127.
+#[test]
+#[serial(http_test)]
+fn given_a_drained_large_frame_when_a_smaller_one_arrives_then_the_socket_readiness_arms_again() {
+    use std::io::{Read, Write};
+    use std::os::unix::io::AsRawFd;
+    use std::os::unix::net::UnixStream;
+
+    use foundation_core::valtron::EventReadiness;
+    use foundation_iogate::FdReadiness;
+
+    /// Wait (bounded) for the reactor's drain thread to latch readiness.
+    fn wait_ready(readiness: &FdReadiness, ctx: &Ctx, what: &str) {
+        let deadline = ctx.clock().now() + Duration::from_secs(2);
+        while !readiness.is_ready(None) {
+            assert!(
+                ctx.clock().now() < deadline,
+                "{what}: the socket readiness never armed"
+            );
+            std::thread::sleep(Duration::from_millis(1));
+        }
+    }
+
+    let ctx = Ctx::host();
+    let (mut reader, mut writer) = UnixStream::pair().expect("socketpair");
+    reader.set_nonblocking(true).expect("set nonblocking");
+    let fd = reader.as_raw_fd();
+
+    let readiness = FdReadiness::register(fd).expect("register the socket");
+    writer
+        .write_all(&[7_u8; 100])
+        .expect("write the large frame");
+    wait_ready(&readiness, &ctx, "large frame");
+
+    let mut buf = [0_u8; 256];
+    assert_eq!(
+        reader.read(&mut buf).expect("read the large frame"),
+        100,
+        "the large frame drains"
+    );
+
+    // The idle read re-arms before it reads, so a smaller frame arms again.
+    readiness.clear();
+    writer
+        .write_all(&[7_u8; 50])
+        .expect("write the small frame");
+    wait_ready(&readiness, &ctx, "small frame after the drained large one");
+    assert_eq!(
+        reader.read(&mut buf).expect("read the small frame"),
+        50,
+        "the small frame is readable"
+    );
 }
