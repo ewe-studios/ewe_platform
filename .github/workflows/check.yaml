@@ -471,12 +471,7 @@ jobs:
     # The job runs when the plan selected either package. Master, nightly and
     # manual runs select every package, so it always runs there.
     # The matrix JSON holds each name in quotes, so this match is exact.
-    if: >-
-      needs.plan.result == 'success' &&
-      (github.event_name != 'pull_request' ||
-      github.base_ref == 'platform/release' || github.head_ref == 'platform/release') &&
-      (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
-      contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
+    if: github.event_name != 'workflow_dispatch'
     # Same GitHub-hosted Windows image as `windows-test`.
     runs-on: windows-2025
     # Limit, not a measurement: a cold build of both packages takes about 15 to
@@ -804,6 +799,7 @@ jobs:
         run: cargo run --locked --profile uat -p foundation_ci -- run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
   durable-conformance:
+    if: github.event_name != 'workflow_dispatch'
     name: Durable conformance
     # Owner correction (2026-11-27): the gate runs when the Durable Streams
     # source changes, like every other package job (rule 16). The `durable-conformance`
@@ -925,6 +921,7 @@ jobs:
           ${{ github.event_name == 'push' && format('--if-affected --base {0}', github.event.before) || '' }}
 
   durable-valtron:
+    if: github.event_name != 'workflow_dispatch'
     name: Durable valtron ${{ matrix.group }}
     # Spec 71 feature 08 T6. The valtron reader, writer, wait and wake
     # behaviour tests run in their own job, separate from the foundation_core
@@ -1017,7 +1014,7 @@ jobs:
     needs: image
     # Packaging the whole workspace is slow; run it where releases happen.
     # Non-PR events always have registry credentials, so the image is there.
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.image.outputs.image-ref }}
@@ -1090,7 +1087,7 @@ jobs:
   macos:
     name: macOS build
     # A full macOS build is expensive; run it on master, nightly and on demand.
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
     # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
     # DEVELOPER_DIR picks Xcode 26.2, which ships the iPhoneOS 26.2 SDK. The
     # macOS VM image pins the same SDK (components.env IOS_SDK_VERSION).
@@ -1214,3 +1211,55 @@ jobs:
           cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
           cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
           cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
+
+  toolchain-host:
+    name: Pinned tools ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        runner: [macos-26, windows-2025]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4.4.0
+
+      - name: Set up short Windows Cargo paths
+        if: runner.os == 'Windows'
+        run: |
+          git config --global core.longpaths true
+          echo "CARGO_HOME=D:/c" >> "$GITHUB_ENV"
+          echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> "$GITHUB_ENV"
+
+      - name: Install the pinned Rust toolchain
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Set up the pinned tool manager
+        uses: jdx/mise-action@v5.2.10
+        with:
+          install: false
+
+      - name: Install pinned tools
+        run: |
+          mise trust --yes mise.toml
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
+
+      - name: Install the Android packages on macOS
+        if: runner.os == 'macOS'
+        run: |
+          unset ANDROID_SDK_ROOT
+          mise run toolchain:android
+
+      - name: Check the pinned tools
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then
+            export DEVELOPER_DIR=/Applications/Xcode_26.2.app/Contents/Developer
+          fi
+          unset ANDROID_SDK_ROOT
+          mise run toolchain:check
