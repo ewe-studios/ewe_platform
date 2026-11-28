@@ -278,14 +278,7 @@ pub fn embed_file_as(item: TokenStream) -> TokenStream {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// use foundation_macros::wasm_entrypoint;
-///
-/// #[wasm_entrypoint(name = "auth_worker", desc = "Authentication worker")]
-/// pub fn auth_handler() {
-///     // Function body
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/test-hosts.md).
 ///
 /// # Panics
 ///
@@ -450,15 +443,7 @@ pub fn message_box_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::scaffoldable;
-///
-/// #[scaffoldable]
-/// impl MyService {
-///     pub fn process(&self, input: &[u8]) -> Vec<u8> { /* ... */ }
-///     pub fn status(&self) -> Status { /* ... */ }
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_attribute]
 pub fn scaffoldable(attr: TokenStream, item: TokenStream) -> TokenStream {
     scaffold::scaffoldable(attr.into(), item.into()).into()
@@ -469,21 +454,7 @@ pub fn scaffoldable(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::{scaffoldable, Scaffold};
-///
-/// #[scaffoldable]
-/// impl InMemoryStore {
-///     pub fn get(&self, key: &str) -> Option<Vec<u8>> { /* ... */ }
-///     pub fn set(&self, key: &str, value: Vec<u8>) { /* ... */ }
-/// }
-///
-/// #[derive(Scaffold)]
-/// pub struct ThreadSafeStore {
-///     #[scaffold(field)]
-///     inner: Arc<Mutex<InMemoryStore>>,
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_derive(Scaffold, attributes(scaffold, scaffold_call))]
 pub fn scaffold_derive(item: TokenStream) -> TokenStream {
     scaffold::scaffold_derive(item.into()).into()
@@ -494,19 +465,7 @@ pub fn scaffold_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::{scaffold_impl, scaffold};
-///
-/// #[scaffold_impl(via = "self.fs")]
-/// impl VfsFileSystem for DirectoryDelta {
-///     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
-///
-///     fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
-///         let inner = self.fs.open_directory(path)?;
-///         Ok(FilteredDirectory { inner })
-///     }
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_attribute]
 pub fn scaffold_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     scaffold::scaffold_impl(attr.into(), item.into()).into()
@@ -521,16 +480,7 @@ pub fn scaffold_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::ArrowSchema;
-///
-/// #[derive(ArrowSchema)]
-/// struct FileEntry {
-///     name: String,
-///     size: u64,
-///     checksum: Option<Vec<u8>>,
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_derive(ArrowSchema)]
 pub fn arrow_schema_derive(item: TokenStream) -> TokenStream {
     arrow_schema::arrow_schema_derive(item.into()).into()
@@ -543,15 +493,7 @@ pub fn arrow_schema_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::{ArrowSchema, ArrowJsonSchema};
-///
-/// #[derive(ArrowSchema, ArrowJsonSchema)]
-/// struct FileEntry {
-///     name: String,
-///     size: u64,
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_derive(ArrowJsonSchema)]
 pub fn arrow_json_schema_derive(item: TokenStream) -> TokenStream {
     arrow_json_schema::arrow_json_schema_derive(item.into()).into()
@@ -565,16 +507,7 @@ pub fn arrow_json_schema_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::JsonSchema;
-///
-/// #[derive(JsonSchema)]
-/// struct UserProfile {
-///     name: String,
-///     age: u32,
-///     bio: Option<String>,
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_derive(JsonSchema)]
 pub fn json_schema_derive(item: TokenStream) -> TokenStream {
     json_schema::json_schema_derive(item.into()).into()
@@ -590,15 +523,7 @@ pub fn json_schema_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::{ArrowSchema, ToArrow};
-///
-/// #[derive(ArrowSchema, ToArrow)]
-/// struct FileEntry {
-///     name: String,
-///     size: u64,
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_derive(ToArrow)]
 pub fn to_arrow_derive(item: TokenStream) -> TokenStream {
     to_arrow::to_arrow_derive(item.into()).into()
@@ -612,15 +537,7 @@ pub fn to_arrow_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```ignore
-/// use foundation_macros::{ArrowSchema, FromArrow};
-///
-/// #[derive(ArrowSchema, FromArrow)]
-/// struct FileEntry {
-///     name: String,
-///     size: u64,
-/// }
-/// ```
+/// See the [runnable macro scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_macros/docs/scenarios/data-schemas-and-delegation.md).
 #[proc_macro_derive(FromArrow)]
 pub fn from_arrow_derive(item: TokenStream) -> TokenStream {
     from_arrow::from_arrow_derive(item.into()).into()
@@ -1100,13 +1017,7 @@ pub fn theme_tokens(item: TokenStream) -> TokenStream {
 /// blocks are a compile error) and expands to a `const`-capable
 /// `foundation_theme::GeneratedTheme` with compile-time-generated CSS.
 ///
-/// ```ignore
-/// let theme = theme! {
-///     colors  { primary: { light: "#3b82f6", dark: "#60a5fa" }, bg: "#ffffff" }
-///     spacing { sm: 8px, md: 16px }
-/// };
-/// let app = App::new().theme(theme);
-/// ```
+/// See the [runnable theme scenario](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_wasm_ui/docs/scenarios/apps-and-frame-operations.md).
 #[proc_macro]
 pub fn theme(input: TokenStream) -> TokenStream {
     theme_macro::theme(input.into()).into()

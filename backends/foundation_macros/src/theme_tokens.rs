@@ -7,17 +7,7 @@
 //! used nested non-Rust literals; the real syntax carries everything in
 //! attributes (valid Rust):
 //!
-//! ```ignore
-//! #[derive(ThemeTokens)]
-//! struct AppTheme {
-//!     #[token(category = "color", light = "#3b82f6", dark = "#60a5fa")] // explicit dark
-//!     primary: (),
-//!     #[token(category = "color", light = "#10b981")]                   // dark auto-derived
-//!     secondary: (),
-//!     #[token(category = "spacing", value = "16px")]                    // mode-independent
-//!     md: (),
-//! }
-//! ```
+//! See the [runnable theme scenario](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_wasm_ui/docs/scenarios/apps-and-frame-operations.md).
 //!
 //! Generates `Theme::new()`, `Theme::CSS: &'static str`, and `css_string()`.
 //!

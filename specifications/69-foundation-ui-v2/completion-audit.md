@@ -71,8 +71,10 @@ The original record has no per-test output. Matching the aggregate to these sour
 | `foundation_macros/src/wasm_test.rs` | 2 | Both examples document WebAssembly test setup. The aggregate provides no results for the two exact forms. |
 | `foundation_signals/src/context.rs` | 1 | The macro and signal fixtures exercise callback dispatch. The ignored example still needs an exact test for its HTML button and state update. |
 
-The historical run of the WebAssembly host tests does not cover two ignored examples in the separate WebAssembly UI crate.
-The no-skip and no-weaken clause remains open. The removed operation tests also require an equivalence check against their replacements.
+The [case map](features/12-legacy-wire-retirement/example-scenarios.md) records each of the 42 examples.
+Two additional WebAssembly UI fixtures pass the theme and mount scenarios.
+The retired 19 operations match their recorded document and registry effects on current frames.
+The no-skip and no-weaken clause stays open while the pending cases remain.
 [Historical source](https://github.com/ewe-studios/ewe_platform/tree/04561dcddab7c78a91180378e0cc8d65fc4e02db) · [Final migration record](progress.md#feature-12-final-verification-and-feature-19-local-candidate)
 
 ### Features 14, 16, and 32

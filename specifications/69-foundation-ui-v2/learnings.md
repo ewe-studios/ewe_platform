@@ -1,5 +1,13 @@
 # Spec 69 learnings
 
+## Feature 12 runnable documentation scenarios
+
+The old binary fixtures compare document details and both node registry tables.
+Capture those expected results before removing the reference implementation.
+The current test must match the recorded effects and require that all 19 cases run.
+Retired encoding layout tests and size comparisons are separate from document behavior.
+Two ignored application examples are outside the historical count of 42.
+
 ## Android countdown and physical Mathalley checks
 
 The Android user interface can load Todos when its staged native library has older host actions.

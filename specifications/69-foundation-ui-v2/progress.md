@@ -1,5 +1,15 @@
 # Spec 69 progress
 
+## Feature 12 runnable documentation scenarios
+
+The [case map](features/12-legacy-wire-retirement/example-scenarios.md) lists 42 historical examples.
+The approved obsolete entry-point examples are removed.
+The native macro tests verify named WebAssembly compilation, data schemas, and delegation.
+Two additional app examples use the passing theme and mount tests.
+The current browser frame fixtures match the old document and registry results for all 19 operations.
+The current frame comparison passes 20 checks. The full JavaScript run passes 181 tests with one existing optional skip.
+Keep pending runtime cases visible while their exact scenarios lack a test result.
+
 ## Android countdown and physical Mathalley checks
 
 A scratch Android application reproduces the cold-launch warning with the previously staged native library.

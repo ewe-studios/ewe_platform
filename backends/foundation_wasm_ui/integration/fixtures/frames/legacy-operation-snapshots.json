@@ -1,0 +1,759 @@
+{
+  "add_class": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [
+            "active"
+          ],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "add_listener": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 1,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "append_child": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": [
+            {
+              "tag": "button",
+              "text": "",
+              "html": "",
+              "className": "button",
+              "attrs": [],
+              "classes": [],
+              "checked": null,
+              "clickListeners": 0,
+              "style": {},
+              "children": []
+            }
+          ]
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "create_element": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    [
+      [
+        12,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ]
+  ],
+  "create_text": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    [
+      [
+        12,
+        {
+          "tag": "#text",
+          "text": "body",
+          "html": "",
+          "className": "",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ]
+  ],
+  "insert_before": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": [
+            {
+              "tag": "button",
+              "text": "",
+              "html": "",
+              "className": "button",
+              "attrs": [],
+              "classes": [],
+              "checked": null,
+              "clickListeners": 0,
+              "style": {},
+              "children": []
+            },
+            {
+              "tag": "button",
+              "text": "",
+              "html": "",
+              "className": "button",
+              "attrs": [],
+              "classes": [],
+              "checked": null,
+              "clickListeners": 0,
+              "style": {},
+              "children": []
+            }
+          ]
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        12,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "morph": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "new text",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "register": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        12,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "remove_attribute": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "remove_child": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "remove_class": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "remove_listener": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "remove_node": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "replace_node": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": [
+            {
+              "tag": "button",
+              "text": "",
+              "html": "",
+              "className": "button",
+              "attrs": [],
+              "classes": [],
+              "checked": null,
+              "clickListeners": 0,
+              "style": {},
+              "children": []
+            }
+          ]
+        }
+      ],
+      [
+        12,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "set_attribute": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [
+            [
+              "title",
+              "label"
+            ]
+          ],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "set_property": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": true,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "set_style": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {
+            "color": "red"
+          },
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "set_text": [
+    [
+      [
+        10,
+        {
+          "tag": "button",
+          "text": "next",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ],
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ],
+  "unregister": [
+    [
+      [
+        11,
+        {
+          "tag": "button",
+          "text": "",
+          "html": "",
+          "className": "button",
+          "attrs": [],
+          "classes": [],
+          "checked": null,
+          "clickListeners": 0,
+          "style": {},
+          "children": []
+        }
+      ]
+    ],
+    []
+  ]
+}

@@ -82,12 +82,7 @@ impl App {
     /// `<head>` before the first content batch). Pairs with `theme!{}` or the
     /// runtime `Theme` builder, both of which yield a [`GeneratedTheme`].
     ///
-    /// ```ignore
-    /// let app = App::new().theme(theme! {
-    ///     colors  { primary: { light: "#3b82f6", dark: "#60a5fa" } }
-    ///     spacing { sm: 8px, md: 16px }
-    /// });
-    /// ```
+    /// See the [runnable application scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_wasm_ui/docs/scenarios/apps-and-frame-operations.md).
     #[must_use]
     pub fn theme(mut self, theme: GeneratedTheme) -> Self {
         inject_theme_css(&self.receiver, theme.to_css());
@@ -166,10 +161,7 @@ impl App {
     /// is in place — e.g. a `<script>` that should run once the body is parsed
     /// and set up:
     ///
-    /// ```ignore
-    /// app.mount(content);                       // body content first…
-    /// app.mount(html! { ctx, rcv, <script src="/boot.js"></script> }); // …then a late script
-    /// ```
+    /// See the [runnable application scenarios](https://github.com/ewe-studios/ewe_platform/blob/master/backends/foundation_wasm_ui/docs/scenarios/apps-and-frame-operations.md).
     ///
     /// This pairs with [`theme`](Self::theme), which injects into `<head>`
     /// (reserved [`HEAD_NODE_ID`](crate::HEAD_NODE_ID)): the startup instruction
