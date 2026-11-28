@@ -104,6 +104,36 @@ impl ContentEncoding {
             other => Self::Unknown(other.to_string()),
         }
     }
+
+    /// The wire token of this encoding (`"gzip"`, `"deflate"`, `"br"`,
+    /// `"identity"`, or the raw unknown value).
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Identity => "identity",
+            Self::Gzip => "gzip",
+            Self::Deflate => "deflate",
+            Self::Brotli => "br",
+            Self::Unknown(name) => name,
+        }
+    }
+
+    /// Whether this build has a decoder for the encoding.
+    ///
+    /// WHY: The encoding is always recognised by [`Self::from_header`], but the
+    /// decoder behind a feature flag may not be compiled in. A client that
+    /// cannot decode a response lets it pass through untouched so a caller
+    /// (for example a protocol layer with its own decoder) can handle it.
+    #[must_use]
+    pub fn is_decodable(&self) -> bool {
+        match self {
+            Self::Identity => true,
+            Self::Gzip => cfg!(feature = "gzip"),
+            Self::Deflate => cfg!(any(feature = "gzip", feature = "deflate")),
+            Self::Brotli => cfg!(feature = "brotli"),
+            Self::Unknown(_) => false,
+        }
+    }
 }
 
 /// Compression configuration for HTTP client.
@@ -142,6 +172,21 @@ pub struct CompressionConfig {
 
     /// Supported encodings in preference order
     pub supported_encodings: Vec<ContentEncoding>,
+
+    /// Largest decoded response body this client accepts, in bytes.
+    ///
+    /// WHY: A small compressed body can expand without bound (a decompression
+    /// bomb). The wire byte count and the `Content-Length` header describe the
+    /// compressed bytes, so neither bounds the decoded body.
+    ///
+    /// A body that decodes past this limit fails with the typed
+    /// `HttpReaderError::DecompressedBodyTooLarge`; it is never truncated.
+    ///
+    /// The default is 64 MiB. Go `net/http` does not cap a decoded body, and
+    /// gRPC caps one message at 4 MiB (`defaultMaxReceiveMessageSize`); 64 MiB
+    /// bounds a bomb while leaving room for a large JSON or HTML body. Set `0`
+    /// for no limit.
+    pub max_decompressed_size: usize,
 }
 
 impl CompressionConfig {
@@ -166,7 +211,17 @@ impl CompressionConfig {
             add_accept_encoding,
             auto_decompress,
             supported_encodings,
+            max_decompressed_size: 64 * 1024 * 1024,
         }
+    }
+
+    /// Set the largest decoded response body this client accepts.
+    ///
+    /// `0` removes the limit. See [`CompressionConfig::max_decompressed_size`].
+    #[must_use]
+    pub fn with_max_decompressed_size(mut self, max_decompressed_size: usize) -> Self {
+        self.max_decompressed_size = max_decompressed_size;
+        self
     }
 
     /// Creates a config with compression disabled.
@@ -183,6 +238,7 @@ impl CompressionConfig {
             add_accept_encoding: false,
             auto_decompress: false,
             supported_encodings: vec![],
+            max_decompressed_size: 0,
         }
     }
 
@@ -212,14 +268,36 @@ impl CompressionConfig {
     pub fn accept_encoding_value(&self) -> String {
         self.supported_encodings
             .iter()
-            .filter_map(|e| match e {
-                ContentEncoding::Gzip => Some("gzip"),
-                ContentEncoding::Deflate => Some("deflate"),
-                ContentEncoding::Brotli => Some("br"),
-                _ => None,
+            // Advertise only what this build can decode. Advertising an
+            // encoding whose feature is off would make the server send bytes
+            // the client cannot read.
+            .filter(|e| {
+                !matches!(e, ContentEncoding::Identity | ContentEncoding::Unknown(_))
+                    && e.is_decodable()
             })
+            .map(ContentEncoding::as_str)
             .collect::<Vec<_>>()
             .join(", ")
+    }
+
+    /// Add the `Accept-Encoding` header to `headers` when this config asks for
+    /// it and the caller has not set one.
+    ///
+    /// A caller-set `Accept-Encoding` always wins: the caller may know the
+    /// server's encodings, or may want the raw compressed bytes.
+    pub fn apply_accept_encoding(&self, headers: &mut crate::shared::http::SimpleHeaders) {
+        if !self.add_accept_encoding
+            || headers.contains_key(&crate::shared::http::SimpleHeader::ACCEPT_ENCODING)
+        {
+            return;
+        }
+        let value = self.accept_encoding_value();
+        if !value.is_empty() {
+            headers.insert(
+                crate::shared::http::SimpleHeader::ACCEPT_ENCODING,
+                vec![value],
+            );
+        }
     }
 }
 
@@ -241,6 +319,7 @@ impl Default for CompressionConfig {
                 ContentEncoding::Gzip,
                 ContentEncoding::Deflate,
             ],
+            max_decompressed_size: 64 * 1024 * 1024,
         }
     }
 }

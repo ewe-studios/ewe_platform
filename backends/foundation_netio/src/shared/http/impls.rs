@@ -2,6 +2,7 @@
 
 use crate::netcap::ConnectionContext;
 use crate::shared::client::body_reader::{is_would_block, AsyncSendSafeBody, ReadWakeSource};
+use crate::shared::client::CompressionConfig;
 use crate::shared::http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,
@@ -3525,6 +3526,17 @@ pub trait BodyExtractor {
     fn frame_limits(&self) -> super::framing::FrameLimits {
         super::framing::FrameLimits::default()
     }
+
+    /// Response decompression settings. The default does not decode, so an
+    /// extractor that does not opt in keeps the wire bytes.
+    fn decompression(&self) -> CompressionConfig {
+        CompressionConfig::disabled()
+    }
+
+    /// The read buffer size for a decoded response body.
+    fn body_batch_size(&self) -> usize {
+        8192
+    }
 }
 
 const CHUNKED_VALUE: &str = "chunked";
@@ -4628,7 +4640,7 @@ where
                     self.max_header_value_length,
                 );
 
-                let headers = match header_reader.parse_headers() {
+                let mut headers = match header_reader.parse_headers() {
                     Ok(header) => {
                         tracing::trace!("Response headers: {:?}", RedactedHeaders(&header));
                         header
@@ -4654,6 +4666,22 @@ where
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
                 }
 
+                // Decide how the body's `Content-Encoding` is handled. The body
+                // state keeps `body_headers` (the wire header) to pick the
+                // decoder; the emitted copy drops the header and the now-wrong
+                // `Content-Length` once the body will be decoded, so a codec
+                // downstream sees plain bytes and no second decompression.
+                let decompression = self.bodies.decompression();
+                let decoding = super::decompression::response_decoding(&headers, &decompression);
+                let body_headers = headers.clone();
+                if matches!(
+                    &decoding,
+                    super::decompression::ResponseDecoding::Decode(_)
+                ) {
+                    headers.remove(&SimpleHeader::CONTENT_ENCODING);
+                    headers.remove(&SimpleHeader::CONTENT_LENGTH);
+                }
+
                 // if header has content type that is equal to text/event-stream
                 // then set state to SSE streaming body.
                 if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
@@ -4666,7 +4694,7 @@ where
                         != 0
                     {
                         tracing::trace!("Response uses SSE based body: {:?}", &content_types,);
-                        self.state = HttpReadState::Body(Body::SseBody(headers.clone()));
+                        self.state = HttpReadState::Body(Body::SseBody(body_headers.clone()));
 
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
                     }
@@ -4681,8 +4709,10 @@ where
                         "Response has neither content length nor transfer_encoding: {:?}",
                         &headers,
                     );
-                    self.state =
-                        HttpReadState::Body(Body::FullBody(headers.clone(), self.max_body_length));
+                    self.state = HttpReadState::Body(Body::FullBody(
+                        body_headers.clone(),
+                        self.max_body_length,
+                    ));
 
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
                 }
@@ -4736,7 +4766,7 @@ where
 
                     self.state = HttpReadState::Body(Body::ChunkedBody(
                         transfer_encodings.clone(),
-                        headers.clone(),
+                        body_headers.clone(),
                     ));
                     return Some(Ok(IncomingResponseParts::Headers(headers)));
                 }
@@ -4774,8 +4804,10 @@ where
                             if value == 0 {
                                 self.state = HttpReadState::NoBody;
                             } else {
-                                self.state =
-                                    HttpReadState::Body(Body::LimitedBody(value, headers.clone()));
+                                self.state = HttpReadState::Body(Body::LimitedBody(
+                                    value,
+                                    body_headers.clone(),
+                                ));
                             }
 
                             Some(Ok(IncomingResponseParts::Headers(headers)))
@@ -4797,8 +4829,26 @@ where
                 Some(Ok(IncomingResponseParts::NoBody))
             }
             HttpReadState::Body(body) => {
+                // The `Body` variant keeps the wire headers, so the decoder
+                // sees the `Content-Encoding` that the emitted headers no
+                // longer carry.
+                let decompression = self.bodies.decompression();
+                let decoding = super::decompression::response_decoding(
+                    super::decompression::body_headers(body),
+                    &decompression,
+                );
                 let cloned_stream = self.reader.clone();
-                match self.bodies.extract(body.clone(), cloned_stream) {
+                let extracted = self.bodies.extract(body.clone(), cloned_stream).and_then(
+                    |generated| {
+                        super::decompression::decode_body(
+                            generated,
+                            decoding,
+                            &decompression,
+                            self.bodies.body_batch_size(),
+                        )
+                    },
+                );
+                match extracted {
                     Ok(generated_body) => {
                         // once we've gotten a body iterator and gives it to the user
                         // the next state is finished.
@@ -6113,6 +6163,8 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 /// - Fifth field (`frame_limits`): caps on the frames a parser must see whole —
 ///   header block, chunk-size line, line, server-sent event. See
 ///   [`super::framing::FrameLimits`].
+/// - Sixth field (`decompression`): response `Content-Encoding` handling and
+///   the decoded-body cap. See [`CompressionConfig`].
 ///
 /// `batch_size` is also the largest piece of chunk data handed out at once, so
 /// every body kind streams in the same-sized pulls.
@@ -6122,6 +6174,7 @@ pub struct SimpleHttpBody(
     pub usize,
     pub usize,
     pub super::framing::FrameLimits,
+    pub CompressionConfig,
 );
 
 impl Default for SimpleHttpBody {
@@ -6133,6 +6186,7 @@ impl Default for SimpleHttpBody {
             8192,
             100,
             super::framing::FrameLimits::default(),
+            CompressionConfig::default(),
         )
     }
 }
@@ -6162,6 +6216,7 @@ impl SimpleHttpBody {
             batch_size,
             max_retries,
             super::framing::FrameLimits::default(),
+            CompressionConfig::default(),
         )
     }
 
@@ -6169,6 +6224,13 @@ impl SimpleHttpBody {
     #[must_use]
     pub fn with_frame_limits(mut self, limits: super::framing::FrameLimits) -> Self {
         self.4 = limits;
+        self
+    }
+
+    /// Replace the response decompression settings.
+    #[must_use]
+    pub fn with_decompression(mut self, decompression: CompressionConfig) -> Self {
+        self.5 = decompression;
         self
     }
 }
@@ -6268,6 +6330,14 @@ impl SimpleHttpBody {
 impl BodyExtractor for SimpleHttpBody {
     fn frame_limits(&self) -> super::framing::FrameLimits {
         self.4
+    }
+
+    fn decompression(&self) -> CompressionConfig {
+        self.5.clone()
+    }
+
+    fn body_batch_size(&self) -> usize {
+        self.2
     }
 
     fn extract<T: std::io::Read + Send + Sync + 'static>(

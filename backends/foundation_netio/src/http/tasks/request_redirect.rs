@@ -267,6 +267,10 @@ pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     Done,
 }
 
+// The `Done` variant embeds the response reader, which owns the client config
+// (including the decompression settings). Boxing it on every redirect step
+// would add indirection for a few dozen bytes, so keep the reader in place.
+#[allow(clippy::large_enum_variant)]
 pub enum HttpRequestRedirectResponse {
     Done(
         HttpClientConnection,

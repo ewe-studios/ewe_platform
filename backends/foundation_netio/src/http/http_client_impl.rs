@@ -366,6 +366,24 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
+    /// Cap the decoded response body; `0` removes the cap.
+    ///
+    /// See [`crate::shared::client::CompressionConfig::max_decompressed_size`]
+    /// for the default.
+    #[must_use]
+    pub fn max_decompressed_size(mut self, max_decompressed_size: usize) -> Self {
+        self.config.compression.max_decompressed_size = max_decompressed_size;
+        self
+    }
+
+    /// Replace the compression settings (`Accept-Encoding` and response
+    /// decoding).
+    #[must_use]
+    pub fn compression(mut self, compression: crate::shared::client::CompressionConfig) -> Self {
+        self.config.compression = compression;
+        self
+    }
+
     /// Caps on the frames a parser must buffer whole (response header block,
     /// chunk-size line, line, server-sent event). See
     /// [`crate::shared::http::framing::FrameLimits`].
@@ -523,7 +541,12 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         &self,
         builder: ClientRequestBuilder<R>,
     ) -> Result<ClientRequest<R>, HttpClientError> {
-        let prepared = builder.build()?;
+        let mut prepared = builder.build()?;
+        // Advertise the encodings this client decodes. A request that already
+        // sets `Accept-Encoding` keeps it.
+        self.config
+            .compression
+            .apply_accept_encoding(&mut prepared.headers);
         let pool = self.pool.clone().ok_or(HttpClientError::NoPool)?;
         Ok(ClientRequest::new(prepared, self.config.clone(), pool))
     }
@@ -632,6 +655,12 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let config = self.config.clone();
+        // Advertise the encodings this client decodes. A request that already
+        // sets `Accept-Encoding` keeps it.
+        let mut req = req;
+        self.config
+            .compression
+            .apply_accept_encoding(&mut req.headers);
         // Use the client's own pool. It carries the TLS connector (custom
         // roots, client certificates) and a transport connector set with
         // `with_connector` (WireGuard overlay, SSH `dial-stdio`), so the async
