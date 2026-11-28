@@ -5037,7 +5037,11 @@ impl LineFeed {
     fn eat_escaped_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) {
         while let Ok(b) = acc.nextby2(2) {
             if b != b"\\r" && b != b"\\n" {
-                let _ = acc.unforward_by(2);
+                // `nextby2(2)` is short when fewer than two bytes remain (a
+                // truncated tail). Move back by what it actually read, or
+                // `unforward_by(2)` subtracts below zero and panics.
+                let read = b.len();
+                let _ = acc.unforward_by(read);
                 acc.skip();
                 break;
             }
@@ -6300,31 +6304,83 @@ impl SimpleHttpBody {
         // Transfer decoding first, then content decoding, then the event parser.
         // The parser must read plain bytes: decoding after it would decode
         // parsed event lines, not the body (issue #1220).
-        let de_framed: Box<dyn std::io::Read + Send + Sync> = if chunked {
-            let transfer_encoding = headers
-                .get(&SimpleHeader::TRANSFER_ENCODING)
-                .cloned()
-                .unwrap_or_default();
-            let reader =
-                ChunkedBodyReader::new(transfer_encoding, headers.clone(), stream, self.2, self.4);
-            Box::new(reader)
-        } else {
-            match framed_len {
-                Some(len) => Box::new(std::io::Read::take(stream, len)),
-                None => Box::new(stream),
-            }
-        };
+        //
+        // A body with no content coding keeps the pre-#1220 reader chain: no
+        // extra buffered layer between the transport and the parser. That
+        // layer made the inner `SharedByteBufferStream::read` fill its whole
+        // buffer, so it absorbed an error that arrived with the last data
+        // bytes; the next read then looked like a clean end of stream. A
+        // reset must stay an error, or the reconnecting task never retries
+        // (issue #1252). A clean end after the body's framing still ends the
+        // parser normally, with or without the decoder.
         let decoding = super::decompression::response_decoding(&headers, &self.5);
-        let decoded = super::decompression::decoding_stream(de_framed, &decoding, &self.5)?;
-        let mut parser_headers = headers;
-        if matches!(decoding, super::decompression::ResponseDecoding::Decode(_)) {
+        let mut parser_headers = headers.clone();
+        if matches!(&decoding, super::decompression::ResponseDecoding::Decode(_)) {
             parser_headers.remove(&SimpleHeader::CONTENT_ENCODING);
         }
-        let buffered = SharedByteBufferStream::rwrite(decoded);
         let sse_iterator: BoxedSendableIterator<
             crate::event_source::ParseResult,
             SendableBoxedError,
-        > = Box::new(SimpleSseIterator::new(parser_headers, buffered).with_limits(self.4));
+        > = match decoding {
+            super::decompression::ResponseDecoding::Unsupported(name) => {
+                return Err(Box::new(HttpReaderError::UnsupportedContentEncoding(name)));
+            }
+            super::decompression::ResponseDecoding::None => {
+                if chunked {
+                    let transfer_encoding = headers
+                        .get(&SimpleHeader::TRANSFER_ENCODING)
+                        .cloned()
+                        .unwrap_or_default();
+                    let reader = ChunkedBodyReader::new(
+                        transfer_encoding,
+                        headers,
+                        stream,
+                        self.2,
+                        self.4,
+                    );
+                    let buffered = SharedByteBufferStream::rwrite(reader);
+                    Box::new(SimpleSseIterator::new(parser_headers, buffered).with_limits(self.4))
+                } else {
+                    match framed_len {
+                        Some(len) => {
+                            let bounded =
+                                SharedByteBufferStream::rwrite(std::io::Read::take(stream, len));
+                            Box::new(
+                                SimpleSseIterator::new(parser_headers, bounded)
+                                    .with_limits(self.4),
+                            )
+                        }
+                        None => Box::new(
+                            SimpleSseIterator::new(parser_headers, stream).with_limits(self.4),
+                        ),
+                    }
+                }
+            }
+            decoding @ super::decompression::ResponseDecoding::Decode(_) => {
+                let de_framed: Box<dyn std::io::Read + Send + Sync> = if chunked {
+                    let transfer_encoding = headers
+                        .get(&SimpleHeader::TRANSFER_ENCODING)
+                        .cloned()
+                        .unwrap_or_default();
+                    Box::new(ChunkedBodyReader::new(
+                        transfer_encoding,
+                        headers,
+                        stream,
+                        self.2,
+                        self.4,
+                    ))
+                } else {
+                    match framed_len {
+                        Some(len) => Box::new(std::io::Read::take(stream, len)),
+                        None => Box::new(stream),
+                    }
+                };
+                let decoded =
+                    super::decompression::decoding_stream(de_framed, &decoding, &self.5)?;
+                let buffered = SharedByteBufferStream::rwrite(decoded);
+                Box::new(SimpleSseIterator::new(parser_headers, buffered).with_limits(self.4))
+            }
+        };
         Ok(SendSafeBody::SseStream(Some(sse_iterator)))
     }
 }
@@ -6358,17 +6414,35 @@ impl BodyExtractor for SimpleHttpBody {
                     headers
                 );
                 // Decode the content encoding before the line parser reads the
-                // bytes, never after it (issue #1220).
+                // bytes, never after it (issue #1220). With no content coding,
+                // keep the pre-#1220 chain with no extra buffered layer: that
+                // layer turns a reset into a clean end of stream (issue #1252).
                 let decoding = super::decompression::response_decoding(&headers, &self.5);
-                let decoded = super::decompression::decoding_stream(stream, &decoding, &self.5)?;
-                let mut parser_headers = headers;
-                if matches!(decoding, super::decompression::ResponseDecoding::Decode(_)) {
+                let mut parser_headers = headers.clone();
+                if matches!(&decoding, super::decompression::ResponseDecoding::Decode(_)) {
                     parser_headers.remove(&SimpleHeader::CONTENT_ENCODING);
                 }
-                let buffered = SharedByteBufferStream::rwrite(decoded);
-                let line_feed_iterator = Box::new(
-                    SimpleLineFeedIterator::new(parser_headers, buffered).with_limits(self.4),
-                );
+                let line_feed_iterator: BoxedSendableIterator<LineFeed, BoxedError> =
+                    match decoding {
+                        super::decompression::ResponseDecoding::Unsupported(name) => {
+                            return Err(Box::new(HttpReaderError::UnsupportedContentEncoding(
+                                name,
+                            )));
+                        }
+                        super::decompression::ResponseDecoding::None => Box::new(
+                            SimpleLineFeedIterator::new(headers, stream).with_limits(self.4),
+                        ),
+                        decoding @ super::decompression::ResponseDecoding::Decode(_) => {
+                            let decoded = super::decompression::decoding_stream(
+                                stream, &decoding, &self.5,
+                            )?;
+                            let buffered = SharedByteBufferStream::rwrite(decoded);
+                            Box::new(
+                                SimpleLineFeedIterator::new(parser_headers, buffered)
+                                    .with_limits(self.4),
+                            )
+                        }
+                    };
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(headers, optional_max_body_size) => {

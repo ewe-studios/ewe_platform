@@ -94,9 +94,12 @@ pub fn body_headers(body: &Body) -> &SimpleHeaders {
 /// its decoder must sit between the transfer decoding (chunked, limited, EOF)
 /// and the parser. Decoding after the parser would decode parsed lines.
 ///
-/// Returns the reader unchanged for [`ResponseDecoding::None`]. An encoding
-/// this build has no decoder for is a typed error, never compressed bytes
-/// handed to a parser.
+/// Returns the reader unchanged for [`ResponseDecoding::None`]. A caller must
+/// not put this result under a buffered parser stream for that case: the
+/// extra layer absorbs a reset that arrives with the last data bytes, and the
+/// next read looks like a clean end of stream (issue #1252). Pass the plain
+/// stream to the parser instead. An encoding this build has no decoder for is
+/// a typed error, never compressed bytes handed to a parser.
 ///
 /// # Errors
 ///
