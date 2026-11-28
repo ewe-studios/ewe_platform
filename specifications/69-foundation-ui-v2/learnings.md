@@ -1196,3 +1196,10 @@ The mise environment sets the development profile to Cranelift. Cranelift cannot
 sha2 0.11 does not re-export that type, so the workspace build failed.
 Call `as_slice` on the value instead. This works for either array type.
 The mise environment sets the development profile to Cranelift. Cranelift cannot compile the wasmtime inline assembly.
+
+### GitHub release drafts and retries
+
+The authenticated release list can return a draft when the tag lookup returns 404.
+Check the list for the exact tag before you attempt to create another draft.
+Check existing asset digests and the deployment receipt before you resume a transfer.
+The native package recovery uses the signed artifact from the failed tag run.

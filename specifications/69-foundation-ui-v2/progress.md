@@ -1514,3 +1514,13 @@ The JWK builder now calls `as_slice` on each P-256 coordinate.
 All `foundation_proxy` tests pass.
 The 145 Python CI tests pass.
 `publish_crates.py --dry-run` lists the publish order from the merged manifests.
+
+### Native package draft recovery
+
+The protected release job signs the approved 0.1.2 candidate.
+GitHub creates the draft, but the tag-based release lookup returns 404.
+The job stops before it uploads an asset or requests a Central deployment.
+The recovery change adds a draft lookup and a guarded dispatch for the same signed candidate.
+Public publication and consumer checks remain open.
+
+[Draft recovery](features/19-native-package-releases/feature.md#resume-the-approved-012-draft)

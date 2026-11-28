@@ -40,7 +40,20 @@ struct Remote {
     signer: String,
     ambiguous: bool,
     changed_tag: bool,
+    hidden_draft: bool,
+    absent_draft: bool,
+    lookup_denied: bool,
 }
+impl Remote {
+    fn release(&self) -> Value {
+        let assets = self
+            .assets
+            .iter()
+            .map(|(name, digest)| json!({"name": name, "digest": digest}));
+        json!({"draft": true, "assets": assets.collect::<Vec<_>>()})
+    }
+}
+
 #[derive(Default)]
 struct Registry(Mutex<Remote>);
 impl TaskProcess for Registry {
@@ -57,6 +70,7 @@ impl TaskProcess for Registry {
                 .map(|s| s.to_str().unwrap())
                 .collect::<Vec<_>>();
             assert!(args.iter().all(|s| !s.contains("dGVzdDpwYXNz")));
+            let mut exit = Ok(());
             let response = {
                 let mut remote = self.0.lock().unwrap();
                 let op = cmd.program.to_str().unwrap();
@@ -67,16 +81,52 @@ impl TaskProcess for Registry {
                         format!("[GNUPG:] VALIDSIG {} signer\n", remote.signer)
                     }
                     ("gh", ["api", "--include", route, "--jq", _]) => {
-                        let obj = if route.contains("git/ref/tags/") {
+                        let mut status = "200 OK";
+                        let object = if route.contains("git/ref/tags/") {
                             json!({"type":"commit","sha":if remote.changed_tag { "changed" } else { REVISION }})
                         } else if route.contains("git/commits/") {
                             json!({"sha":REVISION})
                         } else if route.contains("releases/tags/") {
-                            json!({"draft":true,"assets":remote.assets.iter().map(|(name,digest)|json!({ "name":name,"digest":digest})).collect::<Vec<_>>()})
+                            if remote.hidden_draft || remote.lookup_denied || remote.absent_draft {
+                                status = if remote.lookup_denied {
+                                    "403 Forbidden"
+                                } else {
+                                    "404 Not Found"
+                                };
+                                exit = Err(TaskError::Exit {
+                                    program: "gh".into(),
+                                    code: 1,
+                                });
+                                json!({})
+                            } else {
+                                remote.release()
+                            }
                         } else {
                             panic!("Unknown GitHub lookup {route}")
                         };
-                        format!("HTTP/2.0 200 OK\r\nX-Test: local\r\n\r\n{obj}\n")
+                        format!("HTTP/2.0 {status}\r\nX-Test: local\r\n\r\n{object}\n")
+                    }
+                    ("gh", ["api", "--paginate", route, "--jq", filter]) => {
+                        assert_eq!(*route, "repos/demo/project/releases?per_page=100");
+                        assert!(filter.contains("select(.tag_name == \"native-ui-v1.2.3\")"));
+                        if remote.absent_draft {
+                            String::new()
+                        } else {
+                            remote.release().to_string()
+                        }
+                    }
+                    (
+                        "gh",
+                        ["release", "create", "native-ui-v1.2.3", "--repo", "demo/project", ..],
+                    ) => {
+                        assert!(
+                            remote.absent_draft,
+                            "An existing draft must not be recreated"
+                        );
+                        remote.absent_draft = false;
+                        remote.hidden_draft = true;
+                        remote.operations.push("create draft".into());
+                        String::new()
                     }
                     (
                         "gh",
@@ -134,7 +184,8 @@ impl TaskProcess for Registry {
             };
             out.write(OutputStream::Stdout, response.as_bytes())
                 .await
-                .map_err(TaskError::operation)
+                .map_err(TaskError::operation)?;
+            exit
         })
     }
 }
@@ -276,6 +327,48 @@ fn published_receipt_avoids_a_second_upload() {
         ]
     );
 }
+#[test]
+fn a_draft_hidden_from_tag_lookup_reuses_its_published_receipt() {
+    let f = Fixture::new();
+    f.remote.0.lock().unwrap().hidden_draft = true;
+    f.resume(&["PUBLISHED"]);
+    f.run().unwrap();
+    assert_eq!(
+        f.remote.0.lock().unwrap().operations,
+        [
+            "download central-deployment.json",
+            &format!("status?id={ID}"),
+            "release"
+        ]
+    );
+}
+
+#[test]
+fn a_new_draft_is_found_after_creation() {
+    let f = Fixture::new();
+    let mut remote = f.remote.0.lock().unwrap();
+    remote.absent_draft = true;
+    remote.assets.clear();
+    remote
+        .states
+        .extend(["VALIDATED".into(), "PUBLISHED".into()]);
+    drop(remote);
+    f.run().unwrap();
+    let remote = f.remote.0.lock().unwrap();
+    assert_eq!(remote.operations.first().unwrap(), "create draft");
+    assert_eq!(remote.operations.last().unwrap(), "release");
+    assert!(remote.assets.contains_key("native-ui.json"));
+    assert!(remote.assets.contains_key("central-deployment.json"));
+}
+
+#[test]
+fn denied_tag_lookup_stops_before_fallback_and_writes() {
+    let f = Fixture::new();
+    f.remote.0.lock().unwrap().lookup_denied = true;
+    assert!(f.run().is_err());
+    assert!(f.remote.0.lock().unwrap().operations.is_empty());
+}
+
 #[test]
 fn validated_receipt_publishes_once() {
     let f = Fixture::new();
