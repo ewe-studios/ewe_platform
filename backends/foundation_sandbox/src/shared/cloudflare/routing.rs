@@ -122,7 +122,7 @@ fn unknown_method() -> crate::shared::error::SandboxResult<RouteTarget> {
 /// The entry reads only this field; every other field of the message is
 /// ignored.
 fn scoped_id(body: &[u8], field: &str) -> SandboxResult<SandboxId> {
-    let value = serde_json::from_slice::<serde_json::Value>(body).map_err(|error| {
+    let value = serde_json::from_slice::<serde_json::Value>(message_of(body)).map_err(|error| {
         SandboxError::InvalidSpec {
             field: field.to_string(),
             reason: format!("the body is not JSON: {error}"),
@@ -142,4 +142,21 @@ fn scoped_id(body: &[u8], field: &str) -> SandboxResult<SandboxId> {
         }
         .into()
     })
+}
+
+/// The message of one request body.
+///
+/// A unary call sends the bare JSON message. A server-streaming scoped call
+/// sends a Connect envelope: a one-byte flag and a four-byte big-endian length,
+/// then the message. The route reads only the first message, so it skips a
+/// whole uncompressed envelope (issue #1140).
+fn message_of(body: &[u8]) -> &[u8] {
+    const ENVELOPE: usize = 5;
+    if body.len() >= ENVELOPE && body[0] == 0 {
+        let length = u32::from_be_bytes([body[1], body[2], body[3], body[4]]);
+        if usize::try_from(length).ok() == Some(body.len() - ENVELOPE) {
+            return &body[ENVELOPE..];
+        }
+    }
+    body
 }

@@ -81,8 +81,11 @@ impl FoundationCloudflareDeployer {
             api.set_route(&plan.worker.name, route).await?;
         }
 
-        // Step 8: promote the version. This is the traffic switch.
-        let promotion = api.promote(&plan.worker.name, &version).await?;
+        // Step 8: promote the version. This is the traffic switch. The first
+        // route of the plan is the public address when the plan names one.
+        let promotion = api
+            .promote(&plan.worker.name, &version, plan.routes.first())
+            .await?;
 
         // Step 9: the outcome.
         Ok(DeploymentOutcome {

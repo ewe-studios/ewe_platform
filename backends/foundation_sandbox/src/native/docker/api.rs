@@ -27,7 +27,7 @@ use foundation_deployment_docker::generated::create::{ContainerCreateResponse, C
 use foundation_deployment_docker::generated::info::SystemInfo;
 use foundation_deployment_docker::generated::json::{
     ContainerConfig, ContainerInspectResponse, ContainerSummary, ExecInspectResponse, HostConfig,
-    ImageInspect, Resources,
+    ImageInspect,
 };
 use foundation_deployment_docker::generated::shared::IDResponse;
 use foundation_deployment_docker::generated::wait::ContainerWaitResponse;
@@ -332,21 +332,13 @@ pub fn is_unreachable(error: &DockerError) -> bool {
 
 /// The create body of one sandbox container (feature 10, section 6.4).
 ///
-/// The caller fills the generated fields; this function only merges the
-/// generated `HostConfig` and `Resources` into the one object that the daemon
-/// reads.
+/// The caller fills the generated fields. The generated `HostConfig` already
+/// carries the CPU, memory and device resource fields.
 #[must_use]
-pub fn create_body(
-    config: ContainerConfig,
-    host_config: HostConfig,
-    resources: Resources,
-) -> ContainerCreateBody {
+pub fn create_body(config: ContainerConfig, host_config: HostConfig) -> ContainerCreateBody {
     ContainerCreateBody {
         config,
-        host_config: Some(ContainerHostConfig {
-            base: host_config,
-            resources,
-        }),
+        host_config: Some(ContainerHostConfig { base: host_config }),
         networking_config: None,
     }
 }

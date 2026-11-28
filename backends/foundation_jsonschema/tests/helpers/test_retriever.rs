@@ -1,7 +1,7 @@
 //! Test retriever — loads remote schemas for the official test suite.
 //!
 //! WHY: The official JSON Schema Test Suite's `$ref` tests reference
-//! schemas like "http://localhost:1234/integer.json". Rather than running
+//! schemas like `http://localhost:1234/integer.json`. Rather than running
 //! an HTTP server, we load these from the vendored `remotes/` directory
 //! into an `InMemoryFetcher`.
 //!

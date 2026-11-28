@@ -27,19 +27,22 @@ use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::protocol::grpc::GrpcClient;
 use foundation_connectrpc::shared::protocol::{ClientExchangeConfig, ProtocolClient};
 use foundation_connectrpc::shared::transport::{
-    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportStream,
+    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities, TransportError,
+    TransportStream,
 };
 use foundation_connectrpc::{
     Client, ClientOptions, Code, CompressionRegistry, ConnectRpcServeH2, H2Transport,
     HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router, RpcCtx,
 };
-use foundation_core::valtron::{valtron_test, Pipe};
+use foundation_core::valtron::{valtron_test, Pipe, PipeReceiver};
 use foundation_http::native::app::ServerApp;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
-use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, Status};
+use foundation_netio::shared::http::{
+    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
+};
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 struct Msg {
@@ -312,4 +315,131 @@ async fn an_unknown_response_encoding_is_unimplemented() {
         err.to_string().contains("snappy"),
         "the error must name the encoding, got: {err}"
     );
+}
+
+// ============================================================================
+// An edge can compress a unary body and leave Content-Encoding off (issue #1141)
+// ============================================================================
+
+/// Compresses `bytes` with gzip.
+fn gzip(bytes: &[u8]) -> Vec<u8> {
+    use std::io::Write;
+
+    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    encoder.write_all(bytes).expect("write the body");
+    encoder.finish().expect("finish the body")
+}
+
+/// A transport that answers one unary call with a prepared head and body.
+///
+/// The request direction is not read: the pipe stays open for the call.
+struct StubTransport {
+    response: std::sync::Mutex<Option<(Status, SimpleHeaders, Vec<u8>)>>,
+    requests: std::sync::Mutex<Vec<PipeReceiver<Bytes>>>,
+}
+
+impl StubTransport {
+    fn new(headers: SimpleHeaders, body: Vec<u8>) -> Self {
+        Self {
+            response: std::sync::Mutex::new(Some((Status::OK, headers, body))),
+            requests: std::sync::Mutex::new(Vec::new()),
+        }
+    }
+}
+
+impl Transport for StubTransport {
+    fn capabilities(&self) -> TransportCapabilities {
+        TransportCapabilities {
+            request_streaming: true,
+            full_duplex: true,
+            h2_trailers: true,
+            http_versions: &[Proto::HTTP11, Proto::HTTP20],
+            multiplexed: false,
+        }
+    }
+
+    fn open(&self, _request: RequestDescriptor) -> Result<TransportStream, TransportError> {
+        let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(8);
+        self.requests.lock().expect("the request list").push(req_rx);
+        let (head_tx, head_rx) = Pipe::with_depth(1);
+        let (resp_tx, resp_rx) = Pipe::with_depth(4);
+        let (status, headers, body) = self
+            .response
+            .lock()
+            .expect("the response cell")
+            .take()
+            .ok_or_else(|| TransportError::Protocol("the stub answers one call".into()))?;
+        head_tx
+            .try_send((status, headers))
+            .map_err(|_| TransportError::Protocol("the stub head sink is closed".into()))?;
+        resp_tx
+            .try_send(Bytes::from(body))
+            .map_err(|_| TransportError::Protocol("the stub body sink is closed".into()))?;
+        let _ = resp_tx.close();
+        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
+        let _ = trailer_tx.close();
+        Ok(TransportStream {
+            send_body: Arc::new(req_tx),
+            head: head_stream_from_pipe(head_rx),
+            recv_body: body_stream_from_pipe(resp_rx),
+            trailers: trailer_rx,
+        })
+    }
+}
+
+/// A client over one prepared stub response.
+fn stub_client(transport: Arc<dyn Transport>) -> Client<Msg, Msg> {
+    Client::new(
+        transport,
+        "http://stub/t.Svc/Unary",
+        codecs(),
+        ClientOptions::new().with_connect().with_codec("json"),
+    )
+    .expect("the stub client builds")
+}
+
+/// The JSON content type of a Connect unary response.
+fn json_headers() -> SimpleHeaders {
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::from("content-type".to_string()),
+        vec!["application/json".to_string()],
+    );
+    headers
+}
+
+/// The local Cloudflare edge compresses a unary body and leaves
+/// `Content-Encoding` off. The client must still decode the message.
+///
+/// Fails on the old code: `decode_unary_response` reads only the header, passes
+/// the gzip bytes to the JSON codec, and the call fails to decode.
+#[valtron_test(timeout = 5_000)]
+async fn an_undeclared_gzip_unary_response_is_decompressed() {
+    let body = gzip(br#"{"text":"edge"}"#);
+    let transport: Arc<dyn Transport> = Arc::new(StubTransport::new(json_headers(), body));
+    let client = stub_client(transport);
+    let response = client
+        .unary(ctx(), Request::new(Msg::of("hi")))
+        .await
+        .expect("the undeclared gzip body must decode");
+    assert_eq!(response.msg, Msg::of("edge"));
+}
+
+/// A proxy can compress a response that already carries the header a second
+/// time. The client must decode the message.
+#[valtron_test(timeout = 5_000)]
+async fn a_twice_compressed_unary_response_is_decompressed() {
+    let mut headers = json_headers();
+    headers.insert(
+        SimpleHeader::from("content-encoding".to_string()),
+        vec!["gzip".to_string()],
+    );
+    let body = gzip(&gzip(br#"{"text":"twice"}"#));
+    let transport: Arc<dyn Transport> = Arc::new(StubTransport::new(headers, body));
+    let client = stub_client(transport);
+    let response = client
+        .unary(ctx(), Request::new(Msg::of("hi")))
+        .await
+        .expect("the twice-compressed body must decode");
+    assert_eq!(response.msg, Msg::of("twice"));
 }

@@ -495,3 +495,67 @@ fn stdin_chunk_sizes_are_bounded() {
     assert_eq!(applied[0].data.len(), chunk);
     assert!(applied[4].eof);
 }
+
+/// The first stream error is reported as it is, not as `StreamLost`.
+///
+/// A bare `StreamLost` hides the transport or slave cause, so the runner could
+/// not name the failing stage (issue #1125).
+#[test]
+fn the_first_exec_stream_error_keeps_its_cause() {
+    let _serial = support::serial();
+    let (ctx, _clock) = support::ctx(45);
+    let slave = Arc::new(ScriptedSlave::new());
+    slave.with_exec_stream_error(
+        Vec::new(),
+        SandboxError::Io {
+            op: "exec stream".to_string(),
+            message: "the pipe broke".to_string(),
+        },
+    );
+    let driver = Arc::new(SimDriver::new(support::driver_id()));
+    let (manager, _slave, _driver) = create(ctx, slave, driver);
+    let handle = support::block_on(manager.create(spec())).expect("create");
+    let error = support::expect_error(
+        support::block_on(handle.run(Command::new(["prog"]))),
+        "the run fails",
+    );
+    assert!(
+        matches!(error, SandboxError::Io { ref op, .. } if op == "exec stream"),
+        "got {error:?}"
+    );
+}
+
+/// A stream error after the start is reported as it is, not as `StreamLost`.
+#[test]
+fn a_later_exec_stream_error_keeps_its_cause() {
+    let _serial = support::serial();
+    let (ctx, _clock) = support::ctx(46);
+    let slave = Arc::new(ScriptedSlave::new());
+    slave.with_exec_stream_error(
+        vec![
+            ExecEventMsg {
+                seq: 0,
+                event: started(),
+            },
+            ExecEventMsg {
+                seq: 1,
+                event: stdout(b"a"),
+            },
+        ],
+        SandboxError::Io {
+            op: "exec stream".to_string(),
+            message: "the pipe broke".to_string(),
+        },
+    );
+    let driver = Arc::new(SimDriver::new(support::driver_id()));
+    let (manager, _slave, _driver) = create(ctx, slave, driver);
+    let handle = support::block_on(manager.create(spec())).expect("create");
+    let error = support::expect_error(
+        support::block_on(handle.run(Command::new(["prog"]))),
+        "the run fails",
+    );
+    assert!(
+        matches!(error, SandboxError::Io { ref op, .. } if op == "exec stream"),
+        "got {error:?}"
+    );
+}

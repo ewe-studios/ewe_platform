@@ -430,6 +430,26 @@ async fn detached_service_receives_work_after_ownership_transfer() {
 }
 
 #[valtron_test(timeout = 30000)]
+async fn service_reports_the_live_process_id() {
+    let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let address = listener.local_addr().unwrap();
+    let process = NativeProcess::new(ProcessConfig::default());
+    let command = fixture("service-echo").env("FOUNDATION_TASKS_ADDRESS", address.to_string());
+    let service = process.service(command, Cancellation::new()).await.unwrap();
+    let pid = service.pid().expect("the host reports the service PID");
+    assert!(pid > 0, "the PID is a real process ID");
+    // On Unix, signal 0 asks whether the process exists and sends nothing, so
+    // this proves that the reported ID belongs to the running child.
+    #[cfg(unix)]
+    assert_eq!(
+        unsafe { libc::kill(pid.cast_signed(), 0) },
+        0,
+        "the reported PID names the live service"
+    );
+    drop(service);
+}
+
+#[valtron_test(timeout = 30000)]
 async fn file_input_reopens_a_binary_file_for_each_child() {
     let root = tempfile::tempdir().unwrap();
     let name = "fixture with spaces";
@@ -441,8 +461,18 @@ async fn file_input_reopens_a_binary_file_for_each_child() {
     let command = fixture("archive").current_dir(root.path()).file_input(name);
     let process = NativeProcess::new(ProcessConfig::default());
     for _ in 0..2 {
-        process.run(command.clone(), Arc::new(Memory::default()), Cancellation::new()).await.unwrap();
+        process
+            .run(
+                command.clone(),
+                Arc::new(Memory::default()),
+                Cancellation::new(),
+            )
+            .await
+            .unwrap();
     }
     std::fs::remove_file(root.path().join(name)).unwrap();
-    assert!(process.run(command, Arc::new(Memory::default()), Cancellation::new()).await.is_err());
+    assert!(process
+        .run(command, Arc::new(Memory::default()), Cancellation::new())
+        .await
+        .is_err());
 }

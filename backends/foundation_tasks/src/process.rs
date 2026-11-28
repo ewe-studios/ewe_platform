@@ -33,6 +33,16 @@ pub trait StartedService: Send {
     /// # Errors
     /// Returns an error if the process handle is invalid or the status query fails.
     fn status(&mut self) -> io::Result<Option<ExitStatus>>;
+    /// The process ID of the service, when the host knows it.
+    ///
+    /// A task that leaves a service running after it exits (see [`detach`](Self::detach))
+    /// records this value, so a later task can stop the service by its process
+    /// ID. That is more precise than a search for a program name, which can
+    /// stop an unrelated process. The default is `None`: a host that cannot
+    /// report the ID makes the caller name the service another way.
+    fn pid(&self) -> Option<u32> {
+        None
+    }
     /// Leave the verified service running after the task exits.
     ///
     /// # Errors
@@ -225,7 +235,10 @@ impl ProcessCommand {
         } = self;
         let (stdin, input) = match input {
             Some(CommandInput::File(path)) => {
-                let path = cwd.as_deref().unwrap_or_else(|| std::path::Path::new(".")).join(path);
+                let path = cwd
+                    .as_deref()
+                    .unwrap_or_else(|| std::path::Path::new("."))
+                    .join(path);
                 let file = std::fs::File::open(path).map_err(TaskError::operation)?;
                 (Stdio::from(file), None)
             }
@@ -419,6 +432,9 @@ impl StartedService for NativeService {
             self.tree.take();
         }
         Ok(status)
+    }
+    fn pid(&self) -> Option<u32> {
+        self.child.as_ref().map(std::process::Child::id)
     }
     fn detach(mut self: Box<Self>) -> io::Result<()> {
         let (sender, receiver) = std::sync::mpsc::sync_channel::<Child>(0);

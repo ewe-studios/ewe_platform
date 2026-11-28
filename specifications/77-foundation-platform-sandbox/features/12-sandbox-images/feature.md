@@ -366,13 +366,22 @@ impl SandboxHandle {
 
 In the slave (`native/slave/unpack.rs`):
 
-- `UnpackBegin`: `dest` joined to `exec_root` (it must exist and be a directory). Fork a
-  child: `chroot(<exec_root><dest>)`, `chdir("/")`, then read tar bytes from a pipe. The
-  parent keeps the pipe's write end.
-- `UnpackChunk`: `accept_span`; write the bytes to the pipe (it parks on pipe writability;
-  the call returns after the write, so the caller's pace follows the child's).
-- `UnpackCommit`: close the pipe; wait for the child; the child writes a result line
-  (entries, bytes, or the failed entry path and `errno`) to a second pipe.
+- `UnpackBegin`: `dest` joined to `exec_root` (it must exist and be a directory). Start a
+  child process of the same program with `--unpack-child <target> <options-json>`: the
+  child calls `chroot(<exec_root><dest>)`, `chdir("/")`, writes the line `ready`, then
+  reads tar bytes from its standard input. The parent keeps the pipe's write end and reads
+  `ready` as a readiness future.
+- The child uses `exec`, not a bare `fork` plus `chroot`. A threaded process cannot call
+  `fork` and then run arbitrary code safely: the child may allocate, lock a mutex that
+  another thread held, or call code that is not async-signal-safe. The `exec` form starts
+  with one clean thread and a fresh address space, which is the only safe way to change
+  the root. Decision date: 2026-11-27 (spec 92 feature 02, issue #978).
+- `UnpackChunk`: `accept_span`; write the bytes to the pipe through a non-blocking handle
+  that parks on writability (the call returns after the write, so the caller's pace follows
+  the child's).
+- `UnpackCommit`: close the pipe; read the child's result as a readiness future; wait for
+  the child; the child writes a result line (entries, bytes, or the failed entry path and
+  `errno`) to its standard output.
 - The child applies entries in order. It supports ustar, PAX extended headers (`path`,
   `linkpath`, `size`, `uid`, `gid`, and `SCHILY.xattr.security.capability`) and GNU long
   names (`L`, `K`). Types: regular file, directory, symbolic link, hard link, character

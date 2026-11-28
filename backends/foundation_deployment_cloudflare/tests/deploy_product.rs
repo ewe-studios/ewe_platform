@@ -98,6 +98,7 @@ impl DeploymentApi for FakeApi {
         &self,
         worker_name: &str,
         _version: &str,
+        _route: Option<&Route>,
     ) -> DeployFuture<'_, Result<Promotion, DeployError>> {
         *self.promoted.lock().expect("the promoted cell") = Some(worker_name.to_string());
         Box::pin(async {

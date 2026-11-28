@@ -145,15 +145,6 @@ mod tests {
         ValidationContext::new()
     }
 
-    fn string_type_schema() -> SchemaNode {
-        let mut types = JsonTypeSet::new();
-        types.insert(JsonType::String);
-        SchemaNode::Validators {
-            validators: vec![Box::new(TypeValidator::new(types, Location::new()))],
-            schema_path: Location::new(),
-        }
-    }
-
     fn object_type_schema() -> SchemaNode {
         let mut types = JsonTypeSet::new();
         types.insert(JsonType::Object);

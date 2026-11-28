@@ -1051,7 +1051,7 @@ impl ReadTimeoutOperations for Connection {
                     "Tcp::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
                     &timeout,
                 );
-                t.set_read_timeout(Some(timeout))
+                peer_closed_timeout_result(t.set_read_timeout(Some(timeout)))
             }
             #[cfg(unix)]
             Self::Unix(u) => {
@@ -1060,7 +1060,7 @@ impl ReadTimeoutOperations for Connection {
                     &timeout,
                 );
 
-                unix_timeout_result(u.set_read_timeout(Some(timeout)))
+                peer_closed_timeout_result(u.set_read_timeout(Some(timeout)))
             }
             #[cfg(any(
                 feature = "ssl-rustls",
@@ -1072,7 +1072,7 @@ impl ReadTimeoutOperations for Connection {
                     "Tls::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
                     &timeout,
                 );
-                tls.set_read_timeout(Some(timeout))
+                peer_closed_timeout_result(tls.set_read_timeout(Some(timeout)))
             }
             #[cfg(unix)]
             Self::Completion(_) => {
@@ -1176,15 +1176,15 @@ impl Connection {
     /// write timeout fails.
     pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
         match self {
-            Self::Tcp(t) => t.set_write_timeout(dur),
+            Self::Tcp(t) => peer_closed_timeout_result(t.set_write_timeout(dur)),
             #[cfg(unix)]
-            Self::Unix(u) => unix_timeout_result(u.set_write_timeout(dur)),
+            Self::Unix(u) => peer_closed_timeout_result(u.set_write_timeout(dur)),
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
                 feature = "ssl-native-tls"
             ))]
-            Self::Tls(tls) => tls.set_write_timeout(dur),
+            Self::Tls(tls) => peer_closed_timeout_result(tls.set_write_timeout(dur)),
             #[cfg(unix)]
             Self::Completion(_) => {
                 // Writes are still `write(2)` — timeouts apply to the socket.
@@ -1206,15 +1206,15 @@ impl Connection {
     /// read timeout fails.
     pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
         match self {
-            Self::Tcp(t) => t.set_read_timeout(dur),
+            Self::Tcp(t) => peer_closed_timeout_result(t.set_read_timeout(dur)),
             #[cfg(unix)]
-            Self::Unix(u) => unix_timeout_result(u.set_read_timeout(dur)),
+            Self::Unix(u) => peer_closed_timeout_result(u.set_read_timeout(dur)),
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
                 feature = "ssl-native-tls"
             ))]
-            Self::Tls(tls) => tls.set_read_timeout(dur),
+            Self::Tls(tls) => peer_closed_timeout_result(tls.set_read_timeout(dur)),
             #[cfg(unix)]
             Self::Completion(_) => {
                 // In completion mode the read never blocks — it returns
@@ -1227,26 +1227,33 @@ impl Connection {
     }
 }
 
-/// Map the result of setting `SO_RCVTIMEO` / `SO_SNDTIMEO` on a Unix socket.
+/// Map a timeout that a peer-closed socket refused.
 ///
 /// macOS (like the other BSDs) answers `EINVAL` when the socket has already
 /// been shut down by the peer — a server that wrote its whole response and
 /// closed (`Connection: close`) before we got to set the body-read timeout.
 /// The timeout cannot matter then (every read returns at once with the
 /// buffered bytes or EOF), so this is "timeout not applied", not a failed
-/// send. Linux accepts the option in that state.
+/// send. Linux and Windows accept the option in that state.
 #[cfg(unix)]
-fn unix_timeout_result(result: std::io::Result<()>) -> std::io::Result<()> {
+fn peer_closed_timeout_result(result: std::io::Result<()>) -> std::io::Result<()> {
     match result {
         Err(err) if err.raw_os_error() == Some(libc::EINVAL) => {
             tracing::debug!(
                 ?err,
-                "unix socket refused a timeout (peer already shut it down); continuing without it"
+                "socket refused a timeout (peer already shut it down); continuing without it"
             );
             Ok(())
         }
         other => other,
     }
+}
+
+/// Targets other than unix do not answer `EINVAL` for a closed socket, so the
+/// timeout result passes through unchanged.
+#[cfg(not(unix))]
+fn peer_closed_timeout_result(result: std::io::Result<()>) -> std::io::Result<()> {
+    result
 }
 
 impl SplitReadStream for Connection {
