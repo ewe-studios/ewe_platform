@@ -248,7 +248,13 @@ shell lists Workers scripts, but `wrangler containers list` answers
 The `worker-build --release` step and the local `wrangler dev` proof were
 stopped on 2026-11-28 because `/Volumes/Outside` had under 10 GiB free while
 other agent lanes were building. A release build and a container image need
-more space than that.
+more space than that. The container model server compiles with `rustc` and
+answers `container-model answered: hello container` for `POST /answer`.
+
+**#1232** (`severity: medium`, open): the agent RPC remote catalog requires an
+API key for every model and builds the Workers AI REST provider. It has no
+adapter for the Worker `AI` binding, so the demo's Workers AI tab calls the
+binding directly. The OpenRouter tab uses the agent RPC catalog.
 
 The demo URL and the per-tab results are added here after a machine with the
 token permissions and enough free disk runs `mise run deploy` and
