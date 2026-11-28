@@ -15,9 +15,10 @@
 
 mod fake_overlay;
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use fake_overlay::overlay_pair;
+use foundation_context::Ctx;
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::WriterConfig;
 use foundation_netio::event_source::{EventWriter, SseEvent};
@@ -102,25 +103,23 @@ fn sse_writer_delivers_a_whole_event_to_a_slow_client() {
     let expected = event.rendered();
     let want = 64 + expected.len();
     let event_size = expected.len();
+    let ctx = Ctx::host();
+    let reader_ctx = ctx.clone();
     let reader = std::thread::spawn(move || {
-        let deadline = Instant::now() + Duration::from_secs(30);
+        let deadline = reader_ctx.clock().now() + Duration::from_secs(30);
         let mut got = Vec::with_capacity(want);
         // Free one byte after each wait. The writer must park again until it finishes.
         for _ in 0..event_size {
-            got.push(
-                client.read_after_write_wait(deadline.saturating_duration_since(Instant::now())),
-            );
+            got.push(client.read_after_write_wait(
+                deadline.saturating_duration_since(reader_ctx.clock().now()),
+            ));
         }
         (client, got)
     });
 
     let writer_event = event.clone();
     let result = run_writer(async move {
-        let mut writer = SseWriter::new(
-            conn,
-            WriterConfig::default(),
-            &foundation_core::valtron::Ctx::host(),
-        );
+        let mut writer = SseWriter::new(conn, WriterConfig::default(), &ctx);
         writer.send(&writer_event).await
     });
     assert!(
