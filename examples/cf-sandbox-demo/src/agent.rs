@@ -78,6 +78,56 @@ impl ModelPath {
             Self::Container => config.container_model_name.clone(),
         }
     }
+
+    /// The service that runs the model. The page shows this in the answer
+    /// metadata line.
+    #[must_use]
+    pub fn service(self) -> &'static str {
+        match self {
+            Self::WorkersAi => "Workers AI",
+            Self::OpenRouter => "OpenRouter",
+            Self::Container => "in-sandbox model server",
+        }
+    }
+
+    /// The address that the path calls. The Workers AI path calls the Worker
+    /// binding, so its address is the binding, not a URL.
+    #[must_use]
+    pub fn address(self, config: &DemoConfig) -> String {
+        match self {
+            Self::WorkersAi => format!("binding {}", config.ai_binding),
+            Self::OpenRouter => openrouter_address(&config.openrouter_base_url),
+            Self::Container => format!("http://127.0.0.1:{}", config.container_model_port),
+        }
+    }
+
+    /// The protocol of the address. The OpenRouter protocol follows the
+    /// configured base URL.
+    #[must_use]
+    pub fn protocol(self, config: &DemoConfig) -> &'static str {
+        match self {
+            Self::WorkersAi => "HTTPS",
+            Self::OpenRouter => {
+                if config.openrouter_base_url.starts_with("http://") {
+                    "HTTP"
+                } else {
+                    "HTTPS"
+                }
+            }
+            Self::Container => "HTTP in the sandbox",
+        }
+    }
+}
+
+/// The OpenRouter endpoint without the provider suffix. The provider adds
+/// `/v1/chat/completions`, so the base ends at `/v1`.
+fn openrouter_address(base: &str) -> String {
+    let base = base.trim_end_matches('/');
+    if base.ends_with("/v1") {
+        base.to_string()
+    } else {
+        format!("{base}/v1")
+    }
 }
 
 thread_local! {

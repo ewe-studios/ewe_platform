@@ -67,6 +67,33 @@
         font: inherit;
       }
       textarea { min-height: 54px; resize: vertical; }
+      .strip {
+        max-width: 980px;
+        margin: 0 auto 14px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .strip-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+      .strip-head h2 { font-size: 1.05rem; margin: 0; }
+      .strip-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        background: var(--bg);
+        min-width: 0;
+      }
+      .card-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }
+      .card-head strong { margin-right: 2px; }
+      .card-head button { margin-left: auto; padding: 3px 8px; font-size: 0.85rem; }
+      .card .row { margin-top: 8px; }
       .tabs { display: flex; flex-wrap: wrap; gap: 6px; max-width: 980px; margin: 0 auto 10px; }
       .tab {
         border: 1px solid var(--line);
@@ -85,7 +112,9 @@
         padding: 14px;
         margin-bottom: 14px;
       }
-      .panel h2 { font-size: 1.05rem; margin: 0 0 2px; }
+      .panel > h2 { font-size: 1.05rem; margin: 0 0 2px; }
+      .panel .panel-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }
+      .panel .panel-head button { margin-left: auto; }
       .badge {
         display: inline-block;
         border: 1px solid var(--line);
@@ -109,6 +138,23 @@
         margin: 8px 0 0;
         font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
       }
+      .meta {
+        font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: var(--muted);
+        margin: 4px 0;
+        word-break: break-word;
+      }
+      .answer { margin-top: 8px; }
+      .answer-head { font-weight: 600; font-size: 0.9rem; }
+      .answer.bad .answer-head { color: var(--bad); }
+      .chat-log { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+      .chat-log:empty::before { content: "No message yet."; color: var(--muted); }
+      .evidence { margin-top: 8px; }
+      .evidence-line {
+        font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: var(--muted);
+        margin-top: 8px;
+      }
       .status { min-height: 1.4em; }
       .ok { color: var(--ok); }
       .bad { color: var(--bad); }
@@ -125,11 +171,13 @@
     <header>
       <h1>Sandbox and agent RPC demo</h1>
       <p class="muted">
-        Each sandbox is its own Durable Object with its own container. Each tab runs one
-        command console and one agent conversation, on its own model path.
+        Each sandbox is its own Durable Object with its own container. Write to a
+        sandbox from its card, or write <code>@name message</code> in the central
+        chat. Each tab shows its own commands, files and evidence.
       </p>
       <div class="row">
         <span class="count" id="count">Running sandboxes: 0</span>
+        <button id="refresh" type="button">Refresh</button>
         <button id="create-one" class="primary" type="button">Create one sandbox</button>
         <button id="create-two" class="primary" type="button">Create two more</button>
         <button id="destroy-all" class="danger" type="button">Destroy all</button>
@@ -137,7 +185,15 @@
       <p class="status" id="status"></p>
     </header>
 
-    <nav class="tabs" id="tabs" aria-label="Sandboxes"></nav>
+    <section class="strip" aria-label="Sandboxes">
+      <div class="strip-head">
+        <h2>Sandboxes</h2>
+        <span class="muted">One card per sandbox. Each card has its own message box.</span>
+      </div>
+      <div class="strip-list" id="strip"></div>
+    </section>
+
+    <nav class="tabs" id="tabs" aria-label="Views"></nav>
     <main id="panels"></main>
 
     <footer>
@@ -145,7 +201,8 @@
         The three model paths are Cloudflare Workers AI through the Worker's
         <code>AI</code> binding, OpenRouter through the agent RPC catalog, and a model
         server that runs inside the sandbox's own container and is reached over its
-        container port.
+        container port. Each answer names its model path, service, address and
+        protocol. The Worker sends these values as response headers.
       </p>
       <p class="muted">
         Local <code>wrangler dev</code> can run one container per Worker process
@@ -155,38 +212,79 @@
     </footer>
 
     <script type="module">
-      const MAX_TABS = 3;
       const statusLine = document.getElementById("status");
       const countLabel = document.getElementById("count");
+      const strip = document.getElementById("strip");
       const tabsNav = document.getElementById("tabs");
       const panels = document.getElementById("panels");
+      const refreshButton = document.getElementById("refresh");
       const createOne = document.getElementById("create-one");
       const createTwo = document.getElementById("create-two");
       const destroyAll = document.getElementById("destroy-all");
 
+      // The evidence commands of one sandbox tab. `head` replaces the pipeline
+      // `cat /etc/os-release | head -3`, because no shell runs a command line.
+      const EVIDENCE_COMMANDS = [
+        { label: "hostname", command: "hostname" },
+        { label: "uname -a", command: "uname -a" },
+        { label: "cat /etc/os-release | head -3", command: "head -n 3 /etc/os-release" },
+        { label: "uptime", command: "uptime" },
+      ];
+
       let tabs = [];
-      let active = 0;
+      let active = "central";
+      // The last answer of each strip card and each tab turn.
+      const stripLast = new Map();
+      const tabLast = new Map();
+      // The evidence of each sandbox, by identifier.
+      const evidence = new Map();
+      // The message list of the central chat.
+      const centralHistory = [];
 
       function setStatus(text, ok = true) {
         statusLine.textContent = text;
         statusLine.className = `status ${ok ? "ok" : "bad"}`;
       }
 
+      function el(tag, props = {}, children = []) {
+        const node = document.createElement(tag);
+        Object.assign(node, props);
+        for (const child of children) node.append(child);
+        return node;
+      }
+
+      async function errorText(response) {
+        const text = await response.text();
+        try {
+          const body = JSON.parse(text);
+          if (body && body.error) return body.error;
+        } catch {
+          // The body is not JSON; show it as it is.
+        }
+        return text || `status ${response.status}`;
+      }
+
       async function api(path, options = {}) {
         const response = await fetch(path, options);
-        if (!response.ok && !response.body) {
-          const body = await response.text();
-          throw new Error(body || `status ${response.status}`);
-        }
+        if (!response.ok) throw new Error(await errorText(response));
         return response;
       }
 
       async function json(path, options = {}) {
-        const response = await api(path, {
-          headers: { "content-type": "application/json" },
-          ...options,
-        });
+        const response = await api(path, options);
         return response.json();
+      }
+
+      async function readText(response) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let text = "";
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          text += decoder.decode(value, { stream: true });
+        }
+        return text + decoder.decode();
       }
 
       async function readInto(response, target) {
@@ -201,83 +299,316 @@
         target.textContent += decoder.decode();
       }
 
-      async function refresh() {
+      // The metadata of one answer. The Worker sends the values in the chat
+      // response headers. The tab values are a fallback for an old response.
+      function metaFromHeaders(response, fallback = {}) {
+        const value = (name) => response.headers.get(name) || "";
+        return {
+          path: value("x-ewe-model-path") || fallback.model_path || "",
+          model: value("x-ewe-model") || fallback.model || "",
+          service: value("x-ewe-model-service") || fallback.model_service || "",
+          address: value("x-ewe-model-address") || fallback.model_address || "",
+          protocol: value("x-ewe-model-protocol") || fallback.model_protocol || "",
+        };
+      }
+
+      function tabMeta(tab) {
+        return {
+          path: tab.model_path,
+          model: tab.model,
+          service: tab.model_service,
+          address: tab.model_address,
+          protocol: tab.model_protocol,
+        };
+      }
+
+      function metaLine(meta) {
+        const parts = [meta.path, meta.service, meta.address, meta.protocol].filter(Boolean);
+        if (meta.model) parts.push(`model ${meta.model}`);
+        return parts.join(" · ");
+      }
+
+      function metaNode(meta) {
+        return el("div", {
+          className: "meta",
+          textContent: metaLine(meta) || "the model metadata is absent",
+        });
+      }
+
+      function answerNode(message) {
+        const wrap = el("div", { className: `answer ${message.error ? "bad" : ""}` });
+        wrap.append(el("div", { className: "answer-head", textContent: `[${message.name}]` }));
+        if (message.meta) wrap.append(metaNode(message.meta));
+        wrap.append(el("pre", { className: "out", textContent: message.text || "…" }));
+        return wrap;
+      }
+
+      function forget(ids) {
+        for (const map of [stripLast, tabLast, evidence]) {
+          for (const id of [...map.keys()]) {
+            if (!ids.has(id)) map.delete(id);
+          }
+        }
+      }
+
+      async function refresh(options = {}) {
         try {
           const result = await json("/api/sandboxes");
           tabs = result.sandboxes;
-          if (active >= tabs.length) active = Math.max(0, tabs.length - 1);
+          forget(new Set(tabs.map((tab) => tab.id)));
+          if (active !== "central" && !tabs.some((tab) => tab.name === active)) {
+            active = "central";
+          }
           countLabel.textContent = `Running sandboxes: ${result.count} / ${result.max}`;
           const full = result.count >= result.max;
           createOne.disabled = full;
           createTwo.disabled = result.count + 2 > result.max;
+          renderStrip();
           renderTabs();
           renderPanels();
+          if (options.note) setStatus(options.note);
         } catch (error) {
           setStatus(`The sandbox list failed: ${error.message}`, false);
         }
       }
 
+      function renderStrip() {
+        strip.replaceChildren();
+        if (tabs.length === 0) {
+          strip.append(
+            el("p", {
+              className: "muted",
+              textContent: "No sandbox runs. Create one to write to it.",
+            }),
+          );
+          return;
+        }
+        for (const tab of tabs) strip.append(buildStripCard(tab));
+      }
+
+      function buildStripCard(tab) {
+        const card = el("article", { className: "card" });
+        const head = el("div", { className: "card-head" });
+        head.append(el("strong", { textContent: tab.name }));
+        head.append(el("span", { className: "badge", textContent: tab.model_path }));
+        head.append(el("span", { className: "badge", textContent: `id ${tab.id}` }));
+        head.append(el("span", { className: "badge", textContent: tab.state }));
+        const destroy = el("button", { type: "button", className: "danger", textContent: "Destroy" });
+        destroy.addEventListener("click", () => destroyOne(tab, destroy));
+        head.append(destroy);
+        card.append(head);
+
+        const meta = metaNode(tabMeta(tab));
+        card.append(meta);
+
+        const headLine = el("div", { className: "answer-head", textContent: `[${tab.name}]` });
+        const output = el("pre", { className: "out" });
+        const last = stripLast.get(tab.id);
+        output.textContent = last ? last.text : "No answer yet.";
+        card.append(el("div", { className: "answer" }, [headLine, output]));
+
+        const input = el("input", { placeholder: `Message ${tab.name}` });
+        const send = el("button", { type: "button", className: "primary", textContent: "Send" });
+        const submit = async () => {
+          const prompt = input.value.trim();
+          if (!prompt) {
+            setStatus(`Write a message for ${tab.name}.`, false);
+            return;
+          }
+          send.disabled = true;
+          headLine.textContent = `[${tab.name}]`;
+          output.textContent = "…";
+          try {
+            const response = await fetch(`/api/sandboxes/${tab.id}/chat`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ prompt }),
+            });
+            const answerMeta = metaFromHeaders(response, tab);
+            meta.textContent = metaLine(answerMeta);
+            if (!response.ok) throw new Error(await errorText(response));
+            await readInto(response, output);
+            stripLast.set(tab.id, {
+              name: tab.name,
+              text: output.textContent,
+              meta: answerMeta,
+            });
+            setStatus(`${tab.name}: the turn ended.`);
+          } catch (error) {
+            output.textContent = `error: ${error.message}`;
+            stripLast.set(tab.id, { name: tab.name, text: output.textContent, meta: null });
+            setStatus(`${tab.name}: the turn failed.`, false);
+          } finally {
+            send.disabled = false;
+          }
+        };
+        send.addEventListener("click", submit);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") submit();
+        });
+        card.append(el("div", { className: "row" }, [input, send]));
+        return card;
+      }
+
+      async function destroyOne(tab, button) {
+        button.disabled = true;
+        try {
+          await json(`/api/sandboxes/${tab.id}`, { method: "DELETE" });
+          stripLast.delete(tab.id);
+          tabLast.delete(tab.id);
+          evidence.delete(tab.id);
+          setStatus(`${tab.name} is stopped.`);
+          await refresh();
+        } catch (error) {
+          setStatus(`The destroy failed: ${error.message}`, false);
+          button.disabled = false;
+        }
+      }
+
       function renderTabs() {
         tabsNav.replaceChildren();
-        tabs.forEach((tab, index) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "tab";
-          button.textContent = `Tab ${tab.index} — ${tab.model_label}`;
-          button.setAttribute("aria-selected", String(index === active));
+        const add = (key, label) => {
+          const button = el("button", { type: "button", className: "tab", textContent: label });
+          button.setAttribute("aria-selected", String(key === active));
           button.addEventListener("click", () => {
-            active = index;
+            active = key;
             renderTabs();
             renderPanels();
           });
           tabsNav.append(button);
-        });
+        };
+        add("central", "Central chat");
+        for (const tab of tabs) add(tab.name, `${tab.name} — ${tab.model_path}`);
       }
 
       function renderPanels() {
         panels.replaceChildren();
-        const tab = tabs[active];
-        if (!tab) {
-          const section = document.createElement("section");
-          section.className = "panel";
-          section.textContent = "No sandbox runs. Create one to start.";
-          panels.append(section);
+        if (active === "central") {
+          panels.append(buildCentralPanel());
           return;
         }
-        panels.append(buildPanel(tab));
+        const tab = tabs.find((item) => item.name === active);
+        if (!tab) {
+          active = "central";
+          panels.append(buildCentralPanel());
+          return;
+        }
+        panels.append(buildTabPanel(tab));
       }
 
-      function el(tag, props = {}, children = []) {
-        const node = document.createElement(tag);
-        Object.assign(node, props);
-        for (const child of children) node.append(child);
-        return node;
-      }
+      function buildCentralPanel() {
+        const section = el("section", { className: "panel" });
+        section.append(el("h2", { textContent: "Central chat" }));
+        const known = tabs.length
+          ? tabs.map((tab) => tab.name).join(", ")
+          : "none yet";
+        section.append(
+          el("p", {
+            className: "muted",
+            textContent: `Write @name and a message. The Worker routes the turn to that sandbox. Known names: ${known}.`,
+          }),
+        );
 
-      function buildPanel(tab) {
-        const section = document.createElement("section");
-        section.className = "panel";
+        const log = el("div", { className: "chat-log" });
+        for (const message of centralHistory) log.append(answerNode(message));
+        section.append(log);
 
-        const head = el("div", { className: "row" }, [
-          el("h2", { textContent: `Tab ${tab.index} — ${tab.model_label}` }),
-          el("span", { className: "badge", textContent: `model: ${tab.model}` }),
-          el("span", { className: "badge", textContent: `sandbox: ${tab.id}` }),
-          el("span", { className: "badge", textContent: tab.state }),
-        ]);
-        const destroy = el("button", { type: "button", className: "danger", textContent: "Destroy this sandbox" });
-        destroy.addEventListener("click", async () => {
-          destroy.disabled = true;
-          try {
-            await json(`/api/sandboxes/${tab.id}`, { method: "DELETE" });
-            setStatus(`Sandbox ${tab.id} stopped.`);
-            await refresh();
-          } catch (error) {
-            setStatus(`The destroy failed: ${error.message}`, false);
-            destroy.disabled = false;
+        const input = el("input", { placeholder: "@sandbox-1 hello" });
+        const send = el("button", { type: "button", className: "primary", textContent: "Send" });
+        const submit = async () => {
+          const prompt = input.value.trim();
+          if (!prompt) {
+            setStatus("Write @name and a message.", false);
+            return;
           }
+          send.disabled = true;
+          input.value = "";
+          try {
+            const response = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ prompt }),
+            });
+            if (!response.ok) {
+              const message = await errorText(response);
+              const entry = {
+                name: "error",
+                meta: null,
+                text: `error: ${message}`,
+                error: true,
+              };
+              centralHistory.push(entry);
+              log.append(answerNode(entry));
+              setStatus(message, false);
+              return;
+            }
+            const entry = {
+              name: response.headers.get("x-ewe-sandbox-name") || "chat",
+              meta: metaFromHeaders(response),
+              text: "",
+            };
+            centralHistory.push(entry);
+            const node = answerNode(entry);
+            log.append(node);
+            const output = node.querySelector("pre");
+            await readInto(response, output);
+            entry.text = output.textContent;
+            setStatus(`${entry.name}: the turn ended.`);
+          } catch (error) {
+            const entry = {
+              name: "error",
+              meta: null,
+              text: `error: ${error.message}`,
+              error: true,
+            };
+            centralHistory.push(entry);
+            log.append(answerNode(entry));
+            setStatus(`The turn failed: ${error.message}`, false);
+          } finally {
+            send.disabled = false;
+          }
+        };
+        send.addEventListener("click", submit);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") submit();
         });
+        section.append(el("div", { className: "row" }, [input, send]));
+        section.append(
+          el("p", {
+            className: "muted",
+            textContent:
+              "An unknown name answers with the names that exist. A message without @name is refused.",
+          }),
+        );
+        return section;
+      }
+
+      function buildTabPanel(tab) {
+        const section = el("section", { className: "panel" });
+
+        const head = el("div", { className: "panel-head" });
+        head.append(el("h2", { textContent: `${tab.name} — ${tab.model_label}` }));
+        head.append(el("span", { className: "badge", textContent: `id ${tab.id}` }));
+        head.append(el("span", { className: "badge", textContent: tab.state }));
+        const destroy = el("button", { type: "button", className: "danger", textContent: "Destroy this sandbox" });
+        destroy.addEventListener("click", () => destroyOne(tab, destroy));
         head.append(destroy);
         section.append(head);
+        section.append(metaNode(tabMeta(tab)));
+
+        // Evidence: four commands in this sandbox, and the identifiers from
+        // the index.
+        const evidenceOut = el("div", { className: "evidence" });
+        renderEvidence(evidenceOut, tab);
+        const runEvidence = el("button", { type: "button", className: "primary", textContent: "Run evidence" });
+        runEvidence.addEventListener("click", () => runEvidenceFor(tab, runEvidence, evidenceOut));
+        section.append(
+          el("div", { className: "block" }, [
+            el("h3", { textContent: "Evidence" }),
+            el("div", { className: "row" }, [runEvidence]),
+            evidenceOut,
+          ]),
+        );
 
         // Command console.
         const command = el("input", { value: "uname -a" });
@@ -293,10 +624,10 @@
               body: JSON.stringify({ command: command.value }),
             });
             await readInto(response, commandOut);
-            setStatus(`Tab ${tab.index}: the command ended.`);
+            setStatus(`${tab.name}: the command ended.`);
           } catch (error) {
             commandOut.textContent = `error: ${error.message}`;
-            setStatus(`Tab ${tab.index}: the command failed.`, false);
+            setStatus(`${tab.name}: the command failed.`, false);
           } finally {
             run.disabled = false;
           }
@@ -311,7 +642,7 @@
 
         // File write and read.
         const path = el("input", { value: "notes/hello.txt" });
-        const content = el("textarea", { value: `hello from tab ${tab.index}` });
+        const content = el("textarea", { value: `hello from ${tab.name}` });
         const write = el("button", { type: "button", className: "primary", textContent: "Write" });
         const read = el("button", { type: "button", textContent: "Read" });
         const fileOut = el("pre", { className: "out" });
@@ -323,10 +654,10 @@
               body: JSON.stringify({ path: path.value, content: content.value }),
             });
             fileOut.textContent = `wrote ${result.written} bytes to ${result.path}`;
-            setStatus(`Tab ${tab.index}: the file write ended.`);
+            setStatus(`${tab.name}: the file write ended.`);
           } catch (error) {
             fileOut.textContent = `error: ${error.message}`;
-            setStatus(`Tab ${tab.index}: the file write failed.`, false);
+            setStatus(`${tab.name}: the file write failed.`, false);
           }
         });
         read.addEventListener("click", async () => {
@@ -335,10 +666,10 @@
               `/api/sandboxes/${tab.id}/file?path=${encodeURIComponent(path.value)}`,
             );
             await readInto(response, fileOut);
-            setStatus(`Tab ${tab.index}: the file read ended.`);
+            setStatus(`${tab.name}: the file read ended.`);
           } catch (error) {
             fileOut.textContent = `error: ${error.message}`;
-            setStatus(`Tab ${tab.index}: the file read failed.`, false);
+            setStatus(`${tab.name}: the file read failed.`, false);
           }
         });
         section.append(
@@ -351,40 +682,116 @@
           ]),
         );
 
-        // One agent turn.
+        // One agent turn on this tab's model path.
         const prompt = el("input", { value: "Say hello in one short sentence." });
         const send = el("button", { type: "button", className: "primary", textContent: "Send" });
+        const meta = el("div", { className: "meta", textContent: metaLine(tabMeta(tab)) });
+        const answerHead = el("div", { className: "answer-head", textContent: `[${tab.name}]` });
         const answer = el("pre", { className: "out" });
-        send.addEventListener("click", async () => {
+        const last = tabLast.get(tab.id);
+        answer.textContent = last ? last.text : "No answer yet.";
+        const submit = async () => {
+          const text = prompt.value.trim();
+          if (!text) {
+            setStatus(`Write a prompt for ${tab.name}.`, false);
+            return;
+          }
           send.disabled = true;
           answer.textContent = "…";
           try {
-            const response = await api(`/api/sandboxes/${tab.id}/chat`, {
+            const response = await fetch(`/api/sandboxes/${tab.id}/chat`, {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ prompt: prompt.value }),
+              body: JSON.stringify({ prompt: text }),
             });
-            answer.dataset.path = response.headers.get("x-ewe-model-path") || tab.model_path;
+            const answerMeta = metaFromHeaders(response, tab);
+            meta.textContent = metaLine(answerMeta);
+            if (!response.ok) throw new Error(await errorText(response));
             await readInto(response, answer);
-            setStatus(
-              `Tab ${tab.index}: the ${answer.dataset.path} turn ended.`,
-            );
+            tabLast.set(tab.id, {
+              name: tab.name,
+              text: answer.textContent,
+              meta: answerMeta,
+            });
+            setStatus(`${tab.name}: the ${answerMeta.path} turn ended.`);
           } catch (error) {
             answer.textContent = `error: ${error.message}`;
-            setStatus(`Tab ${tab.index}: the agent turn failed.`, false);
+            tabLast.set(tab.id, { name: tab.name, text: answer.textContent, meta: null });
+            setStatus(`${tab.name}: the agent turn failed.`, false);
           } finally {
             send.disabled = false;
           }
+        };
+        send.addEventListener("click", submit);
+        prompt.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") submit();
         });
         section.append(
           el("div", { className: "block" }, [
             el("h3", { textContent: `Agent turn — ${tab.model_path}` }),
             el("div", { className: "row" }, [prompt, send]),
-            answer,
+            el("div", { className: "answer" }, [answerHead, meta, answer]),
           ]),
         );
 
         return section;
+      }
+
+      function renderEvidence(container, tab) {
+        container.replaceChildren();
+        const cached = evidence.get(tab.id);
+        if (!cached) {
+          container.append(
+            el("p", {
+              className: "muted",
+              textContent: `Sandbox id: ${tab.id} · Durable Object: ${tab.do_name} (binding ${tab.do_binding}). Run the commands to collect the host details.`,
+            }),
+          );
+          return;
+        }
+        container.append(
+          el("p", {
+            className: "muted",
+            textContent: `Sandbox id: ${cached.id} · Durable Object: ${cached.do_name} (binding ${cached.do_binding})`,
+          }),
+        );
+        for (const item of EVIDENCE_COMMANDS) {
+          container.append(el("div", { className: "evidence-line", textContent: `$ ${item.label}` }));
+          container.append(el("pre", { className: "out", textContent: cached.commands[item.label] ?? "" }));
+        }
+      }
+
+      async function runEvidenceFor(tab, button, container) {
+        button.disabled = true;
+        container.replaceChildren(
+          el("p", { className: "muted", textContent: "Running the evidence commands…" }),
+        );
+        try {
+          const result = {
+            id: tab.id,
+            do_name: tab.do_name,
+            do_binding: tab.do_binding,
+            commands: {},
+          };
+          for (const item of EVIDENCE_COMMANDS) {
+            const response = await api(`/api/sandboxes/${tab.id}/exec`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ command: item.command }),
+            });
+            result.commands[item.label] = await readText(response);
+          }
+          evidence.set(tab.id, result);
+          renderEvidence(container, tab);
+          setStatus(`${tab.name}: the evidence is ready.`);
+        } catch (error) {
+          container.replaceChildren(
+            el("pre", { className: "out", textContent: `error: ${error.message}` }),
+          );
+          setStatus(`${tab.name}: the evidence failed.`, false);
+        } finally {
+          button.disabled = false;
+        }
       }
 
       async function create(count) {
@@ -410,7 +817,7 @@
               const event = JSON.parse(line);
               if (event.event === "created") {
                 created += 1;
-                setStatus(`Created sandbox ${event.id} (${created} of ${count}).`);
+                setStatus(`Created ${event.id} (${created} of ${count}).`);
               } else if (event.event === "error") {
                 throw new Error(event.message);
               } else if (event.event === "done") {
@@ -426,14 +833,20 @@
         }
       }
 
+      refreshButton.addEventListener("click", () =>
+        refresh({ note: "The sandbox list is current." }),
+      );
       createOne.addEventListener("click", () => create(1));
       createTwo.addEventListener("click", () => create(2));
       destroyAll.addEventListener("click", async () => {
         destroyAll.disabled = true;
         try {
           const result = await json("/api/sandboxes", { method: "DELETE" });
+          stripLast.clear();
+          tabLast.clear();
+          evidence.clear();
+          active = "central";
           setStatus(`Stopped ${result.stopped} sandboxes.`);
-          active = 0;
           await refresh();
         } catch (error) {
           setStatus(`The destroy all failed: ${error.message}`, false);

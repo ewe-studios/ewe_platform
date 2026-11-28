@@ -27,6 +27,7 @@ pub async fn handle(
     let segments: Vec<&str> = route.split('/').filter(|part| !part.is_empty()).collect();
     match (method, segments.as_slice()) {
         (worker::Method::Get, ["probe"]) => probe(),
+        (worker::Method::Post, ["chat"]) => central_chat(&mut request, &env, config).await,
         (worker::Method::Get, ["sandboxes"]) => list(&env, config).await,
         (worker::Method::Post, ["sandboxes"]) => create(&mut request, &env, config).await,
         (worker::Method::Delete, ["sandboxes"]) => stop_all(&env, config).await,
@@ -71,12 +72,19 @@ async fn list(env: &Env, config: &DemoConfig) -> worker::Result<Response> {
             let path = ModelPath::for_tab(index);
             json!({
                 "index": index + 1,
+                "name": tab_name(index),
                 "id": sandbox.id.as_str(),
+                // The sandbox Durable Object is named by its identifier.
+                "do_name": sandbox.id.as_str(),
+                "do_binding": sandbox::SANDBOX_BINDING,
                 "state": sandbox.state,
                 "created_unix_ms": sandbox.created_unix_ms,
                 "model_path": path.as_str(),
                 "model_label": path.label(),
                 "model": path.model_name(config),
+                "model_service": path.service(),
+                "model_address": path.address(config),
+                "model_protocol": path.protocol(config),
             })
         })
         .collect();
@@ -363,7 +371,7 @@ async fn read_file(
     }
 }
 
-/// The body of `POST /api/sandboxes/<id>/chat`.
+/// The body of `POST /api/sandboxes/<id>/chat` and `POST /api/chat`.
 #[derive(Deserialize)]
 struct ChatBody {
     /// The prompt of one turn.
@@ -386,20 +394,6 @@ async fn chat(
         Ok(body) => body,
         Err(message) => return error_response(400, &message),
     };
-    let prompt = body.prompt.trim().to_string();
-    if prompt.is_empty() {
-        return error_response(400, "the prompt is empty");
-    }
-    if prompt.len() > config.prompt_max_bytes {
-        return error_response(
-            400,
-            &format!(
-                "the prompt is {} bytes; the maximum is {}",
-                prompt.len(),
-                config.prompt_max_bytes
-            ),
-        );
-    }
     let sandboxes = match sandbox::list(env, config).await {
         Ok(sandboxes) => sandboxes,
         Err(error) => return error_response(502, &error),
@@ -407,6 +401,150 @@ async fn chat(
     let Some(index) = sandboxes.iter().position(|sandbox| sandbox.id == id) else {
         return error_response(404, "the sandbox is not in the index");
     };
+    let prompt = match checked_prompt(config, &body.prompt) {
+        Ok(prompt) => prompt,
+        Err(message) => return error_response(400, &message),
+    };
+    run_chat(env, config, index, &id, &tab_name(index), prompt).await
+}
+
+/// `POST /api/chat`: one agent turn routed by `@name`.
+///
+/// The body holds the name and the message, for example
+/// `{"prompt": "@sandbox-2 hello"}`. The Worker resolves the name in the
+/// sandbox index and calls that sandbox. An unknown name answers the names
+/// that exist.
+async fn central_chat(
+    request: &mut Request,
+    env: &Env,
+    config: &DemoConfig,
+) -> worker::Result<Response> {
+    let body: ChatBody = match json_body(request, config.prompt_max_bytes * 2).await {
+        Ok(body) => body,
+        Err(message) => return error_response(400, &message),
+    };
+    let sandboxes = match sandbox::list(env, config).await {
+        Ok(sandboxes) => sandboxes,
+        Err(error) => return error_response(502, &error),
+    };
+    let (index, message) = match resolve_target(&sandboxes, &body.prompt) {
+        Ok(target) => target,
+        Err(TargetError::EmptyIndex) => {
+            return error_response(409, "there are no sandboxes; create one first")
+        }
+        Err(TargetError::MissingHandle) => {
+            return error_response(
+                400,
+                "start the message with @name, for example `@sandbox-1 hello`",
+            )
+        }
+        Err(TargetError::UnknownName { handle, known }) => {
+            return error_response(
+                404,
+                &format!(
+                    "the name @{handle} is not known; known names: {}",
+                    known.join(", ")
+                ),
+            )
+        }
+        Err(TargetError::EmptyMessage(name)) => {
+            return error_response(400, &format!("write a message after @{name}"))
+        }
+    };
+    let prompt = match checked_prompt(config, &message) {
+        Ok(prompt) => prompt,
+        Err(message) => return error_response(400, &message),
+    };
+    let id = sandboxes[index].id.clone();
+    run_chat(env, config, index, &id, &tab_name(index), prompt).await
+}
+
+/// The name of the tab and the sandbox at `index` (zero-based).
+fn tab_name(index: usize) -> String {
+    format!("sandbox-{}", index + 1)
+}
+
+/// The reason that a central chat prompt has no target.
+enum TargetError {
+    /// The index holds no sandbox.
+    EmptyIndex,
+    /// The message does not start with `@name`.
+    MissingHandle,
+    /// The name is not in the index.
+    UnknownName {
+        /// The name that the user wrote.
+        handle: String,
+        /// The names that exist.
+        known: Vec<String>,
+    },
+    /// The name is known, but no message follows it.
+    EmptyMessage(String),
+}
+
+/// Resolves `@name message` against the sandbox index. On success it returns
+/// the zero-based index and the message. The page calls the sandboxes
+/// `sandbox-1`, `sandbox-2`, and so on. The identifier is also accepted.
+fn resolve_target(
+    sandboxes: &[sandbox::Sandbox],
+    prompt: &str,
+) -> Result<(usize, String), TargetError> {
+    if sandboxes.is_empty() {
+        return Err(TargetError::EmptyIndex);
+    }
+    let prompt = prompt.trim();
+    let Some(rest) = prompt.strip_prefix('@') else {
+        return Err(TargetError::MissingHandle);
+    };
+    let (handle, message) = match rest.split_once(char::is_whitespace) {
+        Some((handle, message)) => (handle.trim(), message.trim()),
+        None => (rest.trim(), ""),
+    };
+    if handle.is_empty() {
+        return Err(TargetError::MissingHandle);
+    }
+    let target = sandboxes.iter().enumerate().find(|(index, sandbox)| {
+        tab_name(*index).eq_ignore_ascii_case(handle) || sandbox.id.as_str() == handle
+    });
+    let Some((index, _)) = target else {
+        let known = (0..sandboxes.len()).map(tab_name).collect();
+        return Err(TargetError::UnknownName {
+            handle: handle.to_string(),
+            known,
+        });
+    };
+    if message.is_empty() {
+        return Err(TargetError::EmptyMessage(tab_name(index)));
+    }
+    Ok((index, message.to_string()))
+}
+
+/// Checks and trims one prompt.
+fn checked_prompt(config: &DemoConfig, prompt: &str) -> Result<String, String> {
+    let prompt = prompt.trim();
+    if prompt.is_empty() {
+        return Err("the prompt is empty".to_string());
+    }
+    if prompt.len() > config.prompt_max_bytes {
+        return Err(format!(
+            "the prompt is {} bytes; the maximum is {}",
+            prompt.len(),
+            config.prompt_max_bytes
+        ));
+    }
+    Ok(prompt.to_string())
+}
+
+/// One agent turn on the model path of the sandbox at `index`. The answer
+/// streams. The metadata headers name the path, its service, its address and
+/// its protocol, so the page never guesses them.
+async fn run_chat(
+    env: &Env,
+    config: &DemoConfig,
+    index: usize,
+    id: &foundation_sandbox::shared::ids::SandboxId,
+    name: &str,
+    prompt: String,
+) -> worker::Result<Response> {
     let path = ModelPath::for_tab(index);
     let model = path.model_name(config);
     let result = match path {
@@ -418,21 +556,32 @@ async fn chat(
         ModelPath::Container => agent::container_turn(env, config, id.as_str(), &prompt).await,
     };
     match result {
-        Ok(response) => {
-            let headers = response.headers();
-            headers.set("x-ewe-model-path", path.as_str())?;
-            headers.set("x-ewe-model", &model)?;
-            headers.set("x-ewe-tab", &format!("{}", index + 1))?;
-            with_id(response, &id)
-        }
+        Ok(response) => with_chat_headers(response, path, config, &model, id, name),
         Err(message) => {
             let response = error_response(503, &message)?;
-            let headers = response.headers();
-            headers.set("x-ewe-model-path", path.as_str())?;
-            headers.set("x-ewe-model", &model)?;
-            Ok(response)
+            with_chat_headers(response, path, config, &model, id, name)
         }
     }
+}
+
+/// Adds the model and sandbox metadata headers to one chat response.
+fn with_chat_headers(
+    response: Response,
+    path: ModelPath,
+    config: &DemoConfig,
+    model: &str,
+    id: &foundation_sandbox::shared::ids::SandboxId,
+    name: &str,
+) -> worker::Result<Response> {
+    let headers = response.headers();
+    headers.set("x-ewe-model-path", path.as_str())?;
+    headers.set("x-ewe-model", model)?;
+    headers.set("x-ewe-model-service", path.service())?;
+    headers.set("x-ewe-model-address", &path.address(config))?;
+    headers.set("x-ewe-model-protocol", path.protocol(config))?;
+    headers.set("x-ewe-sandbox-id", id.as_str())?;
+    headers.set("x-ewe-sandbox-name", name)?;
+    Ok(response)
 }
 
 /// Reads one bounded JSON body.
