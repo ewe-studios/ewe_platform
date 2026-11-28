@@ -90,6 +90,21 @@ closed, not when its code compiles.
   the contract on #1154 is that a relative path joins the instance workdir, is normalised
   and must stay inside it. The resolver is in `shared/spec`, so the rule runs on every
   target.
+- **A container belongs to the Durable Object that made it.** The runner refused a TCP
+  port with `Cannot perform I/O on behalf of a different Durable Object (I/O type:
+  TcpPortState)`. The Worker adapter had kept one `worker::Container` for its whole life.
+  It now holds the Durable Object state and asks it for the container at each call. This
+  defect is invisible to a native fake; only the end-to-end test shows it.
+- **A destroy can fail, and the flag must follow the result.** The substrate handle set
+  its stopped flag even when the destroy call failed. The cleanup then skipped its only
+  second chance, and the container stayed. Set the flag only after a successful destroy.
+  A fake container that fails one destroy is a small red test for this.
+- **A stdout frame is not aligned to the command output.** A frame can hold one byte of a
+  two-byte pattern. A check that assumes whole pairs fails on a correct stream. Follow the
+  pattern and its order across frames.
+- **A boundary module must not name a limit field.** The boundary test refuses the
+  `boot_timeout` name in `shared/control/service.rs`. A small accessor on
+  `SandboxLimits` keeps one value and satisfies the rule.
 
 ## The DST turn hang is a `Wait` re-drive (2026-11-27)
 

@@ -115,6 +115,34 @@ failure is the same one: `the substrate exited during the start (code None)` on 
 emulated amd64 container. The local host does not show the runner's failures. The native
 Cloudflare suite passes (92 tests). The native amd64 CI runner must confirm these fixes.
 
+A fourth runner run (job `140809210247`) passed 13 tests. Four failures remained, now
+addressed. The `List` and the `index_put_delete_list` tests pass.
+
+- `no_internet`: the runner answered `port error: Cannot perform I/O on behalf of a
+  different Durable Object (I/O type: TcpPortState)`. A Cloudflare container is an
+  input/output object of the Durable Object that made it. The Worker adapter kept one
+  `worker::Container` for its whole life. It now holds the Durable Object state and asks
+  it for the container at each call, so the container and the TCP port belong to the
+  object that uses them. The end-to-end test is the regression test, because this defect
+  shows only on the real runtime.
+- `stop`: the stop found a workload container after the destroy. The substrate handle
+  marked the container as destroyed even when the destroy call failed, so `cleanup`
+  skipped its only second chance. It sets the flag only after a successful destroy. The
+  fake container fails one destroy, and `cleanup_retries_a_failed_destroy` fails on the
+  old code. The stop test waits up to 10 s for the runtime to remove the container and
+  prints the remaining names.
+- `two_sandboxes`: the relative path `tmp/a` joins the workdir (`/workspace/tmp/a`), and a
+  write does not make a missing parent. The test now runs `mkdir -p /workspace/tmp` first.
+  The rule is recorded on #1154.
+- `large_stream`: the command prints `x` then a newline. A stdout frame can end between
+  the two bytes, so the old check `data.len() % 2 == 0` failed on a one-byte frame. The
+  stream was correct; the check now follows the pattern across frame boundaries and
+  checks the order.
+
+A native boundary test also caught that `shared/control/service.rs` read `boot_timeout`
+directly. `SandboxLimits::create_deadline()` gives the value, and the remote client reads
+that accessor.
+
 ## Feature 04 result (2026-11-28)
 
 `foundation-ci live-kms` passed against the real services:
