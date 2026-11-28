@@ -89,6 +89,25 @@ Two traps:
    `sim_tests` target imported a module gated on `testing`, and `SimRuntime::start` had no
    `# Panics` section. Run clippy on the crate you change, not only on your own targets.
 
+## The create stream carries its engine wake (2026-11-28)
+
+`CreateStream` boxes `Box<dyn Iterator<Item = Stream<...>> + Send>`. A trait object over
+`WakeableStream` cannot keep the wake. `StreamIterator` is a supertrait with a blanket
+implementation, so the projection through the wrapper does not resolve (E0284). The type
+must name the concrete item type. `CreateSource` names
+`Stream<SandboxResult<SandboxHandle>, CreateProgress>` once, and the boxed `SendWrapper<T>`
+forwards `wake`, `wake_send`, `announce`, `drives_its_producer` and `can_make_progress`. On
+wasm the wrapper needs no `Send` bound; on a native target it needs `T: Send`.
+
+`StreamParkingFutureStream` treats `Stream::Pending` as a control state on a driving stream:
+it re-drives and never yields the progress point. A create that feeds the raw `CreateStream`
+straight into the adapter loses every progress event. `map_pending_and_done` first turns the
+progress point and the result into one step type, so the adapter surfaces both and keeps
+the park on `Wait`.
+
+A drop hook cancels the create. The guard ignores the drop after the create finishes, so a
+consumed stream does not cancel its own sandbox.
+
 ## A `Drop` that blocks a pool worker deadlocks the pool (2026-11-28)
 
 The KMS local test hang (#1169) looked like a stuck error-body read. A trace shows that the

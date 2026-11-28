@@ -67,14 +67,15 @@ The create timeout has two causes.
 1. `ControlService::create` pulled the create progress iterator again in the same poll after
    `Stream::Wait`. The iterator is a driving valtron stream: `Wait` means that the queue is
    empty and that it must run again. On the single-threaded wasm host that loop starved the
-   event loop, so the create never finished and the Worker stopped answering. The service
-   now parks on the injected timer for `SandboxLimits::create_poll_interval` (4 ms). The
-   Worker installs a JavaScript `setTimeout` timer in its `Ctx`: the executor's wasm timer
-   drove the engine from inside the poll, re-entered the create task at
-   `WorkerContainer::running`, and crashed the wasm instance on the runner (`Critical
-   error`, then `Cannot invoke closure from previous WASM instance`). A self-wake instead
-   wedged the local Worker, so the timer remains. The test
-   `tests/control/service_create.rs` fails on the old code.
+   event loop, so the create never finished and the Worker stopped answering (#1125). The
+   first fix parked on the injected timer for `SandboxLimits::create_poll_interval` (4 ms).
+   A timer is not a readiness signal: it woke the engine from inside the poll, re-entered
+   the create task at `WorkerContainer::running`, and crashed the wasm instance on the
+   runner (`Critical error`, then `Cannot invoke closure from previous WASM instance`). The
+   create stream now carries the wake of its engine, and the service parks on that wake. The
+   timer and `SandboxLimits::create_poll_interval` are removed. The tests in
+   `tests/control/service_create.rs` count the wakes and prove a bounded poll count with no
+   timer.
    The remote create uses the Worker's container boot deadline
    (`CloudflareConfig::boot_timeout`, 60 s) for the whole stream. The runner's create took
    23.8 s, so the unary defaults (5 s, then 10 s) were too short.
@@ -82,6 +83,18 @@ The create timeout has two causes.
    `/.dockerenv` nor `/run/.containerenv`. The slave ran the virtual-machine boot duties,
    failed, and never listened on the slave port. It now also treats the `CLOUDFLARE_*`
    environment as a container (issue #1133).
+
+The create readiness change is on `fix/create-readiness`. `CreateStream` holds a boxed
+`CreateSource`, so the engine wake crosses the type erasure. A `dyn WakeableStream` object
+cannot keep the wake, because `StreamIterator` is a supertrait with a blanket
+implementation, so the projection through the wrapper does not resolve (E0284).
+`CreateSource` names the concrete item type once. Its `SendWrapper` impl forwards `wake`,
+`wake_send`, `announce`, `drives_its_producer` and `can_make_progress` on every target.
+`ControlService::create` maps a progress point and a result with `map_pending_and_done`, then
+parks with `StreamParkingFutureStream`. The mapping keeps the progress events, because the
+parking adapter treats a raw `Stream::Pending` as a control state and does not yield it. The
+tests prove two wakes for two progress points, and a stream with no wake that ends in two
+polls.
 
 Local result on macOS with `wrangler dev --local`: a create returns `Created` and the Worker
 stays healthy. The local host runs the amd64 container under emulation, so the timings
