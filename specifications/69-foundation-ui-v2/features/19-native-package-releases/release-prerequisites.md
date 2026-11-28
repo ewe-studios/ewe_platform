@@ -239,3 +239,19 @@ The iPhone job boots a simulator. Xcode then cannot find the destination and exi
 GitHub skips publication because both prerequisite jobs fail.
 The failed-job retry uses the same tag and exact source. The publication approval still belongs to the environment reviewer.
 [Attempt 1](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/attempts/1) · [Attempt 2](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/attempts/2) · [Android issue 1255](https://github.com/ewe-studios/ewe_platform/issues/1255) · [iPhone issue 1259](https://github.com/ewe-studios/ewe_platform/issues/1259)
+
+### Release approval gate
+
+Attempt 2 passes the macOS and Android jobs for the approved tag.
+The downloaded unsigned candidate identifies commit `b00b5e70c99f433822af9e872e454e5da394e6e7` and version 0.1.2.
+It records Swift checksum commit `8f8a11572db29c3f3d728035fbfb1b1ae3d1d853`.
+Both downloaded archives match the manifest digests.
+
+| Archive | SHA-256 |
+| --- | --- |
+| `EweCoreFFI.xcframework.zip` | `b67a81a5f89f6f5d35bb2a8fd10856147ad34597cec042278e0e6fd9ccd5e132` |
+| `android-publication.zip` | `e7b11e3fc25296dc2efba0022e1214b0b1fa40a74e733f021d134c92321e3508` |
+
+GitHub lists the `native-ui-release` deployment for reviewer approval.
+The designated reviewer can approve this deployment in the workflow run.
+[Release attempt 2](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/attempts/2) · [Unsigned tag candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/artifacts/15259881520)

@@ -1898,3 +1898,9 @@ Compare a tagged failure with a preview of the exact same source.
 Check whether the named Gradle marker exists before you change a version pin.
 A successful simulator boot does not prove that Xcode can resolve the destination.
 [Android issue 1255](https://github.com/ewe-studios/ewe_platform/issues/1255) · [iPhone issue 1259](https://github.com/ewe-studios/ewe_platform/issues/1259)
+
+## Native release approval gate
+
+The release tag can produce a different archive from an earlier preview at the same commit.
+Verify the archive against the manifest from that tag run before publication.
+[Unsigned tag candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/artifacts/15259881520)
