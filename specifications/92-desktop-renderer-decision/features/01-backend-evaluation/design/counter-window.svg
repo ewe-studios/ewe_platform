@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240" role="img" aria-labelledby="title">
+  <title id="title">Desktop counter window reference with count zero and Add one button</title>
+  <rect x="1" y="1" width="398" height="238" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M2 37h396" stroke="#cbd5e1"/>
+  <g text-anchor="middle" font-family="system-ui, sans-serif">
+    <text x="200" y="24" fill="#475569" font-size="13">Application name in title bar</text>
+    <text x="200" y="97" fill="#0f172a" font-size="28" font-weight="600">Counter</text>
+    <text x="200" y="134" fill="#334155" font-size="18">Count: 0</text>
+    <rect x="145" y="155" width="110" height="38" rx="6" fill="#1d4ed8"/>
+    <text x="200" y="180" fill="#fff" font-size="16" font-weight="600">Add one</text>
+  </g>
+</svg>
