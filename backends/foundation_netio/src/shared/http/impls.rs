@@ -6269,7 +6269,7 @@ impl SimpleHttpBody {
         &self,
         headers: SimpleHeaders,
         stream: SharedByteBufferStream<T>,
-    ) -> SendSafeBody {
+    ) -> Result<SendSafeBody, SendableBoxedError> {
         tracing::trace!(
             "SseBody: returning SSE body iterator with headers={:?}",
             headers
@@ -6277,7 +6277,8 @@ impl SimpleHttpBody {
         // A response with a Content-Length ends after that many bytes, even
         // when the server keeps the connection open for the next request.
         // Reading to EOF would wait for the read timeout on every such
-        // response, and block the worker thread that does it.
+        // response, and block the worker thread that does it. The length is the
+        // compressed length: it bounds the wire bytes, before the decoder.
         let framed_len = if headers.contains_key(&SimpleHeader::TRANSFER_ENCODING) {
             None
         } else {
@@ -6296,34 +6297,35 @@ impl SimpleHttpBody {
                     .iter()
                     .any(|value| value.eq_ignore_ascii_case("chunked"))
             });
-        let sse_iterator: BoxedSendableIterator<
-            crate::event_source::ParseResult,
-            SendableBoxedError,
-        > = if chunked {
+        // Transfer decoding first, then content decoding, then the event parser.
+        // The parser must read plain bytes: decoding after it would decode
+        // parsed event lines, not the body (issue #1220).
+        let de_framed: Box<dyn std::io::Read + Send + Sync> = if chunked {
             let transfer_encoding = headers
                 .get(&SimpleHeader::TRANSFER_ENCODING)
                 .cloned()
                 .unwrap_or_default();
-            let reader = ChunkedBodyReader::new(
-                transfer_encoding,
-                headers.clone(),
-                stream,
-                self.2,
-                self.4,
-            );
-            let buffered = SharedByteBufferStream::rwrite(reader);
-            Box::new(SimpleSseIterator::new(headers, buffered).with_limits(self.4))
+            let reader =
+                ChunkedBodyReader::new(transfer_encoding, headers.clone(), stream, self.2, self.4);
+            Box::new(reader)
         } else {
             match framed_len {
-                Some(len) => {
-                    let bounded =
-                        SharedByteBufferStream::rwrite(std::io::Read::take(stream.clone(), len));
-                    Box::new(SimpleSseIterator::new(headers, bounded).with_limits(self.4))
-                }
-                None => Box::new(SimpleSseIterator::new(headers, stream).with_limits(self.4)),
+                Some(len) => Box::new(std::io::Read::take(stream, len)),
+                None => Box::new(stream),
             }
         };
-        SendSafeBody::SseStream(Some(sse_iterator))
+        let decoding = super::decompression::response_decoding(&headers, &self.5);
+        let decoded = super::decompression::decoding_stream(de_framed, &decoding, &self.5)?;
+        let mut parser_headers = headers;
+        if matches!(decoding, super::decompression::ResponseDecoding::Decode(_)) {
+            parser_headers.remove(&SimpleHeader::CONTENT_ENCODING);
+        }
+        let buffered = SharedByteBufferStream::rwrite(decoded);
+        let sse_iterator: BoxedSendableIterator<
+            crate::event_source::ParseResult,
+            SendableBoxedError,
+        > = Box::new(SimpleSseIterator::new(parser_headers, buffered).with_limits(self.4));
+        Ok(SendSafeBody::SseStream(Some(sse_iterator)))
     }
 }
 
@@ -6355,8 +6357,18 @@ impl BodyExtractor for SimpleHttpBody {
                     "LineFeedBody: returning lineFeed body reader/iterator with headers={:?}",
                     headers
                 );
-                let line_feed_iterator =
-                    Box::new(SimpleLineFeedIterator::new(headers, stream).with_limits(self.4));
+                // Decode the content encoding before the line parser reads the
+                // bytes, never after it (issue #1220).
+                let decoding = super::decompression::response_decoding(&headers, &self.5);
+                let decoded = super::decompression::decoding_stream(stream, &decoding, &self.5)?;
+                let mut parser_headers = headers;
+                if matches!(decoding, super::decompression::ResponseDecoding::Decode(_)) {
+                    parser_headers.remove(&SimpleHeader::CONTENT_ENCODING);
+                }
+                let buffered = SharedByteBufferStream::rwrite(decoded);
+                let line_feed_iterator = Box::new(
+                    SimpleLineFeedIterator::new(parser_headers, buffered).with_limits(self.4),
+                );
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
             Body::FullBody(headers, optional_max_body_size) => {
@@ -6421,7 +6433,7 @@ impl BodyExtractor for SimpleHttpBody {
                 );
                 Ok(SendSafeBody::ChunkedStream(Some(chunked_iterator)))
             }
-            Body::SseBody(headers) => Ok(self.extract_sse(headers, stream)),
+            Body::SseBody(headers) => self.extract_sse(headers, stream),
         }
     }
 }

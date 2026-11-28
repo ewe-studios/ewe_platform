@@ -88,6 +88,60 @@ pub fn body_headers(body: &Body) -> &SimpleHeaders {
     }
 }
 
+/// Wrap a de-framed byte reader in the content decoder for `decoding`.
+///
+/// WHY: a line-feed or server-sent-event body is parsed on the wire bytes, so
+/// its decoder must sit between the transfer decoding (chunked, limited, EOF)
+/// and the parser. Decoding after the parser would decode parsed lines.
+///
+/// Returns the reader unchanged for [`ResponseDecoding::None`]. An encoding
+/// this build has no decoder for is a typed error, never compressed bytes
+/// handed to a parser.
+///
+/// # Errors
+///
+/// Returns [`HttpReaderError::UnsupportedContentEncoding`] for an encoding this
+/// crate has no decoder for.
+pub fn decoding_stream<T: Read + Send + Sync + 'static>(
+    source: T,
+    decoding: &ResponseDecoding,
+    config: &CompressionConfig,
+) -> Result<Box<dyn Read + Send + Sync>, SendableBoxedError> {
+    match decoding {
+        ResponseDecoding::None => Ok(Box::new(source)),
+        ResponseDecoding::Unsupported(name) => Err(Box::new(
+            HttpReaderError::UnsupportedContentEncoding(name.clone()),
+        )),
+        ResponseDecoding::Decode(encoding) => {
+            let decoder = DecompressingReader::new(source, encoding).map_err(|err| {
+                let message = match err {
+                    HttpClientError::UnsupportedEncoding(name) => name,
+                    other => other.to_string(),
+                };
+                Box::new(HttpReaderError::UnsupportedContentEncoding(message)) as SendableBoxedError
+            })?;
+            let bounded = BoundedDecoder::new(decoder, config.max_decompressed_size);
+            // The parser stream that wraps this reader requires `Send + Sync`.
+            // A decompressor is `Send` but not always `Sync`, so the lock gives
+            // it the second bound (the same reason `DecodedBodyIterator` locks).
+            Ok(Box::new(SyncReader(Mutex::new(bounded))))
+        }
+    }
+}
+
+/// A `Read` view over a lock, so a `Send` but not `Sync` reader can sit under a
+/// `Send + Sync` parser stream.
+struct SyncReader<R>(Mutex<R>);
+
+impl<R: Read> Read for SyncReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        match self.0.lock() {
+            Ok(mut guard) => guard.read(buf),
+            Err(poisoned) => poisoned.into_inner().read(buf),
+        }
+    }
+}
+
 /// Wrap a response body with a streaming decoder.
 ///
 /// `encoding` comes from [`response_decoding`]. The returned body yields
@@ -95,12 +149,14 @@ pub fn body_headers(body: &Body) -> &SimpleHeaders {
 /// `config.max_decompressed_size`, is a typed [`HttpReaderError`], never a
 /// silently truncated body.
 ///
+/// A line-feed or server-sent-event body was already decoded by the extractor,
+/// which places the decoder before the line or event parser (see
+/// [`decoding_stream`]). It passes through here unchanged.
+///
 /// # Errors
 ///
 /// Returns [`HttpReaderError::UnsupportedContentEncoding`] for an encoding
-/// this crate has no decoder for, and for a compressed line-feed or
-/// server-sent-event body, whose parser must run on the wire bytes before the
-/// content decoder can (the Content-Encoding layer sits above those parsers).
+/// this crate has no decoder for.
 pub fn decode_body(
     body: SendSafeBody,
     decoding: ResponseDecoding,
@@ -117,14 +173,8 @@ pub fn decode_body(
 
     match body {
         SendSafeBody::None => Ok(SendSafeBody::None),
-        // A line-feed or SSE body is parsed before this call, so its parser
-        // already saw the compressed bytes. Decoding afterwards would decode
-        // parsed lines, not the body. Fail loudly instead.
-        SendSafeBody::LineFeedStream(_) | SendSafeBody::SseStream(_) => {
-            Err(Box::new(HttpReaderError::UnsupportedContentEncoding(
-                format!("{} on a line-delimited body", encoding.as_str()),
-            )))
-        }
+        // The extractor decoded these bodies before their parser saw a byte.
+        whole @ (SendSafeBody::LineFeedStream(_) | SendSafeBody::SseStream(_)) => Ok(whole),
         body => {
             let source = BodySource::new(body);
             let decoder = DecompressingReader::new(source, &encoding).map_err(|err| {
