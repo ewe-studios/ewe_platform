@@ -1,5 +1,32 @@
 # Spec 69 progress
 
+## Android countdown and physical Mathalley checks
+
+A scratch Android application reproduces the cold-launch warning with the previously staged native library.
+Its typed result is `UnknownAction` for `host:tick_todo_countdown`.
+With the countdown-capable library, the same direct call returns a framed reply.
+Both intact application variants build. The emulator displays enabled pause controls in both variants.
+The server variant opens the pause at 2.70 seconds and restores it at 5.68 seconds after the first tap.
+The accessible label reports 59 seconds remaining. Input resumes at 63.78 seconds.
+The scratch server stores data separately from the owner's server.
+[Countdown issue 1245](https://github.com/ewe-studios/ewe_platform/issues/1245)
+
+The Samsung SM-A5560 at Android application programming interface (API) level 37 runs both signed Android packages.
+The Todo On Device package has Secure Hash Algorithm 256 (SHA-256) digest `174c877264f8312b1eefdf4cefb49fbb25d77b778f6a33f8b543f9ab98c5e879`.
+The Todo Server package has SHA-256 digest `e57e164f1aa6a8df154f5937cfde122e7ea1404930513d373724335e81f44f56`.
+The server app opens in 1.923 seconds and remains in the foreground.
+Android Debug Bridge (ADB) forwards phone port 57841 to the running host server.
+A read-only initial frame and the phone's rendered list have a matching server-specific label.
+The pause control is enabled. The application displays no countdown or connection warning.
+The server application uses the Kotlin host source at `645bfbe27` and the verified countdown-capable native library.
+
+Todo On Device uses the arm64-v8a library from the verified emulator package.
+Its activity and Mathalley dialog receive focus. The 1080 by 2340 game frame shows Round 1 and a score of 430.
+Android reports a game audio focus grant and the application creates audio output tracks.
+The return from Home shows Todos. Record human speaker playback, mute retention and an independent interruption separately.
+The focus issue stays open. This physical session covers portrait input.
+[Rotation issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146)
+
 ## macOS HTTP slow-client event stream
 
 The fixture uses one byte of client drain for each writer wait. It checks every event byte.
