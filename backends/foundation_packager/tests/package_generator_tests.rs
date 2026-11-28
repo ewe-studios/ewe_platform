@@ -5,7 +5,6 @@ use std::fs;
 use std::path;
 
 use foundation_core::extensions::strings_ext::TryIntoString;
-use foundation_core::extensions::vec_ext::VecExt;
 use foundation_macros::EmbedDirectoryAs;
 use foundation_packager::{
     Directorate, PackageConfig, PackageGenerator, RustConfig, RustProjectConfigurator,
@@ -59,24 +58,17 @@ fn prepare_project_directory(
         .expect("should write root Cargo.toml fixture");
 }
 
-fn list_dir(target_path: &path::Path) -> Vec<String> {
-    fs::read_dir(target_path)
+fn relative_files(root: &path::Path, directory: &path::Path) -> Vec<path::PathBuf> {
+    fs::read_dir(directory)
         .expect("directory should exists")
         .map(|entry| entry.unwrap())
         .flat_map(|entry| {
             if entry.file_type().unwrap().is_dir() {
-                return list_dir(&entry.path());
+                return relative_files(root, &entry.path());
             }
 
-            vec![entry.path().try_into_string().unwrap()]
+            vec![entry.path().strip_prefix(root).unwrap().to_path_buf()]
         })
-        .collect()
-}
-
-fn shorten_path(target: &[String], path: &str) -> Vec<String> {
-    target
-        .iter()
-        .map(|value| value.replace(path, "").replacen('/', "", 1))
         .collect()
 }
 
@@ -120,19 +112,16 @@ fn package_generator_can_create_package_for_standard() {
     tracing::debug!("Result: {:?}", result);
     assert!(matches!(result, Ok(())));
 
-    let mut actual = shorten_path(
-        &list_dir(&project_directory),
-        &project_directory.try_into_string().unwrap(),
-    );
+    let mut actual = relative_files(&project_directory, &project_directory);
     actual.sort();
-    let mut expected = vec![
+    let mut expected = [
         "retro_project/Cargo.toml",
         "retro_project/src/lib.rs",
         "retro_project/src/page.rs",
         ".gitignore",
         "Cargo.toml",
     ]
-    .to_vec_string();
+    .map(path::PathBuf::from);
     expected.sort();
     assert_eq!(actual, expected);
 }
@@ -177,19 +166,16 @@ fn package_generator_can_create_package_for_workspace() {
     tracing::debug!("Result: {:?}", result);
     assert!(matches!(result, Ok(())));
 
-    let mut actual = shorten_path(
-        &list_dir(&project_directory),
-        &project_directory.try_into_string().unwrap(),
-    );
+    let mut actual = relative_files(&project_directory, &project_directory);
     actual.sort();
-    let mut expected = vec![
+    let mut expected = [
         "retro_project/Cargo.toml",
         "retro_project/src/lib.rs",
         "retro_project/src/page.rs",
         ".gitignore",
         "Cargo.toml",
     ]
-    .to_vec_string();
+    .map(path::PathBuf::from);
     expected.sort();
     assert_eq!(actual, expected);
 
@@ -235,10 +221,7 @@ fn package_generator_can_create_non_rust_package_from_template() {
     assert!(matches!(packager.create(package_config), Ok(())));
 
     assert_eq!(
-        shorten_path(
-            &list_dir(&project_directory),
-            &project_directory.clone().try_into_string().unwrap()
-        ),
-        vec!["retro_project/index.html"].to_vec_string()
+        relative_files(&project_directory, &project_directory),
+        [path::PathBuf::from("retro_project/index.html")]
     );
 }
