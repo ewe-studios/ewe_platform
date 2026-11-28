@@ -16,6 +16,11 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = exec)]
     pub fn exec(this: &D1Database, query: &str) -> Promise;
+
+    /// Run the statements as one atomic batch. D1 wraps the set in a
+    /// transaction: all statements apply, or none does.
+    #[wasm_bindgen(method, js_name = batch)]
+    pub fn batch(this: &D1Database, statements: Array) -> Promise;
 }
 
 impl D1Database {
@@ -50,4 +55,9 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = all)]
     pub fn all(this: &D1PreparedStatement) -> Promise;
+
+    /// Run the query and return each row as an array of column values in query
+    /// order. The SQL VFS reads rows by position, so it uses this call.
+    #[wasm_bindgen(method, js_name = raw)]
+    pub fn raw(this: &D1PreparedStatement) -> Promise;
 }

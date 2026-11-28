@@ -11,6 +11,11 @@ pub mod shared;
 #[cfg(not(target_family = "wasm"))]
 pub mod native;
 
+/// Platform-specific wasm backends. The R2 block tier calls the Cloudflare
+/// Workers R2 binding, so it exists only on wasm32.
+#[cfg(all(target_family = "wasm", feature = "vfs-object-wasm"))]
+pub mod wasm;
+
 /// Valtron executor integration — shareable, platform-agnostic task adapters.
 pub mod valtron;
 

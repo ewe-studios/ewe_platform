@@ -453,6 +453,10 @@ pub enum HttpStreamReady {
 
 /// [`IncomingResponseMapper`] implements an iterator wrapper for the [`HttpResponseReader<SimpleHttpBody, RawStream>`]
 /// returning the type that matches client response.
+// The reader owns the client config (including the decompression settings).
+// Boxing it on every response step adds indirection for a few dozen bytes, so
+// keep the reader in place.
+#[allow(clippy::large_enum_variant)]
 pub enum IncomingResponseMapper {
     Reader(HttpResponseReader<SimpleHttpBody, RawStream>),
     List(std::vec::IntoIter<Result<IncomingResponseParts, HttpClientError>>),

@@ -19,6 +19,11 @@ pub mod traits;
 #[cfg(feature = "vfs-search")]
 pub mod search;
 
+/// The S3 and R2 durable stream virtual file system (VFS) core. It needs a
+/// local spool, so it is not part of a wasm build.
+#[cfg(all(feature = "vfs-object", not(target_arch = "wasm32")))]
+pub mod durable;
+
 #[cfg(all(
     feature = "vfs-ipc",
     any(target_os = "linux", target_os = "macos", target_os = "windows")

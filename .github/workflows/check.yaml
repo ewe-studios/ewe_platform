@@ -771,11 +771,191 @@ jobs:
         # On a Windows host, ci.py runs only the test step, with the Windows runs.
         run: cargo run --locked --profile uat -p foundation_ci -- run-many --step test ${{ github.event_name == 'pull_request' && '--if-affected' || '' }} ${{ matrix.packages }}
 
+  durable-conformance:
+    name: Durable conformance
+    # Owner correction (2026-11-27): the gate runs when the Durable Streams
+    # source changes, like every other package job (rule 16). The `durable-conformance`
+    # gate in ci/packages.toml names the packages and paths that select it, and
+    # `foundation-ci run` decides from the change. The nightly schedule and a
+    # manual dispatch run it in full. When the job runs, it runs the full
+    # four-direction owner matrix and a failing test fails the job.
+    # The runner has Rust and Node; no CI image and no registry credentials
+    # are needed, so the job works the same on a fork.
+    runs-on: ubuntu-latest
+    # The owner approved 30 minutes. The measured busy-host gate is 231.91 s,
+    # and the added live MinIO run is seconds on a warm cache.
+    timeout-minutes: 30
+    concurrency:
+      # A new push to a pull request cancels the old durable run. Full runs
+      # queue and never cancel each other.
+      group: durable-conformance-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_PROFILE_UAT_DEBUG: "0"
+    # The live S3 run needs a real S3-compatible service. The official
+    # `minio/minio` image is no longer public, so the job uses the Alpine
+    # rebuild of the same pinned MinIO release. The tag names the exact MinIO
+    # release and exists on Docker Hub. The image runs as root because the
+    # anonymous `/data` volume is not writable by its default user.
+    services:
+      minio:
+        # Pin the digest as well as the release tag: the image is a community
+        # rebuild, because the official `minio/minio` image is no longer public.
+        image: alpine/minio:RELEASE.2025-10-15T17-29-55Z@sha256:cf23643a6cf9ce159c57643ceb88279e431262282428c9e0bf3a7ef1a97e84b4
+        env:
+          MINIO_ROOT_USER: ewetest
+          MINIO_ROOT_PASSWORD: ewetest123
+        ports:
+          - 9000:9000
+        options: >-
+          --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402).
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Cache the npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          # The script holds the suite versions, so a version change refreshes
+          # the cache.
+          key: npm-durable-conformance-${{ runner.os }}-${{ hashFiles('ci/durable_conformance.sh') }}
+          restore-keys: |
+            npm-durable-conformance-${{ runner.os }}-
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: durable-conformance
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Wait for MinIO
+        # The service container starts in parallel with the checkout. Poll its
+        # health endpoint before the gate so the live S3 run never races start-up.
+        run: |
+          for _ in $(seq 1 120); do
+            if curl -sf -o /dev/null http://127.0.0.1:9000/minio/health/live; then
+              echo "MinIO is healthy"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "MinIO did not become healthy" >&2
+          exit 1
+
+      - name: Run the durable conformance gate
+        # `foundation-ci run` selects the gate from ci/packages.toml. On a pull
+        # request it diffs against the base; on a push, against the commit
+        # before the push. A base that git cannot compare runs the gate. The
+        # nightly schedule and a manual dispatch run it in full. The gate runs
+        # the four-direction owner matrix:
+        #   1. The reference server suite against our server.
+        #   2. The reference client suite against our client. The suite starts
+        #      the reference server.
+        #   3. Reference clients against our server: the TypeScript `fetch`
+        #      client that the server suite uses (direction 1), and the
+        #      reference Rust client.
+        #   4. Our client against our server.
+        # The live MinIO run proves the S3 VFS against a real service. The
+        # variables also reach `ci/durable_conformance.sh`, which fails when
+        # `EWE_REQUIRE_LIVE_S3=1` and a variable is missing.
+        env:
+          EWE_S3_ENDPOINT: http://127.0.0.1:9000
+          EWE_S3_ACCESS_KEY: ewetest
+          EWE_S3_SECRET_KEY: ewetest123
+          EWE_S3_BUCKET: ewe-durable
+          EWE_REQUIRE_LIVE_S3: "1"
+        run: >-
+          cargo run --locked --profile uat -p foundation_ci -- run durable-conformance --step test
+          ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+          ${{ github.event_name == 'push' && format('--if-affected --base {0}', github.event.before) || '' }}
+
+  durable-valtron:
+    name: Durable valtron ${{ matrix.group }}
+    # Spec 71 feature 08 T6. The valtron reader, writer, wait and wake
+    # behaviour tests run in their own job, separate from the foundation_core
+    # package job. The `durable-valtron` gate in ci/packages.toml is selected
+    # when the protocol core changes, and `foundation-ci run` decides from the
+    # change (rule 16). Each group is one matrix job, so a failing group names
+    # itself and the job fails with it.
+    runs-on: ubuntu-latest
+    needs: [plan]
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      # From ci/packages.toml, so free-plan runners queue instead of stampede.
+      max-parallel: ${{ fromJSON(needs.plan.outputs.max-parallel-linux) }}
+      matrix:
+        group: [reader, writer, wait, wake]
+    concurrency:
+      # A new push to a pull request cancels the old run of the same group.
+      # Full runs queue and never cancel each other.
+      group: durable-valtron-${{ github.event.pull_request.number || github.ref }}-${{ matrix.group }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      CARGO_PROFILE_UAT_DEBUG: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.4.0
+        with:
+          fetch-depth: 0
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402).
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: durable-valtron-${{ matrix.group }}
+          cache-bin: "false"
+          # Only master writes caches, so PR runs can't evict each other.
+          save-if: ${{ github.ref == 'refs/heads/master' }}
+
+      - name: Run the valtron behaviour group
+        # The gate recipe runs the group's libtest filters with the `multi`
+        # executor. A failing filter fails the step and the job.
+        run: >-
+          cargo run --locked --profile uat -p foundation_ci -- run durable-valtron --step test --group ${{ matrix.group }}
+          ${{ github.event_name == 'pull_request' && '--if-affected' || '' }}
+          ${{ github.event_name == 'push' && format('--if-affected --base {0}', github.event.before) || '' }}
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test]
+    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test, durable-conformance, durable-valtron]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -788,10 +968,12 @@ jobs:
           WINDOWS: ${{ needs.windows.result }}
           MACOS_TESTS: ${{ needs.macos-test.result }}
           WINDOWS_TESTS: ${{ needs.windows-test.result }}
+          DURABLE: ${{ needs.durable-conformance.result }}
+          DURABLE_VALTRON: ${{ needs.durable-valtron.result }}
         run: |
-          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS"
+          echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS, durable conformance: $DURABLE, durable valtron: $DURABLE_VALTRON"
           if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
-          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS"; do
+          for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS" "$DURABLE" "$DURABLE_VALTRON"; do
             case "$result" in
               success|skipped) ;;
               *) exit 1 ;;

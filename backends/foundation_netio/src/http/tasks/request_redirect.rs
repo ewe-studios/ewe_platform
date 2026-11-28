@@ -64,6 +64,9 @@ type InitData<R> = Box<(
     Arc<HttpConnectionPool<R>>,
     crate::shared::client::ClientConfig,
     u8,
+    // The caller reads the response body on a non-blocking socket that parks
+    // on readiness; see `GetHttpRequestRedirectTask::new`.
+    bool,
 )>;
 
 type TryingData<R> = Box<(
@@ -72,6 +75,7 @@ type TryingData<R> = Box<(
     crate::shared::client::ClientConfig,
     RequestDescriptor,
     u8,
+    bool,
 )>;
 
 /// Blocking-transport body write (the path for transports without readiness).
@@ -90,6 +94,27 @@ type Step = TaskStatus<HttpRequestRedirectResponse, HttpOperationState>;
 /// a large in-memory body cannot monopolise a worker.
 const MAX_CHUNKS_PER_POLL: usize = 32;
 
+/// Build the response body reader configuration for one exchange.
+///
+/// `unbounded_retries` is set for a body read on a non-blocking socket that
+/// parks on readiness (issue #861). There a `WouldBlock` means "wait for the
+/// next readable edge", not a read timeout that already elapsed, so the
+/// blocking retry budget must not end the body. Every other reader keeps the
+/// configured budget, so a stalled blocking read still ends in a typed timeout.
+fn response_body_config(config: &ClientConfig, unbounded_retries: bool) -> SimpleHttpBody {
+    if !unbounded_retries {
+        return config.into_simple_http_body();
+    }
+    SimpleHttpBody::new(
+        config.max_body_size,
+        config.full_body_threshold,
+        config.batch_size,
+        usize::MAX,
+    )
+    .with_frame_limits(config.frame_limits)
+    .with_decompression(config.compression.clone())
+}
+
 /// The request being sent and the connection carrying it.
 pub struct Exchange<R: DnsResolver + Send + 'static> {
     data: SimpleIncomingRequest,
@@ -99,6 +124,9 @@ pub struct Exchange<R: DnsResolver + Send + 'static> {
     remaining_redirects: u8,
     connection: HttpClientConnection,
     reader: HttpResponseReader<SimpleHttpBody, RawStream>,
+    /// The caller reads the response body on a non-blocking socket and parks on
+    /// readiness (see [`GetHttpRequestRedirectTask::new`]).
+    async_body_reader: bool,
 }
 
 /// The request being sent, before the connection exists.
@@ -116,6 +144,9 @@ struct PendingExchange<R: DnsResolver + Send + 'static> {
     port: u16,
     /// The target is HTTPS/WSS: a TLS handshake must follow the TCP connect.
     use_tls: bool,
+    /// The caller reads the response body on a non-blocking socket and parks on
+    /// readiness (see [`GetHttpRequestRedirectTask::new`]).
+    async_body_reader: bool,
 }
 
 /// What follows once the request head is on the wire.
@@ -267,6 +298,10 @@ pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     Done,
 }
 
+// The `Done` variant embeds the response reader, which owns the client config
+// (including the decompression settings). Boxing it on every redirect step
+// would add indirection for a few dozen bytes, so keep the reader in place.
+#[allow(clippy::large_enum_variant)]
 pub enum HttpRequestRedirectResponse {
     Done(
         HttpClientConnection,
@@ -369,9 +404,24 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 pool,
                 config,
                 max_redirects,
+                false,
             ))))),
             None,
         )
+    }
+
+    /// Mark the response body for an asynchronous reader that parks on
+    /// readiness.
+    ///
+    /// WHY: such a reader must not stop at the blocking retry budget (issue
+    /// #861). See [`response_body_config`], which this flag selects when the
+    /// connection reports readiness.
+    #[must_use]
+    pub fn with_async_body_reader(mut self) -> Self {
+        if let Some(HttpRequestRedirectState::Init(Some(inner))) = self.0.as_mut() {
+            inner.4 = true;
+        }
+        self
     }
 
     /// The clock that bounds this exchange's `Expect: 100-continue` wait.
@@ -426,6 +476,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             pool,
             config,
             remaining_redirects,
+            async_body_reader,
             ..
         } = exchange;
         self.pending(HttpRequestRedirectState::Trying(Some(Box::new((
@@ -434,6 +485,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             config,
             descriptor,
             remaining_redirects - 1,
+            async_body_reader,
         )))))
     }
 
@@ -470,7 +522,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// Connect and send the request head; branch on blocking vs non-blocking.
     #[allow(clippy::too_many_lines)]
     fn trying(&mut self, state: TryingData<R>) -> Step {
-        let (data, pool, config, descriptor, remaining_redirects) = *state;
+        let (data, pool, config, descriptor, remaining_redirects, async_body_reader) = *state;
 
         // Unix socket transport (Docker daemon, BuildKitd) bypasses
         // DNS and proxy — dial the configured socket directly (blocking).
@@ -508,6 +560,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                     host,
                     port: 0,
                     use_tls: false,
+                    async_body_reader,
                 };
                 return self.finish_connected(pe, connection);
             }
@@ -562,6 +615,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 host: target_host,
                 port: target_port,
                 use_tls,
+                async_body_reader,
             });
         }
 
@@ -591,6 +645,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 host: target_host,
                 port: target_port,
                 use_tls,
+                async_body_reader,
             },
             connection,
         )
@@ -610,6 +665,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             config,
             mut descriptor,
             remaining_redirects,
+            async_body_reader,
             ..
         } = pe;
 
@@ -659,6 +715,17 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             (true, true) => AfterHead::AwaitContinue,
         };
 
+        // An asynchronous reader parks on readiness instead of waiting out a
+        // read timeout, so its body reader must not stop at the blocking retry
+        // budget: a readable edge can carry no application data (a TLS record
+        // split across TCP segments, or a TLS control record) and still be a
+        // healthy body (issue #861). A transport without readiness keeps the
+        // configured budget, so a stalled blocking read ends in a typed
+        // timeout.
+        let unbounded_body_retries =
+            async_body_reader && cfg!(unix) && connection.supports_nonblocking_io();
+        let response_body = response_body_config(&config, unbounded_body_retries);
+
         if connection.supports_nonblocking_io() {
             if let Err(err) = connection.set_nonblocking(true) {
                 tracing::error!("Failed to make the connection non-blocking: {}", err);
@@ -666,7 +733,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             }
             let reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                 connection.clone_stream(),
-                config.into_simple_http_body(),
+                response_body,
             );
             let idle = IdleDeadline::new(config.io_idle_timeout());
             return self.pending(HttpRequestRedirectState::SendingHead(Some(Box::new(
@@ -679,6 +746,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                         remaining_redirects,
                         connection,
                         reader,
+                        async_body_reader,
                     },
                     pending: PendingBytes::new(request_string.into_bytes()),
                     idle,
@@ -691,7 +759,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             Exchange {
                 reader: HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                     connection.clone_stream(),
-                    config.into_simple_http_body(),
+                    response_body,
                 ),
                 data,
                 pool,
@@ -699,6 +767,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 descriptor,
                 remaining_redirects,
                 connection,
+                async_body_reader,
             },
             &request_string,
             next,
@@ -1524,7 +1593,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     self.0 = Some(HttpRequestRedirectState::Done);
                     return None;
                 };
-                let (data, pool, config, remaining_redirects) = *inner;
+                let (data, pool, config, remaining_redirects, async_body_reader) = *inner;
                 let request_descriptor = data.descriptor();
                 tracing::info!(
                     "HttpRequestRedirectState::Init -> Connecting to URL: {} with headers: {:?}",
@@ -1538,6 +1607,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         config,
                         request_descriptor,
                         remaining_redirects,
+                        async_body_reader,
                     ))))),
                 )
             }

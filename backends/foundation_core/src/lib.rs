@@ -2,27 +2,23 @@
 //!
 //! # Feature sets
 //!
-//! The default features enable `standard`, `std` and `alloc`. The valtron
-//! executors pass [`valtron::Ctx`](valtron::Ctx), and `Ctx` needs `std`
-//! (`HashMap`, `Arc`, `TypeId`, `dyn Any` and a monotonic clock). `alloc`-only
-//! support is deferred, so `std` is the minimum feature set for the crate. A
-//! bare `--no-default-features` build is refused with an error that names this
-//! minimum.
+//! The default features enable `standard`, `std`, `alloc` and `valtron`. The
+//! `valtron` feature turns on the task engine: the executors,
+//! [`valtron::Ctx`](valtron::Ctx) and the `#[valtron]` macros. `Ctx` needs
+//! `std` (`HashMap`, `Arc`, `TypeId`, `dyn Any` and a monotonic clock), so
+//! `valtron` implies `std`. `alloc`-only support is deferred, so `std` is the
+//! minimum feature set for the crate. A bare `--no-default-features` build is
+//! refused with an error that names this minimum.
+//!
+//! Without `valtron`, the crate keeps the runtime-neutral modules, including
+//! [`durable`]. Build them with
+//! `default-features = false, features = ["std", "alloc"]`.
 
-// valtron's `multi` executor is a native thread pool: it does not compile for
-// wasm32 (no threads, no idle-wake path). Cargo merges features across the whole
-// graph, so one dependency that asks for `foundation_core/multi` (directly or
-// through `foundation_netio/multi`, `foundation_db/multi`, ...) turns it on for
-// every wasm build of the graph. Fail with the cause instead of deep inside the
-// executor. Put the dependency that asks for `multi` in a
-// `[target.'cfg(not(target_family = "wasm"))'.dependencies]` table.
-#[cfg(all(feature = "multi", target_family = "wasm"))]
-compile_error!(
-    "foundation_core: the `multi` feature is native-only and cannot be enabled for wasm32. \
-     Find who enables it with \
-     `cargo tree -e features -i foundation_core --target wasm32-unknown-unknown`, \
-     and move that dependency to a `cfg(not(target_family = \"wasm\"))` target table."
-);
+// The `multi` feature is additive on every target. Its executor is a native
+// thread pool, so the native-only parts (the idle-wake handle) compile only for
+// a non-wasm target. Cargo merges features across the whole graph, so a wasm
+// build whose dependencies leave `multi` on must still compile. The default
+// netio wasm check in `ci/packages.toml` guards that (issue #1030).
 
 // The feature set is the contract, not the target. `valtron::Ctx` and the
 // executors that pass it need `std`; `alloc`-only support is deferred (see
@@ -36,8 +32,12 @@ compile_error!(
 );
 
 pub mod compati;
+/// The Durable Streams protocol core. It has no valtron, HTTP or socket dependency.
+pub mod durable;
 /// The host builders for the effect environment (spec 84).
-#[cfg(feature = "std")]
+///
+/// The timer is valtron's sleep, so this module needs the `valtron` feature.
+#[cfg(feature = "valtron")]
 pub mod env;
 pub mod extensions;
 pub mod io;
@@ -48,11 +48,11 @@ pub mod trace;
 pub mod traits;
 pub mod type_uuid;
 pub mod url;
-// The executors and `valtron::Ctx` need `std`, so this module compiles only
-// when the feature is on. The `compile_error!` above already refuses the bare
-// build; without this gate its executors would add unresolved-import noise for
-// `Ctx` on top of that one actionable message.
-#[cfg(feature = "std")]
+// The executors and `valtron::Ctx` are the `valtron` feature. The
+// `compile_error!` above already refuses a bare build; without this gate its
+// executors would add unresolved-import noise for `Ctx` on top of that one
+// actionable message.
+#[cfg(feature = "valtron")]
 pub mod valtron;
 
 /// `#[wasm_logs(stdout | console)]` — install a tracing subscriber (console.log

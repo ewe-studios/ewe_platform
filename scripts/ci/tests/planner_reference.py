@@ -109,6 +109,11 @@ class Package:
     external: set[str] = field(default_factory=set)
     # Names of the direct dependencies, for `[workspace.dependencies]` changes.
     direct_deps: set[str] = field(default_factory=set)
+    # A gate (`[gates.<name>]`) has no crate: it runs its recipe in its own
+    # workflow job. `gate_packages` and `gate_paths` say what selects it.
+    gate_recipe: str | None = None
+    gate_packages: tuple[str, ...] = ()
+    gate_paths: tuple[str, ...] = ()
 
 
 @dataclass
@@ -213,6 +218,11 @@ def cargo_metadata() -> dict:
     return json.loads(out)
 
 
+def gates() -> dict[str, dict]:
+    """The `[gates]` table of ci/packages.toml: named checks outside the matrix."""
+    return tomllib.loads(CONFIG_PATH.read_text()).get("gates", {})
+
+
 def load_workspace() -> dict[str, Package]:
     meta = cargo_metadata()
     members = set(meta["workspace_members"])
@@ -281,6 +291,24 @@ def load_workspace() -> dict[str, Package]:
         dir="specifications/completed/78-manifest-contract",
         needs_llama=False,
     )
+
+    # A gate is a named check outside the matrix (see `[gates]` in
+    # ci/packages.toml). It owns no directory; the packages and paths in its
+    # section select it.
+    for name, gate in sorted(gates().items()):
+        if name in packages:
+            raise SystemExit(f"gate {name} conflicts with a package or build group")
+        for dependency in gate.get("packages", []):
+            if dependency not in packages:
+                raise SystemExit(f"gate {name} refers to unknown package {dependency}")
+        packages[name] = Package(
+            name=name,
+            dir="",
+            needs_llama=False,
+            gate_recipe=gate["recipe"],
+            gate_packages=tuple(gate.get("packages", [])),
+            gate_paths=tuple(gate.get("paths", [])),
+        )
     return packages
 
 
@@ -463,10 +491,13 @@ def owning_package(path: str, packages: dict[str, Package]) -> str | None:
     """The package whose directory contains `path` (the deepest one wins).
 
     The root package (directory ".") owns only `src/`, `tests/` and `benches/`.
+    A gate (empty directory) owns no path: its paths only select it.
     """
     best: str | None = None
     for pkg in packages.values():
-        if pkg.dir in ("", "."):
+        if pkg.dir == "":
+            continue
+        if pkg.dir == ".":
             if best is None and path.split("/", 1)[0] in ("src", "tests", "benches"):
                 best = pkg.name
             continue
@@ -593,10 +624,12 @@ def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dic
     direct: dict[str, str] = {}  # reasons that also reach the dependents
     only: dict[str, str] = {}  # reasons that do not
     workspace_deps: set[str] = set()
+    paths: list[str] = []  # the non-prose paths, for the gate path prefixes
 
     for path in changes.files:
         if path.endswith(".md"):
             continue  # prose does not change what code does
+        paths.append(path)
         if path == "Cargo.lock":
             crates = lock_changed_crates(changes.old(path), changes.new(path))
             if crates is None:
@@ -646,6 +679,24 @@ def affected_with_reasons(changes: Changes, packages: dict[str, Package]) -> dic
     for name in sorted(direct):
         for dependent in sorted(packages[name].dependents):
             reasons.setdefault(dependent, f"depends on {name} ({direct[name]})")
+    # A gate runs when a changed path belongs to one of its packages, or
+    # starts with one of its path prefixes. It reads the files, not the
+    # affected set: a dev-dependency cycle can mark a listed package through an
+    # unrelated crate, and the gate must not follow that chain.
+    for name, pkg in sorted(packages.items()):
+        if not pkg.gate_recipe or name in reasons:
+            continue
+        hit = next(
+            (
+                p
+                for p in paths
+                if any(p.startswith(prefix) for prefix in pkg.gate_paths)
+                or owning_package(p, packages) in pkg.gate_packages
+            ),
+            None,
+        )
+        if hit:
+            reasons[name] = f"{hit} changed"
     return reasons
 
 
@@ -1434,8 +1485,9 @@ def cmd_plan(args: argparse.Namespace) -> int:
             "container-options": settings[name].container_options,
         }
         for name in sorted(selected)
-        if not settings[name].skip
+        if not settings[name].skip and not packages[name].gate_recipe
     ]
+    gates_in = sorted(n for n in selected if packages[n].gate_recipe)
     skipped = sorted(n for n in selected if settings[n].skip)
     matrix = json.dumps({"include": include})
     # The macOS and Windows test matrices: every selected package that has a
@@ -1466,6 +1518,8 @@ def cmd_plan(args: argparse.Namespace) -> int:
     windows_matrix = json.dumps({"include": windows_shards})
     summary = f"{len(include)} package(s) selected ({why})"
     print(summary, file=sys.stderr)
+    if gates_in:
+        print(f"gates: {', '.join(gates_in)}", file=sys.stderr)
 
     if out := os.environ.get("GITHUB_OUTPUT"):
         with open(out, "a") as fh:
@@ -1481,6 +1535,8 @@ def cmd_plan(args: argparse.Namespace) -> int:
             fh.write(f"### CI plan\n\n{summary}\n\n")
             for item in include:
                 fh.write(f"- `{item['package']}`{' (needs llama.cpp)' if item['llama'] else ''}\n")
+            if gates_in:
+                fh.write(f"\nGates (selected, not matrix jobs): {', '.join(gates_in)}\n")
             for label, shards in (("macOS", macos_shards), ("Windows", windows_shards)):
                 for shard in shards:
                     fh.write(f"\n{label} {shard['shard']} (weight {shard['weight']}): {shard['packages']}\n")

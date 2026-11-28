@@ -153,7 +153,10 @@ impl Workspace {
         self.packages
             .values()
             .filter(|p| {
-                if p.dir == "." {
+                if p.gate.is_some() {
+                    // A gate owns no directory: its paths are selection rules.
+                    false
+                } else if p.dir == "." {
                     matches!(path.split('/').next(), Some("src" | "tests" | "benches"))
                 } else {
                     path.strip_prefix(&p.dir)
@@ -266,6 +269,28 @@ impl Workspace {
         }
     }
 
+    /// Select the gates whose packages or path prefixes a changed file names.
+    ///
+    /// This reads the changed files, not the affected set: a dev-dependency
+    /// cycle can mark a listed package through an unrelated crate, and a gate
+    /// must not follow that chain.
+    fn select_gates(&self, paths: &[String], reasons: &mut Reasons) {
+        for (name, gate) in &self.policy.gates {
+            if reasons.contains_key(name) {
+                continue;
+            }
+            let selected = paths.iter().find(|path| {
+                gate.paths.iter().any(|prefix| path.starts_with(prefix))
+                    || self
+                        .owner(path)
+                        .is_some_and(|owner| gate.packages.iter().any(|listed| listed == owner))
+            });
+            if let Some(path) = selected {
+                reasons.insert(name.clone(), format!("{path} changed"));
+            }
+        }
+    }
+
     /// Select packages and record the first reason for each selection.
     ///
     /// # Errors
@@ -287,19 +312,22 @@ impl Workspace {
         let mut deps = BTreeSet::new();
         let mut direct = Reasons::new();
         let mut reasons = Reasons::new();
-        for path in changes {
-            if std::path::Path::new(&path)
+        // The non-prose paths, for the gates that select on a path prefix.
+        let mut paths = Vec::new();
+        for path in &changes {
+            if std::path::Path::new(path.as_str())
                 .extension()
                 .is_some_and(|ext| ext == "md")
             {
                 continue;
             }
+            paths.push(path.clone());
             if matches!(
                 path.as_str(),
                 "Cargo.toml" | "ci/packages.toml" | "Cargo.lock"
             ) {
                 let (old, new) = self
-                    .changed_files(ctx, &path, &ancestor, head, include_local)
+                    .changed_files(ctx, path.as_str(), &ancestor, head, include_local)
                     .await?;
                 let pair = (old.as_deref(), new.as_deref());
                 match path.as_str() {
@@ -355,18 +383,19 @@ impl Workspace {
                 direct
                     .entry("foundation_ui_wire".into())
                     .or_insert_with(|| format!("{path} affects the wire bindings"));
-            } else if global(&path) {
+            } else if global(path) {
                 return Ok((base, self.everything(&format!("{path} changed"))));
             } else {
-                self.select_manifest_contracts(&path, &mut reasons);
+                self.select_manifest_contracts(path, &mut reasons);
             }
-            if let Some(owner) = self.owner(&path) {
+            if let Some(owner) = self.owner(path) {
                 direct
                     .entry(owner.into())
                     .or_insert_with(|| format!("{path} changed"));
             }
         }
         self.expand_dependents(deps, direct, &mut reasons);
+        self.select_gates(&paths, &mut reasons);
         Ok((base, reasons))
     }
 }

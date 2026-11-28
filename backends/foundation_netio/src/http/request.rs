@@ -61,7 +61,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
     ///
     /// Returns an error if the operation fails.
     pub fn build_client(self) -> Result<ClientRequest<R>, HttpClientError> {
-        let prepared = PreparedRequest {
+        let mut prepared = PreparedRequest {
             method: self.method,
             url: self.url,
             headers: self.headers,
@@ -72,6 +72,9 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
 
         let pool = self.pool.unwrap_or_default();
         let config = self.config.unwrap_or_default();
+        config
+            .compression
+            .apply_accept_encoding(&mut prepared.headers);
         Ok(ClientRequest::new(prepared, config, pool))
     }
 
@@ -80,7 +83,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
     ///
     /// Returns an error if the operation fails.
     pub fn build_send_request(self) -> Result<super::tasks::SendRequestTask<R>, HttpClientError> {
-        let prepared_request = PreparedRequest {
+        let mut prepared_request = PreparedRequest {
             method: self.method,
             url: self.url,
             headers: self.headers,
@@ -91,6 +94,9 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
 
         let pool = self.pool.unwrap_or_default();
         let config = self.config.unwrap_or_default();
+        config
+            .compression
+            .apply_accept_encoding(&mut prepared_request.headers);
 
         Ok(super::tasks::SendRequestTask::new(
             prepared_request,
