@@ -29,7 +29,7 @@ use core::fmt;
 use core::future::Future;
 use core::pin::Pin;
 use foundation_compact::time::unix_millis;
-use foundation_context::{Clock, Ctx};
+use foundation_context::Ctx;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -907,27 +907,28 @@ pub trait DurableStreamStore {
 
 /// The default protocol store. It wraps a boxed VFS.
 ///
-/// Swap the VFS to change storage. The store keeps only the clock that it reads
-/// from the context, never the whole [`Ctx`]. A host may therefore store the
-/// stream in that same context without closing an `Arc` cycle.
+/// Swap the VFS to change storage. The store keeps a fork of the context it was
+/// built with. The fork shares the clock and the other standard elements, and
+/// its map is a copy. A host may therefore insert the stream into the parent
+/// context: the stream's fork never holds the stream, so no `Arc` cycle closes.
 #[derive(Clone)]
 pub struct DurableStream {
     vfs: Arc<dyn DurableStreamVfs>,
-    clock: Arc<dyn Clock>,
+    ctx: Ctx,
 }
 
 impl DurableStream {
     /// Build a stream store over a virtual file system (VFS) with the injected context.
     ///
-    /// The store reads the clock from `ctx` and keeps only that handle. It does
-    /// not keep the context, so the host can insert the stream into the same
-    /// context without an `Arc` cycle. The host builds the context with the real
-    /// clock.
+    /// The store keeps a fork of `ctx`, not the handle itself. The fork shares
+    /// the clock and the other standard elements, so the store reads the same
+    /// clock as the host. The host can insert the stream into the parent context
+    /// without an `Arc` cycle.
     #[must_use]
     pub fn new(vfs: Arc<dyn DurableStreamVfs>, ctx: &Ctx) -> Self {
         Self {
             vfs,
-            clock: ctx.clock(),
+            ctx: ctx.fork(),
         }
     }
 
@@ -947,7 +948,7 @@ impl DurableStream {
     }
 
     fn now_ms(&self) -> i64 {
-        unix_millis(self.clock.wall_now())
+        unix_millis(self.ctx.clock().wall_now())
     }
 
     fn is_expired(meta: &VfsMeta, now: i64) -> bool {

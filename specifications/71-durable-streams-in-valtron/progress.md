@@ -2,8 +2,10 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-28: feature 01, 05, 06, 07 and 08 gaps closed. #1134: `DurableStream` stores the
-  clock, not the `Ctx`, so the `Arc` cycle is gone; the leak test proves the VFS drops.
+- 2026-11-28: feature 01, 05, 06, 07 and 08 gaps closed. #1134: `DurableStream` keeps a forked
+  `Ctx`; the fork shares the clock and copies the map, so the parent context holds the stream
+  without an `Arc` cycle. The leak test and the nine TTL tests pass; the TTL tests advance the
+  simulated clock after construction, which proves the stream reads the context clock.
   #1135: retry, producer, dynamic headers and the injected clock live in the client core; the
   adapter uses them. #858: the connectrpc `build.rs` emits the Cranelift cfg, so the panic test
   runs under LLVM and is ignored only under Cranelift. #1155/#1024: netio clippy is clean.
