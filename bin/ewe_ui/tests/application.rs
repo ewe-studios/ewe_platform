@@ -10,6 +10,16 @@ fn cli(root: &Path, args: &[&str]) -> Output {
         .output()
         .unwrap()
 }
+fn assert_ios_launch_files(root: &Path) {
+    let project = root.join("ios/FieldNotes.xcodeproj/project.pbxproj");
+    let project = std::fs::read_to_string(project).unwrap();
+    assert!(project.contains("EweLaunch/Launch.xcassets"));
+    assert!(project.contains("INFOPLIST_FILE = App/Info.plist;"));
+    let launch = std::fs::read_to_string(root.join("ios/App/Info.plist")).unwrap();
+    assert!(launch.contains("<key>UILaunchScreen</key>"));
+    assert!(launch.contains("<string>EweSplash</string>"));
+}
+
 #[test]
 fn compose_every_selection_and_share_native_inputs() {
     for mask in 1..8 {
@@ -104,13 +114,7 @@ fn compose_every_selection_and_share_native_inputs() {
             );
         }
         if mask & 4 != 0 {
-            let project = root.join("ios/FieldNotes.xcodeproj/project.pbxproj");
-            let project = std::fs::read_to_string(project).unwrap();
-            assert!(project.contains("EweLaunch/Launch.xcassets"));
-            assert!(project.contains("INFOPLIST_FILE = App/Info.plist;"));
-            let launch = std::fs::read_to_string(root.join("ios/App/Info.plist")).unwrap();
-            assert!(launch.contains("<key>UILaunchScreen</key>"));
-            assert!(launch.contains("<string>EweSplash</string>"));
+            assert_ios_launch_files(&root);
         }
         assert!(!cli(tmp.path(), &args).status.success());
     }
