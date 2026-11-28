@@ -200,6 +200,7 @@ impl Harness {
             cache_dir: "/cache".into(),
             slave_path: Some(PathBuf::from("/bin/agent-slave")),
             firecracker_path: None,
+            firecracker_net_path: None,
             krun_runner_path: None,
             libkrun_path: None,
             mkfs_ext4_path: Some(PathBuf::from("/bin/mkfs.ext4")),

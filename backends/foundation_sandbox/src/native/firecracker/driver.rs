@@ -11,6 +11,7 @@
 //!
 //! The module is Linux only: Firecracker needs KVM and the Firecracker program.
 
+use std::os::unix::net::UnixDatagram;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
@@ -29,7 +30,9 @@ use crate::native::firecracker::generated::boot_source::BootSource;
 use crate::native::firecracker::generated::default::InstanceInfo;
 use crate::native::firecracker::generated::drives::Drive;
 use crate::native::firecracker::generated::machine_config::MachineConfiguration;
+use crate::native::firecracker::generated::network_interfaces::NetworkInterface;
 use crate::native::firecracker::generated::vsock::Vsock;
+use crate::native::firecracker_network::{GuestNetworkConfig, NetworkRuntime, FRAME_DESCRIPTOR};
 use crate::shared::driver::{
     Capabilities, CreateProgress, HostCheck, HostReport, LaunchStream, SandboxDriver,
     SlaveEndpoint, StoredRecord, Substrate, SubstrateExit, SubstrateHandle,
@@ -75,6 +78,8 @@ pub enum ConfigStep {
     BootSource,
     /// `PUT /drives/rootfs`.
     Drive,
+    /// `PUT /network-interfaces/eth0`.
+    Network,
     /// `PUT /vsock`.
     Vsock,
     /// `PUT /actions` with `InstanceStart`.
@@ -110,6 +115,8 @@ pub struct FcPlan {
     pub guest_cid: u32,
     /// The kernel boot arguments.
     pub boot_args: String,
+    /// The guest network, when the caller enabled it and the spec asks for it.
+    pub network: Option<GuestNetworkConfig>,
     /// Every size and time limit of the sandbox.
     pub limits: SandboxLimits,
     /// The exclusive lock on a writable image. It is held until `cleanup`.
@@ -179,6 +186,12 @@ pub trait FirecrackerApi: Send + Sync + 'static {
     /// `PUT /drives/{drive_id}`.
     fn put_drive<'a>(&'a self, body: &'a Drive) -> BoxFuture<'a, SandboxResult<()>>;
 
+    /// `PUT /network-interfaces/{iface_id}`.
+    fn put_network_interface<'a>(
+        &'a self,
+        body: &'a NetworkInterface,
+    ) -> BoxFuture<'a, SandboxResult<()>>;
+
     /// `PUT /vsock`.
     fn put_vsock<'a>(&'a self, body: &'a Vsock) -> BoxFuture<'a, SandboxResult<()>>;
 
@@ -215,6 +228,13 @@ impl FirecrackerApi for FirecrackerClient {
         Box::pin(async move { FirecrackerClient::put_drive(self, body).await })
     }
 
+    fn put_network_interface<'a>(
+        &'a self,
+        body: &'a NetworkInterface,
+    ) -> BoxFuture<'a, SandboxResult<()>> {
+        Box::pin(async move { FirecrackerClient::put_network_interface(self, body).await })
+    }
+
     fn put_vsock<'a>(&'a self, body: &'a Vsock) -> BoxFuture<'a, SandboxResult<()>> {
         Box::pin(async move { FirecrackerClient::put_vsock(self, body).await })
     }
@@ -229,6 +249,9 @@ pub struct FirecrackerDriver {
     api_factory: FirecrackerApiFactory,
     min_version: String,
     boot_args: Option<String>,
+    /// The guest network. `None` keeps the driver without one, and a spec that asks
+    /// for [`NetworkMode::Host`] is refused.
+    network: Option<GuestNetworkConfig>,
 }
 
 impl Default for FirecrackerDriver {
@@ -257,6 +280,7 @@ impl FirecrackerDriver {
             }),
             min_version: MIN_FIRECRACKER_VERSION.to_string(),
             boot_args: None,
+            network: None,
         }
     }
 
@@ -267,7 +291,28 @@ impl FirecrackerDriver {
             api_factory: factory,
             min_version: MIN_FIRECRACKER_VERSION.to_string(),
             boot_args: None,
+            network: None,
         }
+    }
+
+    /// Give the driver a guest network with `config`.
+    ///
+    /// A sandbox with [`NetworkMode::Host`] then gets an Ethernet interface on a TAP
+    /// device in a private network namespace. The guest reaches the Transmission
+    /// Control Protocol (TCP) and User Datagram Protocol (UDP) ports in `config`
+    /// through the user-space stack of this process; it has no other host route. A
+    /// host that cannot make a user and network namespace, or that has no
+    /// `agent-fc-net` program, fails the launch with a clear error.
+    #[must_use]
+    pub fn with_network(mut self, config: GuestNetworkConfig) -> Self {
+        self.network = Some(config);
+        self
+    }
+
+    /// Whether this driver has a guest network configuration.
+    #[must_use]
+    pub fn has_network(&self) -> bool {
+        self.network.is_some()
     }
 
     /// A driver that boots the guest with `args` instead of the default line.
@@ -310,8 +355,12 @@ impl SandboxDriver for FirecrackerDriver {
 
     fn probe(&self, ctx: Ctx) -> BoxFuture<'static, HostReport> {
         let min_version = self.min_version.clone();
+        let network = self.network.is_some();
         Box::pin(async move {
-            let capabilities = capabilities();
+            let mut capabilities = capabilities();
+            // The guest network needs a user and network namespace and `/dev/net/tun`.
+            // The driver reports it only when the caller configured it.
+            capabilities.network_host = network;
             let Ok(host) = SandboxHost::from_ctx(&ctx) else {
                 return HostReport {
                     driver: DriverId::Firecracker,
@@ -416,6 +465,7 @@ impl SandboxDriver for FirecrackerDriver {
                 spec,
                 deadline,
                 boot_args: self.boot_args.clone(),
+                network: self.network.clone(),
             },
             guard: LaunchGuard::new(),
             api_factory: Arc::clone(&self.api_factory),
@@ -464,6 +514,8 @@ pub enum FcLaunch {
         deadline: Instant,
         /// Boot arguments that replace the default line, when a test sets them.
         boot_args: Option<String>,
+        /// The guest network configuration, when the driver has one.
+        network: Option<GuestNetworkConfig>,
     },
     /// Start the `firecracker` process.
     Spawn {
@@ -484,6 +536,8 @@ pub enum FcLaunch {
         vmm: Arc<dyn ChildProcess>,
         /// The API client.
         api: Arc<dyn FirecrackerApi>,
+        /// The guest link, when the plan has one.
+        network: Option<NetworkRuntime>,
         /// The one deadline of the create.
         deadline: Instant,
         /// How many API attempts already failed.
@@ -499,6 +553,8 @@ pub enum FcLaunch {
         vmm: Arc<dyn ChildProcess>,
         /// The API client.
         api: Arc<dyn FirecrackerApi>,
+        /// The guest link, when the plan has one.
+        network: Option<NetworkRuntime>,
         /// The next call.
         step: ConfigStep,
     },
@@ -547,7 +603,20 @@ pub async fn fc_launch(
             spec,
             deadline,
             boot_args,
-        } => prepare(ctx, guard, api_factory, id, spec, deadline, boot_args).await,
+            network,
+        } => {
+            prepare(
+                ctx,
+                guard,
+                api_factory,
+                id,
+                spec,
+                deadline,
+                boot_args,
+                network,
+            )
+            .await
+        }
         FcLaunch::Spawn {
             ctx,
             plan,
@@ -558,16 +627,31 @@ pub async fn fc_launch(
             plan,
             vmm,
             api,
+            network,
             deadline,
             attempt,
-        } => await_api(ctx, guard, api_factory, plan, vmm, api, deadline, attempt).await,
+        } => {
+            await_api(
+                ctx,
+                guard,
+                api_factory,
+                plan,
+                vmm,
+                api,
+                network,
+                deadline,
+                attempt,
+            )
+            .await
+        }
         FcLaunch::Configure {
             ctx,
             plan,
             vmm,
             api,
+            network,
             step,
-        } => configure(ctx, guard, api_factory, plan, vmm, api, step).await,
+        } => configure(ctx, guard, api_factory, plan, vmm, api, network, step).await,
         FcLaunch::EmitReady { substrate } => (
             FcState {
                 launch: FcLaunch::Done,
@@ -593,6 +677,7 @@ async fn prepare(
     spec: SandboxSpec,
     deadline: Instant,
     boot_args: Option<String>,
+    network: Option<GuestNetworkConfig>,
 ) -> (FcState, Status) {
     let timer = match ctx.require_env() {
         Ok(env) => env.timer(),
@@ -600,7 +685,7 @@ async fn prepare(
             return fail(guard, api_factory, SandboxError::HostNotConfigured, &ctx).await;
         }
     };
-    let work = prepare_plan(&ctx, &id, &spec, boot_args.as_deref());
+    let work = prepare_plan(&ctx, &id, &spec, boot_args.as_deref(), network.as_ref());
     let outcome = match select(Box::pin(work), timer.sleep_until(ctx.clone(), deadline)).await {
         Either::Left((result, _)) => Some(result),
         Either::Right(_) => None,
@@ -656,32 +741,86 @@ async fn spawn(
             return fail(guard, api_factory, error.current_context().clone(), &ctx).await;
         }
     };
-    let spec = ProcessSpec {
-        program: plan.firecracker.clone(),
-        args: vec![
-            "--api-sock".to_string(),
-            plan.api_socket().display().to_string(),
-            "--id".to_string(),
-            plan.id.to_string(),
-            "--log-path".to_string(),
-            plan.vmm_log().display().to_string(),
-            "--level".to_string(),
-            "Warning".to_string(),
-        ],
-        env: Vec::new(),
-        cwd: plan.run_dir.clone(),
-        stdout: plan.console_log(),
-        stderr: plan.console_log(),
-        kill_with_parent: true,
-        extra_fds: Vec::new(),
-    };
-    let vmm = match host.processes.spawn(spec) {
-        Ok(vmm) => vmm,
-        Err(error) => {
-            return fail(guard, api_factory, error.current_context().clone(), &ctx).await;
+    let vmm_args = vec![
+        "--api-sock".to_string(),
+        plan.api_socket().display().to_string(),
+        "--id".to_string(),
+        plan.id.to_string(),
+        "--log-path".to_string(),
+        plan.vmm_log().display().to_string(),
+        "--level".to_string(),
+        "Warning".to_string(),
+    ];
+    let (vmm, network): (Arc<dyn ChildProcess>, Option<NetworkRuntime>) = if let Some(config) =
+        &plan.network
+    {
+        let Some(helper) = host.config.firecracker_net_path.clone() else {
+            let error = SandboxError::BinaryNotFound {
+                name: "agent-fc-net".to_string(),
+            };
+            return fail(guard, api_factory, error, &ctx).await;
+        };
+        if !host.fs.exists(&helper) {
+            let error = SandboxError::BinaryNotFound {
+                name: helper.display().to_string(),
+            };
+            return fail(guard, api_factory, error, &ctx).await;
+        }
+        let (frames, child_end) = match UnixDatagram::pair() {
+            Ok(pair) => pair,
+            Err(error) => {
+                let error = SandboxError::Io {
+                    op: "make the frame channel".to_string(),
+                    message: error.to_string(),
+                };
+                return fail(guard, api_factory, error, &ctx).await;
+            }
+        };
+        let child_fd: std::os::fd::OwnedFd = child_end.into();
+        let mut args = config.helper_args();
+        args.push(plan.firecracker.display().to_string());
+        args.extend(vmm_args);
+        let spec = ProcessSpec {
+            program: helper,
+            args,
+            env: Vec::new(),
+            cwd: plan.run_dir.clone(),
+            stdout: plan.console_log(),
+            stderr: plan.console_log(),
+            kill_with_parent: true,
+            extra_fds: vec![(FRAME_DESCRIPTOR, child_fd)],
+        };
+        match host.processes.spawn(spec) {
+            Ok(child) => match NetworkRuntime::start(config, frames, &ctx) {
+                Ok(runtime) => (Arc::from(child), Some(runtime)),
+                Err(error) => {
+                    let _ = child.signal(libc::SIGKILL);
+                    let _ = child.wait().await;
+                    return fail(guard, api_factory, error.current_context().clone(), &ctx).await;
+                }
+            },
+            Err(error) => {
+                return fail(guard, api_factory, error.current_context().clone(), &ctx).await;
+            }
+        }
+    } else {
+        let spec = ProcessSpec {
+            program: plan.firecracker.clone(),
+            args: vmm_args,
+            env: Vec::new(),
+            cwd: plan.run_dir.clone(),
+            stdout: plan.console_log(),
+            stderr: plan.console_log(),
+            kill_with_parent: true,
+            extra_fds: Vec::new(),
+        };
+        match host.processes.spawn(spec) {
+            Ok(vmm) => (Arc::from(vmm), None),
+            Err(error) => {
+                return fail(guard, api_factory, error.current_context().clone(), &ctx).await;
+            }
         }
     };
-    let vmm: Arc<dyn ChildProcess> = Arc::from(vmm);
     guard.arm_vmm(Arc::clone(&vmm));
     if let Err(error) = host
         .fs
@@ -702,6 +841,7 @@ async fn spawn(
                 plan,
                 vmm,
                 api,
+                network,
                 deadline,
                 attempt: 0,
             },
@@ -734,6 +874,7 @@ async fn await_api(
     plan: FcPlan,
     vmm: Arc<dyn ChildProcess>,
     api: Arc<dyn FirecrackerApi>,
+    network: Option<NetworkRuntime>,
     deadline: Instant,
     attempt: u32,
 ) -> (FcState, Status) {
@@ -783,6 +924,7 @@ async fn await_api(
                     plan,
                     vmm,
                     api,
+                    network,
                     step: ConfigStep::MachineConfig,
                 },
                 guard,
@@ -811,6 +953,7 @@ async fn await_api(
                         plan,
                         vmm,
                         api,
+                        network,
                         deadline,
                         attempt: attempt.saturating_add(1),
                     },
@@ -848,6 +991,7 @@ async fn configure(
     plan: FcPlan,
     vmm: Arc<dyn ChildProcess>,
     api: Arc<dyn FirecrackerApi>,
+    network: Option<NetworkRuntime>,
     step: ConfigStep,
 ) -> (FcState, Status) {
     if let Ok(Some(exit)) = vmm.try_wait() {
@@ -860,7 +1004,7 @@ async fn configure(
     }
     if step == ConfigStep::Start {
         match api.instance_start().await {
-            Ok(()) => match make_substrate(&ctx, &plan, Arc::clone(&vmm)) {
+            Ok(()) => match make_substrate(&ctx, &plan, Arc::clone(&vmm), network) {
                 Ok(substrate) => {
                     guard.disarm();
                     (
@@ -884,6 +1028,10 @@ async fn configure(
             ConfigStep::MachineConfig => api.put_machine_config(&machine_config(&plan)).await,
             ConfigStep::BootSource => api.put_boot_source(&boot_source(&plan)).await,
             ConfigStep::Drive => api.put_drive(&drive(&plan)).await,
+            ConfigStep::Network => match network_interface(&plan) {
+                Some(body) => api.put_network_interface(&body).await,
+                None => Ok(()),
+            },
             ConfigStep::Vsock => api.put_vsock(&vsock(&plan)).await,
             ConfigStep::Start => unreachable!("handled above"),
         };
@@ -892,7 +1040,14 @@ async fn configure(
                 let next_step = match step {
                     ConfigStep::MachineConfig => ConfigStep::BootSource,
                     ConfigStep::BootSource => ConfigStep::Drive,
-                    ConfigStep::Drive => ConfigStep::Vsock,
+                    ConfigStep::Drive => {
+                        if plan.network.is_some() {
+                            ConfigStep::Network
+                        } else {
+                            ConfigStep::Vsock
+                        }
+                    }
+                    ConfigStep::Network => ConfigStep::Vsock,
                     ConfigStep::Vsock => ConfigStep::Start,
                     ConfigStep::Start => unreachable!("handled above"),
                 };
@@ -908,6 +1063,7 @@ async fn configure(
                             plan,
                             vmm,
                             api,
+                            network,
                             step: next_step,
                         },
                         guard,
@@ -967,8 +1123,9 @@ async fn prepare_plan(
     id: &SandboxId,
     spec: &SandboxSpec,
     boot_args_override: Option<&str>,
+    network_config: Option<&GuestNetworkConfig>,
 ) -> SandboxResult<FcPlan> {
-    check_spec(spec)?;
+    check_spec(spec, network_config.is_some())?;
     let host = SandboxHost::from_ctx(ctx)?;
     let (rootfs, rootfs_type) = match &spec.rootfs {
         crate::shared::spec::RootFs::Ext4Image(path) => (path.clone(), FsType::Ext4),
@@ -1042,6 +1199,32 @@ async fn prepare_plan(
         let value = 3 + rng.next_u64() % (MAX_GUEST_CID - 2);
         u32::try_from(value).unwrap_or(3)
     };
+    // A host network needs the configured link. The spec DNS list becomes the UDP
+    // forwards of guest port 53, so the guest resolver names the stack address.
+    let network = match (spec.network, network_config) {
+        (NetworkMode::Host, Some(config)) => {
+            let mut config = config.clone();
+            for server in &spec.dns {
+                let address = server.parse::<std::net::Ipv4Addr>().map_err(|_| {
+                    SandboxError::InvalidSpec {
+                        field: "dns".to_string(),
+                        reason: format!("{server} is not an IPv4 address"),
+                    }
+                })?;
+                if !config.dns.contains(&address) {
+                    config.dns.push(address);
+                }
+            }
+            Some(config)
+        }
+        _ => None,
+    };
+    let mut boot_line =
+        boot_args_override.map_or_else(|| boot_args(GuestArch::host()), ToString::to_string);
+    if let Some(network) = &network {
+        boot_line.push(' ');
+        boot_line.push_str(&network.boot_args());
+    }
     Ok(FcPlan {
         id: id.clone(),
         run_dir,
@@ -1054,16 +1237,19 @@ async fn prepare_plan(
         vcpus: spec.vcpus,
         memory_mib: spec.memory_mib,
         guest_cid,
-        boot_args: boot_args_override
-            .map_or_else(|| boot_args(GuestArch::host()), ToString::to_string),
+        boot_args: boot_line,
+        network,
         limits: spec.limits.clone(),
         lock,
     })
 }
 
 /// Rejects a spec that Firecracker cannot run, before any process starts.
-fn check_spec(spec: &SandboxSpec) -> SandboxResult<()> {
-    if spec.network == NetworkMode::Host {
+///
+/// `network_enabled` is true when the driver has a guest network configuration. A
+/// driver without one keeps the host network unsupported.
+fn check_spec(spec: &SandboxSpec, network_enabled: bool) -> SandboxResult<()> {
+    if spec.network == NetworkMode::Host && !network_enabled {
         return Err(SandboxError::UnsupportedNetwork.into());
     }
     if !spec.mounts.is_empty() {
@@ -1104,6 +1290,7 @@ fn make_substrate(
     ctx: &Ctx,
     plan: &FcPlan,
     vmm: Arc<dyn ChildProcess>,
+    network: Option<NetworkRuntime>,
 ) -> SandboxResult<Substrate> {
     let host = SandboxHost::from_ctx(ctx)?;
     let handle = FcHandle::new(
@@ -1112,6 +1299,7 @@ fn make_substrate(
         host.fs.clone(),
         plan.run_dir.clone(),
         plan.lock.clone(),
+        network,
     );
     Ok(Substrate {
         endpoint: SlaveEndpoint::FirecrackerVsock {
@@ -1173,6 +1361,22 @@ pub fn vsock(plan: &FcPlan) -> Vsock {
         uds_path: plan.vsock_socket().display().to_string(),
         ..Vsock::default()
     }
+}
+
+/// The network interface body, or `None` when the plan has no network.
+///
+/// The TAP device already exists in the private namespace, so Firecracker attaches it
+/// by name.
+#[must_use]
+pub fn network_interface(plan: &FcPlan) -> Option<NetworkInterface> {
+    let network = plan.network.as_ref()?;
+    Some(NetworkInterface {
+        iface_id: network.interface.clone(),
+        host_dev_name: network.tap.clone(),
+        guest_mac: Some(network.guest_mac_address()),
+        mtu: Some(i64::try_from(network.mtu).unwrap_or(i64::MAX)),
+        ..NetworkInterface::default()
+    })
 }
 
 /// The back-off of one API attempt: `min(base * 2^attempt, cap)`.
@@ -1353,6 +1557,8 @@ pub struct FcHandle {
     run_dir: PathBuf,
     forced: AtomicBool,
     lock: std::sync::Mutex<Option<Arc<crate::shared::host::FileLock>>>,
+    /// The guest link. It stops when this handle stops it or drops.
+    network: Mutex<Option<NetworkRuntime>>,
 }
 
 impl FcHandle {
@@ -1364,6 +1570,7 @@ impl FcHandle {
         fs: Arc<dyn HostFs>,
         run_dir: PathBuf,
         lock: Option<Arc<crate::shared::host::FileLock>>,
+        network: Option<NetworkRuntime>,
     ) -> Self {
         Self {
             ctx,
@@ -1372,7 +1579,17 @@ impl FcHandle {
             run_dir,
             forced: AtomicBool::new(false),
             lock: std::sync::Mutex::new(lock),
+            network: Mutex::new(network),
         }
+    }
+
+    /// Stop the guest link, if it is still running.
+    fn stop_network(&self) {
+        let _ = self
+            .network
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take();
     }
 
     fn exit(&self, exit: crate::shared::host::ProcessExit) -> SubstrateExit {
@@ -1404,38 +1621,49 @@ impl FcHandle {
 impl SubstrateHandle for FcHandle {
     fn exited(&self) -> BoxFuture<'_, SubstrateExit> {
         Box::pin(async move {
-            match self.vmm.wait().await {
+            let result = match self.vmm.wait().await {
                 Ok(exit) => self.exit(exit),
                 Err(_) => SubstrateExit {
                     code: None,
                     signal: None,
                     forced: self.forced.load(Ordering::SeqCst),
                 },
-            }
+            };
+            // The guest is gone, so its link has no peer.
+            self.stop_network();
+            result
         })
     }
 
     fn terminate(&self, grace: Duration) -> BoxFuture<'_, SandboxResult<SubstrateExit>> {
         Box::pin(async move {
+            // Keep the guest link open while the guest shuts down: closing it ends
+            // the helper, and the helper then ends the VM. The link stops when the
+            // VM exits, because the helper exits with it.
             if let Some(exit) = self.vmm.try_wait()? {
+                self.stop_network();
                 return Ok(self.exit(exit));
             }
             if let Some(exit) = self.wait_with_timeout(grace).await {
+                self.stop_network();
                 return Ok(self.exit(exit));
             }
             self.forced.store(true, Ordering::SeqCst);
             self.vmm.signal(libc::SIGTERM)?;
             if let Some(exit) = self.wait_with_timeout(Duration::from_secs(1)).await {
+                self.stop_network();
                 return Ok(self.exit(exit));
             }
             self.vmm.signal(libc::SIGKILL)?;
             let exit = self.vmm.wait().await?;
+            self.stop_network();
             Ok(self.exit(exit))
         })
     }
 
     fn kill(&self) -> BoxFuture<'_, SandboxResult<SubstrateExit>> {
         Box::pin(async move {
+            self.stop_network();
             if let Some(exit) = self.vmm.try_wait()? {
                 return Ok(self.exit(exit));
             }
@@ -1453,6 +1681,7 @@ impl SubstrateHandle for FcHandle {
 
     fn cleanup(&self) -> BoxFuture<'_, SandboxResult<()>> {
         Box::pin(async move {
+            self.stop_network();
             if self.vmm.try_wait()?.is_none() {
                 let _ = self.kill().await;
             }

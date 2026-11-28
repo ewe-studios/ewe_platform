@@ -75,6 +75,21 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger
 
+      # The Firecracker guest network makes a user and network namespace without
+      # root (spec 92, feature 02, task T11). Ubuntu 24.04 restricts
+      # unprivileged user namespaces through AppArmor; the runner enables them.
+      - name: Allow unprivileged user namespaces
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+          if [ ! -e /dev/net/tun ]; then
+            sudo mkdir -p /dev/net
+            sudo mknod /dev/net/tun c 10 200
+            sudo chmod 666 /dev/net/tun
+          fi
+          unshare -Urn true
+          echo "unprivileged user and network namespaces work"
+
       - name: Install the pinned toolchain and the musl targets
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")

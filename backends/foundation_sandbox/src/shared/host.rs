@@ -72,6 +72,9 @@ pub struct HostConfig {
     pub slave_path: Option<PathBuf>,
     /// The path of the Firecracker program.
     pub firecracker_path: Option<PathBuf>,
+    /// The path of the `agent-fc-net` helper, which makes the private network
+    /// namespace and the TAP device of a Firecracker guest network (spec 92).
+    pub firecracker_net_path: Option<PathBuf>,
     /// The path of the libkrun runner program.
     pub krun_runner_path: Option<PathBuf>,
     /// The path of the libkrun library.
@@ -93,6 +96,7 @@ impl Default for HostConfig {
             cache_dir: PathBuf::new(),
             slave_path: None,
             firecracker_path: None,
+            firecracker_net_path: None,
             krun_runner_path: None,
             libkrun_path: None,
             mkfs_ext4_path: None,

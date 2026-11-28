@@ -15,6 +15,7 @@ pub mod control;
 
 pub mod exec;
 pub mod files;
+pub mod net;
 pub mod pid1;
 pub mod reaper;
 pub mod root;

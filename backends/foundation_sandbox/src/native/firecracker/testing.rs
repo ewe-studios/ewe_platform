@@ -13,6 +13,7 @@ use crate::native::firecracker::generated::boot_source::BootSource;
 use crate::native::firecracker::generated::default::{InstanceInfo, InstanceInfoState};
 use crate::native::firecracker::generated::drives::Drive;
 use crate::native::firecracker::generated::machine_config::MachineConfiguration;
+use crate::native::firecracker::generated::network_interfaces::NetworkInterface;
 use crate::native::firecracker::generated::vsock::Vsock;
 use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::BoxFuture;
@@ -32,6 +33,8 @@ pub enum ApiCall {
     BootSource(BootSource),
     /// `PUT /drives/rootfs`.
     Drive(Drive),
+    /// `PUT /network-interfaces/eth0`.
+    Network(NetworkInterface),
     /// `PUT /vsock`.
     Vsock(Vsock),
     /// `PUT /actions`.
@@ -47,6 +50,7 @@ impl ApiCall {
             Self::MachineConfig(_) => Some(ConfigStep::MachineConfig),
             Self::BootSource(_) => Some(ConfigStep::BootSource),
             Self::Drive(_) => Some(ConfigStep::Drive),
+            Self::Network(_) => Some(ConfigStep::Network),
             Self::Vsock(_) => Some(ConfigStep::Vsock),
             Self::Start => Some(ConfigStep::Start),
         }
@@ -223,6 +227,14 @@ impl FirecrackerApi for FakeFirecrackerApi {
     fn put_drive<'a>(&'a self, body: &'a Drive) -> BoxFuture<'a, SandboxResult<()>> {
         let body = body.clone();
         Box::pin(async move { self.record(&ApiCall::Drive(body)) })
+    }
+
+    fn put_network_interface<'a>(
+        &'a self,
+        body: &'a NetworkInterface,
+    ) -> BoxFuture<'a, SandboxResult<()>> {
+        let body = body.clone();
+        Box::pin(async move { self.record(&ApiCall::Network(body)) })
     }
 
     fn put_vsock<'a>(&'a self, body: &'a Vsock) -> BoxFuture<'a, SandboxResult<()>> {

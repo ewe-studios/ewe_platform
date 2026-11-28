@@ -13,13 +13,14 @@ use foundation_context::Ctx;
 use foundation_core::env;
 use foundation_sandbox::native::artifacts::{sha256_hex, ArtifactStore};
 use foundation_sandbox::native::firecracker::driver::FirecrackerDriver;
+use foundation_sandbox::native::firecracker::GuestNetworkConfig;
 use foundation_sandbox::shared::command::Command;
 use foundation_sandbox::shared::control::{
     ManagerConfig, MemoryRecordStore, SandboxHandle, SandboxManager, SandboxProvider,
 };
 use foundation_sandbox::shared::driver::SandboxDriver;
 use foundation_sandbox::shared::host::{HostConfig, SandboxHost};
-use foundation_sandbox::shared::spec::{GuestArch, RootFs, RootMode, SandboxSpec};
+use foundation_sandbox::shared::spec::{GuestArch, NetworkMode, RootFs, RootMode, SandboxSpec};
 
 /// A host that can run a microVM, or `None` with the reason.
 fn usable_host() -> Option<(Ctx, SandboxHost)> {
@@ -187,6 +188,127 @@ fn e2e_no_network() {
             .expect("the command runs");
     assert_eq!(output.stdout, b"lo\n", "the only interface is lo");
     crate::pool::block_on(sandbox.stop()).expect("the sandbox stops");
+}
+
+/// `NetworkMode::Host`: the guest reaches a Transmission Control Protocol (TCP) server
+/// in this process through the Ethernet TAP link.
+///
+/// Only the Kernel-based Virtual Machine (KVM) runner proves this row: it needs
+/// `/dev/kvm`, `/dev/net/tun`, and unprivileged user and network namespaces. A host
+/// without them prints the probe report and returns, and `EWE_SANDBOX_E2E_REQUIRED=1`
+/// turns that skip into a failure.
+#[test]
+fn e2e_host_network() {
+    use std::io::{Read as _, Write as _};
+    use std::net::{SocketAddr, TcpListener};
+    use std::time::{Duration, Instant};
+
+    let Some((ctx, host)) = usable_host() else {
+        return;
+    };
+    let rootfs = ci_rootfs(&ctx, &host);
+
+    // The link also needs the helper program, `/dev/net/tun`, and unprivileged user
+    // namespaces. A host without them prints the reason; the continuous integration
+    // (CI) runner sets `EWE_SANDBOX_E2E_REQUIRED=1`, which turns the skip into a
+    // failure.
+    let helper = host
+        .config
+        .firecracker_net_path
+        .as_ref()
+        .is_some_and(|path| path.is_file());
+    let tun = std::path::Path::new("/dev/net/tun").exists();
+    let namespaces = std::process::Command::new("unshare")
+        .args(["-Urn", "true"])
+        .status()
+        .is_ok_and(|status| status.success());
+    if !helper || !tun || !namespaces {
+        assert!(
+            std::env::var("EWE_SANDBOX_E2E_REQUIRED").as_deref() != Ok("1"),
+            "the CI runner cannot make the guest network: helper={helper}, \
+             /dev/net/tun={tun}, user namespaces={namespaces}"
+        );
+        eprintln!(
+            "skip: the guest network needs the agent-fc-net helper (found={helper}), \
+             /dev/net/tun (found={tun}) and unprivileged user namespaces \
+             (found={namespaces})"
+        );
+        return;
+    }
+
+    // The tiny server in this process. It accepts one connection, reads one request
+    // line and answers it. It stops after a minute, so a failed guest cannot hang the
+    // test.
+    let listener = TcpListener::bind("127.0.0.1:0").expect("the local server binds");
+    let port = listener.local_addr().expect("the local address").port();
+    listener
+        .set_nonblocking(true)
+        .expect("the server is non-blocking");
+    let server = std::thread::spawn(move || {
+        let deadline = Instant::now() + Duration::from_secs(60);
+        while Instant::now() < deadline {
+            match listener.accept() {
+                Ok((mut stream, _)) => {
+                    let mut request = [0_u8; 512];
+                    let _ = stream.read(&mut request);
+                    let _ = stream.write_all(
+                        b"HTTP/1.0 200 OK\r\ncontent-length: 6\r\nconnection: close\r\n\r\nfcnet!",
+                    );
+                    return;
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+                Err(_) => return,
+            }
+        }
+    });
+
+    let config = GuestNetworkConfig::default()
+        .with_tcp_forward(port, SocketAddr::from(([127, 0, 0, 1], port)));
+    let driver = FirecrackerDriver::new().with_network(config.clone());
+    let manager = Arc::new(SandboxManager::new(
+        ctx.clone(),
+        vec![Arc::new(driver)],
+        host.connector.clone(),
+        Arc::new(MemoryRecordStore::default()),
+        ManagerConfig::default(),
+    ));
+    let mut spec = SandboxSpec::new(RootFs::SquashfsImage(rootfs));
+    spec.network = NetworkMode::Host;
+    let sandbox = crate::pool::block_on(manager.create(spec)).expect("the network sandbox starts");
+
+    // The guest interface exists, and it carries the configured address.
+    let interfaces =
+        crate::pool::block_on(sandbox.run(Command::new(["sh", "-c", "ls /sys/class/net"])))
+            .expect("the command runs");
+    let interfaces = String::from_utf8_lossy(&interfaces.stdout);
+    assert!(
+        interfaces.split_whitespace().any(|name| name == "eth0"),
+        "the guest has eth0: {interfaces}"
+    );
+
+    // The guest opens one TCP connection through the link and reads the answer. Bash
+    // opens `/dev/tcp` streams with its built-in redirection.
+    let script = format!(
+        "exec 3<>/dev/tcp/{}/{}; printf 'GET / HTTP/1.0\\r\\n\\r\\n' >&3; cat <&3",
+        config.host_ip, port
+    );
+    let output = crate::pool::block_on(sandbox.run(Command::new([
+        "bash".to_string(),
+        "-c".to_string(),
+        script,
+    ])))
+    .expect("the command runs");
+    let reply = String::from_utf8_lossy(&output.stdout);
+    let errors = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        reply.contains("fcnet!"),
+        "the guest reached the in-process server: {reply} / {errors}"
+    );
+
+    crate::pool::block_on(sandbox.stop()).expect("the sandbox stops");
+    let _ = server.join();
 }
 
 #[test]

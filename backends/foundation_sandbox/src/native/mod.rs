@@ -13,6 +13,14 @@ pub mod artifacts;
 #[cfg(feature = "firecracker")]
 pub mod firecracker;
 
+/// The Firecracker guest network (spec 92, feature 02, task T11).
+///
+/// It is a host boundary, like [`host`]: it runs the user-space stack on the frame
+/// channel of the private network namespace and relays guest traffic to host
+/// services. The driver only calls it.
+#[cfg(all(target_os = "linux", feature = "firecracker"))]
+pub mod firecracker_network;
+
 /// The Docker driver and the container control (feature 10).
 #[cfg(feature = "docker")]
 pub mod docker;

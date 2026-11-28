@@ -29,6 +29,7 @@ fn fake_store(executable: Option<&str>) -> ImageStore {
         cache_dir: "/cache".into(),
         slave_path: None,
         firecracker_path: None,
+        firecracker_net_path: None,
         krun_runner_path: None,
         libkrun_path: None,
         mkfs_ext4_path: executable.map(std::path::PathBuf::from),

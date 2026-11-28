@@ -16,6 +16,7 @@ use foundation_sandbox::native::firecracker::driver::{
     boot_args, machine_config, sweep_stale_run_dirs, ConfigStep, FcHandle, FirecrackerDriver,
 };
 use foundation_sandbox::native::firecracker::testing::{ApiCall, FakeFirecrackerApi};
+use foundation_sandbox::native::firecracker::GuestNetworkConfig;
 use foundation_sandbox::native::host::NativeConnector;
 use foundation_sandbox::shared::control::testing::{FakeHostFs, FakeProcessSpawner, ProcessRecord};
 use foundation_sandbox::shared::driver::{
@@ -105,6 +106,7 @@ fn host_config() -> foundation_sandbox::shared::host::HostConfig {
         cache_dir: PathBuf::from("/cache"),
         slave_path: Some(PathBuf::from("/bin/agent-slave")),
         firecracker_path: Some(PathBuf::from("/bin/firecracker")),
+        firecracker_net_path: None,
         krun_runner_path: None,
         libkrun_path: None,
         mkfs_ext4_path: None,
@@ -502,6 +504,33 @@ fn rejects_host_network() {
     assert!(spawner.specs().is_empty(), "no process was spawned");
 }
 
+/// The guest network has documented defaults, and the driver reports the capability
+/// only when the caller gives it a configuration.
+#[test]
+fn network_configuration_is_opt_in() {
+    use std::net::SocketAddr;
+
+    let config = GuestNetworkConfig::default();
+    assert_eq!(config.interface, "eth0");
+    assert_eq!(config.tap, "fc-tap0");
+    assert_eq!(config.host_ip.to_string(), "169.254.169.1");
+    assert_eq!(config.guest_ip.to_string(), "169.254.169.2");
+    assert_eq!(config.prefix_len, 30);
+    assert_eq!(config.guest_mac_address(), "06:00:ac:10:00:02");
+    assert_eq!(
+        config.boot_args(),
+        "net.ifnames=0 ewe.iface=eth0 ewe.net=169.254.169.2/30,169.254.169.1"
+    );
+
+    let forwarded = config.with_tcp_forward(8080, SocketAddr::from(([127, 0, 0, 1], 8080)));
+    assert_eq!(forwarded.tcp_forwards.len(), 1);
+
+    assert!(!FirecrackerDriver::new().has_network());
+    assert!(FirecrackerDriver::new()
+        .with_network(forwarded)
+        .has_network());
+}
+
 #[test]
 fn rejects_host_mounts() {
     let _guard = serial();
@@ -700,6 +729,7 @@ fn handle_model() {
         Arc::new(fs.clone()),
         run_dir(),
         None,
+        None,
     );
 
     // A terminate with a grace the timer answers at once forces the stop.
@@ -736,6 +766,7 @@ fn machine_config_body() {
         memory_mib: 256,
         guest_cid: 3,
         boot_args: String::new(),
+        network: None,
         limits: SandboxLimits::default(),
         lock: None,
     };

@@ -184,6 +184,11 @@ firecracker = [
     "dep:base85rs",
     "dep:foundation_api_common",
     "dep:foundation_codegentools",
+    # The guest network uses the shared smoltcp data plane in Ethernet mode
+    # (spec 92, feature 02, task T11).
+    "dep:foundation_nativeapis",
+    "foundation_nativeapis/netstack",
+    "foundation_nativeapis/tap",
     "firecracker_actions",
     "firecracker_balloon",
     "firecracker_boot_source",
@@ -307,6 +312,14 @@ required-features = ["cli", "slave"]
 name = "sandbox-krun"
 path = "src/bin/sandbox_krun.rs"
 required-features = ["libkrun-runner"]
+
+# The Firecracker guest network helper (spec 92, feature 02, task T11). It makes
+# the private user and network namespace and the TAP device of one microVM, and
+# bridges the device frames to the control plane.
+[[bin]]
+name = "agent-fc-net"
+path = "src/bin/agent_fc_net.rs"
+required-features = ["firecracker"]
 
 # The slave process of the tests. A libtest test cannot be that process: the
 # harness starts a thread before the test, and the process main thread keeps

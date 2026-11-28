@@ -832,6 +832,11 @@ impl HostConfig {
         let firecracker_path = env("EWE_FIRECRACKER")
             .map(PathBuf::from)
             .or_else(|| find_on_path(&env, "firecracker"));
+        // The guest network helper sits next to the program that runs the tests, or
+        // one directory above a test binary in `deps/`.
+        let firecracker_net_path = env("EWE_FIRECRACKER_NET")
+            .map(PathBuf::from)
+            .or_else(|| sibling_program(exe_dir, "agent-fc-net"));
         let krun_runner_path = Some(
             env("EWE_SANDBOX_KRUN").map_or_else(|| exe_dir.join("sandbox-krun"), PathBuf::from),
         );
@@ -848,6 +853,7 @@ impl HostConfig {
             cache_dir,
             slave_path: Some(slave_path),
             firecracker_path,
+            firecracker_net_path,
             krun_runner_path,
             libkrun_path,
             mkfs_ext4_path,
@@ -880,6 +886,19 @@ fn find_on_path(env: &impl Fn(&str) -> Option<String>, program: &str) -> Option<
     std::env::split_paths(&path)
         .map(|dir| dir.join(program))
         .find(|candidate| candidate.is_file())
+}
+
+/// Finds `program` next to `exe_dir`, or one directory above it.
+///
+/// A Cargo test binary sits in `target/<profile>/deps`, and the binary of the same
+/// package sits in `target/<profile>`.
+fn sibling_program(exe_dir: &Path, program: &str) -> Option<PathBuf> {
+    let beside = exe_dir.join(program);
+    if beside.is_file() {
+        return Some(beside);
+    }
+    let above = exe_dir.parent()?.join(program);
+    above.is_file().then_some(above)
 }
 
 /// Parses a comma list of driver identifiers.

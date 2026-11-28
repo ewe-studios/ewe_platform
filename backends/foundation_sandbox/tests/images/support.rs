@@ -87,6 +87,7 @@ pub fn host(dir: &TempDir, limits: ImageLimits) -> SandboxHost {
             cache_dir: dir.path().join("cache"),
             slave_path: None,
             firecracker_path: None,
+            firecracker_net_path: None,
             krun_runner_path: None,
             libkrun_path: None,
             mkfs_ext4_path: None,
