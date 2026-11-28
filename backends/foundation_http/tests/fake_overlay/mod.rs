@@ -9,7 +9,7 @@
 
 use std::collections::VecDeque;
 use std::io::{self, Read, Write};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::native::connection::{ConnWaker, OverlayReadWrite};
@@ -35,6 +35,7 @@ pub struct FakeState {
 #[derive(Clone)]
 pub struct FakeSocket {
     state: Arc<Mutex<FakeState>>,
+    write_wait_registered: Arc<Condvar>,
 }
 
 impl std::fmt::Debug for FakeSocket {
@@ -94,6 +95,7 @@ impl OverlayReadWrite for FakeSocket {
 
     fn set_write_waker(&self, waker: ConnWaker) {
         self.state.lock().expect("fake socket lock").write_waker = Some(waker);
+        self.write_wait_registered.notify_one();
     }
 
     fn readable(&self) -> bool {
@@ -110,6 +112,7 @@ impl OverlayReadWrite for FakeSocket {
 /// The client's end of the fake transport.
 pub struct FakeClient {
     state: Arc<Mutex<FakeState>>,
+    write_wait_registered: Arc<Condvar>,
 }
 
 impl FakeClient {
@@ -161,19 +164,18 @@ impl FakeClient {
         }
     }
 
-    /// Read `want` bytes in `chunk`-sized pieces, pausing `pace` between pieces.
-    pub fn drain(&self, want: usize, chunk: usize, pace: std::time::Duration) -> Vec<u8> {
-        let mut got = Vec::with_capacity(want);
-        while got.len() < want {
-            let piece = self.read(chunk);
-            if piece.is_empty() {
-                std::thread::sleep(std::time::Duration::from_millis(1));
-            } else {
-                got.extend_from_slice(&piece);
-            }
-            std::thread::sleep(pace);
-        }
-        got
+    /// Read one byte after the writer waits for space in the send buffer.
+    pub fn read_after_write_wait(&self, timeout: std::time::Duration) -> u8 {
+        let state = self.state.lock().expect("fake socket lock");
+        let (mut state, _) = self
+            .write_wait_registered
+            .wait_timeout_while(state, timeout, |state| state.write_waker.is_none())
+            .expect("wait for the writer to register");
+        let waker = state.write_waker.take().expect("writer waits for space");
+        let byte = state.send.pop_front().expect("send buffer has data");
+        drop(state);
+        waker();
+        byte
     }
 }
 
@@ -186,10 +188,18 @@ pub fn overlay_pair(capacity: usize) -> (SharedByteBufferStream<RawStream>, Fake
         write_waker: None,
         closed: false,
     }));
+    let write_wait_registered = Arc::new(Condvar::new());
     let socket = FakeSocket {
         state: Arc::clone(&state),
+        write_wait_registered: Arc::clone(&write_wait_registered),
     };
     let raw = RawStream::from_connection(Connection::Overlay(Box::new(socket)))
         .expect("build the fake raw stream");
-    (SharedByteBufferStream::rwrite(raw), FakeClient { state })
+    (
+        SharedByteBufferStream::rwrite(raw),
+        FakeClient {
+            state,
+            write_wait_registered,
+        },
+    )
 }

@@ -15,9 +15,9 @@
 
 mod fake_overlay;
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use fake_overlay::{overlay_pair, FakeClient};
+use fake_overlay::overlay_pair;
 use foundation_http::native::upgrade::SseWriter;
 use foundation_http::native::writer::WriterConfig;
 use foundation_netio::event_source::{EventWriter, SseEvent};
@@ -36,16 +36,6 @@ where
     foundation_core::valtron::send(task).expect("submit the writer task");
     rx.recv_timeout(Duration::from_secs(30))
         .expect("the writer task finished")
-}
-
-/// Read `want` bytes on a test thread in `chunk`-sized pieces.
-fn drain_on_thread(
-    client: FakeClient,
-    want: usize,
-    chunk: usize,
-    pace: Duration,
-) -> std::thread::JoinHandle<Vec<u8>> {
-    std::thread::spawn(move || client.drain(want, chunk, pace))
 }
 
 /// Characterises the bug the feature fixes: the synchronous `EventWriter` stops
@@ -96,8 +86,8 @@ fn synchronous_event_writer_truncates_an_event_on_a_full_socket() {
     );
 }
 
-/// The fix: `SseWriter` resumes a partial socket write instead of dropping the
-/// rest of the event. The client reads at one byte per poll.
+/// Check that `SseWriter` resumes each partial write and delivers the whole event.
+/// The client reads one byte each time the writer waits for space.
 #[foundation_macros::valtron_test(seed = 821, threads = 3, timeout = 60_000)]
 fn sse_writer_delivers_a_whole_event_to_a_slow_client() {
     let (conn, client) = overlay_pair(64);
@@ -111,8 +101,18 @@ fn sse_writer_delivers_a_whole_event_to_a_slow_client() {
         .build();
     let expected = event.rendered();
     let want = 64 + expected.len();
-    // One byte per poll: the writer parks on every kernel-level write.
-    let reader = drain_on_thread(client, want, 1, Duration::from_millis(1));
+    let event_size = expected.len();
+    let reader = std::thread::spawn(move || {
+        let deadline = Instant::now() + Duration::from_secs(30);
+        let mut got = Vec::with_capacity(want);
+        // Free one byte after each wait. The writer must park again until it finishes.
+        for _ in 0..event_size {
+            got.push(
+                client.read_after_write_wait(deadline.saturating_duration_since(Instant::now())),
+            );
+        }
+        (client, got)
+    });
 
     let writer_event = event.clone();
     let result = run_writer(async move {
@@ -128,7 +128,8 @@ fn sse_writer_delivers_a_whole_event_to_a_slow_client() {
         "the async writer must deliver the event: {result:?}"
     );
 
-    let got = reader.join().expect("reader thread");
+    let (client, mut got) = reader.join().expect("reader thread");
+    got.extend(client.read_available());
     assert_eq!(
         got.len(),
         want,
