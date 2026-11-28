@@ -171,6 +171,19 @@ The test uses offline rendering. Physical speaker output and interruptions still
 [Gumball after rotation](screenshots/iphone17-simulator-gumball-landscape-2026-11-28.png)
 
 
+### Physical phone sound observation on 2026-11-28
+
+The owner hears Mathalley game sound on both physical phones.
+
+| Device | Signed test application | Observed |
+| --- | --- | --- |
+| Samsung SM-A5560, Android application programming interface (API) level 37 | Todo On Device, arm64-v8a emulator test package reused on the phone | The Train scene accepts answers and reaches score 430. Android grants game audio focus. The owner hears game sound. |
+| iPhone 13 Pro, iOS 27.2.1 (24B156) | Apple Development-signed Todo On Device from the retained package at `aac514c9a` | The owner hears game sound. |
+
+The owner reports audible game sound during play. The record does not identify the output route or each cue.
+Use the handoff below to distinguish opening music, answer sounds, mute retention, interruption, and resume.
+[Android and iPhone run records](../../progress.md)
+
 ### Physical phone sound handoff
 
 Run Todo On Device on each phone. Its local task store starts with the process and needs no server.

@@ -23,7 +23,10 @@ The server application uses the Kotlin host source at `645bfbe27` and the verifi
 Todo On Device uses the arm64-v8a library from the verified emulator package.
 Its activity and Mathalley dialog receive focus. The 1080 by 2340 game frame shows Round 1 and a score of 430.
 Android reports a game audio focus grant and the application creates audio output tracks.
-The return from Home shows Todos. Record human speaker playback, mute retention and an independent interruption separately.
+The return from Home shows Todos.
+The owner hears game sound on this phone and on iPhone 13 Pro.
+Record each cue, the output route, mute retention, and an independent interruption separately.
+[Physical sound observation](features/36-mathalley-game-view/feature.md#physical-phone-sound-observation-on-2026-11-28)
 The focus issue stays open. This physical session covers portrait input.
 [Rotation issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146)
 
