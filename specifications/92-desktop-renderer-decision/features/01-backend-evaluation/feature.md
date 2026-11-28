@@ -3,7 +3,7 @@
 ## Goal
 
 Use Tauri with the Foundation browser renderer for the first product desktop path.
-Evaluate GPUI Fast and GPUI Kit in small toolkit examples. Require platform evidence before starting a Native mount prototype.
+Use direct upstream Zed GPUI for the second desktop path. Require platform evidence before starting a Native mount prototype.
 
 | Term | Meaning |
 | --- | --- |
@@ -27,7 +27,7 @@ Evaluate GPUI Fast and GPUI Kit in small toolkit examples. Require platform evid
 | S1 | Owner | Selects a candidate after Specification 69 closes | A single renderer enters the prototype with a known scope and estimate. |
 | S2 | Application user | Opens the desktop example and uses its controls | The same named views and actions work on each target. |
 | S3 | Maintainer | Finds a required platform or release failure | The decision records the failed check and the fallback for owner review. |
-| S4 | Maintainer | Runs the two toolkit examples after approval | Both windows show the same counter behavior and record their build sources. |
+| S4 | Maintainer | Runs the upstream GPUI counter after approval | The window displays and updates the counter. |
 
 ## Bounded context
 
@@ -38,7 +38,7 @@ Evaluate GPUI Fast and GPUI Kit in small toolkit examples. Require platform evid
 | Node tree, names and binding state | Foundation desktop host | Apply validated operations and resolve input to a binding. |
 | Frame format, negotiation and actions | Foundation UI runtime and wire crates | Validate, negotiate and dispatch. |
 | Mobile renderers and WebView control | Specification 69 | Continue under their approved plans. |
-| Counter state | Each standalone example window | Start at zero and increment on click. |
+| Counter state | The standalone GPUI example window | Start at zero and increment on click. |
 | Existing desktop WebView shell | Specification 52 | Supply Tauri window, route, asset and capability services for the web-backed option. |
 
 ## Rules
@@ -50,7 +50,7 @@ Evaluate GPUI Fast and GPUI Kit in small toolkit examples. Require platform evid
 - I5. The owner approves a refreshed plan after Specification 69 closes and before Native mount prototype code starts.
 - I6. The host removes focus, subscriptions and callbacks when the owning window closes.
 - I7. For a Web mount, the Rust host grants native capabilities only to the approved local application context.
-- I8. Each toolkit example builds in its own Cargo workspace from pinned sources.
+- I8. The upstream GPUI example builds in its own Cargo workspace from pinned sources.
 - I9. Each window owns its counter. Closing and opening the example starts at zero.
 
 The update operation preserves names and parent links across a rejected frame. Closing a window removes its sender and drops later work for that window. Foundation owns each binding through the life of its node. A different incarnation receives its own render identity.
@@ -67,54 +67,54 @@ The update operation preserves names and parent links across a rejected frame. C
 | A6. Observe accessibility | A dialog has a title, an input and a close button | A keyboard and screen reader user opens and closes it | The user hears the control names, can reach each control and returns to the opening control. |
 | A7. Install the web-backed host offline | A clean target has the required offline package and no network | The user installs and starts the example, then invokes a local action | The packaged assets load and the local action applies its reply. |
 | A8. Restrict a native capability | The local app can request the approved service | A WebView with an untrusted origin requests that service | The host rejects the request and the service state stays unchanged. |
-| A9. Run both examples | The host has the documented tools and system libraries | The maintainer builds and launches each example | Each window displays “Counter”, “Count: 0” and “Add one”. |
+| A9. Run the upstream GPUI example | The host has the documented tools and system libraries | The maintainer builds and launches the example | The window displays “Counter”, “Count: 0” and “Add one”. |
 | A10. Apply a local action | The counter starts at zero | The user clicks Add one twice, then closes and reopens the window | The count displays 1, then 2. The new window displays 0. |
 | A11. Report a launch failure | The platform cannot open a window | The maintainer starts the example | The process reports an error and returns a failure status. |
 
 ## Technical breakdown
 
-### Standalone toolkit examples
+### Standalone upstream GPUI example
 
-The owner must approve this scope and reference before example implementation starts.
-The Feature 02 approval covers the Tauri Todo check. The Specification 69 closure gate applies to the Foundation Native mount prototype.
+The owner approves the revised scope and references before example implementation starts.
+Feature 02 records the existing Tauri Todo experiment. [Feature 03](../03-desktop-generator/feature.md) owns the generator.
 
-- Add `examples/gpui_fast` and `examples/gpui_kit` as standalone Cargo workspaces. Follow the layout of `examples/ui_todo/src-tauri`.
-- Use the pinned Longbridge GPUI Fast revision in the source table. Select its `gpui` and `gpui_platform` packages by name.
-- Use Base from the pinned Longbridge GPUI Kit revision. Select its default engine and the matching `gpui-pre` and `gpui-pre-platform` packages.
-- Use public Git URLs and commit both lockfiles. Carry required upstream patches at pinned revisions when the build needs them.
-- Use GPUI's element and click handler in Fast. Use GPUI Kit Base button behavior in Kit.
-- Give the button the name `add-one`. Update the window's in-memory count and request redraw on each click.
-- Start both windows at about 400 by 240 logical pixels. The window title names the toolkit.
-- Document commands, system prerequisites and the verified host. Keep all dependencies in the standalone example workspaces.
-- Keep the Foundation adapter, application actions, release packages and production adoption in their existing phases.
+- Add `examples/gpui` as a standalone Cargo workspace with a committed lockfile.
+- Use `gpui` and `gpui_platform` from the official Zed revision below. Use public Git URLs in the manifest.
+- Use a named GPUI element and click handler. Give the button the name `add-one`.
+- Expose the button role, label and action. Check keyboard activation and focus.
+- Put the count in the window entity. Increment and request redraw on each activation.
+- Use the shared counter layout. The window title identifies Zed GPUI.
+- Document commands, prerequisites and verified hosts. Keep GPUI dependencies out of the generator executable.
+- Capture the running window and record any missing platform coverage.
 
-![Counter window reference](design/counter-window.svg)
+![Upstream GPUI counter reference](design/counter-window.svg)
 
-Both examples use the same title, count and action placement inside the window.
+The window shows the title, count and action in one column.
 
 ```mermaid
 flowchart LR
-    User[User clicks Add one] --> Action[Window adds one to its count]
-    Action --> Redraw[Window redraws the count]
+    User[User activates Add one] --> Action[The window adds one]
+    Action --> Redraw[The window redraws the count]
 ```
 
-A click updates the count in the current window.
+The count belongs to the current window.
 
 | Failure | Result | State |
 | --- | --- | --- |
-| Cargo cannot resolve a pinned source | Cargo reports which dependency failed. The maintainer records the command, source and error. | No example window opens. |
-| The host cannot open the window | The program reports the platform error and exits with failure status. | No counter state persists. |
+| Cargo cannot resolve a pinned source | Cargo reports the dependency error. | No window opens. |
+| The host cannot open the window | The process reports the platform error and fails. | No counter state persists. |
 
 ### Source evidence
 
-The review uses local source, manifests and the linked Tauri version 2 documentation. Platform support below describes source paths and candidate release graphs. Build, install, performance and interactive results remain open.
+The review uses local source, manifests and the linked Tauri version 2 documentation.
+The GPUI Kit, GPUI Fast and Iced findings below are historical research. They provide context for the current decision. Platform support below describes source paths and candidate release graphs. See Feature 02 for the measured macOS Tauri result. Upstream GPUI build and interaction results remain open.
 
 | Checkout | Revision and useful locations |
 | --- | --- |
 | Ewe `resume/combined` | `02bd32ef0b980c36e26e30c70f281aabc0f49c78`. See `backends/foundation_ui_native/src/{core,host,sink,resources}.rs` and `backends/foundation_ui_wire/schema/{common,ops,hello}.fbs`. |
 | `/Volumes/Outside/GitSources/src.Rust/src.gpui/gpui-kit` | `b7b66f5a1613b4d237f4909228d30a1d28bd8759`. See `Cargo.toml`, `Cargo.lock`, `crates/{kit,base,component,assets,webview,shell}/Cargo.toml`, `crates/base/src` and `crates/component/src`. |
 | Sibling `gpui-fast` | `79e15aa26a71a1ce32cca3ddc8a06981d0a65a72`. See `UPSTREAM`, `Cargo.toml`, `crates/gpui_platform/Cargo.toml`, `crates/gpui/src/window.rs`, `docs/releasing.md` and `release.toml`. |
-| Sibling `zed` | `46375fbf64574f01dc08fd2d2998aa7bbb7f0377`. See `crates/gpui`, `crates/gpui_platform` and the platform crates. It is a separate checkout from the fork's declared import. |
+| Official upstream Zed | [Revision `46375fbf64574f01dc08fd2d2998aa7bbb7f0377`](https://github.com/zed-industries/zed/commit/46375fbf64574f01dc08fd2d2998aa7bbb7f0377). See `crates/gpui`, `crates/gpui_platform` and the platform crates. |
 | Tauri registry source in the local Cargo cache | Ewe's root lockfile at `ff8dcea530eef6c3261d7155be0b08495531805d` resolves Tauri `2.11.6`, Tauri Runtime Wry `2.11.4`, Wry `0.55.1` and Tao `0.35.3`. The Android example's lockfile resolves Tauri `2.11.5`. Review the root lock and staged packages for desktop. |
 | Sibling `gpui` | `8d31300b294f6acc0c5809888bd2ff29e0bb7648`. The checkout contains a redirect README and has no Cargo manifest. |
 | `/Volumes/Outside/GitSources/src.Rust/src.iced/iced` | `98bd48fe011efc0ec5819fee0fa7673a7169ff11` (`0.15.0-dev`). The local `0.14.0` release tag identifies `3997291f318a8bc06fa522f5579836fb3feb94df`. |
@@ -132,7 +132,7 @@ Use `Desktop` and `Native` when the desktop contract is ready.
 Reject unsupported operations explicitly and document any negotiation change in the implementation plan.
 See `backends/foundation_ui_wire/src/writer/config.rs` and `schema/hello.fbs`. Use the shared core and contract. Keep the desktop window, node store and backend-specific objects in a desktop Rust host.
 
-### Engine and platform comparison
+### Historical engine and platform comparison
 
 | Criterion | Zed GPUI and GPUI Fast | Iced |
 | --- | --- | --- |
@@ -180,7 +180,7 @@ Use [Specification 91](../../../91-windows-resource-staging/requirements.md) for
 If the distribution uses Tauri's updater, sign and verify update artifacts. Prove upgrade and refusal of an invalid update.
 Use a versioned installer or staged package for disconnected updates. [Tauri updater](https://v2.tauri.app/plugin/updater/)
 
-### GPUI control and behavior coverage
+### Historical GPUI and Kit control review
 
 | Area | GPUI or Kit supplies | Foundation must supply or verify |
 | --- | --- | --- |
@@ -195,7 +195,7 @@ Use a versioned installer or staged package for disconnected updates. [Tauri upd
 
 Kit WebView requires X11 or XWayland for WebKitGTK. Its README describes unsupported overlay and clipping cases on `gpui-pre` and an overlay limit on Windows. GPUI Fast has broader lower-level composition claims. Those claims do not prove that the Kit wrapper exposes each path. See `gpui-kit/crates/webview/README.md` and `gpui-fast/README.md`.
 
-### Initial node mappings
+### Historical Native mount node mapping notes
 
 Use the vocabulary from `backends/foundation_ui_wire/schema/common.fbs` and the shared operations in `schema/ops.fbs`.
 
@@ -208,7 +208,7 @@ Use the vocabulary from `backends/foundation_ui_wire/schema/common.fbs` and the 
 | `OVERLAY`, `MODAL`, `CONFIRMATION_DIALOG`, `BOTTOM_SHEET`, `SHEET_TITLE`, `NAVIGATION_TITLE` | Map the Foundation presentation role to window chrome or the overlay and dialog helpers. Define desktop sheet layout and keyboard behavior in the approved plan. |
 | `DRAWING_SURFACE` | Needs a separate graphics handoff and lifecycle check. Keep it outside the standard-control prototype. |
 
-### Dependency, upgrade and release cost
+### Historical dependency and release review
 
 | Item | Evidence and effect |
 | --- | --- |
@@ -229,24 +229,23 @@ Use the vocabulary from `backends/foundation_ui_wire/schema/common.fbs` and the 
 
 ### Decision and dependency scope
 
-**Use GPUI Kit Base with the Zed GPUI snapshot as the Native mount baseline.** Use one registry engine. The reviewed Kit version uses `gpui-base` 0.11.0 and `gpui-pre` with `gpui-pre-platform` at `=0.3.14`. Verify those packages before adopting the graph.
+Use Tauri first for product desktop delivery. Use the [Tauri Todo check](../02-tauri-todo-check/feature.md) as initial evidence.
+Offer direct upstream Zed GPUI as the second desktop choice after its example and starter pass the gates.
+Keep GPUI Kit as reference material for control behavior, accessibility and focus.
+The example and generated GPUI project select upstream `gpui` and `gpui_platform` only as their GPUI entry packages.
 
-Screen-reader output and editable text composition are release gates. Zed GPUI provides the platform hooks, and Base provides control semantics and editing behavior. Bare GPUI requires Foundation to supply that behavior. Iced supplies editing and standard widgets. The reviewed Iced revisions still need a widget-to-platform accessibility bridge.
+- The upstream pin declares Rust `1.100.0`. Check the standalone graph on a supported stable Rust toolchain before generator release.
+- Keep its toolchain requirements in the example and the generated desktop package. Check the current Ewe workspace toolchain separately.
+- Use the same public Git revision for both entry packages. Record Cargo's resolved graph and any required root patches.
+- Pin only the patches the graph needs. Use the upstream sources and revisions. Confirm the graph from a clean Cargo cache.
+- Carry platform support through `gpui_platform`. Check macOS Metal, Windows Direct3D, and Linux X11 and Wayland.
+- AccessKit hooks appear in the upstream window and platform source. The starter must provide accessible controls and test them.
+- The upstream GPUI and platform manifests declare Apache-2.0. The editor repository also has GPL-3.0-or-later components.
+- Review license data for the resolved graph and all shipped assets. Include required license text and notices with distributed artifacts.
 
-| Layer | Use in the prototype |
-| --- | --- |
-| Engine and platform | Use `gpui-pre` for windows and rendering. Use `gpui-pre-platform` with X11 and Wayland. Start with the macOS features in the reviewed Kit manifest. |
-| Base behavior | Depend on `gpui-base` directly with the `gpui-pre` feature. Initialize Base key bindings and control services with `gpui_base::init`. Use Base input, buttons, selection and modal focus behavior. |
-| Window root | Keep the Foundation node store in the host. Use the Base `Root` helper if the chosen dialogs and focus layers require it. Wrap the Foundation root view with it in that case. |
-| Foundation presentation | Use GPUI primitives for layout, text and images. Apply Foundation styles, resources and labels in the adapter. |
-| Optional Kit packages | Omit the `gpui-kit` facade, `gpui-component`, `gpui-kit-assets`, WebView and shell. Evaluate a styled component only for a specific behavior that Base cannot supply. |
+[Upstream GPUI license](https://github.com/zed-industries/zed/blob/46375fbf64574f01dc08fd2d2998aa7bbb7f0377/crates/gpui/LICENSE-APACHE) · [Zed license policy](https://github.com/zed-industries/zed/blob/46375fbf64574f01dc08fd2d2998aa7bbb7f0377/README.md#licensing)
 
-Base is the smallest reviewed Kit package that supplies the required behavior. Its package still brings text, markup and platform support dependencies. Inspect the resolved graph of the proposed host before approval to adopt it.
-
-**Fallback.** If the baseline fails a required engine or package check, reproduce that case with the registry GPUI Fast engine and the same Base controls. Keep the fixtures and application identical. Verify that the released package includes the required fix. Use Fast only if it resolves the failure and passes the full platform gate. If both GPUI graphs fail, report the error and price the native-control adapter against that case. Reopen Iced when a release provides a usable accessibility bridge or when the owner approves the cost of maintaining one. Use Tauri first for product desktop delivery. Its evidence starts with the existing Todo window.
-Keep GPUI Base as the baseline candidate for a future Native mount. Review the toolkit examples and platform evidence before proposing that prototype.
-
-### Adapter flow
+### Future Foundation adapter flow
 
 ```mermaid
 sequenceDiagram
@@ -284,8 +283,9 @@ The boundary needs one Foundation node store per window and one renderer view pe
 | Window closes while work waits | Detach delivery and release presentation state. | Late results cannot recreate the window. |
 | Candidate cannot start or package | Record platform, package, revision and failure. | The owner keeps the decision open. No production dependency enters the workspace. |
 
-### Work and effort
+### Historical full renderer estimates
 
+These estimates describe the full renderer investigation. Feature 03 covers starter generation.
 Estimates are engineering days for one engineer familiar with Foundation and Rust. All candidates use the same example, standard controls, focus and accessibility scenarios, and packaged desktop checks. Scope excludes embedded web content, rich editing, full system menus and custom graphics surfaces.
 
 | Phase | Zed snapshot with Base | Bare GPUI | Iced | Tauri with browser renderer |
@@ -296,7 +296,7 @@ Estimates are engineering days for one engineer familiar with Foundation and Rus
 | Package, install and integrate platform tests | 5–9 days | 5–9 days | 6–10 days | 6–11 days |
 | Total | 22–38 days | 31–54 days | 34–62 days | 16–30 days |
 
-Bare GPUI includes in-house single-line editing, selection and dialog behavior. Iced includes a provisional allowance for an accessibility bridge. The Iced range assumes the adapter can use existing platform hooks. Re-estimate if that work requires a maintained toolkit fork. Qualifying GPUI Fast with the same Base graph adds 3–7 days to the first column. A native-control adapter remains a 43–83 day comparison if both GPUI engines fail. Carry snapshot updates, fork synchronization and platform regressions as ongoing maintenance.
+Bare GPUI includes in-house single-line editing, selection and dialog behavior. Iced includes a provisional allowance for an accessibility bridge. The Iced range assumes the adapter can use existing platform hooks. Re-estimate if that work requires a maintained toolkit fork. The earlier review estimated 43–83 days for a native-control adapter. Carry snapshot updates, fork synchronization and platform regressions as ongoing maintenance.
 Tauri assumes the existing browser controls meet the scenarios with limited changes. Its cost includes a restricted IPC bridge, clean offline install and one signed update or installer upgrade path.
 The Tauri estimate covers the same user-facing scenarios on a Web mount. It provides no estimate for a new Native mount renderer.
 
@@ -313,8 +313,8 @@ The Tauri estimate covers the same user-facing scenarios on a Web mount. It prov
 | I6 and A4 | Close while an action or subscription can still deliver. | The closed window receives zero updates. Other windows continue. |
 | A6 | Run keyboard and screen-reader checks on each platform. | Focus order, dialog role, title, control roles, names and restored focus match the fixture. |
 | A7 | Run the installer, launch and exercise a local action with networking disabled. | No asset request uses the network. The local reply appears once. |
-| I8 and A9 | Check both locked graphs and launch each window. | The graphs use the specified revisions and each window shows the reference controls. |
-| I9 and A10 | Click twice, close and relaunch each window. | The count shows 1, 2 and then 0. |
+| I8 and A9 | Check the locked graph and launch the GPUI window. | Cargo resolves the specified sources and the window shows the reference controls. |
+| I9 and A10 | Activate twice, close and relaunch the GPUI window. | The count shows 1, 2 and then 0. |
 | A11 | Review the window error path and observe a launch failure where the host permits it. | The startup error reaches the process owner and the process fails. |
 | I7 and A8 | Invoke the approved service from the trusted local page and an untrusted origin. | The local request succeeds. The untrusted request has no native side effect. |
 
@@ -329,11 +329,11 @@ Preserve startup, repaint and scroll measurements across candidate revisions. Re
 ## Verify
 
 - Today, run `git diff --check` and verify referenced local paths and Markdown links.
-- Run `cargo fmt --manifest-path examples/gpui_fast/Cargo.toml -- --check` and repeat for `examples/gpui_kit/Cargo.toml`.
-- Run `cargo tree --locked --manifest-path examples/gpui_fast/Cargo.toml` and repeat for the Kit manifest.
-- Run `cargo test --locked --manifest-path examples/gpui_fast/Cargo.toml` and repeat for the Kit manifest.
-- Run `cargo run --locked --manifest-path examples/gpui_fast/Cargo.toml` and repeat for the Kit manifest.
-- On the available desktop session, run A9 and A10. Save a screenshot for each window and record the platform.
+- Run `cargo fmt --manifest-path examples/gpui/Cargo.toml -- --check`.
+- Run `cargo tree --locked --manifest-path examples/gpui/Cargo.toml`.
+- Run `cargo test --locked --manifest-path examples/gpui/Cargo.toml`.
+- Run `cargo run --locked --manifest-path examples/gpui/Cargo.toml`.
+- On the available desktop session, run A9 and A10. Save a screenshot of the GPUI window and record the platform.
 - For the future Foundation prototype, run `cargo tree --locked -p foundation_ui_desktop -e features` and `cargo tree --locked -p foundation_ui_desktop -d` once the proposed crate exists.
 - Run `cargo test --locked -p foundation_ui_desktop --profile uat` on each target operating system.
 - Run `cargo package --locked -p foundation_ui_desktop` when the crate enters the package plan.
@@ -342,7 +342,7 @@ Preserve startup, repaint and scroll measurements across candidate revisions. Re
 
 ## Done when
 
-- The owner approves the standalone example plan and reference. Both examples build, launch and record their observed results.
+- The owner approves the standalone example plan and reference. The upstream GPUI example builds and launches.
 - The owner reviews this decision, source evidence, estimates and the candidate comparison.
 - Specification 69 closes before the owner approves the updated implementation plan and reference screenshots.
 - A candidate passes the same example, packaging and input checks on all three desktop platforms before adoption.

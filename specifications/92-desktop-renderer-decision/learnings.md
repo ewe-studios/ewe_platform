@@ -17,3 +17,9 @@
 - The checked macOS WebView draws the Mathalley Train round and returns to the same Todo filter.
 - The GPUI Fast source uses the package names `gpui` and `gpui_platform`. Its compatibility packages use other names and versions.
 - GPUI Kit Base selects registry snapshot `0.3.14` by default. The toolkit example uses that snapshot with the reviewed Base source.
+- The current terminal wizard prints Desktop as unavailable. The target enum lists Web, Android and iOS.
+- Web generation embeds its templates in the project crate. Its counter already calls shared Rust application logic.
+- The current run operation starts a mobile device. Desktop launch requires a route that runs on the current host.
+- The planned upstream GPUI example uses official Zed source. Its pin declares Rust `1.100.0`.
+- Upstream marks its GPUI crates Apache-2.0. Review transitive licenses and assets before distribution.
+- GPUI Kit and GPUI Fast findings record historical research. The current generator selects Tauri or upstream Zed GPUI.

@@ -26,9 +26,9 @@ related_specs: ["69-foundation-ui-v2", "52-tauri-foundation-platform", "91-windo
 Use Tauri with the existing browser renderer for first product desktop delivery on the Web mount.
 Reuse application actions and browser frame application. See [Specification 52](../completed/52-tauri-foundation-platform/requirements.md) for the shell.
 
-Use two standalone toolkit examples to compare GPUI Fast and GPUI Kit. Review those results before considering a Native mount prototype.
-For that prototype, the baseline uses the Zed GPUI snapshot with GPUI Kit Base. GPUI Fast is an alternate engine.
-Require equivalent release checks before adopting either engine.
+Add Desktop to the `ewe_ui` terminal wizard. Offer Tauri first, then direct upstream Zed GPUI.
+Generate the selected desktop starter with the same shared application crate. Record the selected backend in the project manifest.
+Use the approved Tauri Todo check and one standalone upstream GPUI example as evidence. Keep GPUI Kit as learning material.
 
 The owner needs a desktop host that opens a window, applies Foundation UI frames, and sends events to the same Rust actions. The owner needs a support decision and cost comparison before the host takes a dependency on an external renderer. When a candidate fails a required platform check, the owner needs the failing case and the cost of the available fallback.
 
@@ -50,12 +50,15 @@ The desktop host links the shared runtime to the selected platform renderer.
 
 | Feature | Owns | Status |
 | --- | --- | --- |
-| [01. Evaluate the desktop backend](features/01-backend-evaluation/feature.md) | Source review, toolkit examples and a later Native mount prototype | Source review complete. Toolkit example plan awaits approval. Native mount prototype deferred. |
+| [01. Evaluate the desktop backend](features/01-backend-evaluation/feature.md) | Source review, upstream GPUI counter and future Native mount gates | Counter plan awaits approval. |
 | [02. Run Todo in a Tauri desktop window](features/02-tauri-todo-check/feature.md) | First Web mount desktop check | macOS check complete. Other platform checks open. |
+| [03. Generate a desktop starter](features/03-desktop-generator/feature.md) | Wizard, command arguments, manifest, build and run | Tauri-first plan awaits approval. |
 
 ## Acceptance
 
 - The owner can identify the revision, dependency cost, control coverage and platform risks for each candidate.
-- The standalone toolkit examples require explicit approval of their plan and reference.
+- The owner approves the generator and upstream GPUI example plans and references before implementation.
+- The wizard and noninteractive command generate the same choice. Existing project manifests still load.
+- A generated desktop starter builds and runs on its current host with the selected backend.
 - The Native mount prototype requires Specification 69 closure and explicit approval of its plan.
 - The same Foundation UI example exercises the shared contract on each desktop platform before production adoption.
