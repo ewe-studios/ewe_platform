@@ -311,3 +311,90 @@ one holder in the Linux kernel (see `learnings.md`).
   runs only on the KVM runner, because it is the only host with `/dev/kvm`,
   `/dev/net/tun` and unprivileged user namespaces. #1095 stays open until that row is
   green on the runner.
+
+## The Cloudflare sandbox demo (2026-11-28)
+
+- The Worker re-exports the three Durable Object (DO) classes of
+  `infrastructure/sandbox_worker` and adds its own `fetch` entry. The
+  `sandbox_worker` crate gained an `entry` feature (on by default) so one
+  WebAssembly (wasm) module holds one `fetch` export.
+- The page shows the count from the sandbox index `List`, one tab per sandbox,
+  a command console, a file write and read, and one agent turn per tab.
+- The three model paths are the Workers AI `AI` binding, OpenRouter through the
+  agent RPC catalog, and a deterministic model server inside the sandbox
+  container on port 8081, reached through `ContainerService/Fetch`.
+- `mise run deploy` builds the static slave, the container model server and the
+  Worker module, deploys `ewe-sandbox-demo` and sets `OPENROUTER_API_KEY`.
+  `mise run test` runs the preview proof with teardown. `mise run destroy`
+  removes the persistent Worker.
+
+The wasm check passes on 2026-11-28:
+
+```bash
+cd examples/cf-sandbox-demo
+cargo check --target wasm32-unknown-unknown
+```
+
+The `cargo check` compiled the reused `sandbox_worker` with the `entry` feature
+off and the demo crate with the agent RPC core, `foundation_http::wasm`, the
+sandbox client and the three model paths.
+
+The live run needs a Cloudflare API token with Workers Scripts Edit, Containers
+Edit and Workers AI Read. The owner's `CLOUDFLARE_WORKERS_AI_API_TOKEN` in the
+shell lists Workers scripts, but `wrangler containers list` answers
+`Authentication error`, so it cannot deploy the container.
+
+The `worker-build --release` step and the local `wrangler dev` proof were
+stopped on 2026-11-28 because `/Volumes/Outside` had under 10 GiB free while
+other agent lanes were building. A release build and a container image need
+more space than that. The container model server compiles with `rustc` and
+answers `container-model answered: hello container` for `POST /answer`.
+
+**#1232** (`severity: medium`, open): the agent RPC remote catalog requires an
+API key for every model and builds the Workers AI REST provider. It has no
+adapter for the Worker `AI` binding, so the demo's Workers AI tab calls the
+binding directly. The OpenRouter tab uses the agent RPC catalog.
+
+The demo URL and the per-tab results are added here after a machine with the
+token permissions and enough free disk runs `mise run deploy` and
+`mise run test`.
+
+### The user-interface controls (2026-11-28)
+
+Branch `feat/cf-demo-ui` adds these controls to the page:
+
+- A sandbox strip below the create buttons. One card holds each sandbox, with
+  its own message box. The strip reads the index again after every create and
+  every destroy.
+- A central chat tab. The Worker route `POST /api/chat` resolves
+  `@name message` against the index and calls that sandbox. An unknown name
+  answers the names that exist. A message without `@name` is refused.
+- A Refresh button for the index. The page does not reload.
+- An Evidence panel in each sandbox tab. It runs `hostname`, `uname -a`,
+  `head -n 3 /etc/os-release`, and `uptime` in the sandbox. It shows the
+  sandbox identifier and the Durable Object name from the API.
+- A metadata line above each answer: the model path, its service, its address
+  and its protocol. The Worker sends the values in the response headers
+  `x-ewe-model-path`, `x-ewe-model`, `x-ewe-model-service`,
+  `x-ewe-model-address`, `x-ewe-model-protocol`, `x-ewe-sandbox-id` and
+  `x-ewe-sandbox-name`. `GET /api/sandboxes` sends the same values as JSON
+  fields, with `name`, `do_name` and `do_binding`.
+
+`cargo check --target wasm32-unknown-unknown --release` passes. The release
+profile finished in 5 minutes 43 seconds on 2026-11-28.
+
+The preview Worker
+`https://ewe-sandbox-demo-ui-k3f9.trinoxf.workers.dev` deployed with the Kiri
+Docker runtime on 2026-11-28. The probe answers 200. The page holds the
+sandbox strip, the Refresh button, the central chat, the Evidence panel and
+the metadata text. `GET /api/sandboxes` answers zero sandboxes with a maximum
+of three. `POST /api/chat` with `@sandbox-1 hello` answers 409 and
+`there are no sandboxes; create one first`. The create stream answers
+`the /ewe.sandbox.control.v1.SandboxService/Create call: Error: Durable Object
+exceeded its CPU time limit and was reset.`, so the three-sandbox checks wait
+for the create CPU fix. The preview Worker, its container and its managed
+image are deleted. The persistent `ewe-sandbox-demo` is untouched.
+
+**#1266** (`severity: medium`, open): `mise run deploy` ignores
+`EWE_DEMO_NAME`, so it overwrites the persistent demo. A preview deploy writes
+its own `wrangler.preview.toml`, as `test/live.sh` does.

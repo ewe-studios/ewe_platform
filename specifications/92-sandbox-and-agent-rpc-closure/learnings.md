@@ -218,3 +218,27 @@ device attach is a missing configuration step, not a missing command-line flag.
 A third trap: the guest kernel does not configure its own interface. The driver writes
 `ewe.net=<address>/<prefix>,<gateway>` to the kernel command line, and the slave sets
 the address, netmask, up flag and default route before it serves.
+
+## A demo command line has no shell (2026-11-28)
+
+The sandbox `Exec` service takes an argument vector and runs no shell. The
+Evidence panel therefore cannot run `cat /etc/os-release | head -3`. It runs
+`head -n 3 /etc/os-release`, which shows the same three lines. A page command
+that needs a pipeline must pass the pipeline as program arguments, or the
+service must gain a shell mode. The demo does not want a shell mode.
+
+## Worker headers carry the model metadata before the body (2026-11-28)
+
+The demo page must show the model path, the service, the address and the
+protocol above each answer. It must not guess them. The Worker sets them as
+response headers on the streamed chat response. Headers arrive before the first
+body byte, so the page builds the line while the answer streams. The same
+values are JSON fields in `GET /api/sandboxes`, so a tab shows the line before
+its first turn.
+
+## `mise run deploy` ignores the preview name (2026-11-28)
+
+The `deploy` task always uses `wrangler.toml`, whose names are the persistent
+demo. A preview deploy must write its own config, as `test/live.sh` does.
+Issue #1266 tracks the fix. A user who sets `EWE_DEMO_NAME` and runs
+`mise run deploy` changes the public demo.

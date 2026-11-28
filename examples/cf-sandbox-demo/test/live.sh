@@ -47,8 +47,8 @@ for file in build/index.js agent-slave demo-model; do
     fi
 done
 
-wrangler_seen="$(wrangler --version 2>/dev/null | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1)"
-build_seen="$(worker-build --version 2>/dev/null | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1)"
+wrangler_seen="$(wrangler --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+build_seen="$(worker-build --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 if [ "${wrangler_seen}" != "${WRANGLER_VERSION}" ]; then
     echo "wrangler ${WRANGLER_VERSION} is required; ${wrangler_seen:-none} is installed" >&2
     exit 2
@@ -58,9 +58,15 @@ if [ "${build_seen}" != "${WORKER_BUILD_VERSION}" ]; then
     exit 2
 fi
 
-export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CLOUDFLARE_WORKERS_AI_API_TOKEN:-}}"
-if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] || [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
-    echo "the live proof did not run: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (or CLOUDFLARE_WORKERS_AI_API_TOKEN)"
+if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    export CLOUDFLARE_API_TOKEN
+fi
+logged_in=""
+if wrangler whoami 2>/dev/null | grep -q "You are logged in"; then
+    logged_in="yes"
+fi
+if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] || { [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && [ -z "${logged_in}" ]; }; then
+    echo "the live proof did not run: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN, or log in with wrangler login"
     exit 0
 fi
 
@@ -149,7 +155,8 @@ d = json.load(sys.stdin)
 print(next((t["model_path"] for t in d["sandboxes"] if t["id"] == sys.argv[1]), ""))' "${id}"
 }
 
-# One agent turn in one sandbox. Sets REPLY_BODY, REPLY_PATH and REPLY_CODE.
+# One agent turn in one sandbox. Sets REPLY_BODY, REPLY_CODE, REPLY_PATH,
+# REPLY_NAME, REPLY_SERVICE, REPLY_ADDRESS and REPLY_PROTOCOL.
 chat_turn() {
     local id=$1 prompt=$2
     local body
@@ -162,7 +169,16 @@ chat_turn() {
         -H "content-type: application/json" --data-binary "@${body}")
     rm -f "${body}"
     REPLY_BODY="$(cat "${LOG_DIR}/chat-body.txt")"
-    REPLY_PATH="$(grep -i '^x-ewe-model-path:' "${LOG_DIR}/chat-headers.txt" | tail -1 | cut -d' ' -f2 | tr -d '\r')"
+    REPLY_PATH="$(header_value "${LOG_DIR}/chat-headers.txt" x-ewe-model-path)"
+    REPLY_NAME="$(header_value "${LOG_DIR}/chat-headers.txt" x-ewe-sandbox-name)"
+    REPLY_SERVICE="$(header_value "${LOG_DIR}/chat-headers.txt" x-ewe-model-service)"
+    REPLY_ADDRESS="$(header_value "${LOG_DIR}/chat-headers.txt" x-ewe-model-address)"
+    REPLY_PROTOCOL="$(header_value "${LOG_DIR}/chat-headers.txt" x-ewe-model-protocol)"
+}
+
+# One response header value, without the carriage return.
+header_value() {
+    grep -i "^$2:" "$1" | tail -1 | cut -d' ' -f2- | tr -d '\r'
 }
 
 cleanup() {
@@ -322,6 +338,17 @@ else
     exit 1
 fi
 
+step "the page shows the new controls"
+page="$(curl -sS "${URL}/")"
+if printf '%s' "${page}" | grep -q 'id="strip"' \
+    && printf '%s' "${page}" | grep -q 'id="refresh"' \
+    && printf '%s' "${page}" | grep -q 'Central chat' \
+    && printf '%s' "${page}" | grep -q 'Evidence'; then
+    pass "the page has the sandbox strip, the Refresh button, the central chat and the Evidence panel"
+else
+    fail "the page is missing a new control"
+fi
+
 step "start from zero sandboxes"
 curl -sS -o /dev/null -X DELETE "${URL}/api/sandboxes" --max-time 120 || true
 count_now="$(curl -sS "${URL}/api/sandboxes" | python3 -c 'import json,sys; print(json.load(sys.stdin)["count"])')"
@@ -329,6 +356,16 @@ if [ "${count_now}" = "0" ]; then
     pass "the count starts at 0"
 else
     fail "the count starts at ${count_now}, not 0"
+fi
+
+step "the central chat names the missing sandbox"
+central_code=$(curl -sS -o "${LOG_DIR}/central-empty.json" -w '%{http_code}' \
+    -X POST "${URL}/api/chat" -H "content-type: application/json" \
+    --data-binary '{"prompt":"@sandbox-1 hello"}')
+if [ "${central_code}" = "409" ] && grep -q "no sandboxes" "${LOG_DIR}/central-empty.json"; then
+    pass "the central chat answers a clear error when the index is empty"
+else
+    fail "the central chat with an empty index answered ${central_code}: $(head -c 300 "${LOG_DIR}/central-empty.json")"
 fi
 
 step "create the first sandbox"
@@ -375,6 +412,8 @@ fi
 step "tab 1: one agent turn on the Workers AI path"
 chat_turn "${first_id}" "Reply with the single word ready."
 if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "workers-ai" ] \
+    && [ "${REPLY_NAME}" = "sandbox-1" ] \
+    && [ -n "${REPLY_SERVICE}" ] && [ -n "${REPLY_ADDRESS}" ] && [ -n "${REPLY_PROTOCOL}" ] \
     && [ -n "$(printf '%s' "${REPLY_BODY}" | tr -d '[:space:]')" ]; then
     pass "Workers AI (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
 else
@@ -402,6 +441,35 @@ else
     fail "the count is ${count_now}, not 3"
 fi
 
+step "the index names each sandbox and its model metadata"
+curl -sS "${URL}/api/sandboxes" -o "${LOG_DIR}/sandboxes.json"
+if python3 - "${LOG_DIR}/sandboxes.json" <<'PY'
+import json
+import sys
+
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+for tab in data["sandboxes"]:
+    for key in (
+        "name",
+        "do_name",
+        "do_binding",
+        "model_path",
+        "model_service",
+        "model_address",
+        "model_protocol",
+    ):
+        if not tab.get(key):
+            sys.exit(f"{tab.get('id')} has no {key}")
+names = [tab["name"] for tab in data["sandboxes"]]
+if names != ["sandbox-1", "sandbox-2", "sandbox-3"]:
+    sys.exit(f"the names are {names}")
+PY
+then
+    pass "the index names sandbox-1 to sandbox-3 and sends the model metadata"
+else
+    fail "the index is missing a name or a metadata field"
+fi
+
 step "tab 2: its own command"
 code="$(exec_command "${second_id}" "echo tab-two-answer" "${LOG_DIR}/tab-two.txt")"
 if [ "${code}" = "200" ] && grep -q "tab-two-answer" "${LOG_DIR}/tab-two.txt"; then
@@ -416,6 +484,22 @@ if [ "${code}" = "200" ] && grep -q "tab-three-answer" "${LOG_DIR}/tab-three.txt
     pass "tab 3 answered $(head -1 "${LOG_DIR}/tab-three.txt")"
 else
     fail "tab 3 (status ${code}): $(cat "${LOG_DIR}/tab-three.txt")"
+fi
+
+step "each tab shows its own hostname"
+code1="$(exec_command "${first_id}" "hostname" "${LOG_DIR}/host1.txt")"
+code2="$(exec_command "${second_id}" "hostname" "${LOG_DIR}/host2.txt")"
+code3="$(exec_command "${third_id}" "hostname" "${LOG_DIR}/host3.txt")"
+host1="$(head -1 "${LOG_DIR}/host1.txt" | tr -d '[:space:]')"
+host2="$(head -1 "${LOG_DIR}/host2.txt" | tr -d '[:space:]')"
+host3="$(head -1 "${LOG_DIR}/host3.txt" | tr -d '[:space:]')"
+if [ "${code1}" = "200" ] && [ "${code2}" = "200" ] && [ "${code3}" = "200" ] \
+    && [ -n "${host1}" ] && [ -n "${host2}" ] && [ -n "${host3}" ] \
+    && [ "${host1}" != "${host2}" ] && [ "${host1}" != "${host3}" ] \
+    && [ "${host2}" != "${host3}" ]; then
+    pass "the three hostnames differ: ${host1}, ${host2}, ${host3}"
+else
+    fail "the hostnames are ${host1:-none}, ${host2:-none}, ${host3:-none}"
 fi
 
 # The two new tabs take the next two model paths. The id order and the tab
@@ -433,6 +517,8 @@ fi
 step "tab 2: one agent turn on the ${second_path:-second} path"
 chat_turn "${second_id}" "Reply with the single word ready."
 if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "${second_path}" ] \
+    && [ "${REPLY_NAME}" = "sandbox-2" ] \
+    && [ -n "${REPLY_SERVICE}" ] && [ -n "${REPLY_ADDRESS}" ] && [ -n "${REPLY_PROTOCOL}" ] \
     && [ -n "$(printf '%s' "${REPLY_BODY}" | tr -d '[:space:]')" ]; then
     pass "${second_path} (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
 elif printf '%s' "${REPLY_BODY}" | grep -q "OPENROUTER_API_KEY"; then
@@ -444,6 +530,8 @@ fi
 step "tab 3: one agent turn on the ${third_path:-third} path"
 chat_turn "${third_id}" "Say hello from the container."
 if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "${third_path}" ] \
+    && [ "${REPLY_NAME}" = "sandbox-3" ] \
+    && [ -n "${REPLY_SERVICE}" ] && [ -n "${REPLY_ADDRESS}" ] && [ -n "${REPLY_PROTOCOL}" ] \
     && [ -n "$(printf '%s' "${REPLY_BODY}" | tr -d '[:space:]')" ]; then
     pass "${third_path} (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
 else
@@ -451,6 +539,37 @@ else
 fi
 if [ "${third_path}" = "container-model" ] && ! printf '%s' "${REPLY_BODY}" | grep -q "container-model"; then
     fail "the container model answer does not name container-model"
+fi
+
+step "the central chat routes @sandbox-3 to the third sandbox"
+central_code=$(curl -sS -N --max-time 180 \
+    -D "${LOG_DIR}/central-headers.txt" -o "${LOG_DIR}/central-body.txt" \
+    -w '%{http_code}' \
+    -X POST "${URL}/api/chat" -H "content-type: application/json" \
+    --data-binary '{"prompt":"@sandbox-3 Say hello from the central chat."}')
+central_name="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-sandbox-name)"
+central_id="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-sandbox-id)"
+central_path="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-model-path)"
+central_service="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-model-service)"
+central_body="$(cat "${LOG_DIR}/central-body.txt")"
+if [ "${central_code}" = "200" ] && [ "${central_name}" = "sandbox-3" ] \
+    && [ "${central_id}" = "${third_id}" ] && [ "${central_path}" = "container-model" ] \
+    && [ "${central_service}" = "in-sandbox model server" ] \
+    && [ -n "$(printf '%s' "${central_body}" | tr -d '[:space:]')" ]; then
+    pass "the central chat routed @sandbox-3 and named the responder ${central_name}"
+else
+    fail "the central chat (status ${central_code}, name ${central_name:-none}, id ${central_id:-none}): $(printf '%s' "${central_body}" | head -c 400)"
+fi
+
+step "the central chat refuses an unknown name"
+unknown_code=$(curl -sS -o "${LOG_DIR}/central-unknown.json" -w '%{http_code}' \
+    -X POST "${URL}/api/chat" -H "content-type: application/json" \
+    --data-binary '{"prompt":"@sandbox-99 hello"}')
+if [ "${unknown_code}" = "404" ] && grep -q "known names" "${LOG_DIR}/central-unknown.json" \
+    && grep -q "sandbox-1" "${LOG_DIR}/central-unknown.json"; then
+    pass "the central chat answered the names that exist"
+else
+    fail "the unknown name answered ${unknown_code}: $(head -c 300 "${LOG_DIR}/central-unknown.json")"
 fi
 
 step "destroy all and check the count"

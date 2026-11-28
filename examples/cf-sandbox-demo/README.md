@@ -8,10 +8,23 @@ preview, runs the proof, and removes the preview.
 ## What the page shows
 
 - How many sandboxes run. The count comes from the sandbox index.
+- A **Refresh** button that reads the index again. The page does not reload.
 - A button that creates one sandbox and a button that creates two more. Each
   sandbox is its own Durable Object (DO) and its own container.
-- One tab per sandbox. A tab holds a command console, a file write and read,
-  and one agent conversation.
+- A **sandboxes strip** below the create buttons. One card holds each sandbox.
+  Each card has its own message box, so the user writes to that sandbox
+  directly. The strip reads the index again after every create and every
+  destroy.
+- A **central chat** tab. Type `@name message`, for example
+  `@sandbox-2 hello`. The Worker routes the turn to the named sandbox. Each
+  answer shows the responder name, for example `[sandbox-2]`. An unknown name
+  answers a clear error that lists the names that exist. A message without a
+  name is refused.
+- One tab per sandbox. A tab holds an evidence panel, a command console, a file
+  write and read, and one agent conversation.
+- Above each answer, one small line names the model path, its service, its
+  address and its protocol. The Worker sends these values as response headers.
+  It does not leave the page to guess them.
 - Each tab runs its own model path, so two tabs stream two answers at the same
   time.
 
@@ -109,6 +122,12 @@ mise run destroy
 
 ## Use a tab
 
+- **Evidence.** Click **Run evidence**. The tab runs four commands in its own
+  sandbox: `hostname`, `uname -a`, the first three lines of
+  `/etc/os-release`, and `uptime`. It also shows the sandbox identifier and the
+  Durable Object name from the API. Three tabs show three different
+  hostnames. The page runs `head -n 3 /etc/os-release`, because no shell runs a
+  command line.
 - **Command console.** Type a command line and click **Run**. The console shows
   the standard output and the standard error as they arrive. The last line has
   the exit code. No shell runs the line: the page splits it on spaces and sends
@@ -120,6 +139,29 @@ mise run destroy
   box.
 - **Destroy this sandbox.** The container and the Durable Object stop, the
   count falls by one, and the other tabs stay.
+
+## Write to a sandbox
+
+- **From a card.** Type the message in the card of the sandbox and click
+  **Send**. The turn runs in that sandbox only.
+- **From the central chat.** Type `@name message`. The names are `sandbox-1`,
+  `sandbox-2`, and so on, in creation order. The sandbox identifier is also
+  accepted. Each answer shows the responder name and its metadata line.
+
+## The metadata line
+
+Each answer has one line with four values from the Worker:
+
+| Tab | Model path | Service | Address | Protocol |
+|---|---|---|---|---|
+| 1 | `workers-ai` | Workers AI | `binding AI` | `HTTPS` |
+| 2 | `openrouter` | OpenRouter | `https://openrouter.ai/api/v1` | `HTTPS` |
+| 3 | `container-model` | in-sandbox model server | `http://127.0.0.1:8081` | `HTTP in the sandbox` |
+
+The Worker sets these response headers: `x-ewe-model-path`, `x-ewe-model`,
+`x-ewe-model-service`, `x-ewe-model-address`, `x-ewe-model-protocol`,
+`x-ewe-sandbox-id` and `x-ewe-sandbox-name`. `GET /api/sandboxes` sends the same
+values as JSON fields, with the name and the Durable Object name.
 
 ## Cost of one run
 
@@ -175,6 +217,10 @@ for the count and the three tabs.
 
 - **The deploy says the token is not authorized.** The token needs Workers
   Scripts Edit and Containers Edit. A Workers AI token alone cannot deploy.
+- **The container image build says `docker-credential-osxkeychain` is
+  missing.** The Kiri runtime is the Docker runtime. Put `$HOME/.kiri/bin`
+  first in `PATH`, use the `kiri` context, and use a Docker config without
+  `credsStore`. The old OrbStack link at `/usr/local/bin/docker` is broken.
 - **The container image build fails.** Start Docker, then run
   `mise run deploy` again.
 - **The OpenRouter tab shows `the Worker secret OPENROUTER_API_KEY is not
