@@ -221,7 +221,7 @@ fn a_missing_browser_names_every_searched_path_and_the_install_task() {
         "{message}"
     );
     assert!(
-        message.contains(&candidates[0].display().to_string()),
+        message.contains(&format!("{:?}", candidates[0])),
         "the message must name the first searched path: {message}"
     );
 }

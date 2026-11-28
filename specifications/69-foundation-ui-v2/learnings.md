@@ -1781,3 +1781,9 @@ An embedded directory can supply backslashes in its relative names.
 Use slash names to select and include templates. Read bytes with the original key.
 Reject absolute paths, parent components, and duplicate logical names.
 Use native path components to compare the files that the generator writes.
+
+## Browser socket fixture
+
+A socket read can return part of an upgrade header.
+Read the full bounded header and join the endpoint thread before accepting a test result.
+A failed handshake hid the raw socket close defect in the previous fixture.

@@ -2418,3 +2418,12 @@ Its expected file lists and workspace member are the same.
 All 12 packager tests pass with the fixture correction on macOS.
 The packager Windows test exception stays in place until a Windows run passes.
 [Issue 527](https://github.com/ewe-studios/ewe_platform/issues/527)
+
+## Windows browser test fixtures
+
+The portable browser run finds a diagnostic path format mismatch.
+The connection fixture now reads the full upgrade header and joins the endpoint thread.
+The raw socket close and idle timeout tests pass with the WebSocket client repair.
+All 20 default browser tests and strict Clippy pass on macOS.
+The next Windows browser run checks both fixture changes.
+[Fixture issue](https://github.com/ewe-studios/ewe_platform/issues/1211) · [Socket close issue](https://github.com/ewe-studios/ewe_platform/issues/1212)
