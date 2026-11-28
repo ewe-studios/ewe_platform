@@ -77,10 +77,14 @@ Each tab names its model path. A path whose secret or binding is absent shows th
 
 ## 5. CI
 
-One job in `sandbox-e2e.yaml` deploys the example to a preview name, runs `test/live.sh`,
-and deletes it. Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`. A missing secret
-prints that the live run did not happen and finishes green, as `live-kms.yaml` does. The
-local `wrangler dev` job stays, non-blocking, for the 13 tests it can run.
+The continuous integration (CI) run does not deploy this example. CI keeps the
+`wrangler dev` job, which runs the 13 tests local mode can run, and it does not need a
+Cloudflare credential. A deploy is an engineer's action: `mise run deploy` on any machine
+where the Cloudflare environment is present. The owner decided this on 2026-11-28: CI
+focuses on `wrangler`; the examples show a real deploy of the agent RPC and the sandbox.
+
+`test/live.sh` is the live test an engineer runs after a deploy, and the same script is the
+record of the proof.
 
 ## 6. Done when
 
