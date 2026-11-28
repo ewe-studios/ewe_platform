@@ -1,5 +1,15 @@
 # Spec 69 learnings
 
+## macOS HTTP slow-client event stream
+
+The old fixture sleeps after each one-byte client read.
+The prior hosted default recipe takes 28.19 seconds for the slow-client case.
+The `multi,quic` recipe then reaches the 30-second writer watchdog.
+The repaired reader waits for the writer to register for space.
+It frees one byte and fires the registered wake signal.
+This keeps backpressure and exact byte checks independent of sleep granularity.
+[Prior job](https://github.com/ewe-studios/ewe_platform/actions/runs/46088801494/job/140813752967) · [Hosted proof](https://github.com/ewe-studios/ewe_platform/actions/runs/46122965004/job/140911712754) · [Issue 546](https://github.com/ewe-studios/ewe_platform/issues/546)
+
 ## Specification 69 closure audit
 
 An open issue can refer to a fix that is already in the source tree.

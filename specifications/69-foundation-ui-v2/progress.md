@@ -1,5 +1,15 @@
 # Spec 69 progress
 
+## macOS HTTP slow-client event stream
+
+The fixture uses one byte of client drain for each writer wait. It checks every event byte.
+The macOS arm64 local run passes both tests in `sse_writer_tests` with `multi quic` and profile `uat`.
+The GitHub-hosted macOS job passes 248 default tests and 251 `multi,quic` tests.
+Each recipe has one existing ignored documentation test and zero failures.
+Both event-stream tests pass in both recipes. The test binary takes 0.24 and 0.25 seconds.
+The hosted job tests fixture commit `bc0b73206` with workflow selection commit `637241979`.
+[Hosted job](https://github.com/ewe-studios/ewe_platform/actions/runs/46122965004/job/140911712754) · [Issue 546](https://github.com/ewe-studios/ewe_platform/issues/546)
+
 ## Specification 69 closure audit
 
 The [completion audit](completion-audit.md) records the state of 36 features at `71466b255`.
