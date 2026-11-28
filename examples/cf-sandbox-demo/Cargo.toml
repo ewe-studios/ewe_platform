@@ -1,0 +1,50 @@
+[package]
+name = "cf-sandbox-demo"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "The Cloudflare demo of spec 92 feature 06: sandboxes, commands and agent RPC on one page"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# `examples/*` are excluded from the root workspace, so this crate is its own
+# workspace root and cannot inherit workspace settings.
+[workspace]
+
+[dependencies]
+# The Worker of spec 77 with its three Durable Object classes and its container
+# binding. `entry` is off: this crate supplies the one `fetch` export.
+sandbox_worker = { path = "../../infrastructure/sandbox_worker", default-features = false }
+# The control-plane values, the messages, the container port types and the
+# sandbox identifiers.
+foundation_sandbox = { path = "../../backends/foundation_sandbox", default-features = false, features = ["control", "cloudflare"] }
+# The agent service: the instance registry and the remote model catalog.
+foundation_agent_rpc = { path = "../../backends/foundation_agent_rpc", default-features = false, features = ["worker"] }
+# The principal type of a checked caller.
+foundation_auth = { path = "../../backends/foundation_auth", default-features = false, features = ["secret", "wasm"] }
+# The effect bundle and the single-threaded executor of a Worker.
+foundation_context = { path = "../../backends/foundation_context" }
+foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["std", "js-wasmbindgen"] }
+# The HTTP client of the model providers (fetch on wasm).
+foundation_netio = { path = "../../backends/foundation_netio", default-features = false, features = ["wasm-fetch"] }
+# The static page of the example.
+foundation_http = { path = "../../backends/foundation_http", default-features = false, features = ["wasm-bindgen-http"] }
+worker = "0.8.7"
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+console_error_panic_hook = "0.1"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+# `getrandom` 0.2 (through `foundation_auth`) needs the `js` backend on
+# `wasm32-unknown-unknown`. This crate names it so the feature is on once for
+# the whole graph.
+getrandom = { version = "0.2", features = ["js"] }
+
+[profile.release]
+opt-level = "s"
+lto = true

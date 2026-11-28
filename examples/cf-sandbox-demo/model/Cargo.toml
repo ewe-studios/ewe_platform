@@ -1,0 +1,16 @@
+[package]
+name = "demo-model"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "The model server that runs inside the demo sandbox container (spec 92 feature 06)"
+license = "Apache-2.0"
+
+# A standalone crate: it builds for the Linux container with no wasm or
+# `worker` dependency.
+[workspace]
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"
