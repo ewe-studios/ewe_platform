@@ -127,6 +127,9 @@ Two lessons:
 - **A nested workspace pins the old edge too.** `cargo metadata --locked` fails
   for every nested `Cargo.lock` that lists `foundation_auth` under
   `foundation_connectrpc`. Regenerate each lockfile after the manifest change.
+- **A pipe hides the exit code of `cargo fmt --check`.** `cargo fmt ... | head`
+  reports the exit code of `head`. Run the check without a pipe, or read zsh's
+  `pipestatus`, or a formatting failure looks like a pass.
 
 ## macOS refuses a timeout on a peer-closed socket (2026-11-28)
 

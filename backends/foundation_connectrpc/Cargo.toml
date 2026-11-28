@@ -54,7 +54,10 @@ foundation_http = { path = "../foundation_http", version = "0.0.17", default-fea
 # off to build a module with no wasm-bindgen glue (spec 88 feature 03, T7).
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false }
 # The streaming response sink holds a JS `Response` behind a `SendWrapper`.
-web-sys = { workspace = true, features = ["Response"] }
+# Only the `wasm-fetch` build compiles it, so the dependency is optional and
+# that feature enables it. A wasm `rpc` build stays free of wasm-bindgen glue
+# (#756).
+web-sys = { workspace = true, features = ["Response"], optional = true }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -122,7 +125,7 @@ h3 = ["foundation_netio/quic", "foundation_http/quic"]
 # writes to it. It brings wasm-bindgen glue, so the owned-harness package
 # (`integration/wasm_owned`) leaves it off and runs the pure-Rust paths only.
 # Every wasm build that uses `H1Transport` must enable it (spec 88 feature 03).
-wasm-fetch = ["foundation_netio/wasm-fetch", "foundation_http/wasm-fetch"]
+wasm-fetch = ["foundation_netio/wasm-fetch", "foundation_http/wasm-fetch", "dep:web-sys"]
 
 # Tests that use the valtron pool need the multi-threaded executor (`rpc_multi`).
 # HTTP/3 transport capabilities (F35).
