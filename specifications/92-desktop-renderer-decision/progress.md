@@ -5,5 +5,7 @@
 - Choose Tauri first for the desktop wizard. Plan direct upstream Zed GPUI as the second choice.
 - Record the wizard, manifest, generation and command acceptance cases in [Feature 03](features/03-desktop-generator/feature.md).
 - Prepare the upstream GPUI counter plan and design. Keep GPUI Kit as reference material.
-- Wait for explicit approval of this revision before writing the examples or generator code.
+- Add the approved standalone upstream GPUI counter under `examples/gpui`.
+- Verify launch, pointer, keyboard, accessibility action and relaunch on macOS. Save the window screenshot.
+- Keep the desktop generator implementation in its own phase.
 - Keep the Windows and Linux results and production packaging gates open.

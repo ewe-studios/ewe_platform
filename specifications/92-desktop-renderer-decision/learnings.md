@@ -23,3 +23,7 @@
 - The planned upstream GPUI example uses official Zed source. Its pin declares Rust `1.100.0`.
 - Upstream marks its GPUI crates Apache-2.0. Review transitive licenses and assets before distribution.
 - GPUI Kit and GPUI Fast findings record historical research. The current generator selects Tauri or upstream Zed GPUI.
+- The standalone Cargo lockfile resolves upstream `gpui` and `gpui_platform` at the same public Zed revision.
+- The macOS GPUI constructor uses assembly symbol operands. Cranelift rejects them. The example uses the repository's LLVM profile.
+- The example uses separate focus handles for the window and button. The button handle enters the tab order.
+- GPUI exposes the pointer handler as an accessibility action. Both paths update the same counter.

@@ -1,0 +1,19 @@
+[package]
+name = "ewe-gpui-counter"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[workspace]
+
+[dependencies]
+gpui = { git = "https://github.com/zed-industries/zed.git", rev = "46375fbf64574f01dc08fd2d2998aa7bbb7f0377", default-features = false }
+gpui_platform = { git = "https://github.com/zed-industries/zed.git", rev = "46375fbf64574f01dc08fd2d2998aa7bbb7f0377", default-features = false, features = ["font-kit", "runtime_shaders", "wayland", "x11"] }
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.uat]
+inherits = "dev"

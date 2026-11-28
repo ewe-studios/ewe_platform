@@ -104,10 +104,29 @@ The count belongs to the current window.
 | Cargo cannot resolve a pinned source | Cargo reports the dependency error. | No window opens. |
 | The host cannot open the window | The process reports the platform error and fails. | No counter state persists. |
 
+### macOS counter result
+
+The example builds on Apple silicon with macOS 27.2.1 (26B131).
+The check uses Rust 1.100.0-nightly from the repository's 2026-09-20 toolchain and its LLVM `uat` profile.
+The default Cranelift profile cannot compile the upstream macOS constructor. Its assembly uses symbol operands.
+
+| Check | Result |
+| --- | --- |
+| A9. Resolve and build | The locked macOS graph selects `gpui` 0.2.2 and `gpui_platform` 0.1.0 at the official Zed revision. |
+| A9. Launch | The window draws its title, heading, zero count and named button. |
+| A10. Activate | The accessibility action changes zero to one. A pointer click changes one to two. |
+| A10. Use the keyboard | Tab shows the button focus border. Enter and Space each add one. |
+| A10. Close and reopen | A new window starts at zero. |
+| A11. Startup error | The example reports the window error and exits with failure. The macOS check does not induce this error. |
+| Accessibility | The macOS accessibility tree exposes the heading, count and button. It reports window focus during this keyboard check. |
+| Remaining coverage | VoiceOver, Windows, Linux and packaged installation remain open. |
+
+[Captured macOS window](screenshots/gpui-counter-macos.jpg)
+
 ### Source evidence
 
 The review uses local source, manifests and the linked Tauri version 2 documentation.
-The GPUI Kit, GPUI Fast and Iced findings below are historical research. They provide context for the current decision. Platform support below describes source paths and candidate release graphs. See Feature 02 for the measured macOS Tauri result. Upstream GPUI build and interaction results remain open.
+The GPUI Kit, GPUI Fast and Iced findings below are historical research. They provide context for the current decision. Platform support below describes source paths and candidate release graphs. See Feature 02 for the measured macOS Tauri result. See the macOS counter result for the upstream GPUI example.
 
 | Checkout | Revision and useful locations |
 | --- | --- |
@@ -331,8 +350,8 @@ Preserve startup, repaint and scroll measurements across candidate revisions. Re
 - Today, run `git diff --check` and verify referenced local paths and Markdown links.
 - Run `cargo fmt --manifest-path examples/gpui/Cargo.toml -- --check`.
 - Run `cargo tree --locked --manifest-path examples/gpui/Cargo.toml`.
-- Run `cargo test --locked --manifest-path examples/gpui/Cargo.toml`.
-- Run `cargo run --locked --manifest-path examples/gpui/Cargo.toml`.
+- Run `cargo test --locked --profile uat --manifest-path examples/gpui/Cargo.toml`.
+- Run `cargo run --locked --profile uat --manifest-path examples/gpui/Cargo.toml`.
 - On the available desktop session, run A9 and A10. Save a screenshot of the GPUI window and record the platform.
 - For the future Foundation prototype, run `cargo tree --locked -p foundation_ui_desktop -e features` and `cargo tree --locked -p foundation_ui_desktop -d` once the proposed crate exists.
 - Run `cargo test --locked -p foundation_ui_desktop --profile uat` on each target operating system.

@@ -50,7 +50,7 @@ The desktop host links the shared runtime to the selected platform renderer.
 
 | Feature | Owns | Status |
 | --- | --- | --- |
-| [01. Evaluate the desktop backend](features/01-backend-evaluation/feature.md) | Source review, upstream GPUI counter and future Native mount gates | Counter plan awaits approval. |
+| [01. Evaluate the desktop backend](features/01-backend-evaluation/feature.md) | Source review, upstream GPUI counter and future Native mount gates | Upstream counter verified on macOS. |
 | [02. Run Todo in a Tauri desktop window](features/02-tauri-todo-check/feature.md) | First Web mount desktop check | macOS check complete. Other platform checks open. |
 | [03. Generate a desktop starter](features/03-desktop-generator/feature.md) | Wizard, command arguments, manifest, build and run | Tauri-first plan awaits approval. |
 
