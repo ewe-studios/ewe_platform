@@ -26,10 +26,11 @@ use crate::netcap::RawStream;
 use crate::websocket::shared::assembler::MessageAssembler;
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::decoder::WebSocketFrameDecoder;
+use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{Opcode, WebSocketFrame};
 use crate::websocket::shared::message::WebSocketMessage;
 
-use foundation_core::io::{DecodeStep, IncrementalDecoder};
+use std::io::ErrorKind;
 
 /// How the server task parks when the stream has no data ready.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -160,8 +161,8 @@ impl TaskIterator for WebSocketServerTask {
         }
 
         // Try to decode a frame from the stream.
-        match self.decoder.step(&mut self.stream) {
-            Ok(DecodeStep::Frame(frame)) => {
+        match self.decoder.read_frame(&mut self.stream) {
+            Ok(frame) => {
                 if frame.opcode.is_control() {
                     // Server MUST reject unmasked data frames from client.
                     if frame.mask.is_none() {
@@ -212,7 +213,9 @@ impl TaskIterator for WebSocketServerTask {
                     }
                 }
             }
-            Ok(DecodeStep::Pending) => {
+            Err(WebSocketError::IoError(error))
+                if matches!(error.kind(), ErrorKind::WouldBlock | ErrorKind::TimedOut) =>
+            {
                 // Park on the caller-injected readiness signal if one was
                 // provided; otherwise fall back to a short poll delay.
                 match &self.fd_readiness {
