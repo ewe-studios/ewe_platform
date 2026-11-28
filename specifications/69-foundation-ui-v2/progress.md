@@ -2392,7 +2392,7 @@ All 56 integration tests pass. Two existing documentation tests stay ignored.
 Extract the fixture setup from the existing Cargo build hook test.
 The exact Linux AMD64 strict Clippy commands pass with both server feature sets.
 The feature sets are `mobile-launch,server` and `browser-package,server`.
-The Cargo hook suite with `mobile-launch,server` passes both tests.
+The Cargo hook suite passes both tests with each server feature set.
 It checks directory changes, rejected inputs, recovery, and both external consumer profiles.
 [Issue 1209](https://github.com/ewe-studios/ewe_platform/issues/1209)
 
@@ -2404,3 +2404,17 @@ A raw close reports end of stream. A received Close frame retains its status and
 The first browser replay confirms the raw close after a valid handshake.
 The focused Rust tests cover partial bytes, empty reads, and complete close frames.
 [Issue 1212](https://github.com/ewe-studios/ewe_platform/issues/1212)
+
+## Windows project template names
+
+The generated application test fails to find embedded templates on Windows.
+The candidate uses slash names for template selection and keeps each original data key.
+All 12 packager tests pass on macOS. The eight application tests and strict packager Clippy pass.
+The Windows fixture checks backslash names, carriage return and line feed, and invalid entries.
+[Issue 1210](https://github.com/ewe-studios/ewe_platform/issues/1210) · [Windows candidate run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741)
+
+The separate packager test checks generated file paths with native path components.
+Its expected file lists and workspace member are the same.
+All 12 packager tests pass with the fixture correction on macOS.
+The packager Windows test exception stays in place until a Windows run passes.
+[Issue 527](https://github.com/ewe-studios/ewe_platform/issues/527)

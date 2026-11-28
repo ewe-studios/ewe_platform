@@ -1774,3 +1774,10 @@ The external consumer checks a live file and embedded bytes in separate build pr
 A socket read into a nonempty buffer returns zero bytes at end of stream.
 A chunk feeder can supply an empty chunk while it waits for more input.
 Use the socket decoder for live WebSocket reads. Keep one decoder for the connection.
+
+## Windows project template names
+
+An embedded directory can supply backslashes in its relative names.
+Use slash names to select and include templates. Read bytes with the original key.
+Reject absolute paths, parent components, and duplicate logical names.
+Use native path components to compare the files that the generator writes.
