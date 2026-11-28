@@ -1770,3 +1770,7 @@ The Linux lint counts 101 lines in the test against a maximum of 100.
 Move fixture setup into a helper. Keep the test commands and assertions together.
 The rejection case checks that an incomplete input leaves published files intact.
 The external consumer checks a live file and embedded bytes in separate build profiles.
+
+A socket read into a nonempty buffer returns zero bytes at end of stream.
+A chunk feeder can supply an empty chunk while it waits for more input.
+Use the socket decoder for live WebSocket reads. Keep one decoder for the connection.

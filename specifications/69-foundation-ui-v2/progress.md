@@ -2395,3 +2395,12 @@ The feature sets are `mobile-launch,server` and `browser-package,server`.
 The Cargo hook suite with `mobile-launch,server` passes both tests.
 It checks directory changes, rejected inputs, recovery, and both external consumer profiles.
 [Issue 1209](https://github.com/ewe-studios/ewe_platform/issues/1209)
+
+### Browser WebSocket end of stream
+
+The native client keeps the frame decoder across socket reads.
+The decoder resumes partial headers, masks, and payloads after a timeout or a would-block error.
+A raw close reports end of stream. A received Close frame retains its status and reason.
+The first browser replay confirms the raw close after a valid handshake.
+The focused Rust tests cover partial bytes, empty reads, and complete close frames.
+[Issue 1212](https://github.com/ewe-studios/ewe_platform/issues/1212)
