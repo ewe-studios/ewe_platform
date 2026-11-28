@@ -19,8 +19,9 @@ pub use core::{
 };
 pub use dynamic::DynamicHeaders;
 pub use producer::{
-    Producer, ProducerBuilder, DEFAULT_MAX_BATCH_BYTES, DEFAULT_MAX_BATCH_ITEMS,
-    DEFAULT_MAX_EPOCH_CLAIMS, DEFAULT_MAX_QUEUE_BYTES,
+    Producer, ProducerBuilder, ProducerConfig, DEFAULT_LINGER, DEFAULT_MAX_BATCH_BYTES,
+    DEFAULT_MAX_BATCH_ITEMS, DEFAULT_MAX_EPOCH_CLAIMS, DEFAULT_MAX_IN_FLIGHT,
+    DEFAULT_MAX_QUEUE_BYTES,
 };
 pub use retry::{
     RetryPolicy, DEFAULT_INITIAL_BACKOFF, DEFAULT_JITTER, DEFAULT_MAX_ATTEMPTS,

@@ -1,0 +1,12 @@
+{
+  "body": {
+    "kind": "empty"
+  },
+  "content_type": "application/json",
+  "etag": "present",
+  "status": 200,
+  "stream_closed": null,
+  "stream_next_offset": "0000000000000010",
+  "stream_up_to_date": null,
+  "x_error_kind": null
+}

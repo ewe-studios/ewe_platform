@@ -8,6 +8,7 @@ mod reconnect_replay_tests;
 mod reconnecting_integration_tests;
 mod reconnecting_task_integration_tests;
 mod reconnecting_task_tests;
+mod reset_surfaces_as_error_tests;
 mod response_tests;
 mod sse_client_tests;
 mod sse_parser_tests;

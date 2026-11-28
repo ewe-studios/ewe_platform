@@ -8,14 +8,16 @@ use std::time::Duration;
 use foundation_context::Ctx;
 use foundation_core::synca::mpp::Receiver;
 use foundation_core::valtron::{execute, GenericResult};
-use foundation_core::valtron::{DrivenStreamIterator, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    DrivenStreamIterator, EventReadiness, ReadinessInstant, ReadinessWaker, TaskIterator,
+    TaskStatus,
+};
 
 use crate::shared::error::Result;
 use crate::shared::event::WatchEvent;
 use crate::shared::watcher::{NativeWatcher, SharedWatcher};
 
 use super::broadcaster::Broadcaster as EventBroadcaster;
-use super::stop_signal::CompositeReadiness;
 use super::StopSignal;
 
 /// A valtron task that wraps a `NativeWatcher` and delivers file events
@@ -118,6 +120,37 @@ impl FileWatcherTask {
     }
 }
 
+/// Readiness a parked [`FileWatcherTask`] hands to the executor.
+///
+/// The executor requires a `Send + Sync` readiness pointer. The two children
+/// already meet that bound: `SharedWatcher` and `StopSignal`. This type keeps
+/// them as concrete fields, so the compiler proves the bound.
+struct FileWatcherReadiness {
+    watcher: SharedWatcher,
+    stop: StopSignal,
+}
+
+impl EventReadiness for FileWatcherReadiness {
+    /// Ready when the watcher has an event or the task was stopped.
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.watcher.is_ready(dur) || self.stop.is_ready(dur)
+    }
+
+    fn deadline(&self) -> Option<ReadinessInstant> {
+        match (self.watcher.deadline(), self.stop.deadline()) {
+            (Some(a), Some(b)) => Some(a.min(b)),
+            (a, b) => a.or(b),
+        }
+    }
+
+    /// Registers the waker with both signals; `true` only if both wake.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let a = self.watcher.register(waker);
+        let b = self.stop.register(waker);
+        a && b
+    }
+}
+
 impl TaskIterator for FileWatcherTask {
     type Ready = WatchEvent;
     type Pending = ();
@@ -143,10 +176,10 @@ impl TaskIterator for FileWatcherTask {
                 let first = self.pending.pop_front().unwrap();
                 Some(TaskStatus::Ready(first))
             }
-            Ok(_) | Err(_) => Some(TaskStatus::Depends(Arc::new(CompositeReadiness::new(
-                Arc::new(self.watcher.clone_handle()),
-                Arc::new(self.stop.clone()),
-            )))),
+            Ok(_) | Err(_) => Some(TaskStatus::Depends(Arc::new(FileWatcherReadiness {
+                watcher: self.watcher.clone_handle(),
+                stop: self.stop.clone(),
+            }))),
         }
     }
 }

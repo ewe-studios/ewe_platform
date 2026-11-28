@@ -20,6 +20,10 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     url: Uri,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
+    /// Typed middleware data carried on the request. It reaches the
+    /// `SimpleIncomingRequest` the exchange task builds, where for example
+    /// `continue_ctx` reads the request `Ctx`.
+    extensions: Extensions,
     body_readiness: Option<BodyReadiness>,
     config: Option<ClientConfig>,
     pool: Option<Arc<HttpConnectionPool<R>>>,
@@ -37,7 +41,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
-            extensions: Extensions::new(),
+            extensions: self.extensions,
             body_readiness: self.body_readiness,
         })
     }
@@ -66,7 +70,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
-            extensions: Extensions::new(),
+            extensions: self.extensions,
             body_readiness: self.body_readiness,
         };
 
@@ -88,7 +92,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
             url: self.url,
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
-            extensions: Extensions::new(),
+            extensions: self.extensions,
             body_readiness: self.body_readiness,
         };
 
@@ -132,6 +136,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             headers,
             url: parsed_url,
             body: None,
+            extensions: Extensions::new(),
             body_readiness: None,
             pool: None,
             config: None,
@@ -317,6 +322,15 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// Returns an error if the operation fails.
     pub fn body(mut self, body: SendSafeBody) -> Self {
         self.body = Some(body);
+        self
+    }
+
+    /// Attach typed middleware data to the request. The data reaches the
+    /// `SimpleIncomingRequest` the exchange task builds, so a consumer such as
+    /// the `Expect: 100-continue` clock can read it.
+    #[must_use]
+    pub fn with_extensions(mut self, extensions: Extensions) -> Self {
+        self.extensions = extensions;
         self
     }
 

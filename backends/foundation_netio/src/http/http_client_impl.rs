@@ -200,6 +200,15 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
             }
         }
 
+        // Method, URL and headers are not the whole request. The caller's typed
+        // middleware data (the request `Ctx` that `continue_ctx` reads, for
+        // example) and a pushable body's pipe readiness must survive the trip to
+        // the `SimpleIncomingRequest` the exchange task builds.
+        builder = builder.with_extensions(req.extensions.clone());
+        if let Some(readiness) = req.body_readiness.clone() {
+            builder = builder.with_body_readiness(readiness);
+        }
+
         Ok(builder)
     }
 

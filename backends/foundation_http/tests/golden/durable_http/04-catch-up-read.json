@@ -1,0 +1,20 @@
+{
+  "body": {
+    "kind": "json",
+    "value": [
+      {
+        "n": 1
+      },
+      {
+        "n": 2
+      }
+    ]
+  },
+  "content_type": "application/json",
+  "etag": "present",
+  "status": 200,
+  "stream_closed": null,
+  "stream_next_offset": "0000000000000010",
+  "stream_up_to_date": "true",
+  "x_error_kind": null
+}

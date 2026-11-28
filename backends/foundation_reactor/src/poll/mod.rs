@@ -327,8 +327,9 @@ impl Poll {
     ///
     /// A no-op except on kqueue (macOS/BSD). There the kernel reports
     /// `EVFILT_READ` level-triggered for pipes despite `EV_CLEAR`, so the
-    /// selector tracks the read edge in software and a drained fd must be
-    /// re-armed to receive the next edge.
+    /// selector tracks a pipe's read edge in software and a drained pipe must
+    /// be re-armed to receive the next edge. Sockets are edge-triggered by the
+    /// kernel and are not tracked, so this call changes nothing for them.
     ///
     /// Unix only: its one caller, [`crate::reactor::Reactor::clear`], is in the
     /// Unix-only reactor module. On wasm32 the method would be dead code.
