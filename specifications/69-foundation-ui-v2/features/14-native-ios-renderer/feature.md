@@ -611,6 +611,16 @@ Rust tests are in `backends/foundation_ui_wire/tests/`. Swift tests are in
 | Caps delivery | Feed a caps frame through the store and check that the core receives it once. | example |
 | I8 of feature 01 (four languages read one fixture) | `WireTests.testFixturesReadTheSameAsRust` (the field values of feature 01 section 6.7) | example |
 
+
+### Action state regression check
+
+Run `RendererTests.testTapReadsFreshAttachmentAndLaterChannelFrame` in the integrated Swift package.
+The test sends two different state byte sequences to the same control.
+Each tap carries the current sequence. A sibling with no state sends empty bytes.
+The parent has its own bytes. The action keeps the parent identity but uses the control's bytes.
+The action returns no immediate frame. A later live-channel frame updates the control.
+The iPhone simulator run passes all six renderer tests and all three behavior tests.
+
 ## 8. Tasks
 
 - [x] 1. `reference.rs`, the conformance fixtures and snapshots, with the Rust tests.

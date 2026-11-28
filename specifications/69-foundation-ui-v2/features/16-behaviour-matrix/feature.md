@@ -500,6 +500,21 @@ temporary directories.
 | The web applicator reports a mobile field | `backends/foundation_wasm_ui/integration/test/frames-apply.test.js` "all forms fixture" | example |
 | The four native bindings | Swift `BehaviourTests.testDialogAndDismissAreRegistered`, `.testScrollLockIsRegistered`, `.testTransitionIsRegistered`; Kotlin `BehaviourRegistryTest.allSharedBindingsAreRegistered`, `PropMappingTest.scrollLockDisablesScroll`, `.dialogOpensOnTheRecord` | example |
 
+### Behaviour dispatch regression checks
+
+| Platform | Public entry point | Expected result |
+| --- | --- | --- |
+| Browser | Apply generated frames with the normal applicator. | Bind a shared behavior to the selected component. Keep its sibling unchanged. Release the old binding on removal and bind again on remount. |
+| Browser | Apply an unknown shared identifier and unknown custom name before a valid row. | Report both identities and apply the later update. |
+| Swift | Receive a frame with shared and custom behavior rows. | Store the known behavior on the selected node only. Report each unknown identity and apply the later text row. Release the old behavior when the node is removed. |
+| Kotlin | Receive matching generated operations through the store. | Preserve the existing unknown-identity and continuation check. Confirm that removing and remounting the selected node releases its binding and preserves its sibling. |
+
+Use the existing fixture builders. Verify the new assertions against a disposable code change that breaks the behavior.
+Keep the existing layouts and screenshots. These tests change no visual requirement.
+
+The browser frame suite passes 28 tests. Disabling binding cleanup and reversing unknown-identity reporting fails the two new tests.
+The iPhone simulator passes all three behavior tests. The Kotlin host passes both selected behavior tests.
+
 ## 8. Tasks
 
 - [x] 1. `BehaviourWire`, `Behaviour::wire` (on the tables of feature 02), the marker form of

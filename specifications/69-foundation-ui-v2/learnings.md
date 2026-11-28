@@ -1924,3 +1924,16 @@ The Feature 12 historical count matches 41 ignored macro examples and one ignore
 The aggregate alone cannot verify a specific ignored snippet.
 Match hosted results to the package source, selected dependency graph, toolchain, and test recipe before reusing them.
 [Acceptance reconciliation](completion-audit.md#acceptance-reconciliation-28-november-2026)
+
+
+### Test action state and behavior over multiple updates
+
+A single tap cannot show whether the next tap uses new state. Send a second attachment before the next tap.
+Give the parent state too. This makes the test detect state that the child copies from its parent by mistake.
+Deliver the update through the live channel after the action returns no immediate frame.
+
+A remount can reuse the old node number. Check the object identity and make one event before you bind again.
+This detects an old listener that remains active after removal.
+
+The retained iPhone framework contains device and simulator code. Use the integrated Swift scheme on the simulator for this artifact.
+A macOS package test needs a framework with macOS code.

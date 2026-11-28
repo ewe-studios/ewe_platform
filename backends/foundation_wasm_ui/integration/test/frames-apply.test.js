@@ -308,6 +308,56 @@ test("shared dismiss and web composite install listeners once and release them",
   assert.deepEqual(reports,[]);
 });
 
+test("a shared binding stays local and remount starts a fresh binding", () => {
+  const {registry,doc,reports,apply} = setup();
+  const dismissed = [];
+  const mount = id => {
+    apply(operation("CreateNode",id,wire.NodeKind.STACK),operation("AppendChild",1,id));
+    const element = registry.get(id);
+    element.ownerDocument = doc.root;
+    element.querySelector = selector => selector === "[data-dismiss-action]" ? {
+      setAttribute() {},
+      click() { dismissed.push(element); },
+    } : null;
+    return element;
+  };
+  const sibling = mount(45);
+  const first = mount(44);
+  const bind = operation("UiBehaviour",44,wire.BehaviourId.DISMISS,[]);
+  apply(bind);
+  const escape = () => doc.root.dispatchEvent("keydown",{key:"Escape",preventDefault() {}});
+  escape();
+  assert.deepEqual(dismissed,[first]);
+
+  apply(operation("Remove",44));
+  escape();
+  assert.deepEqual(dismissed,[first]);
+  assert.equal(doc.root.listenerCount("pointerdown"),0);
+  assert.equal(registry.get(45),sibling);
+
+  const replacement = mount(44);
+  assert.notEqual(replacement,first);
+  escape();
+  assert.deepEqual(dismissed,[first]);
+  apply(bind);
+  escape();
+  assert.deepEqual(dismissed,[first,replacement]);
+  assert.deepEqual(reports,[]);
+});
+
+test("unknown shared and custom behaviours report their identity before a valid update", () => {
+  const {registry,reports,apply} = setup();
+  apply(operation("CreateNode",44,wire.NodeKind.TEXT),
+    operation("UiBehaviour",44,999,[]),
+    web("WebBehaviour",44,0,"fixture_unregistered",[]),
+    operation("SetText",44,"Still visible"));
+  assert.deepEqual(reports.map(({code,node,name}) => [code,node,name]), [
+    ["UnknownBehaviour",44,"999"],
+    ["UnknownBehaviour",44,"fixture_unregistered"],
+  ]);
+  assert.equal(registry.get(44).textContent,"Still visible");
+});
+
 test("external frame replacement disposes a real mounted Rust scope through WebAssembly", () => {
   const {doc} = setup();
   const frames = installFrameRuntime(ui,{document:doc,schedule:fn=>fn()});

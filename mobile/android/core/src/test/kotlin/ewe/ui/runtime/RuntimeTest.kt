@@ -428,6 +428,41 @@ class RuntimeTest {
     }
 
     @Test
+    fun knownBehaviourRemountKeepsTheSiblingUnchanged() {
+        val store = NodeStore(Clock())
+        val node = shared(UiOperation.CreateNode) { CreateNode.createCreateNode(it, 40u, NodeKind.STACK) }
+        val attach = shared(UiOperation.AppendChild) { AppendChild.createAppendChild(it, 1u, 40u) }
+        val bind = shared(UiOperation.UiBehaviour) {
+            UiBehaviour.createUiBehaviour(it, 40u, BehaviourId.DISMISS, 0)
+        }
+        assertTrue(store.receive(frame(
+            node, attach,
+            shared(UiOperation.CreateNode) { CreateNode.createCreateNode(it, 41u, NodeKind.STACK) },
+            shared(UiOperation.AppendChild) { AppendChild.createAppendChild(it, 1u, 41u) },
+            bind,
+        )))
+        val first = requireNotNull(store.record(40u))
+        val sibling = requireNotNull(store.record(41u))
+        assertEquals(setOf("DISMISS"), first.behaviours)
+        assertTrue(sibling.behaviours.isEmpty())
+
+        assertTrue(store.receive(frame(shared(UiOperation.Remove) { Remove.createRemove(it, 40u) })))
+        assertNull(store.record(40u))
+        assertEquals(listOf(41u), store.record(1u)!!.children)
+        assertSame(sibling, store.record(41u))
+
+        assertTrue(store.receive(frame(node, attach)))
+        val replacement = requireNotNull(store.record(40u))
+        assertNotSame(first, replacement)
+        assertTrue(replacement.behaviours.isEmpty())
+        assertTrue(store.receive(frame(bind)))
+        assertEquals(setOf("DISMISS"), replacement.behaviours)
+        assertSame(sibling, store.record(41u))
+        assertTrue(sibling.behaviours.isEmpty())
+        assertTrue(store.reports.isEmpty())
+    }
+
+    @Test
     fun everyWebMemberGetsAReport() {
         val fixture =
             requireNotNull(javaClass.getResource("/forms/frame_ops_all_forms.bin")).readBytes()

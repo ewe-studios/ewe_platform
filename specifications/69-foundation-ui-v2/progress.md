@@ -2599,3 +2599,15 @@ The owner accepts the extra Feature 12 commits and the additional Feature 16 sou
 All required behavior and test coverage still apply.
 The acceptance ledger inventories the 42 historical documentation cases and identifies the event and platform checks that remain.
 [Acceptance reconciliation](completion-audit.md#acceptance-reconciliation-28-november-2026)
+
+
+### Native action state and behavior regression checks on 2026-11-28
+
+The browser frame suite passes 28 tests. Two focused behavior checks fail when the test run disables cleanup and reverses reporting.
+The Swift package passes nine selected iPhone simulator tests. The Kotlin host passes both selected behavior tests.
+
+The action tests cover fresh attached state, an empty sibling attachment, and a later live frame after a nil immediate reply.
+The behavior tests cover sibling isolation, removal, remount, unknown identities, and the valid operation after those identities.
+
+[Feature 14 action state check](features/14-native-ios-renderer/feature.md#action-state-regression-check)
+[Feature 16 behavior checks](features/16-behaviour-matrix/feature.md#behaviour-dispatch-regression-checks)
