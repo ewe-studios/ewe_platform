@@ -2259,7 +2259,10 @@ The macOS Todo package test needs the locked WebAssembly binding tool.
 The workflow uses the planner's package names to select the tool setup.
 The Windows Todo shard also installs the WebAssembly target.
 The local plan selects the correct shards. The local setup exports wasm-bindgen 0.2.130.
-The next hosted run verifies the selected setup. [Issue 1195](https://github.com/ewe-studios/ewe_platform/issues/1195)
+The hosted macOS shard installs the pinned binding tool and passes 23 Todo tests.
+The Windows shard installs the same tool and the WebAssembly target.
+Issue 531 tracks the separate Windows server restriction.
+[macOS Todo test](https://github.com/ewe-studios/ewe_platform/actions/runs/46088801494/job/140813752856) · [Issue 1195](https://github.com/ewe-studios/ewe_platform/issues/1195)
 
 ## Release archive cycle check
 
