@@ -101,3 +101,30 @@ The run uses the reserved proof app slot. The original signed proof app is resto
 
 [Metal handoff test](../../../../mobile/ios/Tests/EweUITests/HostGraphicsTests.swift)
 [Issue 1265 tracks a permanent test host](https://github.com/ewe-studios/ewe_platform/issues/1265)
+
+### Repeat the Metal check on a physical iPhone
+
+A Swift package test uses the Xcode test tool as its host. A physical iPhone requires an application host.
+Add a small iOS test application and an application-hosted XCTest target in `mobile/ios/Tests/DeviceHost`.
+The application opens an empty window. It uses no Todo data or remote endpoint.
+Keep the existing Swift package test for the simulator.
+
+Use the local Apple package from the native Todo preparation task.
+Link the same EweUI product. Compile `HostGraphicsTests.swift` in the application-hosted test target.
+Copy the checked-in shader fixtures into the XCTest bundle. Select the bundle for the active build system in the fixture loader.
+Do not copy the Metal test or the shader text.
+
+Add a shared Xcode scheme that selects the physical Metal case.
+Document how to set the signing team, choose a separate scratch bundle identifier, and select the device.
+Document the preparation and test commands.
+Use a device-owned scratch application slot. Get approval before replacing any installed application.
+Do not use a production bundle identifier or a production Todo store.
+
+The physical run checks the original Apple Metal device, queue, and texture.
+It checks the transformed source, the presented pixel, compute output, and the lease release callback.
+Verify the same assertions on the simulator. Verify one signed physical run before closing issue 1265.
+Keep this test host out of release packaging.
+
+[Physical iPhone screen baseline](../23-native-design-and-themes/screenshots/iphone13-pro-debugger-resumed-todo-2026-11-28.png)
+[Physical XCTest result](#physical-iphone-metal-check-on-2026-11-28)
+[Metal host issue 1265](https://github.com/ewe-studios/ewe_platform/issues/1265)
