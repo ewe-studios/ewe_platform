@@ -39,7 +39,7 @@ echo "the build is ready: build/index.js and the container context"
 """
 
 [tasks.deploy]
-description = "Build and deploy the persistent ewe-sandbox-demo, then print its URL"
+description = "Build and deploy the demo, then print its URL. EWE_DEMO_NAME sets the Worker and container names."
 depends = ["build"]
 run = """
 set -euo pipefail
@@ -55,8 +55,32 @@ if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] && [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; th
     exit 2
 fi
 
+# `EWE_DEMO_NAME` names the Worker and its container. The temporary config keeps
+# a preview or user-interface deploy away from the persistent demo.
+config="wrangler.toml"
+worker_name="ewe-sandbox-demo"
+if [ -n "${EWE_DEMO_NAME:-}" ]; then
+    config="wrangler.deploy.toml"
+    worker_name="${EWE_DEMO_NAME}"
+    python3 - "${EWE_DEMO_NAME}" "${config}" <<'PY'
+import sys
+
+name, path = sys.argv[1], sys.argv[2]
+text = open("wrangler.toml", encoding="utf-8").read()
+text = text.replace('name = "ewe-sandbox-demo"', f'name = "{name}"', 1)
+text = text.replace('name = "ewe-sandbox-demo-container"', f'name = "{name}-container"', 1)
+open(path, "w", encoding="utf-8").write(text)
+PY
+fi
+cleanup_config() {
+    if [ "${config}" != "wrangler.toml" ]; then
+        rm -f "${config}"
+    fi
+}
+trap cleanup_config EXIT INT TERM
+
 set +e
-deploy_log=$(wrangler deploy --config wrangler.toml 2>&1)
+deploy_log=$(wrangler deploy --config "${config}" 2>&1)
 status=$?
 set -e
 printf '%s\\n' "${deploy_log}"
@@ -65,7 +89,7 @@ if [ "${status}" -ne 0 ]; then
 fi
 
 if [ -n "${OPENROUTER_API_KEY:-}" ]; then
-    printf '%s' "${OPENROUTER_API_KEY}" | wrangler secret put OPENROUTER_API_KEY --config wrangler.toml
+    printf '%s' "${OPENROUTER_API_KEY}" | wrangler secret put OPENROUTER_API_KEY --config "${config}"
 else
     echo "OPENROUTER_API_KEY is absent: the OpenRouter tab shows the missing secret" >&2
 fi
@@ -75,7 +99,7 @@ if [ -z "${url}" ]; then
     subdomain=$(wrangler whoami 2>/dev/null \
         | sed -nE 's/.*Workers\\.dev subdomain: *([A-Za-z0-9-]+).*/\\1/p' | head -1)
     if [ -n "${subdomain}" ]; then
-        url="https://ewe-sandbox-demo.${subdomain}.workers.dev"
+        url="https://${worker_name}.${subdomain}.workers.dev"
     fi
 fi
 if [ -n "${url}" ]; then

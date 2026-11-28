@@ -11,5 +11,7 @@
 /demo-model
 # The preview configuration that `test/live.sh` writes.
 /wrangler.preview.toml
+# The temporary configuration that `mise run deploy` writes when EWE_DEMO_NAME is set.
+/wrangler.deploy.toml
 # The logs of the local Worker.
 /wrangler-dev.log

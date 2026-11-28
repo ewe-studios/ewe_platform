@@ -86,6 +86,14 @@ Open it in a browser.
 
 `mise run deploy` is the whole redeploy. A later deploy keeps the secrets.
 
+To deploy another name, set `EWE_DEMO_NAME`. The task writes a temporary
+`wrangler.deploy.toml` with that name for the Worker and its container. It
+removes the file when it finishes. The persistent demo keeps its name.
+
+```bash
+EWE_DEMO_NAME=ewe-sandbox-demo-ui mise run deploy
+```
+
 ### Run the live proof
 
 ```bash
