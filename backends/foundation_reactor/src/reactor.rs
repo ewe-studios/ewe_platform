@@ -898,10 +898,12 @@ impl Reactor {
             .expect("entries lock poisoned")
             .get(&token)
         {
-            // Forget the last delivered read event. The kqueue selector
-            // suppresses a readable event when the fd's byte count did not
-            // grow, so a drained fd that receives a smaller frame produces no
-            // new edge until it is re-armed. A no-op on epoll and io_uring.
+            // Forget the last delivered pipe read event. The kqueue selector
+            // suppresses a readable pipe event when the byte count did not
+            // grow, so a drained pipe that receives a smaller frame produces no
+            // new edge until it is re-armed. Sockets are edge-triggered by the
+            // kernel and are not suppressed, so this is a no-op for them. It is
+            // also a no-op on epoll and io_uring.
             self.poll.rearm_readable(entry.fd);
             *entry.waker.lock().expect("waker lock poisoned") = Some(waker);
             true
