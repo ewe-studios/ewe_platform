@@ -23,16 +23,16 @@ related_specs: ["69-foundation-ui-v2", "52-tauri-foundation-platform", "91-windo
 
 ## Goal and scope
 
-Select the Zed GPUI snapshot with GPUI Kit Base for the first macOS, Windows and Linux prototype. Support the same Foundation UI application and action model on desktop.
+Use Tauri with the existing browser renderer for first product desktop delivery on the Web mount.
+Reuse application actions and browser frame application. See [Specification 52](../completed/52-tauri-foundation-platform/requirements.md) for the shell.
 
-Use one registry engine and the Base controls. Use GPUI Fast with the same Base controls if it fixes a required platform failure. Require the same release checks before adopting either engine.
-
-Use Tauri with the existing browser renderer if the owner accepts a Web mount. This option reuses the application actions and the browser frame applicator.
-The Native mount still uses the GPUI decision. See [Specification 52](../completed/52-tauri-foundation-platform/requirements.md) for the shell.
+Use two standalone toolkit examples to compare GPUI Fast and GPUI Kit. Review those results before considering a Native mount prototype.
+For that prototype, the baseline uses the Zed GPUI snapshot with GPUI Kit Base. GPUI Fast is an alternate engine.
+Require equivalent release checks before adopting either engine.
 
 The owner needs a desktop host that opens a window, applies Foundation UI frames, and sends events to the same Rust actions. The owner needs a support decision and cost comparison before the host takes a dependency on an external renderer. When a candidate fails a required platform check, the owner needs the failing case and the cost of the available fallback.
 
-The [desktop backend evaluation](features/01-backend-evaluation/feature.md) owns the source review, comparison, recommendation and acceptance gates. Specification 69 owns the wire format, runtime, WebView control and mobile hosts. Specification 52 owns the existing Tauri application shell. Specification 91 owns its Windows resource verification. The desktop implementation plan starts after Specification 69 closes and the owner approves the updated plan.
+The [desktop backend evaluation](features/01-backend-evaluation/feature.md) owns the source review, comparison, recommendation and acceptance gates. Specification 69 owns the wire format, runtime, WebView control and mobile hosts. Specification 52 owns the existing Tauri application shell. Specification 91 owns its Windows resource verification. The Native mount implementation plan starts after Specification 69 closes and the owner approves the updated plan.
 
 ## Architecture
 
@@ -50,10 +50,12 @@ The desktop host links the shared runtime to the selected platform renderer.
 
 | Feature | Owns | Status |
 | --- | --- | --- |
-| [01. Evaluate the desktop backend](features/01-backend-evaluation/feature.md) | Source review, decision and a later prototype | Source review complete. Prototype deferred. |
+| [01. Evaluate the desktop backend](features/01-backend-evaluation/feature.md) | Source review, toolkit examples and a later Native mount prototype | Source review complete. Toolkit example plan awaits approval. Native mount prototype deferred. |
+| [02. Run Todo in a Tauri desktop window](features/02-tauri-todo-check/feature.md) | First Web mount desktop check | macOS check complete. Other platform checks open. |
 
 ## Acceptance
 
 - The owner can identify the revision, dependency cost, control coverage and platform risks for each candidate.
-- The implementation gate requires Specification 69 closure and explicit approval of the updated plan.
+- The standalone toolkit examples require explicit approval of their plan and reference.
+- The Native mount prototype requires Specification 69 closure and explicit approval of its plan.
 - The same Foundation UI example exercises the shared contract on each desktop platform before production adoption.

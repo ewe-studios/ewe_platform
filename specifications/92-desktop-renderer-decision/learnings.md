@@ -15,3 +15,5 @@
 - The standalone Tauri shell can load the Todo service without a browser build inside the shell or a native command bridge.
 - A Todo development executable needs its matching staged browser resources. A cached executable can start when its browser bundle is absent.
 - The checked macOS WebView draws the Mathalley Train round and returns to the same Todo filter.
+- The GPUI Fast source uses the package names `gpui` and `gpui_platform`. Its compatibility packages use other names and versions.
+- GPUI Kit Base selects registry snapshot `0.3.14` by default. The toolkit example uses that snapshot with the reviewed Base source.
