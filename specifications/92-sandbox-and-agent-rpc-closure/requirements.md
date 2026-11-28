@@ -83,6 +83,8 @@ happens when they are absent (the test prints the reason and returns).
 - #908 part (b) lands: the DST `TestWorld` uses the real registry, and 32 seeds give the same
   trace twice.
 - The ten issues of feature 02 are closed.
+- #1107 and #756 are closed: `foundation_connectrpc` no longer depends on `foundation_auth`
+  (feature 05).
 
 ## 6. Order
 
