@@ -2674,3 +2674,13 @@ It stops the server, starts it on the same Unicode database path, and reads the 
 The same test passes on macOS.
 
 [Windows Todo process job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627669)
+
+### Nested workspace locks
+
+The hosted plan stops when Cargo rejects the first stale nested lock file.
+The local lock check passes all 37 tracked nested files after the repair.
+The hosted retry checks the database, HTTP, and Todo packages.
+The retry also checks the pinned tools on the hosted operating systems.
+
+[Lock issue](https://github.com/ewe-studios/ewe_platform/issues/1275)
+[Hosted retry](https://github.com/ewe-studios/ewe_platform/actions/runs/46149350659)

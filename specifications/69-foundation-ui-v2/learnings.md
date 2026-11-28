@@ -1983,3 +1983,11 @@ Start the production binary twice. Send a service request to the bound port each
 Keep Unix descriptor methods behind Unix build conditions. Windows uses the existing timer wait path.
 
 [Windows Todo issue](https://github.com/ewe-studios/ewe_platform/issues/1194)
+
+### Check every nested Cargo lock
+
+The standard plan stops at the first stale lock. Check all tracked lock files after merging changed dependency manifests.
+A workspace that stands alone cannot inherit dependencies from the outer workspace.
+Give the simulation workspace its actual local database path and retain its disabled default features.
+
+[Lock issue](https://github.com/ewe-studios/ewe_platform/issues/1275)

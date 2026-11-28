@@ -525,7 +525,7 @@ The Todo server test starts its production binary and reads a persisted Todo aft
 | File store, macOS | The six compiled targets pass 43 tests. The atomic write test passes on retry with its temporary directory on a volume with free space. |
 | Todo server, macOS | The local process test passes with the production binary. It sends a mutation over a loopback connection and checks the saved record after restart. |
 | Todo server, Windows | `30dadd7f8` passes the process test with the normal binary. It binds, writes, reads, restarts, and reads the saved record. [Job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627669) |
-| HTTP and Todo, Linux and macOS | The hosted run uses the source in `30dadd7f8` and selects the two standard package recipes. [Current run](https://github.com/ewe-studios/ewe_platform/actions/runs/46147420114) |
+| Current package and toolchain jobs | The first run stops at the nested lock check. The local project lock check passes all 37 tracked locks after the repair. The exact hosted package and tool results remain pending. [Plan failure](https://github.com/ewe-studios/ewe_platform/actions/runs/46147420114/job/140986436958) · [Retry](https://github.com/ewe-studios/ewe_platform/actions/runs/46149350659) |
 
 The preview commits change the workflow only after the listed source commits.
 The Windows workflow uses a short Cargo home and keeps the pinned Durable Streams Git revision.

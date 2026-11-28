@@ -1353,6 +1353,7 @@ dependencies = [
 name = "foundation_core"
 version = "0.0.23"
 dependencies = [
+ "base64",
  "bytes",
  "concurrent-queue",
  "derive_more",

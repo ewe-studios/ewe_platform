@@ -324,3 +324,8 @@ Keep the current application screens and captures. This work changes storage and
 - The four libSQL suites pass 13 tests with zero ignores. [Storage job](https://github.com/ewe-studios/ewe_platform/actions/runs/46146043319/job/140982229052)
 - Six file-store and caller suites pass 44 tests with zero ignores. [File-store job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627441)
 - The normal Todo process passes the bind, mutation, and restart test. [Todo job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627669)
+
+### Verify the nested workspace locks
+
+The hosted plan checks every tracked nested lock file. Refresh a lock when its manifest graph changes.
+Keep the existing crate pins where the new graph permits them. Check all nested locks before the platform rerun.
