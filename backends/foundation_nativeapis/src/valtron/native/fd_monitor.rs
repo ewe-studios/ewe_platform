@@ -3,11 +3,13 @@
 use std::io;
 use std::os::unix::io::AsRawFd;
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_context::Ctx;
-use foundation_core::valtron::{EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    EventReadiness, ReadinessInstant, ReadinessWaker, TaskIterator, TaskStatus,
+};
 
-use super::super::stop_signal::CompositeReadiness;
 use super::super::FdState;
 use super::super::StopSignal;
 use crate::native::fd::{PollResult, Ready, RegisteredFd};
@@ -78,6 +80,37 @@ impl<T: AsRawFd> FdMonitorTask<T> {
     }
 }
 
+/// Readiness a parked [`FdMonitorTask`] hands to the executor.
+///
+/// The executor requires a `Send + Sync` readiness pointer. `RegisteredFd<T>`
+/// is `Send + Sync` when `T` is, and `StopSignal` always is. This type keeps
+/// both as concrete fields, so the compiler proves the bound.
+struct FdMonitorReadiness<T: AsRawFd> {
+    fd: Arc<RegisteredFd<T>>,
+    stop: StopSignal,
+}
+
+impl<T: AsRawFd + Send + Sync> EventReadiness for FdMonitorReadiness<T> {
+    /// Ready when the fd is ready or the task was stopped.
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.fd.is_ready(dur) || self.stop.is_ready(dur)
+    }
+
+    fn deadline(&self) -> Option<ReadinessInstant> {
+        match (self.fd.deadline(), self.stop.deadline()) {
+            (Some(a), Some(b)) => Some(a.min(b)),
+            (a, b) => a.or(b),
+        }
+    }
+
+    /// Registers the waker with both signals; `true` only if both wake.
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let a = self.fd.register(waker);
+        let b = self.stop.register(waker);
+        a && b
+    }
+}
+
 impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
     type Ready = FdState;
     type Pending = ();
@@ -105,10 +138,10 @@ impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
                 let state = state.unwrap_or(FdState::Readable);
                 Some(TaskStatus::Ready(state))
             }
-            PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(CompositeReadiness::new(
-                Arc::clone(&self.fd) as Arc<dyn EventReadiness + Send + Sync>,
-                Arc::new(self.stop.clone()),
-            )))),
+            PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(FdMonitorReadiness {
+                fd: Arc::clone(&self.fd),
+                stop: self.stop.clone(),
+            }))),
             PollResult::Error(e) => {
                 tracing::error!("FdMonitorTask poll error: {}", e);
                 None
