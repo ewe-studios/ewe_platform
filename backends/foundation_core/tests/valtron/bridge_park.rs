@@ -28,9 +28,9 @@ use core::task::{Context, Poll, Waker};
 use futures_core::Stream as FuturesStream;
 
 use foundation_core::valtron::{
-    NotifyQueue, NotifyQueueStreamIterator, Stream, StreamCollectFuture, StreamIteratorExt,
-    StreamNextStream, StreamParkingFutureStream, StreamPendingFuture, StreamReadyFuture,
-    StreamSpread,
+    NotifyQueue, NotifyQueueStreamIterator, SendWakeCallback, Stream, StreamCollectFuture,
+    StreamIteratorExt, StreamNextStream, StreamParkingFutureStream, StreamPendingFuture,
+    StreamReadyFuture, StreamSpread, WakeCallback, WakeResult, WakeableStream,
 };
 
 // ============================================================================
@@ -550,4 +550,87 @@ fn future_stream_yields_spread_as_is() {
         "Spread yields without waking"
     );
     assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
+}
+
+// ============================================================================
+// (g) A driving stream that can make progress must not wake the host
+// ============================================================================
+
+/// A stream whose `next()` runs its producer and that reports it can make
+/// progress: the parking adapters re-drive it on `Wait`. Its wake is the queue
+/// wake, so it is a real wake the adapters can rely on.
+struct DrivingStream {
+    inner: NotifyQueueStreamIterator<usize, &'static str>,
+}
+
+impl Iterator for DrivingStream {
+    type Item = Stream<usize, &'static str>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+impl WakeableStream for DrivingStream {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        true
+    }
+
+    fn can_make_progress(&self) -> bool {
+        true
+    }
+}
+
+/// A driving stream with a real wake parks after its bounded re-drives. It must
+/// not call `cx.waker().wake_by_ref()`: that wake re-polls the host at once, so
+/// a stream that reports runnable work but produces nothing spins the host at
+/// 100% CPU.
+#[test]
+fn parking_future_stream_does_not_self_wake_a_driving_stream() {
+    let (iterator, queue) = waking_iter::<usize, &'static str>();
+    let mut stream = StreamParkingFutureStream::new(DrivingStream { inner: iterator })
+        .with_wait_redrive_budget(0);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    queue.push(Stream::Next(7)).unwrap();
+    assert_eq!(count.load(Ordering::SeqCst), 1, "the push woke the stream");
+    assert_eq!(
+        poll_next(&mut stream, &waker),
+        Poll::Ready(Some(Stream::Next(7)))
+    );
+}
+
+/// The same rule for the single-value future bridge: a driving stream with a
+/// real wake parks instead of waking the host again.
+#[test]
+fn ready_future_does_not_self_wake_a_driving_stream() {
+    let (iterator, queue) = waking_iter::<usize, &'static str>();
+    let mut future =
+        StreamReadyFuture::new(DrivingStream { inner: iterator }).with_wait_redrive_budget(0);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll(&mut future, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    queue.push(Stream::Next(9)).unwrap();
+    assert_eq!(count.load(Ordering::SeqCst), 1, "the push woke the future");
+    match poll(&mut future, &waker) {
+        Poll::Ready(Some((9, _))) => {}
+        Poll::Ready(_) | Poll::Pending => panic!("expected Ready(Some((9, _)))"),
+    }
 }
