@@ -511,7 +511,15 @@ fn e2e_cloudflare_two_sandboxes() {
         let control = client(Some(&token()));
         let first = create(&control, container_spec(), "the first create").await;
         let second = create(&control, container_spec(), "the second create").await;
+        // A write does not make missing parent directories. The relative path
+        // joins the workdir, so `/workspace/tmp` must exist first (issue #1154).
+        first
+            .run(SandboxCommand::new(["mkdir", "-p", "/workspace/tmp"]))
+            .await
+            .expect("the directory");
         write_file(&first, "tmp/a", b"first").await;
+        // The same relative path in the second sandbox names a missing file
+        // under its own workdir, so the read is `NotFound`.
         let result = second.read_file("tmp/a").await;
         assert!(
             result
