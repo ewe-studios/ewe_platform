@@ -455,6 +455,13 @@ impl WebSocketEchoServer {
         ),
         Box<dyn std::error::Error>,
     > {
+        // The listener is non-blocking, and macOS makes an accepted socket
+        // inherit that mode. The HTTP request reader does not retry
+        // `WouldBlock`: it treats "no bytes yet" as the end of the request and
+        // reports an incomplete request. Under load the client's request can
+        // arrive after the handler starts, so the server then closes a live
+        // connection. Read the request on a blocking socket instead.
+        stream.set_nonblocking(false)?;
         let conn = RawStream::from_tcp(stream.try_clone()?)?;
         let request_streams = http_streams::send::http_streams(conn);
         let request_reader = request_streams.next_request();
@@ -499,13 +506,9 @@ impl WebSocketEchoServer {
         // connection lifetime.
         stream.set_read_timeout(None)?;
 
-        // `read_http_request` parses the upgrade via foundation_netio's
-        // `http_streams`, whose request-intro task puts the connection into
-        // non-blocking mode. Because that reader runs on a `try_clone` of this
-        // stream, the non-blocking flag (a shared file-status flag) leaks back
-        // to this socket, so `decode_frame` below would get `WouldBlock` instead
-        // of waiting for the client's first frame. Restore blocking mode before
-        // the frame loop.
+        // `read_http_request` already put the socket in blocking mode and the
+        // flag is shared with its `try_clone`, so `decode_frame` below waits for
+        // the client's frames instead of failing with `WouldBlock`.
         stream.set_nonblocking(false)?;
 
         while running.load(Ordering::Relaxed) {
