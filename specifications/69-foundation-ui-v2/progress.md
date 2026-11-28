@@ -2413,7 +2413,7 @@ The generated application test fails to find embedded templates on Windows.
 The candidate uses slash names for template selection and keeps each original data key.
 All 12 packager tests pass on macOS. The eight application tests and strict packager Clippy pass.
 The Windows fixture checks backslash names, carriage return and line feed, and invalid entries.
-[Issue 1210](https://github.com/ewe-studios/ewe_platform/issues/1210) · [Windows candidate run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741)
+[Issue 1211](https://github.com/ewe-studios/ewe_platform/issues/1211) · [Windows candidate run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741)
 
 The separate packager test checks generated file paths with native path components.
 Its expected file lists and workspace member are the same.
@@ -2428,7 +2428,7 @@ The connection fixture now reads the full upgrade header and joins the endpoint 
 The raw socket close and idle timeout tests pass with the WebSocket client repair.
 All 20 default browser tests and strict Clippy pass on macOS.
 The next Windows browser run checks both fixture changes.
-[Fixture issue](https://github.com/ewe-studios/ewe_platform/issues/1211) · [Socket close issue](https://github.com/ewe-studios/ewe_platform/issues/1212)
+[Fixture issue](https://github.com/ewe-studios/ewe_platform/issues/1210) · [Socket close issue](https://github.com/ewe-studios/ewe_platform/issues/1212)
 
 ### Native WebSocket server shutdown
 
