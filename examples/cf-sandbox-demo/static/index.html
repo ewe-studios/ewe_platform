@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EWE sandbox and agent RPC demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --ink: #1d2330;
+        --muted: #5b6472;
+        --line: #d9dee6;
+        --accent: #2854c5;
+        --ok: #1f7a45;
+        --bad: #a52a2a;
+        --code: #0f1720;
+        --code-ink: #e8eef6;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #10141b;
+          --panel: #171d27;
+          --ink: #e7edf6;
+          --muted: #9aa6b8;
+          --line: #2a3444;
+          --accent: #7ea2ff;
+          --ok: #6fd49a;
+          --bad: #ff8a8a;
+          --code: #0a0d12;
+          --code-ink: #e8eef6;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif;
+      }
+      header { max-width: 980px; margin: 0 auto 12px; }
+      h1 { font-size: 1.35rem; margin: 0 0 4px; }
+      .muted { color: var(--muted); }
+      .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .count { font-size: 1.05rem; font-weight: 600; }
+      button {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--ink);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      button.primary { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+      button.danger { color: var(--bad); }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      input, textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--ink);
+        border-radius: 8px;
+        padding: 6px 8px;
+        font: inherit;
+      }
+      textarea { min-height: 54px; resize: vertical; }
+      .tabs { display: flex; flex-wrap: wrap; gap: 6px; max-width: 980px; margin: 0 auto 10px; }
+      .tab {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px 12px;
+        background: var(--panel);
+        cursor: pointer;
+        font: inherit;
+      }
+      .tab[aria-selected="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+      main { max-width: 980px; margin: 0 auto; }
+      section.panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .panel h2 { font-size: 1.05rem; margin: 0 0 2px; }
+      .badge {
+        display: inline-block;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 1px 8px;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .block { margin-top: 14px; }
+      .block h3 { font-size: 0.92rem; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+      pre.out {
+        background: var(--code);
+        color: var(--code-ink);
+        border-radius: 8px;
+        padding: 10px;
+        min-height: 42px;
+        max-height: 260px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 8px 0 0;
+        font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .status { min-height: 1.4em; }
+      .ok { color: var(--ok); }
+      .bad { color: var(--bad); }
+      .hidden { display: none; }
+      footer { max-width: 980px; margin: 22px auto 40px; font-size: 0.88rem; }
+      footer p { margin: 6px 0; }
+      @media (max-width: 520px) {
+        body { padding: 12px; }
+        .row > * { flex: 1 1 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Sandbox and agent RPC demo</h1>
+      <p class="muted">
+        Each sandbox is its own Durable Object with its own container. Each tab runs one
+        command console and one agent conversation, on its own model path.
+      </p>
+      <div class="row">
+        <span class="count" id="count">Running sandboxes: 0</span>
+        <button id="create-one" class="primary" type="button">Create one sandbox</button>
+        <button id="create-two" class="primary" type="button">Create two more</button>
+        <button id="destroy-all" class="danger" type="button">Destroy all</button>
+      </div>
+      <p class="status" id="status"></p>
+    </header>
+
+    <nav class="tabs" id="tabs" aria-label="Sandboxes"></nav>
+    <main id="panels"></main>
+
+    <footer>
+      <p>
+        The three model paths are Cloudflare Workers AI through the Worker's
+        <code>AI</code> binding, OpenRouter through the agent RPC catalog, and a model
+        server that runs inside the sandbox's own container and is reached over its
+        container port.
+      </p>
+      <p class="muted">
+        Local <code>wrangler dev</code> can run one container per Worker process
+        (issue #1221). This demo is a real deploy, so the extra sandboxes only work
+        on the deployed demo.
+      </p>
+    </footer>
+
+    <script type="module">
+      const MAX_TABS = 3;
+      const statusLine = document.getElementById("status");
+      const countLabel = document.getElementById("count");
+      const tabsNav = document.getElementById("tabs");
+      const panels = document.getElementById("panels");
+      const createOne = document.getElementById("create-one");
+      const createTwo = document.getElementById("create-two");
+      const destroyAll = document.getElementById("destroy-all");
+
+      let tabs = [];
+      let active = 0;
+
+      function setStatus(text, ok = true) {
+        statusLine.textContent = text;
+        statusLine.className = `status ${ok ? "ok" : "bad"}`;
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, options);
+        if (!response.ok && !response.body) {
+          const body = await response.text();
+          throw new Error(body || `status ${response.status}`);
+        }
+        return response;
+      }
+
+      async function json(path, options = {}) {
+        const response = await api(path, {
+          headers: { "content-type": "application/json" },
+          ...options,
+        });
+        return response.json();
+      }
+
+      async function readInto(response, target) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        target.textContent = "";
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          target.textContent += decoder.decode(value, { stream: true });
+        }
+        target.textContent += decoder.decode();
+      }
+
+      async function refresh() {
+        try {
+          const result = await json("/api/sandboxes");
+          tabs = result.sandboxes;
+          if (active >= tabs.length) active = Math.max(0, tabs.length - 1);
+          countLabel.textContent = `Running sandboxes: ${result.count} / ${result.max}`;
+          const full = result.count >= result.max;
+          createOne.disabled = full;
+          createTwo.disabled = result.count + 2 > result.max;
+          renderTabs();
+          renderPanels();
+        } catch (error) {
+          setStatus(`The sandbox list failed: ${error.message}`, false);
+        }
+      }
+
+      function renderTabs() {
+        tabsNav.replaceChildren();
+        tabs.forEach((tab, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "tab";
+          button.textContent = `Tab ${tab.index} — ${tab.model_label}`;
+          button.setAttribute("aria-selected", String(index === active));
+          button.addEventListener("click", () => {
+            active = index;
+            renderTabs();
+            renderPanels();
+          });
+          tabsNav.append(button);
+        });
+      }
+
+      function renderPanels() {
+        panels.replaceChildren();
+        const tab = tabs[active];
+        if (!tab) {
+          const section = document.createElement("section");
+          section.className = "panel";
+          section.textContent = "No sandbox runs. Create one to start.";
+          panels.append(section);
+          return;
+        }
+        panels.append(buildPanel(tab));
+      }
+
+      function el(tag, props = {}, children = []) {
+        const node = document.createElement(tag);
+        Object.assign(node, props);
+        for (const child of children) node.append(child);
+        return node;
+      }
+
+      function buildPanel(tab) {
+        const section = document.createElement("section");
+        section.className = "panel";
+
+        const head = el("div", { className: "row" }, [
+          el("h2", { textContent: `Tab ${tab.index} — ${tab.model_label}` }),
+          el("span", { className: "badge", textContent: `model: ${tab.model}` }),
+          el("span", { className: "badge", textContent: `sandbox: ${tab.id}` }),
+          el("span", { className: "badge", textContent: tab.state }),
+        ]);
+        const destroy = el("button", { type: "button", className: "danger", textContent: "Destroy this sandbox" });
+        destroy.addEventListener("click", async () => {
+          destroy.disabled = true;
+          try {
+            await json(`/api/sandboxes/${tab.id}`, { method: "DELETE" });
+            setStatus(`Sandbox ${tab.id} stopped.`);
+            await refresh();
+          } catch (error) {
+            setStatus(`The destroy failed: ${error.message}`, false);
+            destroy.disabled = false;
+          }
+        });
+        head.append(destroy);
+        section.append(head);
+
+        // Command console.
+        const command = el("input", { value: "uname -a" });
+        const run = el("button", { type: "button", className: "primary", textContent: "Run" });
+        const commandOut = el("pre", { className: "out" });
+        run.addEventListener("click", async () => {
+          run.disabled = true;
+          commandOut.textContent = "…";
+          try {
+            const response = await api(`/api/sandboxes/${tab.id}/exec`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ command: command.value }),
+            });
+            await readInto(response, commandOut);
+            setStatus(`Tab ${tab.index}: the command ended.`);
+          } catch (error) {
+            commandOut.textContent = `error: ${error.message}`;
+            setStatus(`Tab ${tab.index}: the command failed.`, false);
+          } finally {
+            run.disabled = false;
+          }
+        });
+        section.append(
+          el("div", { className: "block" }, [
+            el("h3", { textContent: "Command console" }),
+            el("div", { className: "row" }, [command, run]),
+            commandOut,
+          ]),
+        );
+
+        // File write and read.
+        const path = el("input", { value: "notes/hello.txt" });
+        const content = el("textarea", { value: `hello from tab ${tab.index}` });
+        const write = el("button", { type: "button", className: "primary", textContent: "Write" });
+        const read = el("button", { type: "button", textContent: "Read" });
+        const fileOut = el("pre", { className: "out" });
+        write.addEventListener("click", async () => {
+          try {
+            const result = await json(`/api/sandboxes/${tab.id}/file`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ path: path.value, content: content.value }),
+            });
+            fileOut.textContent = `wrote ${result.written} bytes to ${result.path}`;
+            setStatus(`Tab ${tab.index}: the file write ended.`);
+          } catch (error) {
+            fileOut.textContent = `error: ${error.message}`;
+            setStatus(`Tab ${tab.index}: the file write failed.`, false);
+          }
+        });
+        read.addEventListener("click", async () => {
+          try {
+            const response = await api(
+              `/api/sandboxes/${tab.id}/file?path=${encodeURIComponent(path.value)}`,
+            );
+            await readInto(response, fileOut);
+            setStatus(`Tab ${tab.index}: the file read ended.`);
+          } catch (error) {
+            fileOut.textContent = `error: ${error.message}`;
+            setStatus(`Tab ${tab.index}: the file read failed.`, false);
+          }
+        });
+        section.append(
+          el("div", { className: "block" }, [
+            el("h3", { textContent: "File write and read" }),
+            el("div", { className: "row" }, [path]),
+            content,
+            el("div", { className: "row" }, [write, read]),
+            fileOut,
+          ]),
+        );
+
+        // One agent turn.
+        const prompt = el("input", { value: "Say hello in one short sentence." });
+        const send = el("button", { type: "button", className: "primary", textContent: "Send" });
+        const answer = el("pre", { className: "out" });
+        send.addEventListener("click", async () => {
+          send.disabled = true;
+          answer.textContent = "…";
+          try {
+            const response = await api(`/api/sandboxes/${tab.id}/chat`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ prompt: prompt.value }),
+            });
+            answer.dataset.path = response.headers.get("x-ewe-model-path") || tab.model_path;
+            await readInto(response, answer);
+            setStatus(
+              `Tab ${tab.index}: the ${answer.dataset.path} turn ended.`,
+            );
+          } catch (error) {
+            answer.textContent = `error: ${error.message}`;
+            setStatus(`Tab ${tab.index}: the agent turn failed.`, false);
+          } finally {
+            send.disabled = false;
+          }
+        });
+        section.append(
+          el("div", { className: "block" }, [
+            el("h3", { textContent: `Agent turn — ${tab.model_path}` }),
+            el("div", { className: "row" }, [prompt, send]),
+            answer,
+          ]),
+        );
+
+        return section;
+      }
+
+      async function create(count) {
+        setStatus(`Creating ${count} sandbox${count === 1 ? "" : "es"}…`);
+        try {
+          const response = await api("/api/sandboxes", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ count }),
+          });
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let created = 0;
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              const event = JSON.parse(line);
+              if (event.event === "created") {
+                created += 1;
+                setStatus(`Created sandbox ${event.id} (${created} of ${count}).`);
+              } else if (event.event === "error") {
+                throw new Error(event.message);
+              } else if (event.event === "done") {
+                created = event.count;
+              }
+            }
+          }
+          setStatus(`Created ${created} sandbox${created === 1 ? "" : "es"}.`);
+          await refresh();
+        } catch (error) {
+          setStatus(`The create failed: ${error.message}`, false);
+          await refresh();
+        }
+      }
+
+      createOne.addEventListener("click", () => create(1));
+      createTwo.addEventListener("click", () => create(2));
+      destroyAll.addEventListener("click", async () => {
+        destroyAll.disabled = true;
+        try {
+          const result = await json("/api/sandboxes", { method: "DELETE" });
+          setStatus(`Stopped ${result.stopped} sandboxes.`);
+          active = 0;
+          await refresh();
+        } catch (error) {
+          setStatus(`The destroy all failed: ${error.message}`, false);
+        } finally {
+          destroyAll.disabled = false;
+        }
+      });
+
+      refresh();
+    </script>
+  </body>
+</html>
