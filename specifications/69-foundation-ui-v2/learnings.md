@@ -1991,3 +1991,10 @@ A workspace that stands alone cannot inherit dependencies from the outer workspa
 Give the simulation workspace its actual local database path and retain its disabled default features.
 
 [Lock issue](https://github.com/ewe-studios/ewe_platform/issues/1275)
+
+### Todo request logging
+
+The request target can include a raw query even when the HTTP parser supplies separate query fields.
+The shared logger now separates the path from the raw query before it formats the request line.
+It adds parsed query fields only when the caller enables them. Todo disables this option.
+The Todo binary installs its terminal tracing subscriber before it starts the server.

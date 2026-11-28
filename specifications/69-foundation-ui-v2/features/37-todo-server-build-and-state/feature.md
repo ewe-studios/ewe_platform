@@ -329,3 +329,14 @@ Keep the current application screens and captures. This work changes storage and
 
 The hosted plan checks every tracked nested lock file. Refresh a lock when its manifest graph changes.
 Keep the existing crate pins where the new graph permits them. Check all nested locks before the platform rerun.
+
+### Todo server request logging
+
+The native Todo server records each request when it arrives.
+The record contains the method, path, and client address when available.
+The Todo server omits query values, request headers, and request bodies.
+The terminal logger uses `RUST_LOG` when the operator sets it. The default shows request-arrival records.
+
+Verify that one scratch request produces one terminal record.
+Send synthetic query and header values. Verify that neither value appears in the log.
+The request log does not measure response time or status.

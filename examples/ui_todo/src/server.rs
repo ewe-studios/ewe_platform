@@ -5,7 +5,11 @@ use foundation_context::Ctx;
 use foundation_http::{
     get,
     native::serve::ServeFactory,
-    shared::{app::HttpApp, router::Router},
+    shared::{
+        app::HttpApp,
+        middleware::{LoggerConfig, LoggerMiddleware},
+        router::Router,
+    },
     Serve,
 };
 use foundation_ui_http::live_stream::StreamHandler;
@@ -84,6 +88,10 @@ pub fn app_with_context(
     let ctx = app.context().clone();
     let channels = services::install(&ctx, channel, store)?;
     register(&mut app.router, &ctx, channels)?;
+    app.middleware(LoggerMiddleware::new(LoggerConfig {
+        include_query: false,
+        ..LoggerConfig::default()
+    }));
     app.router
         .mount(StaticFileHandler::from_resources(PackagedResources))?;
     Ok(app)

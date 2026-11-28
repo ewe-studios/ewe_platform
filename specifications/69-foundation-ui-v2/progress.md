@@ -2684,3 +2684,13 @@ The retry also checks the pinned tools on the hosted operating systems.
 
 [Lock issue](https://github.com/ewe-studios/ewe_platform/issues/1275)
 [Hosted retry](https://github.com/ewe-studios/ewe_platform/actions/runs/46149350659)
+
+### Todo request-arrival logging
+
+The native Todo server uses the shared HTTP request logger.
+The terminal record contains the request method, path, and client address when available.
+The Todo configuration omits query values, headers, and bodies.
+The focused middleware suite passes four tests, including the enabled and disabled query settings.
+The isolated Todo terminal smoke test remains in progress.
+
+[Request logger issue 1084](https://github.com/ewe-studios/ewe_platform/issues/1084)

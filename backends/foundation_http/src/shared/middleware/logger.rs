@@ -161,7 +161,8 @@ impl Default for LoggerMiddleware {
 impl RequestMiddleware for LoggerMiddleware {
     fn handle(&self, _ctx: &Ctx, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let method = format!("{}", req.method);
-        let path = &req.request_url.url;
+        let target = req.request_url.url.as_str();
+        let path = target.split_once('?').map_or(target, |(path, _)| path);
 
         // Build log message
         let mut parts = Vec::new();
