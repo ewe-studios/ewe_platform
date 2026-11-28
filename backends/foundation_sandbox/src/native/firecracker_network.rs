@@ -68,6 +68,14 @@ pub const DEFAULT_GUEST_IP: Ipv4Addr = Ipv4Addr::new(169, 254, 169, 2);
 /// The default prefix length. A /30 holds exactly the two link addresses.
 pub const DEFAULT_PREFIX_LEN: u8 = 30;
 
+/// The type of an `ioctl` request number. The C libraries disagree: the GNU C library
+/// takes an unsigned long, and musl takes an int. Only a musl build shows the
+/// difference.
+#[cfg(target_env = "musl")]
+type IoctlRequest = libc::c_int;
+#[cfg(not(target_env = "musl"))]
+type IoctlRequest = libc::c_ulong;
+
 /// The descriptor number that carries frames between the helper and this process.
 pub const FRAME_DESCRIPTOR: i32 = 3;
 
@@ -847,9 +855,9 @@ fn create_tap(name: &str, mtu: u32) -> std::io::Result<()> {
     /// Do not prepend the packet information header.
     const IFF_NO_PI: libc::c_short = 0x1000;
     /// The `ioctl` that creates or attaches a TAP device.
-    const TUNSETIFF: libc::c_ulong = 0x4004_54ca;
+    const TUNSETIFF: IoctlRequest = 0x4004_54ca;
     /// The `ioctl` that keeps a TAP device after its last descriptor closes.
-    const TUNSETPERSIST: libc::c_ulong = 0x4004_54cb;
+    const TUNSETPERSIST: IoctlRequest = 0x4004_54cb;
 
     let interface = kernel_name(name)?;
     // SAFETY: the path and flags are valid for `open`.
@@ -889,11 +897,11 @@ fn create_tap(name: &str, mtu: u32) -> std::io::Result<()> {
 /// requests go to an `AF_INET` socket.
 fn set_interface_up_and_mtu(name: [libc::c_char; libc::IFNAMSIZ], mtu: u32) -> std::io::Result<()> {
     /// The `ioctl` that reads the interface flags.
-    const SIOCGIFFLAGS: libc::c_ulong = 0x8913;
+    const SIOCGIFFLAGS: IoctlRequest = 0x8913;
     /// The `ioctl` that sets the interface flags.
-    const SIOCSIFFLAGS: libc::c_ulong = 0x8914;
+    const SIOCSIFFLAGS: IoctlRequest = 0x8914;
     /// The `ioctl` that sets the interface MTU.
-    const SIOCSIFMTU: libc::c_ulong = 0x8922;
+    const SIOCSIFMTU: IoctlRequest = 0x8922;
     /// The flag that makes an interface active.
     const IFF_UP: libc::c_short = 0x1;
 
