@@ -2611,3 +2611,14 @@ The behavior tests cover sibling isolation, removal, remount, unknown identities
 
 [Feature 14 action state check](features/14-native-ios-renderer/feature.md#action-state-regression-check)
 [Feature 16 behavior checks](features/16-behaviour-matrix/feature.md#behaviour-dispatch-regression-checks)
+
+### libSQL 0.10 storage verification
+
+Commit `e21414550` pins the workspace to one libSQL version, 0.10.0.
+The locked user acceptance test (UAT) profile passes 13 libSQL tests on macOS.
+The tests cover key-value data, state, batches, and documents.
+The hosted Windows run selects the same four suites with only the libSQL feature.
+The preview commit changes only the test workflow.
+
+[Hosted Windows storage run](https://github.com/ewe-studios/ewe_platform/actions/runs/46144926975)
+[Todo server platform plan](features/37-todo-server-build-and-state/feature.md#windows-storage-and-server-completion)

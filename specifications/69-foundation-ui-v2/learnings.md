@@ -1937,3 +1937,11 @@ This detects an old listener that remains active after removal.
 
 The retained iPhone framework contains device and simulator code. Use the integrated Swift scheme on the simulator for this artifact.
 A macOS package test needs a framework with macOS code.
+
+### Keep one libSQL dependency
+
+The older libSQL versions came from runtime and test dependencies.
+Use the workspace alias for both. Keep local tests on the core feature when they need no network.
+Select the four libSQL test targets directly to verify the upgrade on Windows while the file store opt-out applies.
+
+[Hosted Windows storage run](https://github.com/ewe-studios/ewe_platform/actions/runs/46144926975)
