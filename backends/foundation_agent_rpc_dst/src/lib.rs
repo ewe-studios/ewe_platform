@@ -22,24 +22,21 @@ use foundation_agent_rpc::core::model::{
     ModelCatalog, ModelDescriptor, ModelHandle, ModelKind, ModelRequest,
 };
 use foundation_agent_rpc::core::registry::{
-    InMemoryStores, InstanceInfo, InstanceRegistry, LocalInstanceRegistry, ScopePolicy,
-    SessionStores,
+    InMemoryStores, InstanceInfo, InstanceRegistry, LocalInstanceRegistry, SessionStores,
 };
 use foundation_agent_rpc::core::service::AgentRpcService;
 use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::proto::v1::agent_service::{register_agent_service, AgentServiceClient};
 use foundation_agent_rpc::proto::v1::{
-    CreateInstanceRequest, DestroyInstanceRequest, EnrollRequest, EnrollResponse, HealthRequest,
-    HealthResponse, InstanceInfo as WireInstanceInfo, ListInstancesRequest, ListInstancesResponse,
-    TurnEvent,
+    ChatRequest, CreateInstanceRequest, DestroyInstanceRequest, EnrollRequest, EnrollResponse,
+    HealthRequest, HealthResponse, InstanceInfo as WireInstanceInfo, ListInstancesRequest,
+    ListInstancesResponse, TurnEvent,
 };
 use foundation_agent_rpc::{AgentRpcError, AgentRpcResult};
 use foundation_ai::agentic::testing::{mock_text, MockModelProvider};
 use foundation_ai::agentic::KvMemoryStore;
 use foundation_ai::types::SessionId;
-use foundation_auth::client_auth::{
-    AccessPolicy, AuthMethod, ClientAuth, Principal, SignedSecretAuth,
-};
+use foundation_auth::client_auth::{AccessPolicy, ClientAuth, SignedSecretAuth};
 use foundation_auth::secret::{
     SecretDomain, SecretIssuer, SecretVerifier, SigningKey, VerifyPolicy,
 };
@@ -48,7 +45,7 @@ use foundation_compact::Duration;
 use foundation_connectrpc::shared::auth::ClientAuthInterceptor;
 use foundation_connectrpc::testing::{MemNetwork, MemTransport};
 use foundation_connectrpc::{
-    ClientOptions, ConnectError, ConnectResult, Interceptor, Request, Router, RpcCtx, Transport,
+    ClientOptions, ConnectResult, Interceptor, Request, Router, RpcCtx, Transport,
 };
 use foundation_context::Ctx;
 use foundation_core::valtron::sim::SimRuntime;
@@ -163,11 +160,6 @@ pub struct TestWorld<'a> {
     default_access: String,
     trust: Arc<TrustedClients>,
     service: Arc<AgentRpcService>,
-    /// The registry that the service serves. A turn calls it directly: a
-    /// client streaming call spawns a reader task on the simulated engine, and
-    /// a turn driven inside that task never sees the engine report no work
-    /// (the reader task counts itself as runnable).
-    registry: Arc<dyn InstanceRegistry>,
 }
 
 impl std::fmt::Debug for TestWorld<'_> {
@@ -243,7 +235,6 @@ impl<'a> TestWorld<'a> {
             default_access: default.access_secret,
             trust,
             service,
-            registry,
         }
     }
 
@@ -420,7 +411,6 @@ impl<'a> TestWorld<'a> {
             .with_header(SimpleHeader::AUTHORIZATION, format!("Bearer {access}"));
         TestClient {
             sim: self.sim,
-            registry: Arc::clone(&self.registry),
             transport: Arc::clone(&self.transport),
             url: self.url.clone(),
             options,
@@ -449,11 +439,10 @@ impl std::task::Wake for ThreadWake {
 
 /// Drive `future` on this thread and run the simulated engine between polls.
 ///
-/// The client must not be a task of the simulated engine. A turn drives that
-/// engine itself, and a task that is only parked on the response still counts
-/// as runnable work, so the driven loop would not stop (`foundation_core`
-/// `run_until`, issue #1128). This driver keeps the client outside the engine
-/// and pumps the engine only while the client waits.
+/// The client stays outside the engine. It pumps the engine only while it
+/// waits, so a call has no task of its own. A streaming call still spawns its
+/// reader task inside the engine, and the turn runs and drives the engine from
+/// that task (a nested drive, issue #1128).
 fn drive<F: std::future::Future>(sim: &SimRuntime, future: F) -> F::Output {
     let waker = std::task::Waker::from(Arc::new(ThreadWake(std::thread::current())));
     let mut cx = std::task::Context::from_waker(&waker);
@@ -474,7 +463,6 @@ fn drive<F: std::future::Future>(sim: &SimRuntime, future: F) -> F::Output {
 /// Sync calls over one simulated client.
 pub struct TestClient<'a> {
     sim: &'a SimRuntime,
-    registry: Arc<dyn InstanceRegistry>,
     transport: Arc<dyn Transport>,
     url: String,
     options: ClientOptions,
@@ -552,37 +540,29 @@ impl TestClient<'_> {
         .map(|_| ())
     }
 
-    /// `ChatStream`, collected into a vector of events.
+    /// `ChatStream` through the real `ConnectRPC` client, collected into a
+    /// vector of events.
     ///
-    /// The turn calls the real registry directly. The client streaming path
-    /// spawns a reader task on the simulated engine; a turn driven inside that
-    /// task never sees the engine report no work, because the reader task
-    /// counts itself as runnable (issue #1128). The registry, the turn guard
-    /// and the session are the same production code in both paths.
+    /// The call goes through the client, the in-memory network and the agent
+    /// service, so the client reader task, the turn guard and the session are
+    /// the production code. The reader task drives the turn (a nested drive);
+    /// `foundation_core` stops the drive when only the reader task is left
+    /// (issue #1128).
     ///
     /// # Errors
     /// The call error.
     pub fn chat_stream(&self, instance: &str, prompt: &str) -> ConnectResult<Vec<TurnEvent>> {
-        let registry = Arc::clone(&self.registry);
-        let caller = ScopePolicy::Shared.caller(Principal {
-            subject: "dst-client".into(),
-            method: AuthMethod::Insecure,
-            roles: Vec::new(),
-        });
-        let instance = instance.to_string();
-        let prompt = prompt.to_string();
+        let client = self.build();
+        let request = ChatRequest {
+            instance: instance.into(),
+            prompt: prompt.into(),
+            ..Default::default()
+        };
         drive(self.sim, async move {
-            let mut stream = registry
-                .start_turn(&caller, &instance, prompt)
-                .await
-                .map_err(|error| -> ErrorTrace<ConnectError> {
-                    error.current_context().clone().into()
-                })?;
+            let mut stream = client.chat_stream(rpc(), Request::new(request)).await?;
             let mut events = Vec::new();
-            while let Some(event) = futures::StreamExt::next(&mut stream).await {
-                events.push(event.map_err(|error| -> ErrorTrace<ConnectError> {
-                    error.current_context().clone().into()
-                })?);
+            while let Some(event) = stream.receive().await? {
+                events.push(event);
             }
             Ok(events)
         })

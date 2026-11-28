@@ -1443,7 +1443,6 @@ dependencies = [
  "foundation_db",
  "foundation_errstacks",
  "foundation_netio",
- "futures",
 ]
 
 [[package]]
