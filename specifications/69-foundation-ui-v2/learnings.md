@@ -1796,3 +1796,7 @@ Retire a live TCP read at end of stream. Keep caller-fed empty chunks as pending
 Verify the release environment and credential names before creating a trigger tag.
 Use the downloaded manifest to reproduce the Swift checksum commit in a separate checkout.
 The staged archive can test consumers while the public package endpoints remain empty.
+
+The browser lint command checks its own package with `--no-deps`.
+Run the NetIO package lint to check its public redirect policy.
+Its independent options keep their existing types and defaults.

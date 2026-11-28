@@ -11,10 +11,12 @@ use super::proxy;
 
 /// Redirect-handling policy.
 ///
-/// Grouped into its own struct so the boolean toggles that govern redirect
-/// behaviour live in one cohesive place (and keep `ClientConfig`'s boolean
-/// field count manageable).
+/// Select each redirect policy independently.
 #[derive(Debug, Clone)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "Each flag controls a separate public redirect policy."
+)]
 pub struct RedirectConfig {
     /// Preserve the `Authorization` header when following a cross-host redirect.
     pub preserve_auth_on_redirect: bool,

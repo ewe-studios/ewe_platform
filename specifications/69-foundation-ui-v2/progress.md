@@ -2437,3 +2437,11 @@ The server now retires the connection after raw end of stream.
 It still parks on a would-block or timeout result. A received Close frame still drains the task.
 The 176 focused WebSocket tests pass with both socket paths.
 [Issue 1214](https://github.com/ewe-studios/ewe_platform/issues/1214)
+
+### NetIO redirect policy lint
+
+The NetIO package requires strict Clippy for its default and QUIC feature sets.
+Both commands and the default build check pass on macOS.
+The default suite passes 1,340 tests and records two existing ignored documentation tests.
+The lint exception applies only to the four independent options in `RedirectConfig`.
+[Issue 1213](https://github.com/ewe-studios/ewe_platform/issues/1213)
