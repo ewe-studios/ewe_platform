@@ -646,6 +646,19 @@ impl Reactor {
         interest: Interest,
     ) -> io::Result<()> {
         let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
+        // The selector keeps one entry per descriptor, and the latest
+        // registration owns it (see the mapping below). Remove any earlier entry
+        // first: epoll rejects a second `ADD` of one descriptor with `EEXIST`
+        // (Linux), while kqueue replaces the token silently. Several layers
+        // register one connection descriptor: the HTTP server's idle reader and
+        // writer, and the RPC connection driver.
+        if let Err(error) = self.registry.deregister_fd(fd) {
+            // `ENOENT` means the selector holds no entry. `EBADF` means the
+            // descriptor is already closed. Both leave nothing to replace.
+            if !matches!(error.raw_os_error(), Some(libc::ENOENT) | Some(libc::EBADF)) {
+                return Err(error);
+            }
+        }
         self.registry.register_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
