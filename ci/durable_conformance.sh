@@ -72,7 +72,11 @@ else
 fi
 
 echo "== server conformance =="
-DURABLE_ADDR="127.0.0.1:${PORT}" "$ROOT/target/debug/examples/durable_server" &
+# Keep the adapter's own debug lines in the job log. When the SSE close case
+# hangs (issue #1246), the last "durable sse ... ended" line names the stuck
+# step (read, data write, control write or flush). Only our crate logs.
+DURABLE_ADDR="127.0.0.1:${PORT}" DURABLE_LOG="foundation_http=debug" \
+  "$ROOT/target/debug/examples/durable_server" &
 SERVER_PID=$!
 
 for _ in $(seq 1 100); do
