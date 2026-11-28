@@ -1832,3 +1832,10 @@ Keep the discovered checkout path for child processes. Keep canonical paths for 
 Use a native help definition for the prepare task.
 Keep the existing error for calls that request the web target.
 Verify both command help pages and the application tests.
+
+## Application operations manuals
+
+The generator exposes application tasks from the local manifest.
+A task in the Rust package also needs a manifest declaration before the generator can expose it.
+The native preview artifact contains unsigned packages. The protected tag job signs its own verified candidate.
+[Issue 1216](https://github.com/ewe-studios/ewe_platform/issues/1216) · [Native release workflow](../../.github/workflows/native-ui-release.yml)

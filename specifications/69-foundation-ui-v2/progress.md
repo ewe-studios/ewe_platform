@@ -2487,3 +2487,10 @@ The legacy prepare command for web still returns the native target error.
 All nine application tests pass. Strict Clippy passes for all application targets.
 The composition test keeps every file assertion and extracts its iPhone checks.
 [Help issue 1207](https://github.com/ewe-studios/ewe_platform/issues/1207) · [Test lint issue 1215](https://github.com/ewe-studios/ewe_platform/issues/1215)
+
+## Application operations manuals
+
+The command manuals cover generated builds, Todo tasks, native packages, and the browser runtime release.
+The native publication manual records the organization signing secret and the repository fingerprint variable.
+The documented Android game check needs its manifest declaration.
+[Operations manuals](../../bin/ewe_ui/docs/README.md) · [Issue 1216](https://github.com/ewe-studios/ewe_platform/issues/1216)

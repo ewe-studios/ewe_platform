@@ -3,6 +3,7 @@
 The native user interface (UI) release contains a Swift package and three Maven modules.
 Both packages use the same Rust core and the same wire schema.
 A candidate is the set of files that the release job verifies before publication.
+For the preview, approval, and public checks, see the [publishing manual](../../../bin/ewe_ui/docs/operations/publishing.md).
 
 | Term | Meaning |
 |---|---|
@@ -61,14 +62,14 @@ Omit `--local-package` to test the published Swift package. The script removes i
 ## Publish one version
 
 Push the approved monorepo commit before creating the release tag.
-Protect the `native-ui-release` environment in GitHub. Configure these environment secrets.
+Protect the `native-ui-release` environment in GitHub. Configure these GitHub Actions inputs.
 
-| Setting | Purpose |
-|---|---|
-| `NATIVE_RELEASE_TOKEN` | Create the GitHub release and the Swift version tag in ewe_platform. |
-| `NATIVE_GPG_PRIVATE_KEY` | Sign each Maven publication file using an isolated OpenPGP keyring. |
-| `NATIVE_GPG_FINGERPRINT` (environment variable) | Select the signing key. |
-| `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | Authenticate with a Central Portal user token for the verified Maven namespace. |
+| Setting | Location | Purpose |
+|---|---|---|
+| `NATIVE_RELEASE_TOKEN` | `native-ui-release` environment secret | Create the GitHub release and Swift version tag in ewe_platform. |
+| `NATIVE_GPG_PRIVATE_KEY` | Organization secret with access for `ewe-studios/ewe_platform` | Import the armored OpenPGP private key into the isolated signing keyring. |
+| `NATIVE_GPG_FINGERPRINT` | Repository variable | Select the signing key by its full fingerprint. |
+| `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | `native-ui-release` environment secrets | Authenticate with a Central Portal user token for the verified Maven namespace. |
 
 Run the manual workflow to build a read-only preview. A tag such as `native-ui-v0.1.1` runs the protected publication job.
 Keep the signed workflow artifact for a retry. The release command compares each existing tag and asset before writing.

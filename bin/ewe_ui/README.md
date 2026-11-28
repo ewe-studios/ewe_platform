@@ -1,5 +1,7 @@
 # Create an Ewe user interface application
 
+[Operations manuals](docs/README.md) cover running, building, and publishing.
+
 Run `ewe_ui new` in a terminal. Enter the application name and select its targets.
 Use the arrow keys to move. Press Space to select a target. Press Escape to cancel.
 
