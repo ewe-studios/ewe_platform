@@ -825,11 +825,6 @@ windows-tests = "none"
 windows-reason = "Known bug on Windows: #526: the cmake configure step of the llama.cpp build fails. Remove this opt-out when the issue is fixed."
 
 
-[packages.foundation_packager]
-# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
-windows-tests = "none"
-windows-reason = "Known bug on Windows: #527: tests compare paths with '/' separators. Remove this opt-out when the issue is fixed."
-
 [packages.foundation_toolings]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 windows-tests = "none"
