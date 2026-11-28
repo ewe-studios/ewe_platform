@@ -1917,3 +1917,10 @@ A successful simulator boot does not prove that Xcode can resolve the destinatio
 The release tag can produce a different archive from an earlier preview at the same commit.
 Verify the archive against the manifest from that tag run before publication.
 [Unsigned tag candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/artifacts/15259881520)
+
+## Acceptance reconciliation
+
+The Feature 12 historical count matches 41 ignored macro examples and one ignored signal example.
+The aggregate alone cannot verify a specific ignored snippet.
+Match hosted results to the package source, selected dependency graph, toolchain, and test recipe before reusing them.
+[Acceptance reconciliation](completion-audit.md#acceptance-reconciliation-28-november-2026)

@@ -433,7 +433,7 @@ The repository retains existing ignored fixtures and manifest warnings. The chec
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [x] The evidence table is in `progress.md`, with every gate item passed, dated before the
       first deletion commit.
-- [ ] The four steps are four commits, in order.
+- [x] The owner accepts the additional migration commits. The required behavior still needs passing tests.
 - [x] No item of the "Outside (must not change)" table was removed.
 - [ ] No test was skipped or weakened.
 - [ ] The check list of the `story-driven-specification` skill passes.

@@ -25,13 +25,13 @@ The 36 indexed features and their verified scenarios remain in the checkpoints.
 | Physical iPhone launch and VoiceOver | Verify the first launch, Delete action activation, and countdown announcements on an authorized iPhone. The simulator evidence records splash artwork, speech, and modal focus. [Launch issue 831](https://github.com/ewe-studios/ewe_platform/issues/831) · [Speech issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168) |
 | Physical graphics and sound, Features 34 through 36 | Verify device presentation and transfer of the host texture on physical mobile hardware. The owner hears game sound on both phones. Verify the output route, each cue, mute, and interruption. Emulator evidence includes the 2400 by 1080 play and return and about 40 decibels of attenuation. Watch the intermittent focus failure on the next applicable run. [Physical results table](#mobile-release-and-graphics-evidence) · [Issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146) |
 
-### Recorded historical clauses for owner decision
+### Recorded historical clauses and decisions
 
 | Clause | Evidence and decision |
 |---|---|
-| Feature 12 section 10 requires four commits and no skipped or weakened tests. | The dated record shows more than four commits and 42 ignored tests. The original HTTP verification was focused. Keep the historical facts and record approval for those exceptions. Complete current warning-free affected recipes and preserve both retained textual references to removed types as listed below. [Feature 12 criteria](features/12-legacy-wire-retirement/feature.md#10-done-when) |
+| Feature 12 section 10 requires four commits and no skipped or weakened tests. | The dated record shows more than four commits and 42 ignored tests. The original HTTP verification was focused. The owner accepts the extra commits. The ignored cases and warning-free coverage still need evidence. [Feature 12 criteria](features/12-legacy-wire-retirement/feature.md#10-done-when) |
 | Feature 14 section 10 leaves the command, per-scenario, and story checklist unsigned. | Use the Swift host, integrated simulator, and scenario results below. Feature 21 supersedes the sibling Swift package path. Record the integrated command mapping after the affected verification. [Feature 14 criteria](features/14-native-ios-renderer/feature.md#10-done-when) |
-| Feature 16 section 10 requires identical behavior logic and a marker-only source diff. | All 14 JavaScript bodies match across `dd15675cf`. The change also updates imports, string delimiters, and scope. Record explicit acceptance of that larger source diff. Keep the scenario and command checks. [Feature 16 criteria](features/16-behaviour-matrix/feature.md#10-done-when) |
+| Feature 16 section 10 requires identical behavior logic and a marker-only source diff. | All 14 JavaScript bodies match across `dd15675cf`. The change also updates imports, string delimiters, and scope. The owner accepts those additional edits. Keep the scenario and command checks. [Feature 16 criteria](features/16-behaviour-matrix/feature.md#10-done-when) |
 | D48 and the older mobile features describe a rejected second Delete. | Feature 32 makes repeat requests for the same deletion safe. The current browser and Android checks require successful repeat deletion. An unknown record still returns an error. Record the later acceptance contract against the older wording. [D48](requirements.md#2-decisions) · [Feature 32 deletion](features/32-portable-view-targets/feature.md#optimistic-deletion) |
 
 Use the [scenario records](#unsigned-feature-12-14-and-16-checks) with the Story-Driven Specification checklist.
@@ -45,6 +45,60 @@ The checklist requires a test with a named observable result for each invariant 
 - Keep the explicit public-directory handler override and focused Chromium Enter replay follow-ups open. Feature 37 proves the generated asset override and direct browser interaction. [Issue 1156](https://github.com/ewe-studios/ewe_platform/issues/1156) · [Issue 1192](https://github.com/ewe-studios/ewe_platform/issues/1192)
 - The strict Foundation WebAssembly default and web gates cover the fixed warnings. The broader embedded runtime testbed matrix belongs to the follow-up. The repository time-source guard has its separate continuous integration issue. [Issue 598](https://github.com/ewe-studios/ewe_platform/issues/598) · [Issue 1094](https://github.com/ewe-studios/ewe_platform/issues/1094) · [Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180)
 - The workspace dependency check passes without warnings. The manifest removed `reqwest` and `fs_extra` in `4098f8259`. The code generator inherits `anyhow` from the workspace. [Issue 596](https://github.com/ewe-studios/ewe_platform/issues/596)
+
+## Acceptance reconciliation, 28 November 2026
+
+The owner accepts the extra Feature 12 commits and the Feature 16 import, delimiter, and scope changes.
+Both decisions retain the required behavior and passing tests.
+The records below distinguish what the tests prove from the remaining checks.
+
+### Feature 12 ignored cases
+
+The final record at `04561dcdd` gives an aggregate of 42 ignored tests.
+The source at that revision contains 41 ignored Rust documentation examples in the macro crate and one in signals.
+The same 42 fences precede retirement in the parent of `dd15675cf`.
+The original record has no per-test output. Matching the aggregate to these source fences is an inference.
+
+| Source in the recorded revision | Cases | Verification or missing proof |
+| --- | ---: | --- |
+| `foundation_macros/src/lib.rs` | 30 | Public macro examples. Named integration fixtures cover schema, embedding, state tasks, service declarations, and the WebAssembly entry point. The exact snippets still need an executable check or an individual equivalent. |
+| `foundation_macros/src/html_macro/mod.rs` | 1 | The shared Todo layouts and WebAssembly frame fixtures exercise HTML lowering. The documentation snippet remains ignored. |
+| `foundation_macros/src/platform_test.rs` | 1 | The example declares a platform test. The aggregate provides no separate result for this snippet. |
+| `foundation_macros/src/theme_tokens.rs` | 1 | The themed package and example checks exercise generated tokens. The documentation snippet remains ignored. |
+| `foundation_macros/src/type_uuid.rs` | 2 | Both examples illustrate type attributes. The aggregate provides no results for the exact forms. |
+| `foundation_macros/src/valtron_entry.rs` | 3 | The examples use Valtron entry points. The aggregate provides no results for the three exact forms. |
+| `foundation_macros/src/wasm_logs.rs` | 1 | The example documents WebAssembly log setup. The aggregate provides no separate result for this snippet. |
+| `foundation_macros/src/wasm_test.rs` | 2 | Both examples document WebAssembly test setup. The aggregate provides no results for the two exact forms. |
+| `foundation_signals/src/context.rs` | 1 | The macro and signal fixtures exercise callback dispatch. The ignored example still needs an exact test for its HTML button and state update. |
+
+The historical run of the WebAssembly host tests does not cover two ignored examples in the separate WebAssembly UI crate.
+The no-skip and no-weaken clause remains open. The removed operation tests also require an equivalence check against their replacements.
+[Historical source](https://github.com/ewe-studios/ewe_platform/tree/04561dcddab7c78a91180378e0cc8d65fc4e02db) · [Final migration record](progress.md#feature-12-final-verification-and-feature-19-local-candidate)
+
+### Features 14, 16, and 32
+
+| Requirement | Verified result | Remaining proof |
+| --- | --- | --- |
+| Feature 14 integrated command path | The tag preview uses `native:bindings:sync-ios --check`, `native:release:prepare`, `native:release:verify`, and `native:todo:test-ios`. These perform the checks that the former sibling package commands described. The Swift package passes 30 tests. The iPhone Todo suites pass 11 and skip six. | Keep the original warning-free clause open for the remaining command and dependency checks. Public resolution belongs to Feature 19. |
+| Feature 14 stored frames and channel lifecycle | `ConformanceTests` checks tree, column, replacement, known behavior, and native snapshots. `RendererTests` checks malformed input, row continuation, one capabilities callback, observation, and channel resume. `MobileOperationTests` checks mount and command handling. | Map any skipped simulator tests to their fixtures. Cover the exact event scenarios that the existing tests do not assert. |
+| Feature 14 event state | `testEventUsesStateOnControlAndReportsFailure` checks the control state, the parent identity, and an unbound tap. `testCustomSignedStateSurvivesWireAndAction` checks the signed bytes in a fixed frame and request. | The fixed request does not prove a second tap uses a fresh attachment. Verify changed attachment, empty child state, and nil immediate reply with a later socket frame. |
+| Feature 16 shared dispatch | The targeted browser and component suites pass 176 tests with one legacy fixture skipped at `9b18cf155`. The two platform checks and their Python unit test pass at that revision. The earlier source comparison records all 14 matching bodies. | Retain the Rust lowering, matrix, version-gate, and native binding checks. Keep the command and story checklist open until current recipe evidence and the one legacy fixture are reconciled. |
+| Feature 32 named placement | Rust `portable_targets_use_the_same_frames_on_each_platform`, Swift `testPortableTargets`, Kotlin `portableTargets`, and the browser placement fixture use the shared inputs. They cover validation, sibling isolation, replacement, and name reuse. | Retain the independent shared endpoint and count evidence for native and web. A placement fixture alone does not check live delivery. |
+| Feature 32 Delete and countdown | The current `server_owns_mutations_and_replays_confirmed_deletions` contract accepts an already confirmed deletion and rejects an unknown identifier. The feature records separate web, iPhone simulator, and Android countdown checks. | Keep the original second-delete rejection as historical wording. Physical iPhone speech cadence and focus need the device handoff in issue 1168. |
+
+[Tagged macOS tests](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/job/140922065108) · [Tagged Android tests](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/job/140922065283) · [Feature 32](features/32-portable-view-targets/feature.md) · [Issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168)
+
+### Platform evidence scope
+
+| Recipe | Source and result | Scope limit |
+| --- | --- | --- |
+| macOS HTTP default and multi-protocol | `6372419795` passes 248 and 251 tests, with one ignored documentation example per recipe. The HTTP and NetIO source, workspace manifests, lock file, toolchain, and package plan match `9b18cf155`. The workflow file differs. | The result proves these two package recipes at their matching source inputs. It does not prove a warning-free workspace run. |
+| Windows browser and packager | `9ece9f5c8` passes 19 portable browser tests and 12 packager tests. Both package directories match `9b18cf155`. | The workspace manifest, lock file, package plan, and workflow differ. Verify the selected dependency graph before reusing the shard as current proof. |
+| Windows database | `8829fde10` passes 14 selected local libSQL tests with the 0.10 candidate. | `9b18cf155` pins 0.6 and still excludes Windows database tests. Issue 519 covers file names and runtime behavior. Issue 1194 covers the Todo dependency and native server. |
+| Native Swift and Android | `b00b5e70c` passes the tagged package and device checks. Swift package and tests match `9b18cf155`. | Android Gradle properties differ. The tag proves the approved release revision. Keep later Android settings and the public registry checks separate. |
+| Linux and macOS scoped package follow-up | `b8e78be38` passes Linux runtime and resources and two macOS shards. The Linux Todo and first macOS shard fail. | Review asset and setup changes. These jobs cannot supply a complete current Linux or macOS gate. |
+
+[macOS HTTP](https://github.com/ewe-studios/ewe_platform/actions/runs/46122965004/job/140911712754) · [Windows browser and packager](https://github.com/ewe-studios/ewe_platform/actions/runs/46090234572) · [Windows database](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306826) · [Linux and macOS follow-up](https://github.com/ewe-studios/ewe_platform/actions/runs/46088801494)
 
 ## Earlier closure gates, 28 November 2026
 

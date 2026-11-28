@@ -2592,3 +2592,10 @@ The failed-job retry uses the same release tag. Publication still needs a succes
 The tag attempt passes both prerequisite jobs. Both unsigned archive digests match the downloaded files.
 GitHub waits for the `native-ui-release` reviewer. Signing, publication, and the public checks follow that approval.
 [Release approval gate](features/19-native-package-releases/release-prerequisites.md#release-approval-gate)
+
+## Acceptance reconciliation
+
+The owner accepts the extra Feature 12 commits and the additional Feature 16 source edits.
+All required behavior and test coverage still apply.
+The acceptance ledger inventories the 42 historical documentation cases and identifies the event and platform checks that remain.
+[Acceptance reconciliation](completion-audit.md#acceptance-reconciliation-28-november-2026)

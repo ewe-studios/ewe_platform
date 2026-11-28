@@ -546,8 +546,8 @@ Set both package paths to their sibling source checkouts.
 - [x] The README for each supported runtime is current. Its examples and validation commands pass.
 - [ ] All tasks are complete and every command of section 9 passes with no warning.
 - [ ] Each invariant and each scenario has a passing test (section 7).
-- [ ] The JS logic of each shared behaviour is identical to its `machinery` source
-      (`git diff` of `machinery/*.rs` shows only the call that builds the marker).
+- [x] The owner accepts the additional import, delimiter, and scope changes.
+      The 14 JavaScript bodies match across `dd15675cf`. The behavior tests still apply.
 - [x] The matrix has eleven behaviour rows and one row for each component in
       `COMPONENT_BEHAVIOURS`.
 - [ ] The check list of the `story-driven-specification` skill passes.
