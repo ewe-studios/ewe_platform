@@ -105,7 +105,11 @@ jobs:
           compose="ci/local-services/docker-compose.yml"
           cleanup() { docker compose -f "$compose" down -v; }
           trap cleanup EXIT
-          docker compose -f "$compose" up -d --wait vault vault-init
+          # `vault-init` is a one-shot service that exits 0. `up --wait` treats
+          # an exited container as a failure, so wait for the server only and
+          # run the init as a one-off.
+          docker compose -f "$compose" up -d --wait vault
+          docker compose -f "$compose" run -T --rm vault-init
           # A skip must fail the job: the compose server is here, so the test
           # must run. The filter is the module path of the test binary, not the
           # `kms` directory, so a filter that matches no case also fails.
@@ -121,6 +125,10 @@ jobs:
           fi
           if printf '%s' "$output" | grep -q "skipping the Vault test"; then
             echo "the Vault test skipped: the compose server must make it run" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$output" | grep -q "1 passed"; then
+            echo "the Vault test did not pass: the output has no 1 passed line" >&2
             exit 1
           fi
           if ! printf '%s' "$output" | grep -q "vault_transit_seals_and_opens"; then
