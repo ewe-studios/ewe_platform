@@ -437,8 +437,8 @@ impl H2ConnectionHandler {
                 // socket is always writable, so watching it constantly would
                 // make the reactor report the fd ready forever and spin the
                 // drain thread instead of parking.
-                let pw = self.conn.has_pending_writes();
-                let _ = fd.set_writable(pw);
+                #[cfg(unix)]
+                let _ = fd.set_writable(self.conn.has_pending_writes());
                 Some(Arc::clone(fd) as EventReadinessPtr)
             }
             None if self.overlay_waker => None,
