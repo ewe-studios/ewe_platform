@@ -1826,3 +1826,9 @@ The short verbatim target reports success without a file. The deep verbatim targ
 Both shells create the file with ordinary short and deep paths. The compiler reads a present binding with either path form.
 Keep the discovered checkout path for child processes. Keep canonical paths for workspace comparisons.
 [Windows differential run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306826)
+
+## Application prepare command help
+
+Use a native help definition for the prepare task.
+Keep the existing error for calls that request the web target.
+Verify both command help pages and the application tests.
