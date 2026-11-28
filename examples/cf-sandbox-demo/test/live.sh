@@ -47,8 +47,8 @@ for file in build/index.js agent-slave demo-model; do
     fi
 done
 
-wrangler_seen="$(wrangler --version 2>/dev/null | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1)"
-build_seen="$(worker-build --version 2>/dev/null | grep -Eo '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1)"
+wrangler_seen="$(wrangler --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
+build_seen="$(worker-build --version 2>/dev/null | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 if [ "${wrangler_seen}" != "${WRANGLER_VERSION}" ]; then
     echo "wrangler ${WRANGLER_VERSION} is required; ${wrangler_seen:-none} is installed" >&2
     exit 2
@@ -58,9 +58,15 @@ if [ "${build_seen}" != "${WORKER_BUILD_VERSION}" ]; then
     exit 2
 fi
 
-export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CLOUDFLARE_WORKERS_AI_API_TOKEN:-}}"
-if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] || [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
-    echo "the live proof did not run: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN (or CLOUDFLARE_WORKERS_AI_API_TOKEN)"
+if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    export CLOUDFLARE_API_TOKEN
+fi
+logged_in=""
+if wrangler whoami 2>/dev/null | grep -q "You are logged in"; then
+    logged_in="yes"
+fi
+if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] || { [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && [ -z "${logged_in}" ]; }; then
+    echo "the live proof did not run: set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN, or log in with wrangler login"
     exit 0
 fi
 

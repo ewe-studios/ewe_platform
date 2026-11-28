@@ -525,7 +525,14 @@ async fn forward(
     let mut init = worker::RequestInit::new();
     init.with_method(worker::Method::Post);
     init.with_headers(headers);
-    let array = worker::js_sys::Uint8Array::from(body);
+    // Every call through this helper is a Connect *server-streaming* call, so
+    // the request body is enveloped like the response: flags(1) | len(4) |
+    // payload. A plain JSON body makes the server read `{"spe` as a length.
+    let mut framed = Vec::with_capacity(5 + body.len());
+    framed.push(0);
+    framed.extend_from_slice(&(u32::try_from(body.len()).unwrap_or(u32::MAX)).to_be_bytes());
+    framed.extend_from_slice(body);
+    let array = worker::js_sys::Uint8Array::from(framed.as_slice());
     init.with_body(Some(worker::wasm_bindgen::JsValue::from(array)));
     let url = format!("https://sandbox.rpc{path}");
     let request =
