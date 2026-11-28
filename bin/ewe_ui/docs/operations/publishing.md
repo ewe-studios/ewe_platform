@@ -33,17 +33,18 @@ If the namespace is already verified, ask its administrator for publishing acces
 Generate the user token from an account with that access. Use its generated username and password as the two Central secrets.
 [Central namespaces](https://central.sonatype.com/publishing/namespaces) · [Namespace verification](https://central.sonatype.org/register/namespace/#github-namespaces) · [Central user tokens](https://central.sonatype.com/usertoken) · [Token instructions](https://central.sonatype.org/publish/generate-portal-token/)
 
-Create a fine-grained personal access token for the organization repository with Contents write permission.
-Select `ewe-studios/ewe_platform` for repository access. Obtain any required organization approval for the token.
-Set the following inputs in GitHub Actions.
-[GitHub token instructions](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) · [Repository environments](https://github.com/ewe-studios/ewe_platform/settings/environments) · [Environment setup](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)
+Use the registrar GitHub App that the Rust crate release workflow uses.
+Confirm that its installation includes `ewe-studios/ewe_platform` and grants Contents write permission.
+Confirm that its identity can create the release assets and the Swift tag under the repository rules.
+Configure the following inputs in GitHub Actions.
+[GitHub App installation tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) · [Repository environments](https://github.com/ewe-studios/ewe_platform/settings/environments) · [Environment setup](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)
 
 | Name | Location | Purpose |
 | --- | --- | --- |
 | `NATIVE_GPG_PRIVATE_KEY` | Organization secret with access for `ewe-studios/ewe_platform` | Supply the OpenPGP private key to sign the Maven files. |
 | `NATIVE_GPG_FINGERPRINT` | Repository variable | Select the signing key by its full fingerprint. |
-| `NATIVE_RELEASE_TOKEN` | `native-ui-release` environment secret | Give the workflow repository Contents write access for release assets and the Swift tag. |
-| `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | `native-ui-release` environment secrets | Supply a Central Portal user token for the verified Maven namespace. |
+| `EWE_RUNNER_REGISTRA_CLIENT_ID`, `EWE_RUNNER_REGISTRA_PRIVATE_KEY` | Repository secrets | Create short-lived registrar App tokens with Contents write for this repository. |
+| `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | Organization secrets available to the repository | Supply a Central Portal user token for the verified Maven namespace. |
 
 Set the signing secret from the armored private-key export. Put the matching public key's fingerprint in the variable.
 Keep the private key backup in approved private storage. Only the public key goes to a keyserver.
@@ -56,12 +57,16 @@ gpg --keyserver keyserver.ubuntu.com --recv-keys FINGERPRINT
 ```
 
 The job imports the key into a temporary keyring and exports the public key for signature verification.
-Confirm that the release token can write the required release assets and tag under the repository rules.
+The job creates a token before signing and a fresh token before publication. Each token expires after one hour.
+The signing task needs push access to see draft releases and recover assets on retries.
+[Draft release visibility](https://docs.github.com/en/rest/releases/releases#list-releases)
+The publication task gives Maven Central 30 minutes to report publication by default.
+If token creation fails, the job stops. After an interruption, retry with the verified candidate and the recorded deployment.
 [Central public key requirements](https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key) · [Workflow settings](../../../../.github/workflows/native-ui-release.yml) · [Signing task](../../../../backends/foundation_ui_native/src/tasks/sign.rs)
 
 ## Tag and publish the native release
 
-1. Obtain the owner's approval for the exact version and commit that passed preview.
+1. Obtain the owner's approval for the exact version and commit that passed preview with this workflow.
 2. Push `native-ui-vX.Y.Z` at that commit. Replace `X.Y.Z` with the version in the approved release configuration.
 3. Confirm that the tag run passes both the `preview` and `android-examples` jobs.
 4. Have the designated reviewer approve the `native-ui-release` environment deployment.

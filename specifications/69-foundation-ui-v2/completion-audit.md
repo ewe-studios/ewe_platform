@@ -448,3 +448,11 @@ The archive consumer stages Android launch and application assets.
 The 0.1.2 publication approval, protected environment, and public starter checks remain pending.
 The scratch mirror shows source resolution. The full checkout cost and public tags have separate evidence.
 [Exact crate inventory and release steps](features/19-native-package-releases/release-prerequisites.md)
+
+### Native release workflow identity
+
+The current native workflow uses repository-scoped registrar App tokens for signing and publication.
+The credential names exist. The protected publication environment and its required reviewer remain pending.
+Preview the release revision that includes this workflow and obtain approval for that revision.
+The earlier preview and approval apply to the earlier source only.
+[Release prerequisites](features/19-native-package-releases/release-prerequisites.md#release-prerequisites-for-the-updated-workflow)

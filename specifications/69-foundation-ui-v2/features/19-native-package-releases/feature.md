@@ -114,7 +114,7 @@ Build a new candidate from the monorepo before publication.
 4. Publish the Kotlin core as a Java archive. Publish binding and renderer modules as AAR files. Include native libraries for ARM64 and x86-64 in the binding.
 5. Generate Maven module metadata and project descriptors with transitive dependencies. Attach sources, documentation, signatures and required checksums.
 6. Stage the Maven deployment and a draft GitHub Release. Validate package contents and run the template tests against temporary release endpoints.
-7. Use a protected release job to publish the GitHub assets, monorepo release tags, and Maven deployment. Keep credentials in the release environment.
+7. Use a protected release job to publish the GitHub assets, monorepo release tags, and Maven deployment. Keep publication behind the release environment approval.
 8. Resolve the published version in each clean template. Record the final revisions, artifact digests and install coordinates on the GitHub Release.
 9. Submit the monorepo Swift package to Swift Package Index once. Index processing can finish after SwiftPM installation is available.
 
@@ -123,6 +123,20 @@ Preview jobs build and verify artifacts without repository write permissions. Re
 On retry, compare each remote tag, digest and Maven deployment state with the saved release inputs.
 Resume missing steps when the inputs match. Stop on a different digest or revision. Fix a published defect in a new version.
 Advance the default template version only after both public installs pass.
+
+### Publication identity
+
+Use the registrar GitHub App credentials that the Rust crate release workflow uses.
+After the native task build, mint an installation token for only the current repository.
+Request Contents write permission. GitHub requires push access to see draft releases.
+Pass the token to the signing task so retries can download an existing signed asset.
+After the signed artifact upload, mint a fresh token for the publication task.
+Each token expires after one hour. The publication task allows 30 minutes for Maven Central polling by default.
+Keep the workflow token read-only. Stop if the installation token cannot be created.
+Keep the signed candidate for a retry if the token expires after a partial publication.
+Apply this change only to a new source revision. Preview that revision and obtain owner approval before tagging it.
+The existing design screenshots describe the same starter screens. The publication identity does not change those screens.
+[Native workflow](../../../../.github/workflows/native-ui-release.yml) · [Rust crate release workflow](../../../../.github/workflows/release-plz.yaml) · [Draft release visibility](https://docs.github.com/en/rest/releases/releases#list-releases)
 
 ## Template contract
 
@@ -167,6 +181,7 @@ The clean starter builds used local release artifacts. Public dependency resolut
 | Recover from partial publication | Interrupt after publishing one destination. A retry completes the other destinations and preserves published files. |
 | Detect a conflict | Supply a different source revision for an existing release. The job fails before replacing an artifact or moving a tag. |
 | Update a starter | Change only the package version. Both starters resolve the replacement and pass the same runtime checks. |
+| Use the release app identity | The protected job uses current repository tokens with Contents write. Token creation failure stops publication. |
 | Follow the README instructions | Build a preview and both starter examples from the documented commands. Run the documented generation and fixture checks. |
 
 - [ ] The release, package and starter README examples and validation commands pass.

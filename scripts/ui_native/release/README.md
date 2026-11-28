@@ -66,12 +66,13 @@ Protect the `native-ui-release` environment in GitHub. Configure these GitHub Ac
 
 | Setting | Location | Purpose |
 |---|---|---|
-| `NATIVE_RELEASE_TOKEN` | `native-ui-release` environment secret | Create the GitHub release and Swift version tag in ewe_platform. |
+| `EWE_RUNNER_REGISTRA_CLIENT_ID`, `EWE_RUNNER_REGISTRA_PRIVATE_KEY` | Repository secrets | Create a GitHub App installation token for the current repository with Contents write. |
 | `NATIVE_GPG_PRIVATE_KEY` | Organization secret with access for `ewe-studios/ewe_platform` | Import the armored OpenPGP private key into the isolated signing keyring. |
 | `NATIVE_GPG_FINGERPRINT` | Repository variable | Select the signing key by its full fingerprint. |
-| `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | `native-ui-release` environment secrets | Authenticate with a Central Portal user token for the verified Maven namespace. |
+| `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` | Organization secrets available to the repository | Authenticate with a Central Portal user token for the verified Maven namespace. |
 
 Run the manual workflow to build a read-only preview. A tag such as `native-ui-v0.1.1` runs the protected publication job.
+The job creates a token before signing and a fresh token before publication. Each token expires after one hour.
 Keep the signed workflow artifact for a retry. The release command compares each existing tag and asset before writing.
 A Central deployment receipt on the draft release records the deployment identifier. The command resumes that deployment after an interruption.
 
@@ -116,6 +117,7 @@ platform task run native:release:verify --candidate dist/native-ui --templates b
 cargo run -p foundation_ui_native --features tasks --bin native-task -- task ls
 ```
 
+Before a local retry, authenticate the GitHub command with permission to write release assets and the Swift tag.
 Import the trusted public signing key and set `NATIVE_GPG_FINGERPRINT` before you publish.
 The runner checks every signature against that key.
 

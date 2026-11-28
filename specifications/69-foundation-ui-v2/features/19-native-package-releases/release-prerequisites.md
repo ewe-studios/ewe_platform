@@ -131,7 +131,7 @@ The generated mixed browser project loads WebAssembly in Chrome and increments i
 The scratch Git mirror omits unrelated tool submodules and keeps the package source bytes.
 [Build type staging](https://github.com/ewe-studios/ewe_platform/issues/800)
 
-## Approved release prerequisites
+## Historical approval for the verified source
 
 The owner approves release 0.1.2 from the exact source above when the required credentials are ready.
 The authenticated environment lookup returns 404 for `native-ui-release`.
@@ -157,3 +157,19 @@ Start the approved sequence after the required environment and credentials are r
 5. Run both public starter checks and generate a clean mobile application with only the public inputs.
 6. Advance the template defaults after the public checks pass.
 [Release procedure](../../../../scripts/ui_native/release/README.md) · [Public consumer issue](https://github.com/ewe-studios/ewe_platform/issues/845)
+
+## Release prerequisites for the updated workflow
+
+The registrar GitHub App replaces the personal release token in the current workflow.
+The repository lists both registrar App credential names and the signing fingerprint variable.
+The organization stores the Central user token pair. Its signing key secret selects only this repository.
+The organization lists `eweplatform-runner-registrar` with Contents write and access to all repositories.
+The workflow asks for access to this repository only. Credential values and Central namespace membership still need separate proof.
+The repository environment list does not contain `native-ui-release`. The named environment lookup returns 404.
+Configure the protected environment and its designated reviewer before pushing a native release tag.
+
+Build and preview an updated release revision that contains the App token workflow.
+Obtain owner approval for that exact revision before the tag push.
+The previous approval remains specific to `4e4a50b9d230cb536f092f11bd689be60c2bf9d1`.
+A tag at that commit runs its original workflow and requires the original token input.
+[Current workflow](../../../../.github/workflows/native-ui-release.yml) · [Publication setup](../../../../bin/ewe_ui/docs/operations/publishing.md)

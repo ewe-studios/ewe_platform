@@ -2509,3 +2509,10 @@ The hosted test runs 19 checks, including both streamed upgrade cases.
 A separate Chrome run passes all three navigation checks after the transport repair.
 The local HTTP server fixture requires Unix. Issue 531 tracks the remaining server scope.
 [Windows browser proof](https://github.com/ewe-studios/ewe_platform/actions/runs/46090234572/job/140813003067) · [Portable gate](https://github.com/ewe-studios/ewe_platform/issues/1203)
+
+## Native release workflow identity
+
+The protected native job creates a registrar GitHub App token before signing and a fresh token before publication.
+Each token requests Contents write for the current repository. Token creation failure stops the job.
+The updated release source needs a preview and owner approval. The protected environment and public checks remain pending.
+[Release prerequisites](features/19-native-package-releases/release-prerequisites.md#release-prerequisites-for-the-updated-workflow)

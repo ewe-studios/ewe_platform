@@ -1851,3 +1851,11 @@ The Windows run checks the same package contents and workspace member as macOS.
 Keep the native client tests available on Windows.
 The local browser harness uses the Unix HTTP server and stays on Unix.
 The Windows recipe runs the driver tests without the local server APIs.
+
+## Native release workflow identity
+
+A release tag runs the workflow at its source revision.
+A credential change in another branch does not change the tagged workflow.
+The registrar GitHub App installation token expires after one hour. The Central polling limit is 30 minutes by default.
+Create the publication token after the signed artifact upload to keep its full lifetime for publication.
+[Native release workflow](../../.github/workflows/native-ui-release.yml)
