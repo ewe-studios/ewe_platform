@@ -3,6 +3,8 @@
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
+use proptest::prelude::*;
+
 use foundation_core::durable::client::{
     ClientConfig, ClientError, ClientFuture, ClientRequest, ClientResponse, ClientSseStream,
     ClientTransport, DurableClient, DynamicHeaders, ReadMode, ReadResult, RetryPolicy, SseEvent,
@@ -19,6 +21,8 @@ struct SseHeadSpec {
 #[derive(Default)]
 struct MockTransport {
     responses: Mutex<VecDeque<ClientResponse>>,
+    /// Transport failures the test injects. A failure wins over a response.
+    failures: Mutex<VecDeque<String>>,
     requests: Mutex<Vec<ClientRequest>>,
     events: Mutex<Vec<SseEvent>>,
     sse_head: Mutex<SseHeadSpec>,
@@ -28,6 +32,7 @@ impl MockTransport {
     fn with(responses: Vec<ClientResponse>) -> Arc<Self> {
         Arc::new(Self {
             responses: Mutex::new(responses.into()),
+            failures: Mutex::new(VecDeque::new()),
             requests: Mutex::new(Vec::new()),
             events: Mutex::new(Vec::new()),
             sse_head: Mutex::new(SseHeadSpec {
@@ -40,6 +45,7 @@ impl MockTransport {
     fn with_sse_head(status: u16, headers: &[(&str, &str)]) -> Arc<Self> {
         Arc::new(Self {
             responses: Mutex::new(VecDeque::new()),
+            failures: Mutex::new(VecDeque::new()),
             requests: Mutex::new(Vec::new()),
             events: Mutex::new(Vec::new()),
             sse_head: Mutex::new(SseHeadSpec {
@@ -50,6 +56,15 @@ impl MockTransport {
                     .collect(),
             }),
         })
+    }
+
+    /// Inject transport failures, in order, before the queued responses.
+    #[cfg(feature = "test-clock")]
+    fn fail_next(&self, messages: &[&str]) {
+        self.failures
+            .lock()
+            .expect("failures")
+            .extend(messages.iter().map(|message| (*message).to_string()));
     }
 
     fn last_request(&self) -> ClientRequest {
@@ -65,6 +80,9 @@ impl MockTransport {
 impl ClientTransport for MockTransport {
     fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse> {
         self.requests.lock().expect("requests").push(request);
+        if let Some(message) = self.failures.lock().expect("failures").pop_front() {
+            return Box::pin(async move { Err(TransportError::new(message)) });
+        }
         let response = self
             .responses
             .lock()
@@ -1441,6 +1459,344 @@ fn given_a_deterministic_clock_when_linger_runs_then_the_clock_sets_the_wait() {
             clock.elapsed(),
             foundation_context::Duration::ZERO,
             "the wait came from the simulated clock, not real time"
+        );
+    });
+}
+
+// ---- Property and failure-injection oracles (feature 07 T12) ----
+
+/// A transport that acts as a small in-memory Durable Streams server.
+///
+/// It answers the six client verbs with byte-exact bodies and fixed-width
+/// hexadecimal offsets, so the property test checks the client and not a mock
+/// script.
+#[derive(Default)]
+struct MemoryServer {
+    state: Mutex<MemoryState>,
+}
+
+#[derive(Default)]
+struct MemoryState {
+    log: Vec<u8>,
+    appended: usize,
+}
+
+impl MemoryServer {
+    fn offset(value: usize) -> String {
+        format!("{value:016x}")
+    }
+
+    fn respond(&self, request: &ClientRequest) -> ClientResponse {
+        let mut state = self.state.lock().expect("memory state");
+        match request.method.as_str() {
+            "PUT" => {
+                state.log.clone_from(&request.body);
+                let offset = Self::offset(state.log.len());
+                response(201, &[("stream-next-offset", &offset)], b"")
+            }
+            "POST" => {
+                state.log.extend_from_slice(&request.body);
+                state.appended += 1;
+                let offset = Self::offset(state.log.len());
+                response(204, &[("stream-next-offset", &offset)], b"")
+            }
+            "GET" => {
+                let offset = Self::offset(state.log.len());
+                response(
+                    200,
+                    &[
+                        ("content-type", "application/octet-stream"),
+                        ("stream-next-offset", &offset),
+                        ("stream-up-to-date", "true"),
+                    ],
+                    &state.log,
+                )
+            }
+            "HEAD" => {
+                let offset = Self::offset(state.log.len());
+                response(200, &[("stream-next-offset", &offset)], b"")
+            }
+            _ => response(204, &[], b""),
+        }
+    }
+
+    fn appended(&self) -> usize {
+        self.state.lock().expect("memory state").appended
+    }
+}
+
+impl ClientTransport for MemoryServer {
+    fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse> {
+        let response = self.respond(&request);
+        Box::pin(async move { Ok(response) })
+    }
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(64))]
+
+    /// Append a random sequence of chunks through the client, read it back, and
+    /// check the bytes and the offsets. The bounds keep the run fast.
+    #[test]
+    fn given_random_chunks_when_the_client_appends_and_reads_then_bytes_are_exact(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..=64), 1..=32),
+    ) {
+        let (read_bytes, model, offsets, up_to_date, read_offset, appends) =
+            foundation_core::valtron::block_on_future_scoped(async {
+                let transport = Arc::new(MemoryServer::default());
+                let client = DurableClient::new(
+                    transport.clone(),
+                    ClientConfig {
+                        base_url: "http://server".to_string(),
+                        default_headers: Vec::new(),
+                    },
+                );
+                let handle = client.stream(&StreamName::parse("property/client").expect("name"));
+                handle
+                    .create(
+                        Some("application/octet-stream"),
+                        None,
+                        None,
+                        false,
+                        Vec::new(),
+                    )
+                    .await
+                    .expect("create");
+
+                let mut model = Vec::new();
+                let mut offsets = Vec::new();
+                for chunk in &chunks {
+                    let outcome = handle
+                        .append(
+                            chunk.clone(),
+                            Some("application/octet-stream"),
+                            None,
+                            None,
+                            false,
+                        )
+                        .await
+                        .expect("append");
+                    offsets.push(outcome.offset.expect("an append offset"));
+                    model.extend_from_slice(chunk);
+                }
+
+                let read = handle.read().send().await.expect("catch-up read");
+                let read_bytes: Vec<u8> = read
+                    .chunks
+                    .iter()
+                    .flat_map(|chunk| chunk.data.iter().copied())
+                    .collect();
+                (
+                    read_bytes,
+                    model,
+                    offsets,
+                    read.up_to_date,
+                    read.next_offset,
+                    transport.appended(),
+                )
+            });
+
+        prop_assert_eq!(&read_bytes, &model, "the read is the exact concatenation");
+        prop_assert!(up_to_date, "the catch-up read reaches the tail");
+        prop_assert!(read_offset.is_some(), "the read reports a next offset");
+        prop_assert_eq!(
+            appends,
+            chunks.len(),
+            "each chunk is one plain append, with no retry duplicate"
+        );
+        prop_assert!(
+            offsets.windows(2).all(|pair| pair[0] <= pair[1]),
+            "the offsets never go backwards"
+        );
+        let mut previous_with_data: Option<&String> = None;
+        for (chunk, offset) in chunks.iter().zip(&offsets) {
+            if chunk.is_empty() {
+                continue;
+            }
+            if let Some(previous) = previous_with_data {
+                prop_assert!(
+                    previous < offset,
+                    "an append with data moves the offset forward"
+                );
+            }
+            previous_with_data = Some(offset);
+        }
+    }
+}
+
+/// A read that answers each transient status, then succeeds.
+#[cfg(feature = "test-clock")]
+#[test]
+fn given_each_transient_status_when_a_read_runs_then_the_policy_retries_it() {
+    use foundation_context::Clock as _;
+    let cases: [(u16, Vec<(&str, &str)>, foundation_context::Duration); 3] = [
+        (
+            429,
+            vec![("retry-after", "2")],
+            foundation_context::Duration::from_secs(2),
+        ),
+        (
+            500,
+            Vec::new(),
+            foundation_context::Duration::from_millis(50),
+        ),
+        (
+            503,
+            Vec::new(),
+            foundation_context::Duration::from_millis(50),
+        ),
+    ];
+
+    for (status, headers, expected_wait) in cases {
+        let (ctx, timer, clock) = simulated_ctx(31);
+        foundation_core::valtron::block_on_future_scoped(async move {
+            let transport = MockTransport::with(vec![
+                response(status, &headers, b"transient"),
+                response(200, &[("content-type", "text/plain")], b"ok"),
+            ]);
+            let client =
+                retrying_client(transport.clone(), ctx, RetryPolicy::default().jitter(0.0));
+            let result = client
+                .stream(&StreamName::parse("v1/stream/orders").expect("name"))
+                .read()
+                .send()
+                .await
+                .unwrap_or_else(|error| panic!("status {status} must retry: {error}"));
+
+            assert_eq!(result.chunks[0].data, b"ok", "status {status} recovers");
+            assert_eq!(
+                transport.requests.lock().expect("requests").len(),
+                2,
+                "status {status} retries once"
+            );
+            assert_eq!(
+                timer.delays(),
+                vec![expected_wait],
+                "status {status} waits as the policy says"
+            );
+            assert_eq!(
+                clock.elapsed(),
+                foundation_context::Duration::ZERO,
+                "status {status} uses the injected clock, not real time"
+            );
+        });
+    }
+}
+
+/// A transport failure is transient, so a read retries it.
+#[cfg(feature = "test-clock")]
+#[test]
+fn given_a_transport_error_when_a_read_runs_then_the_policy_retries_it() {
+    use foundation_context::Clock as _;
+    let (ctx, timer, clock) = simulated_ctx(37);
+    foundation_core::valtron::block_on_future_scoped(async move {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("content-type", "text/plain")],
+            b"ok",
+        )]);
+        transport.fail_next(&["connection reset by peer"]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default().jitter(0.0));
+        let result = client
+            .stream(&StreamName::parse("v1/stream/orders").expect("name"))
+            .read()
+            .send()
+            .await
+            .expect("a retried read");
+
+        assert_eq!(result.chunks[0].data, b"ok");
+        assert_eq!(transport.requests.lock().expect("requests").len(), 2);
+        assert_eq!(
+            timer.delays(),
+            vec![foundation_context::Duration::from_millis(50)]
+        );
+        assert_eq!(
+            clock.elapsed(),
+            foundation_context::Duration::ZERO,
+            "the wait came from the injected clock, not real time"
+        );
+    });
+}
+
+/// A timeout that never clears becomes the typed exhaustion error.
+#[cfg(feature = "test-clock")]
+#[test]
+fn given_a_timeout_when_the_policy_exhausts_then_the_error_is_typed() {
+    use foundation_context::Clock as _;
+    let (ctx, timer, clock) = simulated_ctx(41);
+    foundation_core::valtron::block_on_future_scoped(async move {
+        let transport = MockTransport::with(Vec::new());
+        transport.fail_next(&[
+            "request timed out",
+            "request timed out",
+            "request timed out",
+        ]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default().jitter(0.0));
+        let error = client
+            .stream(&StreamName::parse("v1/stream/orders").expect("name"))
+            .read()
+            .send()
+            .await
+            .expect_err("an exhausted timeout");
+
+        match error {
+            ClientError::RetryExhausted {
+                attempts,
+                status,
+                body,
+                ..
+            } => {
+                assert_eq!(attempts, 3, "the policy allows three attempts");
+                assert_eq!(status, None, "a transport failure has no status");
+                assert_eq!(body, "request timed out");
+            }
+            other => panic!("unexpected error: {other}"),
+        }
+        assert_eq!(transport.requests.lock().expect("requests").len(), 3);
+        assert_eq!(
+            timer.delays(),
+            vec![
+                foundation_context::Duration::from_millis(50),
+                foundation_context::Duration::from_millis(100)
+            ],
+            "two waits between three attempts"
+        );
+        assert_eq!(
+            clock.elapsed(),
+            foundation_context::Duration::ZERO,
+            "the waits came from the injected clock, not real time"
+        );
+    });
+}
+
+/// A plain append is not safe to retry, so a transient status reaches the caller.
+#[cfg(feature = "test-clock")]
+#[test]
+fn given_a_plain_append_when_a_transient_status_arrives_then_it_is_not_retried() {
+    let (ctx, timer, _clock) = simulated_ctx(43);
+    foundation_core::valtron::block_on_future_scoped(async move {
+        let transport =
+            MockTransport::with(vec![response(503, &[], b"down"), response(200, &[], b"ok")]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let error = client
+            .handle("/v1/stream/orders")
+            .append(b"x".to_vec(), Some("text/plain"), None, None, false)
+            .await
+            .expect_err("a plain append is not retried");
+
+        assert!(matches!(
+            error,
+            ClientError::UnexpectedStatus { status: 503, .. }
+        ));
+        assert_eq!(
+            transport.requests.lock().expect("requests").len(),
+            1,
+            "the append sends one request only"
+        );
+        assert_eq!(
+            timer.delays(),
+            [] as [foundation_context::Duration; 0],
+            "a refused append waits for nothing"
         );
     });
 }

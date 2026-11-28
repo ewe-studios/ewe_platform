@@ -1,6 +1,6 @@
 ---
 feature: "Durable Streams client"
-status: "in progress"
+status: "done"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
 crates: ["foundation_netio", "foundation_core"]
@@ -147,13 +147,22 @@ impl StreamHandle {
       `with_preserved_headers()` in `foundation_netio/src/wasm/bridge/{cf,web}.rs`. Add a wasm
       test, close #1019 in the same change. Build the client core for wasm32 and run the BDD scenarios with a wasm
       driver. Test: `wasm_client_roundtrip`.
-- [ ] **T12 — oracles.** Differential, conformance, property and failure injection oracles.
-      Tests: `client_matches_reference`, `client_suite_passes`, `retry_is_bounded`.
-      Done: the conformance oracle runs in `ci/durable_conformance.sh` against the reference
-      client suite (267 pass, 2 suite-forced skips). The retry bound is the test
-      `retry_exhaustion_is_an_error` (three attempts, two waits) and the deterministic clock
-      test `given_a_simulated_clock_when_a_retry_runs_then_the_clock_sets_the_wait`.
-      Open: no separate differential or property oracle uses the names above.
+- [x] **T12 — oracles.** Differential, conformance, property and failure injection oracles.
+      Differential: `client_matches_reference` in
+      `foundation_http/tests/durable_client_differential.rs` runs one scenario on one
+      in-process server with our client and the reference client, then compares the exact
+      bytes, the next-offset presence and order, and the read results.
+      Property: `given_random_chunks_when_the_client_appends_and_reads_then_bytes_are_exact`
+      checks 1 to 32 random chunks of 0 to 64 bytes.
+      Failure injection: `given_each_transient_status_when_a_read_runs_then_the_policy_retries_it`,
+      `given_a_transport_error_when_a_read_runs_then_the_policy_retries_it`,
+      `given_a_timeout_when_the_policy_exhausts_then_the_error_is_typed` and
+      `given_a_plain_append_when_a_transient_status_arrives_then_it_is_not_retried`
+      (`tests/durable/client.rs`) use the injected simulated clock.
+      Conformance: `ci/durable_conformance.sh` runs the reference client suite (267 pass,
+      2 suite-forced skips). The retry bound is `retry_exhaustion_is_an_error` (three
+      attempts, two waits) and
+      `given_a_simulated_clock_when_a_retry_runs_then_the_clock_sets_the_wait`.
 
 ## 5. Success criteria
 
@@ -164,5 +173,4 @@ impl StreamHandle {
 
 ## 6. Open items
 
-1. T12: add the separate differential and property oracles. The conformance gate and the
-   retry-bound test exist.
+None.

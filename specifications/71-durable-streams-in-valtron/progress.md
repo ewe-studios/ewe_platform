@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-28: feature 07 T12 closed on branch `spec71-followups`. The differential oracle
+  `client_matches_reference` in `foundation_http/tests/durable_client_differential.rs` runs
+  create, append, catch-up read, read from an offset, close and fork on one in-process server
+  with our client and the reference Rust client, then compares the exact bytes, the
+  next-offset presence and order, and the read results. The property oracle
+  `given_random_chunks_when_the_client_appends_and_reads_then_bytes_are_exact` covers 1 to 32
+  chunks of 0 to 64 bytes with `proptest`. Failure injection covers 429 with `Retry-After`,
+  500, 503, a transport error, a timeout and the no-retry plain append, all on the simulated
+  clock. Feature 07 is done. Checks: the `tests/mod.rs` target of `foundation_core` passed
+  1,016 tests with `test-clock,multi`; the full `foundation_http --features multi` run
+  passed; both crates are clippy clean with `--all-targets --no-deps`.
 - 2026-11-28: spec 71 follow-ups on branch `spec71-followups` after the merge into master.
   #1218: kqueue no longer suppresses a socket read edge; #1152: producer `max_in_flight` and
   linger pipelining on the injected clock; #1219: parked readiness payloads are `Send + Sync`
@@ -737,9 +748,8 @@ deleted head, and every `DurableStreamVfs` method on both VFS types. The HTTP te
 - **06-http-rpc-surface** — 🟡 in progress. Open: T11 oracles (`injected_error_is_typed`,
   `security_headers_present`), the full crate test runs (ConnectRPC has #858 on macOS) and the
   workspace-wide `cargo check`.
-- **07-durable-streams-client** — 🟡 in progress. T4 is ticked. Open: T5 retry, T6 producer and
-  T12 oracles. The client core lacks the retry, producer, dynamic-header and clock APIs; those
-  live only in the conformance adapter. Issue #1135.
+- **07-durable-streams-client** — 🟢 done. All tasks and success criteria are ticked. The
+  differential, property and failure-injection oracles are in T12.
 - **08-conformance** — 🟡 in progress. T1 to T5, T7 to T16 and T18 to T21 are ticked. Open: T6
   (no separate valtron job) and T17 (no protocol-level fault-injection or fuzz oracle). The
   matching success criteria stay open. All other success criteria have evidence.
