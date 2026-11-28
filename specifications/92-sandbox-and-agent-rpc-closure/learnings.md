@@ -39,3 +39,34 @@ Two traps:
 3. `foundation_core`'s default and `multi` CI steps were already red (#1108, #1109): the
    `sim_tests` target imported a module gated on `testing`, and `SimRuntime::start` had no
    `# Panics` section. Run clippy on the crate you change, not only on your own targets.
+
+## A `Drop` that blocks a pool worker deadlocks the pool (2026-11-28)
+
+The KMS local test hang (#1169) looked like a stuck error-body read. A trace shows that the
+`400` body read ends. The hang starts one step later, when the test cleans up its keys. The
+old `KeyCleanup::drop` spawned a thread that ran `block_on_future`, then joined. The `Drop`
+runs on the pool worker that polls the test future. The join blocked that poll. The nested
+drive inside the cleanup could not schedule its request. The workers only parked and
+unparked until the watchdog fired.
+
+Two lessons:
+
+1. Run cleanup in the async body, not in `Drop`. Await the work on the same future. Wrap the
+   assertions in `catch_unwind` when a failed assertion must still clean up. A blocking wait
+   in `Drop` runs on a pool worker. A worker that never returns from a poll stops the pool.
+2. The error-body path was healthy. Read the trace before you change the layer that the
+   symptom names. The `400` response had `Content-Length: 34` and `Connection: close`. The
+   body reader returned all 34 bytes, then `None`.
+
+## macOS refuses a timeout on a peer-closed socket (2026-11-28)
+
+The focused local-server test failed before it reached the body read. The server wrote the
+whole response and closed. macOS then answered `EINVAL` to `SO_RCVTIMEO` in
+`Connection::set_read_timeout_as`, and `send_request::hand_off` turned that into a failed
+request (#1172). The Unix-domain arm already mapped this error through
+`unix_timeout_result`. The TCP and TLS arms did not.
+
+Lesson: BSD sockets reject a socket option after the peer shuts the socket down, even when
+the option cannot matter. Map `EINVAL` for every socket arm, not only the Unix-domain one.
+The response bytes and EOF are already at hand, so the missing timeout changes nothing.
+

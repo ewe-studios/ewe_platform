@@ -13,8 +13,9 @@ use std::sync::Arc;
 
 use foundation_auth::keystore::kms::AwsKmsBackend;
 use foundation_auth::keystore::{EnvelopeSealer, KeySealer};
-use foundation_core::valtron::{block_on_future, valtron_test};
+use foundation_core::valtron::valtron_test;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+use futures_util::FutureExt as _;
 use sha2::Digest as _;
 
 use crate::common::test_ctx;
@@ -22,44 +23,39 @@ use crate::common::test_ctx;
 /// The region of the emulator. moto uses the credential scope of the request.
 const REGION: &str = "us-east-1";
 
-/// A key that the cleanup must schedule for deletion.
+/// Keys that the cleanup must schedule for deletion.
 ///
-/// The drop runs on a separate thread, so the deletion happens after the test
-/// body, including when an assertion panics.
+/// The test body awaits [`KeyCleanup::schedule_deletions`] before it returns.
+/// Do not move the deletion into a `Drop`: a blocking wait there runs on the
+/// pool worker that polls the test future. The pool then cannot schedule the
+/// deletion request, and the test watchdog fires (issue #1169).
 struct KeyCleanup {
     endpoint: String,
     http: DynNetClient,
     key_ids: Vec<String>,
 }
 
-impl Drop for KeyCleanup {
-    fn drop(&mut self) {
-        let endpoint = std::mem::take(&mut self.endpoint);
+impl KeyCleanup {
+    /// Schedule every tracked key for deletion, then forget the identifiers.
+    ///
+    /// This runs in the test future, so a request is an ordinary nested task
+    /// that the pool can poll. Each failure is printed and does not stop the
+    /// rest of the cleanup.
+    async fn schedule_deletions(&mut self) {
+        let endpoint = self.endpoint.clone();
         let http = self.http.clone();
-        let key_ids = std::mem::take(&mut self.key_ids);
-        if key_ids.is_empty() {
-            return;
-        }
-        // The blocking wait owns a dedicated thread. It must not nest a
-        // runtime on the test thread, and it must not stop on a panic.
-        let handle = std::thread::spawn(move || {
-            for key_id in key_ids {
-                let body = serde_json::json!({
-                    "KeyId": key_id,
-                    "PendingWindowInDays": 7,
-                })
-                .to_string();
-                let endpoint = endpoint.clone();
-                let http = http.clone();
-                let outcome = block_on_future(async move {
-                    kms_request(&http, &endpoint, "TrentService.ScheduleKeyDeletion", &body).await
-                });
-                if let Err(error) = outcome {
-                    eprintln!("cleanup: schedule deletion of {key_id}: {error}");
-                }
+        for key_id in std::mem::take(&mut self.key_ids) {
+            let body = serde_json::json!({
+                "KeyId": key_id,
+                "PendingWindowInDays": 7,
+            })
+            .to_string();
+            let outcome =
+                kms_request(&http, &endpoint, "TrentService.ScheduleKeyDeletion", &body).await;
+            if let Err(error) = outcome {
+                eprintln!("cleanup: schedule deletion of {key_id}: {error}");
             }
-        });
-        let _ = handle.join();
+        }
     }
 }
 
@@ -180,33 +176,46 @@ async fn aws_kms_local_seals_opens_and_refuses_a_wrong_key() {
         key_ids: Vec::new(),
     };
 
-    let key_a = create_key(&http, &endpoint)
-        .await
-        .expect("create the first key");
-    cleanup.key_ids.push(key_a.clone());
-    let key_b = create_key(&http, &endpoint)
-        .await
-        .expect("create the second key");
-    cleanup.key_ids.push(key_b.clone());
+    // Catch a failed assertion so the keys are still scheduled for deletion.
+    // The cleanup is awaited here, in the test future: a blocking wait in a
+    // `Drop` runs on the pool worker that polls this future, and the pool then
+    // cannot run the deletion request (issue #1169).
+    let outcome = std::panic::AssertUnwindSafe(async {
+        let key_a = create_key(&http, &endpoint)
+            .await
+            .expect("create the first key");
+        cleanup.key_ids.push(key_a.clone());
+        let key_b = create_key(&http, &endpoint)
+            .await
+            .expect("create the second key");
+        cleanup.key_ids.push(key_b.clone());
 
-    let clock = ctx.clock();
-    let backend = AwsKmsBackend::new(REGION.to_string(), key_a, http.clone(), clock.clone())
-        .with_endpoint(endpoint.clone());
-    let sealer = EnvelopeSealer::new("aws-kms-local", Arc::new(backend), env.clone());
+        let clock = ctx.clock();
+        let backend = AwsKmsBackend::new(REGION.to_string(), key_a, http.clone(), clock.clone())
+            .with_endpoint(endpoint.clone());
+        let sealer = EnvelopeSealer::new("aws-kms-local", Arc::new(backend), env.clone());
 
-    let other = AwsKmsBackend::new(REGION.to_string(), key_b, http.clone(), clock)
-        .with_endpoint(endpoint.clone());
-    let other = EnvelopeSealer::new("aws-kms-local", Arc::new(other), env);
+        let other = AwsKmsBackend::new(REGION.to_string(), key_b, http.clone(), clock)
+            .with_endpoint(endpoint.clone());
+        let other = EnvelopeSealer::new("aws-kms-local", Arc::new(other), env);
 
-    let aad = b"record:local-kms:1";
-    let secret = b"a private key in PKCS#8 DER";
-    let sealed = sealer.seal(aad, secret).await.expect("seal");
-    assert_eq!(sealed.alg, "kms-envelope+chacha20poly1305");
-    let opened = sealer.open(aad, &sealed).await.expect("open");
-    assert_eq!(opened.as_slice(), secret);
+        let aad = b"record:local-kms:1";
+        let secret = b"a private key in PKCS#8 DER";
+        let sealed = sealer.seal(aad, secret).await.expect("seal");
+        assert_eq!(sealed.alg, "kms-envelope+chacha20poly1305");
+        let opened = sealer.open(aad, &sealed).await.expect("open");
+        assert_eq!(opened.as_slice(), secret);
 
-    assert!(
-        other.open(aad, &sealed).await.is_err(),
-        "a backend for another key must not open the blob"
-    );
+        assert!(
+            other.open(aad, &sealed).await.is_err(),
+            "a backend for another key must not open the blob"
+        );
+    })
+    .catch_unwind()
+    .await;
+
+    cleanup.schedule_deletions().await;
+    if let Err(payload) = outcome {
+        std::panic::resume_unwind(payload);
+    }
 }
