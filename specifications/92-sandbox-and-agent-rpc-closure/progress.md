@@ -84,7 +84,7 @@ The create timeout has two causes.
    failed, and never listened on the slave port. It now also treats the `CLOUDFLARE_*`
    environment as a container (issue #1133).
 
-The create readiness change is on `fix/create-readiness`. `CreateStream` holds a boxed
+The create readiness change is in pull request #1258. `CreateStream` holds a boxed
 `CreateSource`, so the engine wake crosses the type erasure. A `dyn WakeableStream` object
 cannot keep the wake, because `StreamIterator` is a supertrait with a blanket
 implementation, so the projection through the wrapper does not resolve (E0284).
@@ -242,6 +242,10 @@ every version.
   right after the billing link.
 
 ## Today's findings
+
+- **#1257** (`severity: medium`, open): two clippy lints in `foundation_nativeapis`, from
+  master commit `a4f2b9f83`, fail the `-D warnings` clippy step for every crate that depends
+  on it. The `foundation_sandbox` clippy step passes with `--no-deps`.
 
 - **#1125** (`high`, fixed by #1144): `ControlService::create` spun on `Stream::Wait` in a
   synchronous loop on the single-threaded wasm host, so the Durable Object stopped answering.
