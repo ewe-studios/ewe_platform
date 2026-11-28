@@ -1,6 +1,7 @@
 //! The slave process tests. Each test starts the real slave as a normal
 //! process on a Unix socket and calls it with the generated client.
 
+mod container;
 #[cfg(feature = "control")]
 mod control;
 mod exec;

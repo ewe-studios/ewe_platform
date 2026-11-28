@@ -80,6 +80,45 @@ fn route_reads_only_the_identifier() {
     );
 }
 
+/// The body of one Connect envelope: a zero flag and a big-endian length, then
+/// the message.
+fn enveloped(message: &[u8]) -> Vec<u8> {
+    let mut body = Vec::with_capacity(5 + message.len());
+    body.push(0);
+    body.extend_from_slice(
+        &u32::try_from(message.len())
+            .expect("the length fits")
+            .to_be_bytes(),
+    );
+    body.extend_from_slice(message);
+    body
+}
+
+/// A server-streaming scoped call sends one Connect envelope, not raw JSON.
+#[test]
+fn route_reads_a_connect_envelope() {
+    let message = br#"{"sandbox_id":"000000000003"}"#;
+    assert_eq!(
+        route(&path("Exec"), &enveloped(message)).unwrap(),
+        RouteTarget::Sandbox(id("000000000003"))
+    );
+    let message = br#"{"container_id":"000000000003"}"#;
+    assert_eq!(
+        route(&container_path("Get"), &enveloped(message)).unwrap(),
+        RouteTarget::Container(id("000000000003"))
+    );
+}
+
+/// A body that is not a whole envelope keeps the raw JSON reading.
+#[test]
+fn route_reads_raw_json_when_the_envelope_is_wrong() {
+    let body = enveloped(br#"{"sandbox_id":"000000000004"}"#);
+    let mut short = body.clone();
+    short.pop();
+    let error = error_of(route(&path("Exec"), &short));
+    assert!(matches!(error, SandboxError::InvalidSpec { .. }));
+}
+
 /// An identifier that is not a `SandboxId` is refused before any Durable Object
 /// is reached.
 #[test]

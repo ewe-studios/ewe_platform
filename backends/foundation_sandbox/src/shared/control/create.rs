@@ -762,6 +762,9 @@ fn is_retryable_info_error(error: &ErrorTrace<SandboxError>) -> bool {
     matches!(
         error.current_context(),
         SandboxError::Rpc { code, .. } if code == "unavailable"
+    ) || matches!(
+        error.current_context(),
+        SandboxError::Rpc { code, .. } if code == "deadline_exceeded"
     ) || matches!(error.current_context(), SandboxError::Io { .. })
 }
 
