@@ -26,7 +26,11 @@ cp "${root_target}/x86_64-unknown-linux-musl/agent/agent-slave" agent-slave
 
 # The model server that runs beside the slave in the same container.
 model_target="${CARGO_TARGET_DIR:-model/target}"
-cargo build --manifest-path model/Cargo.toml --release --target x86_64-unknown-linux-musl
+# The root `.cargo/config.toml` sets `linker = "clang"` for Linux targets, which
+# on a macOS host resolves to the Apple linker. Override it for musl, as the
+# slave build above does.
+RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
+  cargo build --manifest-path model/Cargo.toml --release --target x86_64-unknown-linux-musl
 cp "${model_target}/x86_64-unknown-linux-musl/release/demo-model" demo-model
 
 # The Worker module.
@@ -39,11 +43,15 @@ description = "Build and deploy the persistent ewe-sandbox-demo, then print its 
 depends = ["build"]
 run = """
 set -euo pipefail
-# `wrangler` reads CLOUDFLARE_API_TOKEN. The owner's Workers AI token is the
-# only token in some environments; use it when the deploy token is absent.
-export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CLOUDFLARE_WORKERS_AI_API_TOKEN:-}}"
-if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
-    echo "set CLOUDFLARE_API_TOKEN (or CLOUDFLARE_WORKERS_AI_API_TOKEN) and CLOUDFLARE_ACCOUNT_ID" >&2
+# `wrangler` uses `CLOUDFLARE_API_TOKEN` when it is set, and otherwise its own
+# OAuth login (`wrangler login`). Both work here. The Workers AI token is a
+# fallback only when it carries the deploy scopes; it does not carry Containers
+# by default, so do not assume it.
+if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    export CLOUDFLARE_API_TOKEN
+fi
+if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] && [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    echo "set CLOUDFLARE_ACCOUNT_ID, or log in with wrangler login" >&2
     exit 2
 fi
 
