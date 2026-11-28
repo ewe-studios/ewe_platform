@@ -4,6 +4,9 @@
 //! `cargo test -p foundation_auth --test secret_tests golden_v1` runs one
 //! group.
 
+// The native suite reads the file system and the operating system.
+#![cfg(not(target_arch = "wasm32"))]
+
 mod common;
 mod enroll_proof;
 mod golden_v1;

@@ -1,8 +1,15 @@
-//! The `HashiCorp` Vault Transit backend, against a Vault dev server in a
-//! container.
+//! The `HashiCorp` Vault Transit backend, against a Vault dev server.
 //!
-//! The test prints the reason and returns when Docker is absent, or when the
-//! image cannot be pulled. It uses the real Vault Transit engine, not a stub.
+//! WHY: no local stub proves the Transit protocol, the token header and the
+//! derived-key encryption. This test uses the real Transit engine.
+//!
+//! WHAT: seal a payload, open it back and refuse a different record.
+//!
+//! HOW: the test uses the server named by `VAULT_ADDR` (the compose file
+//! `ci/local-services/docker-compose.yml` starts it) when that variable is
+//! set. Without it the test starts the same pinned image in a container and
+//! removes the container on drop. The test prints the reason and returns when
+//! neither form is available.
 
 use std::process::Command;
 use std::time::Duration;
@@ -14,22 +21,31 @@ use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use super::common::test_ctx;
 
-const IMAGE: &str = "hashicorp/vault:latest";
+/// The image of the local-services compose file, pinned by digest so a CI run
+/// and a laptop run use the same bytes.
+const IMAGE: &str =
+    "hashicorp/vault@sha256:dfa48c2fa2b0099ccb47681ec5c4804bf5aec9d6879ecfee07ad4b92a5427ad6";
 const KEY_NAME: &str = "ewe-test";
 const ROOT_TOKEN: &str = "root";
+/// The longest wait for a Vault dev server to answer its health check.
+const READY_TIMEOUT: Duration = Duration::from_secs(60);
 
-/// A running Vault container. Drop removes it.
+/// A running Vault server. Drop removes a container that this test started.
 struct Vault {
-    name: String,
+    /// The container name, when this test started the container.
+    name: Option<String>,
     address: String,
+    token: String,
     http: DynNetClient,
 }
 
 impl Drop for Vault {
     fn drop(&mut self) {
-        let _ = Command::new("docker")
-            .args(["rm", "-f", &self.name])
-            .output();
+        if let Some(name) = &self.name {
+            let _ = Command::new("docker")
+                .args(["rm", "-f", name.as_str()])
+                .output();
+        }
     }
 }
 
@@ -48,7 +64,7 @@ fn free_port() -> u16 {
 
 /// Send a Vault request and return its status and body.
 async fn vault_request(
-    http: &DynNetClient,
+    vault: &Vault,
     method: &str,
     url: &str,
     body: Option<&str>,
@@ -59,12 +75,13 @@ async fn vault_request(
         other => return Err(format!("unsupported method {other}")),
     }
     .map_err(|e| e.to_string())?
-    .header("X-Vault-Token".to_string(), ROOT_TOKEN);
+    .header("X-Vault-Token".to_string(), vault.token.clone());
     let builder = match body {
         Some(body) => builder.body_text(body),
         None => builder,
     };
-    let response = http
+    let response = vault
+        .http
         .send_async(builder.build())
         .await
         .map_err(|e| e.to_string())?;
@@ -73,9 +90,67 @@ async fn vault_request(
     Ok((status, text))
 }
 
+/// Wait for the dev server to answer its health check.
+async fn wait_ready(vault: &Vault) -> bool {
+    let clock = foundation_context::Ctx::host().clock();
+    let deadline = clock.now() + READY_TIMEOUT;
+    loop {
+        if let Ok((status, _)) = vault_request(
+            vault,
+            "GET",
+            &format!("{}/v1/sys/health", vault.address),
+            None,
+        )
+        .await
+        {
+            if status == 200 {
+                return true;
+            }
+        }
+        if clock.now() > deadline {
+            return false;
+        }
+        std::thread::sleep(Duration::from_millis(500));
+    }
+}
+
+/// Enable the Transit secrets engine. A dev server starts with none.
+async fn enable_transit(vault: &Vault) -> Result<(), String> {
+    let (status, body) = vault_request(
+        vault,
+        "POST",
+        &format!("{}/v1/sys/mounts/transit", vault.address),
+        Some("{\"type\": \"transit\"}"),
+    )
+    .await?;
+    // 400 means that the path is already mounted, which the compose file's
+    // `vault-init` service does.
+    if (200..=299).contains(&status) || status == 400 {
+        Ok(())
+    } else {
+        Err(format!("enabling transit failed: {status} {body}"))
+    }
+}
+
+/// Create the derived Transit key that the sealer uses.
+async fn create_key(vault: &Vault) -> Result<(), String> {
+    let (status, body) = vault_request(
+        vault,
+        "POST",
+        &format!("{}/v1/transit/keys/{KEY_NAME}", vault.address),
+        Some("{\"derived\": true}"),
+    )
+    .await?;
+    if (200..=299).contains(&status) {
+        Ok(())
+    } else {
+        Err(format!("creating the key failed: {status} {body}"))
+    }
+}
+
 /// Start a Vault dev server. Returns `None` when Docker is absent or the image
 /// cannot run.
-async fn start_vault() -> Option<Vault> {
+async fn start_container() -> Option<Vault> {
     if !docker_available() {
         eprintln!("skipping the Vault test: Docker is not available");
         return None;
@@ -106,45 +181,54 @@ async fn start_vault() -> Option<Vault> {
         );
         return None;
     }
-
-    let http = HttpClientBuilder::new().build();
-    let address = format!("http://127.0.0.1:{port}");
     let vault = Vault {
-        name,
-        address: address.clone(),
-        http: http.clone(),
+        name: Some(name),
+        address: format!("http://127.0.0.1:{port}"),
+        token: ROOT_TOKEN.to_string(),
+        http: HttpClientBuilder::new().build(),
     };
-
-    // Wait for the dev server to answer its health check.
-    let clock = foundation_context::Ctx::host().clock();
-    let deadline = clock.now() + Duration::from_secs(60);
-    loop {
-        if let Ok((status, _)) =
-            vault_request(&http, "GET", &format!("{address}/v1/sys/health"), None).await
-        {
-            if status == 200 {
-                break;
-            }
-        }
-        if clock.now() > deadline {
-            eprintln!("skipping the Vault test: the dev server did not become healthy");
-            return None;
-        }
-        std::thread::sleep(Duration::from_millis(500));
+    if !wait_ready(&vault).await {
+        eprintln!("skipping the Vault test: the dev server did not become healthy");
+        return None;
     }
+    if let Err(reason) = enable_transit(&vault).await {
+        eprintln!("skipping the Vault test: {reason}");
+        return None;
+    }
+    if let Err(reason) = create_key(&vault).await {
+        eprintln!("skipping the Vault test: {reason}");
+        return None;
+    }
+    Some(vault)
+}
 
-    // A derived key, because the sealer binds each call to its record with the
-    // context.
-    let (status, body) = vault_request(
-        &http,
-        "POST",
-        &format!("{address}/v1/transit/keys/{KEY_NAME}"),
-        Some("{\"derived\": true}"),
-    )
-    .await
-    .expect("create the transit key");
-    if !(200..=299).contains(&status) {
-        eprintln!("skipping the Vault test: creating the key failed: {body}");
+/// The server under test: the address from the environment, else a container.
+async fn start_vault() -> Option<Vault> {
+    let address = std::env::var("VAULT_ADDR")
+        .ok()
+        .filter(|address| !address.trim().is_empty());
+    let Some(address) = address else {
+        return start_container().await;
+    };
+    let vault = Vault {
+        name: None,
+        address,
+        token: std::env::var("VAULT_TOKEN").unwrap_or_else(|_| ROOT_TOKEN.to_string()),
+        http: HttpClientBuilder::new().build(),
+    };
+    if !wait_ready(&vault).await {
+        eprintln!(
+            "skipping the Vault test: {} did not become healthy",
+            vault.address
+        );
+        return None;
+    }
+    if let Err(reason) = enable_transit(&vault).await {
+        eprintln!("skipping the Vault test: {reason}");
+        return None;
+    }
+    if let Err(reason) = create_key(&vault).await {
+        eprintln!("skipping the Vault test: {reason}");
         return None;
     }
     Some(vault)
@@ -159,7 +243,7 @@ async fn vault_transit_seals_and_opens() {
     let backend = VaultTransitBackend::new(
         vault.address.clone(),
         KEY_NAME.to_string(),
-        SecureBytes::new(ROOT_TOKEN.as_bytes().to_vec()),
+        SecureBytes::new(vault.token.as_bytes().to_vec()),
         vault.http.clone(),
     );
     let cipher = EnvelopeSealer::new("vault-transit", std::sync::Arc::new(backend), env);

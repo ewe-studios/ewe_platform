@@ -61,7 +61,14 @@ impl KeyCleanup {
 
 /// Lowercase hexadecimal text.
 fn hex_lower(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+    use std::fmt::Write as _;
+
+    let mut text = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        // A write to a `String` cannot fail.
+        let _ = write!(text, "{byte:02x}");
+    }
+    text
 }
 
 /// The `SigV4` signature of a string-to-sign.
