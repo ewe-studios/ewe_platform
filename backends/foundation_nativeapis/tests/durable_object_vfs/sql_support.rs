@@ -52,9 +52,7 @@ impl LibsqlExecutor {
             .build()
             .await
             .expect("open the in-memory database");
-        let conn = database
-            .connect()
-            .expect("connect to the in-memory database");
+        let conn = database.connect().expect("connect to the in-memory database");
         Self {
             conn: Arc::new(conn),
         }

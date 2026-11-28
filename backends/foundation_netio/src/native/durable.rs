@@ -3,15 +3,15 @@
 //! It wraps the `foundation_netio` Hypertext Transfer Protocol (HTTP) client.
 //! The protocol core stays transport-neutral.
 
-use crate::event_source::ParseResult;
 use crate::shared::client::body_reader::{is_would_block, try_collect_bytes, ReadWakeSource};
 use crate::shared::client::request_builder::PreparedRequestBuilder;
-use crate::shared::http::{SendSafeBody, SimpleHeader};
-use crate::{DynNetClient, HttpClientBuilder};
 use foundation_core::durable::client::{
     ClientFuture, ClientRequest, ClientResponse, ClientSseStream, ClientTransport, HttpMethod,
     SseEvent, SseOpen, TransportError,
 };
+use crate::event_source::ParseResult;
+use crate::shared::http::{SendSafeBody, SimpleHeader};
+use crate::{DynNetClient, HttpClientBuilder};
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::BoxedSendableIterator;
 use std::collections::BTreeMap;
@@ -160,8 +160,8 @@ impl ClientTransport for NetioTransport {
             let (status, headers, body) = response.into_parts();
             let status = u16::try_from(status.into_usize())
                 .map_err(|_| TransportError::new("status does not fit u16"))?;
-            let bytes =
-                try_collect_bytes(body).map_err(|error| TransportError::new(error.to_string()))?;
+            let bytes = try_collect_bytes(body)
+                .map_err(|error| TransportError::new(error.to_string()))?;
 
             let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
             for (name, values) in headers {

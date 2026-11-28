@@ -16,7 +16,11 @@ extern "C" {
 
     /// GET with an options object (`range`, `onlyIf`, ...).
     #[wasm_bindgen(method, js_name = get)]
-    pub fn get_with_options(this: &R2Bucket, key: &str, options: &JsValue) -> js_sys::Promise;
+    pub fn get_with_options(
+        this: &R2Bucket,
+        key: &str,
+        options: &JsValue,
+    ) -> js_sys::Promise;
 
     #[wasm_bindgen(method, js_name = put)]
     pub fn put(this: &R2Bucket, key: &str, value: &JsValue) -> js_sys::Promise;

@@ -123,9 +123,7 @@ fn live_transport(env: &LiveEnv) -> NetioObjectTransport {
 }
 
 fn literal_socket_addr(endpoint: &str) -> Option<std::net::SocketAddr> {
-    let rest = endpoint
-        .split_once("://")
-        .map_or(endpoint, |(_, rest)| rest);
+    let rest = endpoint.split_once("://").map_or(endpoint, |(_, rest)| rest);
     let authority = rest.split('/').next()?;
     authority.parse().ok()
 }
@@ -143,7 +141,11 @@ fn live_store(
 
 /// The bucket URL for a path-style endpoint.
 fn bucket_url(env: &LiveEnv) -> String {
-    format!("{}/{}", env.endpoint.trim_end_matches('/'), env.bucket)
+    format!(
+        "{}/{}",
+        env.endpoint.trim_end_matches('/'),
+        env.bucket
+    )
 }
 
 /// Create the bucket when it does not exist.
@@ -173,10 +175,7 @@ async fn ensure_bucket(env: &LiveEnv, ctx: &Ctx, transport: &NetioObjectTranspor
         "us-east-1",
         unix_millis(ctx.clock().wall_now()),
     );
-    let response = transport
-        .send(request)
-        .await
-        .expect("create bucket request");
+    let response = transport.send(request).await.expect("create bucket request");
     assert!(
         response.status == 200 || response.status == 409,
         "create bucket returned status {}",
@@ -189,7 +188,10 @@ fn unique_root(tag: &str) -> String {
         .duration_since(UNIX_EPOCH)
         .expect("clock after the epoch")
         .as_nanos();
-    format!("spec71/feature11/{tag}-{}-{nanos}", std::process::id())
+    format!(
+        "spec71/feature11/{tag}-{}-{nanos}",
+        std::process::id()
+    )
 }
 
 fn meta() -> VfsMeta {
@@ -415,10 +417,7 @@ async fn live_s3_restart_replays_the_spool() {
         PublishPolicy::Batched,
     );
     let flushed = second.flush_stream(&name).await.expect("replay flush");
-    assert_eq!(
-        flushed.blocks_put, 1,
-        "the replay publishes the spool batch"
-    );
+    assert_eq!(flushed.blocks_put, 1, "the replay publishes the spool batch");
 
     let (_reader_clock, reader_ctx) = fresh_clock();
     let reader = live_vfs(

@@ -536,7 +536,8 @@ fn given_a_chunked_body_that_ends_early_when_the_client_half_closes_then_the_ser
 
     // The stream stays empty: no partial append.
     let mut get = TcpStream::connect(addr).expect("connect");
-    get.set_read_timeout(Some(Duration::from_secs(5)))
+    get
+        .set_read_timeout(Some(Duration::from_secs(5)))
         .expect("set read timeout");
     get.write_all(b"GET /v1/stream/early HTTP/1.1\r\nHost: test\r\n\r\n")
         .expect("write get");
@@ -552,8 +553,7 @@ fn given_a_chunked_body_that_ends_early_when_the_client_half_closes_then_the_ser
 #[test]
 #[foundation_macros::timeout(60000)]
 #[serial(http_test)]
-fn given_a_rejected_body_when_the_client_stops_sending_then_the_server_closes_at_the_linger_timeout(
-) {
+fn given_a_rejected_body_when_the_client_stops_sending_then_the_server_closes_at_the_linger_timeout() {
     use std::io::{Read, Write};
     use std::net::TcpStream;
 
@@ -578,9 +578,7 @@ fn given_a_rejected_body_when_the_client_stops_sending_then_the_server_closes_at
             .as_bytes(),
         )
         .expect("write head");
-    stream
-        .write_all(&vec![7_u8; 4096])
-        .expect("write body part");
+    stream.write_all(&vec![7_u8; 4096]).expect("write body part");
 
     let (status, _) = read_raw_head(&mut stream);
     assert_eq!(status, 413, "expected 413 for an oversized body");

@@ -1,7 +1,7 @@
 //! Bundle local ECMAScript modules into classic browser scripts.
 mod application;
-use anyhow::{bail, Context, Result};
 pub use application::{application, ApplicationScript};
+use anyhow::{Context, Result, bail};
 use std::{
     collections::{BTreeSet, HashMap},
     path::{Path, PathBuf},
@@ -9,14 +9,14 @@ use std::{
 };
 use swc_bundler::{Bundler, Config, Hook, Load, ModuleData, ModuleRecord, ModuleType, Resolve};
 use swc_common::{
+    FileName, GLOBALS, Globals, SourceMap, Span,
     comments::{CommentKind, SingleThreadedComments},
     sync::Lrc,
-    FileName, Globals, SourceMap, Span, GLOBALS,
 };
 use swc_ecma_ast::{EsVersion, KeyValueProp, Program};
-use swc_ecma_codegen::{text_writer::JsWriter, Emitter};
+use swc_ecma_codegen::{Emitter, text_writer::JsWriter};
 use swc_ecma_loader::resolve::Resolution;
-use swc_ecma_parser::{lexer::Lexer, EsSyntax, Parser, StringInput, Syntax};
+use swc_ecma_parser::{EsSyntax, Parser, StringInput, Syntax, lexer::Lexer};
 use swc_ecma_transforms_base::helpers::Helpers;
 
 /// Two representations of one script and the source files it imports.

@@ -120,9 +120,7 @@ fn method_of(method: HttpMethod) -> SimpleMethod {
 impl ObjectTransport for NetioObjectTransport {
     fn send(&self, request: ObjectRequest) -> ObjectFuture<'_, ObjectResponse> {
         Box::pin(async move {
-            let limit = request
-                .max_response_bytes
-                .min(self.max_response_bytes.max(1));
+            let limit = request.max_response_bytes.min(self.max_response_bytes.max(1));
             let url = request.full_url();
             let mut builder = PreparedRequestBuilder::new(method_of(request.method), &url)
                 .map_err(|error| {

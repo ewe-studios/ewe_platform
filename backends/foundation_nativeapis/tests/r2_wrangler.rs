@@ -53,7 +53,8 @@ impl Wrangler {
     /// Start `wrangler dev --local` on a free port and wait for readiness.
     fn start() -> Self {
         let port = free_port();
-        let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("integration/r2_blocks");
+        let fixture =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("integration/r2_blocks");
         let log_path = std::env::temp_dir().join(format!("nativeapis-r2-wrangler-{port}.log"));
         let child = spawn_wrangler(&fixture, port, &log_path);
         let mut wrangler = Self {

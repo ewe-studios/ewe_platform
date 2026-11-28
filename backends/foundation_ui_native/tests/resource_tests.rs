@@ -12,10 +12,7 @@ use std::sync::{
 
 struct Source(Arc<AtomicUsize>);
 impl HostResourceSource for Source {
-    fn open_resource_file(
-        &self,
-        name: String,
-    ) -> Result<Option<Arc<dyn HostResourceFile>>, CoreError> {
+    fn open_resource_file(&self, name: String) -> Result<Option<Arc<dyn HostResourceFile>>, CoreError> {
         Ok(match name.as_str() {
             "icon" | "broken" => Some(Arc::new(File {
                 reads: AtomicUsize::new(0),

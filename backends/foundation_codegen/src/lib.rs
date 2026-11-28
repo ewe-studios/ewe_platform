@@ -1,9 +1,9 @@
+#[cfg(feature = "javascript")]
+pub mod javascript;
 pub mod cargo_toml;
 pub mod crate_scanner;
 pub mod error;
 pub mod file_walker;
-#[cfg(feature = "javascript")]
-pub mod javascript;
 pub mod module_path;
 pub mod parser;
 pub mod registry;

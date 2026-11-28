@@ -205,29 +205,14 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
             path.to_str().unwrap().into(),
         )
         .unwrap();
-        use foundation_ui_wire::{
-            writer::{write_caps, FrameHeader},
-            ServerActionT, ServerCapsT, SCHEMA_VERSION,
-        };
+        use foundation_ui_wire::{writer::{write_caps, FrameHeader}, ServerActionT, ServerCapsT, SCHEMA_VERSION};
         let mut caps = ServerCapsT::default();
         caps.schema_version = SCHEMA_VERSION;
         caps.vocabulary_version = foundation_ui_wire::vocab::VOCABULARY_VERSION;
         let mut add = ServerActionT::default();
         add.name = Some("add_todo".into());
         caps.actions = Some(vec![add]);
-        core.apply_caps_frame(
-            write_caps(
-                &caps,
-                FrameHeader {
-                    stream_id: 1,
-                    sequence_id: 1,
-                    ack: 0,
-                },
-                &WriterConfig::default(),
-            )
-            .unwrap(),
-        )
-        .unwrap();
+        core.apply_caps_frame(write_caps(&caps, FrameHeader { stream_id: 1, sequence_id: 1, ack: 0 }, &WriterConfig::default()).unwrap()).unwrap();
         core.set_frame_listener(preview.clone());
         core
     };
@@ -297,11 +282,7 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
         value: "Corrected title".into(),
         ..EventInput::receiving_view()
     };
-    let reply = corrected
-        .trigger("host:submit_todo".into(), event)
-        .await
-        .unwrap()
-        .unwrap();
+    let reply = corrected.trigger("host:submit_todo".into(), event).await.unwrap().unwrap();
     assert!(shows(&operations(&reply), "Try again"));
     let corrected_key = {
         let requests = transport.0.lock().unwrap();

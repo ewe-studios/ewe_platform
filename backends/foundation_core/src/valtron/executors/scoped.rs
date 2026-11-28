@@ -12,8 +12,8 @@
 /// Panics on a target without threads, such as wasm32 without a worker.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn block_on_future_scoped<F: core::future::Future>(future: F) -> F::Output {
-    use std::sync::Arc;
     use std::task::{Context, Poll, Wake, Waker};
+    use std::sync::Arc;
 
     struct ThreadWaker(std::thread::Thread);
     impl Wake for ThreadWaker {

@@ -108,12 +108,7 @@ fn web_mapping_matches_the_core_names() {
             "ewe-cancel-button",
             &[("type", "button")][..],
         ),
-        (
-            NodeKind::DRAWING_SURFACE,
-            "canvas",
-            "ewe-drawing-surface",
-            &[][..],
-        ),
+        (NodeKind::DRAWING_SURFACE, "canvas", "ewe-drawing-surface", &[][..]),
         (
             NodeKind::SEARCH_INPUT,
             "input",

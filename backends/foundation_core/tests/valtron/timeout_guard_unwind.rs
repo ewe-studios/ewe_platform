@@ -12,8 +12,8 @@
 //! poisoned lock, so the first test injects a clock that fails on demand. That
 //! failure is deterministic and stands for every other panic in the teardown.
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant, SystemTime};
 
 use foundation_context::{Clock, Ctx, MonotonicClock};

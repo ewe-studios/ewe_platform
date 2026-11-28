@@ -713,7 +713,9 @@ where
                         });
                         Some(TaskStatus::Ready(parse_result))
                     }
-                    Some(Err(e)) if crate::shared::client::body_reader::is_would_block(&*e) => {
+                    Some(Err(e))
+                        if crate::shared::client::body_reader::is_would_block(&*e) =>
+                    {
                         // No complete event is buffered. Park on the
                         // connection's readiness instead of blocking the poll.
                         let signal =

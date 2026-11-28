@@ -19,9 +19,9 @@ mod clock_injection;
 mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
-mod ctx_reexport;
 #[cfg(all(feature = "test-clock", not(target_family = "wasm")))]
 mod ctx_timer;
+mod ctx_reexport;
 mod deadline_order;
 #[cfg(feature = "std")]
 #[cfg(not(target_family = "wasm"))]
@@ -34,10 +34,10 @@ mod map_circuit;
 mod notification_based_waiting;
 mod park_busy_loop;
 mod pool_seed_root;
-mod readiness_deadline_tests;
-mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
 mod scoped_block_on;
+mod readiness_deadline_tests;
+mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
 mod shutdown_mechanism_tests;
 mod sleep_tests;

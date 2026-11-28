@@ -6,7 +6,9 @@
 #![cfg(feature = "vfs-object-netio")]
 
 use foundation_core::valtron::valtron_test;
-use foundation_nativeapis::native::vfs::object_http::{HttpMethod, ObjectRequest, ObjectTransport};
+use foundation_nativeapis::native::vfs::object_http::{
+    HttpMethod, ObjectRequest, ObjectTransport,
+};
 use foundation_nativeapis::native::vfs::object_netio::NetioObjectTransport;
 use foundation_netio::HttpClientBuilder;
 use std::io::{Read, Write};
@@ -114,9 +116,7 @@ fn client() -> NetioObjectTransport {
 
 #[valtron_test]
 async fn netio_transport_sends_a_signed_request() {
-    let response =
-        b"HTTP/1.1 200 OK\r\nETag: \"v1\"\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok"
-            .to_vec();
+    let response = b"HTTP/1.1 200 OK\r\nETag: \"v1\"\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok".to_vec();
     let (addr, recorded, server) = serve(response);
     let transport = client();
     let request = ObjectRequest {
@@ -187,8 +187,7 @@ async fn netio_transport_bounds_the_body() {
 
 #[valtron_test]
 async fn netio_transport_returns_a_non_2xx_status() {
-    let response =
-        b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".to_vec();
+    let response = b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".to_vec();
     let (addr, _recorded, server) = serve(response);
     let transport = client();
     let request = ObjectRequest {
@@ -211,8 +210,7 @@ async fn netio_transport_returns_a_non_2xx_status() {
 async fn netio_transport_reads_no_head_body() {
     // A HEAD response names a length but sends no body. The server holds the
     // connection open so a reader that waits for the named bytes is visible.
-    let response =
-        b"HTTP/1.1 200 OK\r\nContent-Length: 123\r\nConnection: keep-alive\r\n\r\n".to_vec();
+    let response = b"HTTP/1.1 200 OK\r\nContent-Length: 123\r\nConnection: keep-alive\r\n\r\n".to_vec();
     let listener = TcpListener::bind(("127.0.0.1", 0)).expect("bind test server");
     let addr = listener.local_addr().expect("local addr");
     let server = thread::spawn(move || {
@@ -243,3 +241,4 @@ async fn netio_transport_reads_no_head_body() {
     assert_eq!(response.header("content-length"), Some("123"));
     drop(server);
 }
+

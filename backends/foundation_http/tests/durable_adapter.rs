@@ -53,9 +53,7 @@ async fn send(
     body: &str,
 ) -> Result<DurableResponse, StoreError> {
     if matches!(method, SimpleMethod::POST | SimpleMethod::PUT)
-        && !headers
-            .keys()
-            .any(|key| key.to_string().eq_ignore_ascii_case("content-type"))
+        && !headers.keys().any(|key| key.to_string().eq_ignore_ascii_case("content-type"))
     {
         headers.insert(
             SimpleHeader::custom("content-type"),
@@ -105,26 +103,10 @@ fn given_a_new_stream_when_put_runs_then_it_creates_with_a_location() {
 fn given_an_existing_stream_when_put_runs_again_with_the_same_spec_then_it_is_not_created_again() {
     smol::block_on(async {
         let service = service();
-        let first = send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await;
+        let first = send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await;
         assert_eq!(first.expect("create").status, 201);
 
-        let second = send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await;
+        let second = send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await;
         assert_eq!(second.expect("existing").status, 200);
     });
 }
@@ -133,43 +115,21 @@ fn given_an_existing_stream_when_put_runs_again_with_the_same_spec_then_it_is_no
 fn given_a_stream_when_post_appends_then_get_returns_the_body_and_is_up_to_date() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
 
-        let append = send(
-            &service,
-            SimpleMethod::POST,
-            "events",
-            headers(&[]),
-            None,
-            "hello",
-        )
-        .await
-        .expect("append");
+        let append = send(&service, SimpleMethod::POST, "events", headers(&[]), None, "hello")
+            .await
+            .expect("append");
         assert_eq!(append.status, 204);
         let offset = append
             .header("Stream-Next-Offset")
             .expect("next offset")
             .to_string();
 
-        let read = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let read = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect("read");
         assert_eq!(read.status, 200);
         assert_eq!(read.body, b"hello");
         assert_eq!(read.header("Stream-Up-To-Date"), Some("true"));
@@ -213,16 +173,9 @@ fn given_a_json_stream_when_get_runs_then_the_body_is_a_json_array() {
         .await
         .expect("append two");
 
-        let read = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let read = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect("read");
         assert_eq!(read.body, br#"[{"a":1},{"a":2}]"#);
     });
 }
@@ -231,16 +184,8 @@ fn given_a_json_stream_when_get_runs_then_the_body_is_a_json_array() {
 fn given_a_stream_when_get_uses_offset_minus_one_then_it_reads_from_the_start() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
 
         let mut queries = BTreeMap::new();
         queries.insert("offset".to_string(), "-1".to_string());
@@ -262,31 +207,13 @@ fn given_a_stream_when_get_uses_offset_minus_one_then_it_reads_from_the_start() 
 fn given_a_stream_when_a_second_read_uses_the_next_offset_then_it_gets_no_chunks() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
 
-        let first = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
-        let next = first
-            .header("Stream-Next-Offset")
-            .expect("offset")
-            .to_string();
+        let first = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect("read");
+        let next = first.header("Stream-Next-Offset").expect("offset").to_string();
 
         let mut queries = BTreeMap::new();
         queries.insert("offset".to_string(), next);
@@ -309,27 +236,12 @@ fn given_a_stream_when_a_second_read_uses_the_next_offset_then_it_gets_no_chunks
 fn given_a_stream_when_head_runs_then_it_reports_the_tail_without_a_body() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
 
-        let response = send(
-            &service,
-            SimpleMethod::HEAD,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("head");
+        let response = send(&service, SimpleMethod::HEAD, "events", headers(&[]), None, "")
+            .await
+            .expect("head");
         assert_eq!(response.status, 200);
         assert_eq!(response.body, Vec::<u8>::new());
         assert_eq!(
@@ -345,16 +257,8 @@ fn given_a_stream_when_head_runs_then_it_reports_the_tail_without_a_body() {
 fn given_a_stream_when_a_post_closes_it_then_the_closed_header_is_set_on_read() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
 
         let close = send(
             &service,
@@ -368,16 +272,9 @@ fn given_a_stream_when_a_post_closes_it_then_the_closed_header_is_set_on_read() 
         .expect("close");
         assert_eq!(close.header("Stream-Closed"), Some("true"));
 
-        let read = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let read = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect("read");
         assert_eq!(read.body, b"bye");
         assert_eq!(read.header("Stream-Closed"), Some("true"));
     });
@@ -387,48 +284,26 @@ fn given_a_stream_when_a_post_closes_it_then_the_closed_header_is_set_on_read() 
 fn given_a_producer_when_the_same_seq_arrives_twice_then_only_one_chunk_is_stored() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
 
         let producer = headers(&[
             ("producer-id", "p1"),
             ("producer-epoch", "1"),
             ("producer-seq", "0"),
         ]);
-        let first = send(
-            &service,
-            SimpleMethod::POST,
-            "events",
-            producer.clone(),
-            None,
-            "x",
-        )
-        .await
-        .expect("first");
+        let first = send(&service, SimpleMethod::POST, "events", producer.clone(), None, "x")
+            .await
+            .expect("first");
         assert_eq!(first.status, 200);
         let second = send(&service, SimpleMethod::POST, "events", producer, None, "x")
             .await
             .expect("duplicate");
         assert_eq!(second.status, 204);
 
-        let read = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let read = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect("read");
         assert_eq!(read.body, b"x");
     });
 }
@@ -437,27 +312,12 @@ fn given_a_producer_when_the_same_seq_arrives_twice_then_only_one_chunk_is_store
 fn given_a_matching_etag_when_get_runs_then_it_returns_304() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
 
-        let first = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let first = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect("read");
         let tag = first.header("ETag").expect("etag").to_string();
 
         let second = send(
@@ -479,16 +339,9 @@ fn given_a_matching_etag_when_get_runs_then_it_returns_304() {
 fn given_a_missing_stream_when_get_runs_then_it_reports_not_found() {
     smol::block_on(async {
         let service = service();
-        let error = send(
-            &service,
-            SimpleMethod::GET,
-            "absent",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect_err("missing");
+        let error = send(&service, SimpleMethod::GET, "absent", headers(&[]), None, "")
+            .await
+            .expect_err("missing");
         assert!(matches!(error, StoreError::NotFound));
     });
 }
@@ -497,39 +350,17 @@ fn given_a_missing_stream_when_get_runs_then_it_reports_not_found() {
 fn given_a_stream_when_delete_runs_then_get_reports_gone() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
 
-        let deleted = send(
-            &service,
-            SimpleMethod::DELETE,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("delete");
+        let deleted = send(&service, SimpleMethod::DELETE, "events", headers(&[]), None, "")
+            .await
+            .expect("delete");
         assert_eq!(deleted.status, 204);
 
-        let error = send(
-            &service,
-            SimpleMethod::GET,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect_err("gone");
+        let error = send(&service, SimpleMethod::GET, "events", headers(&[]), None, "")
+            .await
+            .expect_err("gone");
         assert!(matches!(error, StoreError::Gone | StoreError::NotFound));
     });
 }
@@ -538,16 +369,9 @@ fn given_a_stream_when_delete_runs_then_get_reports_gone() {
 fn given_an_unsupported_method_when_dispatch_runs_then_it_answers_405() {
     smol::block_on(async {
         let service = service();
-        let response = send(
-            &service,
-            SimpleMethod::PATCH,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("405");
+        let response = send(&service, SimpleMethod::PATCH, "events", headers(&[]), None, "")
+            .await
+            .expect("405");
         assert_eq!(response.status, 405);
     });
 }
@@ -562,16 +386,8 @@ fn given_a_path_with_a_query_when_it_is_parsed_then_the_query_is_dropped() {
 fn given_a_partial_producer_header_set_when_post_runs_then_it_is_a_bad_request() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
 
         let error = send(
             &service,
@@ -609,16 +425,8 @@ fn given_live_long_poll_values_when_parsed_then_only_known_modes_are_accepted() 
 fn given_a_stream_with_data_when_long_poll_runs_then_it_returns_the_data_at_once() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
 
         let mut queries = BTreeMap::new();
         queries.insert("offset".to_string(), "-1".to_string());
@@ -645,16 +453,9 @@ fn given_an_open_stream_at_the_tail_when_an_append_arrives_then_long_poll_return
     smol::block_on(async {
         let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host());
         let service = DurableService::new(stream.clone());
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "")
+            .await
+            .expect("create");
         let offset = send(
             &service,
             SimpleMethod::GET,
@@ -709,16 +510,8 @@ fn given_an_open_stream_at_the_tail_when_an_append_arrives_then_long_poll_return
 fn given_a_closed_stream_at_the_tail_when_long_poll_runs_then_it_returns_204_closed() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "abc").await
+            .expect("create");
         send(
             &service,
             SimpleMethod::POST,
@@ -774,16 +567,8 @@ fn given_a_closed_stream_at_the_tail_when_long_poll_runs_then_it_returns_204_clo
 fn given_a_long_poll_without_an_offset_when_dispatch_runs_then_it_is_a_bad_request() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "events",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "events", headers(&[]), None, "").await
+            .expect("create");
 
         let mut queries = BTreeMap::new();
         queries.insert("live".to_string(), "long-poll".to_string());
@@ -814,10 +599,7 @@ fn given_a_text_payload_with_newlines_when_it_becomes_a_data_event_then_each_lin
 fn given_a_control_step_when_it_is_rendered_then_it_carries_the_offset_and_cursor() {
     let next = StreamOffset::from_bytes(4_u64.to_be_bytes().to_vec());
     let json = sse_control_json(&next, Some(7), true, false);
-    assert!(json.contains(&format!(
-        "\"streamNextOffset\":\"{}\"",
-        encode_offset(&next)
-    )));
+    assert!(json.contains(&format!("\"streamNextOffset\":\"{}\"", encode_offset(&next))));
     // PROTOCOL.md section 5.8 gives the cursor as a string, not a number.
     assert!(json.contains("\"streamCursor\":\"7\""));
     assert!(!json.contains("\"streamCursor\":7"));
@@ -856,14 +638,8 @@ fn given_a_rate_limit_error_when_the_headers_are_built_then_retry_after_is_prese
 #[test]
 fn given_an_inline_body_when_its_length_is_read_then_streamed_bodies_report_none() {
     use foundation_netio::shared::http::SendSafeBody;
-    assert_eq!(
-        inline_body_len(&SendSafeBody::Bytes(vec![1, 2, 3])),
-        Some(3)
-    );
-    assert_eq!(
-        inline_body_len(&SendSafeBody::Text("ab".to_string())),
-        Some(2)
-    );
+    assert_eq!(inline_body_len(&SendSafeBody::Bytes(vec![1, 2, 3])), Some(3));
+    assert_eq!(inline_body_len(&SendSafeBody::Text("ab".to_string())), Some(2));
     assert_eq!(inline_body_len(&SendSafeBody::None), None);
     assert_eq!(inline_body_len(&SendSafeBody::Stream(None)), None);
 }
@@ -872,27 +648,13 @@ fn given_an_inline_body_when_its_length_is_read_then_streamed_bodies_report_none
 fn given_a_closed_stream_when_the_old_etag_is_sent_then_the_response_is_not_304() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "etag-close",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "etag-close", headers(&[]), None, "abc")
+            .await
+            .expect("create");
 
-        let first = send(
-            &service,
-            SimpleMethod::GET,
-            "etag-close",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let first = send(&service, SimpleMethod::GET, "etag-close", headers(&[]), None, "")
+            .await
+            .expect("read");
         let tag = first.header("ETag").expect("etag").to_string();
 
         send(
@@ -926,19 +688,15 @@ fn given_a_closed_stream_when_the_old_etag_is_sent_then_the_response_is_not_304(
 fn given_a_preflight_when_it_runs_then_it_allows_the_protocol_headers() {
     smol::block_on(async {
         let service = service();
-        let response = send(
-            &service,
-            SimpleMethod::OPTIONS,
-            "any",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("preflight");
+        let response = send(&service, SimpleMethod::OPTIONS, "any", headers(&[]), None, "")
+            .await
+            .expect("preflight");
 
         assert_eq!(response.status, 204);
-        assert_eq!(response.header("access-control-allow-headers"), Some("*"));
+        assert_eq!(
+            response.header("access-control-allow-headers"),
+            Some("*")
+        );
         assert!(response
             .header("access-control-expose-headers")
             .is_some_and(|value| value.contains("Stream-Next-Offset")));
@@ -961,16 +719,9 @@ fn given_an_absolute_expiry_when_head_runs_then_the_timestamp_is_returned() {
         .await
         .expect("create");
 
-        let head = send(
-            &service,
-            SimpleMethod::HEAD,
-            "expires-head",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("head");
+        let head = send(&service, SimpleMethod::HEAD, "expires-head", headers(&[]), None, "")
+            .await
+            .expect("head");
         assert_eq!(head.header("Stream-Expires-At"), Some(expires_at));
     });
 }
@@ -979,48 +730,20 @@ fn given_an_absolute_expiry_when_head_runs_then_the_timestamp_is_returned() {
 fn given_new_data_when_a_read_runs_then_the_etag_changes() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "etag-data",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
-        let first = send(
-            &service,
-            SimpleMethod::GET,
-            "etag-data",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        send(&service, SimpleMethod::PUT, "etag-data", headers(&[]), None, "abc")
+            .await
+            .expect("create");
+        let first = send(&service, SimpleMethod::GET, "etag-data", headers(&[]), None, "")
+            .await
+            .expect("read");
         let first_tag = first.header("ETag").expect("etag").to_string();
 
-        send(
-            &service,
-            SimpleMethod::POST,
-            "etag-data",
-            headers(&[]),
-            None,
-            "def",
-        )
-        .await
-        .expect("append");
-        let second = send(
-            &service,
-            SimpleMethod::GET,
-            "etag-data",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        send(&service, SimpleMethod::POST, "etag-data", headers(&[]), None, "def")
+            .await
+            .expect("append");
+        let second = send(&service, SimpleMethod::GET, "etag-data", headers(&[]), None, "")
+            .await
+            .expect("read");
         let second_tag = second.header("ETag").expect("etag").to_string();
 
         assert_ne!(first_tag, second_tag);
@@ -1034,21 +757,19 @@ fn given_producer_errors_when_the_headers_are_built_then_the_contract_fields_are
         expected: 1,
         received: 2,
     });
-    assert!(gap.iter().any(|(key, value)| key
-        .to_string()
-        .eq_ignore_ascii_case("producer-expected-seq")
-        && value == "1"));
-    assert!(gap.iter().any(|(key, value)| key
-        .to_string()
-        .eq_ignore_ascii_case("producer-received-seq")
-        && value == "2"));
+    assert!(gap
+        .iter()
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-expected-seq")
+            && value == "1"));
+    assert!(gap
+        .iter()
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-received-seq")
+            && value == "2"));
 
     let fenced = error_headers(&StoreError::Fenced { current_epoch: 5 });
     assert!(fenced
         .iter()
-        .any(
-            |(key, value)| key.to_string().eq_ignore_ascii_case("producer-epoch") && value == "5"
-        ));
+        .any(|(key, value)| key.to_string().eq_ignore_ascii_case("producer-epoch") && value == "5"));
 }
 
 /// A durable response always carries the two baseline security headers.
@@ -1071,36 +792,15 @@ fn assert_baseline_security_headers(response: &DurableResponse) {
 fn security_headers_present() {
     smol::block_on(async {
         let service = service();
-        let created = send(
-            &service,
-            SimpleMethod::PUT,
-            "secure",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
-        let appended = send(
-            &service,
-            SimpleMethod::POST,
-            "secure",
-            headers(&[]),
-            None,
-            "def",
-        )
-        .await
-        .expect("append");
-        let read = send(
-            &service,
-            SimpleMethod::GET,
-            "secure",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("read");
+        let created = send(&service, SimpleMethod::PUT, "secure", headers(&[]), None, "abc")
+            .await
+            .expect("create");
+        let appended = send(&service, SimpleMethod::POST, "secure", headers(&[]), None, "def")
+            .await
+            .expect("append");
+        let read = send(&service, SimpleMethod::GET, "secure", headers(&[]), None, "")
+            .await
+            .expect("read");
         let tag = read.header("ETag").expect("etag").to_string();
         let not_modified = send(
             &service,
@@ -1112,46 +812,18 @@ fn security_headers_present() {
         )
         .await
         .expect("conditional read");
-        let headed = send(
-            &service,
-            SimpleMethod::HEAD,
-            "secure",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("head");
-        let unsupported = send(
-            &service,
-            SimpleMethod::PATCH,
-            "secure",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("unsupported method");
-        let preflight = send(
-            &service,
-            SimpleMethod::OPTIONS,
-            "secure",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("preflight");
-        let deleted = send(
-            &service,
-            SimpleMethod::DELETE,
-            "secure",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect("delete");
+        let headed = send(&service, SimpleMethod::HEAD, "secure", headers(&[]), None, "")
+            .await
+            .expect("head");
+        let unsupported = send(&service, SimpleMethod::PATCH, "secure", headers(&[]), None, "")
+            .await
+            .expect("unsupported method");
+        let preflight = send(&service, SimpleMethod::OPTIONS, "secure", headers(&[]), None, "")
+            .await
+            .expect("preflight");
+        let deleted = send(&service, SimpleMethod::DELETE, "secure", headers(&[]), None, "")
+            .await
+            .expect("delete");
 
         // Refusals use the same baseline headers as a success.
         let not_found = error_response(&StoreError::NotFound);
@@ -1205,16 +877,9 @@ fn security_headers_present() {
 fn injected_error_is_typed() {
     smol::block_on(async {
         let service = service();
-        send(
-            &service,
-            SimpleMethod::PUT,
-            "typed",
-            headers(&[]),
-            None,
-            "abc",
-        )
-        .await
-        .expect("create");
+        send(&service, SimpleMethod::PUT, "typed", headers(&[]), None, "abc")
+            .await
+            .expect("create");
         send(
             &service,
             SimpleMethod::POST,
@@ -1228,16 +893,9 @@ fn injected_error_is_typed() {
 
         // The store refuses an append after a close. The adapter maps the
         // refusal with its own status table, not a new one.
-        let error = send(
-            &service,
-            SimpleMethod::POST,
-            "typed",
-            headers(&[]),
-            None,
-            "def",
-        )
-        .await
-        .expect_err("append after close must be refused");
+        let error = send(&service, SimpleMethod::POST, "typed", headers(&[]), None, "def")
+            .await
+            .expect_err("append after close must be refused");
         assert!(matches!(error, StoreError::Closed { .. }));
         let response = error_response(&error);
         assert_eq!(response.status, status_for(&error));
@@ -1247,16 +905,9 @@ fn injected_error_is_typed() {
         assert_baseline_security_headers(&response);
 
         // A missing stream is a store refusal too.
-        let missing = send(
-            &service,
-            SimpleMethod::GET,
-            "absent",
-            headers(&[]),
-            None,
-            "",
-        )
-        .await
-        .expect_err("a missing stream must be refused");
+        let missing = send(&service, SimpleMethod::GET, "absent", headers(&[]), None, "")
+            .await
+            .expect_err("a missing stream must be refused");
         let response = error_response(&missing);
         assert_eq!(response.status, 404);
         assert_eq!(response.header("x-error-kind"), Some("not_found"));

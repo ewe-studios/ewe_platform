@@ -117,39 +117,13 @@ fn subscription_round_trip_preserves_the_original_update_and_cursor() {
     let stream = NonZeroU64::new(7).unwrap();
     let limits = WireLimits::default();
     let query = resume_subscription(session, listener, stream, 12).unwrap();
-    let resume = read_frame(&query, &limits)
-        .unwrap()
-        .kind_as_frame_request()
-        .unwrap()
-        .resume()
-        .unwrap();
-    assert_eq!(
-        (
-            resume.delivery_session(),
-            resume.subscription_id(),
-            resume.stream_id(),
-            resume.after()
-        ),
-        (13, 42, 7, 12)
-    );
+    let resume = read_frame(&query, &limits).unwrap().kind_as_frame_request().unwrap().resume().unwrap();
+    assert_eq!((resume.delivery_session(), resume.subscription_id(), resume.stream_id(), resume.after()), (13, 42, 7, 12));
     assert!(tag_replay(&query, listener, &limits).is_err());
     let expired = replay_expired(listener, stream, 12).unwrap();
-    let msg = read_frame(&expired, &limits)
-        .unwrap()
-        .kind_as_frame_message()
-        .unwrap();
+    let msg = read_frame(&expired, &limits).unwrap().kind_as_frame_message().unwrap();
     assert_eq!(msg.subscription_id(), 42);
-    assert_eq!(
-        msg.messages()
-            .unwrap()
-            .get(0)
-            .control()
-            .unwrap()
-            .replay_expired()
-            .unwrap()
-            .after(),
-        12
-    );
+    assert_eq!(msg.messages().unwrap().get(0).control().unwrap().replay_expired().unwrap().after(), 12);
     let mut original = FrameT::default();
     original.schema_version = SCHEMA_VERSION;
     original.stream_id = 7;
@@ -157,19 +131,9 @@ fn subscription_round_trip_preserves_the_original_update_and_cursor() {
     original.kind = FrameKindT::FrameMessage(Box::default());
     let broadcast = finish_frame(&original).unwrap();
     let targeted = tag_replay(&broadcast, listener, &limits).unwrap();
-    assert_eq!(
-        read_frame(&broadcast, &limits)
-            .unwrap()
-            .kind_as_frame_message()
-            .unwrap()
-            .subscription_id(),
-        0
-    );
+    assert_eq!(read_frame(&broadcast, &limits).unwrap().kind_as_frame_message().unwrap().subscription_id(), 0);
     let tagged = read_frame(&targeted, &limits).unwrap();
     assert_eq!(tagged.sequence_id(), 13);
-    assert_eq!(
-        tagged.kind_as_frame_message().unwrap().subscription_id(),
-        42
-    );
+    assert_eq!(tagged.kind_as_frame_message().unwrap().subscription_id(), 42);
     assert!(tag_replay(&targeted, listener, &limits).is_err());
 }

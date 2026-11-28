@@ -297,7 +297,10 @@ fn valtron_test(profile: &str, filter: &str) -> CommandStep {
     ])
 }
 
-fn valtron_commands(profile: &str, group: Option<&str>) -> Result<Vec<CommandStep>, TaskError> {
+fn valtron_commands(
+    profile: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
     if let Some(name) = group {
         if !VALTRON_GROUPS.iter().any(|(known, _)| *known == name) {
             return Err(TaskError::operation(format!(

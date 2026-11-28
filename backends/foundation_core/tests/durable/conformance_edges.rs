@@ -288,7 +288,11 @@ fn given_a_three_level_fork_chain_when_both_parents_are_deleted_then_the_chain_s
         ));
         assert_eq!(read_all(&streams, &level2).await, b"ABC");
 
-        streams.stream(level2).delete().await.expect("delete l2");
+        streams
+            .stream(level2)
+            .delete()
+            .await
+            .expect("delete l2");
         assert!(matches!(
             streams.stream(level1).head().await,
             Err(StoreError::NotFound)

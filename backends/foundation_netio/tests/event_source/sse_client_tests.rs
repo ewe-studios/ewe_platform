@@ -176,8 +176,7 @@ fn send_sse_async_consumer_is_woken_by_each_slow_event() {
 #[valtron_test(timeout = 10_000)]
 async fn send_async_parses_a_chunked_sse_body() {
     let data_event = b"event: data\ndata:hello\n\n";
-    let control_event =
-        b"event: control\ndata:{\"streamNextOffset\":\"00ff\",\"upToDate\":true}\n\n";
+    let control_event = b"event: control\ndata:{\"streamNextOffset\":\"00ff\",\"upToDate\":true}\n\n";
     let mut body = Vec::new();
     for event in [data_event.as_slice(), control_event.as_slice()] {
         body.extend_from_slice(format!("{:x}\r\n", event.len()).as_bytes());
