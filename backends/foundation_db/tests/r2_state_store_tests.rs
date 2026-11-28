@@ -10,7 +10,7 @@ use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Barrier, Mutex};
 use std::thread;
 
 use chrono::{Duration, Utc};
@@ -27,6 +27,19 @@ const PAGE: usize = 2;
 
 type Objects = Arc<Mutex<BTreeMap<String, Vec<u8>>>>;
 type ListRequests = Arc<AtomicUsize>;
+
+struct ConditionalRace {
+    first_pair: Barrier,
+    attempts: AtomicUsize,
+}
+
+impl ConditionalRace {
+    fn wait_for_competitor(&self) {
+        if self.attempts.fetch_add(1, Ordering::SeqCst) < 2 {
+            self.first_pair.wait();
+        }
+    }
+}
 
 fn percent_decode(s: &str) -> String {
     let bytes = s.as_bytes();
@@ -138,7 +151,12 @@ fn read_request(stream: &mut TcpStream, reader: &mut BufReader<TcpStream>) -> Op
     })
 }
 
-fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests) {
+fn handle(
+    mut stream: TcpStream,
+    objects: &Objects,
+    list_requests: &ListRequests,
+    race: Option<&ConditionalRace>,
+) {
     let mut reader = BufReader::new(stream.try_clone().unwrap());
     let Some(request) = read_request(&mut stream, &mut reader) else {
         return;
@@ -151,6 +169,11 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
         if_match,
         if_none_match,
     } = request;
+    // Hold the first two conditional writes before they acquire the object lock.
+    // Both must have read the same version to reach this point.
+    if let Some(race) = race.filter(|_| method == "PUT" && if_match.is_some()) {
+        race.wait_for_competitor();
+    }
     let mut objects = objects.lock().unwrap();
     match (method.as_str(), object_path.as_str()) {
         ("GET", "") => handle_list(&mut stream, &query, &objects, list_requests),
@@ -246,12 +269,12 @@ fn handle_delete(stream: &mut TcpStream, objects: &mut BTreeMap<String, Vec<u8>>
 /// Start the mock and return a state-mode store pointed at it, plus the
 /// object map so tests can see what landed in the bucket.
 fn mock_store() -> (R2Store, Objects) {
-    let (store, objects, _list_requests) = mock_store_with_counter();
+    let (store, objects, _list_requests) = mock_store_with_counter(None);
     (store, objects)
 }
 
 /// Like [`mock_store`], but also returns a counter of object-listing requests.
-fn mock_store_with_counter() -> (R2Store, Objects, ListRequests) {
+fn mock_store_with_counter(race: Option<Arc<ConditionalRace>>) -> (R2Store, Objects, ListRequests) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let base = format!("http://{}", listener.local_addr().unwrap());
     let objects: Objects = Arc::default();
@@ -263,7 +286,8 @@ fn mock_store_with_counter() -> (R2Store, Objects, ListRequests) {
             let Ok(stream) = stream else { break };
             let served = Arc::clone(&served);
             let served_requests = Arc::clone(&served_requests);
-            thread::spawn(move || handle(stream, &served, &served_requests));
+            let race = race.clone();
+            thread::spawn(move || handle(stream, &served, &served_requests, race.as_deref()));
         }
     });
     let store = R2Store::new_state_with_base_url("token", "acct", "bucket", "proj", "dev", &base);
@@ -396,7 +420,7 @@ async fn find_by_kind_filters() {
 
 #[valtron_test]
 async fn r2_state_listing_streams_pages() {
-    let (store, _objects, list_requests) = mock_store_with_counter();
+    let (store, _objects, list_requests) = mock_store_with_counter(None);
     store.init().await.unwrap();
     for id in ["a", "b", "c", "d", "e"] {
         store.set(id, &state(id, "worker")).await.unwrap();
@@ -468,48 +492,33 @@ fn set_if_version_uses_the_conditional_put() {
     .block();
 }
 
-/// 20 writers read the same version and all try to write it: exactly one wins.
-/// The mock honours `If-None-Match: *` and `If-Match`, like the real R2 binding.
+/// Give 20 writers the same version. The mock waits for two conditional requests.
 #[valtron_test(threads = 8, timeout = 60000)]
-fn set_if_version_race_has_one_winner() {
-    const THREADS: usize = 20;
+async fn set_if_version_race_has_one_winner() {
+    let race = Arc::new(ConditionalRace {
+        first_pair: Barrier::new(2),
+        attempts: AtomicUsize::new(0),
+    });
+    let (store, _objects, _list_requests) = mock_store_with_counter(Some(Arc::clone(&race)));
+    store.init().await.unwrap();
+    store.set("race", &state("race", "seed")).await.unwrap();
+    let seed = store.get("race").await.unwrap().unwrap();
 
-    let (store, seed) = async move {
-        let (store, _objects) = mock_store();
-        store.init().await.unwrap();
-        let seed = state("race", "seed");
-        store.set("race", &seed).await.unwrap();
-        let seed = store.get("race").await.unwrap().unwrap();
-        (store, seed)
-    }
-    .block();
-    let store = std::sync::Arc::new(store);
-    let barrier = std::sync::Arc::new(std::sync::Barrier::new(THREADS));
-    let handles: Vec<_> = (0..THREADS)
-        .map(|n| {
-            let (store, barrier, seed) = (
-                std::sync::Arc::clone(&store),
-                std::sync::Arc::clone(&barrier),
-                seed.clone(),
-            );
-            thread::spawn(move || {
-                barrier.wait();
-                async move {
-                    let mut mine = state("race", &format!("writer-{n}"));
-                    mine.updated_at = seed.updated_at + Duration::seconds(1);
-                    store
-                        .set_if_version("race", &mine, Some(seed.updated_at))
-                        .await
-                        .unwrap()
-                }
-                .block()
-            })
-        })
-        .collect();
-    let winners = handles
-        .into_iter()
-        .map(|handle| handle.join().unwrap())
-        .filter(|won| *won)
-        .count();
-    assert_eq!(winners, 1, "exactly one writer wins, not {winners}");
+    let attempts = futures_util::future::join_all((0..20).map(|index| {
+        let store = &store;
+        async move {
+            let mut mine = state("race", &format!("writer-{index}"));
+            mine.updated_at = seed.updated_at + Duration::seconds(1);
+            let won = store
+                .set_if_version("race", &mine, Some(seed.updated_at))
+                .await
+                .unwrap();
+            won.then_some(mine.kind)
+        }
+    }))
+    .await;
+    let winners: Vec<_> = attempts.into_iter().flatten().collect();
+    assert_eq!(winners.len(), 1, "exactly one writer wins: {winners:?}");
+    assert!(race.attempts.load(Ordering::SeqCst) >= 2);
+    assert_eq!(store.get("race").await.unwrap().unwrap().kind, winners[0]);
 }
