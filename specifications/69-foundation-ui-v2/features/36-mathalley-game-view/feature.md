@@ -161,6 +161,16 @@ Each host fits the scene within its available surface.
 | iPhone | [Train](screenshots/ios-game.png) | [Gumball](screenshots/ios-gumball.png) and [landscape](screenshots/ios-gumball-landscape.png) | [Todos](screenshots/ios-return.png) |
 | Android | [Train](screenshots/android-game.png) | [Gumball](screenshots/android-gumball.png) | [Todos](screenshots/android-return.png) |
 
+### iPhone Simulator Mathalley rerun on 2026-11-28
+
+On iPhone 17 Simulator, Train and Gumball pass the rotation check. Back to Todos restores the same Todo and filter.
+The Apple audio test measures the opening music and answer cue as samples. It verifies silence while inactive and after muted resume.
+It also verifies that closing one game stops its audio and leaves the other game's output available.
+The test uses offline rendering. Physical speaker output and interruptions still need a separate check.
+
+[Gumball after rotation](screenshots/iphone17-simulator-gumball-landscape-2026-11-28.png)
+
+
 ### Physical phone sound handoff
 
 Run Todo On Device on each phone. Its local task store starts with the process and needs no server.

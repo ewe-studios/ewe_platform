@@ -288,6 +288,16 @@ Chromium adds a task while the countdown is visible. The iPhone shows the task b
 ![The iPhone shows a peer task during the pause](screenshots/iphone-countdown-peer.png)
 ![The iPhone restores input at release](screenshots/iphone-countdown-resumed.png)
 
+### iPhone Simulator countdown rerun on 2026-11-28
+
+The Todo Server test opens the pause and sees a countdown label. The pause button cannot receive taps.
+The application restarts while input is blocked. The modal stays through the remaining interval.
+At expiry, the pause button accepts input again. The test takes screenshots before and after release.
+Physical VoiceOver speech and focus still need review.
+
+[Countdown before restart](screenshots/iphone17-simulator-paused-2026-11-28.png) · [Input after expiry](screenshots/iphone17-simulator-resumed-2026-11-28.png)
+
+
 ### Android countdown verification on 2026-11-27
 
 The Android emulator exposes the countdown label at 130 percent text size.

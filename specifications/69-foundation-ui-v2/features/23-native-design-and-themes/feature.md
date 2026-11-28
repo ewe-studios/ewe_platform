@@ -238,6 +238,24 @@ Keyboard focus remains inside the dialog. Complete moves the row to Done and upd
 - [Dark list](design/browser-dark-list.png)
 - [Dark dialog](design/browser-dark-dialog.png)
 
+### iPhone Simulator rerun on 2026-11-28
+
+A new iPhone 17 simulator runs iOS 27.0. It uses the retained Feature 37 Todo apps and a separate loopback server and database.
+Todo Server opens to the Todos list with zero items on its first launch. The server test adds a task and marks it complete.
+The on-device test creates, filters, completes, reopens and deletes a task. This test uses the standard controls.
+
+[First launch on iPhone 17 Simulator](screenshots/iphone17-simulator-first-launch-2026-11-28.png)
+
+
+### Physical iPhone setup on 2026-11-28
+
+The iPhone 13 Pro runs iOS 27.2.1 with Developer Mode enabled.
+Xcode signs the scratch Todo On Device application with the existing Apple Development identity.
+The signature passes verification. The provisioning profile includes this phone and the scratch bundle identifier.
+The device accepts installation. A launch before device approval returns a security error.
+The owner trusts the Personal Team on the phone. The device then launches the app without a debugger and reports its running process.
+The separate Todo Server first-launch and VoiceOver handoff remains open.
+
 ### Physical iPhone Todo handoff
 
 Use a signed scratch Todo Server for the first-install and VoiceOver checks.
