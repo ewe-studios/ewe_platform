@@ -1839,3 +1839,9 @@ The generator exposes application tasks from the local manifest.
 A task in the Rust package also needs a manifest declaration before the generator can expose it.
 The native preview artifact contains unsigned packages. The protected tag job signs its own verified candidate.
 [Issue 1216](https://github.com/ewe-studios/ewe_platform/issues/1216) · [Native release workflow](../../.github/workflows/native-ui-release.yml)
+
+## Windows package path verification
+
+The packager fixture removes a path prefix with native path components.
+Compare the returned paths directly with the expected file paths.
+The Windows run checks the same package contents and workspace member as macOS.

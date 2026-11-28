@@ -2152,7 +2152,7 @@ The scoped run passes its plan job. Its separate macOS build job stops before th
 Gradle reports different SDK paths from the runner and the pinned configuration.
 The workflow clears the deprecated SDK variable for the sample.
 The shell check confirms that the pinned path reaches the sample command.
-The next scoped run verifies the hosted sample. [Issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185)
+The hosted macOS sample builds and verifies its archive. [Sample job](https://github.com/ewe-studios/ewe_platform/actions/runs/46088801494/job/140804585088) [Issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185)
 
 ## Strict Todo lint check
 
@@ -2422,7 +2422,7 @@ The Windows fixture checks backslash names, carriage return and line feed, and i
 The separate packager test checks generated file paths with native path components.
 Its expected file lists and workspace member are the same.
 All 12 packager tests pass with the fixture correction on macOS.
-The packager Windows test exception stays in place until a Windows run passes.
+The hosted Windows suite passes all 12 tests. The plan enables its normal recipe.
 [Issue 527](https://github.com/ewe-studios/ewe_platform/issues/527)
 
 ## Windows browser test fixtures
@@ -2431,8 +2431,8 @@ The portable browser run finds a diagnostic path format mismatch.
 The connection fixture now reads the full upgrade header and joins the endpoint thread.
 The raw socket close and idle timeout tests pass with the WebSocket client repair.
 All 20 default browser tests and strict Clippy pass on macOS.
-The next Windows browser run checks both fixture changes.
-[Fixture issue](https://github.com/ewe-studios/ewe_platform/issues/1210) · [Socket close issue](https://github.com/ewe-studios/ewe_platform/issues/1212)
+The hosted Windows default recipe passes all 19 tests without an endpoint panic.
+[Browser test job](https://github.com/ewe-studios/ewe_platform/actions/runs/46090234572/job/140813003067) · [Fixture issue](https://github.com/ewe-studios/ewe_platform/issues/1210) · [Socket close issue](https://github.com/ewe-studios/ewe_platform/issues/1212)
 
 ### Native WebSocket server shutdown
 
@@ -2476,7 +2476,7 @@ The dependency build reports the existing NetIO warnings in issue 489.
 
 The Windows generator shard passes all eight application tests.
 The matching source renders the templates with the same byte lookup keys.
-The Windows packager test correction and the browser fixtures need separate runs.
+The Windows packager and browser fixtures pass their separate recipes.
 [Generator shard](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741/job/140804306868) · [Issue 1211](https://github.com/ewe-studios/ewe_platform/issues/1211)
 
 ## Application prepare command help
@@ -2494,3 +2494,10 @@ The command manuals cover generated builds, Todo tasks, native packages, and the
 The native publication manual records the organization signing secret and the repository fingerprint variable.
 The documented Android game check needs its manifest declaration.
 [Operations manuals](../../bin/ewe_ui/docs/README.md) · [Issue 1216](https://github.com/ewe-studios/ewe_platform/issues/1216)
+
+## Windows package path verification
+
+The hosted packager recipe passes all 12 tests with zero ignored tests.
+The three generator tests cover static files, a standalone package, and a workspace member.
+The plan runs this package on Windows with its default recipe.
+[Packager job](https://github.com/ewe-studios/ewe_platform/actions/runs/46090234572/job/140813003158) · [Issue 527](https://github.com/ewe-studios/ewe_platform/issues/527)
