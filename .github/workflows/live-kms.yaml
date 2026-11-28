@@ -1,0 +1,131 @@
+# The live Key Management Service proof (spec 92 feature 04, task T5).
+#
+# Manual only. It proves AWS KMS and Google Cloud KMS against the real
+# services by running `foundation-ci live-kms`: the task creates two AWS keys
+# and two GCP keys, runs the four gated `foundation_auth` tests, and removes
+# the keys again.
+#
+# It runs on the runner, not in a container: the `live-kms` task calls the AWS
+# CLI and the Google Cloud CLI, and the project CI image has neither.
+#
+# The job runs only when the repository holds all five secrets. When a secret
+# is absent the job says plainly that it did not run and finishes green, so a
+# fork or a repository without the secrets can never reach a real account.
+#
+# The task is opt-in: it fails when a value is missing instead of running
+# against an unintended account. A Google Cloud key ring cannot be deleted, so
+# the ring `ewe-live-test` stays in the project; it holds no key material.
+
+name: Live KMS
+
+on:
+  workflow_dispatch:
+    inputs:
+      region:
+        description: "AWS region (default: the AWS_REGION secret)"
+        required: false
+        type: string
+      project:
+        description: "GCP project (default: the GCP_PROJECT secret)"
+        required: false
+        type: string
+      location:
+        description: "GCP location"
+        required: false
+        type: string
+        default: global
+
+# Rule 16: every workflow sets its own concurrency group. A live run is never
+# cancelled by a later one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  live-kms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # A step `if:` cannot read `secrets`, so map each secret to an environment
+    # variable first; the gate step reads the variables.
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          submodules: false
+
+      - name: Check the repository secrets
+        id: gate
+        run: |
+          set -euo pipefail
+          missing=""
+          [ -n "${AWS_ACCESS_KEY_ID}" ] || missing="${missing} AWS_ACCESS_KEY_ID"
+          [ -n "${AWS_SECRET_ACCESS_KEY}" ] || missing="${missing} AWS_SECRET_ACCESS_KEY"
+          [ -n "${AWS_REGION}" ] || missing="${missing} AWS_REGION"
+          [ -n "${GCP_PROJECT}" ] || missing="${missing} GCP_PROJECT"
+          [ -n "${GCP_SERVICE_ACCOUNT_JSON}" ] || missing="${missing} GCP_SERVICE_ACCOUNT_JSON"
+          if [ -n "${missing}" ]; then
+            echo "live-kms did not run: the repository has no secret(s):${missing}"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show the cloud tools
+        # The task calls both CLIs. This step fails loudly if a future runner
+        # image drops one of them.
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          aws --version
+          gcloud --version
+
+      - name: Install the pinned toolchain
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Write and activate the Google service account
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          credential="${RUNNER_TEMP}/gcp-service-account.json"
+          printf '%s' "${GCP_SERVICE_ACCOUNT_JSON}" > "${credential}"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${credential}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${credential}" --project "${GCP_PROJECT}"
+
+      - name: Build foundation-ci
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set -euo pipefail
+          cargo build --locked --profile uat -p foundation_ci
+
+      - name: Run the live KMS proof
+        if: steps.gate.outputs.run == 'true'
+        env:
+          REGION: ${{ inputs.region }}
+          PROJECT: ${{ inputs.project }}
+          LOCATION: ${{ inputs.location }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ -n "${REGION}" ]; then
+            args+=(--region "${REGION}")
+          fi
+          if [ -n "${PROJECT}" ]; then
+            args+=(--project "${PROJECT}")
+          fi
+          if [ -n "${LOCATION}" ]; then
+            args+=(--location "${LOCATION}")
+          fi
+          ./target/uat/foundation-ci live-kms "${args[@]}"
