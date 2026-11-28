@@ -110,10 +110,10 @@ A third runner run (job `140784573393`) passed 11 tests: creates, `Exec`, the co
   container.
 - A relative guest path joins the workdir now (#1154), with the rule in `shared/spec`.
 
-The end-to-end suite on this macOS host reports 7 passed and 10 failed. Every local
-failure is the same one: `the substrate exited during the start (code None)` on the
-emulated amd64 container. The local host does not show the runner's failures. The native
-Cloudflare suite passes (92 tests). The native amd64 CI runner must confirm these fixes.
+The end-to-end suite on this macOS host reports 13 passed and 4 failed on a fresh Worker,
+which matches the runner's count. The four local failures are the same four as on the
+runner. A container that starts under emulation can still exit during the start, so a run
+on this host is not always the same.
 
 A fourth runner run (job `140809210247`) passed 13 tests. Four failures remained, now
 addressed. The `List` and the `index_put_delete_list` tests pass.
@@ -123,21 +123,32 @@ addressed. The `List` and the `index_put_delete_list` tests pass.
   input/output object of the Durable Object that made it. The Worker adapter kept one
   `worker::Container` for its whole life. It now holds the Durable Object state and asks
   it for the container at each call, so the container and the TCP port belong to the
-  object that uses them. The end-to-end test is the regression test, because this defect
-  shows only on the real runtime.
+  object that uses them. This change does not remove the error. The error comes from the
+  local container runtime (issue #1221): in one `wrangler dev` process, the first
+  container's port works, and every later container's port fails. This was shown with one
+  test at a time on a fresh Worker: `no_internet` passes the first time and fails the
+  second time; `two_sandboxes` starts both containers and then fails on the first
+  sandbox's `run`.
 - `stop`: the stop found a workload container after the destroy. The substrate handle
   marked the container as destroyed even when the destroy call failed, so `cleanup`
   skipped its only second chance. It sets the flag only after a successful destroy. The
   fake container fails one destroy, and `cleanup_retries_a_failed_destroy` fails on the
   old code. The stop test waits up to 10 s for the runtime to remove the container and
-  prints the remaining names.
+  prints the remaining names. On a clean run the stop test passes; in the full suite it
+  finds the containers that the two panicking tests above left, so #1221 causes this
+  failure too.
 - `two_sandboxes`: the relative path `tmp/a` joins the workdir (`/workspace/tmp/a`), and a
   write does not make a missing parent. The test now runs `mkdir -p /workspace/tmp` first.
   The rule is recorded on #1154.
 - `large_stream`: the command prints `x` then a newline. A stdout frame can end between
   the two bytes, so the old check `data.len() % 2 == 0` failed on a one-byte frame. The
   stream was correct; the check now follows the pattern across frame boundaries and
-  checks the order.
+  checks the order. The test now fails at the `Exec` call because of #1221, not at its
+  byte check.
+
+The `sandbox-cloudflare` job stays red until #1221 is decided. The suite needs more than
+one container in one `wrangler dev` process, and the local runtime refuses the port of
+every container after the first. The production runtime is not affected.
 
 A native boundary test also caught that `shared/control/service.rs` read `boot_timeout`
 directly. `SandboxLimits::create_deadline()` gives the value, and the remote client reads

@@ -90,11 +90,21 @@ closed, not when its code compiles.
   the contract on #1154 is that a relative path joins the instance workdir, is normalised
   and must stay inside it. The resolver is in `shared/spec`, so the rule runs on every
   target.
-- **A container belongs to the Durable Object that made it.** The runner refused a TCP
-  port with `Cannot perform I/O on behalf of a different Durable Object (I/O type:
-  TcpPortState)`. The Worker adapter had kept one `worker::Container` for its whole life.
-  It now holds the Durable Object state and asks it for the container at each call. This
-  defect is invisible to a native fake; only the end-to-end test shows it.
+- **`wrangler dev` gives a working TCP port to one container only.** The local container
+  runtime refuses the port of every container after the first in one Worker process:
+  `Cannot perform I/O on behalf of a different Durable Object (I/O type: TcpPortState)`.
+  One test at a time on a fresh Worker shows it: `no_internet` passes the first time and
+  fails the second time; `two_sandboxes` starts both containers and then fails on the
+  first sandbox's `run`. The Worker code is not at fault, and it already takes the
+  container from its own Durable Object state at each call. Issue #1221 tracks it. A
+  test run that reuses a Worker is not a clean result; a full suite needs one container
+  per Worker process, and `two_sandboxes` needs more than the runtime gives.
+- **A `--keep-running` Worker harness still runs the tests.** `run.sh --keep-running`
+  leaves the Worker up, but the script continues into the full `cargo test` suite. A
+  person who starts it, prints the PID, and then runs one test by hand runs two suites at
+  once. This produced duplicate sandboxes, leaked containers and a false
+  `TcpPortState` result until the second suite was stopped. Read the whole script before
+  reusing a harness for a manual experiment.
 - **A destroy can fail, and the flag must follow the result.** The substrate handle set
   its stopped flag even when the destroy call failed. The cleanup then skipped its only
   second chance, and the container stayed. Set the flag only after a successful destroy.
