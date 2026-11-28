@@ -286,12 +286,11 @@ pub(super) async fn job(ctx: TaskContext, args: Job) -> TaskResult {
             .args(["--export", &job.fingerprint]),
     )
     .await?;
-    let route = format!("repos/{}/releases/tags/{}", job.repository, job.tag);
-    let release = super::publish::github_lookup(&ctx, &route, "[.assets[].name]").await?;
+    let release = super::publish::github_release(&ctx, &job.repository, &job.tag).await?;
     let archive = if release
         .as_ref()
-        .and_then(Value::as_array)
-        .is_some_and(|a| a.iter().any(|v| v == ANDROID))
+        .and_then(|release| release["assets"].as_array())
+        .is_some_and(|a| a.iter().any(|v| v["name"] == ANDROID))
     {
         ctx.exec(
             ProcessCommand::new("gh")

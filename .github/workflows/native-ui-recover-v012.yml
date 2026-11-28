@@ -1,0 +1,163 @@
+name: Recover approved Native UI 0.1.2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: native-ui-release-refs/tags/native-ui-v0.1.2
+  cancel-in-progress: false
+
+jobs:
+  resume:
+    if: github.repository_id == '751439655' && github.ref == 'refs/heads/master' && github.ref_protected
+    runs-on: ubuntu-latest
+    environment: native-ui-release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: b00b5e70c99f433822af9e872e454e5da394e6e7
+          path: approved-source
+          persist-credentials: false
+      - name: Verify the approved tag and signed artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPROVED_SOURCE: b00b5e70c99f433822af9e872e454e5da394e6e7
+          APPROVED_ARTIFACT_DIGEST: b217bbcb9dba5e5b8f3126d9ea7c7e444929265e33cfb7e029969d1ad6abd6e4
+        run: |
+          set -euo pipefail
+          repo=ewe-studios/ewe_platform
+          artifact=15262858024
+          test "$(git -C approved-source rev-parse HEAD)" = "$APPROVED_SOURCE"
+          test "$(gh api "repos/$repo/git/ref/tags/native-ui-v0.1.2" --jq '.object.sha')" = "$APPROVED_SOURCE"
+          gh api "repos/$repo/actions/runs/46121293056" |
+            jq -e --arg source "$APPROVED_SOURCE" '
+              .event == "push" and .head_branch == "native-ui-v0.1.2" and
+              .head_sha == $source and .path == ".github/workflows/native-ui-release.yml"'
+          gh api "repos/$repo/actions/artifacts/$artifact" |
+            jq -e --arg source "$APPROVED_SOURCE" --arg digest "sha256:$APPROVED_ARTIFACT_DIGEST" '
+              .name == "signed-native-packages-2" and .expired == false and .digest == $digest and
+              .workflow_run.id == 46121293056 and .workflow_run.head_sha == $source and
+              .workflow_run.head_repository_id == 751439655'
+          archive="$RUNNER_TEMP/approved-native-v012.zip"
+          gh api "repos/$repo/actions/artifacts/$artifact/zip" > "$archive"
+          printf '%s  %s\n' "$APPROVED_ARTIFACT_DIGEST" "$archive" | sha256sum -c -
+          signed="$RUNNER_TEMP/approved-native-v012"
+          unzip -q "$archive" -d "$signed"
+          jq -e --arg source "$APPROVED_SOURCE" --arg repo "$repo" '
+            .version == "0.1.2" and .source_revision == $source and
+            .repositories.repository == $repo and .central_signed == true and
+            .swift_tag_revision == "8f8a11572db29c3f3d728035fbfb1b1ae3d1d853" and
+            (.sha256 | keys == ["EweCoreFFI.xcframework.zip", "android-publication.zip"]) and
+            ([.sha256[] | test("^[0-9a-f]{64}$")] | all)
+          ' "$signed/native-ui.json"
+          (
+            cd "$signed"
+            jq -r '.sha256 | to_entries[] | "\(.value)  \(.key)"' native-ui.json | sha256sum -c -
+          )
+      - uses: jdx/mise-action@v5.2.10
+        with:
+          install: false
+      - name: Install the pinned Protocol Buffers compiler
+        run: |
+          mise trust --yes mise.toml
+          mise install --locked --yes protoc
+          echo "$(mise where protoc)/bin" >> "$GITHUB_PATH"
+      - name: Build the draft-aware publisher
+        run: cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+      - name: Verify the approved public signing certificate
+        run: |
+          set -euo pipefail
+          fingerprint="$(gpg --batch --show-keys --with-colons release/native-ui-signing-public.asc |
+            awk -F: '$1 == "pub" { count++ } $1 == "fpr" && !primary { primary=$10 } END { if (count == 1) print primary }')"
+          test "$fingerprint" = 9650A201269A0768F5D34DCC03A01ECE6BC5C71F
+      - name: Create a release token
+        id: release-token
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.EWE_RUNNER_REGISTRA_CLIENT_ID }}
+          private-key: ${{ secrets.EWE_RUNNER_REGISTRA_PRIVATE_KEY }}
+          permission-contents: write
+      - name: Verify the existing release record
+        env:
+          GH_TOKEN: ${{ steps.release-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/ewe-studios/ewe_platform/releases/461540716 |
+            jq -e '.id == 461540716 and .tag_name == "native-ui-v0.1.2"'
+      - name: Resume the approved release
+        working-directory: approved-source
+        env:
+          GH_TOKEN: ${{ steps.release-token.outputs.token }}
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          NATIVE_GPG_FINGERPRINT: 9650A201269A0768F5D34DCC03A01ECE6BC5C71F
+        run: |
+          "$RUNNER_TEMP/native-task/uat/native-task" task run native:release:publish \
+            --candidate "$RUNNER_TEMP/approved-native-v012" --resume \
+            --public-key "$GITHUB_WORKSPACE/release/native-ui-signing-public.asc"
+
+  public-install:
+    needs: resume
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b00b5e70c99f433822af9e872e454e5da394e6e7
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ github.token }}
+          run-id: 46121293056
+          name: signed-native-packages-2
+          path: candidate
+      - &install-native-protoc
+        name: Install the pinned Protocol Buffers compiler
+        run: |
+          command -v mise >/dev/null || brew install mise
+          mise trust --yes mise.toml
+          mise install --locked --yes protoc
+          echo "$(mise where protoc)/bin" >> "$GITHUB_PATH"
+      - &build-native-task
+        name: Build the native task command
+        run: |
+          cargo build --locked --profile uat -p foundation_ui_native --features tasks --bin native-task --target-dir "$RUNNER_TEMP/native-task"
+          echo "$RUNNER_TEMP/native-task/uat" >> "$GITHUB_PATH"
+      - name: Resolve both public packages and run the Swift starter
+        run: |
+          unset ANDROID_SDK_ROOT
+          mise install --locked --yes java gradle http:android-sdk python node
+          mise run toolchain:android
+          mise exec -- native-task task run native:release:verify --candidate candidate --templates both --public
+          mise exec -- native-task task run native:release:test-ios-starter
+
+  android-device:
+    needs: resume
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b00b5e70c99f433822af9e872e454e5da394e6e7
+          persist-credentials: false
+      - uses: jdx/mise-action@v5.3.0
+        with:
+          install: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - *install-native-protoc
+      - *build-native-task
+      - name: Run the public Android starter
+        run: |
+          unset ANDROID_SDK_ROOT
+          sudo chmod a+rw /dev/kvm
+          mise trust --yes mise.toml
+          mise install --locked --yes java gradle http:android-sdk python node
+          mise run toolchain:android
+          mise exec -- native-task task run native:release:test-android-starter

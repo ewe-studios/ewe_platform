@@ -70,6 +70,36 @@ pub(super) async fn github_lookup(
     ))
 }
 
+pub(super) async fn github_release(
+    ctx: &TaskContext,
+    repo: &str,
+    tag: &str,
+) -> Result<Option<Value>, TaskError> {
+    const FIELDS: &str = "{draft, assets:[.assets[]|{name,digest}]}";
+    let route = format!("repos/{repo}/releases/tags/{tag}");
+    if let Some(release) = github_lookup(ctx, &route, FIELDS).await? {
+        return Ok(Some(release));
+    }
+
+    let route = format!("repos/{repo}/releases?per_page=100");
+    let filter = format!(".[] | select(.tag_name == {}) | {FIELDS}", json!(tag));
+    let cmd = ProcessCommand::new("gh").args(["api", "--paginate", &route, "--jq", &filter]);
+    let bytes = query(ctx, cmd).await?;
+    let payload = std::str::from_utf8(&bytes).map_err(TaskError::operation)?;
+    let mut matches = payload.lines().filter(|line| !line.trim().is_empty());
+    let release = matches
+        .next()
+        .map(serde_json::from_str)
+        .transpose()
+        .map_err(TaskError::operation)?;
+    if matches.next().is_some() {
+        return Err(TaskError::operation(format!(
+            "Multiple GitHub releases match {tag}"
+        )));
+    }
+    Ok(release)
+}
+
 impl Registry<'_> {
     async fn lookup(&self, path: &str, select: &str) -> Result<Option<Value>, TaskError> {
         let route = format!("repos/{}/{path}", self.repo);
@@ -116,11 +146,7 @@ impl Registry<'_> {
         ProcessCommand::new("gh").args(["release", verb, self.tag, "--repo", self.repo])
     }
     async fn release_info(&self) -> Result<Option<Value>, TaskError> {
-        self.lookup(
-            &format!("releases/tags/{}", self.tag),
-            "{draft, assets:[.assets[]|{name,digest}]}",
-        )
-        .await
+        github_release(self.ctx, self.repo, self.tag).await
     }
     async fn upload(&self, file: &Path, assets: &BTreeMap<String, String>) -> TaskResult {
         let name = file

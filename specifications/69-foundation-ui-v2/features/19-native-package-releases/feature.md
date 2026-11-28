@@ -188,3 +188,18 @@ SwiftPM supports checksummed binary targets. Swift Package Index accepts public 
 
 Android documents Maven publication for libraries. Maven Central defines the required publication files and metadata.
 [Android library publication](https://developer.android.com/build/publish-library/upload-library) · [Maven Central requirements](https://central.sonatype.org/publish/requirements/)
+
+## Resume the approved 0.1.2 draft
+
+Use the signed artifact from the approved tag run. Keep the Git tag and candidate files fixed.
+The publisher uses a draft-aware lookup. It checks existing asset digests and the Central upload marker before transfer.
+The recovery workflow pins one source revision, run, artifact, and artifact digest.
+On master, dispatch **Recover approved Native UI 0.1.2**. The protected release environment must approve the job.
+The workflow uses the existing release identity and Central credentials.
+It verifies the signed files with the pinned public certificate. Only the normal sign job uses the private key.
+After publication, two jobs use the approved source to verify public package resolution and run both starters.
+
+Verify that a tag endpoint that returns 404 can coexist with a draft that the release list returns.
+Verify that absence and other lookup failures retain their existing behavior.
+Verify that the recovery job rejects changed source, artifact, and candidate metadata before publication.
+[Issue 1267](https://github.com/ewe-studios/ewe_platform/issues/1267)
