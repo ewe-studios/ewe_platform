@@ -207,6 +207,14 @@ The auth layer now sits above the RPC crate.
   4 tests in the new crate.
 - Every nested `Cargo.lock` that takes the two crates by path is regenerated,
   so `cargo metadata --locked` passes for each one.
+- The wasm `rpc` check passes with zero warnings. `web-sys` is optional now and
+  only `wasm-fetch` enables it: the auth removal had left it unused.
+- Clippy passes with `--no-deps` and `-D warnings`, the flags that `ci.py`
+  uses. Without `--no-deps`, a pre-existing `unused_async` warning in
+  `foundation_db` fails the run; #1226 records it.
+- `foundation_gcp_kms` and the `foundation_agent_rpc_dst` workspace build, so
+  the cycle is gone for both crates that need the RPC client and `foundation_auth`.
+- The pull request is #1228.
 
 ## Today's findings
 
