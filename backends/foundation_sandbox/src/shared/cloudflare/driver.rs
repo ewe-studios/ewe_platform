@@ -365,8 +365,9 @@ impl SubstrateHandle for CloudflareSubstrateHandle {
                 futures::future::Either::Left((_exit, _timer)) => false,
                 futures::future::Either::Right((_timer, _exit)) => true,
             };
-            let _ = container.destroy().await;
-            stopped.store(true, Ordering::SeqCst);
+            if container.destroy().await.is_ok() {
+                stopped.store(true, Ordering::SeqCst);
+            }
             Ok(SubstrateExit {
                 code: None,
                 signal: None,
@@ -379,8 +380,11 @@ impl SubstrateHandle for CloudflareSubstrateHandle {
         let container = Arc::clone(&self.host.container);
         let stopped = Arc::clone(&self.stopped);
         Box::pin(async move {
-            let _ = container.destroy().await;
-            stopped.store(true, Ordering::SeqCst);
+            // Keep the flag false when the destroy failed: `cleanup` then tries
+            // again, so a failed destroy does not leave the container behind.
+            if container.destroy().await.is_ok() {
+                stopped.store(true, Ordering::SeqCst);
+            }
             Ok(SubstrateExit {
                 code: None,
                 signal: None,

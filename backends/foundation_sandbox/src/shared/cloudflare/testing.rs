@@ -79,6 +79,7 @@ pub struct FakeContainer {
     start_count: AtomicUsize,
     start_error: Mutex<Option<String>>,
     destroy_count: AtomicUsize,
+    destroy_error: Mutex<Option<String>>,
     signal: Mutex<Option<i32>>,
     exit: Flag,
     fetches: Mutex<Vec<u16>>,
@@ -98,6 +99,7 @@ impl FakeContainer {
             start_count: AtomicUsize::new(0),
             start_error: Mutex::new(None),
             destroy_count: AtomicUsize::new(0),
+            destroy_error: Mutex::new(None),
             signal: Mutex::new(None),
             exit: Flag::default(),
             fetches: Mutex::new(Vec::new()),
@@ -157,6 +159,14 @@ impl FakeContainer {
     pub fn fail_next_start(&self, message: impl Into<String>) {
         *self
             .start_error
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(message.into());
+    }
+
+    /// Makes the next destroy fail with `message`.
+    pub fn fail_next_destroy(&self, message: impl Into<String>) {
+        *self
+            .destroy_error
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(message.into());
     }
@@ -252,8 +262,18 @@ impl ContainerApi for FakeContainer {
     }
 
     fn destroy(&self) -> BoxFuture<'_, SandboxResult<()>> {
-        self.running.store(false, Ordering::SeqCst);
         self.destroy_count.fetch_add(1, Ordering::SeqCst);
+        let error = self
+            .destroy_error
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take();
+        if let Some(message) = error {
+            return Box::pin(async move {
+                Err(SandboxError::SubstrateApi { status: 0, message }.into())
+            });
+        }
+        self.running.store(false, Ordering::SeqCst);
         Box::pin(async { Ok(()) })
     }
 
