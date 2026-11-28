@@ -2520,7 +2520,8 @@ The updated release source needs a preview and owner approval. The protected env
 ## Native release preview with App tokens
 
 The exact 0.1.2 preview revision changes only the native release workflow.
-The manual preview runs the candidate and Android example jobs.
-The environment exists with the two Central secret names. Its reviewer rule remains pending.
+The manual preview passes the candidate and Android example jobs. The downloaded unsigned archives match the manifest digests.
+The environment has both Central secrets and requires review by `influx6`.
+A separate branch merges master and keeps version 0.1.2. That revision needs a new preview and owner approval.
 The configured public signing key does not resolve on the two responding keyservers.
 [Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076) · [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#updated-012-preview)

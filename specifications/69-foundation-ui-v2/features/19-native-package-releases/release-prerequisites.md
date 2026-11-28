@@ -166,7 +166,7 @@ The organization stores the Central user token pair. Its signing key secret sele
 The organization lists `eweplatform-runner-registrar` with Contents write and access to all repositories.
 The workflow asks for access to this repository only. Credential values and Central namespace membership still need separate proof.
 The `native-ui-release` environment contains `CENTRAL_USERNAME` and `CENTRAL_PASSWORD`.
-The environment has no protection rules. Set the approved reviewer before pushing a native release tag.
+The environment requires review by `influx6`. GitHub allows the person who starts the run to approve it.
 Sonatype lists the Ubuntu and OpenPGP keyservers for its public key lookup.
 Both return HTTP status 404 for the configured fingerprint. The MIT server does not respond to the lookup.
 Confirm public signing key retrieval before publication.
@@ -183,7 +183,26 @@ A tag at that commit runs its original workflow and requires the original token 
 Commit `26315e7ff2063639de10b94051f909d7239c90e4` contains the registrar token workflow.
 Its only file difference from the earlier 0.1.2 proposal is the native release workflow.
 The release configuration, embedded generator configuration, and native crate all select 0.1.2.
-The manual preview starts the candidate and Android example jobs without a release tag.
+The manual preview passes both the candidate and Android example jobs. GitHub skips publication and both public install jobs.
+The Swift package passes all 30 tests. Both iPhone Todo applications pass 11 tests and skip six in total.
 The refreshed Maven and GitHub lookups find no public 0.1.2 release.
-Wait for the preview result before asking for approval of this exact commit.
 [Updated native preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076)
+
+The unsigned manifest records Swift checksum commit `ef0272e89c3c6e992017b3cb6e63f50c55fbf36b`.
+The downloaded archives match the manifest's 256-bit Secure Hash Algorithm (SHA-256) digests.
+
+| Archive | SHA-256 |
+| --- | --- |
+| `EweCoreFFI.xcframework.zip` | `f522520c4fa8f2c210695775baa4fa99df53c7997069f114e6f17659f5b9010e` |
+| `android-publication.zip` | `bf78ceee6a50e7920a867410af73a2c8377e8dc0dd2a4454ea0835e7b2c84f98` |
+
+This evidence applies to the exact preview source. Owner approval for that source remains separate from GitHub environment review.
+[Unsigned candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076/artifacts/15247740386)
+
+### Integration with master
+
+Commit `b00b5e70c99f433822af9e872e454e5da394e6e7` merges master `f5e69eef72ddee9dee9049efa24964bddde23f24` into the candidate on a separate branch.
+The 0.1.2 package coordinates and native manifest match the preview source.
+The resolved source passes workflow lint and locked Cargo metadata resolution without network access.
+The integration has a different source revision. It needs its own preview and approval before any release tag push.
+[Integration branch](https://github.com/ewe-studios/ewe_platform/tree/integrate/native-ui-0.1.2-app-token-master)

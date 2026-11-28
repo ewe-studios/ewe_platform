@@ -1863,7 +1863,8 @@ Create the publication token after the signed artifact upload to keep its full l
 ## Native release preview with App tokens
 
 A workflow-only child commit preserves the prior candidate's package inputs.
-The new manifest must record the child commit as its source revision.
+The artifact manifest identifies the child commit as its source revision. Its archive digests differ from the earlier preview.
+Keep the exact preview branch available when you merge master on an integration branch.
 The environment can exist with publication secrets and no reviewer rule.
 Check the rule and the public signing key before any release tag push.
 [Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076)
