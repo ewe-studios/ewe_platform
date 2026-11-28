@@ -555,6 +555,10 @@ windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows 
 # fails CI.
 clippy-deny-warnings = true
 
+[packages.ui_todo]
+# Check the on-device core first, then identify the default server boundary.
+windows-runs = ["--no-default-features --features mobile", ""]
+
 [packages.foundation_vectors]
 # `sql-store` adds the SQL / libsql vector stores and their tests; `code-graph`
 # adds the tree-sitter code-graph module and its tests.
