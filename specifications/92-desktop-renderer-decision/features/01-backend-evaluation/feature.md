@@ -109,8 +109,9 @@ The count belongs to the current window.
 
 The example builds on Apple silicon with macOS 27.2.1 (26B131).
 The check uses Rust 1.100.0-nightly from the repository's 2026-09-20 toolchain and its LLVM `uat` profile.
-The repository uses Cranelift for normal development. Use the LLVM `uat` profile from the start for native code.
-The upstream macOS constructor uses assembly symbol operands and requires this profile in the repository environment.
+Always use the LLVM `uat` profile for local Cargo builds, runs, tests, and Clippy checks.
+Load the repository environment before you build. [Shell setup](../../../../examples/gpui/README.md#shell-setup)
+The recorded run used the example's isolated Cargo target. The current macOS setup selects the shared target.
 
 | Check | Result |
 | --- | --- |

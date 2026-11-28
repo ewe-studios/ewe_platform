@@ -29,6 +29,9 @@ Each activation adds one to the count. The example keeps the count in memory for
 Start in the repository root. Install Rust and Cargo. The reviewed upstream Zed checkout specifies Rust 1.100.0.
 The macOS check uses the repository's `nightly-2026-09-20` toolchain. See the prerequisites for each host. [Example run instructions](../../examples/gpui/README.md#build-requirements)
 
+Load the repository environment from the root before a local build. Check the shared target with `cargo metadata`.
+On Windows, use the configured Cargo paths in PowerShell. [Shell setup](../../examples/gpui/README.md#shell-setup)
+
 ```sh
 cargo run --locked --profile uat --manifest-path examples/gpui/Cargo.toml
 ```
@@ -43,8 +46,8 @@ Cargo reads `examples/gpui/Cargo.toml` because `--manifest-path` selects it. Rea
 6. `Cargo.lock` records the selected versions and Git revisions. `--locked` fails if Cargo needs to change that selection.
 7. `[profile.uat]` inherits the example's development settings, which disable debug symbols and incremental compilation.
 
-The repository uses Cranelift for normal development and LLVM for `uat`. Use `uat` from the start for native code.
-Use it for any other code that requires an operation Cranelift cannot compile. [Repository environment settings](../../mise.toml#L29)
+Always pass `--profile uat` for local Cargo builds, runs, tests, and Clippy checks on every platform.
+The repository configures LLVM for this profile. [Repository environment settings](../../mise.toml#L29)
 
 ## 2. Open the application and window
 
