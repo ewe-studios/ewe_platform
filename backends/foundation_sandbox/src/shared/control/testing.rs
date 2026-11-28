@@ -287,6 +287,10 @@ struct DriverScript {
     attach: AttachMode,
     launch_spec: Option<SandboxSpec>,
     fresh_substrate: bool,
+    /// Whether every launch gets its own substrate.
+    per_launch_substrate: bool,
+    /// The substrates of the launches, in launch order.
+    launched: Vec<Arc<SimSubstrate>>,
 }
 
 /// A driver that a test scripts.
@@ -335,6 +339,8 @@ impl SimDriver {
                 attach: AttachMode::None,
                 launch_spec: None,
                 fresh_substrate: false,
+                per_launch_substrate: false,
+                launched: Vec::new(),
             }),
             container: None,
         }
@@ -440,6 +446,32 @@ impl SimDriver {
         self
     }
 
+    /// Makes every launch get its own substrate.
+    ///
+    /// A test that keeps several sandboxes alive on one driver needs this: a
+    /// shared substrate exits for all of them as soon as one sandbox stops.
+    /// [`Self::substrates`] returns one substrate per launch, in launch order.
+    #[must_use]
+    pub fn with_substrate_per_launch(self) -> Self {
+        self.script
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .per_launch_substrate = true;
+        self
+    }
+
+    /// The substrate of every launch made with this driver, in launch order.
+    ///
+    /// It is empty when the driver reuses one substrate.
+    #[must_use]
+    pub fn substrates(&self) -> Vec<Arc<SimSubstrate>> {
+        self.script
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .launched
+            .clone()
+    }
+
     /// Gives the driver a container control.
     #[must_use]
     pub fn with_container(mut self, control: Arc<dyn ContainerControl>) -> Self {
@@ -521,13 +553,20 @@ impl SandboxDriver for SimDriver {
             let mut script = self.script.lock().unwrap_or_else(PoisonError::into_inner);
             script.launch_calls += 1;
             script.launch_spec = Some(spec);
-            if script.fresh_substrate {
-                script.substrate.reset();
-            }
+            let substrate = if script.per_launch_substrate {
+                let substrate = Arc::new(SimSubstrate::new());
+                script.launched.push(Arc::clone(&substrate));
+                substrate
+            } else {
+                if script.fresh_substrate {
+                    script.substrate.reset();
+                }
+                Arc::clone(&script.substrate)
+            };
             (
                 script.progress.clone(),
                 script.launch_error.clone(),
-                Arc::clone(&script.substrate),
+                substrate,
                 script.endpoint.clone(),
                 script.root.clone(),
                 script.mounts.clone(),
@@ -774,7 +813,12 @@ struct ScriptedInner {
     chunk_calls: Mutex<usize>,
     read_chunks: Mutex<VecDeque<FileChunk>>,
     shutdown_grace: Mutex<Option<u32>>,
-    shutdown_exit: Mutex<Option<Arc<SimSubstrate>>>,
+    /// The substrates that each `Shutdown` exits, in call order.
+    ///
+    /// A test with one sandbox registers one substrate. A test with several
+    /// sandboxes registers one substrate per sandbox, so a `Shutdown` for one
+    /// sandbox never ends another one.
+    shutdown_exits: Mutex<VecDeque<Arc<SimSubstrate>>>,
     shutdown_count: Mutex<usize>,
     info_pending: AtomicBool,
     shutdown_error: Mutex<Option<SandboxError>>,
@@ -813,7 +857,7 @@ impl ScriptedSlave {
                 chunk_calls: Mutex::new(0),
                 read_chunks: Mutex::new(VecDeque::new()),
                 shutdown_grace: Mutex::new(None),
-                shutdown_exit: Mutex::new(None),
+                shutdown_exits: Mutex::new(VecDeque::new()),
                 shutdown_count: Mutex::new(0),
                 info_pending: AtomicBool::new(false),
                 shutdown_error: Mutex::new(None),
@@ -1017,12 +1061,26 @@ impl ScriptedSlave {
     }
 
     /// Makes `Shutdown` exit this substrate.
+    ///
+    /// Successive calls queue substrates: one `Shutdown` exits the next one.
+    /// A test with several sandboxes on one slave registers one substrate per
+    /// sandbox, so stopping one sandbox leaves the others running.
     pub fn with_shutdown_exit(&self, substrate: Arc<SimSubstrate>) {
-        *self
-            .inner
-            .shutdown_exit
+        self.inner
+            .shutdown_exits
             .lock()
-            .unwrap_or_else(PoisonError::into_inner) = Some(substrate);
+            .unwrap_or_else(PoisonError::into_inner)
+            .push_back(substrate);
+    }
+
+    /// Makes one `Shutdown` exit one substrate for each entry, in order.
+    pub fn with_shutdown_exits(&self, substrates: impl IntoIterator<Item = Arc<SimSubstrate>>) {
+        let mut queue = self
+            .inner
+            .shutdown_exits
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        queue.extend(substrates);
     }
 
     /// Every call that the slave received.
@@ -1435,10 +1493,10 @@ impl SlaveService for ScriptedSlave {
         }
         let substrate = self
             .inner
-            .shutdown_exit
+            .shutdown_exits
             .lock()
             .unwrap_or_else(PoisonError::into_inner)
-            .clone();
+            .pop_front();
         if let Some(substrate) = substrate {
             substrate.exit_now(SubstrateExit {
                 code: Some(0),
