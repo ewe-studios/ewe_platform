@@ -198,7 +198,7 @@ async fn a_failed_addition_survives_restart_and_reuses_its_id() {
         }
     }
     let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("pending.json");
+    let path = directory.path().join("Pending ü.json");
     let transport = Arc::new(Offline::default());
     #[derive(Default)]
     struct Preview(std::sync::Mutex<Vec<Vec<u8>>>);
