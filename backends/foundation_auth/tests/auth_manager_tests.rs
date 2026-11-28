@@ -4,7 +4,6 @@
 
 // The Turso backend and the temporary directory are native only.
 #![cfg(not(target_arch = "wasm32"))]
-
 // The `#[valtron_test]` bodies build an `AuthManager` over a `TursoStorage`
 // and await its methods, forcing a `Send` check through the `turso` crate's
 // deep async chain. That overflows the default recursion limit (128); raise it

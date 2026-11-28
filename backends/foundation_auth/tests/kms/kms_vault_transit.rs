@@ -43,7 +43,7 @@ impl Drop for Vault {
     fn drop(&mut self) {
         if let Some(name) = &self.name {
             let _ = Command::new("docker")
-                .args(["rm", "-f", name])
+                .args(["rm", "-f", name.as_str()])
                 .output();
         }
     }
@@ -95,8 +95,13 @@ async fn wait_ready(vault: &Vault) -> bool {
     let clock = foundation_context::Ctx::host().clock();
     let deadline = clock.now() + READY_TIMEOUT;
     loop {
-        if let Ok((status, _)) =
-            vault_request(vault, "GET", &format!("{}/v1/sys/health", vault.address), None).await
+        if let Ok((status, _)) = vault_request(
+            vault,
+            "GET",
+            &format!("{}/v1/sys/health", vault.address),
+            None,
+        )
+        .await
         {
             if status == 200 {
                 return true;
