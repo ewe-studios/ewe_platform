@@ -2452,3 +2452,10 @@ The baseline package jobs finish. The coverage record lists tests that ran and g
 The current Linux and macOS run selects only the remaining recipes.
 The current Windows run covers the database, HTTP client, and generated application.
 [Coverage record](completion-audit.md#completed-baseline-and-scoped-follow-up)
+
+## Remaining issue review
+
+The dated completion ledger checks current issue states against the feature criteria.
+It records the remaining hosted tests, physical checks, release access, and historical decisions.
+The original workspace dependency warning command passes without warnings.
+[Completion ledger](completion-audit.md#remaining-closure-ledger-28-november-2026) · [Issue 596](https://github.com/ewe-studios/ewe_platform/issues/596)

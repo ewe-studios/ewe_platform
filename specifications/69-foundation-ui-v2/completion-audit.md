@@ -1,6 +1,54 @@
 # Specification 69 completion audit
 
-## Remaining closure gates, 28 November 2026
+## Remaining closure ledger, 28 November 2026
+
+This review uses `resume/combined` at `67e2c59e0` and the live issue states.
+Use the [specification-wide criteria](requirements.md#9-success-criteria-spec-wide) and the evidence below.
+The 36 indexed features and their verified scenarios remain in the checkpoints.
+
+### Software and hosted results
+
+| Gate | Remaining proof |
+|---|---|
+| Affected platform recipes and pinned tools | Apply the [accepted coverage ledger](#completed-baseline-and-scoped-follow-up) to the current revision. Run the outstanding Linux and macOS recipes and the pinned toolchain checks. Match the compiled inputs to each result. The baseline completes with earlier failures. [Baseline run](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113) |
+| macOS Hypertext Transfer Protocol (HTTP) | The local slow event-stream test passes 12 repeats. Local package recipes pass 178 and 181 tests. The combined plan enables both recipes. Collect the hosted result before closing the issue. [Issue 546](https://github.com/ewe-studios/ewe_platform/issues/546) |
+| Windows HTTP and browser | Keep the combined exclusions until the portable recipes pass on Windows. HTTP omits the Unix overlay test dependency on Windows. The browser candidate fixes path diagnostics and reads full upgrade headers. Keep Unix server checks in Unix recipes. [Issue 531](https://github.com/ewe-studios/ewe_platform/issues/531) · [Portable recipes](https://github.com/ewe-studios/ewe_platform/issues/1203) · [Browser fixture](https://github.com/ewe-studios/ewe_platform/issues/1210) |
+| Windows generated applications | The template candidate passes eight application tests and 12 packager tests on macOS. Verify all eight application tests in the Windows generator shard. The separate packager candidate passes a Windows-target type check. Run its 12 tests on Windows before removing its exception. [Generator issue 1211](https://github.com/ewe-studios/ewe_platform/issues/1211) · [Packager issue 527](https://github.com/ewe-studios/ewe_platform/issues/527) |
+| Windows database and Todo server | The direct scratch run proves one Unicode store reopen. Verify the full portable database suite after the binding path repair. The Todo server still needs a Windows HTTP server implementation for a native Windows server run. Keep this boundary visible in the plan. [Database issue 519](https://github.com/ewe-studios/ewe_platform/issues/519) · [Todo issue 1194](https://github.com/ewe-studios/ewe_platform/issues/1194) · [Binding issue 1205](https://github.com/ewe-studios/ewe_platform/issues/1205) |
+| Windows differential | The plan passes at `8829fde10`. The separate shards check HTTP, the generator, and the database. The packager and browser fixture revisions need their own recipe results. [Current run](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741) |
+| Hosted setup | Verify the pinned Android sample and the Todo test shard prerequisites at the corrected revisions. Keep the native sample compile, archive, and signature checks in the run. [Android sample issue 1185](https://github.com/ewe-studios/ewe_platform/issues/1185) · [Todo setup issue 1195](https://github.com/ewe-studios/ewe_platform/issues/1195) |
+| Application prepare help | The local command lists a web target and an offline option. The preparation task supports Android and iPhone. Correct the help and test the public command. [Issue 1207](https://github.com/ewe-studios/ewe_platform/issues/1207) |
+
+### Owner and external gates
+
+| Gate | Remaining action |
+|---|---|
+| Public native release and starters, Features 19, 21, 22, and 24 | The owner approves 0.1.2 at the exact candidate revision after credential setup. The release administrator must configure the protected environment and credentials. Name an authorized release reviewer or team. The unsigned preview passes. After publication, verify the public checksums and resolve both clean starters using public sources. [Release prerequisites](features/19-native-package-releases/release-prerequisites.md) · [Issue 845](https://github.com/ewe-studios/ewe_platform/issues/845) |
+| Physical iPhone launch and VoiceOver | Verify the first launch, Delete action activation, and countdown announcements on an authorized iPhone. The simulator evidence records splash artwork, speech, and modal focus. [Launch issue 831](https://github.com/ewe-studios/ewe_platform/issues/831) · [Speech issue 1168](https://github.com/ewe-studios/ewe_platform/issues/1168) |
+| Physical graphics and sound, Features 34 through 36 | Verify device presentation and transfer of the host texture on physical mobile hardware. Check speaker playback, mute, and interruption. Emulator evidence includes the 2400 by 1080 play and return and about 40 decibels of attenuation. Watch the intermittent focus failure on the next applicable run. [Physical results table](#mobile-release-and-graphics-evidence) · [Issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146) |
+
+### Recorded historical clauses for owner decision
+
+| Clause | Evidence and decision |
+|---|---|
+| Feature 12 section 10 requires four commits and no skipped or weakened tests. | The dated record shows more than four commits and 42 ignored tests. The original HTTP verification was focused. Keep the historical facts and record approval for those exceptions. Complete current warning-free affected recipes and preserve both retained textual references to removed types as listed below. [Feature 12 criteria](features/12-legacy-wire-retirement/feature.md#10-done-when) |
+| Feature 14 section 10 leaves the command, per-scenario, and story checklist unsigned. | Use the Swift host, integrated simulator, and scenario results below. Feature 21 supersedes the sibling Swift package path. Record the integrated command mapping after the affected verification. [Feature 14 criteria](features/14-native-ios-renderer/feature.md#10-done-when) |
+| Feature 16 section 10 requires identical behavior logic and a marker-only source diff. | All 14 JavaScript bodies match across `dd15675cf`. The change also updates imports, string delimiters, and scope. Record explicit acceptance of that larger source diff. Keep the scenario and command checks. [Feature 16 criteria](features/16-behaviour-matrix/feature.md#10-done-when) |
+| D48 and the older mobile features describe a rejected second Delete. | Feature 32 makes repeat requests for the same deletion safe. The current browser and Android checks require successful repeat deletion. An unknown record still returns an error. Record the later acceptance contract against the older wording. [D48](requirements.md#2-decisions) · [Feature 32 deletion](features/32-portable-view-targets/feature.md#optimistic-deletion) |
+
+Use the [scenario records](#unsigned-feature-12-14-and-16-checks) with the Story-Driven Specification checklist.
+The checklist requires a test with a named observable result for each invariant and scenario.
+
+### Open follow-ups with recorded scope
+
+- Feature 11 defers general snapshot replacement. The Todo replay window is bounded and verified. [Replay scope](#replay-backlog-scope) · [Issue 548](https://github.com/ewe-studios/ewe_platform/issues/548)
+- The approved mobile release uses the versioned Git source. Clean public checkout still needs verification. Track the large nested checkout, raw template discovery diagnostic, and composed Android output warning during that proof. [Issue 1200](https://github.com/ewe-studios/ewe_platform/issues/1200) · [Issue 1201](https://github.com/ewe-studios/ewe_platform/issues/1201) · [Issue 1178](https://github.com/ewe-studios/ewe_platform/issues/1178)
+- The platform command registry lock and workspace crate publication retain separate gates. The native starter uses the approved Git, Maven, and Swift inputs. [Issue 672](https://github.com/ewe-studios/ewe_platform/issues/672) · [Issue 883](https://github.com/ewe-studios/ewe_platform/issues/883)
+- Keep the explicit public-directory handler override and focused Chromium Enter replay follow-ups open. Feature 37 proves the generated asset override and direct browser interaction. [Issue 1156](https://github.com/ewe-studios/ewe_platform/issues/1156) · [Issue 1192](https://github.com/ewe-studios/ewe_platform/issues/1192)
+- The strict Foundation WebAssembly default and web gates cover the fixed warnings. The broader embedded runtime testbed matrix belongs to the follow-up. The repository time-source guard has its separate continuous integration issue. [Issue 598](https://github.com/ewe-studios/ewe_platform/issues/598) · [Issue 1094](https://github.com/ewe-studios/ewe_platform/issues/1094) · [Issue 1180](https://github.com/ewe-studios/ewe_platform/issues/1180)
+- The workspace dependency check passes without warnings. The manifest removed `reqwest` and `fs_extra` in `4098f8259`. Four workspace packages use `anyhow`. [Issue 596](https://github.com/ewe-studios/ewe_platform/issues/596)
+
+## Earlier closure gates, 28 November 2026
 
 The review covers all 36 features. The package and mobile tables cover 33.
 The separate acceptance ledgers cover 14, 16, and 37. Number 18 is reserved.

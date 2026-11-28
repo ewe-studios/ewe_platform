@@ -1806,3 +1806,9 @@ Its independent options keep their existing types and defaults.
 A package job can stop at formatting or lint before the test step.
 Record the source revision and the test step for each platform.
 Use the current package commands to check earlier lint repairs on the target host.
+
+## Remaining issue review
+
+Check live issue titles and states before recording a closure.
+Check the exact issue command when the source or its dependency declarations already changed.
+Keep historical acceptance wording and link the later governing behavior.
