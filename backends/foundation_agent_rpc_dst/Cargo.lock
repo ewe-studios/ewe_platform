@@ -1598,7 +1598,6 @@ dependencies = [
  "serde_json",
  "socket2",
  "tracing",
- "web-sys",
  "zstd",
 ]
 
