@@ -2446,7 +2446,9 @@ The 176 focused WebSocket tests pass with both socket paths.
 
 The NetIO package requires strict Clippy for its default and QUIC feature sets.
 Both commands and the default build check pass on macOS.
-The default suite passes 1,340 tests and records two existing ignored documentation tests.
+The macOS default suite passes 1,340 tests.
+The Linux recipe passes both strict lint checks. It passes 1,338 default tests and 1,501 QUIC tests.
+Each of these suites records two existing ignored documentation tests.
 The lint exception applies only to the four independent options in `RedirectConfig`.
 [Issue 1213](https://github.com/ewe-studios/ewe_platform/issues/1213)
 
