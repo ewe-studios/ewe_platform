@@ -5,6 +5,7 @@ mod agent_tool_tests;
 mod agentic_types_tests;
 mod base_types_tests;
 mod context_tests;
+mod durable_store_scenario_tests;
 mod errors_policy_tests;
 #[cfg(feature = "live-model-tests")]
 mod integrations;

@@ -50,6 +50,9 @@ wasm-bindgen-futures = { workspace = true, optional = true }
 
 # workers-rs interop (the `workers-rs` feature; wasm-only code).
 [target.'cfg(target_family = "wasm")'.dependencies]
+# worker 0.8 has no `durable_object` feature: `durable` and `sql` compile
+# unconditionally. The DO executor adds the one call that worker 0.8 does not
+# bind, `DurableObjectStorage::transactionSync`.
 worker = { version = "0.8.3", optional = true, default-features = false, features = ["d1"] }
 
 # Native-only: the D1/R2 REST clients in src/native/ use foundation_netio with
@@ -100,8 +103,13 @@ testing = []
 # crate's own tests turn it on through the self dev-dependency below.
 test-hooks = []
 default = ["turso", "d1", "r2"]
-turso = ["dep:turso", "multi"]
-libsql = ["dep:libsql", "multi"]
+# The native SQL engines do not need the threaded executor at the feature
+# level. Pulling `multi` here made the default build fail for wasm32, where
+# `multi` selects the Send task path and the turso dependency is absent. A
+# native host that wants the multi-threaded pool enables `multi` or
+# `foundation_core/multi` itself.
+turso = ["dep:turso"]
+libsql = ["dep:libsql"]
 d1 = ["foundation_netio/multi", "netio-ssl"]
 r2 = ["foundation_netio/multi", "netio-ssl"]
 # The TLS provider of foundation_netio. On by default, through d1 and r2; a
@@ -124,8 +132,13 @@ wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futur
 
 browser-storage = ["dep:js-sys", "dep:wasm-bindgen", "dep:wasm-bindgen-futures", "wasm"]
 
-# workers-rs interop: From<worker::D1Database> for foundation_db::D1Database
-workers-rs = ["dep:worker"]
+# workers-rs interop: From<worker::D1Database> for foundation_db::D1Database.
+# The interop casts to the wasm-bindgen binding types, so it needs them.
+workers-rs = ["dep:worker", "wasm-bindgen-storage"]
+
+# Durable Object (DO) SQLite executor for the Durable Streams SQL VFS. Needs the
+# workers-rs state handle and the wasm-bindgen bridge types.
+do-sql = ["workers-rs"]
 
 # Migration-group tests live in one target with a module tree.
 [[test]]

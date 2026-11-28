@@ -1,0 +1,199 @@
+// Durable Streams over ConnectRPC (spec 71 feature 06, task T9).
+//
+// The service maps the core operations to RPC. The core stays
+// transport-neutral. The adapter owns the status codes and the stream.
+//
+// A read is one bounded page. A live read is the server-streaming Subscribe
+// call. Every cursor mirrors the core ResumeCursor.
+syntax = "proto3";
+
+package ewe.durable.v1;
+
+service DurableStreamService {
+  // Create a stream. The call is idempotent for a matching configuration.
+  rpc Create(CreateRequest) returns (CreateResponse);
+  // Append one chunk. A non-empty chunk names its content type.
+  rpc Append(AppendRequest) returns (AppendResponse);
+  // Read one bounded page.
+  rpc Read(ReadRequest) returns (ReadResponse);
+  // Read pages until the client cancels or the stream closes.
+  rpc Subscribe(SubscribeRequest) returns (stream ReadResponse);
+  // Return stream metadata.
+  rpc Head(HeadRequest) returns (HeadResponse);
+  // Close a stream, optionally with a final chunk.
+  rpc Close(CloseRequest) returns (AppendResponse);
+  // Delete a stream. A stream with forks is soft-deleted.
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+  // Create a fork of another stream.
+  rpc Fork(ForkRequest) returns (CreateResponse);
+}
+
+// A fork source and its divergence point.
+message Fork {
+  // The source stream name.
+  string source = 1;
+  // The divergence offset in wire text. Absent means the source tail.
+  optional string at = 2;
+  // The number of messages or bytes to skip after the divergence point.
+  uint32 sub_offset = 3;
+}
+
+message CreateRequest {
+  // The stream name.
+  string name = 1;
+  // The content type. Absent means `application/octet-stream`.
+  optional string content_type = 2;
+  // A sliding time to live in milliseconds. Mutually exclusive with
+  // `expires_at_unix_ms`.
+  optional uint64 ttl_ms = 3;
+  // An absolute expiry in UNIX milliseconds. Mutually exclusive with `ttl_ms`.
+  optional int64 expires_at_unix_ms = 4;
+  // Create the stream closed.
+  bool closed = 5;
+  // Initial content.
+  optional bytes initial = 6;
+  // Create the stream as a fork.
+  optional Fork fork = 7;
+}
+
+// Stream metadata.
+message StreamHead {
+  // The stream content type.
+  string content_type = 1;
+  // The tail offset in wire text.
+  string tail = 2;
+  // True when the stream is closed.
+  bool closed = 3;
+  // The sliding time to live in milliseconds, when one is set.
+  optional uint64 ttl_ms = 4;
+  // The absolute expiry in UNIX milliseconds, when one is set.
+  optional int64 expires_at_unix_ms = 5;
+}
+
+message CreateResponse {
+  // True for a new stream. False for an idempotent match.
+  bool created = 1;
+  // The stream head after the call.
+  StreamHead head = 2;
+}
+
+// A producer position.
+message Producer {
+  // The producer identifier.
+  string id = 1;
+  // The producer epoch.
+  uint64 epoch = 2;
+  // The producer sequence.
+  uint64 seq = 3;
+}
+
+message AppendRequest {
+  // The stream name.
+  string name = 1;
+  // The chunk bytes. An empty chunk is a close-only request.
+  bytes chunk = 2;
+  // The request content type. A non-empty chunk must name it.
+  optional string content_type = 3;
+  // The application writer sequence.
+  optional string stream_seq = 4;
+  // The producer position.
+  optional Producer producer = 5;
+  // Close the stream after the append.
+  bool close = 6;
+}
+
+// The resume state of a read or an append.
+message Cursor {
+  // The offset to pass to the next read, in wire text.
+  string next = 1;
+  // True when the page has all data available at response time.
+  bool up_to_date = 2;
+  // True when the stream is closed.
+  bool closed = 3;
+}
+
+message AppendResponse {
+  // The resume state after the append.
+  Cursor cursor = 1;
+  // True when the append was a duplicate.
+  bool duplicate = 2;
+  // The highest accepted producer sequence.
+  optional uint64 producer_seq = 3;
+  // True when the stream is closed.
+  bool closed = 4;
+}
+
+// One chunk of a read page.
+message Chunk {
+  // The chunk bytes.
+  bytes data = 1;
+}
+
+message ReadRequest {
+  // The stream name.
+  string name = 1;
+  // `-1` or absent for the start, `now` for the tail, else wire text.
+  optional string offset = 2;
+  // The page byte limit. Absent means the service limit.
+  optional uint32 max_bytes = 3;
+  // The page chunk limit. Absent means the service limit.
+  optional uint32 max_chunks = 4;
+}
+
+message ReadResponse {
+  // The page chunks.
+  repeated Chunk chunks = 1;
+  // The resume state after the page.
+  Cursor cursor = 2;
+}
+
+message SubscribeRequest {
+  // The stream name.
+  string name = 1;
+  // `-1` or absent for the start, `now` for the tail, else wire text.
+  optional string offset = 2;
+  // The page byte limit. Absent means the service limit.
+  optional uint32 max_bytes = 3;
+  // The page chunk limit. Absent means the service limit.
+  optional uint32 max_chunks = 4;
+}
+
+message HeadRequest {
+  // The stream name.
+  string name = 1;
+}
+
+message HeadResponse {
+  // The stream head.
+  StreamHead head = 1;
+}
+
+message CloseRequest {
+  // The stream name.
+  string name = 1;
+  // A final chunk to append before the close.
+  optional bytes final_chunk = 2;
+  // The producer position.
+  optional Producer producer = 3;
+}
+
+message DeleteRequest {
+  // The stream name.
+  string name = 1;
+}
+
+message DeleteResponse {
+  // True when the stream was soft-deleted because forks still reference it.
+  bool soft_deleted = 1;
+}
+
+message ForkRequest {
+  // The new stream name.
+  string name = 1;
+  // The source stream name.
+  string source = 2;
+  // The divergence offset in wire text. Absent means the source tail.
+  optional string at = 3;
+  // The number of messages or bytes to skip after the divergence point.
+  uint32 sub_offset = 4;
+}

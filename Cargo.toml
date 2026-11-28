@@ -13,6 +13,7 @@ members = [
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
   # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/
   "tests",  # Workspace integration tests
+  "integration/*", # Standalone integration packages that prove a feature boundary
   "benches", # Workspace benchmarks
 ]
 
@@ -172,6 +173,10 @@ toml_edit = { version = "0.22" }
 # Uniform resource locator (URL) parsing. The bootstrap payload of agent-rpc
 # checks that its address is an HTTP or HTTPS URL (spec 83 feature 03).
 url = "2"
+# Ed25519 signing for Durable Streams webhook delivery (spec 71 feature 10). The
+# pure-Rust backend gives a wasm-clean build and a caller-supplied seed, so the
+# signing key comes from the injected `Ctx` entropy source.
+ed25519-compact = { version = "2.3", default-features = false }
 
 # One media type table for the platform (spec 89).
 # `phf` builds a perfect hash map at compile time. It needs no `std`, so the

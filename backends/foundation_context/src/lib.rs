@@ -58,11 +58,19 @@ pub mod sync {
 
 pub mod env;
 
+#[cfg(not(target_family = "wasm"))]
+pub mod timer;
+
 use core::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::env::Timer;
 use crate::sync::{Mutex, RwLock};
+#[cfg(not(target_family = "wasm"))]
+use std::sync::OnceLock;
+
+use derive_more::{Display, Error};
 use foundation_compact::rng::{ChaCha8Rng, SeedableRng};
 pub use foundation_compact::{Duration, Instant, SystemTime};
 
@@ -88,6 +96,15 @@ pub trait Clock: Send + Sync + 'static {
     /// value: the real time in a host backend, a fixed origin in a test backend.
     #[must_use]
     fn wall_now(&self) -> SystemTime;
+
+    /// A timer that this clock provides, when it has one.
+    ///
+    /// The default is `None`. [`Ctx::timer`] then derives a timer from
+    /// [`Clock::now`]. A clock that already knows how to wake a sleeper on its
+    /// own returns one here, and it wins over the derived timer.
+    fn timer(&self) -> Option<Arc<dyn Timer>> {
+        None
+    }
 }
 
 /// The default [`Clock`]: a real, [`foundation_compact`]-backed clock.
@@ -195,6 +212,25 @@ pub(crate) struct CtxInner {
     clock: Option<Arc<dyn Clock>>,
     config: Option<Arc<Config>>,
     rng: Option<Arc<Mutex<ChaCha8Rng>>>,
+    /// The cached timer derived from the clock.
+    ///
+    /// It holds the clock, never the `Ctx`, so it cannot close an `Arc` cycle.
+    #[cfg(not(target_family = "wasm"))]
+    timer: OnceLock<Arc<dyn Timer>>,
+}
+
+/// Why a [`Ctx`] has no timer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display, Error)]
+pub enum TimerError {
+    /// The context has no timer.
+    ///
+    /// This error only occurs on wasm, where no host installed an `Env` timer
+    /// and the JavaScript default timer is not available yet (GitHub issue
+    /// #1093).
+    #[display(
+        "the context has no timer: install an Env timer; the wasm default timer is not available yet (issue #1093)"
+    )]
+    Missing,
 }
 
 impl Ctx {
@@ -260,6 +296,8 @@ impl Ctx {
             clock: Some(clock),
             config: Some(Arc::new(Config::new())),
             rng: Some(Arc::new(Mutex::new(rng))),
+            #[cfg(not(target_family = "wasm"))]
+            timer: OnceLock::new(),
         }))
     }
 
@@ -317,6 +355,8 @@ impl Ctx {
             config: (missing != MinimumElement::Config).then(|| Arc::new(Config::new())),
             rng: (missing != MinimumElement::Rng)
                 .then(|| Arc::new(Mutex::new(ChaCha8Rng::seed_from_u64(0)))),
+            #[cfg(not(target_family = "wasm"))]
+            timer: OnceLock::new(),
         }))
     }
 
@@ -483,6 +523,54 @@ impl Ctx {
         self.0.clock.clone()
     }
 
+    /// The timer for this context.
+    ///
+    /// The order of resolution is: the `Env` timer, the timer that
+    /// [`Clock::timer`] provides, and then a
+    /// [`ContextTimer`](crate::timer::ContextTimer) over [`Ctx::clock`]. The
+    /// last one is cached, so repeated calls return the same handle.
+    ///
+    /// # Panics
+    ///
+    /// On wasm, panics when the host installed no `Env` timer. Use
+    /// [`Ctx::try_timer`] to handle that case. On native the call does not fail
+    /// for a context that [`Ctx::assert_minimum`] accepts.
+    #[must_use]
+    pub fn timer(&self) -> Arc<dyn Timer> {
+        self.try_timer().expect(
+            "Ctx has no timer: install an Env timer; the wasm default timer is not available yet (issue #1093)",
+        )
+    }
+
+    /// The timer for this context, or a typed error when it has none.
+    ///
+    /// # Errors
+    ///
+    /// [`TimerError::Missing`] on wasm when the host installed no `Env` timer.
+    /// A native context never returns this error.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the context has no clock and no `Env` timer.
+    pub fn try_timer(&self) -> Result<Arc<dyn Timer>, TimerError> {
+        if let Some(env) = self.env() {
+            return Ok(env.timer());
+        }
+        #[cfg(not(target_family = "wasm"))]
+        {
+            if let Some(timer) = self.clock().timer() {
+                return Ok(timer);
+            }
+            Ok(Arc::clone(self.0.timer.get_or_init(|| {
+                Arc::new(crate::timer::ContextTimer::new(self.clock()))
+            })))
+        }
+        #[cfg(target_family = "wasm")]
+        {
+            Err(TimerError::Missing)
+        }
+    }
+
     /// The shared, read-only configuration.
     ///
     /// # Panics
@@ -537,6 +625,8 @@ impl Ctx {
             clock: self.0.clock.clone(),
             config: self.0.config.clone(),
             rng: self.0.rng.clone(),
+            #[cfg(not(target_family = "wasm"))]
+            timer: OnceLock::new(),
         }))
     }
 
@@ -552,6 +642,8 @@ impl Ctx {
             clock: self.0.clock.clone(),
             config: self.0.config.clone(),
             rng: self.0.rng.clone(),
+            #[cfg(not(target_family = "wasm"))]
+            timer: OnceLock::new(),
         }))
     }
 
@@ -573,6 +665,8 @@ impl Ctx {
             clock: sources.0.clock.clone(),
             config: sources.0.config.clone(),
             rng: sources.0.rng.clone(),
+            #[cfg(not(target_family = "wasm"))]
+            timer: OnceLock::new(),
         }))
     }
 
@@ -597,6 +691,8 @@ impl Ctx {
             clock: Some(clock),
             config: self.0.config.clone(),
             rng: self.0.rng.clone(),
+            #[cfg(not(target_family = "wasm"))]
+            timer: OnceLock::new(),
         }))
     }
 }

@@ -150,6 +150,56 @@ class Affected(unittest.TestCase):
         self.assertEqual(self.reasons(["docs/x.txt"]), {})
 
 
+class Gates(unittest.TestCase):
+    """A `[gates.<name>]` entry runs from its packages and its path prefixes."""
+
+    def setUp(self):
+        self.ci = load_ci()
+        P = self.ci.Package
+        self.packages = {
+            "core": P("core", "crates/core", False, dependents={"leaf"}),
+            "leaf": P("leaf", "crates/leaf", False),
+            "other": P("other", "crates/other", False),
+            "gate": P(
+                "gate",
+                "",
+                False,
+                gate_recipe="durable-conformance",
+                gate_packages=("core",),
+                gate_paths=("integration/",),
+            ),
+        }
+
+    def reasons(self, files):
+        changes = self.ci.Changes(files)
+        return self.ci.affected_with_reasons(changes, self.packages)
+
+    def test_a_listed_package_change_selects_the_gate(self):
+        self.assertEqual(
+            self.reasons(["crates/core/src/lib.rs"])["gate"],
+            "crates/core/src/lib.rs changed",
+        )
+
+    def test_a_path_prefix_change_selects_the_gate(self):
+        self.assertEqual(
+            self.reasons(["integration/api/src/lib.rs"])["gate"],
+            "integration/api/src/lib.rs changed",
+        )
+
+    def test_an_unlisted_package_does_not_select_the_gate(self):
+        self.assertNotIn("gate", self.reasons(["crates/other/src/lib.rs"]))
+
+    def test_prose_under_a_gate_path_does_not_select_the_gate(self):
+        self.assertNotIn("gate", self.reasons(["integration/README.md"]))
+
+    def test_a_global_file_selects_the_gate(self):
+        self.assertIn("gate", self.reasons(["rust-toolchain.toml"]))
+
+    def test_a_gate_owns_no_file(self):
+        # The gate has no directory, so a source path maps to no package here.
+        self.assertEqual(self.reasons(["src/main.rs"]), {})
+
+
 class IfAffected(unittest.TestCase):
     def setUp(self):
         self.ci = load_ci()

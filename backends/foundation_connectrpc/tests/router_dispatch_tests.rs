@@ -116,6 +116,9 @@ impl Message for TestMsg {
 // ── request builders ──────────────────────────────────────────────────────────
 
 const ECHO: &str = "http://t/test.EchoService/Echo";
+/// The router key is the procedure path, never the whole request URL (the
+/// router doc: "the full `/package.Service/Method` path (R1, leading slash)").
+const PROCEDURE: &str = "/test.EchoService/Echo";
 
 fn request(
     url: &str,
@@ -173,7 +176,7 @@ fn ctx() -> Ctx {
 fn echo_router() -> Router {
     let mut router = Router::new();
     router.unary(
-        ECHO,
+        PROCEDURE,
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move { Ok(Response::new(req.msg)) },
         HandlerOptions::new()
@@ -232,7 +235,7 @@ fn unknown_codec_is_415_with_accept_post() {
 fn bidi_over_http1_is_505() {
     let mut router = Router::new();
     router.bidi_stream(
-        "http://t/test.EchoService/Chat",
+        "/test.EchoService/Chat",
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, _reqs: foundation_connectrpc::RequestStream<TestMsg>| async move {
             Ok(futures::stream::empty::<ConnectResult<TestMsg>>())
@@ -265,7 +268,7 @@ struct Marker(&'static str);
 fn request_extensions_reach_the_handler() {
     let mut router = Router::new();
     router.unary(
-        ECHO,
+        PROCEDURE,
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |ctx, req: Request<TestMsg>| async move {
             assert_eq!(
@@ -343,7 +346,7 @@ fn unary_get_is_routed_and_decoded() {
 fn server_stream_emits_all_responses() {
     let mut router = Router::new();
     router.server_stream(
-        "http://t/test.EchoService/List",
+        "/test.EchoService/List",
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move {
             let base = req.msg.id;
@@ -389,7 +392,7 @@ fn server_stream_emits_all_responses() {
 fn require_connect_protocol_header_is_enforced() {
     let mut router = Router::new();
     router.unary(
-        ECHO,
+        PROCEDURE,
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move { Ok(Response::new(req.msg)) },
         HandlerOptions::new().with_require_connect_protocol_header(true),
@@ -431,7 +434,7 @@ fn require_connect_protocol_header_is_enforced() {
 fn multiple_services_coexist() {
     let mut router = echo_router();
     router.unary(
-        "http://t/test.MathService/Inc",
+        "/test.MathService/Inc",
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move {
             Ok(Response::new(TestMsg {
