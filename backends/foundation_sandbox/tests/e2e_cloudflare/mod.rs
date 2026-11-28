@@ -579,10 +579,17 @@ fn e2e_cloudflare_large_stream() {
         let mut events = handle.events();
         let mut total = 0_usize;
         let mut frames = 0_u64;
+        // The command prints `x` then a newline, over and over. A frame can
+        // split a pair, so the check follows the pattern across frame
+        // boundaries instead of expecting every frame to hold whole pairs.
+        let mut expected = b'x';
         while let Some(event) = events.next().await {
             match event.expect("the event stream") {
                 ExecEvent::Stdout(data) => {
-                    assert_eq!(data.len() % 2, 0, "the pattern is two bytes");
+                    for &byte in &data {
+                        assert_eq!(byte, expected, "the x and newline pattern is in order");
+                        expected = if expected == b'x' { b'\n' } else { b'x' };
+                    }
                     total += data.len();
                     frames += 1;
                 }
