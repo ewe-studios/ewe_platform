@@ -6,6 +6,7 @@ pub mod development;
 mod execution;
 pub mod images;
 mod plan;
+pub mod services;
 mod staging;
 pub mod toolchain;
 pub mod wire;

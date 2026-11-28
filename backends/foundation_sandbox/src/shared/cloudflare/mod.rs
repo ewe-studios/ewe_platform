@@ -248,6 +248,12 @@ pub struct CloudflareConfig {
     /// Default 60 s. A cold container start with a first image pull takes much
     /// longer than a micro virtual machine (VM) boot.
     pub boot_timeout: Duration,
+    /// The deadline for one call to the container or the model Durable Object.
+    ///
+    /// Default 30 s. A cold Durable Object or container takes seconds on a
+    /// continuous integration (CI) runner: the first call of a test took about
+    /// 5 s, which one unary `rpc_timeout` of 5 s does not cover.
+    pub call_timeout: Duration,
     /// The deadline for a remote `Wait` call, or `None` for no deadline.
     ///
     /// Default `None`: a container runs for hours, so a boot deadline is wrong.
@@ -291,6 +297,7 @@ impl Default for CloudflareConfig {
             slave_path: "/usr/local/bin/agent-slave".to_string(),
             idle_timeout: Duration::from_secs(600),
             boot_timeout: Duration::from_secs(60),
+            call_timeout: Duration::from_secs(30),
             wait_timeout: None,
             model: None,
             slave_binding: "SLAVE".to_string(),
@@ -306,6 +313,16 @@ impl CloudflareConfig {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// The configuration of one sandbox Durable Object.
+    ///
+    /// The Worker reads the model variables once and passes the result, so a
+    /// model spec reaches the model driver (issue #1142). Every other value
+    /// keeps its default.
+    #[must_use]
+    pub fn for_sandbox(name: impl Into<String>, model: ModelConfig) -> Self {
+        Self::default().with_name(name).with_model(Some(model))
     }
     /// Replaces [`Self::image_name`].
     #[must_use]
@@ -346,6 +363,13 @@ impl CloudflareConfig {
     #[must_use]
     pub fn with_boot_timeout(mut self, value: Duration) -> Self {
         self.boot_timeout = value;
+        self
+    }
+
+    /// Replaces [`Self::call_timeout`].
+    #[must_use]
+    pub fn with_call_timeout(mut self, value: Duration) -> Self {
+        self.call_timeout = value;
         self
     }
 

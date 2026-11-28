@@ -12,7 +12,7 @@ use foundation_deployment_docker::client::{
 };
 use foundation_deployment_docker::generated::connect::EndpointSettings;
 use foundation_deployment_docker::generated::json::{
-    ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
+    ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap,
 };
 use tracing::{debug, info, warn};
 
@@ -668,10 +668,6 @@ impl ContainerHandle {
                 } else {
                     Some(config.extra_hosts.clone())
                 },
-                network_mode,
-                ..Default::default()
-            },
-            resources: Resources {
                 memory: memory_bytes,
                 nano_cpus: config.cpus.map(|c| i64::from(c) * 1_000_000_000),
                 devices: if config.devices.is_empty() {
@@ -692,6 +688,7 @@ impl ContainerHandle {
                             .collect(),
                     )
                 },
+                network_mode,
                 ..Default::default()
             },
         };

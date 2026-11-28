@@ -1,0 +1,93 @@
+# The tasks of the Cloudflare demo (spec 92 feature 06).
+#
+#   mise run deploy   build, deploy the persistent `ewe-sandbox-demo`, set the
+#                     OpenRouter secret and print the URL
+#   mise run test     build, deploy a preview name, run `test/live.sh`, then
+#                     delete the preview Worker and its container
+#   mise run destroy  remove the persistent Worker and its container
+#
+# The build needs the pinned tools of `ci/sandbox.toml`: `wrangler` 4.144.0 and
+# `worker-build` 0.8.7. The README shows how to install them.
+
+[tasks.build]
+description = "Build the static slave, the container model server and the Worker module"
+run = """
+set -euo pipefail
+rustup target add x86_64-unknown-linux-musl
+
+# The static slave of the sandbox container. Cloudflare containers run
+# linux/amd64.
+root_target="${CARGO_TARGET_DIR:-../../target}"
+RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
+  cargo build --manifest-path ../../Cargo.toml -p foundation_sandbox --bin agent-slave \
+    --profile agent --no-default-features --features slave,cli,control,firecracker \
+    --target x86_64-unknown-linux-musl
+cp "${root_target}/x86_64-unknown-linux-musl/agent/agent-slave" agent-slave
+
+# The model server that runs beside the slave in the same container.
+model_target="${CARGO_TARGET_DIR:-model/target}"
+cargo build --manifest-path model/Cargo.toml --release --target x86_64-unknown-linux-musl
+cp "${model_target}/x86_64-unknown-linux-musl/release/demo-model" demo-model
+
+# The Worker module.
+worker-build --release
+echo "the build is ready: build/index.js and the container context"
+"""
+
+[tasks.deploy]
+description = "Build and deploy the persistent ewe-sandbox-demo, then print its URL"
+depends = ["build"]
+run = """
+set -euo pipefail
+# `wrangler` reads CLOUDFLARE_API_TOKEN. The owner's Workers AI token is the
+# only token in some environments; use it when the deploy token is absent.
+export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CLOUDFLARE_WORKERS_AI_API_TOKEN:-}}"
+if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+    echo "set CLOUDFLARE_API_TOKEN (or CLOUDFLARE_WORKERS_AI_API_TOKEN) and CLOUDFLARE_ACCOUNT_ID" >&2
+    exit 2
+fi
+
+set +e
+deploy_log=$(wrangler deploy --config wrangler.toml 2>&1)
+status=$?
+set -e
+printf '%s\\n' "${deploy_log}"
+if [ "${status}" -ne 0 ]; then
+    exit "${status}"
+fi
+
+if [ -n "${OPENROUTER_API_KEY:-}" ]; then
+    printf '%s' "${OPENROUTER_API_KEY}" | wrangler secret put OPENROUTER_API_KEY --config wrangler.toml
+else
+    echo "OPENROUTER_API_KEY is absent: the OpenRouter tab shows the missing secret" >&2
+fi
+
+url=$(printf '%s\\n' "${deploy_log}" | sed -E 's/\\x1B\\[[0-9;]*[mK]//g' | grep -Eo 'https://[A-Za-z0-9._-]+\\.workers\\.dev' | head -1) || true
+if [ -z "${url}" ]; then
+    url="https://ewe-sandbox-demo.$(wrangler whoami 2>/dev/null | grep -Eo '[a-z0-9-]+\\.workers\\.dev' | head -1 | cut -d. -f2-)"
+fi
+echo "the demo URL is ${url}"
+"""
+
+[tasks.test]
+description = "Deploy a preview, run the live proof and remove the preview"
+depends = ["build"]
+run = """
+set -euo pipefail
+export EWE_DEMO_NAME="${EWE_DEMO_NAME:-ewe-sandbox-demo-test-$(date +%s)}"
+test/live.sh
+"""
+
+[tasks.destroy]
+description = "Remove the persistent Worker and its container"
+run = """
+set -euo pipefail
+export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CLOUDFLARE_WORKERS_AI_API_TOKEN:-}}"
+if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+    echo "set CLOUDFLARE_API_TOKEN (or CLOUDFLARE_WORKERS_AI_API_TOKEN) and CLOUDFLARE_ACCOUNT_ID" >&2
+    exit 2
+fi
+wrangler delete --name ewe-sandbox-demo --config wrangler.toml --force || true
+wrangler containers list 2>/dev/null || true
+echo "the persistent Worker is deleted; any container that remains is named above"
+"""

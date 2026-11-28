@@ -3,10 +3,8 @@
 //! Tests the three JSON Schema output formats: flag, list, and hierarchical.
 
 use foundation_jsonschema::{
-    evaluation::{
-        Evaluation, EvaluationNode, FlagOutput, HierarchicalOutput, ListEntry, ListOutput,
-    },
-    is_valid, validate, validator_for, ValidationError,
+    evaluation::{Evaluation, EvaluationNode},
+    is_valid, validate, validator_for,
 };
 use serde_json::json;
 
@@ -14,7 +12,7 @@ use serde_json::json;
 
 #[test]
 fn evaluation_from_node() {
-    let node = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let node = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     let eval = Evaluation::new(node);
     assert!(eval.valid());
 }
@@ -24,7 +22,7 @@ fn evaluation_with_errors() {
     let mut child = EvaluationNode::new(false, "/type".into(), "/type".into(), "/name".into());
     child.errors.push("expected string".into());
 
-    let root = EvaluationNode::new(false, "/".into(), "".into(), "".into());
+    let root = EvaluationNode::new(false, "/".into(), String::new(), String::new());
     let eval = Evaluation::new(root);
     assert!(!eval.valid());
 }
@@ -33,14 +31,14 @@ fn evaluation_with_errors() {
 
 #[test]
 fn flag_output_valid() {
-    let node = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let node = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     let eval = Evaluation::new(node);
     assert!(eval.valid());
 }
 
 #[test]
 fn flag_output_invalid() {
-    let node = EvaluationNode::new(false, "/".into(), "".into(), "".into());
+    let node = EvaluationNode::new(false, "/".into(), String::new(), String::new());
     let eval = Evaluation::new(node);
     assert!(!eval.valid());
 }
@@ -49,7 +47,7 @@ fn flag_output_invalid() {
 
 #[test]
 fn list_output_single_node() {
-    let node = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let node = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     let eval = Evaluation::new(node);
     let list = eval.to_list();
     assert_eq!(list.entries.len(), 1);
@@ -61,7 +59,7 @@ fn list_output_with_children() {
     let mut child = EvaluationNode::new(false, "/type".into(), "/type".into(), "/name".into());
     child.errors.push("expected string".into());
 
-    let mut root = EvaluationNode::new(false, "/".into(), "".into(), "".into());
+    let mut root = EvaluationNode::new(false, "/".into(), String::new(), String::new());
     root.children.push(child);
 
     let eval = Evaluation::new(root);
@@ -77,7 +75,7 @@ fn list_output_with_children() {
 
 #[test]
 fn list_output_errors_captured() {
-    let mut root = EvaluationNode::new(false, "/".into(), "".into(), "".into());
+    let mut root = EvaluationNode::new(false, "/".into(), String::new(), String::new());
     root.errors.push("schema is false".into());
 
     let eval = Evaluation::new(root);
@@ -89,23 +87,23 @@ fn list_output_errors_captured() {
 
 #[test]
 fn list_output_annotations_preserved_in_node() {
-    let mut root = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let mut root = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     root.annotations.insert("enum".into(), "[1, 2, 3]".into());
 
     let eval = Evaluation::new(root);
     // Annotations are on the EvaluationNode, not on ListEntry (by design)
-    assert_eq!(eval.to_list().entries[0].valid, true);
+    assert!(eval.to_list().entries[0].valid);
 }
 
 // ── Hierarchical output ─────────────────────────────────────────────
 
 #[test]
 fn hierarchical_output_single_node() {
-    let node = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let node = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     let eval = Evaluation::new(node);
     let hier = eval.to_hierarchical();
     assert!(hier.valid);
-    assert!(hier.children.is_empty());
+    assert_eq!(hier.children, Vec::new());
 }
 
 #[test]
@@ -118,7 +116,7 @@ fn hierarchical_output_nested() {
         "/name".into(),
     );
 
-    let mut root = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let mut root = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     root.children.push(child1);
     root.children.push(child2);
 
@@ -148,7 +146,7 @@ fn hierarchical_output_deep_tree() {
     );
     child.children.push(grandchild);
 
-    let mut root = EvaluationNode::new(false, "/".into(), "".into(), "".into());
+    let mut root = EvaluationNode::new(false, "/".into(), String::new(), String::new());
     root.children.push(child);
 
     let eval = Evaluation::new(root);
@@ -211,7 +209,6 @@ fn iter_errors_convenience() {
         "required": ["name"]
     });
     let v = validator_for(&schema).unwrap();
-    let v = validator_for(&schema).unwrap();
     let errors: Vec<_> = v.iter_errors(&json!({"age": -1})).collect();
     // Missing required "name" + age below minimum
     assert!(!errors.is_empty());
@@ -230,7 +227,7 @@ fn iter_errors_empty_on_valid() {
 #[test]
 fn list_output_recursive_tree() {
     // Simulate a deep evaluation tree (e.g., from recursive $ref)
-    let mut current = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let mut current = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     for i in 0..5 {
         let mut child = EvaluationNode::new(
             true,
@@ -253,12 +250,12 @@ fn hierarchical_output_empty_root_valid() {
     let eval = Evaluation::new(node);
     let hier = eval.to_hierarchical();
     assert!(hier.valid);
-    assert!(hier.evaluation_path.is_empty());
+    assert_eq!(hier.evaluation_path, "");
 }
 
 #[test]
 fn evaluation_clone() {
-    let mut node = EvaluationNode::new(true, "/".into(), "".into(), "".into());
+    let mut node = EvaluationNode::new(true, "/".into(), String::new(), String::new());
     node.annotations.insert("type".into(), "string".into());
     let eval = Evaluation::new(node);
 

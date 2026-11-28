@@ -66,7 +66,7 @@ impl worker::DurableObject for SandboxDo {
             }
         };
         let parts = simple_request(&request, &body)?;
-        let Some(control) = self.control(Some(id)).await? else {
+        let Some(control) = self.control(Some(id.clone())).await? else {
             return connect_error_response(
                 &request,
                 &[],
@@ -75,7 +75,11 @@ impl worker::DurableObject for SandboxDo {
                 },
             );
         };
-        worker_response(control.handle(parts).await)
+        let parts = control.handle(parts).await;
+        // The Durable Object console line makes the next failing run show that
+        // the request reached this object and which status it answered.
+        worker::console_log!("sandbox {} {} -> {}", id, request.path(), parts.status);
+        worker_response(parts)
     }
 
     async fn alarm(&self) -> worker::Result<worker::Response> {
@@ -101,10 +105,13 @@ impl SandboxDo {
         let name = id
             .as_ref()
             .map_or_else(|| "sandbox".to_string(), ToString::to_string);
+        // The model variables are read here, so a model spec reaches the model
+        // driver (issue #1142).
+        let model = crate::model_client::model_config_from_env(&self.env);
         let host = CloudflareHost::from_state(
             &self.state,
             index,
-            CloudflareConfig::default().with_name(name),
+            CloudflareConfig::for_sandbox(name, model),
         )
         .map_err(worker_error_from_sandbox)?
         .with_service(

@@ -27,11 +27,14 @@ foundation_auth = { path = "../../backends/foundation_auth", default-features = 
 # The effect bundle and the single-threaded executor of a Worker.
 foundation_context = { path = "../../backends/foundation_context" }
 foundation_core = { path = "../../backends/foundation_core", default-features = false, features = ["std", "js-wasmbindgen"] }
+# The host timer of the Worker and `SendWrapper` for the JavaScript values.
+foundation_compact = { path = "../../backends/foundation_compact", default-features = false }
 # The HTTP client of the model providers (fetch on wasm).
 foundation_netio = { path = "../../backends/foundation_netio", default-features = false, features = ["wasm-fetch"] }
 # The static page of the example.
 foundation_http = { path = "../../backends/foundation_http", default-features = false, features = ["wasm-bindgen-http"] }
 worker = "0.8.7"
+async-trait = "0.1"
 futures = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

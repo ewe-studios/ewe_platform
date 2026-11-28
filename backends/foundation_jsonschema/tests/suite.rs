@@ -1,7 +1,7 @@
 //! Official JSON Schema Test Suite integration — all 5 drafts.
 //!
 //! Runs test cases from the official JSON-Schema-Test-Suite
-//! (https://github.com/json-schema-org/JSON-Schema-Test-Suite)
+//! (<https://github.com/json-schema-org/JSON-Schema-Test-Suite>)
 //! against our validator to verify spec compliance across
 //! Draft 4, 6, 7, 2019-09, and 2020-12.
 //!

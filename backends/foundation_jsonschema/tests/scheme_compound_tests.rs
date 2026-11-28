@@ -1,4 +1,4 @@
-//! Unit tests — compound schema builders (union, one_of, all_of, not, if_then).
+//! Unit tests — compound schema builders (union, `one_of`, `all_of`, `not`, `if_then`).
 
 use foundation_jsonschema::scheme;
 use serde_json::json;

@@ -27,7 +27,9 @@
 //! HOW: the RPC edge is async (`foundation_connectrpc` handlers); inference runs
 //! on valtron behind `Send + 'static` boundaries; the model is shared through an
 //! `Arc`-backed handle. A deterministic simulation test depends on this crate
-//! with `default-features = false`, so it gets `core` only.
+//! with `default-features = false, features = ["dst"]`: it gets the core, the
+//! local registry and the guarded turn over the `foundation_ai` mocks, and no
+//! thread pool, SQLite or TLS.
 
 /// The `agent-rpc` process command line (spec 83 feature 08).
 #[cfg(not(target_family = "wasm"))]
