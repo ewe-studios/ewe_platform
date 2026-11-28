@@ -85,3 +85,19 @@ Ignore duplicate or late notifications and release any unused grant. Keep unrela
 - Test immediate completion, duplicate notifications, cancellation during import, stale generations, incompatible resources, and device loss.
 - Run both device ownership modes in the same test suite. Report backend, hardware, and simulator coverage.
 - Update the Rust, Swift, Kotlin, and browser guides with setup, action registration, acquisition, release, and failure examples.
+
+### Physical iPhone Metal check on 2026-11-28
+
+An app-hosted XCTest runs on iPhone 13 Pro with iOS 27.2.1.
+One test passes. No tests fail or skip.
+The host supplies its original Metal device, command queue, and texture.
+Rust waits for the host upload and changes the red pixel into blue.
+The host reads the changed source pixel, then reads the pixel from the presented drawable.
+The test also checks compute output, the original device identity, and the release callback.
+
+The scratch project reuses the existing test and shader fixtures.
+Xcode requires a signed app host for this test on a physical iPhone.
+The run uses the reserved proof app slot. The original signed proof app is restored afterward.
+
+[Metal handoff test](../../../../mobile/ios/Tests/EweUITests/HostGraphicsTests.swift)
+[Issue 1265 tracks a permanent test host](https://github.com/ewe-studios/ewe_platform/issues/1265)
