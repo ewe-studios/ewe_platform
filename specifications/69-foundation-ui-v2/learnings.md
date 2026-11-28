@@ -1790,3 +1790,9 @@ A failed handshake hid the raw socket close defect in the previous fixture.
 
 A native server uses the same socket reader as the client.
 Retire a live TCP read at end of stream. Keep caller-fed empty chunks as pending.
+
+## Native publication gate
+
+Verify the release environment and credential names before creating a trigger tag.
+Use the downloaded manifest to reproduce the Swift checksum commit in a separate checkout.
+The staged archive can test consumers while the public package endpoints remain empty.

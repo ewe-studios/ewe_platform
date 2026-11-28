@@ -2368,7 +2368,9 @@ The source predates the latest generated template and native library staging fix
 The current preview at `4e4a50b9d` includes the template source and Android build type staging fixes.
 This source differs from `957736c46` only in the nine package version references.
 All eight local generator integration tests pass.
-The new hosted preview and generated Android archive check remain in progress.
+The hosted preview and both generated Android archive build orders pass.
+The approved publication waits for the protected environment and release credentials.
+[Exact version proposal](features/19-native-package-releases/release-prerequisites.md#verified-012-proposal)
 [Current preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46079128868)
 
 The Windows precursor builds the embedded project templates and runs 29 native task tests.

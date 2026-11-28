@@ -17,9 +17,7 @@ A web-only project keeps its registry dependency.
 The native starters and composed mobile release path require no new crates.io publication.
 
 The current default remains 0.1.1 until the public starter checks pass for its replacement.
-The 0.1.2 preview built the Apple starter and ran its two iPhone Todo applications.
-That preview uses commit `8ce2352b9` and predates the source alignment.
-[Previous preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46067419598)
+The unsigned 0.1.2 preview now passes on the exact proposed release source.
 
 ## Public availability
 
@@ -105,14 +103,41 @@ Cargo also prints a nonfatal diagnostic while it scans the raw PlatformApp templ
 These findings remain open. The scratch mirror verifies dependency resolution before any public release.
 [Git checkout cost](https://github.com/ewe-studios/ewe_platform/issues/1200) · [Template discovery diagnostic](https://github.com/ewe-studios/ewe_platform/issues/1201)
 
-## Owner approval and public checks
+## Verified 0.1.2 proposal
 
-The release proposal uses version 0.1.2. Select one final combined source revision and approve a fresh read-only preview.
-Build both starters and confirm the candidate manifest, archive digests, and Swift checksum commit.
+The release source is `4e4a50b9d230cb536f092f11bd689be60c2bf9d1`.
+It includes the shared template source selection and the Android build type staging repair.
+The preview builds both starters against staged packages and runs both Todo apps on each platform.
+The iPhone suites pass 11 tests and skip six checks that require optional fixtures.
+The Swift package suite passes 30 tests.
+[Current native preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46079128868)
 
-Create and protect the `native-ui-release` environment before the publish run.
-The environment query returned zero matching entries.
-The owner or release administrator configures these inputs.
+The unsigned archive digests use the 256-bit Secure Hash Algorithm (SHA-256).
+
+| Archive | SHA-256 |
+| --- | --- |
+| `EweCoreFFI.xcframework.zip` | `3a851c9b11aa0ae333586e7ee8d751e858358ce1d6af0c60a98b81c1907728d4` |
+| `android-publication.zip` | `c4b0c2e284f343be3055b393b269c4ae2e01f76a468da90f53d722f62fa5c5f4` |
+
+The release record gives Swift checksum commit `47f8b98e8439d3de4f26a06bdefef9146e15599e`.
+An independent checkout reproduces the commit using the verified Apple archive bytes.
+The Apple archive contains iPhone device, simulator, and Mac libraries.
+The Android archive contains all three Maven modules and both native architectures.
+[Unsigned candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46079128868/artifacts/15239750961)
+
+The generated Android application packages (APKs) use Maven 0.1.2 from this archive.
+Both build orders preserve distinct debug and release Rust libraries in their respective x86-64 APKs.
+The generated mixed browser project loads WebAssembly in Chrome and increments its counter.
+The scratch Git mirror omits unrelated tool submodules and keeps the package source bytes.
+[Build type staging](https://github.com/ewe-studios/ewe_platform/issues/800)
+
+## Approved release prerequisites
+
+The owner approves release 0.1.2 from the exact source above when the required credentials are ready.
+The authenticated environment lookup returns 404 for `native-ui-release`.
+The repository lists none of the required credential names or signing variable.
+Central Portal access is needed to confirm authority over the Maven namespace.
+The owner or release administrator creates and protects the environment and configures these inputs.
 
 | Setting | Permission or input |
 | --- | --- |
@@ -121,7 +146,7 @@ The owner or release administrator configures these inputs.
 | `NATIVE_GPG_FINGERPRINT` | Select the signing key through the environment variable. |
 | `CENTRAL_USERNAME` and `CENTRAL_PASSWORD` | Authenticate to the Central Portal for the verified `io.github.ewe-studios` namespace. |
 
-The following actions require separate publication approval after the preview passes.
+Start the approved sequence after the required environment and credentials are ready.
 
 1. Create `native-ui-v0.1.2` at the approved source revision. This starts the protected publication job.
 2. Let the job publish the native assets and Maven modules at 0.1.2.
