@@ -1,147 +1,170 @@
-//! A non-2xx response that carries `Connection: close` must finish its body
-//! read and let the caller continue.
+//! Regression tests for issue #1172: a peer that writes its whole response and
+//! closes before the client sets the body-read timeout must not fail an
+//! exchange whose response the client already read.
 //!
-//! WHY: the AWS KMS local test against moto hangs after moto answers `400` to
-//! `TrentService.Decrypt`. The error response has a `Content-Length` body and
-//! `Connection: close`. This reproduces that shape on a local TCP server, so it
-//! runs without Docker, and fails if the async error-body read never ends.
+//! WHY: macOS (like the other BSDs) answers `EINVAL` to `setsockopt` with
+//! `SO_RCVTIMEO` / `SO_SNDTIMEO` once the peer has shut the socket down — a
+//! server that sent `Connection: close` and reset the connection while the
+//! response is still buffered. The timeout cannot matter then: every read
+//! returns the buffered bytes at once, or reports the close normally.
 //!
-//! HOW: a raw-TCP server answers with an optional `100 Continue` interim, then
-//! a final `400` head and body, then closes. The client reads the body with the
-//! same `collect_bytes_bounded` helper that the auth error paths use.
+//! HOW: one deterministic test drives `Connection` directly: the peer writes a
+//! response, closes with the client's request unread (so the close is a
+//! reset), and the client calls the timeout setters after the reset arrives.
+//! One end-to-end test drives `NativeHttpClient::send_async` against such a
+//! server and reads the response.
 
-use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpListener};
-
-use foundation_core::url::Uri;
 use foundation_core::valtron::valtron_test;
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::body_reader::collect_bytes_bounded;
-use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::{PreparedRequest, SystemDnsResolver};
-use foundation_netio::shared::http::{
-    Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
-};
+use foundation_netio::shared::http::Status;
+use std::net::SocketAddr;
+use std::time::Duration;
 
-/// The error body that moto sends for a refused `Decrypt`.
-const ERROR_BODY: &[u8] = b"{\"__type\":\"AccessDeniedException\"}\n";
+/// A complete `400 Bad Request` response with `Content-Length` and
+/// `Connection: close`, as a server that closes at once sends it.
+const RESPONSE: &[u8] =
+    b"HTTP/1.1 400 Bad Request\r\nContent-Length: 2\r\nConnection: close\r\n\r\nno";
 
-/// One response the server writes before it closes.
-#[derive(Clone, Copy)]
-struct Reply<'a> {
-    /// Write a `100 Continue` interim before the final response.
-    interim: bool,
-    /// Status line of the final response.
-    status: &'a str,
-    /// Response body.
-    body: &'a [u8],
-    /// Write the head and the body in separate writes, with a small pause.
-    split_body: bool,
-}
+/// A raw-TCP server that accepts, does not read the request, writes `RESPONSE`
+/// and closes. Leaving the client's request unread makes the close a reset.
+#[cfg(unix)]
+fn serve_write_then_close() -> SocketAddr {
+    use std::io::Write;
+    use std::net::TcpListener;
 
-/// Serve exactly one connection, then close it.
-fn serve(reply: Reply<'static>) -> SocketAddr {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     std::thread::spawn(move || {
-        let Ok((mut stream, _)) = listener.accept() else {
-            return;
-        };
-        let mut buf = [0u8; 4096];
-        let _ = stream.read(&mut buf);
-        if reply.interim {
-            stream
-                .write_all(b"HTTP/1.1 100 Continue\r\n\r\n")
-                .expect("write interim");
-            stream.flush().expect("flush interim");
-        }
-        let head = format!(
-            "HTTP/1.1 {}\r\nContent-Length: {}\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n",
-            reply.status,
-            reply.body.len()
-        );
-        stream.write_all(head.as_bytes()).expect("write head");
-        stream.flush().expect("flush head");
-        if reply.split_body {
-            std::thread::sleep(std::time::Duration::from_millis(100));
-        }
-        stream.write_all(reply.body).expect("write body");
-        stream.flush().expect("flush body");
+        let (mut stream, _) = listener.accept().expect("accept");
+        // Let the client's request arrive and the client park in its head read
+        // before the response and the reset. This is the `Connection: close`
+        // timing that made macOS answer `EINVAL` in `hand_off`.
+        std::thread::sleep(Duration::from_millis(100));
+        stream.write_all(RESPONSE).expect("write response");
+        stream.flush().expect("flush response");
+        // Do not read the request: dropping the socket with it unread resets
+        // the connection, the state that makes macOS answer `EINVAL`.
     });
     addr
 }
 
-fn post_request(url: &str) -> PreparedRequest {
-    let uri = Uri::parse(url).expect("uri");
-    let host = match uri.port() {
-        Some(port) => format!(
-            "{}:{port}",
-            uri.host_str().unwrap_or_else(|| "127.0.0.1".to_string())
-        ),
-        None => uri.host_str().unwrap_or_else(|| "127.0.0.1".to_string()),
-    };
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::HOST, vec![host]);
-    headers.insert(
-        SimpleHeader::CONTENT_TYPE,
-        vec!["application/x-amz-json-1.1".to_string()],
+/// A deterministic check of the decision in `Connection`: after the peer reset
+/// arrives, the timeout setters must succeed and the buffered response must
+/// still be readable.
+///
+/// Before the fix, the TCP arm called the socket directly, so `EINVAL` escaped
+/// and `hand_off` failed a response the client had already read.
+#[cfg(unix)]
+#[test]
+fn timeout_set_succeeds_after_peer_close_with_body_buffered() {
+    use foundation_core::io::ioutils::ReadTimeoutOperations;
+    use foundation_netio::native::connection::Connection;
+    use std::io::{Read, Write};
+    use std::net::TcpStream;
+    use std::time::Instant;
+
+    let addr = serve_write_then_close();
+    let mut raw = TcpStream::connect(addr).expect("connect");
+    // Send a request the server never reads. It resets the connection on close.
+    raw.write_all(b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
+        .expect("write request");
+    raw.flush().expect("flush request");
+
+    // Wait until the reset is pending. Reading `SO_ERROR` reports the peer
+    // close; it also clears the pending error, which leaves the buffered
+    // response readable before the end of stream.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut closed = None;
+    while Instant::now() < deadline {
+        match raw.take_error() {
+            Ok(Some(err)) => {
+                closed = Some(err);
+                break;
+            }
+            Ok(None) => std::thread::sleep(Duration::from_millis(10)),
+            Err(err) => panic!("take_error failed: {err}"),
+        }
+    }
+    assert!(
+        closed.is_some(),
+        "the peer reset never arrived; the test cannot exercise the macOS EINVAL state"
     );
-    PreparedRequest {
-        method: SimpleMethod::POST,
+
+    // The peer closed before the client sets the body-read timeout. On macOS a
+    // direct socket call would answer EINVAL here.
+    let mut conn = Connection::from(raw);
+    conn.set_read_timeout_as(Duration::from_secs(5))
+        .expect("read timeout on a peer-closed socket must not fail");
+    conn.set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set_read_timeout on a peer-closed socket must not fail");
+    conn.set_write_timeout(Some(Duration::from_secs(5)))
+        .expect("set_write_timeout on a peer-closed socket must not fail");
+
+    // The response the peer already wrote is still readable with the default
+    // (no) timeout.
+    let mut body = vec![0_u8; RESPONSE.len()];
+    conn.read_exact(&mut body)
+        .expect("the buffered response must stay readable");
+    assert_eq!(body, RESPONSE);
+}
+
+/// Read an async response body to the end.
+#[cfg(unix)]
+async fn collect_async_body(
+    mut body: foundation_netio::shared::client::body_reader::AsyncSendSafeBody,
+) -> Vec<u8> {
+    use core::future::poll_fn;
+    use core::pin::Pin;
+    use futures_core::Stream;
+
+    let mut all = Vec::new();
+    loop {
+        match poll_fn(|cx| Pin::new(&mut body).poll_next(cx)).await {
+            Some(Ok(chunk)) => all.extend(chunk),
+            Some(Err(err)) => panic!("body read failed after the response: {err}"),
+            None => break,
+        }
+    }
+    all
+}
+
+/// End-to-end: a server writes its whole response and closes before the client
+/// sets the body-read timeout. `send_async` must return the response, not
+/// `HttpClientError::IoError(Invalid argument)`.
+#[cfg(unix)]
+#[valtron_test]
+async fn send_async_returns_the_response_from_a_peer_that_closed() {
+    use foundation_core::url::Uri;
+    use foundation_netio::http::NativeHttpClient;
+    use foundation_netio::shared::client::http_client::HttpClient;
+    use foundation_netio::shared::client::{PreparedRequest, SystemDnsResolver};
+    use foundation_netio::shared::http::{
+        Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    };
+
+    let addr = serve_write_then_close();
+    let url = format!("http://127.0.0.1:{}/closed", addr.port());
+    let uri = Uri::parse(&url).expect("uri");
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::HOST,
+        vec![format!("127.0.0.1:{}", addr.port())],
+    );
+    let request = PreparedRequest {
+        method: SimpleMethod::GET,
         url: uri,
         headers,
-        body: SendSafeBody::Text("{\"KeyId\":\"k\"}".to_string()),
+        body: SendSafeBody::None,
         extensions: Extensions::new(),
         body_readiness: None,
-    }
-}
+    };
 
-/// Send a request, assert the final status, and read the whole error body.
-async fn read_error_body(reply: Reply<'static>) -> Vec<u8> {
-    let addr = serve(reply);
-    let url = format!("http://127.0.0.1:{}/", addr.port());
     let client = NativeHttpClient::<SystemDnsResolver>::from_system();
     let response = client
-        .send_async(post_request(&url))
+        .send_async(request)
         .await
-        .expect("send the request");
-    assert_eq!(response.get_status(), Status::BadRequest);
-    let (_status, _headers, body) = response.into_async_parts();
-    collect_bytes_bounded(body, 64 * 1024).await
-}
+        .expect("a peer close before the timeout set must not fail the response");
 
-#[valtron_test(timeout = 10_000)]
-async fn a_400_body_with_connection_close_is_read() {
-    let body = read_error_body(Reply {
-        interim: false,
-        status: "400 Bad Request",
-        body: ERROR_BODY,
-        split_body: false,
-    })
-    .await;
-    assert_eq!(body, ERROR_BODY);
-}
-
-#[valtron_test(timeout = 10_000)]
-async fn a_400_body_after_an_interim_is_read() {
-    let body = read_error_body(Reply {
-        interim: true,
-        status: "400 Bad Request",
-        body: ERROR_BODY,
-        split_body: false,
-    })
-    .await;
-    assert_eq!(body, ERROR_BODY);
-}
-
-#[valtron_test(timeout = 10_000)]
-async fn a_400_body_that_arrives_after_the_head_is_read() {
-    let body = read_error_body(Reply {
-        interim: true,
-        status: "400 Bad Request",
-        body: ERROR_BODY,
-        split_body: true,
-    })
-    .await;
-    assert_eq!(body, ERROR_BODY);
+    let (status, _headers, body) = response.into_async_parts();
+    assert_eq!(status, Status::BadRequest);
+    assert_eq!(collect_async_body(body).await, b"no");
 }

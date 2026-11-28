@@ -1,0 +1,28 @@
+name = "foundation-nativeapis-r2-blocks"
+main = "build/worker/shim.mjs"
+compatibility_date = "2026-05-18"
+
+# Local Cloudflare bindings. `wrangler dev --local` runs workerd with real local
+# D1 and R2 storage via Miniflare, so no Cloudflare account is needed. The ids
+# and bucket names are local-only preview values.
+
+# The SQL VFS hot tier.
+[[d1_databases]]
+binding = "DB"
+database_name = "foundation-nativeapis-r2-blocks-db"
+database_id = "foundation-nativeapis-r2-blocks-db-id"
+preview_database_id = "foundation-nativeapis-r2-blocks-db-preview"
+
+# The immutable block tier.
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "foundation-nativeapis-r2-blocks"
+preview_bucket_name = "foundation-nativeapis-r2-blocks-preview"
+
+# `worker-build` compiles the Rust crate, runs the wasm-bindgen command line
+# interface and writes `build/worker/shim.mjs`.
+[build]
+command = "worker-build --release"
+
+[dev]
+port = 8793

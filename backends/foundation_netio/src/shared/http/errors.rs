@@ -430,6 +430,22 @@ pub enum HttpReaderError {
     /// its cap without being terminated. See [`super::framing`].
     #[from(ignore)]
     FrameTooLarge(super::framing::FrameTooLarge),
+
+    /// The response named a `Content-Encoding` this client cannot decode, for
+    /// example `zstd`, a list of encodings, or a compressed line-delimited
+    /// body. The value names the encoding (or the reason) so a caller does not
+    /// hand compressed bytes to a codec.
+    #[from(ignore)]
+    UnsupportedContentEncoding(String),
+
+    /// The decoder rejected the response body (invalid compressed data).
+    #[from(ignore)]
+    DecompressionFailed(String),
+
+    /// The decoded response body grew past the configured limit. The body is
+    /// not truncated: the read fails with this error.
+    #[from(ignore)]
+    DecompressedBodyTooLarge(usize),
 }
 
 impl HttpReaderError {

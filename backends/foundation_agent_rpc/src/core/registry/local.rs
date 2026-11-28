@@ -683,7 +683,6 @@ impl<S: SessionStores> InstanceRegistry for LocalInstanceRegistry<S> {
                 abort,
                 self.shutdown.clone(),
                 self.ctx.clone(),
-                self.env.clone(),
                 &self.turns,
             ))
         })

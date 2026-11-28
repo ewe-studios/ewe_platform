@@ -42,7 +42,7 @@ class WindowsRuns(unittest.TestCase):
         s = settings_for(self.ci, "foundation_nativeapis")
         plan = self.ci.commands("foundation_nativeapis", s, "uat", "windows")
         self.assertEqual(len(plan["test"]), len(s.windows_runs))
-        self.assertIn("ipc", plan["test"][-1])
+        self.assertIn(s.windows_runs[-1], plan["test"][-1])
         for step in ("fmt", "build", "clippy", "wasm"):
             self.assertEqual(plan[step], [])
 

@@ -7,6 +7,7 @@ use crate::shared::http::framing::FrameLimits;
 use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
+use super::compression::CompressionConfig;
 use super::proxy;
 
 /// Redirect-handling policy.
@@ -57,6 +58,9 @@ pub struct ClientConfig {
     pub timeout_calculator: TimeoutCalculator,
     pub max_redirects: u8,
     pub default_headers: SimpleHeaders,
+    /// `Accept-Encoding` advertisement and response `Content-Encoding`
+    /// decoding. See [`CompressionConfig`].
+    pub compression: CompressionConfig,
     pub proxy: Option<proxy::ProxyConfig>,
     pub proxy_from_env: bool,
     pub max_body_size: Option<u64>,
@@ -152,6 +156,7 @@ impl ClientConfig {
             self.max_retries,
         )
         .with_frame_limits(self.frame_limits)
+        .with_decompression(self.compression.clone())
     }
 
     #[must_use]
@@ -243,6 +248,23 @@ impl ClientConfig {
     #[must_use]
     pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
         self.max_body_size = max_body_size;
+        self
+    }
+
+    /// Replace the compression settings (`Accept-Encoding` and response
+    /// decoding). See [`CompressionConfig`].
+    #[must_use]
+    pub fn with_compression(mut self, compression: CompressionConfig) -> Self {
+        self.compression = compression;
+        self
+    }
+
+    /// Cap the decoded response body; `0` removes the cap.
+    ///
+    /// See [`CompressionConfig::max_decompressed_size`] for the default.
+    #[must_use]
+    pub fn with_max_decompressed_size(mut self, max_decompressed_size: usize) -> Self {
+        self.compression.max_decompressed_size = max_decompressed_size;
         self
     }
 
@@ -399,6 +421,7 @@ impl Default for ClientConfig {
             timeout_calculator: TimeoutCalculator::new(),
             default_headers: BTreeMap::default(),
             max_redirects: 5,
+            compression: CompressionConfig::default(),
             proxy: None,
             proxy_from_env: false,
             max_body_size: None,

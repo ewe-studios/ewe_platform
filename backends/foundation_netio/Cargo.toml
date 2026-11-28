@@ -225,3 +225,7 @@ required-features = ["quic"]
 [package.metadata.docs.rs]
 # enable one of these as default implementation
 features = ["ssl-rustls"]
+
+[[example]]
+name = "durable_client_adapter"
+required-features = ["multi"]

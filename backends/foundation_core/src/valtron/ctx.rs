@@ -76,7 +76,7 @@ impl SimulatedClock {
         crate::valtron::executors::request_executor_resume();
         // A timer future that waits on this clock must look again too.
         #[cfg(all(feature = "std", not(target_family = "wasm")))]
-        crate::valtron::timer::nudge();
+        foundation_context::timer::notify_clock_advanced();
     }
 
     /// Add `by` to the wall-clock offset.
@@ -95,7 +95,7 @@ impl SimulatedClock {
         crate::valtron::executors::request_executor_resume();
         // A timer future that waits on this clock must look again too.
         #[cfg(all(feature = "std", not(target_family = "wasm")))]
-        crate::valtron::timer::nudge();
+        foundation_context::timer::notify_clock_advanced();
     }
 }
 

@@ -19,7 +19,10 @@ mod clock_injection;
 mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
+#[cfg(all(feature = "test-clock", not(target_family = "wasm")))]
+mod ctx_timer;
 mod ctx_reexport;
+mod deadline_order;
 #[cfg(feature = "std")]
 #[cfg(not(target_family = "wasm"))]
 mod event_driven_queue_readiness;
@@ -31,6 +34,8 @@ mod map_circuit;
 mod notification_based_waiting;
 mod park_busy_loop;
 mod pool_seed_root;
+#[cfg(not(target_family = "wasm"))]
+mod scoped_block_on;
 mod readiness_deadline_tests;
 mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
@@ -138,6 +143,10 @@ mod valtron_macro_tests;
 mod wakeable_stream;
 #[cfg(not(target_family = "wasm"))]
 mod waker_identity;
+// The issue is about the thread pool's `PoolGuard`, which has a `Drop` impl
+// only under `multi`; the single-threaded guard is a no-op.
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+mod timeout_guard_unwind;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
 #[cfg(feature = "multi")]

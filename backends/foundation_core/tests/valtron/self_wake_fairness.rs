@@ -24,7 +24,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_compact::rng::Rng;
+use foundation_compact::rng::{ChaCha8Rng, Rng, SeedableRng};
 use foundation_core::retries::ExponentialBackoffDecider;
 use foundation_core::synca::*;
 use foundation_core::valtron::*;
@@ -33,6 +33,14 @@ use foundation_core::valtron::*;
 use foundation_core::valtron::any_task as any_task_for_mode;
 #[cfg(feature = "multi")]
 use foundation_core::valtron::send_any_task as any_task_for_mode;
+
+/// Fixed seed for the executor in this file, so each run replays exactly.
+const TEST_SEED: u64 = 0x5EED_5EED_0000_0002;
+
+/// Draw the executor seed from a local fixed-seed RNG. No host entropy is read.
+fn executor_seed() -> u64 {
+    ChaCha8Rng::seed_from_u64(TEST_SEED).next_u64()
+}
 
 /// A process controller that never sleeps, so the test controls every tick.
 #[derive(Clone, Default)]
@@ -45,7 +53,7 @@ impl ProcessController for NoYielder {
 }
 
 fn executor() -> LocalThreadExecutor<NoYielder> {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
     LocalThreadExecutor::from_seed(
         seed,
