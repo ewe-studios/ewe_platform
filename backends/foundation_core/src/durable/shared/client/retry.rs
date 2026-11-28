@@ -214,6 +214,12 @@ impl RetryPolicy {
     /// [`ClientError::RetryExhausted`] when the last allowed attempt also
     /// failed. Returns [`ClientError::MissingClock`] when the [`Ctx`] has no
     /// timer, as on a wasm host that installed no environment.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(max_attempts = self.attempt_limit()),
+        err
+    )]
     pub async fn execute<T, F, Fut>(
         &self,
         ctx: Option<&Ctx>,

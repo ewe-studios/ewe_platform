@@ -265,6 +265,7 @@ impl SubscriptionEngine {
     /// [`SubscriptionErrorCode::WebhookUrlRejected`] for an unsafe webhook uniform resource
     /// locator (URL), and [`SubscriptionErrorCode::SubscriptionAlreadyExists`] when the same
     /// identifier has a different configuration.
+    #[tracing::instrument(level = "info", skip_all, fields(subscription = %id), err)]
     pub async fn create_or_confirm(
         &self,
         id: &str,
@@ -470,6 +471,7 @@ impl SubscriptionEngine {
     /// Returns [`SubscriptionErrorCode::AlreadyClaimed`] when another worker holds the lease,
     /// [`SubscriptionErrorCode::NoPendingWork`] when no data waits, and
     /// [`SubscriptionErrorCode::InvalidRequest`] for a webhook subscription.
+    #[tracing::instrument(level = "debug", skip_all, fields(subscription = %id), err)]
     pub async fn claim(&self, id: &str, worker: &str) -> Result<ClaimResponse, SubscriptionError> {
         self.ensure_loaded().await;
         let now = self.now_ms();
@@ -524,6 +526,7 @@ impl SubscriptionEngine {
     /// # Errors
     ///
     /// Returns the fence or token error, or an invalid offset.
+    #[tracing::instrument(level = "debug", skip_all, fields(subscription = %id), err)]
     pub async fn ack(
         &self,
         id: &str,
@@ -538,6 +541,7 @@ impl SubscriptionEngine {
     /// # Errors
     ///
     /// Returns the fence or token error, or an invalid offset.
+    #[tracing::instrument(level = "debug", skip_all, fields(subscription = %id), err)]
     pub async fn callback(
         &self,
         id: &str,
@@ -552,6 +556,7 @@ impl SubscriptionEngine {
     /// # Errors
     ///
     /// Returns the fence or token error.
+    #[tracing::instrument(level = "debug", skip_all, fields(subscription = %id), err)]
     pub async fn release(
         &self,
         id: &str,
@@ -589,6 +594,7 @@ impl SubscriptionEngine {
     ///
     /// A host calls this on a timer. The call uses the injected clock, so a test drives it
     /// without a real wait.
+    #[tracing::instrument(level = "debug", skip_all)]
     pub async fn tick(&self) {
         let now = self.now_ms();
         self.expire_due_leases(now).await;
@@ -959,6 +965,7 @@ impl SubscriptionEngine {
     ///
     /// The worker calls this. The call holds the wake lease over the attempt, and it bounds the
     /// attempt with the delivery timeout on the injected clock.
+    #[tracing::instrument(level = "info", skip_all, fields(subscription = %id))]
     async fn deliver(&self, id: &str) {
         let Some(record) = self.store.get(id) else {
             return;

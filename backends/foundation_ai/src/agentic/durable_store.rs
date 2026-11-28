@@ -262,6 +262,12 @@ impl DurableDocumentStore {
     /// Returns [`StorageError::Backend`] when the parent is missing, the
     /// offset is invalid, or the branch already exists with a different
     /// configuration.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(stream = %parent, branch = %branch, at = ?at),
+        err
+    )]
     pub async fn fork(
         &self,
         parent: &str,
@@ -295,6 +301,7 @@ impl DurableDocumentStore {
     /// # Errors
     ///
     /// Returns [`StorageError::Backend`] when the stream head cannot be read.
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %key), err)]
     pub async fn tail_offset(&self, key: &str) -> StorageResult<Option<StreamOffset>> {
         let name = self.stream_name(key)?;
         match self.streams.stream(name).head().await {
@@ -311,6 +318,12 @@ impl DurableDocumentStore {
     ///
     /// Returns [`StorageError`] when the stream cannot be read or a chunk is
     /// not a stored document.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, offset = ?from),
+        err
+    )]
     pub async fn replay(
         &self,
         key: &str,
@@ -629,6 +642,7 @@ impl DurableDocumentStore {
 
 #[async_trait::async_trait]
 impl DocumentStore for DurableDocumentStore {
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %key))]
     async fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
@@ -641,6 +655,11 @@ impl DocumentStore for DurableDocumentStore {
             .await
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, id = %doc_id)
+    )]
     async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
@@ -672,6 +691,7 @@ impl DocumentStore for DurableDocumentStore {
         .await
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %key))]
     async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
@@ -689,6 +709,11 @@ impl DocumentStore for DurableDocumentStore {
         .await
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, id = %doc_id)
+    )]
     async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
@@ -721,6 +746,11 @@ impl DocumentStore for DurableDocumentStore {
         .await
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, limit = limit)
+    )]
     async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
         let name = self.stream_name(key)?;
         let mut documents = self.read_entries(&name, ReadFrom::Start).await?;
@@ -734,6 +764,11 @@ impl DocumentStore for DurableDocumentStore {
             .collect()
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, from_id = %from_id, limit = limit)
+    )]
     async fn scan_documents_from(
         &self,
         key: &str,
@@ -753,6 +788,11 @@ impl DocumentStore for DurableDocumentStore {
             .collect()
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, limit = limit)
+    )]
     async fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -769,6 +809,7 @@ impl DocumentStore for DurableDocumentStore {
         Ok(Box::pin(futures_lite::stream::iter(items)))
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %key))]
     async fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -777,6 +818,11 @@ impl DocumentStore for DurableDocumentStore {
         Ok(self.page_stream::<V>(name, ReadFrom::Start, None, None))
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %key, from_id = %from_id, limit = limit)
+    )]
     async fn scan_from<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -788,10 +834,16 @@ impl DocumentStore for DurableDocumentStore {
         Ok(self.page_stream::<V>(name, ReadFrom::Start, Some(from_id.to_string()), limit))
     }
 
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(stream = %key, id = %doc_id)
+    )]
     async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         self.delete_one(key, doc_id).await
     }
 
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %key))]
     async fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let name = self.stream_name(key)?;
         let count = self.read_entries(&name, ReadFrom::Start).await?.len() as u64;
@@ -803,6 +855,7 @@ impl DocumentStore for DurableDocumentStore {
         Ok(count)
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %key))]
     async fn count(&self, key: &str) -> StorageResult<u64> {
         let name = self.stream_name(key)?;
         Ok(self.read_entries(&name, ReadFrom::Start).await?.len() as u64)

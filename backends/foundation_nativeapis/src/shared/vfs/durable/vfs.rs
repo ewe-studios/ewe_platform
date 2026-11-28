@@ -1338,6 +1338,15 @@ impl fmt::Display for DeleteFailure {
 impl core::error::Error for DeleteFailure {}
 
 impl DurableStreamVfs for ObjectVfs {
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            closed = meta.closed,
+            fork = meta.fork.is_some(),
+        )
+    )]
     fn create(&self, name: &StreamName, meta: VfsMeta) -> VfsFuture<'_, bool> {
         let name = name.clone();
         Box::pin(async move {
@@ -1389,12 +1398,26 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), bytes = bytes.len())
+    )]
     fn append(&self, name: &StreamName, bytes: &[u8]) -> VfsFuture<'_, VfsOffset> {
         let name = name.clone();
         let bytes = bytes.to_vec();
         Box::pin(async move { self.append_bytes(&name, bytes, None, None).await })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            bytes = bytes.len(),
+            expected_version = expected_version,
+        )
+    )]
     fn append_with_meta(
         &self,
         name: &StreamName,
@@ -1410,6 +1433,11 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), offset = ?at, limit_bytes = limit)
+    )]
     fn read_at(&self, name: &StreamName, at: &VfsOffset, limit: usize) -> VfsFuture<'_, Vec<u8>> {
         let name = name.clone();
         let at = at.0;
@@ -1440,6 +1468,7 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %name.as_str()))]
     fn meta(&self, name: &StreamName) -> VfsFuture<'_, VfsMeta> {
         let name = name.clone();
         Box::pin(async move {
@@ -1448,6 +1477,11 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), now_ms = now_ms)
+    )]
     fn touch(&self, name: &StreamName, now_ms: i64) -> VfsFuture<'_, ()> {
         let name = name.clone();
         Box::pin(async move {
@@ -1465,6 +1499,11 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), at = ?at)
+    )]
     fn trim(&self, name: &StreamName, at: VfsOffset) -> VfsFuture<'_, ()> {
         let name = name.clone();
         Box::pin(async move {
@@ -1478,6 +1517,7 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()))]
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()> {
         let name = name.clone();
         Box::pin(async move {
@@ -1495,6 +1535,7 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()))]
     fn remove(&self, name: &StreamName) -> VfsFuture<'_, bool> {
         let name = name.clone();
         Box::pin(async move {
@@ -1523,6 +1564,7 @@ impl DurableStreamVfs for ObjectVfs {
         })
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(prefix = %prefix.as_str()))]
     fn list(&self, prefix: &StreamName) -> VfsFuture<'_, Vec<VfsEntry>> {
         let prefix = prefix.clone();
         Box::pin(async move {

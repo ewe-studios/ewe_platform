@@ -477,6 +477,15 @@ impl StoredMeta {
 }
 
 impl foundation_core::durable::DurableStreamVfs for FileVfs {
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            closed = meta.closed,
+            fork = meta.fork.is_some(),
+        )
+    )]
     fn create(&self, name: &StreamName, meta: VfsMeta) -> VfsFuture<'_, bool> {
         let _guard = self
             .lock
@@ -540,6 +549,11 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), bytes = bytes.len())
+    )]
     fn append(&self, name: &StreamName, bytes: &[u8]) -> VfsFuture<'_, VfsOffset> {
         let _guard = self
             .lock
@@ -565,6 +579,15 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            bytes = bytes.len(),
+            expected_version = expected_version,
+        )
+    )]
     fn append_with_meta(
         &self,
         name: &StreamName,
@@ -601,6 +624,11 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), offset = ?at, limit_bytes = limit)
+    )]
     fn read_at(&self, name: &StreamName, at: &VfsOffset, limit: usize) -> VfsFuture<'_, Vec<u8>> {
         let _guard = self
             .lock
@@ -619,6 +647,7 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %name.as_str()))]
     fn meta(&self, name: &StreamName) -> VfsFuture<'_, VfsMeta> {
         let _guard = self
             .lock
@@ -628,6 +657,11 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), now_ms = now_ms)
+    )]
     fn touch(&self, name: &StreamName, now_ms: i64) -> VfsFuture<'_, ()> {
         let _guard = self
             .lock
@@ -644,6 +678,11 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(stream = %name.as_str(), at = ?at)
+    )]
     fn trim(&self, name: &StreamName, at: VfsOffset) -> VfsFuture<'_, ()> {
         let _guard = self
             .lock
@@ -661,6 +700,7 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()))]
     fn close(&self, name: &StreamName) -> VfsFuture<'_, ()> {
         let _guard = self
             .lock
@@ -681,6 +721,7 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()))]
     fn remove(&self, name: &StreamName) -> VfsFuture<'_, bool> {
         let _guard = self
             .lock
@@ -723,6 +764,7 @@ impl foundation_core::durable::DurableStreamVfs for FileVfs {
         Box::pin(async move { result })
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(prefix = %prefix.as_str()))]
     fn list(&self, prefix: &StreamName) -> VfsFuture<'_, Vec<VfsEntry>> {
         let _guard = self
             .lock

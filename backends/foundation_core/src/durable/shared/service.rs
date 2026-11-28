@@ -4,7 +4,7 @@
 //! valtron type. The transport adapters and the valtron layer call it.
 
 use super::{
-    AppendOutcome, AppendRequest, CloseRequest, CreateOutcome, CreateSpec, DeleteOutcome,
+    AppendOutcome, AppendRequest, Chunk, CloseRequest, CreateOutcome, CreateSpec, DeleteOutcome,
     DurableDriver, DurableStreamStore, ForkSpec, NotifierRef, ReadLimit, ReadPage, ReadRequest,
     StoreError, StreamHead, StreamName,
 };
@@ -120,6 +120,17 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            fork = spec.fork.is_some(),
+            closed = spec.closed,
+            bytes = spec.initial.as_ref().map_or(0, Chunk::len),
+        ),
+        err
+    )]
     pub async fn create(
         &self,
         name: StreamName,
@@ -133,6 +144,7 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %name.as_str()), err)]
     pub async fn head(&self, name: &StreamName) -> Result<StreamHead, StoreError> {
         self.driver.store().head(name).await
     }
@@ -142,6 +154,19 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            bytes = req.chunk.len(),
+            producer = ?req.producer.as_ref().map(|producer| producer.id.as_str()),
+            epoch = ?req.producer.as_ref().map(|producer| producer.epoch),
+            seq = ?req.producer.as_ref().map(|producer| producer.seq),
+            close = req.close,
+        ),
+        err
+    )]
     pub async fn append(
         &self,
         name: &StreamName,
@@ -155,6 +180,17 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            offset = ?req.from,
+            limit_bytes = req.limit.max_bytes.unwrap_or(self.limits.page_bytes),
+            limit_chunks = req.limit.max_chunks.unwrap_or(self.limits.page_chunks),
+        ),
+        err
+    )]
     pub async fn read(&self, name: &StreamName, req: ReadRequest) -> Result<ReadPage, StoreError> {
         let limit = ReadLimit {
             max_bytes: req.limit.max_bytes.or(Some(self.limits.page_bytes)),
@@ -177,6 +213,18 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            bytes = req.final_chunk.as_ref().map_or(0, Chunk::len),
+            producer = ?req.producer.as_ref().map(|producer| producer.id.as_str()),
+            epoch = ?req.producer.as_ref().map(|producer| producer.epoch),
+            seq = ?req.producer.as_ref().map(|producer| producer.seq),
+        ),
+        err
+    )]
     pub async fn close(
         &self,
         name: &StreamName,
@@ -190,6 +238,7 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()), err)]
     pub async fn delete(&self, name: &StreamName) -> Result<DeleteOutcome, StoreError> {
         self.driver.store().delete(name).await
     }
@@ -199,6 +248,16 @@ impl<D: DurableDriver> DurableService<D> {
     /// # Errors
     ///
     /// Returns a [`StoreError`] from the driver.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            source = %spec.source.as_str(),
+            at = ?spec.at,
+        ),
+        err
+    )]
     pub async fn fork(
         &self,
         name: StreamName,

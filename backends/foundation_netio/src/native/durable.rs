@@ -75,6 +75,11 @@ impl Default for NetioTransport {
 }
 
 impl ClientTransport for NetioTransport {
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(method = ?request.method)
+    )]
     fn open_sse(&self, request: ClientRequest) -> ClientFuture<'_, SseOpen> {
         let client = self.client.clone();
         Box::pin(async move {
@@ -118,6 +123,11 @@ impl ClientTransport for NetioTransport {
         })
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(method = ?request.method)
+    )]
     fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse> {
         let client = self.client.clone();
         Box::pin(async move {

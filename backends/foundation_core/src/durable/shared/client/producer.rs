@@ -178,6 +178,18 @@ impl Producer {
     ///
     /// Returns [`ClientError`] for a refused append, an exhausted retry or a
     /// producer that is detached.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %self.handle.path(),
+            producer = %self.id,
+            epoch = self.epoch,
+            seq = self.sequence,
+            bytes = data.len(),
+        ),
+        err
+    )]
     pub async fn append(
         &mut self,
         data: Vec<u8>,
@@ -197,6 +209,18 @@ impl Producer {
     ///
     /// Returns [`ClientError::InvalidArgument`] when the items exceed
     /// `max_queue_bytes`, or any error of [`Self::append`].
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %self.handle.path(),
+            producer = %self.id,
+            epoch = self.epoch,
+            items = items.len(),
+            bytes = items.iter().map(Vec::len).sum::<usize>(),
+        ),
+        err
+    )]
     pub async fn append_batch(
         &mut self,
         items: Vec<Vec<u8>>,
@@ -238,6 +262,18 @@ impl Producer {
     ///
     /// Returns [`ClientError`] for a refused close, an exhausted retry or a
     /// producer that is detached.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %self.handle.path(),
+            producer = %self.id,
+            epoch = self.epoch,
+            seq = self.sequence,
+            bytes = data.len(),
+        ),
+        err
+    )]
     pub async fn close(
         &mut self,
         data: Vec<u8>,

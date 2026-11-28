@@ -196,6 +196,12 @@ pub fn live_mode(queries: Option<&BTreeMap<String, String>>) -> Result<LiveMode,
 /// # Errors
 /// Returns the [`StoreError`] the service reported. The caller maps it to a
 /// status with [`status_for`].
+#[tracing::instrument(
+    level = "debug",
+    skip_all,
+    fields(method = ?request.method, stream = %request.name.as_str()),
+    err
+)]
 pub async fn dispatch(
     service: &DurableService<DurableStream>,
     ctx: &Ctx,
@@ -887,6 +893,7 @@ fn live_response(
     }
 }
 
+#[tracing::instrument(level = "debug", skip_all, fields(stream = %name.as_str()), err)]
 async fn handle_get(
     service: &DurableService<DurableStream>,
     ctx: &Ctx,
@@ -902,6 +909,15 @@ async fn handle_get(
     }
 }
 
+#[tracing::instrument(
+    level = "debug",
+    skip_all,
+    fields(
+        stream = %name.as_str(),
+        offset = ?queries.and_then(|queries| queries.get("offset")),
+    ),
+    err
+)]
 async fn handle_catch_up(
     service: &DurableService<DurableStream>,
     ctx: &Ctx,
@@ -983,6 +999,15 @@ async fn handle_catch_up(
     })
 }
 
+#[tracing::instrument(
+    level = "debug",
+    skip_all,
+    fields(
+        stream = %name.as_str(),
+        offset = ?queries.and_then(|queries| queries.get("offset")),
+    ),
+    err
+)]
 async fn handle_long_poll(
     service: &DurableService<DurableStream>,
     ctx: &Ctx,
@@ -1026,6 +1051,7 @@ async fn handle_long_poll(
     Ok(live_response(ctx, &content_type, &page, client))
 }
 
+#[tracing::instrument(level = "debug", skip_all, fields(stream = %name.as_str()), err)]
 async fn handle_head(
     service: &DurableService<DurableStream>,
     name: &StreamName,
@@ -1077,6 +1103,12 @@ async fn handle_head(
     })
 }
 
+#[tracing::instrument(
+    level = "info",
+    skip_all,
+    fields(stream = %name.as_str(), bytes = body.len()),
+    err
+)]
 async fn handle_put(
     service: &DurableService<DurableStream>,
     name: StreamName,
@@ -1154,6 +1186,12 @@ async fn handle_put(
     })
 }
 
+#[tracing::instrument(
+    level = "debug",
+    skip_all,
+    fields(stream = %name.as_str(), bytes = body.len()),
+    err
+)]
 async fn handle_post(
     service: &DurableService<DurableStream>,
     name: &StreamName,
@@ -1246,6 +1284,7 @@ async fn handle_post(
     })
 }
 
+#[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()), err)]
 async fn handle_delete(
     service: &DurableService<DurableStream>,
     name: &StreamName,
@@ -1374,6 +1413,14 @@ fn streaming_head(headers: &[(SimpleHeader, String)]) -> Result<Vec<u8>, String>
 
 // One SSE turn: headers, replay, then the live loop; splitting it hides the sequence.
 #[allow(clippy::too_many_lines)]
+#[tracing::instrument(
+    level = "debug",
+    skip_all,
+    fields(
+        stream = %name.as_str(),
+        offset = ?queries.and_then(|queries| queries.get("offset")),
+    )
+)]
 async fn serve_sse(
     service: &DurableService<DurableStream>,
     ctx: &Ctx,

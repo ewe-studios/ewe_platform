@@ -384,6 +384,12 @@ impl StreamHandle {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(stream = %self.path, bytes = data.len(), closed = closed),
+        err
+    )]
     pub async fn create(
         &self,
         content_type: Option<&str>,
@@ -429,6 +435,19 @@ impl StreamHandle {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a refused append.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %self.path,
+            bytes = data.len(),
+            producer = ?producer.map(|(id, _epoch, _seq)| id),
+            epoch = ?producer.map(|(_id, epoch, _seq)| epoch),
+            seq = ?producer.map(|(_id, _epoch, seq)| seq),
+            close = close,
+        ),
+        err
+    )]
     pub async fn append(
         &self,
         data: Vec<u8>,
@@ -477,6 +496,7 @@ impl StreamHandle {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %self.path), err)]
     pub async fn head(&self) -> Result<HeadResult, ClientError> {
         self.with_retry(|_attempt| {
             let handle = self.clone();
@@ -496,6 +516,7 @@ impl StreamHandle {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %self.path), err)]
     pub async fn delete(&self) -> Result<u16, ClientError> {
         self.with_retry(|_attempt| {
             let handle = self.clone();
@@ -528,6 +549,12 @@ impl StreamHandle {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(stream = %self.path, bytes = data.len()),
+        err
+    )]
     pub async fn close(
         &self,
         data: Vec<u8>,
@@ -666,6 +693,17 @@ impl ReadBuilder {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %self.handle.path,
+            offset = ?self.offset,
+            mode = ?self.mode,
+            max_chunks = ?self.max_chunks,
+        ),
+        err
+    )]
     pub async fn send(self) -> Result<ReadResult, ClientError> {
         if self.mode == ReadMode::Sse {
             return Err(ClientError::NotSupported(
@@ -734,6 +772,17 @@ impl ReadBuilder {
     ///
     /// # Errors
     /// Returns [`ClientError`] for a failed transport or a status.
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %self.handle.path,
+            offset = ?self.offset,
+            mode = ?self.mode,
+            max_chunks = ?self.max_chunks,
+        ),
+        err
+    )]
     pub async fn open_sse(self) -> Result<SseRead, ClientError> {
         let request = self.request();
         let open = self.handle.transport.open_sse(request).await?;

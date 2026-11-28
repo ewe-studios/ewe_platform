@@ -37,6 +37,8 @@ mod scenarios;
 mod service;
 #[cfg(not(target_arch = "wasm32"))]
 mod soft_delete_read;
+#[cfg(not(target_arch = "wasm32"))]
+mod spans;
 #[cfg(all(not(target_arch = "wasm32"), feature = "test-clock"))]
 mod sql;
 mod store_contract;

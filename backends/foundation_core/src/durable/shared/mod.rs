@@ -1180,6 +1180,17 @@ fn closed_append_outcome(
 }
 
 impl DurableStreamStore for DurableStream {
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            fork = spec.fork.is_some(),
+            closed = spec.closed,
+            bytes = spec.initial.as_ref().map_or(0, Chunk::len),
+        ),
+        err
+    )]
     async fn create(
         &self,
         name: StreamName,
@@ -1256,6 +1267,7 @@ impl DurableStreamStore for DurableStream {
         })
     }
 
+    #[tracing::instrument(level = "debug", skip_all, fields(stream = %name.as_str()), err)]
     async fn head(&self, name: &StreamName) -> Result<StreamHead, StoreError> {
         let meta = self.vfs.meta(name).await?;
         if Self::is_expired(&meta, self.now_ms()) {
@@ -1264,6 +1276,19 @@ impl DurableStreamStore for DurableStream {
         Ok(StreamHead::from(meta))
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            bytes = req.chunk.len(),
+            producer = ?req.producer.as_ref().map(|producer| producer.id.as_str()),
+            epoch = ?req.producer.as_ref().map(|producer| producer.epoch),
+            seq = ?req.producer.as_ref().map(|producer| producer.seq),
+            close = req.close,
+        ),
+        err
+    )]
     async fn append(
         &self,
         name: &StreamName,
@@ -1365,6 +1390,17 @@ impl DurableStreamStore for DurableStream {
         Err(StoreError::Storage(Box::new(ContentionError)))
     }
 
+    #[tracing::instrument(
+        level = "debug",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            offset = ?req.from,
+            limit_bytes = ?req.limit.max_bytes,
+            limit_chunks = ?req.limit.max_chunks,
+        ),
+        err
+    )]
     async fn read(&self, name: &StreamName, req: ReadRequest) -> Result<ReadPage, StoreError> {
         let meta = self.vfs.meta(name).await?;
         let now = self.now_ms();
@@ -1432,6 +1468,18 @@ impl DurableStreamStore for DurableStream {
         })
     }
 
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            bytes = req.final_chunk.as_ref().map_or(0, Chunk::len),
+            producer = ?req.producer.as_ref().map(|producer| producer.id.as_str()),
+            epoch = ?req.producer.as_ref().map(|producer| producer.epoch),
+            seq = ?req.producer.as_ref().map(|producer| producer.seq),
+        ),
+        err
+    )]
     async fn close(
         &self,
         name: &StreamName,
@@ -1531,11 +1579,22 @@ impl DurableStreamStore for DurableStream {
         Err(StoreError::Storage(Box::new(ContentionError)))
     }
 
+    #[tracing::instrument(level = "info", skip_all, fields(stream = %name.as_str()), err)]
     async fn delete(&self, name: &StreamName) -> Result<DeleteOutcome, StoreError> {
         let soft_deleted = self.vfs.remove(name).await?;
         Ok(DeleteOutcome { soft_deleted })
     }
 
+    #[tracing::instrument(
+        level = "info",
+        skip_all,
+        fields(
+            stream = %name.as_str(),
+            source = %spec.source.as_str(),
+            at = ?spec.at,
+        ),
+        err
+    )]
     async fn fork(&self, name: StreamName, spec: ForkSpec) -> Result<CreateOutcome, StoreError> {
         self.create(
             name,
