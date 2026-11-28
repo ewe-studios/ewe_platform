@@ -1966,3 +1966,20 @@ The runner's default Cargo home gives this file a 261-character checkout path.
 Use the short Windows Cargo home and keep the dependency revision fixed.
 
 [Checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1268)
+
+### Use resource identifiers outside file names
+
+A Windows file name cannot hold every resource identifier. File names also compare without case on the test runner.
+Use a fixed-length digest for each new file name. Keep the identifier in the record.
+Read and update existing files at their original location. Compare the record identifier before using a legacy name.
+Use an operating system lock to serialize writes across processes.
+
+[Windows file-store issue](https://github.com/ewe-studios/ewe_platform/issues/519)
+
+### Test the normal Todo process
+
+A storage test can pass while the native server fails to build.
+Start the production binary twice. Send a service request to the bound port each time.
+Keep Unix descriptor methods behind Unix build conditions. Windows uses the existing timer wait path.
+
+[Windows Todo issue](https://github.com/ewe-studios/ewe_platform/issues/1194)

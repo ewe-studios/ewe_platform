@@ -2654,3 +2654,23 @@ The tests use the locked dependency graph and the UAT profile on Windows Server 
 
 [Checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1268)
 [Passing libSQL job](https://github.com/ewe-studios/ewe_platform/actions/runs/46146043319/job/140982229052)
+
+### Windows file-store tests
+
+The locked UAT run passes 44 tests across the six file-store and caller targets.
+The new checks cover portable identifiers and legacy records.
+The atomic update test checks that the record directory has no temporary files after writes.
+The package plan restores the normal Windows database recipes.
+On macOS, 43 tests pass before the atomic test reports a full temporary volume.
+The same atomic test passes with a temporary directory on the build volume.
+
+[Windows file-store job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627441)
+
+### Windows Todo server restart
+
+The normal Todo server starts on a free loopback port on Windows.
+The test submits one Todo through the public action service and reads it through the Todo service.
+It stops the server, starts it on the same Unicode database path, and reads the saved record again.
+The same test passes on macOS.
+
+[Windows Todo process job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627669)

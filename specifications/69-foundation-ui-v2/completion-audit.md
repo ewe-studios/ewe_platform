@@ -510,3 +510,24 @@ The credential names exist. The protected publication environment and its requir
 Preview the release revision that includes this workflow and obtain approval for that revision.
 The earlier preview and approval apply to the earlier source only.
 [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#release-prerequisites-for-the-updated-workflow)
+
+## Current storage and Todo platform checks
+
+The current workspace locks one libSQL version at 0.10.0.
+The database file-store repair preserves reads and updates of legacy resource files.
+The Todo server test starts its production binary and reads a persisted Todo after restart.
+
+| Check | Exact input and result |
+| --- | --- |
+| libSQL, macOS | `e21414550` passes the four locked user acceptance test (UAT) targets with 13 tests and zero ignores. |
+| libSQL, Windows | `d596fb59d` passes all 13 tests with zero ignores. It uses the same libSQL implementation and lock file. It runs only the libSQL feature. [Job](https://github.com/ewe-studios/ewe_platform/actions/runs/46146043319/job/140982229052) |
+| File store, Windows | `30dadd7f8` passes 44 tests with zero ignores across all six targets. The tests check names, legacy data, atomic writes, and the callers that failed before. [Job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627441) |
+| File store, macOS | The six compiled targets pass 43 tests. The atomic write test passes on retry with its temporary directory on a volume with free space. |
+| Todo server, macOS | The local process test passes with the production binary. It sends a mutation over a loopback connection and checks the saved record after restart. |
+| Todo server, Windows | `30dadd7f8` passes the process test with the normal binary. It binds, writes, reads, restarts, and reads the saved record. [Job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627669) |
+| HTTP and Todo, Linux and macOS | The hosted run uses the source in `30dadd7f8` and selects the two standard package recipes. [Current run](https://github.com/ewe-studios/ewe_platform/actions/runs/46147420114) |
+
+The preview commits change the workflow only after the listed source commits.
+The Windows workflow uses a short Cargo home and keeps the pinned Durable Streams Git revision.
+
+[Feature 37 plan](features/37-todo-server-build-and-state/feature.md#windows-storage-and-server-completion)

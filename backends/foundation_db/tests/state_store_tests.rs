@@ -200,6 +200,60 @@ async fn file_store_slash_in_resource_id() {
     assert_eq!(retrieved.id, "ns/my-worker");
 }
 
+#[valtron_test]
+async fn file_store_keeps_portable_identifiers_distinct() {
+    let tmp = TempDir::new().unwrap();
+    let store = FileStateStore::with_root(tmp.path().to_path_buf());
+    let long_id = "長い".repeat(250);
+    let ids = ["ns/path", "ns:path", "NS/PATH", r#"NUL.<>:"\|?*"#, &long_id];
+
+    for id in ids {
+        let state = make_state(id, StateStatus::Created);
+        assert!(store.set_if_version(id, &state, None).await.unwrap());
+        assert_eq!(store.get(id).await.unwrap().unwrap().id, id);
+    }
+    let reopened = FileStateStore::with_root(tmp.path().to_path_buf());
+    let mut expected = ids.map(String::from);
+    expected.sort();
+    assert_eq!(collect(reopened.list().await.unwrap()).await, expected);
+    assert_eq!(reopened.count().await.unwrap(), ids.len());
+
+    reopened.delete("ns:path").await.unwrap();
+    assert!(reopened.get("ns:path").await.unwrap().is_none());
+    assert_eq!(
+        reopened.get("ns/path").await.unwrap().unwrap().id,
+        "ns/path"
+    );
+}
+
+#[valtron_test]
+async fn file_store_reads_and_updates_an_existing_legacy_record() {
+    let tmp = TempDir::new().unwrap();
+    let legacy = tmp.path().join("legacy.json");
+    let old = make_state("legacy", StateStatus::Creating);
+    std::fs::write(&legacy, serde_json::to_vec(&old).unwrap()).unwrap();
+    let store = FileStateStore::with_root(tmp.path().to_path_buf());
+
+    assert_eq!(collect(store.list().await.unwrap()).await, ["legacy"]);
+    assert_eq!(
+        store.get("legacy").await.unwrap().unwrap().status,
+        StateStatus::Creating
+    );
+    let next = make_state("legacy", StateStatus::Created);
+    assert!(store
+        .set_if_version("legacy", &next, Some(old.updated_at))
+        .await
+        .unwrap());
+    assert_eq!(
+        store.get("legacy").await.unwrap().unwrap().status,
+        StateStatus::Created
+    );
+    assert_eq!(store.count().await.unwrap(), 1);
+    store.delete("legacy").await.unwrap();
+    assert!(!legacy.exists());
+    assert_eq!(store.count().await.unwrap(), 0);
+}
+
 // ── StateStatus & ResourceState ──────────────────────────────────────
 
 #[test]
@@ -361,9 +415,11 @@ async fn file_state_store_write_is_atomic() {
     assert!(problems.is_empty(), "after {reads} reads: {problems:?}");
 
     // No temp file is left behind.
-    let leftovers: Vec<_> = std::fs::read_dir(tmp.path().join(".deployment/atomic/staging"))
-        .unwrap()
-        .map(|e| e.unwrap().file_name())
-        .collect();
+    let leftovers: Vec<_> =
+        std::fs::read_dir(tmp.path().join(".deployment/atomic/staging/resources-v1"))
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .collect();
     assert_eq!(leftovers.len(), 1, "unexpected files: {leftovers:?}");
+    assert!(leftovers[0].extension().is_some_and(|ext| ext == "json"));
 }

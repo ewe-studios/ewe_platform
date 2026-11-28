@@ -307,8 +307,20 @@ Preserve existing SQLite databases and resource files. Use portable resource fil
 2. Preserve legacy resource reads. Check new names, updates, listing, deletion, and compare-and-set on Windows.
 3. Trace the Todo route from its normal entry point through the native HTTP server on Windows.
 4. Enable a package recipe after its build and runtime checks pass on the target system.
-5. Run hosted Windows tests. Record the exact dependency, source, and recipe for each result.
-6. Repeat affected Linux and macOS recipes against the updated dependency graph.
+5. Run the hosted Windows libSQL suites and six file-store targets. Check each reported test count.
+6. Start the normal Todo server on a free loopback port. Submit a Todo and read it through the public service.
+7. Restart the server on the same database path. Confirm the public service reads the saved Todo.
+8. Fix the pinned Git dependency checkout on Windows. Keep its current revision.
+9. Clear the Linux all-targets test lint diagnostics. Preserve the action assertions.
+10. Repeat affected Linux and macOS recipes against the updated dependency graph.
 
 Keep the current application screens and captures. This work changes storage and server support.
 [Windows file store](https://github.com/ewe-studios/ewe_platform/issues/519) · [Windows Todo server](https://github.com/ewe-studios/ewe_platform/issues/1194)
+
+[Windows Git checkout issue](https://github.com/ewe-studios/ewe_platform/issues/1268)
+
+### Windows hosted results
+
+- The four libSQL suites pass 13 tests with zero ignores. [Storage job](https://github.com/ewe-studios/ewe_platform/actions/runs/46146043319/job/140982229052)
+- Six file-store and caller suites pass 44 tests with zero ignores. [File-store job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627441)
+- The normal Todo process passes the bind, mutation, and restart test. [Todo job](https://github.com/ewe-studios/ewe_platform/actions/runs/46147156038/job/140985627669)

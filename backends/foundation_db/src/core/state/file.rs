@@ -4,16 +4,17 @@
 //! Good default for single-machine development.
 //!
 //! WHAT: Each resource is a separate JSON file under
-//! `.deployment/{project}/{stage}/{resource_id}.json`.
+//! `.deployment/{project}/{stage}/resources-v1/{digest}.json`.
+//! The file stores the original resource identifier.
 //!
 //! HOW: `set` writes a temp file, syncs it and renames it over the target, so
 //! a reader never sees a torn file. `std::fs` operations inside the async `StateStore` methods. The files
-//! are small and local, so every future is ready on its first poll; listings
-//! read the directory (names only) and stream the results.
+//! are small and local. Listings read the resource identifiers and sort them.
 
 use std::path::{Path, PathBuf};
 
 use futures_lite::StreamExt;
+use sha2::{Digest, Sha256};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
@@ -22,7 +23,9 @@ use crate::core::errors::{StorageError, StorageResult};
 /// JSON file-based state store.
 ///
 /// Stores each resource as a separate JSON file:
-///   `.deployment/{project}/{stage}/{resource_id}.json`
+///   `.deployment/{project}/{stage}/resources-v1/{digest}.json`.
+/// The digest uses the 256-bit Secure Hash Algorithm (SHA-256).
+/// Existing files in the root directory remain available.
 ///
 /// Its futures complete on their first poll (local `std::fs`).
 pub struct FileStateStore {
@@ -46,19 +49,72 @@ impl FileStateStore {
         Self { root_dir }
     }
 
-    fn resource_path(&self, resource_id: &str) -> PathBuf {
-        let safe_id = resource_id.replace('/', ":");
-        self.root_dir.join(format!("{safe_id}.json"))
+    fn resources_dir(&self) -> PathBuf {
+        self.root_dir.join("resources-v1")
     }
 
-    /// The `*.json` files under the root, sorted by path (empty if the root
-    /// doesn't exist yet).
+    fn resource_path(&self, resource_id: &str) -> PathBuf {
+        let digest = hex::encode(Sha256::digest(resource_id.as_bytes()));
+        self.resources_dir().join(format!("{digest}.json"))
+    }
+
+    fn read_if_present(path: &Path) -> StorageResult<Option<ResourceState>> {
+        let content = match std::fs::read_to_string(path) {
+            Ok(content) => content,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(error.into()),
+        };
+        Self::decode(&content).map(Some)
+    }
+
+    fn find(&self, resource_id: &str) -> StorageResult<Option<(PathBuf, ResourceState)>> {
+        let current = self.resource_path(resource_id);
+        if let Some(state) = Self::read_if_present(&current)? {
+            if state.id != resource_id {
+                return Err(StorageError::Backend(
+                    "Resource identifier does not match its file name".into(),
+                ));
+            }
+            return Ok(Some((current, state)));
+        }
+        self.find_legacy(resource_id)
+    }
+
+    fn find_legacy(&self, resource_id: &str) -> StorageResult<Option<(PathBuf, ResourceState)>> {
+        // Use only names that the directory contains. A legacy name can contain
+        // an invalid path character or name a device on another platform.
+        let legacy_name = format!("{}.json", resource_id.replace('/', ":"));
+        let entries = match std::fs::read_dir(&self.root_dir) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(error.into()),
+        };
+        for entry in entries {
+            let entry = entry?;
+            if entry.file_name() == legacy_name.as_str() && entry.file_type()?.is_file() {
+                let path = entry.path();
+                return Ok(Self::read_if_present(&path)?
+                    .filter(|state| state.id == resource_id)
+                    .map(|state| (path, state)));
+            }
+        }
+        Ok(None)
+    }
+
+    /// The JSON files in both the current and legacy directories.
     fn json_files(&self) -> StorageResult<Vec<PathBuf>> {
         let mut files = Vec::new();
-        if self.root_dir.exists() {
-            for entry in std::fs::read_dir(&self.root_dir)? {
-                let path = entry?.path();
-                if path.extension().is_some_and(|ext| ext == "json") {
+        for dir in [&self.root_dir, &self.resources_dir()] {
+            let entries = match std::fs::read_dir(dir) {
+                Ok(entries) => entries,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(error) => return Err(error.into()),
+            };
+            for entry in entries {
+                let entry = entry?;
+                let path = entry.path();
+                if entry.file_type()?.is_file() && path.extension().is_some_and(|ext| ext == "json")
+                {
                     files.push(path);
                 }
             }
@@ -68,8 +124,29 @@ impl FileStateStore {
     }
 
     fn read_state(path: &Path) -> StorageResult<ResourceState> {
-        let content = std::fs::read_to_string(path)?;
-        serde_json::from_str(&content).map_err(|e| StorageError::Serialization(e.to_string()))
+        Self::decode(&std::fs::read_to_string(path)?)
+    }
+
+    fn decode(content: &str) -> StorageResult<ResourceState> {
+        serde_json::from_str(content)
+            .map_err(|error| StorageError::Serialization(error.to_string()))
+    }
+
+    fn open_lock(&self) -> StorageResult<LockGuard> {
+        std::fs::create_dir_all(self.resources_dir())?;
+        let lock = std::fs::OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .read(true)
+            .write(true)
+            .open(self.root_dir.join(".state.lock"))?;
+        LockGuard::lock(lock)
+    }
+
+    fn write_state(path: &Path, state: &ResourceState) -> StorageResult<()> {
+        let content = serde_json::to_string_pretty(state)
+            .map_err(|error| StorageError::Serialization(error.to_string()))?;
+        Self::write_atomically(path, content.as_bytes())
     }
 
     /// Replace `path` with `content` so that a reader sees the whole old file
@@ -116,11 +193,6 @@ impl FileStateStore {
         std::fs::File::open(dir)?.sync_all()?;
         Ok(())
     }
-
-    fn id_of(path: &Path) -> Option<String> {
-        path.file_stem()
-            .map(|name| name.to_string_lossy().replace(':', "/"))
-    }
 }
 
 /// A stream over already-computed results.
@@ -130,27 +202,19 @@ fn stream_of<T: Send + 'static>(items: Vec<StorageResult<T>>) -> StateStoreStrea
 
 /// An exclusive lock on a file, released when dropped.
 struct LockGuard {
-    // Held for the lock's life: closing the file releases the `flock`.
+    // Closing the file releases the operating system lock.
     _file: std::fs::File,
     _process: std::sync::MutexGuard<'static, ()>,
 }
 
 impl LockGuard {
     fn lock(file: std::fs::File) -> StorageResult<Self> {
-        // One lock per process too: `flock` on two handles of one file in one
-        // process also excludes, but this makes it hold on every platform.
         static PROCESS: std::sync::Mutex<()> = std::sync::Mutex::new(());
         let process = PROCESS
             .lock()
             .map_err(|e| StorageError::Backend(format!("lock poisoned: {e}")))?;
-        #[cfg(unix)]
-        {
-            use std::os::fd::AsRawFd;
-            // SAFETY: `fd` is a valid open file descriptor owned by `file`.
-            if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) } != 0 {
-                return Err(std::io::Error::last_os_error().into());
-            }
-        }
+        #[cfg(any(unix, windows))]
+        file.lock()?;
         Ok(Self {
             _file: file,
             _process: process,
@@ -167,12 +231,17 @@ impl StateStore for FileStateStore {
     }
 
     async fn list(&self) -> StorageResult<StateStoreStream<String>> {
-        let ids = self
+        let mut ids = self
             .json_files()?
-            .iter()
-            .filter_map(|p| Self::id_of(p))
-            .map(Ok)
-            .collect();
+            .into_iter()
+            .filter_map(|path| {
+                Self::read_if_present(&path)
+                    .map(|state| state.map(|state| state.id))
+                    .transpose()
+            })
+            .collect::<Vec<_>>();
+        // Keep row errors in the stream and sort the successful identifiers.
+        ids.sort_by(|a, b| a.as_ref().ok().cmp(&b.as_ref().ok()));
         Ok(stream_of(ids))
     }
 
@@ -181,19 +250,17 @@ impl StateStore for FileStateStore {
     }
 
     async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
-        let path = self.resource_path(resource_id);
-        if !path.exists() {
-            return Ok(None);
-        }
-        Self::read_state(&path).map(Some)
+        Ok(self.find(resource_id)?.map(|(_, state)| state))
     }
 
     async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>> {
         let states = ids
             .iter()
-            .map(|id| self.resource_path(id))
-            .filter(|path| path.exists())
-            .map(|path| Self::read_state(&path))
+            .filter_map(|id| {
+                self.find(id)
+                    .map(|entry| entry.map(|(_, state)| state))
+                    .transpose()
+            })
             .collect();
         Ok(stream_of(states))
     }
@@ -207,13 +274,15 @@ impl StateStore for FileStateStore {
     }
 
     async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        std::fs::create_dir_all(&self.root_dir)?;
-        let state = state.with_id(resource_id);
-        let path = self.resource_path(&state.id);
-        let content = serde_json::to_string_pretty(&state)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Self::write_atomically(&path, content.as_bytes())?;
-        Ok(())
+        let _lock = self.open_lock()?;
+        let current = self.resource_path(resource_id);
+        let path = if current.try_exists()? {
+            current
+        } else {
+            self.find_legacy(resource_id)?
+                .map_or(current, |(legacy, _)| legacy)
+        };
+        Self::write_state(&path, &state.with_id(resource_id))
     }
 
     async fn set_if_version(
@@ -222,36 +291,22 @@ impl StateStore for FileStateStore {
         state: &ResourceState,
         expected: Option<chrono::DateTime<chrono::Utc>>,
     ) -> StorageResult<bool> {
-        std::fs::create_dir_all(&self.root_dir)?;
-        // An exclusive `flock` on a lock file covers read, compare and rename,
-        // so writers in other threads and other processes take turns. (On a
-        // platform without `flock`, only writers in this process take turns.)
-        let lock = std::fs::OpenOptions::new()
-            .create(true)
-            .truncate(false)
-            .write(true)
-            .open(self.root_dir.join(".state.lock"))?;
-        let _lock = LockGuard::lock(lock)?;
-        let path = self.resource_path(resource_id);
-        let current = if path.exists() {
-            Some(Self::read_state(&path)?.updated_at)
-        } else {
-            None
-        };
+        let _lock = self.open_lock()?;
+        let (path, current) = self.find(resource_id)?.map_or_else(
+            || (self.resource_path(resource_id), None),
+            |(path, state)| (path, Some(state.updated_at)),
+        );
         if current != expected {
             return Ok(false);
         }
-        let state = state.with_id(resource_id);
-        let content = serde_json::to_string_pretty(&state)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Self::write_atomically(&path, content.as_bytes())?;
+        Self::write_state(&path, &state.with_id(resource_id))?;
         Ok(true)
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {
-        let path = self.resource_path(resource_id);
-        if path.exists() {
-            std::fs::remove_file(&path)?;
+        let _lock = self.open_lock()?;
+        if let Some((path, _)) = self.find(resource_id)? {
+            std::fs::remove_file(path)?;
         }
         Ok(())
     }
