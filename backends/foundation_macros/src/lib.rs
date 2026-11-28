@@ -998,16 +998,6 @@ pub fn wireguard(input: TokenStream) -> TokenStream {
 
 /// `#[wireguard_main]` — entry point that initialises the valtron pool, joins the mesh,
 /// and hands a [`WgHandle`] to the annotated function (spec-55, feature 09).
-///
-/// ```ignore
-/// use foundation_wireguard::wireguard_main;
-///
-/// #[wireguard_main(config = "wireguard.toml")]
-/// fn main(handle: &foundation_wireguard::native::WgHandle) {
-///     let stream = handle.tcp_connect(peer_ip, 8080).unwrap();
-///     // ...
-/// }
-/// ```
 #[proc_macro_attribute]
 pub fn wireguard_main(attr: TokenStream, item: TokenStream) -> TokenStream {
     wireguard::wireguard_main_impl(&attr, item)

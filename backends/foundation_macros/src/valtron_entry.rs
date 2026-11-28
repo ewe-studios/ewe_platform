@@ -19,32 +19,8 @@
 //! fn main() { /* spawn tasks, run_until_complete, … */ }
 //! ```
 //!
-//! becomes (simplified):
-//!
-//! ```ignore
-//! fn main() {
-//!     // The original body, MOVED into an inner fn with the SAME return type —
-//!     // so `return` statements and `?` inside the body keep their meaning
-//!     // (a closure would silently capture `return`).
-//!     fn __valtron_body() { /* spawn tasks, … */ }
-//!
-//!     // Engine up inside a block scope. `initialize_pool` is the unified entry —
-//!     // it picks the multi-threaded pool (feature "multi") or the
-//!     // single-threaded/wasm pool automatically, and returns the matching
-//!     // PoolGuard.
-//!     {
-//!         let __valtron_guard = ::foundation_core::valtron::initialize_pool(
-//!             /* seed */    …,        // explicit `seed = N`, or a RandomState-derived u64
-//!             /* threads */ None,     // explicit `threads = N`, or the engine default
-//!         );
-//!
-//!         // Run the user's code WHILE the guard lives. The block ends, and so
-//!         // drops the guard, AFTER the body has fully returned. PoolGuard::drop
-//!         // joins/kills the pool threads under feature "multi".
-//!         __valtron_body()
-//!     }
-//! }
-//! ```
+//! The macro creates the root context, installs its environment, and keeps the pool guard
+//! for the duration of the body. The body can return a value or be asynchronous.
 //!
 //! `#[valtron_test]` is the same wrapper plus `#[test]` (like `#[tokio::test]`),
 //! so the case is a plain `cargo test` target with the engine running around it.
@@ -83,10 +59,9 @@
 //! one (see "The default seed" below).
 //!
 //! Both macros also take `ctx = expr`, the root `Ctx` the engine starts with.
-//! With it, the expansion calls `initialize_pool_with_ctx`; without it, the
-//! expansion is the same as before this argument existed. A `timeout` body runs
-//! on a new thread and receives the same root through
-//! `initialize_current_thread_with_ctx`.
+//! The expansion passes that root to the pool initializer. Without this argument,
+//! the macro creates a root from its seed and clock. A `timeout` body runs on a new
+//! thread with the same root.
 //!
 //! Both macros also take `env = expr`, an `Env` or a `Result<Env, E>` of
 //! `foundation_context::env`. The expansion installs it in the root `Ctx`

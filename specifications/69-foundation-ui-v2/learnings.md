@@ -1924,3 +1924,9 @@ The Feature 12 historical count matches 41 ignored macro examples and one ignore
 The aggregate alone cannot verify a specific ignored snippet.
 Match hosted results to the package source, selected dependency graph, toolchain, and test recipe before reusing them.
 [Acceptance reconciliation](completion-audit.md#acceptance-reconciliation-28-november-2026)
+
+## Obsolete example criteria
+
+Compare examples with the current macro expansion and its public inputs.
+Remove an obsolete expansion sketch. Use an executable fixture for a supported usage example.
+[Historical example inventory](completion-audit.md#feature-12-ignored-cases)

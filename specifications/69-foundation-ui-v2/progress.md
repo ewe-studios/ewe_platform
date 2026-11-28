@@ -2599,3 +2599,10 @@ The owner accepts the extra Feature 12 commits and the additional Feature 16 sou
 All required behavior and test coverage still apply.
 The acceptance ledger inventories the 42 historical documentation cases and identifies the event and platform checks that remain.
 [Acceptance reconciliation](completion-audit.md#acceptance-reconciliation-28-november-2026)
+
+## Obsolete historical examples
+
+The old Valtron expansion predates the root context and its environment. Remove the expansion sketch from the macro documentation.
+The WireGuard entry-point snippet uses an undefined peer and handle. Remove that snippet.
+Keep the remaining historical examples under review. The obsolete snippets do not become scenario files.
+[Historical example inventory](completion-audit.md#feature-12-ignored-cases)
