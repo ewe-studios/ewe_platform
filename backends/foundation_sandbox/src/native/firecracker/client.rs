@@ -38,6 +38,9 @@ use super::generated::drives::{put_guest_drive_by_id_request, Drive, PutGuestDri
 use super::generated::machine_config::{
     put_machine_configuration_request, MachineConfiguration, PutMachineConfigurationArgs,
 };
+use super::generated::network_interfaces::{
+    put_guest_network_interface_by_id_request, NetworkInterface, PutGuestNetworkInterfaceByIDArgs,
+};
 // The error schema is the same `Error { fault_message }` for every operation.
 use super::generated::machine_config::Error as ApiFault;
 use super::generated::shared::{ApiClient, ApiError, ApiResponse, BodyLimits};
@@ -349,6 +352,27 @@ impl FirecrackerClient {
     pub async fn put_vsock(&self, body: &Vsock) -> SandboxResult<()> {
         let args = PutGuestVsockArgs { body: body.clone() };
         self.call(put_guest_vsock_request(
+            self.api.clone(),
+            &args,
+            BASE_URL,
+            None::<NoMod>,
+        ))
+        .await?;
+        Ok(())
+    }
+
+    /// Add or replace a network interface (`PUT /network-interfaces/{iface_id}`).
+    ///
+    /// The path takes the `iface_id` of the body.
+    ///
+    /// # Errors
+    /// As [`FirecrackerClient::describe_instance`].
+    pub async fn put_network_interface(&self, body: &NetworkInterface) -> SandboxResult<()> {
+        let args = PutGuestNetworkInterfaceByIDArgs {
+            iface_id: body.iface_id.clone(),
+            body: body.clone(),
+        };
+        self.call(put_guest_network_interface_by_id_request(
             self.api.clone(),
             &args,
             BASE_URL,

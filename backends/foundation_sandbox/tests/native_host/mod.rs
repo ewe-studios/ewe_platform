@@ -391,6 +391,7 @@ fn discover_order() {
             "HOME" => Some("/home/tester".to_string()),
             "EWE_SANDBOX_SLAVE" => Some("/slave/env".to_string()),
             "EWE_FIRECRACKER" => Some(firecracker.display().to_string()),
+            "EWE_FIRECRACKER_NET" => Some("/net/env".to_string()),
             "EWE_SANDBOX_KRUN" => Some("/krun/env".to_string()),
             "EWE_LIBKRUN" => Some("/libkrun/env".to_string()),
             "EWE_SANDBOX_DRIVERS" => Some("docker, libkrun".to_string()),
@@ -403,6 +404,7 @@ fn discover_order() {
     assert_eq!(config.cache_dir, PathBuf::from("/cache/env"));
     assert_eq!(config.slave_path, Some(PathBuf::from("/slave/env")));
     assert_eq!(config.firecracker_path, Some(firecracker.clone()));
+    assert_eq!(config.firecracker_net_path, Some(PathBuf::from("/net/env")));
     assert_eq!(config.krun_runner_path, Some(PathBuf::from("/krun/env")));
     assert_eq!(config.libkrun_path, Some(PathBuf::from("/libkrun/env")));
     assert_eq!(

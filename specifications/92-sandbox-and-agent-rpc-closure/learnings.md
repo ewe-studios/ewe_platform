@@ -119,3 +119,25 @@ Lesson: BSD sockets reject a socket option after the peer shuts the socket down,
 the option cannot matter. Map `EINVAL` for every socket arm, not only the Unix-domain one.
 The response bytes and EOF are already at hand, so the missing timeout changes nothing.
 
+
+## A TAP device has one holder, so Firecracker cannot share it (2026-11-28)
+
+The issue text for #1095 proposed a stack in the control plane on the TAP side and
+Firecracker on the same TAP device. A Linux TAP device attaches to one descriptor. A
+second `TUNSETIFF` without `IFF_MULTI_QUEUE` returns `EBUSY`. Multi-queue divides the
+frames between queues, so it cannot give the same frame to both ends either.
+
+The working design is a helper process in the namespace. `agent-fc-net` creates the
+namespace and a persistent TAP device, then reads and writes the device frames with an
+`AF_PACKET` socket. A packet socket does not hold the TAP device, so Firecracker can
+open it. The helper copies frames to the control plane over a Unix datagram pair,
+where the existing smoltcp Ethernet stack and its port relays run. The helper needs no
+root: the new user namespace gives it `CAP_NET_ADMIN` and `CAP_NET_RAW`.
+
+A second trap: Firecracker has no `--tap-device` argument. The interface is
+`PUT /network-interfaces/{iface_id}` with `host_dev_name` and `guest_mac`. A failed
+device attach is a missing configuration step, not a missing command-line flag.
+
+A third trap: the guest kernel does not configure its own interface. The driver writes
+`ewe.net=<address>/<prefix>,<gateway>` to the kernel command line, and the slave sets
+the address, netmask, up flag and default route before it serves.

@@ -69,6 +69,7 @@ fn firecracker_writable_drive() {
         memory_mib: 512,
         guest_cid: 3,
         boot_args: String::new(),
+        network: None,
         limits: SandboxLimits::default(),
         lock: None,
     };

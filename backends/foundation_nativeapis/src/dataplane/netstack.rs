@@ -4,10 +4,12 @@
 //! needs no `CAP_NET_ADMIN`, no `/dev/net/tun`, and works on wasm/mobile — because the
 //! TCP/IP protocol runs *in our process* on in-memory buffers rather than in the kernel.
 //!
-//! WHAT: [`NetStack`] wraps a smoltcp [`Interface`] at **medium-ip** (L3, no Ethernet)
-//! plus a [`SocketSet`]. Its "wire" is not a NIC but the `Tunn` plaintext side: outbound
-//! IP packets are queued for `Tunn::encapsulate`, inbound decapsulated packets are
-//! injected back in. It implements [`DataPlane`] and hands out overlay TCP/UDP sockets.
+//! WHAT: [`NetStack`] wraps a smoltcp [`Interface`] plus a [`SocketSet`]. Its "wire" is
+//! not a NIC but a pair of queues: outbound packets are queued for the caller, inbound
+//! packets are injected back in. The link is **medium-ip** (L3) by default, for the
+//! `Tunn` plaintext side. An Ethernet link (L2) is also available, for a TAP device that
+//! a micro virtual machine (microVM) uses. It implements [`DataPlane`] and hands out
+//! overlay TCP/UDP sockets.
 //!
 //! HOW: A custom smoltcp [`phy::Device`] ([`TunnDevice`]) whose RX queue is fed by
 //! [`DataPlane::inject_inbound_ip`] and whose TX queue is drained by
@@ -18,7 +20,7 @@
 
 use std::collections::{BTreeMap, VecDeque};
 use std::io;
-use std::net::{IpAddr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -28,13 +30,42 @@ use smoltcp::phy::{Device, DeviceCapabilities, Medium};
 use smoltcp::socket::{tcp, udp};
 use smoltcp::storage::PacketMetadata;
 use smoltcp::time::Instant as SmolInstant;
-use smoltcp::wire::{HardwareAddress, IpAddress, IpCidr, IpEndpoint, IpListenEndpoint};
+use smoltcp::wire::{
+    EthernetAddress, HardwareAddress, IpAddress, IpCidr, IpEndpoint, IpListenEndpoint,
+};
 
 use super::{DataPlane, WakeFn};
 
-/// Default MTU for the overlay link. `WireGuard`'s own overhead is applied at the outer
-/// (UDP) boundary; this is the inner L3 MTU the netstack advertises to its sockets.
+/// Default MTU for an IP link. `WireGuard`'s own overhead is applied at the outer (UDP)
+/// boundary; this is the inner L3 MTU the netstack advertises to its sockets.
 const DEFAULT_MTU: usize = 1420;
+
+/// Default MTU for an Ethernet link. 1500 bytes is the Ethernet payload size that nginx
+/// and the Linux kernel use, so one frame carries at most 1500 bytes of IP.
+pub const DEFAULT_ETHERNET_MTU: usize = 1500;
+
+/// The length of one Ethernet header in bytes. smoltcp takes the whole frame in its
+/// maximum transmission unit, so an Ethernet device advertises `mtu + 14`.
+pub const ETHERNET_HEADER_LEN: usize = 14;
+
+/// The link layer that a [`NetStack`] terminates.
+///
+/// A `WireGuard` tunnel carries Layer 3 (L3) IP packets. A microVM's virtio-net device
+/// carries Layer 2 (L2) Ethernet frames, so its host-side stack must speak Ethernet.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LinkMedium {
+    /// Layer 3: the queue carries raw IP packets, as the `Tunn` plaintext side does.
+    Ip,
+    /// Layer 2: the queue carries Ethernet frames, as a TAP device does. The value is
+    /// the media access control (MAC) address of the stack's own interface.
+    Ethernet([u8; 6]),
+}
+
+impl Default for LinkMedium {
+    fn default() -> Self {
+        Self::Ip
+    }
+}
 
 /// Per-socket send/receive buffer size (bytes) for overlay TCP sockets.
 const TCP_BUFFER_BYTES: usize = 64 * 1024;
@@ -60,27 +91,45 @@ pub const DEFAULT_LISTEN_BACKLOG: usize = 511;
 // phy::Device bridging the netstack to the Tunn plaintext side
 // ---------------------------------------------------------------------------
 
-/// WHY: smoltcp drives all I/O through a [`phy::Device`]; our "device" is the `Tunn`
-/// plaintext boundary, not a real NIC.
+/// WHY: smoltcp drives all I/O through a [`phy::Device`]; our "device" is the packet
+/// boundary of the caller, not a real NIC.
 ///
-/// WHAT: A pair of in-memory FIFO queues — `rx` holds decapsulated inbound IP packets,
-/// `tx` holds outbound IP packets awaiting encryption.
+/// WHAT: A pair of in-memory FIFO queues — `rx` holds inbound packets, `tx` holds
+/// outbound packets — plus the link medium.
 ///
 /// HOW: [`inject_inbound_ip`](DataPlane::inject_inbound_ip) pushes to `rx`;
-/// [`drain_outbound_ip`](DataPlane::drain_outbound_ip) pops `tx`.
+/// [`drain_outbound_ip`](DataPlane::drain_outbound_ip) pops `tx`. On an Ethernet link
+/// the queue carries frames; [`NetStack::inject_inbound_frame`] and
+/// [`NetStack::drain_outbound_frame`] name that form.
 struct TunnDevice {
     rx: VecDeque<Vec<u8>>,
     tx: VecDeque<Vec<u8>>,
+    /// The largest packet that the device accepts, in bytes, including any link header.
     mtu: usize,
+    /// The medium that the stack terminates.
+    medium: Medium,
 }
 
 impl TunnDevice {
-    fn new(mtu: usize) -> Self {
+    fn new(mtu: usize, link: LinkMedium) -> Self {
+        let medium = match link {
+            LinkMedium::Ip => Medium::Ip,
+            LinkMedium::Ethernet(_) => Medium::Ethernet,
+        };
         Self {
             rx: VecDeque::new(),
             tx: VecDeque::new(),
             mtu,
+            medium,
         }
+    }
+}
+
+/// The smoltcp interface address of a link.
+fn hardware_address(link: LinkMedium) -> HardwareAddress {
+    match link {
+        LinkMedium::Ip => HardwareAddress::Ip,
+        LinkMedium::Ethernet(mac) => HardwareAddress::Ethernet(EthernetAddress(mac)),
     }
 }
 
@@ -135,7 +184,7 @@ impl Device for TunnDevice {
 
     fn capabilities(&self) -> DeviceCapabilities {
         let mut caps = DeviceCapabilities::default();
-        caps.medium = Medium::Ip;
+        caps.medium = self.medium;
         caps.max_transmission_unit = self.mtu;
         caps
     }
@@ -286,16 +335,21 @@ impl Inner {
 // NetStack
 // ---------------------------------------------------------------------------
 
-/// Configuration for a [`NetStack`]: the overlay tunnel address, link MTU and
-/// listener backlog.
+/// Configuration for a [`NetStack`]: the overlay tunnel address, link medium and MTU,
+/// the optional default gateway and the listener backlog.
 #[derive(Debug, Clone, Copy)]
 pub struct NetStackConfig {
     /// This node's overlay (tunnel) IP address.
     pub address: IpAddr,
     /// Prefix length of the overlay subnet (e.g. `24` for a `/24`).
     pub prefix_len: u8,
-    /// Inner L3 MTU advertised to overlay sockets.
+    /// Link MTU advertised to sockets. For an Ethernet link this is the payload size;
+    /// the stack advertises `mtu + 14` to smoltcp so one frame fits its own header.
     pub mtu: usize,
+    /// The link layer that the stack terminates. Default [`LinkMedium::Ip`].
+    pub link: LinkMedium,
+    /// The IPv4 default gateway, when the link has one. Default `None`.
+    pub gateway: Option<Ipv4Addr>,
     /// Maximum connections queued per [`OverlayListener`] before the application
     /// accepts them; further SYNs are refused until `accept` frees a slot. Defaults to
     /// [`DEFAULT_LISTEN_BACKLOG`]; `0` is treated as `1`.
@@ -318,14 +372,35 @@ impl NetStackConfig {
             address,
             prefix_len,
             mtu: DEFAULT_MTU,
+            link: LinkMedium::Ip,
+            gateway: None,
             listen_backlog: DEFAULT_LISTEN_BACKLOG,
         }
     }
 
-    /// Override the inner L3 MTU (default 1420, `WireGuard`'s default interface MTU).
+    /// Override the inner MTU (default 1420 for an IP link, 1500 for an Ethernet link).
     #[must_use]
     pub fn with_mtu(mut self, mtu: usize) -> Self {
         self.mtu = mtu;
+        self
+    }
+
+    /// Terminate an Ethernet link with `mac` as the stack interface address, and use
+    /// [`DEFAULT_ETHERNET_MTU`] as the MTU unless the caller sets another value.
+    ///
+    /// The MAC address is mandatory because a TAP peer addresses its gateway by this
+    /// address after address resolution.
+    #[must_use]
+    pub fn with_ethernet(mut self, mac: [u8; 6]) -> Self {
+        self.link = LinkMedium::Ethernet(mac);
+        self.mtu = DEFAULT_ETHERNET_MTU;
+        self
+    }
+
+    /// Add an IPv4 default route through `gateway`.
+    #[must_use]
+    pub fn with_gateway(mut self, gateway: Ipv4Addr) -> Self {
+        self.gateway = Some(gateway);
         self
     }
 
@@ -356,20 +431,25 @@ impl std::fmt::Debug for NetStack {
 }
 
 impl NetStack {
-    /// WHY: Callers stand up one overlay stack per `WireGuard` interface.
+    /// WHY: Callers stand up one stack per link.
     ///
-    /// WHAT: Build a [`NetStack`] with the given overlay address and MTU.
+    /// WHAT: Build a [`NetStack`] with the given address, link medium, MTU and gateway.
     ///
-    /// HOW: Creates a `medium-ip` smoltcp [`Interface`], assigns the address, and adds an
-    /// on-link route so peers in the same overlay subnet are directly reachable.
+    /// HOW: Creates a smoltcp [`Interface`] at the configured medium, assigns the
+    /// address, and adds an on-link route so peers in the same subnet are directly
+    /// reachable. An Ethernet link advertises one frame header more than its MTU.
     ///
     /// # Panics
     /// Never panics.
     #[must_use]
     pub fn new(config: NetStackConfig, ctx: &Ctx) -> Self {
-        let mut device = TunnDevice::new(config.mtu);
+        let header = match config.link {
+            LinkMedium::Ip => 0,
+            LinkMedium::Ethernet(_) => ETHERNET_HEADER_LEN,
+        };
+        let mut device = TunnDevice::new(config.mtu + header, config.link);
         let base = ctx.clock().now();
-        let iface_config = Config::new(HardwareAddress::Ip);
+        let iface_config = Config::new(hardware_address(config.link));
         let mut iface = Interface::new(iface_config, &mut device, SmolInstant::ZERO);
 
         let cidr = IpCidr::new(to_smol_address(config.address), config.prefix_len);
@@ -377,6 +457,11 @@ impl NetStack {
             // `push` cannot fail for the first address; ignore the (impossible) full case.
             let _ = addrs.push(cidr);
         });
+        if let Some(gateway) = config.gateway {
+            // A second address never fits; the single default route fits unless the
+            // caller added routes before this call, which it cannot.
+            let _ = iface.routes_mut().add_default_ipv4_route(gateway);
+        }
 
         let inner = Inner {
             device,
@@ -393,6 +478,40 @@ impl NetStack {
 
         Self {
             inner: Arc::new(Mutex::new(inner)),
+        }
+    }
+
+    /// Feed one inbound link frame into the stack.
+    ///
+    /// On an Ethernet link the bytes are one Ethernet frame; smoltcp resolves the
+    /// address resolution protocol (ARP) and the IPv4 header itself. On an IP link the
+    /// bytes are one IP packet, which is the same as [`DataPlane::inject_inbound_ip`].
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
+    pub fn inject_inbound_frame(&mut self, frame: &[u8]) {
+        if frame.is_empty() {
+            return;
+        }
+        self.inner
+            .lock()
+            .expect("netstack mutex poisoned")
+            .device
+            .rx
+            .push_back(frame.to_vec());
+    }
+
+    /// Drain outbound link frames, invoking `f` once per frame in FIFO order.
+    ///
+    /// On an Ethernet link each slice is one Ethernet frame; on an IP link each slice is
+    /// one IP packet, which is the same as [`DataPlane::drain_outbound_ip`].
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
+    pub fn drain_outbound_frame(&mut self, f: &mut dyn FnMut(&[u8])) {
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
+        while let Some(frame) = inner.device.tx.pop_front() {
+            f(&frame);
         }
     }
 

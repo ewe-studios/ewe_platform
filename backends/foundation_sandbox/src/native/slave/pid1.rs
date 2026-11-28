@@ -75,7 +75,15 @@ pub fn boot_duties(host: &SlaveHost) -> io::Result<()> {
             Err(error) => return Err(error),
         }
     }
-    sys::bring_up_loopback()
+    sys::bring_up_loopback()?;
+    // A micro virtual machine has a virtio-net interface, and the host stack gives it
+    // a static address on a private link. The driver writes it to the kernel command
+    // line; the guest kernel does not apply it by itself.
+    let cmdline = std::fs::read_to_string("/proc/cmdline")?;
+    if let Some(network) = super::net::parse(&cmdline)? {
+        sys::configure_interface(&network)?;
+    }
+    Ok(())
 }
 
 /// Flushes the buffers and powers the machine off.

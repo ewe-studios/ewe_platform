@@ -25,4 +25,8 @@ pub mod driver;
 pub mod testing;
 
 #[cfg(target_os = "linux")]
-pub use driver::{boot_args, FcPlan, FirecrackerDriver};
+pub use crate::native::firecracker_network::{
+    GuestNetworkConfig, NetworkRuntime, TcpForward, UdpForward,
+};
+#[cfg(target_os = "linux")]
+pub use driver::{boot_args, network_interface, FcPlan, FirecrackerDriver};

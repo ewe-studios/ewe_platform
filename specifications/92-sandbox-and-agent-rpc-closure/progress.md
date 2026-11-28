@@ -209,3 +209,29 @@ every version.
 2. One full `packages=all` run on the final master; close #1104 with its `sandbox-e2e` link.
 3. Feature 05 after #1121.
 4. The Cloudflare demo under `examples/`, after #1144 merges.
+
+## Feature 02 task T11: the Firecracker guest network (2026-11-28)
+
+The guest has a network through a new helper program, `agent-fc-net`, and the shared
+smoltcp data plane. The design changed from the issue text, because a TAP device has
+one holder in the Linux kernel (see `learnings.md`).
+
+- `agent-fc-net` makes a private user and network namespace, creates the persistent
+  TAP device, opens an `AF_PACKET` socket on it, starts Firecracker in the namespace,
+  and copies frames between the packet socket and descriptor 3. Descriptor 3 is one
+  end of a Unix datagram pair that the control plane passed.
+- The control plane runs the smoltcp stack in Ethernet mode over its end of the pair
+  and relays the configured TCP and UDP ports to host services. The guest sees only
+  the stack: there is no host route, no firewall rule and no NAT rule.
+- `FirecrackerDriver::with_network` enables `NetworkMode::Host`. The default driver
+  still refuses it, and the probe reports the capability only when it is configured.
+- The slave applies `ewe.net=<address>/<prefix>,<gateway>` from the kernel command
+  line at boot. `net.ifnames=0` keeps the guest name `eth0`.
+- The namespace ends with its last holder. The helper has a parent-death signal from
+  the control plane, and Firecracker has one from the helper. A stop signals the saved
+  process handle; there is no `pkill`.
+- Tests: the Ethernet path with two stacks over an in-memory wire runs on every
+  operating system; the slave command-line parser has Linux tests; `e2e_host_network`
+  runs only on the KVM runner, because it is the only host with `/dev/kvm`,
+  `/dev/net/tun` and unprivileged user namespaces. #1095 stays open until that row is
+  green on the runner.
