@@ -1,5 +1,28 @@
 # Spec 69 progress
 
+## Samsung rotation, texture, and audio checks
+
+The Samsung SM-A5560 reaches the Gumball result from the first settled landscape tap at (1120,889).
+Three full phone replays record a 2340 by 1080 result and return to Todos.
+The final task build sees the focused window 6.47 seconds after the rotation request.
+It sends the first tap in 162 milliseconds. It closes the game before it restores rotation.
+The Todo task test suite passes its Android target test with the `uat` profile.
+The emulator records a Gumball result at 2400 by 1080. Its earlier return step times out after restoring rotation.
+The emulator is disconnected before the last task rerun. The historical focus issue stays open.
+[Fixture issue 1264](https://github.com/ewe-studios/ewe_platform/issues/1264) · [Focus issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146)
+
+The Samsung passes the Android Vulkan host-owned texture test.
+The test checks the processed pixel after Rust returns the lease and checks the blue pixel in the host window.
+The signed scratch test package has SHA-256 digest `f5f61dafe3cfb332cb2f16ce41edf35b31380a1c96ae50f5a2020fc2eb28fa79`.
+It uses the ARM64 native library from the verified Todo On Device package.
+The compiled test case is `HostGraphicsTest#processHostOwnedVulkanTextureThroughLocalAction`.
+
+The Samsung reports built-in speaker routing.
+The scratch audio probe records opening and later answer peaks at separate times.
+The game releases and recreates the output track during a separate focus interruption.
+Muted samples remain zero after Home and return and after a second focus interruption.
+[Physical sound observation](features/36-mathalley-game-view/feature.md#physical-phone-sound-observation-on-2026-11-28)
+
 ## Android countdown and physical Mathalley checks
 
 A scratch Android application reproduces the cold-launch warning with the previously staged native library.

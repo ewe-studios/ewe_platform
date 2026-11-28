@@ -180,8 +180,21 @@ The owner hears Mathalley game sound on both physical phones.
 | Samsung SM-A5560, Android application programming interface (API) level 37 | Todo On Device, arm64-v8a emulator test package reused on the phone | The Train scene accepts answers and reaches score 430. Android grants game audio focus. The owner hears game sound. |
 | iPhone 13 Pro, iOS 27.2.1 (24B156) | Apple Development-signed Todo On Device from the retained package at `aac514c9a` | The owner hears game sound. |
 
-The owner reports audible game sound during play. The record does not identify the output route or each cue.
-Use the handoff below to distinguish opening music, answer sounds, mute retention, interruption, and resume.
+The owner reports audible game sound during play on both phones.
+
+The Samsung sends sound to its built-in speaker. The Android track reports output device type 2.
+A separate instrumented Todo On Device application records normalized sample peaks for the game.
+The title tap produces an opening peak of 0.335. A later correct answer produces peaks of 0.312 and 0.340.
+The owner did not identify each cue by ear.
+
+The probe uses a separate Android audio focus request while the game stays visible.
+The game reports transient loss and releases its output track within 53 milliseconds.
+After focus returns, the track restarts within 33 milliseconds.
+The output stays at its earlier background level until the next answer.
+
+The Sound control changes to SOUND OFF. The sample peak stays zero during another answer and after Home and return.
+A second independent interruption gives the same loss and regain signals while muted. The resumed track still has zero peak.
+The iPhone still needs a recorded output route, individual cues, mute retention, interruption, and resume.
 [Android and iPhone run records](../../progress.md)
 
 ### Physical phone sound handoff
