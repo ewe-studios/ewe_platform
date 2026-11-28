@@ -254,7 +254,11 @@ Xcode signs the scratch Todo On Device application with the existing Apple Devel
 The signature passes verification. The provisioning profile includes this phone and the scratch bundle identifier.
 The device accepts installation. A launch before device approval returns a security error.
 The owner trusts the Personal Team on the phone. The device then launches the app without a debugger and reports its running process.
-The separate Todo Server first-launch and VoiceOver handoff remains open.
+A separate signed Todo Server app installs and launches on the same phone.
+A relay binds to the wired developer tunnel. It accepts connections from the paired phone only.
+It forwards to the existing Mac loopback server. The phone connects without any Todo write from the check.
+The phone screen shows the Todos title and the Play Mathalley control.
+The debugger-stopped launch and the scratch-store VoiceOver handoff remain open.
 
 ### Physical iPhone Todo handoff
 
