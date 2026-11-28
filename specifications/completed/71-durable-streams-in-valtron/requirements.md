@@ -1,11 +1,12 @@
 ---
 description: "Embed the Durable Streams protocol as a transport-neutral, conformance-tested core in foundation_core::durable. Add an HTTP adapter, a ConnectRPC adapter, a Rust client and a conformance gate. Then wrap the core in foundation_core::durable::valtron with Stream::Wait, WakeableStream, Stream::Spread and #[task], so the core works with or without valtron."
-status: "planned"
+status: "completed"
 priority: "high"
 created: 2026-10-30
 author: "Main Agent"
 metadata:
   version: "2.0"
+  last_updated: 2026-11-28
   estimated_effort: "large"
   tags: [valtron, durable-streams, stream, offset, resume, replay, idempotent-producer, stream-seq, fork, foundation-log, http, connectrpc, client, conformance, db, storage]
   stack_files: [rust.md]
@@ -19,10 +20,10 @@ related_specs:
   - "specifications/completed/70-foundational-io-hardening"
   - "specifications/research/edge-data"
 features:
-  completed: 0
-  uncompleted: 9
-  total: 9
-  completion_percentage: 0%
+  completed: 11
+  uncompleted: 0
+  total: 11
+  completion_percentage: 100%
 ---
 
 # Spec 71: Durable streams in valtron
@@ -59,7 +60,7 @@ abbreviation. RFC 3339 is an Internet date format.
 ## 1. Why this spec exists
 
 The edge data research reviewed Durable Streams (source key `DS` in
-[`durable-streams.md`](../research/edge-data/durable-streams.md)). It is an ordered, replayable,
+[`durable-streams.md`](../../research/edge-data/durable-streams.md)). It is an ordered, replayable,
 resumable log over HTTP. A reader stores an opaque cursor and resumes from it. An idempotent
 producer writes exactly once. A fork branches history without copying it. An immutable prefix
 makes the read path cacheable.

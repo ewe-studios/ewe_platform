@@ -37,7 +37,7 @@ related_specs:
   - "specifications/completed/61-llama-vendoring-and-crate-publishing"
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
-  - "specifications/71-durable-streams-in-valtron"
+  - "specifications/completed/71-durable-streams-in-valtron"
 features:
   completed: 3
   uncompleted: 6
@@ -222,7 +222,7 @@ certificate. These are independent links.
 ### Durable streams and the streaming operations
 
 The [Durable Streams research note](../research/edge-data/durable-streams.md) and
-[spec 71](../71-durable-streams-in-valtron) record a contract that applies to this
+[spec 71](../completed/71-durable-streams-in-valtron) record a contract that applies to this
 specification's streaming operations. The mechanism lives in valtron (spec 71); the features
 here **consume** it once it exists.
 
@@ -348,7 +348,7 @@ specification:
 - `specifications/completed/28-cloudflare-workers-readiness/` — prior wasm readiness.
 - `specifications/completed/63-connectrpc-proxy/` — the proxy and its per-endpoint protocol
   selection.
-- `specifications/71-durable-streams-in-valtron/` — the durable stream mechanism.
+- `specifications/completed/71-durable-streams-in-valtron/` — the durable stream mechanism.
 
 ---
 

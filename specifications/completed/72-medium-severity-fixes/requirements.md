@@ -17,7 +17,7 @@ has_fundamentals: false
 builds_on: "specifications/completed/70-foundational-io-hardening"
 related_specs:
   - "specifications/completed/70-foundational-io-hardening"
-  - "specifications/71-durable-streams-in-valtron"
+  - "specifications/completed/71-durable-streams-in-valtron"
 features:
   completed: 14
   uncompleted: 0

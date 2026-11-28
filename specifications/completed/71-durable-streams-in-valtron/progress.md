@@ -2,6 +2,10 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-28: spec 71 is complete. All 11 features are done. The follow-up PR #1242 is merged.
+  The spec moves to `specifications/completed/71-durable-streams-in-valtron`. The status field
+  is `completed` and the frontmatter counts 11 of 11 features. Every path reference in this
+  repository points at the new location.
 - 2026-11-28: feature 07 T12 closed on branch `spec71-followups`. The differential oracle
   `client_matches_reference` in `foundation_http/tests/durable_client_differential.rs` runs
   create, append, catch-up read, read from an offset, close and fork on one in-process server
@@ -189,7 +193,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   passes. Issue #1079 is closed.
 
 - 2026-11-27: feature 08 runtime matrix, skip register and report landed. The report is
-  `specifications/71-durable-streams-in-valtron/features/08-conformance/report.md`. It holds the
+  `specifications/completed/71-durable-streams-in-valtron/features/08-conformance/report.md`. It holds the
   gate command, the four-direction matrix, the runtime matrix, the skip register, the open issues
   and the environment caveat.
 

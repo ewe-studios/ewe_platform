@@ -4,7 +4,7 @@
 //! adapter, socket or server. The other runtime rows (WebAssembly (wasm),
 //! Cloudflare Worker, Durable Object (DO), WebSocket and the `foundation_ai`
 //! Session) are recorded in
-//! `specifications/71-durable-streams-in-valtron/features/08-conformance/report.md`.
+//! `specifications/completed/71-durable-streams-in-valtron/features/08-conformance/report.md`.
 
 use foundation_context::Ctx;
 use foundation_core::durable::{

@@ -4,8 +4,8 @@
 //! or global-runtime dependency. The optional valtron wrapper lives in the separate [`valtron`]
 //! module. The HTTP, `ConnectRPC`, WebSocket and embedded surfaces wrap the core.
 //!
-//! The types follow `specifications/71-durable-streams-in-valtron`. Do not add a transport
-//! status, header or `ETag` here. The adapters own the wire rules.
+//! The types follow `specifications/completed/71-durable-streams-in-valtron`. Do not add a
+//! transport status, header or `ETag` here. The adapters own the wire rules.
 
 #![allow(async_fn_in_trait)] // Native async trait. The trait is used generically, never as `dyn`.
 

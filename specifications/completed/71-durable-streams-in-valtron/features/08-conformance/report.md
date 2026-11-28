@@ -86,12 +86,12 @@ _Caption: The gate selects from the change and runs all four directions in one j
 
 The numbers come from these recorded entries:
 
-- `specifications/71-durable-streams-in-valtron/progress.md`, entry "2026-11-27: feature 07
+- `specifications/completed/71-durable-streams-in-valtron/progress.md`, entry "2026-11-27: feature 07
   Server-Sent Events (SSE) landed": server 338 pass, 0 skip; client 267 pass, 2 suite-forced
   skips, 0 fail.
-- `specifications/71-durable-streams-in-valtron/progress.md`, entry "2026-11-27: feature 08 CI
+- `specifications/completed/71-durable-streams-in-valtron/progress.md`, entry "2026-11-27: feature 08 CI
   wiring landed": the gate bar is 338 passed (338) and 267 passed with 2 suite-forced skips.
-- `specifications/71-durable-streams-in-valtron/handoff.md`, section 4.4: the same gate passed
+- `specifications/completed/71-durable-streams-in-valtron/handoff.md`, section 4.4: the same gate passed
   338 of 338 and 267 of 269 runnable on a quiet host.
 - `ci/durable_conformance.sh`: the script fails on any other count.
 

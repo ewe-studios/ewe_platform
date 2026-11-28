@@ -1,7 +1,7 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/71-durable-streams-in-valtron"
-this_file: "specifications/71-durable-streams-in-valtron/start.md"
+spec_directory: "specifications/completed/71-durable-streams-in-valtron"
+this_file: "specifications/completed/71-durable-streams-in-valtron/start.md"
 created: 2026-10-30
 ---
 
@@ -20,7 +20,7 @@ You implement **one feature** of this spec. The main session gave you its number
 2. `.agents/skills/rust-valtron-usage/skill.md` and `.agents/skills/rust-clean-code/skill.md`.
 3. [`requirements.md`](./requirements.md): sections 2 (the contract), 3 (architecture), 5
    (rules) and 6 (verification). Read section 3.0 first. It separates the core from valtron.
-4. The [Durable Streams research note](../research/edge-data/durable-streams.md). It is a
+4. The [Durable Streams research note](../../research/edge-data/durable-streams.md). It is a
    summary. The protocol and `requirements.md` are the contract. The note omits `Stream-Seq`,
    the client and the JSON wire rules.
 5. Your feature file: `features/NN-<slug>/feature.md`. Read all of it before you change code.

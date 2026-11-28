@@ -158,7 +158,7 @@ the same change that finds a bug and remove it in the change that fixes it.
 ## Durable Streams input (2026-10-30)
 
 The [Durable Streams research note](../research/edge-data/durable-streams.md) and
-[spec 71](../71-durable-streams-in-valtron) give a contract for this spec's
+[spec 71](../completed/71-durable-streams-in-valtron) give a contract for this spec's
 streaming operations. The key takeaways:
 
 - **The cursor is the state, not the connection.** A turn or progress stream
