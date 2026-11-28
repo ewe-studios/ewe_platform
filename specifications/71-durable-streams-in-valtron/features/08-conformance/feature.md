@@ -1,6 +1,6 @@
 ---
 feature: "Conformance"
-status: "in progress"
+status: "done"
 priority: "high"
 depends_on: ["02-resumable-reader", "03-idempotent-producer", "04-fork-and-retention", "05-storage-backends", "06-http-rpc-surface", "07-durable-streams-client", "09-s3-r2-vfs"]
 crates: ["foundation_core", "foundation_http", "foundation_netio"]

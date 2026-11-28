@@ -1,6 +1,6 @@
 ---
 feature: "Storage: DurableStream and the VFS"
-status: "in progress"
+status: "done"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
 crates: ["foundation_core", "foundation_nativeapis", "foundation_db"]

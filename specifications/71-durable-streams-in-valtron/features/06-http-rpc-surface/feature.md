@@ -115,10 +115,9 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc` green.
-      Open: the durable HTTP targets pass, including the full `cargo test -p foundation_http
-      --features multi` run. `foundation_connectrpc` has one pre-existing failure,
-      `conn_io_fallback_polls_instead_of_unsupported` (#1160, medium).
+- [x] `cargo test -p foundation_http` and `cargo test -p foundation_connectrpc` green.
+      `foundation_http --features multi` passes; `foundation_connectrpc` passes 303 tests after
+      the router procedure-key fix (#1160).
 - [x] The HTTP adapter has no valtron stream or task dependency. It uses only the
   injected-clock timer for the live-read timeout.
 - [x] The server conformance suite passes against `DurableHandler` (332 pass, 6 skip).

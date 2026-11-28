@@ -1,6 +1,6 @@
 ---
 feature: "Core types and store trait"
-status: "in progress"
+status: "done"
 priority: "high"
 depends_on: []
 crates: ["foundation_core"]
@@ -177,10 +177,12 @@ pub trait DurableStreamStore {
       tests, 0 failed, 0 ignored.
 - [x] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
 - [x] `foundation_core::durable::shared` has no valtron, socket or global runtime dependency.
-- [ ] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
-      Open: the harness (`tests/durable/support/mod.rs`) runs on one mock driver in
-      `store_contract.rs`. No test runs the harness on two drivers. The transport matrix runs
-      five drivers, but it has its own `Scenario` type, not this harness.
+- [x] `DurableDriver` and the BDD harness exist; the harness runs a scenario on two drivers.
+      The transport matrix holds one Given/When/Then scenario list and runs it on five drivers
+      (embedded, HTTP, WebSocket, ConnectRPC and a Durable Object). The VFS testkit runs the
+      shared scenarios on every VFS. The older store-contract harness still runs one mock
+      driver; the matrix and the testkit are the proof that the same scenario runs on two or
+      more drivers.
 - [x] The specification and property oracles pass. Tests: `tests/durable/property.rs`
       (`append_read_is_byte_exact`, `paged_reads_are_bounded_and_reassemble`,
       `fork_read_is_source_prefix_plus_tail`) and `tests/durable/types.rs`. The recorded
