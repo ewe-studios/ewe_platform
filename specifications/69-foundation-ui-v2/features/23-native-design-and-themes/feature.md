@@ -258,7 +258,22 @@ A separate signed Todo Server app installs and launches on the same phone.
 A relay binds to the wired developer tunnel. It accepts connections from the paired phone only.
 It forwards to the existing Mac loopback server. The phone connects without any Todo write from the check.
 The phone screen shows the Todos title and the Play Mathalley control.
-The debugger-stopped launch and the scratch-store VoiceOver handoff remain open.
+
+### Physical iPhone debugger-stopped launch on 2026-11-28
+
+A fresh Todo Server Proof installation starts with the debugger stop enabled.
+The first capture shows the static Todos launch image before the app runs.
+The first debugger session ends before the app reaches the server.
+On a second launch of the same installation, an interactive debugger continues the stopped process.
+The phone connects through the wired relay. The next capture shows the Todos screen with its live controls.
+The capture includes only the screen header. The check makes no changes to Todo items.
+
+The debug symbol load delays the second run. The elapsed time does not measure the launch-image service timeout.
+The Mac requires administrator access to collect the phone logs.
+The service logs and the reported timeout from issue 831 remain unverified.
+
+[First stopped launch image](screenshots/iphone13-pro-debugger-stopped-todo-2026-11-28.png)
+[Todo controls after debugger continuation](screenshots/iphone13-pro-debugger-resumed-todo-2026-11-28.png)
 
 ### Physical iPhone Todo handoff
 
