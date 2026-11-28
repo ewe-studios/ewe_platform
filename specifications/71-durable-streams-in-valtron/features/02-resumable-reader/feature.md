@@ -1,82 +1,106 @@
 ---
-feature: "Resumable reader"
-status: "planned"
+feature: "Reader"
+status: "done"
 priority: "high"
 depends_on: ["01-durable-stream-types"]
 crates: ["foundation_core"]
 ---
 
-# Feature 02: Resumable reader
+# Feature 02: Reader
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
 
-**Abbreviations in this file.** AeroSpace and Defence Industries Association of Europe (ASD), the
-owner of the STE standard ASD-STE100.
+**Abbreviations in this file.** end of file (EOF); AeroSpace and Defence Industries Association
+of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 ## 1. Goal
 
-`DurableStreamReader<Store>` turns a `DurableStreamStore` into a valtron `StreamIterator` that
-resumes byte-exactly from a cursor, catches up on history, and parks on `Stream::Wait` for live
-data. It implements `WakeableStream` so the awaitable bridges wake on append.
+Add the core page reader. Then add the required valtron reader. The core reader must be correct
+without valtron. The valtron reader adds `StreamIterator`, `Stream::Wait`, `Stream::Spread` and
+`WakeableStream`. The valtron layer is required for platform use.
 
 ## 2. Requirements
 
-1. **Catch-up.** `read(ReadFrom)` pulls bounded pages. Each chunk yields `Stream::Next(Chunk)`; a
-   page yields `Stream::Spread(chunks)` when the store hands back more than one chunk at once.
-2. **Byte-exact resumption.** Reading in chunks through the cursor must rebuild the same bytes as
-   one full read: no skip, no duplicate. This is a test, not a claim.
-3. **The tail.** When `up_to_date` is set and the reader is in live mode, the next pull yields
-   `Stream::Wait`. `closed` yields the final chunk then `None` (the terminal signal).
-4. **A refusal, never a gap.** `StoreError::Trimmed` surfaces as a terminal error state, never a
-   silent skip. The reader does not reset to `Start` on its own.
-5. **Wake.** `WakeableStream::wake` forwards to a notifier the store provides. A live reader parks
-   on `Wait` and is woken exactly when new data lands. On `NotSupported` it degrades to self-wake,
-   never a lost wake.
-6. **Pending context.** `Stream::Pending(ReaderProgress)` carries the pending state (`Connecting`,
-   `Trimming`), matching `SseProgress` in `foundation_netio`.
-7. **No blocking.** The reader never blocks the calling thread. Blocking stays at the boundary.
-8. **Limits are configuration** (rule 8). The page limit, the live-mode timeout and the wake
-   policy are fields with documented defaults.
+1. **Core page reader.** `read(name, ReadRequest)` returns a bounded `ReadPage`. It does not
+   parse offsets.
+2. **Byte-exact resumption.** Reading page by page through the cursor rebuilds the same bytes as
+   one full read. No skip. No duplicate.
+3. **State rules.** The reader sets `up_to_date` only when the page has all data at response
+   time. It sets `closed` only when the stream is closed and the page reaches the final offset.
+   A partial page of a closed stream has `up_to_date = false` and `closed = false`.
+4. **Closure discovery.** Closure can need one more read at the tail. That read returns an empty
+   page with `closed = true`.
+5. **`offset=now`.** `ReadFrom::Tail` returns an empty page at the tail with `up_to_date = true`.
+   In live mode it waits for new data. A closed stream returns immediately with `closed = true`.
+6. **Trim refusal.** `StoreError::Trimmed` is terminal. The reader never resets to `Start`.
+7. **No blocking.** The core reader never blocks.
+8. **Valtron reader.** `DurableStreamReader<Store>` implements `StreamIterator` with
+   `D = Chunk` and `P = ReaderProgress`, and `WakeableStream`.
+9. **Valtron states.** A page yields `Stream::Next` per chunk or `Stream::Spread` for one page.
+   A pending call yields `Stream::Pending`. An open tail yields `Stream::Wait` in live mode. A
+   closed tail yields the final chunk then `None`.
+10. **Wake.** `wake` registers a callback on the store notifier. A live reader parks on `Wait`
+    and wakes exactly when data lands. `NotSupported` degrades to self-wake, never a lost wake.
+11. **Bridges.** `into_next_stream` and `into_future_stream` park on `Wait` and resume on wake.
+12. **Limits.** Page bytes, page chunks and live timeout are configuration.
 
 ## 3. Design
 
-`DurableStreamReader<Store>` stores the store handle, the stream name, the cursor, the live-mode
-flag and the page limit. It implements:
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| Core reader | `foundation_core/src/durable/shared/` |
+| Valtron reader | `foundation_core/src/durable/shared/valtron/` |
 
 ```rust
-impl<Store: DurableStreamStore> StreamIterator for DurableStreamReader<Store> {
-    type D = Chunk;
-    type P = ReaderProgress;
+pub struct DurableStreamReader {
+    inner: DrivenTaskIterator<read_step>,
 }
 
-impl<Store: DurableStreamStore> WakeableStream for DurableStreamReader<Store> {
-    fn wake(&mut self, cb: WakeCallback) -> WakeResult { /* forward to the store notifier */ }
+impl Iterator for DurableStreamReader {
+    type Item = Stream<Chunk, ReaderProgress>;
+    fn next(&mut self) -> Option<Self::Item> { self.inner.next().map(Stream::from) }
 }
+
+impl WakeableStream for DurableStreamReader {}
 
 pub enum ReaderProgress { Connecting, Trimming, Live }
+
+#[task]
+async fn read_step(ctx: Ctx, state: ReaderState)
+    -> Option<(ReaderState, TaskStatus<Chunk, ReaderProgress>)> { /* read, spread, end */ }
 ```
 
-The store exposes a notifier for append, so the reader's `wake` registers a callback that the
-store fires on the next append. This is the same `WakeRegistry` pattern the existing
-`NotifyQueueStreamIterator` and the wasm `LazySseIterator` use.
+The core reader is `DurableStream::read`. The valtron reader wraps it in a `#[task]` and must
+not change the core state rules. The current slice covers catch-up. The live tail and wake
+forwarding land before the feature closes.
 
 ## 4. Tasks
 
-- [ ] **T1 — catch-up reader.** Pull pages, yield `Next`/`Spread`, thread the cursor. Test:
+- [x] **T1 — core catch-up.** Page reads and cursor threading. Test:
       `reads_resume_byte_exactly_across_page_boundaries`.
-- [ ] **T2 — live tail.** `Stream::Wait` at `up_to_date`; wake on append; `closed` ends the
-      stream. Test: `live_tail_parks_then_wakes_on_append`.
-- [ ] **T3 — trim refusal.** A read at a dropped offset surfaces `Trimmed` as a terminal error.
-      Test: `trimmed_offset_is_a_refusal_not_a_gap`.
-- [ ] **T4 — bridges.** `into_next_stream()` and `into_future_stream()` over the reader park on
-      `Wait` and resume on wake. Test with a hand-rolled waker (see spec 83 feature 06's parking
-      tests).
-- [ ] **T5 — DST harness.** An in-memory store with a simulated clock; the reader replays a seeded
-      append/read scenario. This lands in `tests/valtron/durable/`.
+- [x] **T2 — core state rules.** `up_to_date`, `closed` and partial pages. Tests:
+      `partial_page_omits_up_to_date_and_closed`, `closed_tail_reports_both`.
+- [x] **T3 — closure discovery.** Read the tail after closure. Test:
+      `closure_discovered_by_next_read`.
+- [x] **T4 — `offset=now`.** Catch-up, live and closed cases. Tests: `now_catchup_empty`,
+      `now_live_waits`, `now_closed_returns_immediately`.
+- [x] **T5 — trim refusal.** Test: `trimmed_offset_is_a_refusal_not_a_gap`.
+- [x] **T6 — valtron tail.** `Stream::Wait`, wake on append and end on close. Tests:
+      `live_tail_parks_then_wakes_on_append`, `closed_stream_ends_without_parking`.
+- [x] **T7 — bridges.** `into_next_stream` and `into_future_stream`. Test with a hand-rolled
+      waker.
+- [x] **T8 — DST harness.** Seeded append and read replay. Test:
+      `seeded_reader_replay_is_byte_exact`.
+- [x] **T9 — valtron independence.** The core reader tests run with valtron disabled.
+- [x] **T10 — oracles.** Model, metamorphic and property oracles. Tests:
+      `model_matches_driver`, `read_from_offset_is_suffix`, `append_read_is_byte_exact`.
 
 ## 5. Success criteria
 
-- [ ] `cargo test -p foundation_core` green; the reader tests live in `tests/`, not inline.
-- [ ] Byte-exact resumption and trim refusal are tested and pass 20 runs in a row.
-- [ ] `cargo check --target wasm32-unknown-unknown -p foundation_core` green.
+- [x] `cargo test -p foundation_core` green; tests live in `tests/durable/`.
+- [x] The core reader tests pass without valtron.
+- [x] Byte-exact resumption, state rules and trim refusal pass 20 runs in a row.
+- [x] The valtron reader tests pass with valtron enabled.

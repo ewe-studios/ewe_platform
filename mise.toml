@@ -693,6 +693,16 @@ run = "cargo run --locked --profile uat -p foundation_ci --features cloudflare-o
 description = "Show Cloudflare environment configuration"
 run = "cargo run --locked --profile uat -p foundation_ci -- task run cf:env"
 
+# --- Local AWS KMS emulator (moto) ---
+
+[tasks."kms:moto"]
+description = "Run the local AWS KMS test against moto (--keep-running leaves it up)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+exec bash infrastructure/kms/test/run.sh "$@"
+"""
+
 # --- llama-server Testing Infrastructure ---
 
 [tasks."llama:server:build"]

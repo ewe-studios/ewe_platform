@@ -22,5 +22,5 @@ pub mod watcher;
 /// Native filesystem and search implementations. `NativeFs` and the delta
 /// backends need `vfs-native`; the host-process search backends need
 /// `vfs-search`.
-#[cfg(any(feature = "vfs-native", feature = "vfs-search"))]
+#[cfg(any(feature = "vfs-native", feature = "vfs-search", feature = "vfs-object"))]
 pub mod vfs;

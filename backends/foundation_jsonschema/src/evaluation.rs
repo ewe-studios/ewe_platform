@@ -119,7 +119,7 @@ pub struct ListEntry {
 }
 
 /// Hierarchical output — nested tree.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HierarchicalOutput {
     /// Whether this node passed validation.
     pub valid: bool,

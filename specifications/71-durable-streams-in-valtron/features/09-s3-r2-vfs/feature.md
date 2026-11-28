@@ -1,0 +1,213 @@
+---
+feature: "S3 and R2 VFS"
+status: "done"
+priority: "high"
+depends_on: ["01-durable-stream-types", "05-storage-backends"]
+crates: ["foundation_nativeapis", "foundation_core"]
+---
+
+# Feature 09: S3 and R2 VFS
+
+_Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
+are._
+
+**Abbreviations in this file.** Amazon Simple Storage Service (S3); Cloudflare R2 (R2, a product
+name); compare and swap (CAS); Entity Tag (ETag); write-ahead log (WAL); Hypertext Transfer
+Protocol (HTTP); JavaScript Object Notation (JSON); time to live (TTL); AeroSpace and Defence
+Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## 1. Goal
+
+Add a high-performance VFS for S3 and R2 in `foundation_nativeapis`. It writes locally first.
+It batches locally. It pushes one object per batch. It uses conditional writes for multi-writer
+safety. It reads with range GETs. The protocol core and `Ctx` do not change.
+
+**User story.** As an operator, I want durable streams on S3 or R2, so that storage is cheap,
+durable and safe for several writers.
+
+**BDD scenarios.**
+
+- Given a local spool and a bucket, when a writer appends, then the append is durable locally.
+- Given a full batch, when the batcher flushes, then it sends one object PUT.
+- Given two writers, when both update the head, then one CAS wins and the other retries.
+- Given a process crash, when the writer restarts, then the spool replay loses no data.
+- Given S3 and R2, when the same scenario runs, then the results match.
+
+## 2. Requirements
+
+1. **Provider trait.** One `ObjectStore` trait covers S3 and R2. It has conditional PUT, range
+   GET, HEAD, LIST and DELETE. The provider is selected by configuration.
+2. **Layout strategy.** Two layouts: segmented (default) and append-only file. The key scheme is
+   private. Segmented example: `<root>/<stream>/HEAD` and
+   `<root>/<stream>/seg/<gen>-<seq>.log`. Append-only example: `<root>/<stream>/HEAD` and
+   `<root>/<stream>/log`. Both preserve the same protocol semantics.
+3. **Head manifest.** The head has a version, the segment list, the tail length, producer state,
+   `Stream-Seq`, closure and expiry. It is the CAS target.
+4. **Immediate local write.** An append writes to a local spool file and fsyncs before it returns
+   `Accepted`. A crash loses nothing that was acknowledged.
+5. **Local batching.** The batcher groups appends by bytes and time. It seals one object per
+   batch. It sends one object PUT per batch. Large batches use multipart. Batching is local. It
+   is not an S3 batch API.
+6. **CAS.** Create uses `If-None-Match: *`. Update uses `If-Match: <etag>`. A stale ETag returns
+   `412 Precondition Failed`. The writer re-reads the head and retries.
+7. **Multi-writer safety.** Only one writer wins a head CAS. A loser keeps its sealed segment and
+   retries the head update. Producer and `Stream-Seq` reject a duplicate or a regression.
+8. **Sealed acknowledgement.** `Accepted` means local fsync. `Sealed` means the segment and head
+   are durable in the object store.
+9. **Read path.** Read the head, then range GET the segments. Cache the head and hot segments
+   locally. Stitch a page across segment boundaries.
+10. **Crash recovery.** Replay the spool on start. Use an idempotent batch id. Delete orphan
+    segments that no head references.
+11. **Compaction.** Merge small segments into one object. Trim old segments by retention. Never
+    copy a whole stream.
+12. **Provider differences.** Detect conditional write support, multipart limits, checksum
+    support and consistency. Use a capability record. If a provider lacks CAS, use a lease
+    object and document the weaker guarantee.
+13. **Performance.** Batch bytes, linger time, parallel PUT count, target segment size and cache
+    bytes are configuration with documented defaults. The write path does not block the caller
+    on an S3 round trip.
+14. **Security.** TLS, server-side encryption and least-privilege credentials. Credentials come
+    from the injected environment, never a global.
+15. **Tests.** Each VFS runs the shared conformance scenarios and its own coverage tests. S3 and
+    R2 run the same scenarios. Crash, CAS race, orphan and compaction tests are required.
+16. **No runtime leak.** The VFS has no HTTP server, valtron or global runtime.
+17. **Publish after PUT.** The head manifest is the authority. A reader revalidates the head
+    after a GET. A missing object for a live head is an error, never zero bytes.
+18. **Object lifecycle.** Each object is `Live`, `Retired`, `DeleteIssued` or `Deleted`. A grace
+    window separates retire from delete. Never delete a live or retired object.
+19. **Provider specifics.** R2 uses region `auto`, path-style addressing when needed and CRC32
+    checksums. The provider capability record states conditional write support. Check every
+    `DeleteObjects` per-key result.
+20. **Configuration.** Layout mode, segment target bytes, batch max bytes, linger time, parallel
+    PUT count and flush policy are configuration. The default is segmented. The default target is
+    256 KiB (Rivet). An append-only file layout is supported.
+21. **Same semantics.** The layout never changes the protocol outcome. A read, cursor, producer
+    acknowledgement or closure result is the same in both layouts.
+
+## 3. Lessons from Rivet
+
+Rivet's last open-source S3 cold tier (commit `d51993c0`) is the reference. Current Rivet removed
+it from open source. These are the lessons for feature 09:
+
+| Lesson | Rivet | Feature 09 |
+|---|---|---|
+| Object identity | Immutable key with shard, version and content hash | Immutable segment key with stream, generation, sequence and content hash |
+| Publication | Head/CAS record is the authority; publish after PUT | Head CAS is the authority; publish after PUT |
+| Object size | About 256 KiB per shard object | Default 256 KiB segment; configurable; append-only file is supported |
+| Read path | Hot first, cold fallback; revalidate the ref; missing object is an error | Head first, range GET; revalidate the head; missing object is an error |
+| Cache | Background shard cache fill, deduplicated | Background segment cache fill, deduplicated |
+| Lifecycle | Live, retired, delete-issued, deleted; grace window | Same state machine and grace window |
+| Delete errors | Per-key `DeleteObjects` errors are not checked | Check every per-key error |
+| Multi-writer | Serializable database transaction; no S3 CAS | No database in the VFS, so use S3/R2 conditional writes and a lease fallback |
+| Local spool | None; Rivet forbids local SQLite files | Add a local spool for immediate writes and batching |
+| Multipart and range | None; full-object PUT and GET | Add multipart PUT and range GET |
+| R2 | S3-compatible endpoint only | Explicit region `auto`, path-style, CRC32 and capability probe |
+
+The key difference: Rivet has a transactional database in the publication path. We do not. We
+must add the CAS and lease that Rivet does not need.
+
+## 4. Design
+
+```rust
+pub trait ObjectStore: Send + Sync {
+    fn put_if_none_match(&self, key: &str, bytes: &[u8]) -> ObjectFuture<'_, Version>;
+    fn put_if_match(&self, key: &str, bytes: &[u8], version: &Version)
+        -> ObjectFuture<'_, Version>;
+    fn get_range(&self, key: &str, start: u64, len: usize) -> ObjectFuture<'_, Vec<u8>>;
+    fn head(&self, key: &str) -> ObjectFuture<'_, ObjectMeta>;
+    fn list(&self, prefix: &str) -> ObjectFuture<'_, Vec<ObjectMeta>>;
+    fn delete(&self, key: &str) -> ObjectFuture<'_, ()>;
+}
+
+pub struct S3Vfs { store: Arc<dyn ObjectStore>, spool: Spool, batcher: Batcher }
+pub struct R2Vfs { store: Arc<dyn ObjectStore>, spool: Spool, batcher: Batcher }
+```
+
+Paths follow the repository layout:
+
+| Item | Path |
+|---|---|
+| Shared object store, batcher and spool | `foundation_nativeapis/src/shared/vfs/durable/` |
+| S3 VFS | `foundation_nativeapis/src/native/vfs/s3.rs` |
+| R2 VFS | `foundation_nativeapis/src/native/vfs/r2.rs` |
+| R2 binding | `foundation_db/src/wasm/bindgen/cf/r2.rs` |
+| D1 binding | `foundation_db/src/wasm/bindgen/cf/d1.rs` |
+
+The write path:
+
+1. Append to the spool and fsync.
+2. The batcher seals a segment.
+3. PUT the segment with `If-None-Match: *`.
+4. CAS the head with `If-Match`.
+5. On `412`, re-read the head, re-base the segment list and retry.
+6. Return `Sealed` after the head CAS.
+
+The read path:
+
+1. Read the head.
+2. Map the offset to a segment and a range.
+3. Range GET each segment in the page.
+4. Cache the head and hot segments.
+5. Return a bounded page.
+
+## 5. Tasks
+
+- [x] **T1 — `ObjectStore` trait.** S3 and R2 clients. Capability record. Tests:
+      `s3_and_r2_share_the_contract`.
+- [x] **T2 — key layout and head manifest.** Segmented and append-only keys, head key, version
+      and JSON encoding. Tests: `head_manifest_round_trips`, `both_layouts_have_the_same_keys`.
+- [x] **T3 — local spool.** Append, fsync, replay and idempotent batch id. Tests:
+      `spool_survives_crash`, `spool_replay_is_idempotent`.
+- [x] **T4 — batcher.** Byte and time limits. One PUT per batch in both layouts. Multipart for
+      large batches. Tests: `one_put_per_batch`, `append_only_batches_locally`,
+      `large_batch_uses_multipart`.
+- [x] **T5 — CAS head.** `If-None-Match` create and `If-Match` update. Retry on `412`. Tests:
+      `two_writers_one_cas_wins`, `cas_retry_preserves_both_segments`.
+- [x] **T6 — read path.** Head cache, range GET and cross-segment stitch. Tests:
+      `read_spans_segments`, `head_cache_is_refreshed`.
+- [x] **T7 — crash recovery.** Replay and orphan cleanup. Tests:
+      `restart_after_segment_put`, `orphan_segment_is_removed`.
+- [x] **T8 — compaction and retention.** Merge, trim and GC. Tests:
+      `compaction_keeps_bytes_exact`, `retention_drops_old_segments`.
+- [x] **T9 — provider differences.** Conditional write probe, multipart limits and checksums.
+      Tests: `provider_capabilities_are_recorded`, `weak_cas_fallback_is_documented`.
+- [x] **T10 — conformance and coverage.** Run the shared VFS scenarios in both layouts and the
+      coverage tests. Tests: `s3_vfs_conformance`, `r2_vfs_conformance`, `s3_vfs_coverage`,
+      `r2_vfs_coverage`, `both_layouts_pass_the_same_scenarios`.
+- [x] **T11 — differential.** Run S3 and R2 against the same scenarios with a local emulator.
+      Test: `s3_and_r2_agree`. Feature 11 adds the live run: `live_s3_conformance` runs the
+      shared kit against a real MinIO service, `live_s3_two_writers_one_cas_wins` proves the
+      CAS race, `live_s3_restart_replays_the_spool` proves the restart replay, and
+      `live_sql_vfs_flushes_to_s3` proves the block tier. The live run passes against MinIO
+      `RELEASE.2025-10-15T17-29-55Z`. The official `minio/minio` image is no longer public,
+      so the run uses `alpine/minio` with the same release tag.
+- [x] **T12 — performance.** Measure batch latency, PUT count and throughput. Record the
+      defaults and the result. Note: the test measures object PUT count and bytes
+      (a 256 KiB batch is one object PUT) and asserts the defaults. It does not
+      assert wall time. The live MinIO run measured 53 tests in 4.56 s on a warm build;
+      the gate itself measured 231.91 s on a busy host. No real-service latency is
+      claimed.
+- [x] **T13 — publish revalidation and cache fill.** Revalidate the head after a GET. Fill the
+      segment cache in the background and deduplicate fills. Tests:
+      `missing_object_is_an_error`, `cache_fill_is_deduplicated`.
+- [x] **T14 — object lifecycle.** Live, retired, delete-issued and deleted. Grace window. Tests:
+      `never_delete_a_live_object`, `retired_object_waits_for_grace`.
+- [x] **T15 — R2 provider.** Region `auto`, path-style, CRC32 and capability probe. Tests:
+      `r2_uses_auto_region`, `r2_reports_conditional_write_support`.
+- [x] **T16 — delete results.** Check every `DeleteObjects` per-key error. Test:
+      `partial_delete_error_is_reported`.
+
+## 6. Success criteria
+
+- [x] `cargo test -p foundation_nativeapis` green.
+- [x] The S3 and R2 VFS pass the shared conformance and coverage suites.
+- [x] A crash after a segment PUT loses no acknowledged data.
+- [x] Two writers never lose a batch; one CAS wins and one retries.
+- [x] One local batch sends one object PUT (or one multipart upload).
+- [x] The default layout is segmented. The append-only file layout passes the same scenarios.
+- [x] Segment target, batch limits, linger, parallel PUTs and flush policy are configuration.
+- [x] Reads use range GETs and never materialise a whole stream.
+- [x] A reader revalidates the head after a GET; a missing object is an error.
+- [x] The object lifecycle never deletes a live or retired object.
+- [x] R2 uses region `auto`, path-style and CRC32; every delete error is checked.
+- [x] The VFS has no HTTP server, valtron or global runtime.

@@ -130,7 +130,6 @@ fn custom_resolver_ref_not_found() {
 fn empty_resolver_fails_all_refs() {
     let fetcher = InMemoryFetcher::empty();
     assert!(fetcher.is_empty());
-    assert!(fetcher.len() == 0);
 }
 
 #[test]

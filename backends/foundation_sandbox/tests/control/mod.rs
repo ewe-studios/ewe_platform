@@ -20,6 +20,7 @@ mod nested;
 mod properties;
 mod restore;
 mod rpc;
+mod service_create;
 mod stop;
 
 use foundation_core::valtron::Stream;

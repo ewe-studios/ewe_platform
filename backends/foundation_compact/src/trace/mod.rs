@@ -235,17 +235,17 @@ mod imp {
     // The config is consumed by the builder; passing it by value keeps callers simple.
     #[allow(clippy::needless_pass_by_value)]
     pub fn try_init_tracing_with(config: TracingTestConfig) {
+        static INIT: Once = Once::new();
         if config.writer != TraceWriter::Console {
             return;
         }
-        static INIT: Once = Once::new();
         INIT.call_once(|| {
             let _ = tracing_subscriber::fmt()
                 .with_max_level(tracing::Level::TRACE)
                 .without_time()
                 .with_ansi(false)
                 .with_env_filter(filter_for(&config))
-                .with_writer(|| ConsoleWriter::default())
+                .with_writer(ConsoleWriter::default)
                 .try_init();
         });
     }
@@ -328,17 +328,17 @@ mod imp {
     // The config is consumed by the builder; passing it by value keeps callers simple.
     #[allow(clippy::needless_pass_by_value)]
     pub fn try_init_tracing_with(config: TracingTestConfig) {
+        static INIT: Once = Once::new();
         if config.writer != TraceWriter::Console {
             return;
         }
-        static INIT: Once = Once::new();
         INIT.call_once(|| {
             let _ = tracing_subscriber::fmt()
                 .with_max_level(tracing::Level::TRACE)
                 .without_time()
                 .with_ansi(false)
                 .with_env_filter(filter_for(&config))
-                .with_writer(|| ConsoleWriter::default())
+                .with_writer(ConsoleWriter::default)
                 .try_init();
         });
     }

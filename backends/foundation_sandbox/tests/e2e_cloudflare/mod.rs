@@ -17,6 +17,7 @@ use foundation_netio::shared::client::request_task::HttpExchange;
 use foundation_netio::shared::http::{SimpleHeader, SimpleMethod};
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use foundation_sandbox::native::connect::ConnectAddr;
+use foundation_sandbox::shared::cloudflare::CloudflareConfig;
 use foundation_sandbox::shared::command::{Command as SandboxCommand, ExecEvent};
 use foundation_sandbox::shared::control::{
     SandboxHandle, SandboxInfo, SandboxProvider, SandboxRpcClient, SandboxState,
@@ -93,11 +94,20 @@ fn which(program: &str) -> bool {
 }
 
 /// A remote client with a token, or without one.
+///
+/// The create deadline is the Worker's container boot deadline, not the unary
+/// call deadline. A cold container start on a slow runner took about 24 s, and
+/// the Worker keeps a create for up to `CloudflareConfig::boot_timeout`. The
+/// read and call timeout is the container call deadline: the first call to a
+/// cold container took about 5 s on the runner.
 fn client(token: Option<&str>) -> SandboxRpcClient {
     let url = worker_url().expect("the test skipped without a URL");
-    let control =
-        SandboxRpcClient::connect(Ctx::host(), ConnectAddr::Url(url), SandboxLimits::default())
-            .expect("the Worker transport builds");
+    let worker = CloudflareConfig::default();
+    let limits = SandboxLimits::default()
+        .with_boot_timeout(worker.boot_timeout)
+        .with_rpc_timeout(worker.call_timeout);
+    let control = SandboxRpcClient::connect(Ctx::host(), ConnectAddr::Url(url), limits)
+        .expect("the Worker transport builds");
     match token {
         Some(token) => control.with_token(Secret::new(token)),
         None => control,
@@ -169,9 +179,15 @@ fn is(error: &ErrorTrace<SandboxError>, predicate: impl Fn(&SandboxError) -> boo
 ///
 /// The test suite runs one test at a time (`--test-threads=1`), so every
 /// matching container belongs to the test that is running.
+///
+/// The local Cloudflare runtime also runs a proxy sidecar for each container.
+/// Its name contains the application name and ends in `-proxy`, and its image is
+/// `cloudflare/proxy-everything`. It belongs to the runtime, not to the sandbox
+/// image, and it stays after a sandbox stops. The tests count only the workload
+/// container.
 fn docker_containers() -> Vec<String> {
     let output = Command::new(DOCKER)
-        .args(["ps", "--format", "{{.ID}} {{.Names}}"])
+        .args(["ps", "--format", "{{.ID}} {{.Names}} {{.Image}}"])
         .output();
     let Ok(output) = output else {
         return Vec::new();
@@ -179,8 +195,50 @@ fn docker_containers() -> Vec<String> {
     String::from_utf8_lossy(&output.stdout)
         .lines()
         .filter(|line| line.contains(CONTAINER_NAME))
+        .filter(|line| !line.contains("-proxy"))
+        .filter(|line| !line.contains("proxy-everything"))
         .filter_map(|line| line.split_whitespace().next().map(str::to_string))
         .collect()
+}
+
+/// The names of the Docker containers of the sandbox application.
+///
+/// The failure message of the stop test prints them, so a run can name a
+/// container that was not the runtime proxy.
+fn docker_container_names() -> Vec<String> {
+    let output = Command::new(DOCKER)
+        .args(["ps", "--format", "{{.Names}} {{.Image}}"])
+        .output();
+    let Ok(output) = output else {
+        return Vec::new();
+    };
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter(|line| line.contains(CONTAINER_NAME))
+        .filter(|line| !line.contains("-proxy"))
+        .filter(|line| !line.contains("proxy-everything"))
+        .filter_map(|line| line.split_whitespace().next().map(str::to_string))
+        .collect()
+}
+
+/// Waits until no workload container is listed, or the deadline passes.
+///
+/// The container runtime removes a destroyed container from `docker ps` after
+/// the destroy call returns, so the stop check gives it a short time. A
+/// remaining container is returned for the failure message.
+fn wait_for_no_docker_containers(timeout: Duration) -> Vec<String> {
+    // The test has no injected clock: it counts 250 ms polls. It runs on the
+    // real local runtime, so the wall-clock rule of the core libraries does not
+    // apply here.
+    let polls = (timeout.as_millis() / 250).max(1);
+    for _ in 0..polls {
+        let containers = docker_containers();
+        if containers.is_empty() {
+            return containers;
+        }
+        std::thread::sleep(Duration::from_millis(250));
+    }
+    docker_containers()
 }
 
 /// Every byte of one file stream.
@@ -493,7 +551,15 @@ fn e2e_cloudflare_two_sandboxes() {
         let control = client(Some(&token()));
         let first = create(&control, container_spec(), "the first create").await;
         let second = create(&control, container_spec(), "the second create").await;
+        // A write does not make missing parent directories. The relative path
+        // joins the workdir, so `/workspace/tmp` must exist first (issue #1154).
+        first
+            .run(SandboxCommand::new(["mkdir", "-p", "/workspace/tmp"]))
+            .await
+            .expect("the directory");
         write_file(&first, "tmp/a", b"first").await;
+        // The same relative path in the second sandbox names a missing file
+        // under its own workdir, so the read is `NotFound`.
         let result = second.read_file("tmp/a").await;
         assert!(
             result
@@ -553,10 +619,17 @@ fn e2e_cloudflare_large_stream() {
         let mut events = handle.events();
         let mut total = 0_usize;
         let mut frames = 0_u64;
+        // The command prints `x` then a newline, over and over. A frame can
+        // split a pair, so the check follows the pattern across frame
+        // boundaries instead of expecting every frame to hold whole pairs.
+        let mut expected = b'x';
         while let Some(event) = events.next().await {
             match event.expect("the event stream") {
                 ExecEvent::Stdout(data) => {
-                    assert_eq!(data.len() % 2, 0, "the pattern is two bytes");
+                    for &byte in &data {
+                        assert_eq!(byte, expected, "the x and newline pattern is in order");
+                        expected = if expected == b'x' { b'\n' } else { b'x' };
+                    }
                     total += data.len();
                     frames += 1;
                 }
@@ -588,9 +661,11 @@ fn e2e_cloudflare_stop() {
             ))),
             "Get after a stop is NotFound"
         );
+        let left = wait_for_no_docker_containers(Duration::from_secs(10));
+        let names = docker_container_names();
         assert!(
-            docker_containers().is_empty(),
-            "no Docker container of {CONTAINER_NAME} is left"
+            left.is_empty(),
+            "no Docker container of {CONTAINER_NAME} is left; left: {names:?}"
         );
     });
 }

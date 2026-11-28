@@ -11,7 +11,7 @@ use foundation_compact::SendWrapper;
 use foundation_context::Ctx;
 use futures::{Stream, StreamExt};
 use worker::js_sys::futures::JsFuture;
-use worker::wasm_bindgen::JsValue;
+use worker::wasm_bindgen::{JsCast, JsValue};
 
 use crate::shared::cloudflare::{
     port_error_from_text, CloudflareConfig, CloudflareHost, ContainerApi, ContainerStart, DoAlarm,
@@ -61,37 +61,57 @@ fn js_error(error: JsValue) -> foundation_errstacks::ErrorTrace<SandboxError> {
 }
 
 /// `ContainerApi` over the Durable Object's `worker::Container`.
+///
+/// The adapter holds the Durable Object state, not a `Container`. A `Container`
+/// is an input/output (I/O) object of the Durable Object that made it, and the
+/// platform refuses to use it from another Durable Object (issue #1125). The
+/// adapter therefore obtains the container from its own state at each use, so
+/// the container and the TCP port that its fetch creates belong to the object
+/// that uses them.
 pub struct WorkerContainer {
-    container: SendWrapper<worker::Container>,
+    state: SendWrapper<JsValue>,
     max_error_message: usize,
 }
 
 impl WorkerContainer {
-    /// The adapter over one worker container.
+    /// The adapter over one Durable Object state.
     #[must_use]
-    pub fn new(container: worker::Container) -> Self {
+    pub fn new(state: &worker::State) -> Self {
         Self::new_with_max_error_message(
-            container,
+            state,
             crate::shared::limits::SandboxLimits::default().max_error_message,
         )
     }
 
     /// The adapter with the cap on one port error text.
     #[must_use]
-    pub fn new_with_max_error_message(container: worker::Container, max: usize) -> Self {
+    pub fn new_with_max_error_message(state: &worker::State, max: usize) -> Self {
         Self {
-            container: SendWrapper::new(container),
+            state: SendWrapper::new(
+                <worker::worker_sys::DurableObjectState as AsRef<JsValue>>::as_ref(state.as_raw())
+                    .clone(),
+            ),
             max_error_message: max,
         }
+    }
+
+    /// The container of this Durable Object, made in the current call.
+    fn container(&self) -> Option<worker::Container> {
+        let state: worker::worker_sys::DurableObjectState = self.state.clone().unchecked_into();
+        state.container().map(worker::Container::from)
     }
 }
 
 impl ContainerApi for WorkerContainer {
     fn running(&self) -> bool {
-        self.container.running()
+        self.container()
+            .is_some_and(|container| container.running())
     }
 
     fn start(&self, options: ContainerStart) -> SandboxResult<()> {
+        let Some(container) = self.container() else {
+            return Err(SandboxError::HostNotConfigured.into());
+        };
         let mut startup = worker::ContainerStartupOptions::new();
         let entrypoint: Vec<&str> = options.entrypoint.iter().map(String::as_str).collect();
         startup.set_entrypoint(&entrypoint);
@@ -99,7 +119,7 @@ impl ContainerApi for WorkerContainer {
         for (key, value) in &options.env {
             startup.add_env(key, value);
         }
-        self.container.start(Some(startup)).map_err(|error| {
+        container.start(Some(startup)).map_err(|error| {
             SandboxError::SubstrateApi {
                 status: 0,
                 message: error.to_string(),
@@ -110,17 +130,27 @@ impl ContainerApi for WorkerContainer {
 
     fn destroy(&self) -> BoxFuture<'_, SandboxResult<()>> {
         Box::pin(SendWrapper::new(async move {
-            self.container.destroy(None).await.map_err(worker_error)
+            let Some(container) = self.container() else {
+                return Ok(());
+            };
+            container.destroy(None).await.map_err(worker_error)
         }))
     }
 
     fn signal(&self, signo: i32) -> SandboxResult<()> {
-        self.container.signal(signo).map_err(worker_error)
+        let Some(container) = self.container() else {
+            return Err(SandboxError::HostNotConfigured.into());
+        };
+        container.signal(signo).map_err(worker_error)
     }
 
     fn wait_for_exit(&self) -> BoxFuture<'_, SandboxResult<()>> {
         Box::pin(SendWrapper::new(async move {
-            self.container.wait_for_exit().await.map_err(worker_error)
+            // A container that is already gone has finished its exit wait.
+            let Some(container) = self.container() else {
+                return Ok(());
+            };
+            container.wait_for_exit().await.map_err(worker_error)
         }))
     }
 
@@ -130,8 +160,12 @@ impl ContainerApi for WorkerContainer {
         request: PortRequest,
     ) -> BoxFuture<'_, Result<PortResponse, PortError>> {
         Box::pin(SendWrapper::new(async move {
-            let fetcher = self
-                .container
+            let Some(container) = self.container() else {
+                return Err(PortError::Other(
+                    "the Durable Object has no container".to_string(),
+                ));
+            };
+            let fetcher = container
                 .get_tcp_port(port)
                 .map_err(|error| PortError::Other(error.to_string()))?;
             let headers = worker::Headers::new();
@@ -274,14 +308,16 @@ impl CloudflareHost {
         index: Arc<dyn SandboxIndex>,
         config: CloudflareConfig,
     ) -> SandboxResult<Self> {
-        let container = state.container().ok_or_else(|| {
-            foundation_errstacks::ErrorTrace::new(SandboxError::HostNotConfigured)
-        })?;
+        if state.container().is_none() {
+            return Err(foundation_errstacks::ErrorTrace::new(
+                SandboxError::HostNotConfigured,
+            ));
+        }
         let storage = state.storage();
         let raw_storage = state.as_raw().storage().map_err(js_error)?;
         Ok(Self {
             container: Arc::new(WorkerContainer::new_with_max_error_message(
-                container,
+                state,
                 config.max_error_message,
             )),
             storage: Arc::new(WorkerStorage::new(storage)),

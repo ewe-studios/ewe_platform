@@ -536,6 +536,15 @@ where
                             debug!("Got SSE stream body");
                             // Extract the iterator from SseStream
                             if let Some(iterator) = opt_iter {
+                                // The iterator reads the same socket. Set it
+                                // non-blocking so a missing event returns
+                                // `WouldBlock` instead of blocking this poll.
+                                if let Err(err) = conn.set_nonblocking(true) {
+                                    tracing::debug!(
+                                        error = %err,
+                                        "cannot set SSE socket non-blocking"
+                                    );
+                                }
                                 // Transition to ReadingStream state with the iterator
                                 self.state = Some(EventSourceState::ReadingStream {
                                     conn,
@@ -703,6 +712,23 @@ where
                             last_activity: ctx.clock().now(),
                         });
                         Some(TaskStatus::Ready(parse_result))
+                    }
+                    Some(Err(e))
+                        if crate::shared::client::body_reader::is_would_block(&*e) =>
+                    {
+                        // No complete event is buffered. Park on the
+                        // connection's readiness instead of blocking the poll.
+                        let signal =
+                            conn.park_readiness(crate::native::readiness::IoInterest::Readable);
+                        self.state = Some(EventSourceState::ReadingStream {
+                            conn,
+                            iterator,
+                            last_activity,
+                        });
+                        match signal {
+                            Some(signal) => Some(TaskStatus::Depends(signal)),
+                            None => Some(TaskStatus::Wait),
+                        }
                     }
                     Some(Err(e)) => {
                         error!(error = ?e, "SSE parse error");

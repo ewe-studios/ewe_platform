@@ -18,7 +18,7 @@ fn custom_format_checker() {
                 && value[1..].chars().all(|c| c.is_ascii_hexdigit())
         }
 
-        fn format_name(&self) -> &str {
+        fn format_name(&self) -> &'static str {
             "hex-color"
         }
 
@@ -79,7 +79,7 @@ fn custom_keyword_factory() {
 
     impl Validate for PositiveNumberValidator {
         fn is_valid(&self, instance: &serde_json::Value, _ctx: &mut ValidationContext) -> bool {
-            instance.as_f64().map_or(false, |n| n > 0.0)
+            instance.as_f64().is_some_and(|n| n > 0.0)
         }
 
         fn validate(
@@ -88,7 +88,7 @@ fn custom_keyword_factory() {
             instance_path: &LazyLocation<'_>,
             _ctx: &mut ValidationContext,
         ) -> Result<(), ValidationError> {
-            if instance.as_f64().map_or(false, |n| n > 0.0) {
+            if instance.as_f64().is_some_and(|n| n > 0.0) {
                 Ok(())
             } else {
                 Err(
@@ -172,7 +172,7 @@ fn custom_formats_override_builtin() {
             true
         }
 
-        fn format_name(&self) -> &str {
+        fn format_name(&self) -> &'static str {
             "email"
         }
 

@@ -156,6 +156,69 @@ fn shared_runner_change_selects_all_packages() {
 }
 
 #[test]
+fn a_gate_is_selected_from_its_packages_and_paths_but_stays_out_of_the_matrix() {
+    let dir = fixture();
+    let root = dir.path();
+    write(
+        root,
+        "ci/packages.toml",
+        "[gates.conformance]\ndescription='fixture gate'\nrecipe='durable-conformance'\npackages=['tiny-core']\npaths=['integration/']\n[packages.conformance]\ntimeout-minutes=20\n",
+    );
+    let plan = command(
+        root,
+        env!("CARGO_BIN_EXE_foundation-ci"),
+        &["plan", "--packages", "all"],
+    );
+    assert!(
+        plan.status.success(),
+        "{}",
+        String::from_utf8_lossy(&plan.stderr)
+    );
+    let matrix: serde_json::Value = serde_json::from_slice(&plan.stdout).unwrap();
+    let names: Vec<_> = matrix["include"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["package"].as_str().unwrap())
+        .collect();
+    // The gate runs in its own job: it is listed, never a matrix entry.
+    assert_eq!(names, ["tiny-app", "tiny-core"]);
+    assert!(String::from_utf8_lossy(&plan.stderr).contains("gates: conformance"));
+
+    assert!(command(root, "cargo", &["generate-lockfile"])
+        .status
+        .success());
+    assert!(command(root, "git", &["init", "-q"]).status.success());
+    assert!(command(root, "git", &["add", "."]).status.success());
+    fixture_commit(root);
+
+    write(root, "integration/api/src/lib.rs", "");
+    let affected = || {
+        let out = command(
+            root,
+            env!("CARGO_BIN_EXE_foundation-ci"),
+            &["affected", "--base", "HEAD", "--json"],
+        );
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        serde_json::from_slice::<serde_json::Value>(&out.stdout).unwrap()
+    };
+    assert_eq!(
+        affected()["affected"]["conformance"],
+        "integration/api/src/lib.rs changed"
+    );
+
+    write(root, "core/src/lib.rs", "pub fn change() {}\n");
+    assert_eq!(
+        affected()["affected"]["conformance"],
+        "core/src/lib.rs changed"
+    );
+}
+
+#[test]
 fn plan_rejects_an_unexplained_opt_out() {
     let f = fixture();
     let root = f.path();

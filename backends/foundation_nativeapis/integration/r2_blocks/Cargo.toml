@@ -1,0 +1,32 @@
+# A standalone Worker that proves the Cloudflare R2 block store on a real local
+# R2 binding. It is outside the root workspace, so the native tests never build
+# for wasm32.
+#
+# Run it with `wrangler dev --local`; the native test
+# `foundation_nativeapis/tests/r2_wrangler.rs` starts it and calls the route:
+#
+#   npx wrangler dev --local --port 8793
+#   curl --fail http://127.0.0.1:8793/r2-blocks
+[package]
+name = "foundation_nativeapis_r2_blocks_worker"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+foundation_context = { path = "../../../foundation_context" }
+foundation_core = { path = "../../../foundation_core" }
+foundation_db = { path = "../../../foundation_db", default-features = false, features = ["wasm-bindgen-storage"] }
+foundation_nativeapis = { path = "../..", default-features = false, features = ["vfs-object-wasm"] }
+serde_json = "1"
+worker = "0.8.3"
+# Pin the bridge to the version the workspace uses, so the wasm-bindgen command
+# line interface and the crate agree.
+wasm-bindgen = "=0.2.130"
+wasm-bindgen-futures = "=0.4.80"
+js-sys = "=0.3.107"
+
+[workspace]

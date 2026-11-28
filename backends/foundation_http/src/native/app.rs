@@ -49,6 +49,15 @@ impl HttpApp<Arc<dyn Serve>> {
         self
     }
 
+    /// Register the handler for every path that no route matches.
+    ///
+    /// A Durable Streams adapter uses this: every path is a stream.
+    pub fn fallback<H: ServeFactory>(&mut self) -> &mut Self {
+        let handler: Arc<dyn Serve> = Arc::new(H::create(&self.ctx));
+        self.router.set_fallback(handler);
+        self
+    }
+
     /// Create an `HttpServer` from this app with default config.
     #[must_use]
     pub fn server(self, addr: &str) -> HttpServer {

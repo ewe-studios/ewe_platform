@@ -153,17 +153,15 @@ fn compile_node(schema: &Value, ctx: &CompilerContext) -> Result<SchemaNode, Val
     let defined_properties: alloc::collections::BTreeSet<alloc::string::String> = schema_obj
         .get("properties")
         .and_then(|p| p.as_object())
-        .map(|o| o.keys().cloned().collect())
-        .unwrap_or_default();
+        .map_or_default(|o| o.keys().cloned().collect());
     let pattern_regexes: Vec<(regex::Regex, alloc::string::String)> = schema_obj
         .get("patternProperties")
         .and_then(|p| p.as_object())
-        .map(|o| {
+        .map_or_default(|o| {
             o.iter()
                 .filter_map(|(k, _)| regex::Regex::new(k).ok().map(|r| (r, k.clone())))
                 .collect()
-        })
-        .unwrap_or_default();
+        });
 
     let mut validators: Vec<BoxedValidator> = Vec::new();
 
@@ -469,14 +467,11 @@ fn compile_multiple_of(value: &Value, ctx: &CompilerContext<'_>) -> Option<Boxed
 // ── Object ─────────────────────────────────────────────────────────────
 
 fn compile_required(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
-    let props = value
-        .as_array()
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|v| v.as_str().map(String::from))
-                .collect()
-        })
-        .unwrap_or_default();
+    let props = value.as_array().map_or_default(|arr| {
+        arr.iter()
+            .filter_map(|v| v.as_str().map(String::from))
+            .collect()
+    });
     Box::new(RequiredValidator::new(props, ctx.schema_path.clone()))
 }
 
@@ -498,25 +493,22 @@ fn compile_property_names(value: &Value, ctx: &CompilerContext<'_>) -> BoxedVali
 
 fn compile_dependent_required(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
     use alloc::collections::BTreeMap;
-    let map = value
-        .as_object()
-        .map(|obj| {
-            obj.iter()
-                .filter_map(|(k, v)| {
-                    let props: Vec<String> = v
-                        .as_array()?
-                        .iter()
-                        .filter_map(|p| p.as_str().map(String::from))
-                        .collect();
-                    if props.is_empty() {
-                        None
-                    } else {
-                        Some((k.clone(), props))
-                    }
-                })
-                .collect::<BTreeMap<_, _>>()
-        })
-        .unwrap_or_default();
+    let map = value.as_object().map_or_default(|obj| {
+        obj.iter()
+            .filter_map(|(k, v)| {
+                let props: Vec<String> = v
+                    .as_array()?
+                    .iter()
+                    .filter_map(|p| p.as_str().map(String::from))
+                    .collect();
+                if props.is_empty() {
+                    None
+                } else {
+                    Some((k.clone(), props))
+                }
+            })
+            .collect::<BTreeMap<_, _>>()
+    });
     Box::new(DependentRequiredValidator::new(
         map,
         ctx.schema_path.clone(),

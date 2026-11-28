@@ -1239,3 +1239,54 @@ async fn async_collect_future_collects_pushed_items() {
     let values = iterator.into_collect_future().await;
     assert_eq!(values, vec![7, 8]);
 }
+
+/// A durable stream round trip on the JavaScript host: create, append, read.
+///
+/// Before this case the wasm32 gate was compile-only (issue #1080). This case
+/// runs the protocol core over `MemoryVfs` on the owned `js-foundation-wasm`
+/// backend and checks the bytes, so an event-loop fault fails a test and not
+/// only a build.
+#[wasm_test]
+async fn durable_core_roundtrip_over_memory_vfs() {
+    use foundation_core::durable::{
+        AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreamStore, MemoryVfs, ReadFrom,
+        ReadLimit, ReadRequest, StreamName,
+    };
+
+    let ctx = Ctx::host();
+    let stream = DurableStream::new(Arc::new(MemoryVfs::new()), &ctx);
+    let name = StreamName::parse("wasm/roundtrip").expect("valid stream name");
+    stream
+        .create(name.clone(), CreateSpec::default())
+        .await
+        .expect("create");
+    stream
+        .append(
+            &name,
+            AppendRequest {
+                chunk: Chunk::new(b"hello wasm".to_vec()),
+                content_type: None,
+                stream_seq: None,
+                producer: None,
+                close: false,
+            },
+        )
+        .await
+        .expect("append");
+    let page = stream
+        .read(
+            &name,
+            ReadRequest {
+                from: ReadFrom::Start,
+                limit: ReadLimit::default(),
+            },
+        )
+        .await
+        .expect("read");
+    let bytes: Vec<u8> = page
+        .chunks
+        .iter()
+        .flat_map(|chunk| chunk.as_bytes().iter().copied())
+        .collect();
+    assert_eq!(bytes, b"hello wasm");
+}

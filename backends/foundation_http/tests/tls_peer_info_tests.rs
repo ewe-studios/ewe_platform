@@ -62,6 +62,7 @@ fn tls_peer_certificates_reach_the_handler() {
         .distinguished_name
         .push(DnType::CommonName, "peer-info test CA");
     let ca_cert = ca_params.self_signed(&ca_key).expect("CA cert");
+    let ca_issuer = rcgen::Issuer::from_ca_cert_der(ca_cert.der(), &ca_key).expect("CA issuer");
 
     let server_key = KeyPair::generate().expect("server key");
     let mut server_params =
@@ -70,7 +71,7 @@ fn tls_peer_certificates_reach_the_handler() {
         .extended_key_usages
         .push(ExtendedKeyUsagePurpose::ServerAuth);
     let server_cert = server_params
-        .signed_by(&server_key, &ca_cert, &ca_key)
+        .signed_by(&server_key, &ca_issuer)
         .expect("server cert");
 
     let client_key = KeyPair::generate().expect("client key");
@@ -82,7 +83,7 @@ fn tls_peer_certificates_reach_the_handler() {
         .extended_key_usages
         .push(ExtendedKeyUsagePurpose::ClientAuth);
     let client_cert = client_params
-        .signed_by(&client_key, &ca_cert, &ca_key)
+        .signed_by(&client_key, &ca_issuer)
         .expect("client cert");
 
     let ca_der: CertificateDer<'static> = ca_cert.der().clone();

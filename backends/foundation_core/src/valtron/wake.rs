@@ -79,6 +79,36 @@ pub trait WakeableStream: StreamIterator {
         }))
     }
 
+    /// True when `next()` itself runs the producer, so a `Wait` means "run it
+    /// again", not "wait for another thread".
+    ///
+    /// The default is `false`: a queue-backed stream only gets new items from
+    /// another thread, so a `Wait` must park. A driving stream (for example
+    /// `DrivenStreamIterator`) advances its own engine inside `next()`; on a
+    /// single-threaded engine nobody else runs, so a parked `Wait` never wakes.
+    /// Such a stream returns `true`, and the parking adapters re-poll it instead
+    /// of parking.
+    ///
+    /// A wrapper that forwards [`Self::wake`] or [`Self::wake_send`] to an
+    /// inner stream must forward this method too, or it hides the fix.
+    fn drives_its_producer(&self) -> bool {
+        false
+    }
+
+    /// True when the stream can make progress right now, so a `Wait` from a
+    /// driving stream is worth re-polling.
+    ///
+    /// A driving stream that is parked on a readiness signal or a timer reports
+    /// `false`. A re-poll would sleep out the driver's wait budget and change
+    /// nothing, so the adapter parks on the wake instead. The default is `true`:
+    /// a stream that does not override it keeps the re-drive policy.
+    ///
+    /// A wrapper that forwards [`Self::wake`] or [`Self::wake_send`] to an
+    /// inner stream must forward this method too.
+    fn can_make_progress(&self) -> bool {
+        true
+    }
+
     /// Idempotently announce that an async consumer will pull this stream,
     /// before the first pull, so a blocking terminal answers an empty pull with
     /// `Wait` instead of blocking the polling thread. Cheap and safe to call on

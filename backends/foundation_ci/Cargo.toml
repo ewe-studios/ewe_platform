@@ -41,6 +41,8 @@ sha1.workspace = true
 toml_edit.workspace = true
 tar.workspace = true
 flate2.workspace = true
+# The live KMS task keeps the GCP access token in memory and zeroes it on drop.
+zeroize.workspace = true
 
 [dev-dependencies]
 foundation_core.workspace = true

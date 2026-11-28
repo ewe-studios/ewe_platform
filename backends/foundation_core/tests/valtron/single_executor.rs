@@ -7,7 +7,7 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use foundation_compact::rng::Rng;
+use foundation_compact::rng::{ChaCha8Rng, Rng, SeedableRng};
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until, run_until_complete, spawn},
@@ -15,6 +15,14 @@ use foundation_core::valtron::{
 };
 
 use foundation_context::Ctx;
+
+/// Fixed seed for every pool in this file, so each run replays exactly.
+const TEST_SEED: u64 = 0x5EED_5EED_0000_0001;
+
+/// Draw the pool seed from a local fixed-seed RNG. No host entropy is read.
+fn executor_seed() -> u64 {
+    ChaCha8Rng::seed_from_u64(TEST_SEED).next_u64()
+}
 
 struct Counter(usize, Rc<RefCell<Vec<usize>>>);
 
@@ -44,7 +52,7 @@ impl TaskIterator for Counter {
 
 #[valtron_test]
 fn can_queue_task_only() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let shared_list = Rc::new(RefCell::new(Vec::new()));
     let counter = Counter::new(5, shared_list.clone());
@@ -65,7 +73,7 @@ fn can_queue_task_only() {
 
 #[valtron_test]
 fn can_queue_and_complete_task_with_run_until() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let shared_list = Rc::new(RefCell::new(Vec::new()));
     let counter = Counter::new(5, shared_list.clone());
@@ -89,7 +97,7 @@ fn can_queue_and_complete_task_with_run_until() {
 
 #[valtron_test]
 fn can_queue_and_complete_task() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let shared_list = Rc::new(RefCell::new(Vec::new()));
     let counter = Counter::new(5, shared_list.clone());
@@ -112,7 +120,7 @@ fn can_queue_and_complete_task() {
 
 #[valtron_test]
 fn can_queue_and_complete_task_with_iterator() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let shared_list = Rc::new(RefCell::new(Vec::new()));
     let counter = Counter::new(5, shared_list.clone());
@@ -140,7 +148,7 @@ fn can_queue_and_complete_task_with_iterator() {
 
 #[valtron_test]
 fn can_queue_and_complete_stream_with_iterator() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let shared_list = Rc::new(RefCell::new(Vec::new()));
     let counter = Counter::new(5, shared_list.clone());

@@ -12,13 +12,15 @@ pub type TimerFuture = Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
 
 /// Waits until a monotonic deadline.
 ///
-/// The timer reads no clock of its own. `ctx` carries the clock that measures
-/// `deadline`, so the same timer serves a real clock and a simulated clock.
+/// An implementation chooses the clock. [`ContextTimer`](crate::timer::ContextTimer)
+/// binds `Ctx::clock` when the context builds it, so it serves a real clock and a
+/// simulated clock. A custom timer may read the clock from `ctx`.
 pub trait Timer: Send + Sync + 'static {
-    /// Resolves when `deadline` has passed on the clock of `ctx`.
+    /// Resolves when `deadline` passes on the clock this timer measures.
     ///
-    /// `ctx` is a parameter and not a field. A timer that stored a `Ctx` would
-    /// close an `Arc` cycle, because the `Env` that holds the timer is a typed
-    /// entry of that same `Ctx` (spec 84, section 3, rule 4).
+    /// `ctx` is a parameter and not a field. A timer held by `Env` must not store
+    /// a `Ctx`, because the `Env` is a typed entry of that same `Ctx`; the store
+    /// would close an `Arc` cycle (spec 84, section 3, rule 4). A timer may store
+    /// an `Arc<dyn Clock>` instead.
     fn sleep_until(&self, ctx: Ctx, deadline: Instant) -> TimerFuture;
 }

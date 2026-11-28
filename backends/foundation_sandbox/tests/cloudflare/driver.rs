@@ -352,3 +352,99 @@ fn do_driver_no_container_control() {
     assert!(matches!(error, SandboxError::UnsupportedCapability { .. }));
     assert!(driver.containers().is_none());
 }
+
+/// The configuration of one sandbox Durable Object carries the model values of
+/// the Worker, so a model spec reaches the model driver (issue #1142).
+#[test]
+fn sandbox_config_carries_the_model() {
+    let model = ModelConfig::new().with_backend(Some(ModelBackend::CloudflareAi {
+        model: "test".to_string(),
+    }));
+    let config = CloudflareConfig::for_sandbox("abc", model.clone());
+    assert_eq!(config.name, "abc");
+    assert_eq!(config.model, Some(model));
+}
+
+/// A cleanup must not ask a container that is already gone whether it runs.
+///
+/// The Cloudflare host throws `Critical error` from `running` after the
+/// container stopped, which took the whole Durable Object down (issue #1125).
+/// The handle knows that it destroyed the container, so it destroys at most
+/// once and never reads the host state.
+#[test]
+fn cleanup_does_not_read_a_gone_container() {
+    let h = Harness::new(30, true, false);
+    let driver = CloudflareContainerDriver::new(
+        h.host.clone(),
+        connector(&h) as Arc<dyn foundation_sandbox::shared::host::SlaveConnector>,
+    );
+    let (_, result) = launch_result(&driver, &h, spec());
+    let substrate = result.expect("a result").expect("the launch works");
+    let handle = substrate.handle;
+    h.container.panic_on_running();
+    block_on(handle.cleanup()).expect("the cleanup succeeds");
+    assert!(
+        h.container.destroy_count() > 0,
+        "the cleanup destroys the container"
+    );
+}
+
+/// A cleanup retries a destroy that the kill could not finish.
+///
+/// A failed destroy must not mark the container as destroyed. The cleanup is
+/// the second chance; if it skips the destroy, the container leaks (issue
+/// #1125).
+#[test]
+fn cleanup_retries_a_failed_destroy() {
+    let h = Harness::new(31, true, false);
+    let driver = CloudflareContainerDriver::new(
+        h.host.clone(),
+        connector(&h) as Arc<dyn foundation_sandbox::shared::host::SlaveConnector>,
+    );
+    let (_, result) = launch_result(&driver, &h, spec());
+    let substrate = result.expect("a result").expect("the launch works");
+    let handle = substrate.handle;
+    h.container
+        .fail_next_destroy("the runtime refused the destroy");
+    block_on(handle.kill()).expect("the kill answers");
+    assert_eq!(h.container.destroy_count(), 1, "the kill tries once");
+    block_on(handle.cleanup()).expect("the cleanup succeeds");
+    assert_eq!(
+        h.container.destroy_count(),
+        2,
+        "the cleanup tries the destroy again"
+    );
+}
+
+/// A cleanup does not destroy a container that a stop already destroyed.
+#[test]
+fn cleanup_does_not_destroy_a_container_twice() {
+    let h = Harness::new(32, true, false);
+    let driver = CloudflareContainerDriver::new(
+        h.host.clone(),
+        connector(&h) as Arc<dyn foundation_sandbox::shared::host::SlaveConnector>,
+    );
+    let (_, result) = launch_result(&driver, &h, spec());
+    let substrate = result.expect("a result").expect("the launch works");
+    let handle = substrate.handle;
+    block_on(handle.kill()).expect("the kill answers");
+    block_on(handle.cleanup()).expect("the cleanup succeeds");
+    assert_eq!(
+        h.container.destroy_count(),
+        1,
+        "the cleanup leaves the destroyed container alone"
+    );
+}
+
+/// The container call deadline has a documented default and a builder.
+#[test]
+fn call_timeout_configuration() {
+    let config = CloudflareConfig::new();
+    assert_eq!(config.call_timeout, std::time::Duration::from_secs(30));
+    assert_eq!(
+        config
+            .with_call_timeout(std::time::Duration::from_secs(7))
+            .call_timeout,
+        std::time::Duration::from_secs(7)
+    );
+}

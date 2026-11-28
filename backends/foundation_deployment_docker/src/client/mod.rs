@@ -144,9 +144,8 @@ impl DockerLimits {
 /// The Docker Engine API spec models this as an unnamed `allOf` of
 /// `ContainerConfig` + `{HostConfig, NetworkingConfig}`, so the code generator
 /// can't give it a name. This hand-written struct fills the gap, using the
-/// generated component types. Resource limits use [`ContainerHostConfig`] which
-/// merges the generated `HostConfig` + `Resources` (the spec has them as one
-/// object; the generator split them).
+/// generated component types. [`ContainerHostConfig`] wraps the generated
+/// `HostConfig`, which already carries the resource fields.
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct ContainerCreateBody {
     // ── Flattened ContainerConfig fields (generated) ──
@@ -213,22 +212,18 @@ impl ContainerCreateBody {
     }
 }
 
-/// Merged `HostConfig` + `Resources` for container creation.
+/// The one `HostConfig` object for container creation.
 ///
-/// The Docker Engine API spec defines `HostConfig` as a single object that
-/// includes both networking/runtime fields and CPU/memory/device resource
-/// limits. Our generated code splits them into two types (`HostConfig` and
-/// `Resources`). This struct re-merges them for the `POST /containers/create`
-/// body via `#[serde(flatten)]` — the field name sets (`PortBindings`, … and
-/// `Memory`, `NanoCpus`, …) are disjoint, so the serialized JSON is correct.
+/// The Docker Engine API spec defines `HostConfig` as an `allOf` of
+/// `Resources` (CPU, memory and device limits) and the networking, runtime and
+/// security fields. The generated `HostConfig` already merges both parts, so
+/// this wrapper holds that one value. Flattening the generated `Resources` a
+/// second time shadowed `Devices` with its default `None` (issue #966).
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct ContainerHostConfig {
-    /// Networking, runtime, security fields from `HostConfig`.
+    /// The generated `HostConfig` object.
     #[serde(flatten)]
     pub base: crate::generated::json::HostConfig,
-    /// CPU, memory, device resource limits from `Resources`.
-    #[serde(flatten)]
-    pub resources: crate::generated::json::Resources,
 }
 
 /// Container networking configuration — maps network names to endpoint settings.
