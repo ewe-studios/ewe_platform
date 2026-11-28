@@ -1,13 +1,15 @@
-//! The three model paths of the demo.
+//! The two model paths of the demo.
 //!
 //! | Tab | Path | How |
 //! |---|---|---|
-//! | 1 | Cloudflare Workers AI | The `AI` binding of the Worker; no key in the page |
+//! | 1, 3 | Cloudflare Workers AI | The `AI` binding of the Worker; no key in the page |
 //! | 2 | OpenRouter | The agent-rpc catalog and registry with the OpenRouter provider |
-//! | 3 | The sandbox container | The model server in the container, over its port |
 //!
 //! A path whose secret or binding is absent answers a message that names the
 //! missing value, so a tab and the live test show it plainly.
+//!
+//! A third path, an agent-rpc container host that serves a GGUF file, waits for
+//! issue #1276.
 
 use std::cell::RefCell;
 use std::sync::Arc;
@@ -34,18 +36,16 @@ pub enum ModelPath {
     WorkersAi,
     /// OpenRouter through the agent-rpc catalog.
     OpenRouter,
-    /// The model server in the sandbox container.
-    Container,
 }
 
 impl ModelPath {
-    /// The path of the tab at `index` (zero-based).
+    /// The path of the tab at `index` (zero-based). The two paths alternate.
     #[must_use]
     pub fn for_tab(index: usize) -> Self {
-        match index {
-            0 => Self::WorkersAi,
-            1 => Self::OpenRouter,
-            _ => Self::Container,
+        if index % 2 == 0 {
+            Self::WorkersAi
+        } else {
+            Self::OpenRouter
         }
     }
 
@@ -55,7 +55,6 @@ impl ModelPath {
         match self {
             Self::WorkersAi => "workers-ai",
             Self::OpenRouter => "openrouter",
-            Self::Container => "container-model",
         }
     }
 
@@ -65,7 +64,6 @@ impl ModelPath {
         match self {
             Self::WorkersAi => "Cloudflare Workers AI (AI binding)",
             Self::OpenRouter => "OpenRouter (agent RPC)",
-            Self::Container => "Model in the sandbox container (container port)",
         }
     }
 
@@ -75,7 +73,6 @@ impl ModelPath {
         match self {
             Self::WorkersAi => config.workers_ai_model.clone(),
             Self::OpenRouter => config.openrouter_model.clone(),
-            Self::Container => config.container_model_name.clone(),
         }
     }
 
@@ -86,7 +83,6 @@ impl ModelPath {
         match self {
             Self::WorkersAi => "Workers AI",
             Self::OpenRouter => "OpenRouter",
-            Self::Container => "in-sandbox model server",
         }
     }
 
@@ -97,7 +93,6 @@ impl ModelPath {
         match self {
             Self::WorkersAi => format!("binding {}", config.ai_binding),
             Self::OpenRouter => openrouter_address(&config.openrouter_base_url),
-            Self::Container => format!("http://127.0.0.1:{}", config.container_model_port),
         }
     }
 
@@ -114,7 +109,6 @@ impl ModelPath {
                     "HTTPS"
                 }
             }
-            Self::Container => "HTTP in the sandbox",
         }
     }
 }
@@ -231,22 +225,6 @@ pub async fn close_openrouter(sandbox_id: &str) {
     };
     let caller = caller();
     let _ = registry.destroy(&caller, sandbox_id).await;
-}
-
-/// One agent turn on the model in the sandbox container. The answer streams.
-///
-/// # Errors
-/// A message that names the missing container or the failed turn.
-pub async fn container_turn(
-    env: &Env,
-    config: &DemoConfig,
-    sandbox_id: &str,
-    prompt: &str,
-) -> Result<Response, String> {
-    let id = sandbox_id
-        .parse::<foundation_sandbox::shared::ids::SandboxId>()
-        .map_err(|error| format!("the sandbox identifier {sandbox_id}: {error}"))?;
-    sandbox::container_model(env, &id, config.container_model_port, prompt, config).await
 }
 
 /// The one OpenRouter registry of this isolate, or the reason it did not build.

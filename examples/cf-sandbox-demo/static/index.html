@@ -198,11 +198,12 @@
 
     <footer>
       <p>
-        The three model paths are Cloudflare Workers AI through the Worker's
-        <code>AI</code> binding, OpenRouter through the agent RPC catalog, and a model
-        server that runs inside the sandbox's own container and is reached over its
-        container port. Each answer names its model path, service, address and
-        protocol. The Worker sends these values as response headers.
+        The two model paths are Cloudflare Workers AI through the Worker's
+        <code>AI</code> binding, and OpenRouter through the agent RPC catalog.
+        Each answer names its model path, service, address and protocol. The
+        Worker sends these values as response headers. A third path, an agent-rpc
+        container host that serves a GGUF file, arrives with issue
+        <a href="https://github.com/ewe-studios/ewe_platform/issues/1276">#1276</a>.
       </p>
       <p class="muted">
         Local <code>wrangler dev</code> can run one container per Worker process

@@ -5,11 +5,13 @@
 # URL. `mise run test` runs `test/live.sh` against a preview name with
 # teardown. `mise run destroy` removes the Worker and its container.
 #
-# The three model paths:
+# The two model paths:
 #   1. Workers AI through the `AI` binding. It needs no secret.
 #   2. OpenRouter through the agent-rpc catalog. It needs the Worker secret
 #      `OPENROUTER_API_KEY`; set it with `wrangler secret put OPENROUTER_API_KEY`.
-#   3. The model server in the sandbox container, on `CONTAINER_MODEL_PORT`.
+#
+# A third path, an agent-rpc container host that serves a GGUF file, waits for
+# issue #1276.
 name = "ewe-sandbox-demo"
 main = "build/index.js"
 compatibility_date = "2026-05-12"
@@ -33,10 +35,7 @@ COMMAND_MAX_BYTES = "4096"
 # The largest control JSON body, and the largest error text that the API reads.
 CONTROL_BODY_MAX_BYTES = "131072"
 ERROR_TEXT_MAX_BYTES = "2048"
-# The model server in the sandbox container.
-CONTAINER_MODEL_PORT = "8081"
-CONTAINER_MODEL_NAME = "container-model"
-# The three model ids.
+# The two model ids.
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
 # The provider appends `/v1/chat/completions`, so the base stops at `/api`.
 OPENROUTER_BASE_URL = "https://openrouter.ai/api"

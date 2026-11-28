@@ -18,6 +18,11 @@
   first three lines of `/etc/os-release`, and `uptime` in its own sandbox. It
   shows the sandbox identifier and the Durable Object name from the API.
 - A Refresh button reads the sandbox index on demand. The page does not reload.
+- The demo has two model paths: the Workers AI `AI` binding and OpenRouter
+  through the agent RPC catalog. The paths alternate by tab. The owner removed
+  the deterministic echo server in the container on 2026-11-28. A real third
+  path, an agent RPC container host that serves a GGUF file, waits for issue
+  #1276.
 
 ## Verification
 
@@ -25,8 +30,7 @@
 - `cargo check --target wasm32-unknown-unknown --release`: it passes. The
   command finished the release profile in 5 minutes 43 seconds on 2026-11-28.
   It printed warnings in other crates. The demo crate has no warning.
-- `mise run build`: it passes. It wrote `agent-slave`, `demo-model` and
-  `build/index.js`.
+- `mise run build`: it passes. It wrote `agent-slave` and `build/index.js`.
 - The preview Worker
   `https://ewe-sandbox-demo-ui-k3f9.trinoxf.workers.dev` deployed with the
   Kiri Docker runtime on 2026-11-28.

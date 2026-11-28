@@ -320,11 +320,12 @@ one holder in the Linux kernel (see `learnings.md`).
   WebAssembly (wasm) module holds one `fetch` export.
 - The page shows the count from the sandbox index `List`, one tab per sandbox,
   a command console, a file write and read, and one agent turn per tab.
-- The three model paths are the Workers AI `AI` binding, OpenRouter through the
-  agent RPC catalog, and a deterministic model server inside the sandbox
-  container on port 8081, reached through `ContainerService/Fetch`.
-- `mise run deploy` builds the static slave, the container model server and the
-  Worker module, deploys `ewe-sandbox-demo` and sets `OPENROUTER_API_KEY`.
+- The two model paths are the Workers AI `AI` binding and OpenRouter through the
+  agent RPC catalog. The paths alternate by tab. The owner discarded the
+  deterministic echo server in the container on 2026-11-28. A third path, an
+  agent RPC container host that serves a GGUF file, waits for issue #1276.
+- `mise run deploy` builds the static slave and the Worker module, deploys
+  `ewe-sandbox-demo` and sets `OPENROUTER_API_KEY`.
   `mise run test` runs the preview proof with teardown. `mise run destroy`
   removes the persistent Worker.
 
@@ -337,7 +338,7 @@ cargo check --target wasm32-unknown-unknown
 
 The `cargo check` compiled the reused `sandbox_worker` with the `entry` feature
 off and the demo crate with the agent RPC core, `foundation_http::wasm`, the
-sandbox client and the three model paths.
+sandbox client and the two model paths.
 
 The live run needs a Cloudflare API token with Workers Scripts Edit, Containers
 Edit and Workers AI Read. The owner's `CLOUDFLARE_WORKERS_AI_API_TOKEN` in the
@@ -347,8 +348,7 @@ shell lists Workers scripts, but `wrangler containers list` answers
 The `worker-build --release` step and the local `wrangler dev` proof were
 stopped on 2026-11-28 because `/Volumes/Outside` had under 10 GiB free while
 other agent lanes were building. A release build and a container image need
-more space than that. The container model server compiles with `rustc` and
-answers `container-model answered: hello container` for `POST /answer`.
+more space than that.
 
 **#1232** (`severity: medium`, open): the agent RPC remote catalog requires an
 API key for every model and builds the Workers AI REST provider. It has no

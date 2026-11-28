@@ -55,7 +55,7 @@ fn probe() -> worker::Result<Response> {
         "demo": "cf-sandbox-demo",
         "version": foundation_sandbox::VERSION,
         "driver": "cloudflare-container",
-        "model_paths": ["workers-ai", "openrouter", "container-model"],
+        "model_paths": ["workers-ai", "openrouter"],
     }))
 }
 
@@ -553,7 +553,6 @@ async fn run_chat(
             let ctx = crate::ctx();
             agent::openrouter_turn(env, config, &ctx, id.as_str(), &prompt).await
         }
-        ModelPath::Container => agent::container_turn(env, config, id.as_str(), &prompt).await,
     };
     match result {
         Ok(response) => with_chat_headers(response, path, config, &model, id, name),

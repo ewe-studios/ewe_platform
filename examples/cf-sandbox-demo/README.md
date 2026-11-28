@@ -25,23 +25,24 @@ preview, runs the proof, and removes the preview.
 - Above each answer, one small line names the model path, its service, its
   address and its protocol. The Worker sends these values as response headers.
   It does not leave the page to guess them.
-- Each tab runs its own model path, so two tabs stream two answers at the same
-  time.
+- Each tab runs one of the two model paths, and the paths alternate by tab, so
+  two tabs stream two answers at the same time.
 
-## The three model paths
+## The two model paths
 
 | Tab | Model path | What it needs |
 |---|---|---|
-| 1 | Cloudflare Workers AI through the Worker `AI` binding | Nothing. The binding is in `wrangler.toml`. |
+| 1, 3 | Cloudflare Workers AI through the Worker `AI` binding | Nothing. The binding is in `wrangler.toml`. |
 | 2 | OpenRouter through the agent RPC catalog, at `https://openrouter.ai/api/v1` | The Worker secret `OPENROUTER_API_KEY`. |
-| 3 | A model server inside the sandbox container, on container port 8081 | Nothing. The image holds the model server. |
 
 The tab names its path and its model. A path whose secret or binding is absent
 shows the missing value in its tab. The live test prints the same value and
 does not fail silently.
 
-The third model is deterministic: it repeats the prompt in one short line. It
-proves the container port path with no cost. It is not a large language model.
+A third path is planned: an agent RPC container host that serves a GGUF file
+from the sandbox container. It waits for issue
+[#1276](https://github.com/ewe-studios/ewe_platform/issues/1276). The demo does
+not run a model server in the container until then.
 
 ## Prerequisites
 
@@ -75,8 +76,7 @@ mise run deploy
 
 `mise run deploy` does four steps:
 
-1. Builds the static sandbox slave and the container model server for
-   `linux/amd64`.
+1. Builds the static sandbox slave for `linux/amd64`.
 2. Builds the Worker module with `worker-build --release`.
 3. Deploys the Worker, its three Durable Object classes and its container.
 4. Sets the `OPENROUTER_API_KEY` secret and prints the URL.
@@ -104,7 +104,8 @@ deletes the preview Worker and its container. The proof does these steps:
 6. Tab 1 holds one Workers AI turn.
 7. It creates two more sandboxes; the count is 3.
 8. Tab 2 and tab 3 each run their own command and get their own output.
-9. Tab 2 holds one OpenRouter turn and tab 3 holds one container model turn.
+9. Tab 2 holds one OpenRouter turn and tab 3 holds one Workers AI turn. The
+   central chat routes to tab 3.
 10. It destroys all sandboxes; the count returns to 0.
 11. It deletes the Worker and its container and lists both, to prove that
     nothing remains.
@@ -150,13 +151,13 @@ mise run destroy
 
 ## The metadata line
 
-Each answer has one line with four values from the Worker:
+Each answer has one line with four values from the Worker. The paths alternate
+by tab:
 
 | Tab | Model path | Service | Address | Protocol |
 |---|---|---|---|---|
-| 1 | `workers-ai` | Workers AI | `binding AI` | `HTTPS` |
+| 1, 3 | `workers-ai` | Workers AI | `binding AI` | `HTTPS` |
 | 2 | `openrouter` | OpenRouter | `https://openrouter.ai/api/v1` | `HTTPS` |
-| 3 | `container-model` | in-sandbox model server | `http://127.0.0.1:8081` | `HTTP in the sandbox` |
 
 The Worker sets these response headers: `x-ewe-model-path`, `x-ewe-model`,
 `x-ewe-model-service`, `x-ewe-model-address`, `x-ewe-model-protocol`,
@@ -169,8 +170,6 @@ values as JSON fields, with the name and the Durable Object name.
   uses a small part of it.
 - The OpenRouter path uses the free model in `OPENROUTER_MODEL` (default
   `google/gemma-4-31b-it:free`). It costs nothing while the model is free.
-- The container path runs a local string function in the container. It costs
-  no model fee.
 - Cloudflare bills the containers by the time that they run. The live proof
   keeps three `lite` containers for a few minutes. One full proof costs cents
   or less.
@@ -202,13 +201,12 @@ for the count and the three tabs.
 |---|---|
 | `src/lib.rs` | The Worker entry, the effect bundle and the reused DO classes. |
 | `src/api.rs` | The control API under `/api/`. |
-| `src/sandbox.rs` | The Connect JSON client of the sandbox and container services. |
-| `src/agent.rs` | The three model paths. |
+| `src/sandbox.rs` | The Connect JSON client of the sandbox service. |
+| `src/agent.rs` | The two model paths. |
 | `src/page.rs` | The page, served from `foundation_http::wasm`. |
 | `src/config.rs` | Every var and limit, with its default. |
 | `static/index.html` | The page. Plain HTML and JavaScript; no framework. |
-| `model/` | The deterministic model server of the container. |
-| `Dockerfile`, `entrypoint.sh` | The container image. |
+| `Dockerfile` | The container image. |
 | `wrangler.toml` | The Worker, the three DO bindings, the AI binding and the container. |
 | `mise.toml` | The `deploy`, `test` and `destroy` tasks. |
 | `test/live.sh` | The live end-to-end proof. |

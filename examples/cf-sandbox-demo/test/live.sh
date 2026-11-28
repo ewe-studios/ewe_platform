@@ -40,7 +40,7 @@ if [ -n "${missing}" ]; then
     echo "the live proof needs:${missing}" >&2
     exit 2
 fi
-for file in build/index.js agent-slave demo-model; do
+for file in build/index.js agent-slave; do
     if [ ! -f "${file}" ]; then
         echo "run \`mise run build\` first: ${file} is absent" >&2
         exit 2
@@ -502,16 +502,16 @@ else
     fail "the hostnames are ${host1:-none}, ${host2:-none}, ${host3:-none}"
 fi
 
-# The two new tabs take the next two model paths. The id order and the tab
+# The tabs alternate between the two model paths. The id order and the tab
 # order are the creation order, so the first new sandbox is OpenRouter and the
-# second is the container model. The check reads the path from the page API, so
-# a tie in the creation time cannot make it wrong.
+# second is Workers AI again. The check reads the path from the page API, so a
+# tie in the creation time cannot make it wrong.
 second_path="$(tab_path "${second_id}")"
 third_path="$(tab_path "${third_id}")"
-if [ "${second_path}" = "openrouter" ] && [ "${third_path}" = "container-model" ]; then
-    pass "the two new tabs name the OpenRouter and container model paths"
+if [ "${second_path}" = "openrouter" ] && [ "${third_path}" = "workers-ai" ]; then
+    pass "the two new tabs name the OpenRouter and Workers AI paths"
 else
-    fail "the new tabs name ${second_path:-none} and ${third_path:-none}, not openrouter and container-model"
+    fail "the new tabs name ${second_path:-none} and ${third_path:-none}, not openrouter and workers-ai"
 fi
 
 step "tab 2: one agent turn on the ${second_path:-second} path"
@@ -528,7 +528,7 @@ else
 fi
 
 step "tab 3: one agent turn on the ${third_path:-third} path"
-chat_turn "${third_id}" "Say hello from the container."
+chat_turn "${third_id}" "Reply with the single word ready."
 if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "${third_path}" ] \
     && [ "${REPLY_NAME}" = "sandbox-3" ] \
     && [ -n "${REPLY_SERVICE}" ] && [ -n "${REPLY_ADDRESS}" ] && [ -n "${REPLY_PROTOCOL}" ] \
@@ -537,24 +537,21 @@ if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "${third_path}" ] \
 else
     fail "the ${third_path:-third} turn (status ${REPLY_CODE}, path ${REPLY_PATH:-none}): $(printf '%s' "${REPLY_BODY}" | head -c 400)"
 fi
-if [ "${third_path}" = "container-model" ] && ! printf '%s' "${REPLY_BODY}" | grep -q "container-model"; then
-    fail "the container model answer does not name container-model"
-fi
 
 step "the central chat routes @sandbox-3 to the third sandbox"
 central_code=$(curl -sS -N --max-time 180 \
     -D "${LOG_DIR}/central-headers.txt" -o "${LOG_DIR}/central-body.txt" \
     -w '%{http_code}' \
     -X POST "${URL}/api/chat" -H "content-type: application/json" \
-    --data-binary '{"prompt":"@sandbox-3 Say hello from the central chat."}')
+    --data-binary '{"prompt":"@sandbox-3 Reply with the single word ready."}')
 central_name="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-sandbox-name)"
 central_id="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-sandbox-id)"
 central_path="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-model-path)"
 central_service="$(header_value "${LOG_DIR}/central-headers.txt" x-ewe-model-service)"
 central_body="$(cat "${LOG_DIR}/central-body.txt")"
 if [ "${central_code}" = "200" ] && [ "${central_name}" = "sandbox-3" ] \
-    && [ "${central_id}" = "${third_id}" ] && [ "${central_path}" = "container-model" ] \
-    && [ "${central_service}" = "in-sandbox model server" ] \
+    && [ "${central_id}" = "${third_id}" ] && [ "${central_path}" = "${third_path}" ] \
+    && [ "${central_service}" = "Workers AI" ] \
     && [ -n "$(printf '%s' "${central_body}" | tr -d '[:space:]')" ]; then
     pass "the central chat routed @sandbox-3 and named the responder ${central_name}"
 else

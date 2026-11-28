@@ -1,19 +1,16 @@
 # The container image of the demo sandbox.
 #
-# `entrypoint.sh` starts the demo model server and then the static slave, so
-# one container holds both. The model server listens on `DEMO_MODEL_PORT`
-# (default 8081) and the control API reaches it over the container port.
+# The image runs the static slave, which is process identifier 1 and owns the
+# signal handling. `mise run build` copies the program here before `wrangler`
+# builds the image. It is in `.gitignore`.
 #
-# `mise run build` copies both programs here before `wrangler` builds the
-# image. They are in `.gitignore`.
+# A third model path needs a model host beside the slave in this image. It
+# waits for issue #1276.
 FROM alpine:3.22
 
 COPY agent-slave /usr/local/bin/agent-slave
-COPY demo-model /usr/local/bin/demo-model
-COPY entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh /usr/local/bin/agent-slave /usr/local/bin/demo-model \
-    && mkdir -p /workspace
+RUN chmod +x /usr/local/bin/agent-slave && mkdir -p /workspace
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/agent-slave"]
 CMD ["--listen", "tcp:0.0.0.0:1024"]

@@ -6,9 +6,8 @@
 /.wrangler/
 # The local Worker secrets of `wrangler dev`.
 /.dev.vars
-# The static programs that `mise run build` copies into the image context.
+# The static program that `mise run build` copies into the image context.
 /agent-slave
-/demo-model
 # The preview configuration that `test/live.sh` writes.
 /wrangler.preview.toml
 # The logs of the local Worker.

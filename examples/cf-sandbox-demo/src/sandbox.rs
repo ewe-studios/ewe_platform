@@ -8,12 +8,11 @@
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use foundation_sandbox::shared::container::PortRequest;
 use foundation_sandbox::shared::ids::SandboxId;
 use foundation_sandbox::shared::rpc::messages::{
-    ContainerFetchEvent, ContainerFetchRequest, CreateEvent, CreateRequest, ExecEventKind,
-    ExecEventMsg, FileChunk, FileReadRequest, FileWriteBeginRequest, FileWriteChunkRequest,
-    FileWriteCommitRequest, ListResponse, SandboxRef, Scoped,
+    CreateEvent, CreateRequest, ExecEventKind, ExecEventMsg, FileChunk, FileReadRequest,
+    FileWriteBeginRequest, FileWriteChunkRequest, FileWriteCommitRequest, ListResponse, SandboxRef,
+    Scoped,
 };
 use foundation_sandbox::shared::spec::{RootFs, SandboxSpec};
 use futures::{Stream, StreamExt};
@@ -30,8 +29,6 @@ pub const INDEX_BINDING: &str = "SANDBOX_INDEX";
 pub const SANDBOX_ID_HEADER: &str = "x-ewe-sandbox-id";
 /// The `SandboxService` prefix.
 const SANDBOX_PREFIX: &str = "/ewe.sandbox.control.v1.SandboxService/";
-/// The `ContainerService` prefix.
-const CONTAINER_PREFIX: &str = "/ewe.sandbox.container.v1.ContainerService/";
 /// The Connect streaming content type.
 const CONNECT_JSON: &str = "application/connect+json";
 /// The Connect unary content type.
@@ -92,11 +89,7 @@ pub async fn list(env: &Env, config: &DemoConfig) -> Result<Vec<Sandbox>, String
 /// The text of a failed create.
 pub async fn create(env: &Env, config: &DemoConfig) -> Result<SandboxId, String> {
     let id = SandboxId::generate(&crate::ctx());
-    let mut spec = SandboxSpec::new(RootFs::ContainerImage("sandbox".to_string()));
-    spec.env.push((
-        "DEMO_MODEL_PORT".to_string(),
-        config.container_model_port.to_string(),
-    ));
+    let spec = SandboxSpec::new(RootFs::ContainerImage("sandbox".to_string()));
     let body = serde_json::to_vec(&CreateRequest { spec })
         .map_err(|error| format!("the create body: {error}"))?;
     let response = forward(
@@ -318,90 +311,6 @@ pub async fn stop(env: &Env, id: &SandboxId, config: &DemoConfig) -> Result<(), 
     } else {
         Err(format!("the stop answered status {status}: {body}"))
     }
-}
-
-/// One turn of the model in the sandbox's own container, over its container
-/// port. The answer streams.
-///
-/// # Errors
-/// The text of a failed call.
-pub async fn container_model(
-    env: &Env,
-    id: &SandboxId,
-    port: u16,
-    prompt: &str,
-    config: &DemoConfig,
-) -> Result<Response, String> {
-    let body = serde_json::to_vec(&ContainerFetchRequest {
-        container_id: id.to_string(),
-        port,
-        request: PortRequest {
-            method: "POST".to_string(),
-            path: "/answer".to_string(),
-            headers: vec![(
-                "content-type".to_string(),
-                "text/plain; charset=utf-8".to_string(),
-            )],
-            body: prompt.as_bytes().to_vec(),
-        },
-    })
-    .map_err(|error| format!("the container model body: {error}"))?;
-    let response = forward(
-        env,
-        SANDBOX_BINDING,
-        id.as_str(),
-        &format!("{CONTAINER_PREFIX}Fetch"),
-        CONNECT_JSON,
-        &body,
-        Some(id),
-    )
-    .await?;
-    if response.status_code() != 200 {
-        return Err(format!(
-            "the container model answered status {}: {}",
-            response.status_code(),
-            bounded_body(response, config.error_text_max_bytes).await
-        ));
-    }
-    let mut frames = Box::pin(ConnectFrames::new(response)?);
-    let mut content_type = "text/plain; charset=utf-8".to_string();
-    loop {
-        match frames.next().await {
-            Some(Ok(value)) => match serde_json::from_value::<ContainerFetchEvent>(value) {
-                Ok(ContainerFetchEvent::Head { status, headers }) => {
-                    if status != 200 {
-                        return Err(format!(
-                            "the container model answered status {status} in a response head"
-                        ));
-                    }
-                    if let Some((_, value)) = headers
-                        .iter()
-                        .find(|(name, _)| name.eq_ignore_ascii_case("content-type"))
-                    {
-                        content_type.clone_from(value);
-                    }
-                    break;
-                }
-                Ok(ContainerFetchEvent::Chunk { .. }) => {
-                    return Err("the container model sent a chunk before its head".to_string())
-                }
-                Err(error) => return Err(format!("the container model event: {error}")),
-            },
-            Some(Err(message)) => return Err(message),
-            None => return Err("the container model ended before its head".to_string()),
-        }
-    }
-    let stream = frames.map(|item| -> Result<Vec<u8>, worker::Error> {
-        match item {
-            Ok(value) => match serde_json::from_value::<ContainerFetchEvent>(value) {
-                Ok(ContainerFetchEvent::Chunk { data }) => Ok(data),
-                Ok(ContainerFetchEvent::Head { .. }) => Ok(Vec::new()),
-                Err(error) => Ok(format!("\n[decode error: {error}]\n").into_bytes()),
-            },
-            Err(message) => Ok(format!("\n[error: {message}]\n").into_bytes()),
-        }
-    });
-    stream_response(stream, &content_type)
 }
 
 /// One streamed response with a text content type.

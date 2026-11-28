@@ -10,7 +10,7 @@
 # `worker-build` 0.8.7. The README shows how to install them.
 
 [tasks.build]
-description = "Build the static slave, the container model server and the Worker module"
+description = "Build the static slave and the Worker module"
 run = """
 set -euo pipefail
 rustup target add wasm32-unknown-unknown x86_64-unknown-linux-musl
@@ -23,15 +23,6 @@ RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
     --profile agent --no-default-features --features slave,cli,control,firecracker \
     --target x86_64-unknown-linux-musl
 cp "${root_target}/x86_64-unknown-linux-musl/agent/agent-slave" agent-slave
-
-# The model server that runs beside the slave in the same container.
-model_target="${CARGO_TARGET_DIR:-model/target}"
-# The root `.cargo/config.toml` sets `linker = "clang"` for Linux targets, which
-# on a macOS host resolves to the Apple linker. Override it for musl, as the
-# slave build above does.
-RUSTFLAGS="-C linker=rust-lld -C link-self-contained=yes" \
-  cargo build --manifest-path model/Cargo.toml --release --target x86_64-unknown-linux-musl
-cp "${model_target}/x86_64-unknown-linux-musl/release/demo-model" demo-model
 
 # The Worker module.
 worker-build --release

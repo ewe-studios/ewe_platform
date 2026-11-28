@@ -10,7 +10,7 @@ use worker::Env;
 #[derive(Clone, Debug)]
 pub struct DemoConfig {
     /// The most sandboxes that the page and the live test may create at once.
-    /// Default 3: the three model paths of the demo.
+    /// Default 3: the page shows three sandboxes at most.
     pub max_sandboxes: usize,
     /// The time limit of one command. Default 60 s: nginx's default
     /// `proxy_read_timeout`.
@@ -31,11 +31,6 @@ pub struct DemoConfig {
     /// The most bytes of one error or unary answer that the demo reads.
     /// Default 2 KiB: enough for one Connect error message.
     pub error_text_max_bytes: usize,
-    /// The port of the model server in the sandbox container. Default 8081.
-    pub container_model_port: u16,
-    /// The provider name that the container model reports. Default
-    /// `container-model`.
-    pub container_model_name: String,
     /// The Workers AI model id. Default `@cf/meta/llama-3.1-8b-instruct`.
     pub workers_ai_model: String,
     /// The OpenRouter base URL. Default `https://openrouter.ai/api`: the
@@ -64,8 +59,6 @@ impl Default for DemoConfig {
             command_max_bytes: 4 * 1024,
             control_body_max_bytes: 128 * 1024,
             error_text_max_bytes: 2 * 1024,
-            container_model_port: 8081,
-            container_model_name: "container-model".to_string(),
             workers_ai_model: "@cf/meta/llama-3.1-8b-instruct".to_string(),
             openrouter_base_url: "https://openrouter.ai/api".to_string(),
             openrouter_model: "google/gemma-4-31b-it:free".to_string(),
@@ -102,12 +95,6 @@ impl DemoConfig {
                 "ERROR_TEXT_MAX_BYTES",
                 defaults.error_text_max_bytes,
             )?,
-            container_model_port: number(
-                env,
-                "CONTAINER_MODEL_PORT",
-                usize::from(defaults.container_model_port),
-            )? as u16,
-            container_model_name: text(env, "CONTAINER_MODEL_NAME", defaults.container_model_name),
             workers_ai_model: text(env, "WORKERS_AI_MODEL", defaults.workers_ai_model),
             openrouter_base_url: text(env, "OPENROUTER_BASE_URL", defaults.openrouter_base_url),
             openrouter_model: text(env, "OPENROUTER_MODEL", defaults.openrouter_model),

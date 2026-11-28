@@ -242,3 +242,43 @@ The `deploy` task always uses `wrangler.toml`, whose names are the persistent
 demo. A preview deploy must write its own config, as `test/live.sh` does.
 Issue #1266 tracks the fix. A user who sets `EWE_DEMO_NAME` and runs
 `mise run deploy` changes the public demo.
+
+## The container-hosted agent-rpc path (deferred, 2026-11-28)
+
+The owner discarded the deterministic echo server in the demo container. The
+slave must not have a model mode. The right third model path is the agent-rpc
+capability path. `foundation_agent_rpc` has `NativeHost`, `LocalCatalog`,
+`ModelSource::Gguf` (in-process llama.cpp), `GetCapabilities` with
+`ModelKind::{Api, Candle, Gguf}` and `Device::{Cpu, Gpu, Metal}`,
+`CreateInstance` and `ChatStream`. `AgentContainer` and `AGENT_RPC_PORT`
+already describe the container host. Issue #1276 tracks the work and lists the
+four gaps:
+
+1. No `serve` command starts `NativeHost` with a GGUF file. The `agent-rpc`
+   binary only runs `keys`.
+2. No container entrypoint starts that host beside `agent-slave`.
+3. No Worker or Durable Object (DO) client carries `GetCapabilities`,
+   `CreateInstance` and `ChatStream` through `ContainerService/Fetch`.
+4. No container-network auth mode fits a Worker. `InsecurePlaintext` refuses a
+   non-loopback bind, and certificate (mTLS) enrolment is not possible from a
+   Worker `ContainerFetch`.
+
+Do not build the GGUF image on this host. Kiri emulates linux/amd64 on two
+virtual CPUs (vCPUs) and compiled 26 crates in 24 minutes. Build it on native
+amd64 continuous integration (CI), or use a prebuilt image.
+
+Do not pass `--target x86_64-unknown-linux-gnu` in the CI-image Docker builder.
+It fails with "invalid metadata for crate std". The build without `--target`
+proceeds.
+
+Model research for when the path lands:
+
+- Gemma 3 270M Instruct QAT `Q4_0`: 241,410,624 bytes, SHA-256
+  `3626e245220ca4a1c5911eb4010b3ecb7bdbf5bc53c79403c21355354d1e2dc6`, under the
+  Gemma Terms of Use.
+- Apache-2.0 fallback: SmolLM2-360M-Instruct `Q4_K_M`, 270,590,880 bytes.
+- Use the `standard-1` container class (4 GiB). The `basic` class (1 GiB) is
+  too small.
+
+A slave `--model` mode is the wrong design. `foundation_ai` owns models and
+`foundation_agent_rpc` owns instances and turns.
