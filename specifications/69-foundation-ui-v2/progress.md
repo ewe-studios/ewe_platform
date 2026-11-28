@@ -2528,3 +2528,9 @@ The environment has both Central secrets and requires review by `influx6`.
 A separate branch merges master and keeps version 0.1.2. That revision needs a new preview and owner approval.
 The configured public signing key does not resolve on the two responding keyservers.
 [Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076) · [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#updated-012-preview)
+
+### Browser verification after the master merge
+
+On macOS, the two browser connection tests pass at `66f97fc47`.
+All three navigation tests pass with Chrome and a scratch server.
+They cover tab isolation, document replacement, reload, fragment navigation, and recovery after failure.

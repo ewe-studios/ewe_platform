@@ -1868,3 +1868,9 @@ Keep the exact preview branch available when you merge master on an integration 
 The environment can exist with publication secrets and no reviewer rule.
 Check the rule and the public signing key before any release tag push.
 [Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076)
+
+### Browser verification after the master merge
+
+The browser source matches the Windows test candidate.
+The merge changes the shared socket timeout and executor code.
+The local browser connection and navigation tests pass with those dependencies.
