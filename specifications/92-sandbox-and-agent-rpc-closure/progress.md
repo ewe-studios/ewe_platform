@@ -98,11 +98,22 @@ container `Get` work, and the closure errors are gone. Two failures remained.
   30 s) is now the deadline for one call; the Durable Object applies it and the remote
   client uses it for `rpc_timeout`.
 
-The end-to-end suite on this macOS host now reports 7 passed and 10 failed. Every local
+A third runner run (job `140784573393`) passed 11 tests: creates, `Exec`, the container
+`Get`, the file writes and the model sandbox work. Four failures remained, now addressed.
+
+- The index Durable Object read a `js_sys::Map` with `Object::values`, so `List` was always
+  empty on a real Worker. It iterates the Map values now.
+- An `Exec` stream error was replaced with `StreamLost`, which hid its cause. The reported
+  error reaches the caller now, so the next runner log names the stage.
+- The stop test counted the runtime's `proxy-everything` sidecar: its name contains
+  `ewe-sandbox` and it stays after a stop. The e2e helper counts only the workload
+  container.
+- A relative guest path joins the workdir now (#1154), with the rule in `shared/spec`.
+
+The end-to-end suite on this macOS host reports 7 passed and 10 failed. Every local
 failure is the same one: `the substrate exited during the start (code None)` on the
-emulated amd64 container. The local host does not show the runner's stop crash or the
-5 s call failures. The native Cloudflare suite passes (92 tests). The native amd64 CI
-runner must confirm the runner-only fixes.
+emulated amd64 container. The local host does not show the runner's failures. The native
+Cloudflare suite passes (92 tests). The native amd64 CI runner must confirm these fixes.
 
 ## Feature 04 result (2026-11-28)
 

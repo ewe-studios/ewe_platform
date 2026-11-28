@@ -74,6 +74,22 @@ closed, not when its code compiles.
   `rpc_timeout`, and a `FileWriteBegin` answered 504 at 5.0 s because the slave call used
   the same 5 s. `CloudflareConfig::call_timeout` (default 30 s) now bounds one call; the
   Durable Object applies it, and the remote client uses it for `rpc_timeout`.
+- **`Storage::list_with_options` returns a `js_sys::Map`.** The index Durable Object read
+  it with `Object::values`, which sees no entries of a Map, so `List` was always empty on a
+  real Worker. A native fake hides this; only the end-to-end test showed it. The index
+  iterates the Map values now.
+- **A stream error is not `StreamLost`.** `exec_session` and the event stream replaced
+  every stream error with `StreamLost`, so the runner log could not name the failing
+  stage. The reported error reaches the caller now; only a missing `Exit`, a bad sequence
+  or a missing `Started` stay `StreamLost`.
+- **The runtime proxy is not the sandbox.** The local Cloudflare runtime runs a
+  `proxy-everything` sidecar for each container. Its name contains `ewe-sandbox` and it
+  stays after a stop, so the stop test counted the sidecar as a leaked sandbox. The e2e
+  helper counts only the workload container.
+- **A relative guest path joins the workdir.** The slave required an absolute path, but
+  the contract on #1154 is that a relative path joins the instance workdir, is normalised
+  and must stay inside it. The resolver is in `shared/spec`, so the rule runs on every
+  target.
 
 ## The DST turn hang is a `Wait` re-drive (2026-11-27)
 
