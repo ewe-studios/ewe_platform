@@ -1,5 +1,7 @@
 # Start Specification 92
 
+Start with the [GPUI counter walkthrough](gpui-counter-walkthrough.md) to build the example and learn the code.
+
 1. Read [requirements](requirements.md), [progress](progress.md) and [learnings](learnings.md).
 2. Read the [desktop backend evaluation](features/01-backend-evaluation/feature.md) and the [Tauri Todo result](features/02-tauri-todo-check/feature.md).
 3. Review the [desktop generator plan](features/03-desktop-generator/feature.md) and its design.

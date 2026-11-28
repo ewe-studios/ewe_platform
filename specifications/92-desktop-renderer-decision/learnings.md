@@ -1,5 +1,18 @@
 # Learnings
 
+## Upstream GPUI counter
+
+Start with the [code walkthrough](gpui-counter-walkthrough.md) to build the example and trace an input to the next frame.
+The [standalone example](../../examples/gpui/README.md) has its own lockfile and uses one official Zed revision for both GPUI packages.
+
+- Use the LLVM `uat` profile from the start for native code and for any code Cranelift cannot compile. [Repository build settings](../../mise.toml#L29)
+- The `Counter` entity holds the count and focus handles. Each render creates named elements from the current state.
+- The button's pointer and keyboard handlers call the same state update. GPUI also exposes the pointer handler as an accessibility action.
+- The macOS check verifies launch, pointer and keyboard input, accessibility activation, and reset on relaunch. [Captured window](features/01-backend-evaluation/screenshots/gpui-counter-macos.jpg)
+- VoiceOver, the window startup error, Windows, Linux, and installation remain open. [Verification record](features/01-backend-evaluation/feature.md#macos-counter-result)
+
+## Earlier desktop findings
+
 - The desktop platform value is in the wire schema. The current native core exposes only iOS and Android.
 - The sibling GPUI checkout contains a redirect. Zed and GPUI Fast contain the renderer source.
 - GPUI Kit supplies control behavior above GPUI. Foundation still owns frame application, bindings and action traffic.
