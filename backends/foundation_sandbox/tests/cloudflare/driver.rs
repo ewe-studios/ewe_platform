@@ -404,7 +404,8 @@ fn cleanup_retries_a_failed_destroy() {
     let (_, result) = launch_result(&driver, &h, spec());
     let substrate = result.expect("a result").expect("the launch works");
     let handle = substrate.handle;
-    h.container.fail_next_destroy("the runtime refused the destroy");
+    h.container
+        .fail_next_destroy("the runtime refused the destroy");
     block_on(handle.kill()).expect("the kill answers");
     assert_eq!(h.container.destroy_count(), 1, "the kill tries once");
     block_on(handle.cleanup()).expect("the cleanup succeeds");
