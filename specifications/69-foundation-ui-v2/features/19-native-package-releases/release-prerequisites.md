@@ -137,7 +137,9 @@ The owner approves release 0.1.2 from the exact source above when the required c
 The authenticated environment lookup returns 404 for `native-ui-release`.
 The repository lists none of the required credential names or signing variable.
 Central Portal access is needed to confirm authority over the Maven namespace.
-The owner or release administrator creates and protects the environment and configures these inputs.
+The release policy does not name an authorized reviewer or team.
+Supply that identity before configuring the approval gate.
+The owner or release administrator protects the environment and configures these inputs.
 
 | Setting | Permission or input |
 | --- | --- |

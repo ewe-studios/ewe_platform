@@ -2445,3 +2445,10 @@ Both commands and the default build check pass on macOS.
 The default suite passes 1,340 tests and records two existing ignored documentation tests.
 The lint exception applies only to the four independent options in `RedirectConfig`.
 [Issue 1213](https://github.com/ewe-studios/ewe_platform/issues/1213)
+
+## Scoped host follow-ups
+
+The baseline package jobs finish. The coverage record lists tests that ran and gates that stopped first.
+The current Linux and macOS run selects only the remaining recipes.
+The current Windows run covers the database, HTTP client, and generated application.
+[Coverage record](completion-audit.md#completed-baseline-and-scoped-follow-up)

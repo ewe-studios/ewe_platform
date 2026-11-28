@@ -1800,3 +1800,9 @@ The staged archive can test consumers while the public package endpoints remain 
 The browser lint command checks its own package with `--no-deps`.
 Run the NetIO package lint to check its public redirect policy.
 Its independent options keep their existing types and defaults.
+
+## Host test provenance
+
+A package job can stop at formatting or lint before the test step.
+Record the source revision and the test step for each platform.
+Use the current package commands to check earlier lint repairs on the target host.

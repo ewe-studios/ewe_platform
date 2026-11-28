@@ -182,6 +182,23 @@ The Windows Todo example fails in the old database dependency. Issue 1194 tracks
 The libSQL 0.10 candidate stops in the generated bindings path on Windows. Both Todo and vector tests remain pending. [Issue 1205](https://github.com/ewe-studios/ewe_platform/issues/1205)
 The follow-up stops before its four local libSQL test targets. Ordinary Cargo passes one Unicode reopen test in a scratch checkout. The full Windows database exclusion stays in effect under issue 519. [Windows diagnostic run](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956)
 
+## Completed baseline and scoped follow-up
+
+The run at `89fde9934` completes with package and setup failures.
+Linux runs tests for eight packages. Six packages stop before their tests.
+macOS passes 11 packages and fails two. Windows passes six and fails five.
+[Completed baseline](https://github.com/ewe-studios/ewe_platform/actions/runs/46063284113)
+
+| Gate | Current evidence |
+|---|---|
+| Linux components and resource lint | The component fix passes strict Clippy and 56 tests on Linux. The resource repair passes both strict variants and the Cargo hook regressions. |
+| Linux wire and browser UI package | The baseline stops at formatting and a panic documentation lint. The fixes are in `5ae7b4aa0` and `673e2a7ef`. Local Linux checks run the current formatting, Clippy, and test commands. |
+| Linux and macOS Todo and runtime | The follow-up uses product revision `40a3f13a2`. It also selects Linux resource tests, macOS HTTP tests, and the macOS Android sample. |
+| Windows native, runtime, and wire | The current Windows shards pass the 29 native integration tests, 82 runtime integration tests, and 12 runtime documentation tests. The wire default and reference runs pass 96 and 102 tests. |
+| Windows database, HTTP, and generator | The current follow-up tests the corrected caller path, four local database targets, both HTTP recipes, and the application generator. Windows full server and vector tests remain separate. |
+
+[Linux and macOS follow-up](https://github.com/ewe-studios/ewe_platform/actions/runs/46088801494) · [Windows native, runtime, and wire](https://github.com/ewe-studios/ewe_platform/actions/runs/46080239956) · [Windows database, HTTP, and generator](https://github.com/ewe-studios/ewe_platform/actions/runs/46086332741)
+
 ## Apple screen reader checks
 
 The Todo app on the iOS 27 simulator uses VoiceOver speech through Xcode 27.2.
