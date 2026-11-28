@@ -25,8 +25,8 @@ Prove the paths that no local stub can prove, and make the jobs that carry them 
 
 | Task | Work | Closes |
 |---|---|---|
-| T1 | Run the live Cloudflare path from a local machine: deploy the sandbox Worker to the owner's account, set `SANDBOX_TOKEN`, wait for `Probe` 200, then run the end-to-end suite against that URL. Record the date, the account, the Worker name and the result in `progress.md` | Spec 83 feature 00 T7 |
-| T2 | Make the `sandbox-cloudflare` GitHub Actions job green. It runs `wrangler dev --local` with local containers on the runner, so it needs no Cloudflare account. Read the red run's log, fix the cause, keep the readiness probe and the spec print | The red check |
+| T1 | Run the live Cloudflare path from a local machine: the demo `examples/cf-sandbox-demo` deploys the Worker and its container with `mise run deploy`, prints its URL, and its `test/live.sh` runs the shared scenarios against that URL. Record the date, the account, the Worker name and the result in `progress.md` (owner decision 2026-11-28: the demo is the live proof) | Spec 83 feature 00 T7 |
+| T2 | The `sandbox-cloudflare` job keeps the local `wrangler dev` run. Local mode gives a working container TCP port to one container per Worker process (#1221), so the four two-container tests cannot pass; the job is allowed to fail and names the issue, and its 13 passing tests still report. The live proof is T1 | #1221 |
 | T3 | AWS KMS: add an endpoint override (`AWS_ENDPOINT_URL_KMS`) and a local test against **moto**, which runs on every machine and in a free CI job with no secret. The same test runs against the real service when `AWS_ROLE_ARN` exists. It creates a key, seals and opens, refuses a wrong key, and schedules deletion in a `finally` block | #984 (AWS half) |
 | T4 | GCP KMS: add the gRPC path to `GcpKmsBackend` (generated Cloud KMS protos, h2c endpoint) and the test with a key ring and a key against localgcp; the same test runs against the real project through workload identity federation when that credential exists | #984 (GCP half) |
 | T5 | Run the Vault Transit test in the normal `sandbox-e2e` job (Docker is present there), not only by hand | #984 note |
@@ -97,7 +97,7 @@ meant to run it fails when the value is absent and the run is a release run.
 | `sandbox-cloudflare` green | the CI job | expected outcome |
 | AWS seal and open | `foundation_auth/tests/kms/aws_tests.rs` (ignored by default) | the sealer contract |
 | GCP seal and open | `foundation_auth/tests/kms/gcp_tests.rs` (ignored by default) | the sealer contract |
-| Vault Transit | `foundation_auth/tests/kms/vault_transit_tests.rs` | the sealer contract |
+| Vault Transit | `foundation_auth/tests/kms/kms_vault_transit.rs` | the sealer contract |
 | WebCrypto runtime | `foundation_auth/tests/wasm/webcrypto_sealer_tests.rs` | the sealer contract plus a refused export |
 
 ## 7. Verify

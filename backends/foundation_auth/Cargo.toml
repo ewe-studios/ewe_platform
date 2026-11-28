@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.16"
+version = "0.0.17"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -142,6 +142,12 @@ time = { workspace = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
+# The browser test target of spec 92 feature 00 T6.
+wasm-bindgen-test = { workspace = true }
+
+# The native test suites read the file system, the operating system and a
+# local database, so they do not build on wasm32.
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 tempfile = "3"
 # `test-clock` provides `SimulatedClock`, so a test can prove that the auth
 # code reads the injected clock instead of the real wall clock.
@@ -240,6 +246,7 @@ required-features = ["server-test"]
 [[test]]
 name = "mtls_tests"
 path = "tests/mtls/mod.rs"
+required-features = ["mtls"]
 
 # Spec 81 feature 00: signed secrets and the operator key files.
 [[test]]
@@ -264,6 +271,12 @@ required-features = ["testing"]
 name = "kms_tests"
 path = "tests/kms/mod.rs"
 required-features = ["testing"]
+
+# Spec 92 feature 00 T6: the WebCrypto sealer contract in a browser page.
+[[test]]
+name = "wasm"
+path = "tests/wasm/mod.rs"
+required-features = ["secret", "wasm-kek"]
 
 # Spec 81 feature 00: the signed-secret, JWT, plaintext and composite providers.
 [[test]]

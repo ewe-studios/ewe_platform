@@ -11,6 +11,7 @@
 //! HOW: Plain `#[test]` functions for the synchronous values and
 //! `#[valtron_test]` for the async `ClientAuth::authenticate` call.
 // Tests measure real time on purpose.
+#![cfg(not(target_arch = "wasm32"))]
 #![allow(clippy::disallowed_methods)]
 
 use std::fs;

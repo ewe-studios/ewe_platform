@@ -1,3 +1,6 @@
+// The native test suite reads the operating system clock.
+#![cfg(not(target_arch = "wasm32"))]
+
 use std::sync::Arc;
 
 use chrono::Utc;

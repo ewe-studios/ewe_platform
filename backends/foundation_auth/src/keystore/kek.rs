@@ -26,9 +26,11 @@ use zeroize::Zeroizing;
 use super::sealing::SealFuture;
 #[cfg(not(target_family = "wasm"))]
 use super::sealing::{Argon2Params, PassphraseSealer};
+#[cfg(any(feature = "testing", not(target_family = "wasm")))]
+use super::KekSealer;
+use super::KeySealer;
 #[cfg(not(target_family = "wasm"))]
 use super::KeyStoreError;
-use super::{KekSealer, KeySealer};
 
 /// What kind of source a [`KekSource`] is, for a log line or `keys info`.
 /// It never contains the key.
