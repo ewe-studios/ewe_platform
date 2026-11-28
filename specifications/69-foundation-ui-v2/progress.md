@@ -2522,6 +2522,13 @@ The updated release source needs a preview and owner approval. The protected env
 The exact 0.1.2 preview revision changes only the native release workflow.
 The manual preview passes the candidate and Android example jobs. The downloaded unsigned archives match the manifest digests.
 The environment has both Central secrets and requires review by `influx6`.
-A separate branch merges master and keeps version 0.1.2. That revision needs a new preview and owner approval.
+A separate branch merges master and keeps version 0.1.2. See the integrated preview below.
 The configured public signing key does not resolve on the two responding keyservers.
 [Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076) · [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#updated-012-preview)
+
+## Integrated native release preview
+
+The separate integration at `b00b5e70c` passes the macOS and Android preview jobs.
+The unsigned 0.1.2 candidate identifies that revision. The two downloaded archives match their recorded digests.
+GitHub skips publication and the public checks. The integrated revision still needs owner approval.
+[Integrated preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46106592555) · [Release prerequisites](features/19-native-package-releases/release-prerequisites.md#integration-with-master)

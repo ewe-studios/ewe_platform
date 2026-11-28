@@ -1868,3 +1868,9 @@ Keep the exact preview branch available when you merge master on an integration 
 The environment can exist with publication secrets and no reviewer rule.
 Check the rule and the public signing key before any release tag push.
 [Preview run](https://github.com/ewe-studios/ewe_platform/actions/runs/46099351076)
+
+## Integrated native release preview
+
+Merging master kept the package version and changed both archive digests.
+Use the unsigned manifest from the exact integrated revision to verify its archive bytes and Swift checksum commit.
+[Integrated unsigned candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46106592555/artifacts/15250267442)

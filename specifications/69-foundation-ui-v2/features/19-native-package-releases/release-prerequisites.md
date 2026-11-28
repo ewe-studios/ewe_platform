@@ -204,5 +204,19 @@ This evidence applies to the exact preview source. Owner approval for that sourc
 Commit `b00b5e70c99f433822af9e872e454e5da394e6e7` merges master `f5e69eef72ddee9dee9049efa24964bddde23f24` into the candidate on a separate branch.
 The 0.1.2 package coordinates and native manifest match the preview source.
 The resolved source passes workflow lint and locked Cargo metadata resolution without network access.
-The integration has a different source revision. It needs its own preview and approval before any release tag push.
-[Integration branch](https://github.com/ewe-studios/ewe_platform/tree/integrate/native-ui-0.1.2-app-token-master)
+The integrated preview passes both jobs. The Swift package passes 30 tests, and the iPhone Todo suites pass 11 tests with six skips.
+The Android job builds and exercises the two example applications.
+GitHub skips publication and the two public install jobs.
+[Integration branch](https://github.com/ewe-studios/ewe_platform/tree/integrate/native-ui-0.1.2-app-token-master) · [Integrated preview](https://github.com/ewe-studios/ewe_platform/actions/runs/46106592555)
+
+The unsigned manifest identifies the integrated commit and version 0.1.2.
+It records Swift checksum commit `4c3d9fb38f812f8cd330c39e84d86ca4bb27d269`.
+Both downloaded archives match the manifest digests.
+
+| Archive | SHA-256 |
+| --- | --- |
+| `EweCoreFFI.xcframework.zip` | `3cc972369ddce78b1f31684be0f0e902facfc1b9e8d6d5595ad4b074dd75cc66` |
+| `android-publication.zip` | `28099ac9a8ef72bf9baa9c29302a30da196ef08ee24124104c2b196d5f50b9a9` |
+
+The integrated revision still needs owner approval before any release tag push.
+[Integrated unsigned candidate](https://github.com/ewe-studios/ewe_platform/actions/runs/46106592555/artifacts/15250267442)
