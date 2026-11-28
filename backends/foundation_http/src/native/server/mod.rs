@@ -421,6 +421,8 @@ fn build_connection(
     _addr: std::net::SocketAddr,
     _io_mode: ServerIo,
 ) -> Result<Connection, String> {
+    tcp.set_nonblocking(true)
+        .map_err(|e| format!("cannot set the accepted TCP connection to nonblocking mode: {e}"))?;
     Ok(Connection::from(tcp))
 }
 

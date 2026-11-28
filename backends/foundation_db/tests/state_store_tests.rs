@@ -14,7 +14,7 @@ use tempfile::TempDir;
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::core::state::traits::StateStoreStream;
-use foundation_db::state::{config_hash, FileStateStore, ResourceState, StateStatus, StateStore};
+use foundation_db::state::{FileStateStore, ResourceState, StateStatus, StateStore, config_hash};
 use futures_lite::StreamExt;
 
 /// Drain a state stream, failing the test on any item error.
@@ -200,6 +200,62 @@ async fn file_store_slash_in_resource_id() {
     assert_eq!(retrieved.id, "ns/my-worker");
 }
 
+#[valtron_test]
+async fn file_store_keeps_portable_identifiers_distinct() {
+    let tmp = TempDir::new().unwrap();
+    let store = FileStateStore::with_root(tmp.path().to_path_buf());
+    let long_id = "長い".repeat(250);
+    let ids = ["ns/path", "ns:path", "NS/PATH", r#"NUL.<>:"\|?*"#, &long_id];
+
+    for id in ids {
+        let state = make_state(id, StateStatus::Created);
+        assert!(store.set_if_version(id, &state, None).await.unwrap());
+        assert_eq!(store.get(id).await.unwrap().unwrap().id, id);
+    }
+    let reopened = FileStateStore::with_root(tmp.path().to_path_buf());
+    let mut expected = ids.map(String::from);
+    expected.sort();
+    assert_eq!(collect(reopened.list().await.unwrap()).await, expected);
+    assert_eq!(reopened.count().await.unwrap(), ids.len());
+
+    reopened.delete("ns:path").await.unwrap();
+    assert!(reopened.get("ns:path").await.unwrap().is_none());
+    assert_eq!(
+        reopened.get("ns/path").await.unwrap().unwrap().id,
+        "ns/path"
+    );
+}
+
+#[valtron_test]
+async fn file_store_reads_and_updates_an_existing_legacy_record() {
+    let tmp = TempDir::new().unwrap();
+    let legacy = tmp.path().join("legacy.json");
+    let old = make_state("legacy", StateStatus::Creating);
+    std::fs::write(&legacy, serde_json::to_vec(&old).unwrap()).unwrap();
+    let store = FileStateStore::with_root(tmp.path().to_path_buf());
+
+    assert_eq!(collect(store.list().await.unwrap()).await, ["legacy"]);
+    assert_eq!(
+        store.get("legacy").await.unwrap().unwrap().status,
+        StateStatus::Creating
+    );
+    let next = make_state("legacy", StateStatus::Created);
+    assert!(
+        store
+            .set_if_version("legacy", &next, Some(old.updated_at))
+            .await
+            .unwrap()
+    );
+    assert_eq!(
+        store.get("legacy").await.unwrap().unwrap().status,
+        StateStatus::Created
+    );
+    assert_eq!(store.count().await.unwrap(), 1);
+    store.delete("legacy").await.unwrap();
+    assert!(!legacy.exists());
+    assert_eq!(store.count().await.unwrap(), 0);
+}
+
 // ── StateStatus & ResourceState ──────────────────────────────────────
 
 #[test]
@@ -312,8 +368,8 @@ fn config_hash_different_values() {
 /// show the one resource (no temp file).
 #[valtron_test]
 async fn file_state_store_write_is_atomic() {
-    use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
 
     let tmp = TempDir::new().unwrap();
     let store = Arc::new(FileStateStore::new(tmp.path(), "atomic", "staging"));

@@ -1,22 +1,20 @@
 //! Native-only modules (TCP server, HTTP reader, protocol upgrades).
 
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod app;
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod durable;
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod durable_ws;
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod handlers;
 pub mod reader;
 pub mod serve;
-// The server parks on the native reactor, which is Unix only. Every other
-// operating system builds the client half of this crate.
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod server;
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod upgrade;
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 pub mod writer;
 
 pub mod routes;

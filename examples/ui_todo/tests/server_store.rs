@@ -12,6 +12,9 @@ use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
 use std::path::Path;
 use ui_todo::{server_registry, TodoStore};
 
+#[path = "server_store/process.rs"]
+mod process;
+
 const FIRST: &str = "00000000-0000-4000-8000-000000000001";
 const SECOND: &str = "00000000-0000-4000-8000-000000000002";
 
