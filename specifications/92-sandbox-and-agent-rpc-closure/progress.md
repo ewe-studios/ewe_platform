@@ -90,11 +90,13 @@ cannot keep the wake, because `StreamIterator` is a supertrait with a blanket
 implementation, so the projection through the wrapper does not resolve (E0284).
 `CreateSource` names the concrete item type once. Its `SendWrapper` impl forwards `wake`,
 `wake_send`, `announce`, `drives_its_producer` and `can_make_progress` on every target.
-`ControlService::create` maps a progress point and a result with `map_pending_and_done`, then
-parks with `StreamParkingFutureStream`. The mapping keeps the progress events, because the
-parking adapter treats a raw `Stream::Pending` as a control state and does not yield it. The
-tests prove two wakes for two progress points, and a stream with no wake that ends in two
-polls.
+`ControlService::create` maps a progress point and a result to one step type with a small
+`CreateSteps` adapter, then parks with `StreamParkingFutureStream`. The adapter holds the
+already-`Send` `CreateStream`, so the response stream is `Send` on wasm; the stock
+`map_pending_and_done` combinator is not `Send` on the single-threaded build. The mapping
+keeps the progress events, because the parking adapter treats a raw `Stream::Pending` as a
+control state and does not yield it. The tests prove two wakes for two progress points, a
+stream with no wake that ends in two polls, and the service that keeps every progress event.
 
 Local result on macOS with `wrangler dev --local`: a create returns `Created` and the Worker
 stays healthy. The local host runs the amd64 container under emulation, so the timings

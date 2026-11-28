@@ -123,9 +123,11 @@ wasm the wrapper needs no `Send` bound; on a native target it needs `T: Send`.
 
 `StreamParkingFutureStream` treats `Stream::Pending` as a control state on a driving stream:
 it re-drives and never yields the progress point. A create that feeds the raw `CreateStream`
-straight into the adapter loses every progress event. `map_pending_and_done` first turns the
-progress point and the result into one step type, so the adapter surfaces both and keeps
-the park on `Wait`.
+straight into the adapter loses every progress event. A local `CreateSteps` adapter first
+turns the progress point and the result into one step type, so the adapter surfaces both and
+keeps the park on `Wait`. The stock `map_pending_and_done` combinator does this too, but its
+non-`multi` form is not `Send`, so the wasm check rejects it. `CreateSteps` holds the
+already-`Send` `CreateStream` directly.
 
 A drop hook cancels the create. The guard ignores the drop after the create finishes, so a
 consumed stream does not cancel its own sandbox.
