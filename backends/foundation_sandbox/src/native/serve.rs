@@ -11,22 +11,17 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use foundation_connectrpc::shared::interceptor::{
-    Interceptor, StreamCall, StreamingClientFunc, StreamingHandlerFunc, UnaryCall, UnaryFunc,
-};
 use foundation_connectrpc::{ConnectRpcServe, Router};
 use foundation_context::Ctx;
-use foundation_errstacks::ErrorTrace;
 use foundation_http::native::serve::Serve;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::native::connection::{Acceptor, Connection};
-use foundation_netio::shared::http::SimpleHeader;
 
-use crate::shared::control::service::{authorize, ControlService};
+use crate::native::authz::BearerAuth;
+use crate::shared::control::service::ControlService;
 use crate::shared::control::SandboxProvider;
-use crate::shared::error::{SandboxError, SandboxResult};
 use crate::shared::ids::MAX_SOCKET_PATH_BYTES;
 use crate::shared::limits::SandboxLimits;
 use crate::shared::listen::ListenAddress;
@@ -221,10 +216,10 @@ pub fn serve_bound(
     let service = Arc::new(ControlService::new(control, limits.clone()));
     let mut router = Router::new();
     if let Some(token) = auth {
-        router = router.with_global_interceptors(vec![Arc::new(BearerAuth {
+        router = router.with_global_interceptors(vec![Arc::new(BearerAuth::new(
             token,
-            max_error_message: limits.max_error_message,
-        })]);
+            limits.max_error_message,
+        ))]);
     }
     register_sandbox_service(&mut router, service);
     let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router.into_handler()));
@@ -295,63 +290,6 @@ pub fn serve_control_with(
     let bound = bind_control(listen, shutdown, config)?;
     serve_bound(ctx, control, &bound, auth, &config.limits);
     Ok(())
-}
-
-/// Refuses every call that does not carry the served token.
-#[derive(Clone)]
-struct BearerAuth {
-    token: Secret,
-    max_error_message: usize,
-}
-
-impl BearerAuth {
-    /// The `Authorization` header of a call.
-    fn check(&self, ctx: &foundation_connectrpc::RpcCtx) -> SandboxResult<()> {
-        let header = ctx
-            .request
-            .headers
-            .get(&SimpleHeader::AUTHORIZATION)
-            .and_then(|values| values.first())
-            .map(String::as_str);
-        authorize(header, &self.token)
-    }
-
-    /// The error that a refused call returns.
-    fn error(&self) -> ErrorTrace<foundation_connectrpc::ConnectError> {
-        ErrorTrace::new(SandboxError::Unauthorized.to_connect(self.max_error_message))
-    }
-}
-
-impl Interceptor for BearerAuth {
-    fn wrap_unary(&self, next: UnaryFunc) -> UnaryFunc {
-        let this = self.clone();
-        Arc::new(move |ctx: foundation_connectrpc::RpcCtx, call: UnaryCall| {
-            let this = this.clone();
-            let next = next.clone();
-            Box::pin(async move {
-                this.check(&ctx).map_err(|_| this.error())?;
-                next(ctx, call).await
-            })
-        })
-    }
-
-    fn wrap_streaming_client(&self, next: StreamingClientFunc) -> StreamingClientFunc {
-        next
-    }
-
-    fn wrap_streaming_handler(&self, next: StreamingHandlerFunc) -> StreamingHandlerFunc {
-        let this = self.clone();
-        Arc::new(
-            move |ctx: foundation_connectrpc::RpcCtx, call: StreamCall| {
-                let this = this.clone();
-                let next = next.clone();
-                Box::pin(async move {
-                    this.check(&ctx).map_err(|_| this.error())?;
-                    next(ctx, call).await
-                })
-            },
-        )
-    }
 }
 
 /// The acceptor of a Unix domain socket.

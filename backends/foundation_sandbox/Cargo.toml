@@ -60,6 +60,10 @@ foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19",
 # value is not optional: `foundation_http` (the two servers) already depends on
 # it on every native target.
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "wire-native", "multi"] }
+# The model mode of `agent-slave` (spec 92 feature 07). The caller of one turn
+# is the OpenAI-compatible provider of `foundation_ai`; the default build does
+# not link it, so the guest slave stays small and TLS-free (decision D11).
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, optional = true }
 # The gzip decoder and the tar reader of the artifact store.
 flate2 = { version = "1", optional = true }
 tar = { version = "0.4", optional = true }
@@ -283,6 +287,15 @@ slave = [
     "dep:foundation_nativeapis",
     "foundation_nativeapis/fd",
     "foundation_core/multi",
+]
+# The model mode of `agent-slave` (spec 92 feature 07). The slave answers one
+# `Exec` turn through an OpenAI-compatible provider instead of running a
+# program. The provider endpoint is Hypertext Transfer Protocol Secure (HTTPS),
+# so this feature adds the TLS provider of `foundation_netio`. A caller that
+# builds the guest image enables it together with `slave` and `cli`.
+model = [
+    "dep:foundation_ai",
+    "foundation_netio/ssl",
 ]
 # The simulation helpers (feature 02).
 testing = []

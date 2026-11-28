@@ -9,6 +9,14 @@
 #[cfg(feature = "artifacts")]
 pub mod artifacts;
 
+/// The bearer-token interceptor that the native listeners share.
+pub mod authz;
+
+/// The model mode of `agent-slave` (spec 92 feature 07). It answers one
+/// `Exec` turn through an OpenAI-compatible provider.
+#[cfg(feature = "model")]
+pub mod model;
+
 /// The Firecracker API client (feature 04). Feature 05 adds the driver here.
 #[cfg(feature = "firecracker")]
 pub mod firecracker;
