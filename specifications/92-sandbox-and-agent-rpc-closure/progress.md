@@ -205,7 +205,8 @@ The auth layer now sits above the RPC crate.
   and the caller lookup from the new crate.
 - The moved `auth_tests` pass 26 tests and `client_auth_interceptor_tests` pass
   4 tests in the new crate. The `foundation_connectrpc` suite passes 275 tests
-  across 36 targets.
+  across 36 targets, and the `foundation_agent_rpc` suite passes 149 tests
+  across 32 target results.
 - Every nested `Cargo.lock` that takes the two crates by path is regenerated,
   so `cargo metadata --locked` passes for each one.
 - The wasm `rpc` check passes with zero warnings. `web-sys` is optional now and
