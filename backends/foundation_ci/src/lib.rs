@@ -1,15 +1,15 @@
 //! Plan continuous integration checks from Cargo metadata and package policy.
 mod affected;
-mod config;
-mod execution;
-mod plan;
-mod workspace;
-mod staging;
 pub mod cloudflare;
+mod config;
 pub mod development;
+mod execution;
 pub mod images;
+mod plan;
+mod staging;
 pub mod toolchain;
 pub mod wire;
+mod workspace;
 
 pub use config::{ExpectedError, GateRecipe, GroupRecipe, Settings};
 use foundation_tasks::{TaskError, TaskSet};

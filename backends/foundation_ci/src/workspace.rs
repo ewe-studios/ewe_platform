@@ -1,5 +1,5 @@
 //! Build the workspace dependency graph from Cargo metadata.
-use crate::{CiEnvironment, Settings, config::Policy};
+use crate::{config::Policy, CiEnvironment, Settings};
 use foundation_tasks::{OutputStream, ProcessCommand, TaskContext, TaskEnv, TaskError, TaskOutput};
 use futures_util::future::BoxFuture;
 use serde::Deserialize;
@@ -89,12 +89,23 @@ impl TaskOutput for Capture {
 }
 pub(crate) async fn capture(ctx: &TaskContext, cmd: ProcessCommand) -> Result<File, TaskError> {
     let mut file = tempfile::tempfile().map_err(TaskError::operation)?;
-    capture_to(ctx, cmd, file.try_clone().map_err(TaskError::operation)?, false).await?;
+    capture_to(
+        ctx,
+        cmd,
+        file.try_clone().map_err(TaskError::operation)?,
+        false,
+    )
+    .await?;
     file.rewind().map_err(TaskError::operation)?;
     Ok(file)
 }
 /// Write child output to an open file. Send separate diagnostics to the task output.
-pub(crate) async fn capture_to(ctx: &TaskContext, cmd: ProcessCommand, file: File, combine: bool) -> Result<(), TaskError> {
+pub(crate) async fn capture_to(
+    ctx: &TaskContext,
+    cmd: ProcessCommand,
+    file: File,
+    combine: bool,
+) -> Result<(), TaskError> {
     let output = Capture {
         file: Mutex::new(file),
         forward: ctx.require::<TaskEnv>()?.output.clone(),

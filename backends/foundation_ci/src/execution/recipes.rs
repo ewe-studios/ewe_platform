@@ -388,6 +388,83 @@ fn sandbox_worker_commands(root: &Path, pkg: &Package, step: &str) -> Vec<Comman
     out
 }
 
+/// The standard package steps inside a self-contained workspace.
+///
+/// The group directory has its own `[workspace]` and `Cargo.lock`, so every
+/// cargo command runs there through `--manifest-path`. That keeps the nested
+/// build out of the root workspace's feature unification (a package that needs
+/// `foundation_core` without `multi` must not inherit the root's `multi`).
+fn cargo_directory_commands(
+    root: &Path,
+    pkg: &Package,
+    s: &Settings,
+    profile: &str,
+    os: &str,
+    step: &str,
+) -> Result<Vec<CommandStep>, TaskError> {
+    let manifest = root.join(&pkg.dir).join("Cargo.toml");
+    let manifest = manifest.to_string_lossy().to_string();
+    let mut out = Vec::new();
+    match step {
+        "fmt" => out.push(cargo(&["fmt", "--manifest-path", &manifest, "--check"])),
+        "build" => {
+            let mut c = cargo(&[
+                "build",
+                "--all-targets",
+                "--profile",
+                profile,
+                "--manifest-path",
+                &manifest,
+            ]);
+            c.cmd = c.cmd.args(flags(&s.runs[0])?);
+            out.push(c);
+        }
+        "clippy" => {
+            let runs = if s.clippy_runs.is_empty() {
+                &s.runs[..1]
+            } else {
+                &s.clippy_runs[..]
+            };
+            for run in runs {
+                let mut c = cargo(&[
+                    "clippy",
+                    "--all-targets",
+                    "--profile",
+                    profile,
+                    "--manifest-path",
+                    &manifest,
+                ]);
+                c.cmd = c.cmd.args(flags(run)?);
+                if s.clippy_deny_warnings {
+                    c.cmd = c.cmd.args(["--no-deps", "--", "-D", "warnings"]);
+                }
+                out.push(c);
+            }
+        }
+        "test" => {
+            let runs = s.platform_runs(os).unwrap_or(&s.runs);
+            for run in runs {
+                let mut c = cargo(&[
+                    "test",
+                    "--profile",
+                    profile,
+                    "--no-fail-fast",
+                    "--manifest-path",
+                    &manifest,
+                ]);
+                c.cmd = c
+                    .cmd
+                    .args(flags(run)?)
+                    .args(["--", "--nocapture"])
+                    .args(s.test_args.iter().cloned());
+                out.push(c);
+            }
+        }
+        _ => {}
+    }
+    Ok(out)
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn commands(
     root: &Path,
@@ -418,6 +495,9 @@ pub(super) fn commands(
             }
         }
         return Ok(out);
+    }
+    if pkg.recipe == Some(GroupRecipe::CargoDirectory) {
+        return cargo_directory_commands(root, pkg, s, profile, os, step);
     }
     if matches!(os, "macos" | "windows") {
         if step == "test" {
