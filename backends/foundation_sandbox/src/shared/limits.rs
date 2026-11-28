@@ -513,6 +513,16 @@ impl SandboxLimits {
         self
     }
 
+    /// The deadline of one create.
+    ///
+    /// A create runs the driver launch, the readiness wait and `Prepare`, so
+    /// its deadline is the boot deadline and not the deadline of one call.
+    /// The remote client and the server read this one value.
+    #[must_use]
+    pub fn create_deadline(&self) -> Duration {
+        self.boot_timeout
+    }
+
     /// Replaces [`Self::shutdown_grace`].
     #[must_use]
     pub fn with_shutdown_grace(mut self, value: Duration) -> Self {
