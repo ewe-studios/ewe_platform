@@ -343,16 +343,16 @@ mod tests {
     fn lookup_self_ref() {
         let registry = build_registry(&[("http://example.com", json!({"type": "object"}))]);
         let resolver = registry.resolver("http://example.com");
-        let resolved = resolver.lookup("#").unwrap();
-        assert_eq!(resolved.contents(), &json!({"type": "object"}));
+        let target = resolver.lookup("#").unwrap();
+        assert_eq!(target.contents(), &json!({"type": "object"}));
     }
 
     #[test]
     fn lookup_empty_ref() {
         let registry = build_registry(&[("http://example.com", json!({"type": "object"}))]);
         let resolver = registry.resolver("http://example.com");
-        let resolved = resolver.lookup("").unwrap();
-        assert_eq!(resolved.contents(), &json!({"type": "object"}));
+        let target = resolver.lookup("").unwrap();
+        assert_eq!(target.contents(), &json!({"type": "object"}));
     }
 
     #[test]
@@ -366,8 +366,8 @@ mod tests {
             }),
         )]);
         let resolver = registry.resolver("http://example.com");
-        let resolved = resolver.lookup("#/$defs/foo").unwrap();
-        assert_eq!(resolved.contents(), &json!({"type": "string"}));
+        let target = resolver.lookup("#/$defs/foo").unwrap();
+        assert_eq!(target.contents(), &json!({"type": "string"}));
     }
 
     #[test]
@@ -377,8 +377,8 @@ mod tests {
             ("http://example.com/b", json!({"type": "integer"})),
         ]);
         let resolver = registry.resolver("http://example.com/a");
-        let resolved = resolver.lookup("http://example.com/b").unwrap();
-        assert_eq!(resolved.contents(), &json!({"type": "integer"}));
+        let target = resolver.lookup("http://example.com/b").unwrap();
+        assert_eq!(target.contents(), &json!({"type": "integer"}));
     }
 
     #[test]
@@ -386,7 +386,7 @@ mod tests {
         let registry = build_registry(&[("http://example.com", json!({"type": "string"}))]);
         let resolver = registry.resolver("http://example.com");
         let err = resolver.lookup("http://missing.com").unwrap_err();
-        let msg = alloc::format!("{}", err);
+        let msg = alloc::format!("{err}");
         assert!(msg.contains("not found"));
     }
 
@@ -395,7 +395,7 @@ mod tests {
         let registry = build_registry(&[("http://example.com", json!({"type": "string"}))]);
         let resolver = registry.resolver("http://example.com");
         let err = resolver.lookup("#noSuchAnchor").unwrap_err();
-        let msg = alloc::format!("{}", err);
+        let msg = alloc::format!("{err}");
         assert!(msg.contains("does not exist"));
     }
 
@@ -403,7 +403,7 @@ mod tests {
     fn evolve_pushes_scope() {
         let registry = build_registry(&[("http://example.com", json!({"type": "string"}))]);
         let resolver = registry.resolver("http://example.com");
-        assert!(resolver.dynamic_scope().is_empty());
+        assert_eq!(resolver.dynamic_scope(), &[] as &[alloc::string::String]);
 
         let evolved = resolver.evolve("http://example.com/sub");
         assert_eq!(evolved.base_uri(), "http://example.com/sub");
@@ -418,9 +418,9 @@ mod tests {
         )]);
         let resolver = registry.resolver("http://example.com");
         let first = resolver.lookup("").unwrap();
-        let resolved = first.resolver().lookup_recursive_ref().unwrap();
+        let target = first.resolver().lookup_recursive_ref().unwrap();
         assert_eq!(
-            resolved.contents(),
+            target.contents(),
             &json!({"$recursiveAnchor": true, "type": "object"})
         );
     }

@@ -98,13 +98,17 @@ fn firecracker_usable(ctx: &Ctx) -> bool {
 }
 
 /// The outer manager: the Docker driver and the nested driver.
-fn manager(ctx: &Ctx, host: &SandboxHost) -> Arc<SandboxManager> {
+///
+/// `map_kvm` is false in the no-device form, so the parent starts without
+/// `/dev/kvm` even on a host that has it.
+fn manager(ctx: &Ctx, host: &SandboxHost, map_kvm: bool) -> Arc<SandboxManager> {
     Arc::new(SandboxManager::with_nested_driver(
         ctx.clone(),
         vec![Arc::new(DockerDriver::with_config(
             DockerDriverConfig::default()
                 .with_link(DockerLink::Unix)
-                .with_slave_mode(SlaveMode::Main),
+                .with_slave_mode(SlaveMode::Main)
+                .with_map_kvm_device(map_kvm),
         ))],
         host.connector.clone(),
         Arc::new(MemoryRecordStore::default()),
@@ -186,7 +190,10 @@ struct Setup {
 }
 
 /// Builds the set-up, or prints why it cannot run.
-fn setup(tag: &str, need_kvm: bool) -> Option<Setup> {
+///
+/// `map_kvm` controls whether a parent maps `/dev/kvm`. The no-KVM report
+/// starts the parent without the device.
+fn setup(tag: &str, need_kvm: bool, map_kvm: bool) -> Option<Setup> {
     let (ctx, host) = usable_host(tag)?;
     if !docker_usable(&ctx) {
         return None;
@@ -202,7 +209,7 @@ fn setup(tag: &str, need_kvm: bool) -> Option<Setup> {
     if need_kvm && !firecracker_usable(&ctx) {
         return None;
     }
-    let manager = manager(&ctx, &host);
+    let manager = manager(&ctx, &host, map_kvm);
     Some(Setup {
         ctx,
         host,
@@ -233,7 +240,7 @@ fn container_exists(name: &str) -> bool {
 /// I1: a child runs a program, and its slave is process identifier 1.
 #[test]
 fn e2e_nested_acceptance() {
-    let Some(setup) = setup("acceptance", true) else {
+    let Some(setup) = setup("acceptance", true, true) else {
         return;
     };
     let parent = create_parent(&setup);
@@ -254,7 +261,7 @@ fn e2e_nested_acceptance() {
 /// I1: two children are separate file systems.
 #[test]
 fn e2e_nested_two_children() {
-    let Some(setup) = setup("two-children", true) else {
+    let Some(setup) = setup("two-children", true, true) else {
         return;
     };
     let parent = create_parent(&setup);
@@ -275,15 +282,15 @@ fn e2e_nested_two_children() {
     assert_ne!(read.status.exit_code(), Some(0), "/tmp/a is absent");
 }
 
-/// The no-KVM report: the inner Firecracker probe fails the `kvm` check.
+/// The no-KVM report: a parent without the device fails the `kvm` check.
+///
+/// The parent starts without `/dev/kvm` even when this host has the device, so
+/// the test runs on the Kernel-based Virtual Machine (KVM) runner. A daemon
+/// host that has no device proves the same report through the ordinary driver
+/// in [`no_kvm`](crate::nested::no_kvm).
 #[test]
 fn e2e_nested_no_kvm() {
-    if std::path::Path::new("/dev/kvm").exists() {
-        eprintln!("skip: this host has /dev/kvm; the no-KVM report does not apply");
-        return;
-    }
-    // The parent needs no KVM of its own: only its inner probe does.
-    let Some(setup) = setup("no-kvm", false) else {
+    let Some(setup) = setup("no-kvm", false, false) else {
         return;
     };
     let parent = create_parent(&setup);
@@ -328,7 +335,7 @@ fn parent_can_control(setup: &Setup, parent: &SandboxId) -> Option<bool> {
 /// I3: stopping the parent stops its children and removes the container.
 #[test]
 fn e2e_nested_stop_parent() {
-    let Some(setup) = setup("stop-parent", true) else {
+    let Some(setup) = setup("stop-parent", true, true) else {
         return;
     };
     let parent = create_parent(&setup);

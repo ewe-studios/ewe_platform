@@ -137,5 +137,5 @@ fn error_display() {
     let errors: Vec<_> = v.iter_errors(&json!(42)).collect();
     // Error should have a display representation
     let display = format!("{}", errors[0]);
-    assert!(!display.is_empty());
+    assert_ne!(display, "");
 }

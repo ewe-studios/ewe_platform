@@ -4,14 +4,14 @@ use foundation_sandbox::shared::error::{SandboxError, SlaveErrorCode};
 use foundation_sandbox::shared::spec::RootMode;
 
 use super::support::{
-    drain, exec_request, hex, plain_prepare, sandbox_error, slave_code, SlaveProcess,
+    drain, exec_request, hex, plain_prepare_work, sandbox_error, slave_code, SlaveProcess,
 };
 
 /// The slave says who it is.
 #[test]
 fn info() {
     let slave = SlaveProcess::start("info", None, 4);
-    let mut prepare = plain_prepare("/tmp");
+    let mut prepare = plain_prepare_work();
     prepare.env = vec![("A".to_string(), "1".to_string())];
     let answer = slave.prepare(&prepare);
     assert_eq!(answer.root_mode, RootMode::Overlay);
@@ -82,7 +82,7 @@ fn not_prepared() {
 #[test]
 fn prepare_idempotent() {
     let slave = SlaveProcess::start("prepare-idempotent", None, 4);
-    let request = plain_prepare("/tmp");
+    let request = plain_prepare_work();
     let first = slave.caller.prepare(&request).expect("the first Prepare");
     let second = slave.caller.prepare(&request).expect("the second Prepare");
     assert_eq!(first, second);
@@ -110,7 +110,7 @@ fn prepare_idempotent() {
 #[test]
 fn env_is_explicit() {
     let slave = SlaveProcess::start("env", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(3), &["env"]))

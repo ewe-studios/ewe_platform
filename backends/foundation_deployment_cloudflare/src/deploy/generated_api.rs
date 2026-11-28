@@ -22,10 +22,11 @@ use crate::generated::workers::{
     public_update_application_request, worker_deployments_create_deployment_request,
     worker_deployments_delete_deployment_request, worker_deployments_get_deployment_request,
     worker_put_script_secret_request, worker_routes_create_route_request,
-    worker_versions_upload_version_request, CcCreateApplicationRequest, CcUpdateApplicationRequest,
-    PublicCreateApplicationArgs, PublicListApplicationsArgs, PublicUpdateApplicationArgs,
-    WorkerDeploymentsCreateDeploymentArgs, WorkerDeploymentsDeleteDeploymentArgs,
-    WorkerDeploymentsGetDeploymentArgs, WorkerPutScriptSecretArgs, WorkerRoutesCreateRouteArgs,
+    worker_subdomain_get_subdomain_request, worker_versions_upload_version_request,
+    CcCreateApplicationRequest, CcUpdateApplicationRequest, PublicCreateApplicationArgs,
+    PublicListApplicationsArgs, PublicUpdateApplicationArgs, WorkerDeploymentsCreateDeploymentArgs,
+    WorkerDeploymentsDeleteDeploymentArgs, WorkerDeploymentsGetDeploymentArgs,
+    WorkerPutScriptSecretArgs, WorkerRoutesCreateRouteArgs, WorkerSubdomainGetSubdomainArgs,
     WorkerVersionsUploadVersionArgs, WorkersDeploymentRequest, WorkersRouteRequest,
 };
 
@@ -267,9 +268,11 @@ impl DeploymentApi for GeneratedCloudflareApi {
         &self,
         worker_name: &str,
         version: &str,
+        route: Option<&Route>,
     ) -> DeployFuture<'_, Result<Promotion, DeployError>> {
         let worker_name = worker_name.to_string();
         let version = version.to_string();
+        let route = route.cloned();
         Box::pin(async move {
             let response = worker_deployments_create_deployment_request(
                 self.http.clone(),
@@ -291,8 +294,33 @@ impl DeploymentApi for GeneratedCloudflareApi {
             .await
             .map_err(api_error)?;
             let deployment = response.body.result;
+            // A plan route is the public address. Without one, the account
+            // subdomain completes the workers.dev address. A refused subdomain
+            // read falls back to the bare workers.dev form.
+            let worker_url = if let Some(route) = route {
+                route_url(&route.pattern)
+            } else {
+                match worker_subdomain_get_subdomain_request(
+                    self.http.clone(),
+                    &WorkerSubdomainGetSubdomainArgs {
+                        account_id: self.account_id.clone(),
+                    },
+                    &self.base_url,
+                    Some(self.auth()),
+                )
+                .await
+                {
+                    Ok(response) if !response.body.result.subdomain.is_empty() => {
+                        format!(
+                            "https://{worker_name}.{}.workers.dev",
+                            response.body.result.subdomain
+                        )
+                    }
+                    _ => format!("https://{worker_name}.workers.dev"),
+                }
+            };
             Ok(Promotion {
-                worker_url: format!("https://{worker_name}.workers.dev"),
+                worker_url,
                 deployment_id: DeploymentId::new(deployment.id),
             })
         })
@@ -352,6 +380,19 @@ fn migration_json(migration: &DoMigration) -> Value {
         "tag": migration.tag,
         "new_sqlite_classes": migration.new_sqlite_classes,
     })
+}
+
+/// The public address of one route pattern.
+///
+/// A plan route is a URL pattern such as `sandbox.example.com/*`. The Worker
+/// address is its scheme and host, without the trailing wildcard.
+fn route_url(pattern: &str) -> String {
+    let address = pattern.trim_end_matches('*').trim_end_matches('/');
+    if address.contains("://") {
+        address.to_string()
+    } else {
+        format!("https://{address}")
+    }
 }
 
 /// The file name of one Worker module.
