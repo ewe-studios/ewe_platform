@@ -5,18 +5,19 @@
 //! range read. No fake SQL engine is used.
 
 use foundation_context::Ctx;
-use foundation_core::durable::sql::{
-    block_key, BlockError, BlockFuture, BlockStore, Durability, FlushReport, SqlError, SqlExecutor,
-    SqlFuture, SqlRow, SqlStatement, SqlValue, SqlVfs, SqlVfsConfig,
-};
-#[cfg(feature = "vfs-testkit")]
-use foundation_core::durable::vfs_testkit::{run_all, SCENARIOS};
 #[cfg(feature = "vfs-testkit")]
 use foundation_core::durable::DurableStream;
+use foundation_core::durable::sql::{
+    BlockError, BlockFuture, BlockStore, Durability, FlushReport, SqlError, SqlExecutor, SqlFuture,
+    SqlRow, SqlStatement, SqlValue, SqlVfs, SqlVfsConfig, block_key,
+};
+#[cfg(feature = "vfs-testkit")]
+use foundation_core::durable::vfs_testkit::{SCENARIOS, run_all};
 use foundation_core::durable::{
     ContentType, DurableStreamVfs, StreamName, VfsError, VfsMeta, WriterState,
 };
-use foundation_core::valtron::{block_on_future_scoped, SimulatedClock};
+use foundation_core::valtron::{SimulatedClock, block_on_future_scoped};
+use libsql_backend as libsql;
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};

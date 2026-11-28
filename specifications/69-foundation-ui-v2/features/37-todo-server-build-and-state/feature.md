@@ -296,3 +296,19 @@ Use the countdown and pending captures referenced above to check the view.
 1. Run the server library and binary Clippy checks with warnings denied.
 2. Run the browser countdown check. Verify pending, retry, and resume.
 3. Run the native client tests. Verify the independent countdown sessions.
+
+## Windows storage and server completion
+
+The owner approves the Windows repairs for issues 519 and 1194.
+Use one workspace libSQL version at 0.10.0. Keep the local feature for the Todo server and the replica features for existing consumers.
+Preserve existing SQLite databases and resource files. Use portable resource file names and a file lock on Windows.
+
+1. Apply the verified dependency changes to the current source. Update the lock file for the current workspace.
+2. Preserve legacy resource reads. Check new names, updates, listing, deletion, and compare-and-set on Windows.
+3. Trace the Todo route from its normal entry point through the native HTTP server on Windows.
+4. Enable a package recipe after its build and runtime checks pass on the target system.
+5. Run hosted Windows tests. Record the exact dependency, source, and recipe for each result.
+6. Repeat affected Linux and macOS recipes against the updated dependency graph.
+
+Keep the current application screens and captures. This work changes storage and server support.
+[Windows file store](https://github.com/ewe-studios/ewe_platform/issues/519) · [Windows Todo server](https://github.com/ewe-studios/ewe_platform/issues/1194)

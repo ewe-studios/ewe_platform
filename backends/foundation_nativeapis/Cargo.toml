@@ -33,7 +33,7 @@ uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
-libsql = { version = "0.9", optional = true }
+libsql_backend = { workspace = true, features = ["default"], optional = true }
 fjall = { version = "2", optional = true }
 nfsserve = { version = "0.11", optional = true }
 hex = { workspace = true, optional = true }
@@ -123,7 +123,7 @@ futures-lite = "2"
 serde_json = "1"
 # The SQL VFS block-tier tests run against a real SQLite engine, not a fake.
 # This is the same engine and version as the optional `vfs-sqlite` dependency.
-libsql = "0.9"
+libsql_backend = { workspace = true, features = ["core"] }
 
 [target.'cfg(unix)'.dev-dependencies]
 nix = { version = "0.29", features = ["fs", "poll"] }
@@ -409,7 +409,7 @@ vfs-search-fff = ["vfs-search", "dep:fff-search"]
 vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 
 # VFS SQLite-backed DeltaStore (libsql)
-vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3", "dep:foundation_compact"]
+vfs-sqlite = ["vfs", "dep:libsql_backend", "dep:blake3", "dep:foundation_compact"]
 
 # VFS local Turso-engine-backed DeltaStore (the `turso` crate, native only)
 vfs-turso = ["vfs", "dep:turso", "dep:blake3", "dep:foundation_compact"]

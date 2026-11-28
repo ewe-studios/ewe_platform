@@ -7,6 +7,7 @@
 use foundation_core::durable::sql::{
     SqlError, SqlExecutor, SqlFuture, SqlRow, SqlStatement, SqlValue,
 };
+use libsql_backend as libsql;
 use std::sync::Arc;
 
 /// A libsql-backed executor over an in-memory database.
@@ -52,7 +53,9 @@ impl LibsqlExecutor {
             .build()
             .await
             .expect("open the in-memory database");
-        let conn = database.connect().expect("connect to the in-memory database");
+        let conn = database
+            .connect()
+            .expect("connect to the in-memory database");
         Self {
             conn: Arc::new(conn),
         }

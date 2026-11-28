@@ -72,7 +72,7 @@ proptest = { workspace = true }
 libc = "0.2"
 # The SQL VFS tests run against a real SQLite engine, not a fake. The workspace
 # already builds libsql for foundation_db; this crate reuses the same version.
-libsql = "0.6"
+libsql_backend = { workspace = true, features = ["core"] }
 serial_test = { workspace = true }
 # The property test modules are native only. proptest's fork feature pulls
 # rusty-fork and wait-timeout, which do not build for wasm32; keeping the

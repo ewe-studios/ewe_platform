@@ -56,7 +56,7 @@ async fn change(ctx: &Ctx, name: &str, id: &str) -> Result<(), String> {
 #[valtron_test]
 async fn restart_preserves_input_receipts_and_deletions() {
     let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("todos.sqlite3");
+    let path = dir.path().join("Todo ü.sqlite3");
     {
         let (ctx, feed) = open(&path).await;
         let disconnected = feed
