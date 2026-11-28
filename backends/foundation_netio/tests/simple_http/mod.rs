@@ -38,6 +38,7 @@ mod f51_unified_client_tests;
 mod framing_tests;
 mod gzip_response_tests;
 mod header_lowercase_tests;
+mod https_body_split_tests;
 mod http11_response_parts_tests;
 mod http_exchange_task_tests;
 mod http_redirect_edge_cases_tests;

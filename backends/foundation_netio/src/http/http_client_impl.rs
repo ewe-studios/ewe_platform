@@ -568,7 +568,7 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
             builder = builder.body(req.body);
         }
 
-        let request = self.request(builder)?;
+        let request = self.request(builder)?.with_async_body_reader();
         let (response, conn, _pool) = request.send_detached_async().await?;
         let conn = Some(conn);
         let (status, headers, body) = {

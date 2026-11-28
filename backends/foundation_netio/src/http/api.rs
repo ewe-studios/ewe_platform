@@ -291,6 +291,10 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
 
     /// Internal state machine for progressive reading
     task_state: ClientRequestState,
+
+    /// Whether the caller reads the response body on a non-blocking socket and
+    /// parks on readiness (see [`Self::with_async_body_reader`]).
+    async_body_reader: bool,
 }
 
 impl<R: DnsResolver + 'static> ClientRequest<R> {
@@ -325,7 +329,30 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             pool,
             prepared_request: Some(prepared),
             task_state: ClientRequestState::NotStarted,
+            async_body_reader: false,
         }
+    }
+
+    /// Mark the response body for an asynchronous reader that parks on socket
+    /// readiness.
+    ///
+    /// WHY: the body readers stop after a `max_retries` run of `WouldBlock`
+    /// reads. That budget is sized for a blocking read, where each retry waited
+    /// out a read timeout. An asynchronous reader parks on readiness instead,
+    /// and a readable edge does not always carry application data: a TLS record
+    /// can arrive over several TCP segments, and a TLS control record carries
+    /// none. Counting those wakes against the blocking budget ended a healthy
+    /// body early (issue #861).
+    ///
+    /// WHAT: when the connection reports readiness, the response body gets no
+    /// consecutive-retry budget, so only the framing ends it: the promised
+    /// `Content-Length` or the terminating chunk. On a transport without
+    /// readiness the blocking budget stands, so a stalled blocking read still
+    /// ends in a typed timeout.
+    #[must_use]
+    pub fn with_async_body_reader(mut self) -> Self {
+        self.async_body_reader = true;
+        self
     }
 
     pub fn get_pool(&self) -> Arc<HttpConnectionPool<R>> {
@@ -494,13 +521,16 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         self.task_state = ClientRequestState::Executing;
 
         // Create HttpRequestTask with pool and control
-        let (observer, task) = SendRequestTask::new(
+        let mut task = SendRequestTask::new(
             request,
             self.config.max_redirects,
             self.pool.clone(),
             self.config.clone(),
-        )
-        .split_collect_one_map(|ready| match ready {
+        );
+        if self.async_body_reader {
+            task = task.with_async_body_reader();
+        }
+        let (observer, task) = task.split_collect_one_map(|ready| match ready {
             RequestIntro::Success {
                 stream: _,
                 conn: _,

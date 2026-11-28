@@ -73,6 +73,9 @@ pub struct SendRequestTask<R>(
     /// Whether the response is handed over with the socket left non-blocking.
     /// See [`SendRequestTask::with_nonblocking_handoff`].
     bool,
+    /// Whether the caller reads the response body on a non-blocking socket and
+    /// parks on readiness. See [`SendRequestTask::with_async_body_reader`].
+    bool,
 )
 where
     R: DnsResolver + Send + 'static;
@@ -101,7 +104,23 @@ where
             parsed_uri,
             max_redirects as usize,
             false,
+            false,
         )
+    }
+
+    /// Mark the response body for an asynchronous reader that parks on
+    /// readiness.
+    ///
+    /// WHY: [`ClientRequest::with_async_body_reader`] documents the retry
+    /// budget this removes. The `SendRequestTask` must carry the flag down to
+    /// the response reader, which is built when the connection is up.
+    ///
+    /// [`ClientRequest::with_async_body_reader`]:
+    ///     crate::http::ClientRequest::with_async_body_reader
+    #[must_use]
+    pub fn with_async_body_reader(mut self) -> Self {
+        self.6 = true;
+        self
     }
 
     /// Hand the response over with the socket still non-blocking.
@@ -226,14 +245,18 @@ where
                     };
 
                     tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask task for sendrequest.");
+                    let mut redirect_task = GetHttpRequestRedirectTask::new(
+                        into_incoming,
+                        send_request.pool.clone(),
+                        send_request.config.clone(),
+                        send_request.remaining_redirects,
+                    );
+                    if self.6 {
+                        redirect_task = redirect_task.with_async_body_reader();
+                    }
                     let (get_stream_action, get_stream_receiver) = inlined_task(
                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
-                        GetHttpRequestRedirectTask::new(
-                            into_incoming,
-                            send_request.pool.clone(),
-                            send_request.config.clone(),
-                            send_request.remaining_redirects,
-                        ),
+                        redirect_task,
                         self.1.inline_processing_timeout,
                         ctx.clone(),
                     );
@@ -724,14 +747,20 @@ where
                                                 // remaining-redirect count fits u8.
                                                 #[allow(clippy::cast_possible_truncation)]
                                                 let remaining_redirects = self.4 as u8;
+                                                let mut redirect_task =
+                                                    GetHttpRequestRedirectTask::new(
+                                                        newly_built_request,
+                                                        self.2.clone(),
+                                                        self.1.clone(),
+                                                        remaining_redirects,
+                                                    );
+                                                if self.6 {
+                                                    redirect_task =
+                                                        redirect_task.with_async_body_reader();
+                                                }
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
-                                                        GetHttpRequestRedirectTask::new(
-                                                            newly_built_request,
-                                                            self.2.clone(),
-                                                            self.1.clone(),
-                                                            remaining_redirects,
-                                                        ),
+                                                        redirect_task,
                                                         self.1.inline_processing_timeout,
                                                         ctx.clone(),
                                                     );
