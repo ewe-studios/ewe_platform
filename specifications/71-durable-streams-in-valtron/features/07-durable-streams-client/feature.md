@@ -120,13 +120,19 @@ impl StreamHandle {
       `given_a_429_with_retry_after_when_a_read_runs_then_it_waits_and_retries`,
       `does_not_retry_404`, `given_a_409_when_a_read_runs_then_it_is_not_retried`,
       `retry_exhaustion_is_an_error`.
-- [x] **T6 — producer.** `ProducerBuilder` and `Producer` in
+- [x] **T6 — producer.** `ProducerBuilder`, `ProducerConfig` and `Producer` in
       `foundation_core/src/durable/shared/client/producer.rs` track the producer identifier, the
       epoch and the sequence through the existing `Producer-Id`/`Producer-Epoch`/`Producer-Seq`
       headers. They retry duplicates safely, auto-claim a new epoch on a fencing `403`, batch by
-      `max_batch_items` and `max_batch_bytes`, and support close and detach. Tests:
+      `max_batch_items` and `max_batch_bytes`, and support close and detach. The producer pipelines
+      up to `max_in_flight` requests and groups the appends that arrive within `linger` into one
+      batch; the linger timer reads the injected `Ctx` clock. Tests:
       `producer_deduplicates_retry`, `auto_claim_moves_epoch`, `detach_does_not_close`,
-      `given_a_producer_when_two_appends_run_then_the_sequences_advance`.
+      `given_a_producer_when_two_appends_run_then_the_sequences_advance`,
+      `several_appends_during_linger_become_one_batch`, `max_in_flight_bounds_concurrent_requests`,
+      `a_failed_batch_retries_with_the_same_sequence`,
+      `pipelined_batches_preserve_wire_and_acknowledgement_order`, and
+      `given_a_deterministic_clock_when_linger_runs_then_the_clock_sets_the_wait`.
 - [x] **T7 — dynamic headers and validation.** Per-request headers and config validation. Test:
       `dynamic_header_counter`. The adapter's `validate` command checks an invalid epoch, and the
       reference client suite exercises it; no Rust test carries that name (#1153).

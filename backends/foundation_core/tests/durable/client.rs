@@ -993,7 +993,7 @@ fn retry_exhaustion_is_an_error() {
 fn given_a_producer_when_two_appends_run_then_the_sequences_advance() {
     foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(vec![response(200, &[], b""), response(200, &[], b"")]);
-        let mut producer = handle(transport.clone())
+        let producer = handle(transport.clone())
             .producer("p1")
             .build()
             .expect("a producer");
@@ -1022,7 +1022,7 @@ fn producer_deduplicates_retry() {
         let transport =
             MockTransport::with(vec![response(500, &[], b"down"), response(204, &[], b"")]);
         let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
-        let mut producer = client
+        let producer = client
             .handle("/v1/stream/orders")
             .producer("p1")
             .build()
@@ -1054,7 +1054,7 @@ fn auto_claim_moves_epoch() {
             response(200, &[], b""),
         ]);
         let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
-        let mut producer = client
+        let producer = client
             .handle("/v1/stream/orders")
             .producer("p1")
             .epoch(0)
@@ -1106,7 +1106,7 @@ fn dynamic_header_counter() {
 fn detach_does_not_close() {
     foundation_core::valtron::block_on_future_scoped(async {
         let transport = MockTransport::with(Vec::new());
-        let mut producer = handle(transport.clone())
+        let producer = handle(transport.clone())
             .producer("p1")
             .build()
             .expect("a producer");
@@ -1160,6 +1160,282 @@ fn given_a_simulated_clock_when_a_retry_runs_then_the_clock_sets_the_wait() {
         assert_eq!(
             timer.delays(),
             vec![foundation_context::Duration::from_millis(250)]
+        );
+        assert_eq!(
+            clock.elapsed(),
+            foundation_context::Duration::ZERO,
+            "the wait came from the simulated clock, not real time"
+        );
+    });
+}
+
+// ---- Producer pipelining and linger scenarios (issue #1152) ----
+
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::task::{Context as TaskContext, Poll};
+
+/// A transport that keeps every request pending for one poll pass, and records
+/// how many requests were pending at the same time.
+struct CountingTransport {
+    responses: Mutex<VecDeque<ClientResponse>>,
+    requests: Mutex<Vec<ClientRequest>>,
+    outstanding: AtomicUsize,
+    max_outstanding: AtomicUsize,
+}
+
+impl CountingTransport {
+    fn with(responses: Vec<ClientResponse>) -> Arc<Self> {
+        Arc::new(Self {
+            responses: Mutex::new(responses.into()),
+            requests: Mutex::new(Vec::new()),
+            outstanding: AtomicUsize::new(0),
+            max_outstanding: AtomicUsize::new(0),
+        })
+    }
+}
+
+impl ClientTransport for CountingTransport {
+    fn send(&self, request: ClientRequest) -> ClientFuture<'_, ClientResponse> {
+        self.requests.lock().expect("requests").push(request);
+        let response = self
+            .responses
+            .lock()
+            .expect("responses")
+            .pop_front()
+            .unwrap_or(ClientResponse {
+                status: 500,
+                headers: BTreeMap::new(),
+                body: Vec::new(),
+            });
+        let mut polled = false;
+        Box::pin(futures_lite::future::poll_fn(
+            move |cx: &mut TaskContext<'_>| {
+                if !polled {
+                    polled = true;
+                    let now = self.outstanding.fetch_add(1, Ordering::SeqCst) + 1;
+                    self.max_outstanding.fetch_max(now, Ordering::SeqCst);
+                    // Return at once on the next poll so the test never waits
+                    // on a real timer.
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
+                self.outstanding.fetch_sub(1, Ordering::SeqCst);
+                Poll::Ready(Ok(response.clone()))
+            },
+        ))
+    }
+}
+
+/// A context with a simulated clock and a timer that records each deadline.
+#[cfg(feature = "test-clock")]
+fn simulated_ctx(
+    seed: u64,
+) -> (
+    foundation_context::Ctx,
+    std::sync::Arc<RecordingTimer>,
+    std::sync::Arc<foundation_core::valtron::SimulatedClock>,
+) {
+    let clock = std::sync::Arc::new(foundation_core::valtron::SimulatedClock::new(
+        foundation_context::Duration::ZERO,
+    ));
+    let ctx = foundation_context::Ctx::fixed(clock.clone());
+    let timer = std::sync::Arc::new(RecordingTimer::default());
+    ctx.store(foundation_core::env::Env::new(
+        timer.clone(),
+        std::sync::Arc::new(foundation_core::env::SeededEntropy::new(seed)),
+        std::sync::Arc::new(foundation_core::env::CounterSource::new(1)),
+    ));
+    (ctx, timer, clock)
+}
+
+#[cfg(feature = "test-clock")]
+#[test]
+fn several_appends_during_linger_become_one_batch() {
+    use foundation_context::Clock as _;
+
+    let (ctx, timer, clock) = simulated_ctx(21);
+    foundation_core::valtron::block_on_future_scoped(async {
+        let transport = MockTransport::with(vec![response(
+            200,
+            &[("stream-next-offset", "0000000000000003")],
+            b"",
+        )]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let producer = client
+            .handle("/v1/stream/orders")
+            .producer("p1")
+            .build()
+            .expect("a producer");
+        let second = producer.clone();
+        let third = producer.clone();
+        let (first, (second, third)) = futures_lite::future::zip(
+            producer.append(b"a".to_vec(), Some("text/plain")),
+            futures_lite::future::zip(
+                second.append(b"b".to_vec(), Some("text/plain")),
+                third.append(b"c".to_vec(), Some("text/plain")),
+            ),
+        )
+        .await;
+
+        for result in [first, second, third] {
+            let outcome = result.expect("a batched append");
+            assert_eq!(outcome.offset.as_deref(), Some("0000000000000003"));
+        }
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(requests.len(), 1, "the three appends share one request");
+        assert_eq!(header(&requests[0], "producer-seq").as_deref(), Some("0"));
+        assert_eq!(requests[0].body, b"abc");
+        assert_eq!(
+            timer.delays(),
+            vec![foundation_context::Duration::from_millis(5)],
+            "the default linger waits five milliseconds"
+        );
+        assert_eq!(
+            clock.elapsed(),
+            foundation_context::Duration::ZERO,
+            "the wait came from the simulated clock, not real time"
+        );
+    });
+}
+
+#[test]
+fn max_in_flight_bounds_concurrent_requests() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let responses = (0..5).map(|_| response(200, &[], b"")).collect();
+        let transport = CountingTransport::with(responses);
+        let client = DurableClient::new(
+            transport.clone(),
+            ClientConfig {
+                base_url: "http://server".to_string(),
+                default_headers: Vec::new(),
+            },
+        );
+        let producer = client
+            .handle("/v1/stream/orders")
+            .producer("p1")
+            .max_batch_items(1)
+            .max_in_flight(2)
+            .build()
+            .expect("a producer");
+        let items = vec![
+            b"a".to_vec(),
+            b"b".to_vec(),
+            b"c".to_vec(),
+            b"d".to_vec(),
+            b"e".to_vec(),
+        ];
+        let results = producer
+            .append_batch(items, Some("text/plain"))
+            .await
+            .expect("five batches");
+
+        assert_eq!(results.len(), 5);
+        assert_eq!(transport.requests.lock().expect("requests").len(), 5);
+        assert_eq!(
+            transport.max_outstanding.load(Ordering::SeqCst),
+            2,
+            "never more than max_in_flight requests are in flight"
+        );
+    });
+}
+
+#[test]
+fn a_failed_batch_retries_with_the_same_sequence() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let (ctx, _timer) = retry_ctx();
+        let transport =
+            MockTransport::with(vec![response(500, &[], b"down"), response(200, &[], b"")]);
+        let client = retrying_client(transport.clone(), ctx, RetryPolicy::default());
+        let producer = client
+            .handle("/v1/stream/orders")
+            .producer("p1")
+            .build()
+            .expect("a producer");
+        let results = producer
+            .append_batch(vec![b"x".to_vec()], Some("text/plain"))
+            .await
+            .expect("a retried batch");
+
+        assert_eq!(results.len(), 1);
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(requests.len(), 2);
+        assert_eq!(
+            header(&requests[0], "producer-seq"),
+            header(&requests[1], "producer-seq"),
+            "the retry keeps the sequence"
+        );
+        assert_eq!(header(&requests[1], "producer-seq").as_deref(), Some("0"));
+        assert_eq!(producer.sequence(), 1, "the sequence advances once");
+    });
+}
+
+#[test]
+fn pipelined_batches_preserve_wire_and_acknowledgement_order() {
+    foundation_core::valtron::block_on_future_scoped(async {
+        let transport = MockTransport::with(vec![
+            response(200, &[("stream-next-offset", "01")], b""),
+            response(200, &[("stream-next-offset", "02")], b""),
+            response(200, &[("stream-next-offset", "03")], b""),
+        ]);
+        let producer = handle(transport.clone())
+            .producer("p1")
+            .max_batch_items(1)
+            .max_in_flight(3)
+            .build()
+            .expect("a producer");
+        let results = producer
+            .append_batch(
+                vec![b"a".to_vec(), b"b".to_vec(), b"c".to_vec()],
+                Some("text/plain"),
+            )
+            .await
+            .expect("three batches");
+
+        let offsets: Vec<Option<&str>> = results
+            .iter()
+            .map(|result| result.offset.as_deref())
+            .collect();
+        assert_eq!(offsets, vec![Some("01"), Some("02"), Some("03")]);
+        let requests = transport.requests.lock().expect("requests");
+        assert_eq!(requests.len(), 3);
+        for (index, request) in requests.iter().enumerate() {
+            assert_eq!(
+                header(request, "producer-seq"),
+                Some(index.to_string()),
+                "the wire keeps the sequence order"
+            );
+            assert_eq!(
+                request.body,
+                vec![b'a' + u8::try_from(index).expect("a small index")]
+            );
+        }
+    });
+}
+
+#[cfg(feature = "test-clock")]
+#[test]
+fn given_a_deterministic_clock_when_linger_runs_then_the_clock_sets_the_wait() {
+    use foundation_context::Clock as _;
+
+    let (ctx, timer, clock) = simulated_ctx(23);
+    foundation_core::valtron::block_on_future_scoped(async {
+        let transport = MockTransport::with(vec![response(200, &[], b"")]);
+        let client = retrying_client(transport, ctx, RetryPolicy::default());
+        let producer = client
+            .handle("/v1/stream/orders")
+            .producer("p1")
+            .linger(foundation_context::Duration::from_millis(25))
+            .build()
+            .expect("a producer");
+        producer
+            .append(b"x".to_vec(), Some("text/plain"))
+            .await
+            .expect("an append");
+
+        assert_eq!(
+            timer.delays(),
+            vec![foundation_context::Duration::from_millis(25)],
+            "linger uses the injected clock"
         );
         assert_eq!(
             clock.elapsed(),
