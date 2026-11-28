@@ -38,6 +38,28 @@ name = "maven"
 description = "Local Maven repository"
 
 [[tasks.commands]]
+name = "test-android-game"
+description = "Replay Mathalley on an installed Android application"
+[[tasks.commands.arguments]]
+name = "adb"
+required = true
+description = "Android Debug Bridge executable"
+[[tasks.commands.arguments]]
+name = "device"
+required = true
+description = "Device serial number"
+[[tasks.commands.arguments]]
+name = "captures"
+required = true
+description = "Directory for captured game images"
+[[tasks.commands.arguments]]
+name = "timeout-seconds"
+description = "Maximum wait in seconds. The default is 60."
+[[tasks.commands.arguments]]
+name = "poll-ms"
+description = "Poll interval in milliseconds. The default is 200."
+
+[[tasks.commands]]
 name = "test-ios-starter"
 description = "Check the iOS starter screen against the Todo server"
 [[tasks.commands.arguments]]
