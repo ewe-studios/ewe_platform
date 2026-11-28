@@ -94,7 +94,7 @@ jobs:
           # Do not install mise's `http:android-sdk`: the runner image already
           # provides the SDK, and a second path makes Gradle refuse the build
           # (issue #1238).
-          mise install --locked --yes github:google/flatbuffers java gradle kotlin github:bbqsrc/cargo-ndk python
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin github:bbqsrc/cargo-ndk python github:wasm-bindgen/wasm-bindgen
           # One SDK path for both names. Every command below inherits it.
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
