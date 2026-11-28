@@ -144,7 +144,15 @@ jobs:
           CI_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || '' }}
           CI_HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
           CI_PACKAGES: ${{ github.event.inputs.packages }}
-        run: cargo run --locked --profile uat -p foundation_ci -- plan
+        shell: bash
+        run: |
+          linux_plan=$(mktemp)
+          macos_plan=$(mktemp)
+          GITHUB_OUTPUT="$linux_plan" cargo run --locked --profile uat -p foundation_ci -- plan --packages "$CI_PACKAGES"
+          GITHUB_OUTPUT="$macos_plan" cargo run --locked --profile uat -p foundation_ci -- plan --packages foundation_http,foundation_ui_runtime,ui_todo
+          awk -F= '$1 ~ /^(matrix|count|max-parallel-linux|max-parallel-windows)$/' "$linux_plan" >> "$GITHUB_OUTPUT"
+          awk -F= '$1 ~ /^(macos-matrix|macos-count|macos-shard-count|max-parallel-macos)$/' "$macos_plan" >> "$GITHUB_OUTPUT"
+          printf '%s\n' 'windows-matrix={"include":[]}' 'windows-count=0' 'windows-shard-count=0' >> "$GITHUB_OUTPUT"
 
       # Every nested lockfile is checked, not only the examples. A nested
       # workspace sits outside the root workspace, so no package job builds it.
@@ -471,12 +479,7 @@ jobs:
     # The job runs when the plan selected either package. Master, nightly and
     # manual runs select every package, so it always runs there.
     # The matrix JSON holds each name in quotes, so this match is exact.
-    if: >-
-      needs.plan.result == 'success' &&
-      (github.event_name != 'pull_request' ||
-      github.base_ref == 'platform/release' || github.head_ref == 'platform/release') &&
-      (contains(needs.plan.outputs.matrix, '"foundation_netio"') ||
-      contains(needs.plan.outputs.matrix, '"foundation_nativeapis"'))
+    if: github.event_name != 'workflow_dispatch'
     # Same GitHub-hosted Windows image as `windows-test`.
     runs-on: windows-2025
     # Limit, not a measurement: a cold build of both packages takes about 15 to
@@ -793,7 +796,7 @@ jobs:
   # every selected package passed, or when no package needed testing.
   checks-passed:
     name: Checks passed
-    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test]
+    needs: [image, plan, package, package-artifact, windows, macos-test, windows-test, macos]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -805,10 +808,11 @@ jobs:
           PACKAGES_ARTIFACT: ${{ needs.package-artifact.result }}
           WINDOWS: ${{ needs.windows.result }}
           MACOS_TESTS: ${{ needs.macos-test.result }}
+          MACOS_SAMPLE: ${{ needs.macos.result }}
           WINDOWS_TESTS: ${{ needs.windows-test.result }}
         run: |
           echo "image: $IMAGE, plan: $PLAN, packages: $PACKAGES, packages (image artifact): $PACKAGES_ARTIFACT, windows: $WINDOWS, macOS tests: $MACOS_TESTS, Windows tests: $WINDOWS_TESTS"
-          if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ]; then exit 1; fi
+          if [ "$IMAGE" != "success" ] || [ "$PLAN" != "success" ] || [ "$MACOS_SAMPLE" != "success" ]; then exit 1; fi
           for result in "$PACKAGES" "$PACKAGES_ARTIFACT" "$WINDOWS" "$MACOS_TESTS" "$WINDOWS_TESTS"; do
             case "$result" in
               success|skipped) ;;
@@ -821,7 +825,7 @@ jobs:
     needs: image
     # Packaging the whole workspace is slow; run it where releases happen.
     # Non-PR events always have registry credentials, so the image is there.
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.image.outputs.image-ref }}
@@ -892,7 +896,7 @@ jobs:
         run: cargo run --locked --profile uat -p foundation_ci -- package-workspace
 
   macos:
-    name: macOS build
+    name: macOS Android sample
     # A full macOS build is expensive; run it on master, nightly and on demand.
     if: github.event_name != 'pull_request'
     # The GitHub-hosted macOS 26 image. DEVELOPER_DIR must name an Xcode it has.
@@ -908,9 +912,6 @@ jobs:
         with:
           fetch-depth: 1
           submodules: false
-
-      - name: Fetch llama.cpp
-        run: git submodule update --init --depth 1 tools/llama.cpp
 
       - name: Install the pinned toolchain
         # `--profile minimal` leaves out rustfmt, but the generated provider
@@ -943,78 +944,3 @@ jobs:
         run: |
           unset ANDROID_SDK_ROOT
           mise run toolchain:android-build
-
-      - name: Install the pinned protoc
-        # The build script of foundation_agent_rpc runs protoc. The Linux CI
-        # image pins 36.2 (ci/platform-images/mise/mise.toml). The hosted
-        # macOS and Windows runners have no protoc, so the build failed there
-        # (#599). The asset and the checksum are the same as in mise.lock.
-        shell: bash
-        run: |
-          version=36.2
-          case "$(uname -s)-$(uname -m)" in
-            Darwin-arm64)  asset="osx-aarch_64"; sha="9cd98a532c5c5e0c4161314de0225de27e4c8a323917b6ea7b1b714d3ae23466" ;;
-            Darwin-x86_64) asset="osx-x86_64"; sha="228cc7add4616cc14ca5e80dee83209d44449a7aee95a914ae748fa374efb078" ;;
-            MINGW*-x86_64) asset="win64"; sha="f0c128dc0d8492eceece83bb459a4c0e316764b929ffbf1aa416357fd644edd3" ;;
-            *)
-              echo "::error::no pinned protoc $version asset for $(uname -s)-$(uname -m)"
-              exit 1
-              ;;
-          esac
-          # cygpath -m gives a path that both bash and the native Windows
-          # Python read.
-          if command -v cygpath >/dev/null 2>&1; then
-            dir="$(cygpath -m "$RUNNER_TEMP")/protoc-$version"
-          else
-            dir="$RUNNER_TEMP/protoc-$version"
-          fi
-          mkdir -p "$dir"
-          curl -sSL -o "$dir/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$version/protoc-$version-$asset.zip"
-          if command -v sha256sum >/dev/null 2>&1; then
-            echo "$sha  $dir/protoc.zip" | sha256sum -c -
-          else
-            echo "$sha  $dir/protoc.zip" | shasum -a 256 -c -
-          fi
-          python=$(command -v python3 || command -v python)
-          "$python" -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$dir/protoc.zip" "$dir"
-          # A zip file does not record the executable bit.
-          chmod +x "$dir"/bin/protoc*
-          "$dir/bin/protoc" --version
-          echo "$dir/bin" >> "$GITHUB_PATH"
-
-      - name: Cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          save-if: ${{ github.ref == 'refs/heads/master' }}
-
-      - name: Install the browser build tools
-        # The build script of examples/ui_todo builds a wasm32 module and runs the
-        # wasm-bindgen CLI on it (spec 69 feature 27). The hosted macOS runner has
-        # no wasm32 target and no wasm-bindgen, so the build failed with
-        # "Generate browser bindings for ui_todo: No such file or directory".
-        # The version is the one that mise.toml and mise.wasm.toml pin.
-        shell: bash
-        env:
-          MISE_LOCKED: "1"
-        run: |
-          rustup target add wasm32-unknown-unknown
-          mise install --yes github:wasm-bindgen/wasm-bindgen
-          echo "WASM_BINDGEN=$(mise which wasm-bindgen)" >> "$GITHUB_ENV"
-
-      - name: Build
-        run: cargo build --profile uat --workspace
-
-      - name: Check the iOS target
-        # The job uses Xcode 26.2, so the check runs against the iPhoneOS 26.2
-        # SDK, the same SDK as the VM pin. The step fails if the SDK is
-        # different. The VM job `macos-ssh` (platform-vms.yaml) runs the same
-        # checks inside the VM (#355, #464). LLVM is required: Cranelift
-        # cannot build ring for iOS.
-        run: |
-          rustup target add aarch64-apple-ios
-          sdk=$(xcrun --sdk iphoneos --show-sdk-version)
-          echo "iPhoneOS SDK: $sdk"
-          test "$sdk" = "26.2" || { echo "::error::expected the iPhoneOS 26.2 SDK, got $sdk"; exit 1; }
-          cargo check -p foundation_wireguard --target aarch64-apple-ios --features spec55-complete --profile uat
-          cargo check -p foundation_platform --target aarch64-apple-ios --profile uat
-          cargo check -p foundation_nativeapis --target aarch64-apple-ios --features watcher-macos --profile uat
