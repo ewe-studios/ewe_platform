@@ -268,9 +268,12 @@ On a second launch of the same installation, an interactive debugger continues t
 The phone connects through the wired relay. The next capture shows the Todos screen with its live controls.
 The capture includes only the screen header. The check makes no changes to Todo items.
 
-The debug symbol load delays the second run. The elapsed time does not measure the launch-image service timeout.
-The Mac requires administrator access to collect the phone logs.
-The service logs and the reported timeout from issue 831 remain unverified.
+The normal first launch reaches the active state at 19:16:10.794. The screen capture shows the Todos title.
+The debugger-stopped request starts at 19:45:58.518 and shows the same title in the launch image.
+The separate debugger retry reaches scene readiness at 19:50:14.230.
+The debugger loads symbols before the app continues. This delay does not measure the launch-image service timeout.
+The scoped phone logs show no matching launch-image timeout or error 8 on either launch.
+Later snapshot requests for the resumed scene complete with error code 0.
 
 [First stopped launch image](screenshots/iphone13-pro-debugger-stopped-todo-2026-11-28.png)
 [Todo controls after debugger continuation](screenshots/iphone13-pro-debugger-resumed-todo-2026-11-28.png)
