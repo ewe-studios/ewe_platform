@@ -314,11 +314,55 @@ impl SandboxSpec {
 }
 
 /// A path is absolute and has no `..` part.
+///
+/// `Path::is_absolute()` is false for `/workspace` on `wasm32-unknown-unknown`: the wasm
+/// std path code needs a prefix, and wasm has none. `has_root()` is true for a leading
+/// `/` on every target, so a Worker validates a guest path the same way a native host does.
 fn absolute_without_parent(path: &Path) -> bool {
-    path.is_absolute()
+    path.has_root()
         && !path
             .components()
             .any(|component| component == Component::ParentDir)
+}
+
+/// Resolves one guest path against the work directory of its sandbox.
+///
+/// An absolute path is returned unchanged. A relative path joins `workdir` and
+/// is normalised: `.` parts disappear, and a `..` part removes the part before
+/// it. The result is `None` when the path is empty, when `workdir` is not
+/// absolute, or when the path leaves the work directory (issue #1154). The
+/// caller then applies [`absolute_without_parent`] to the result.
+#[must_use]
+pub fn resolve_guest_path(workdir: &str, path: &str) -> Option<String> {
+    if path.is_empty() {
+        return None;
+    }
+    let path = Path::new(path);
+    if path.has_root() {
+        return Some(path.to_string_lossy().into_owned());
+    }
+    let base = Path::new(workdir);
+    if !base.has_root() {
+        return None;
+    }
+    let mut resolved = base.to_path_buf();
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::Normal(part) => resolved.push(part),
+            Component::ParentDir => {
+                if resolved == base || !resolved.pop() {
+                    return None;
+                }
+            }
+            Component::RootDir | Component::Prefix(_) => return None,
+        }
+    }
+    // The work directory itself is a directory, not a file.
+    if resolved == base {
+        return None;
+    }
+    Some(resolved.to_string_lossy().into_owned())
 }
 
 /// The error for a wrong spec field.

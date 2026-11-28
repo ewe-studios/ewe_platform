@@ -130,7 +130,7 @@ impl ValidationOptions {
     pub fn compile(self) -> Result<Validator, ValidationError> {
         let schema = self.schema.as_ref()
             .expect("schema must be set before compile() — use scheme::Builder::build() or ValidationOptions::build(schema)");
-        Self::_do_compile(&self, schema)
+        Self::do_compile(&self, schema)
     }
 
     /// Reference to the stored schema.
@@ -186,7 +186,7 @@ impl ValidationOptions {
     /// Returns an error if schema compilation fails (invalid schema structure,
     /// unresolvable references, etc.).
     pub fn build(self, schema: &Value) -> Result<Validator, ValidationError> {
-        Self::_do_compile(&self, schema)
+        Self::do_compile(&self, schema)
     }
 }
 
@@ -195,7 +195,7 @@ impl ValidationOptions {
     ///
     /// WHY: Both entry points run the same pipeline — registry build, draft
     /// detection, ID extraction, compiler invocation. This avoids duplication.
-    fn _do_compile(&self, schema: &Value) -> Result<Validator, ValidationError> {
+    fn do_compile(&self, schema: &Value) -> Result<Validator, ValidationError> {
         let draft = Draft::detect(schema).unwrap_or(self.default_draft);
 
         // Extract the schema's own id to use as base_uri for registry registration.

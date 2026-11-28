@@ -79,6 +79,11 @@ fn is_assistant(record: &SessionRecord) -> bool {
 
 /// The raw turn as an async stream: every `Stream<SessionRecord,
 /// AgentProgress>` item, parking (not polling) while the loop waits.
+///
+/// `StreamParkingFutureStream` drives the loop past its control states on a
+/// single-threaded engine: `Wait`, `Pending` and `Init` from a stream that
+/// runs its own producer are re-polled with a bounded budget (issue #1129),
+/// and `Delayed` keeps its timer.
 pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
     foundation_core::valtron::StreamParkingFutureStream<DrivenStreamIterator<AgentLoop<D, M>>>,
 >;

@@ -13,12 +13,9 @@ use foundation_db::testing::FaultStep;
 const START: Duration = Duration::from_secs(1_700_000_000);
 
 /// One run's observable trace. It holds the seeded client identity and the
-/// words the scripted turn said.
+/// words the scripted model said through the real session turn.
 fn trace(seed: u64) -> String {
     SimRuntime::run(seed, START, |sim| {
-        // The world uses the scripted registry, not LocalInstanceRegistry: the
-        // real AgentSession turn stream parks on the single-threaded engine
-        // (#908; the cooperative stream lands as its own task).
         let world = TestWorld::in_memory(&sim);
         let enrolled = world.enroll("laptop").expect("the client enrolls");
         let client = world.client_with(&enrolled.access_secret);
@@ -113,12 +110,9 @@ fn dst_injected_storage_failure_gives_a_typed_error() {
     SimRuntime::run(3, START, |sim| {
         let world = TestWorld::with_faulty_storage(&sim, FaultStep::Append);
         let client = world.client();
-        client
-            .create("alpha")
-            .expect("create does not touch the store");
         let error = client
-            .chat_stream("alpha", "hello")
-            .expect_err("the injected append failure ends the turn");
+            .create("alpha")
+            .expect_err("the injected store failure ends the create");
         assert_eq!(
             error.current_context().code(),
             foundation_connectrpc::Code::Internal,
@@ -131,6 +125,9 @@ fn dst_injected_storage_failure_gives_a_typed_error() {
                 .contains("injected storage failure at append call 1"),
             "seed 3: {error:?}"
         );
-        client.destroy("alpha").expect("destroy");
+        assert!(
+            client.list().expect("list").instances.is_empty(),
+            "no instance remains (seed 3)"
+        );
     });
 }

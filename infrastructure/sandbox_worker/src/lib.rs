@@ -16,6 +16,7 @@ mod sandbox_do;
 use std::sync::OnceLock;
 
 use foundation_connectrpc::ErrorWriter;
+use foundation_context::env::{Timer, TimerFuture};
 use foundation_context::Ctx;
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_errstacks::ErrorTrace;
@@ -33,6 +34,7 @@ use foundation_sandbox::shared::rpc::messages::ProbeResponse;
 use foundation_sandbox::shared::spec::RootMode;
 use foundation_sandbox::shared::Secret;
 use futures::StreamExt;
+use worker::wasm_bindgen::{JsCast, JsValue};
 use worker::{Env, Request, Response};
 
 pub use index_do::{SandboxIndexDo, WorkerSandboxIndex};
@@ -71,11 +73,50 @@ pub(crate) fn ctx() -> Ctx {
     CTX.get_or_init(|| {
         POOL.get_or_init(|| initialize_pool(42, None));
         let ctx = Ctx::host();
-        foundation_core::env::install(&ctx, foundation_core::env::wasm)
-            .expect("the effect environment of the Worker builds");
+        let env = foundation_core::env::wasm(&ctx)
+            .expect("the effect environment of the Worker builds")
+            .with_timer(std::sync::Arc::new(JsTimer) as std::sync::Arc<dyn Timer>);
+        ctx.store(env);
         ctx
     })
     .clone()
+}
+
+/// The timer of the Worker: one JavaScript `setTimeout`.
+///
+/// Why: a wait on the executor's wasm timer drives the valtron engine from
+/// inside the poll. A task that waits inside another engine task then re-enters
+/// it (issue #1125). A host timer wakes the task from the JavaScript event loop,
+/// so the engine is never driven from inside a poll.
+struct JsTimer;
+
+impl Timer for JsTimer {
+    fn sleep_until(&self, ctx: Ctx, deadline: foundation_compact::Instant) -> TimerFuture {
+        let wait = deadline.saturating_duration_since(ctx.clock().now());
+        Box::pin(foundation_compact::SendWrapper::new(async move {
+            let global = worker::js_sys::global();
+            let promise = worker::js_sys::Promise::new(&mut |resolve, _reject| {
+                let Some(set_timeout) =
+                    worker::js_sys::Reflect::get(&global, &JsValue::from_str("setTimeout"))
+                        .ok()
+                        .and_then(|value| value.dyn_into::<worker::js_sys::Function>().ok())
+                else {
+                    // No host timer: complete at once rather than hang.
+                    let _ = resolve.call0(&JsValue::UNDEFINED);
+                    return;
+                };
+                let millis = u32::try_from(wait.as_millis())
+                    .unwrap_or(u32::MAX)
+                    .min(u32::try_from(i32::MAX).unwrap_or(u32::MAX));
+                let _ = set_timeout.call2(
+                    &global,
+                    &resolve,
+                    &JsValue::from_f64(f64::from(millis)),
+                );
+            });
+            let _ = worker::js_sys::futures::JsFuture::from(promise).await;
+        }))
+    }
 }
 
 /// The limits of this Worker.
@@ -183,7 +224,8 @@ pub async fn fetch(
 /// Removes one index entry and logs a failure. A failure does not fail the call.
 async fn remove_index_entry(env: &Env, id: &SandboxId) {
     let index = WorkerSandboxIndex::new(env.clone());
-    if let Err(error) = foundation_sandbox::shared::cloudflare::SandboxIndex::remove(&index, id).await
+    if let Err(error) =
+        foundation_sandbox::shared::cloudflare::SandboxIndex::remove(&index, id).await
     {
         worker::console_warn!("the stale index entry was not removed: {error}");
     }
@@ -191,11 +233,7 @@ async fn remove_index_entry(env: &Env, id: &SandboxId) {
 
 /// Returns the Durable Object response with a body that removes the index
 /// entry when the stream fails after the head.
-fn stream_response(
-    mut response: Response,
-    env: Env,
-    id: SandboxId,
-) -> worker::Result<Response> {
+fn stream_response(mut response: Response, env: Env, id: SandboxId) -> worker::Result<Response> {
     let status = response.status_code();
     let headers = response.headers().clone();
     let body = response.stream()?;

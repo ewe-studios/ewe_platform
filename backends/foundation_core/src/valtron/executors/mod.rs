@@ -36,6 +36,12 @@ pub use sync::*;
 pub use task_iters::*;
 pub use wrappers::*;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod scoped;
+// The module is empty on wasm, because the scoped boundary parks a thread.
+#[cfg(not(target_arch = "wasm32"))]
+pub use scoped::*;
+
 pub mod single;
 
 #[cfg(not(feature = "multi"))]

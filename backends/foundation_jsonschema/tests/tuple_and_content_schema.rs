@@ -558,8 +558,7 @@ fn tuple_additional_items_absent_means_true_all_drafts() {
         // Extra items of any type should be allowed
         assert!(
             validator.is_valid(&json!(["hello", 42, true, null])),
-            "extra items should pass for {:?}",
-            draft
+            "extra items should pass for {draft:?}"
         );
     }
 }

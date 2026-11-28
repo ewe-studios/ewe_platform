@@ -157,6 +157,10 @@ worker = [
 # The spec 77 container handle: `AgentContainer` over `ContainerControl`
 # (spec 83 feature 06, T6). It compiles on native and on wasm.
 sandbox = ["dep:foundation_sandbox"]
+# The deterministic simulation test (DST) build (spec 92 feature 01): the core
+# registry and the guarded turn over the mocks of `foundation_ai`. It never
+# enables `multi`, a thread pool, SQLite or TLS, so `SimRuntime` survives.
+dst = ["dep:foundation_ai", "foundation_ai/testing-mock", "dep:foundation_db"]
 # The agent-rpc Cloudflare deployment plan: `agent_rpc_plan` over the spec 77
 # `DeploymentPlan` (spec 83 feature 06, T6). The deployers are native only.
 deployment = ["dep:foundation_deployment_cloudflare"]

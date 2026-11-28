@@ -1,0 +1,476 @@
+//! Property and model-oracle tests for append and read.
+
+use foundation_context::Ctx;
+use foundation_core::durable::{
+    AppendRequest, Chunk, CreateSpec, DurableStream, DurableStreams, MemoryVfs, ReadFrom,
+    ReadLimit, ReadRequest, StreamName, StreamOffset,
+};
+use proptest::prelude::*;
+use std::sync::Arc;
+
+fn offset(value: u64) -> StreamOffset {
+    StreamOffset::from_bytes(value.to_be_bytes())
+}
+
+proptest! {
+    #[test]
+    fn append_read_is_byte_exact(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..64), 1..20),
+    ) {
+        let (bytes, model) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let name = StreamName::parse("events/property").expect("valid name");
+            let stream = streams.stream(name);
+
+            stream.create(CreateSpec::default()).await.expect("create");
+
+            let mut model = Vec::new();
+            for chunk in &chunks {
+                stream
+                    .append(AppendRequest::new(Chunk::new(chunk.clone())))
+                    .await
+                    .expect("append");
+                model.extend_from_slice(chunk);
+            }
+
+            let page = stream
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("read");
+            let bytes: Vec<u8> = page
+                .chunks
+                .iter()
+                .flat_map(|chunk| chunk.as_bytes().iter().copied())
+                .collect();
+
+            (bytes, model)
+        });
+
+        prop_assert_eq!(bytes, model);
+    }
+}
+
+proptest! {
+    #[test]
+    fn producer_retries_store_each_chunk_once(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..24), 1..10),
+    ) {
+        let bytes = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let stream = streams.stream(StreamName::parse("events/producer").expect("name"));
+            stream.create(CreateSpec::default()).await.expect("create");
+
+            let producer_id = foundation_core::durable::ProducerId::parse("p").expect("id");
+            let mut model = Vec::new();
+            for (seq, chunk) in chunks.iter().enumerate() {
+                let request = AppendRequest {
+                    chunk: Chunk::new(chunk.clone()),
+                    content_type: None,
+                    stream_seq: None,
+                    producer: Some(foundation_core::durable::Producer {
+                        id: producer_id.clone(),
+                        epoch: 0,
+                        seq: u64::try_from(seq).expect("seq"),
+                    }),
+                    close: false,
+                };
+                stream.append(request.clone()).await.expect("append");
+                // A retry of the same sequence stores nothing new.
+                stream.append(request).await.expect("retry");
+                model.extend_from_slice(chunk);
+            }
+
+            let page = stream
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("read");
+            page.chunks
+                .into_iter()
+                .flat_map(|chunk| chunk.as_bytes().to_vec())
+                .collect::<Vec<u8>>()
+        });
+        prop_assert_eq!(bytes, chunks.iter().flatten().copied().collect::<Vec<u8>>());
+    }
+}
+
+proptest! {
+    #[test]
+    fn fork_reads_the_prefix_at_its_offset(
+        first in prop::collection::vec(any::<u8>(), 1..32),
+        second in prop::collection::vec(any::<u8>(), 1..32),
+        third in prop::collection::vec(any::<u8>(), 1..32),
+    ) {
+        let (fork_bytes, source_bytes) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let source = streams.stream(StreamName::parse("fork/source").expect("name"));
+            source.create(CreateSpec::default()).await.expect("create");
+            let after_first = source
+                .append(AppendRequest::new(Chunk::new(first.clone())))
+                .await
+                .expect("append first")
+                .cursor
+                .next;
+            source
+                .append(AppendRequest::new(Chunk::new(second.clone())))
+                .await
+                .expect("append second");
+
+            let fork = streams.stream(StreamName::parse("fork/child").expect("name"));
+            fork.create(CreateSpec {
+                fork: Some(foundation_core::durable::ForkSpec {
+                    source: StreamName::parse("fork/source").expect("source"),
+                    at: Some(after_first),
+                    sub_offset: 0,
+                }),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("fork");
+
+            // A source append after the fork point is invisible to the fork.
+            source
+                .append(AppendRequest::new(Chunk::new(third.clone())))
+                .await
+                .expect("append third");
+            fork.append(AppendRequest::new(Chunk::new(b"!".to_vec())))
+                .await
+                .expect("fork append");
+
+            let fork_page = fork
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("fork read");
+            let source_page = source
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("source read");
+            let bytes = |page: foundation_core::durable::ReadPage| {
+                page.chunks
+                    .into_iter()
+                    .flat_map(|chunk| chunk.as_bytes().to_vec())
+                    .collect::<Vec<u8>>()
+            };
+            (bytes(fork_page), bytes(source_page))
+        });
+
+        let mut expected_fork = first.clone();
+        expected_fork.push(b'!');
+        prop_assert_eq!(fork_bytes, expected_fork);
+
+        let mut expected_source = first;
+        expected_source.extend_from_slice(&second);
+        expected_source.extend_from_slice(&third);
+        prop_assert_eq!(source_bytes, expected_source);
+    }
+}
+
+proptest! {
+    #[test]
+    fn json_append_then_read_returns_each_message(
+        messages in prop::collection::vec((any::<i64>(), "[a-z]{0,8}"), 1..12),
+    ) {
+        let read_back = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let stream = streams.stream(StreamName::parse("json/property").expect("name"));
+            stream
+                .create(CreateSpec {
+                    content_type: Some(
+                        foundation_core::durable::ContentType::parse("application/json")
+                            .expect("type"),
+                    ),
+                    ..CreateSpec::default()
+                })
+                .await
+                .expect("create");
+
+            for (number, text) in &messages {
+                let value = serde_json::json!({ "n": number, "s": text });
+                stream
+                    .append(AppendRequest {
+                        chunk: Chunk::new(serde_json::to_vec(&value).expect("json")),
+                        content_type: None,
+                        stream_seq: None,
+                        producer: None,
+                        close: false,
+                    })
+                    .await
+                    .expect("append");
+            }
+
+            let page = stream
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("read");
+            page.chunks
+                .into_iter()
+                .map(|chunk| serde_json::from_slice::<serde_json::Value>(chunk.as_bytes()).expect("json"))
+                .collect::<Vec<_>>()
+        });
+
+        let expected: Vec<serde_json::Value> = messages
+            .iter()
+            .map(|(number, text)| serde_json::json!({ "n": number, "s": text }))
+            .collect();
+        prop_assert_eq!(read_back, expected);
+    }
+}
+
+proptest! {
+    #[test]
+    fn paged_reads_are_bounded_and_reassemble(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 0..40), 1..12),
+        page in 1_usize..24,
+    ) {
+        let (pages, collected, model) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let name = StreamName::parse("events/paged").expect("valid name");
+            let stream = streams.stream(name);
+
+            stream.create(CreateSpec::default()).await.expect("create");
+            let mut model = Vec::new();
+            for chunk in &chunks {
+                stream
+                    .append(AppendRequest::new(Chunk::new(chunk.clone())))
+                    .await
+                    .expect("append");
+                model.extend_from_slice(chunk);
+            }
+
+            let mut collected = Vec::new();
+            let mut from = ReadFrom::Start;
+            let mut pages = 0_usize;
+            loop {
+                let page_out = stream
+                    .read(ReadRequest {
+                        from: from.clone(),
+                        limit: ReadLimit::new(Some(page), None),
+                    })
+                    .await
+                    .expect("bounded read");
+                let bytes: Vec<u8> = page_out
+                    .chunks
+                    .iter()
+                    .flat_map(|chunk| chunk.as_bytes().to_vec())
+                    .collect();
+                assert!(bytes.len() <= page, "a page never exceeds the limit");
+                collected.extend_from_slice(&bytes);
+                pages += 1;
+                assert!(pages <= model.len() + 2, "each page makes progress");
+                if page_out.cursor.up_to_date {
+                    break;
+                }
+                from = ReadFrom::Offset(page_out.cursor.next);
+            }
+            (pages, collected, model)
+        });
+
+        prop_assert_eq!(collected, model);
+        prop_assert!(pages >= 1);
+    }
+}
+
+proptest! {
+    /// Metamorphic oracle: a fork reads the source prefix at its offset, then its own tail.
+    #[test]
+    fn fork_read_is_source_prefix_plus_tail(
+        prefix in prop::collection::vec(any::<u8>(), 1..32),
+        after in prop::collection::vec(any::<u8>(), 0..32),
+        tail in prop::collection::vec(any::<u8>(), 1..32),
+        at in 0_usize..32,
+    ) {
+        let at = at.min(prefix.len());
+        let (fork_bytes, source_bytes) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let source = streams.stream(StreamName::parse("fork/prefix-source").expect("name"));
+            source.create(CreateSpec::default()).await.expect("create");
+            source
+                .append(AppendRequest::new(Chunk::new(prefix.clone())))
+                .await
+                .expect("append prefix");
+
+            let fork = streams.stream(StreamName::parse("fork/prefix-target").expect("name"));
+            fork.create(CreateSpec {
+                fork: Some(foundation_core::durable::ForkSpec {
+                    source: StreamName::parse("fork/prefix-source").expect("source"),
+                    at: Some(offset(at as u64)),
+                    sub_offset: 0,
+                }),
+                ..CreateSpec::default()
+            })
+            .await
+            .expect("fork");
+
+            // A source append after the fork point is invisible to the fork.
+            source
+                .append(AppendRequest::new(Chunk::new(after.clone())))
+                .await
+                .expect("append after");
+            fork.append(AppendRequest::new(Chunk::new(tail.clone())))
+                .await
+                .expect("append tail");
+
+            let read = |page: foundation_core::durable::ReadPage| {
+                page.chunks
+                    .into_iter()
+                    .flat_map(|chunk| chunk.as_bytes().to_vec())
+                    .collect::<Vec<u8>>()
+            };
+            let fork_page = fork
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("fork read");
+            let source_page = source
+                .read(ReadRequest {
+                    from: ReadFrom::Start,
+                    limit: ReadLimit::default(),
+                })
+                .await
+                .expect("source read");
+            (read(fork_page), read(source_page))
+        });
+
+        let mut expected_fork = prefix[..at].to_vec();
+        expected_fork.extend_from_slice(&tail);
+        prop_assert_eq!(fork_bytes, expected_fork);
+
+        let mut expected_source = prefix;
+        expected_source.extend_from_slice(&after);
+        prop_assert_eq!(source_bytes, expected_source);
+    }
+}
+
+proptest! {
+    /// Property oracle: append cursors are unique, and a fork starts exactly at its offset.
+    #[test]
+    fn fork_offsets_are_unique(
+        chunks in prop::collection::vec(prop::collection::vec(any::<u8>(), 1..12), 1..8),
+    ) {
+        let (offsets, fork_tails) = foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let source = streams.stream(StreamName::parse("fork/offset-source").expect("name"));
+            source.create(CreateSpec::default()).await.expect("create");
+
+            let mut offsets = Vec::new();
+            let mut length = 0_u64;
+            for chunk in &chunks {
+                length += chunk.len() as u64;
+                let outcome = source
+                    .append(AppendRequest::new(Chunk::new(chunk.clone())))
+                    .await
+                    .expect("append");
+                assert_eq!(outcome.cursor.next, offset(length));
+                offsets.push(outcome.cursor.next);
+            }
+
+            let mut fork_tails = Vec::new();
+            for (index, at) in offsets.iter().enumerate() {
+                let fork = streams.stream(
+                    StreamName::parse(&format!("fork/offset-target-{index}")).expect("name"),
+                );
+                fork.create(CreateSpec {
+                    fork: Some(foundation_core::durable::ForkSpec {
+                        source: StreamName::parse("fork/offset-source").expect("source"),
+                        at: Some(at.clone()),
+                        sub_offset: 0,
+                    }),
+                    ..CreateSpec::default()
+                })
+                .await
+                .expect("fork");
+                fork_tails.push(fork.head().await.expect("fork head").tail);
+            }
+            (offsets, fork_tails)
+        });
+
+        for pair in offsets.windows(2) {
+            prop_assert!(pair[0] < pair[1], "append offsets strictly increase");
+        }
+        prop_assert_eq!(fork_tails, offsets);
+    }
+}
+
+proptest! {
+    #[test]
+    fn stream_seq_accepts_increasing_values_only(
+        values in prop::collection::vec(1_u64..1_000, 1..10),
+    ) {
+        foundation_core::valtron::block_on_future_scoped(async {
+            let streams = DurableStreams::new(
+                DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()),
+            );
+            let stream = streams.stream(StreamName::parse("seq/property").expect("name"));
+            stream.create(CreateSpec::default()).await.expect("create");
+
+            // `StreamSeq` orders by bytes, so the values are zero padded.
+            let mut increasing: Vec<String> =
+                values.iter().map(|value| format!("{value:04}")).collect();
+            increasing.sort_unstable();
+            increasing.dedup();
+            for value in &increasing {
+                stream
+                    .append(AppendRequest {
+                        chunk: Chunk::new(b"x".to_vec()),
+                        content_type: None,
+                        stream_seq: Some(foundation_core::durable::StreamSeq::from_bytes(
+                            value.clone().into_bytes(),
+                        )),
+                        producer: None,
+                        close: false,
+                    })
+                    .await
+                    .expect("increasing sequence");
+            }
+
+            if let Some(last) = increasing.last() {
+                let error = stream
+                    .append(AppendRequest {
+                        chunk: Chunk::new(b"x".to_vec()),
+                        content_type: None,
+                        stream_seq: Some(foundation_core::durable::StreamSeq::from_bytes(
+                            last.clone().into_bytes(),
+                        )),
+                        producer: None,
+                        close: false,
+                    })
+                    .await
+                    .expect_err("regression");
+                assert!(matches!(
+                    error,
+                    foundation_core::durable::StoreError::StreamSeqConflict { .. }
+                ));
+            }
+        });
+    }
+}

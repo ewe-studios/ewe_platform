@@ -13,11 +13,16 @@ members = [
   # "examples/platform_android/src-tauri",  # excluded: has its own workspace root
   # "examples/platform_android",  # excluded: has its own workspace root in src-tauri/
   "tests",  # Workspace integration tests
+  "integration/*", # Standalone integration packages that prove a feature boundary
   "benches", # Workspace benchmarks
 ]
 
 exclude = [
   "artefacts/*",
+  # backends/foundation_agent_rpc_dst is its own workspace root: the
+  # deterministic simulation build must not inherit `multi` from the root
+  # workspace's feature unification (#1048).
+  "backends/foundation_agent_rpc_dst",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
   # infrastructure/sandbox_worker is its own workspace root: it builds for
@@ -29,6 +34,9 @@ exclude = [
   # The nested host image holds a Dockerfile, not a Rust crate (spec 77
   # feature 11).
   "infrastructure/sandbox_nested_image",
+  # The local AWS KMS emulator runner holds a shell script, not a Rust crate
+  # (spec 92 feature 00, task T3).
+  "infrastructure/kms",
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
@@ -104,6 +112,7 @@ foundation_tasks = { path = "backends/foundation_tasks", version = "0.1.1" }
 foundation_ci = { path = "backends/foundation_ci", version = "0.1.1" }
 buffa = "0.9.2"
 buffa-build = "0.9.2"
+buffa-types = "0.9.2"
 # Service code generation uses the descriptor types from prost 0.12.
 prost = "0.12"
 prost-types = "0.12"
@@ -138,12 +147,12 @@ ipnet = { version = "2.12", features = ["serde"] }
 
 # Transport Layer Security (TLS) and X.509 support. Spec 87 moves these with the
 # certificate authority, the trust store and the verifier into foundation_auth.
-rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+rcgen = { version = "0.14", default-features = false, features = ["ring", "pem", "x509-parser"] }
 rustls = { version = "0.23", default-features = false, features = ["std", "ring", "tls12"] }
 rustls-pemfile = "2"
-# rcgen 0.13.2 depends on x509-parser 0.16. Declare the same major so Cargo.lock
-# keeps one version of the parser.
-x509-parser = "0.16"
+# rcgen 0.14 depends on x509-parser 0.18. Declare the same major so the direct
+# users share one parser. webauthn-rs-core still uses 0.16.
+x509-parser = "0.18"
 time = "0.3"
 
 # Virtual file system (VFS) traits and shared types. `foundation_nativeapis`
@@ -167,6 +176,10 @@ toml_edit = { version = "0.22" }
 # Uniform resource locator (URL) parsing. The bootstrap payload of agent-rpc
 # checks that its address is an HTTP or HTTPS URL (spec 83 feature 03).
 url = "2"
+# Ed25519 signing for Durable Streams webhook delivery (spec 71 feature 10). The
+# pure-Rust backend gives a wasm-clean build and a caller-supplied seed, so the
+# signing key comes from the injected `Ctx` entropy source.
+ed25519-compact = { version = "2.3", default-features = false }
 
 # One media type table for the platform (spec 89).
 # `phf` builds a perfect hash map at compile time. It needs no `std`, so the

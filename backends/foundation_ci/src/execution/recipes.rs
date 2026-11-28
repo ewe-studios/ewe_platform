@@ -1,6 +1,6 @@
 //! Construct native tool arguments from package settings.
 use super::{CommandStep, Settings};
-use crate::{CiEnvironment, GroupRecipe, Package};
+use crate::{CiEnvironment, GateRecipe, GroupRecipe, Package};
 use foundation_tasks::TaskError;
 use std::path::Path;
 
@@ -257,6 +257,103 @@ fn example_commands(
     }
     Ok(out)
 }
+/// The behaviour groups of the valtron layer suite.
+///
+/// Each entry is the group name and its libtest filters. The reader group has
+/// two filters because its fork-boundary test has no common prefix with the
+/// other reader tests.
+const VALTRON_GROUPS: [(&str, &[&str]); 4] = [
+    (
+        "reader",
+        &[
+            "durable::valtron_reader::given_",
+            "durable::valtron_reader::valtron_reader_spans_fork_boundary",
+        ],
+    ),
+    ("writer", &["durable::valtron_producer"]),
+    ("wait", &["durable::valtron_reader::now_live_waits"]),
+    (
+        "wake",
+        &["durable::valtron_reader::wake_callback_fires_on_append"],
+    ),
+];
+
+/// One valtron test filter. `multi` enables the wake test, which is gated on
+/// that feature; the thread-pool executor runs every group.
+fn valtron_test(profile: &str, filter: &str) -> CommandStep {
+    cargo(&[
+        "test",
+        "--profile",
+        profile,
+        "-p",
+        "foundation_core",
+        "--features",
+        "multi",
+        "--test",
+        "mod",
+        "--",
+        "--nocapture",
+        filter,
+    ])
+}
+
+fn valtron_commands(
+    profile: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
+    if let Some(name) = group {
+        if !VALTRON_GROUPS.iter().any(|(known, _)| *known == name) {
+            return Err(TaskError::operation(format!(
+                "unknown durable-valtron group: {name}"
+            )));
+        }
+    }
+    let mut out = Vec::new();
+    for (name, filters) in VALTRON_GROUPS {
+        if group.is_some_and(|wanted| wanted != name) {
+            continue;
+        }
+        for filter in filters {
+            out.push(valtron_test(profile, filter));
+        }
+    }
+    Ok(out)
+}
+
+fn gate_commands(
+    recipe: GateRecipe,
+    profile: &str,
+    step: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
+    if step != "test" {
+        return Ok(Vec::new());
+    }
+    match recipe {
+        GateRecipe::DurableConformance => Ok(vec![
+            // The reference server and client suites, and the counts the gate
+            // requires.
+            CommandStep::new("bash", ["ci/durable_conformance.sh"]),
+            // The cross-implementation directions: our client against our
+            // server, and the reference Rust client against our server.
+            cargo(&[
+                "test",
+                "--profile",
+                profile,
+                "-p",
+                "foundation_http",
+                "--features",
+                "multi",
+                "--test",
+                "durable_cross_client",
+                "--test",
+                "durable_reference_cross_run",
+            ]),
+        ]),
+        GateRecipe::DurableValtron => valtron_commands(profile, group),
+    }
+}
+
 /// The checks of the sandbox Worker, a self-contained wasm32 workspace.
 ///
 /// `cargo check`, `cargo clippy` and `cargo fmt` run with the nested
@@ -291,6 +388,84 @@ fn sandbox_worker_commands(root: &Path, pkg: &Package, step: &str) -> Vec<Comman
     out
 }
 
+/// The standard package steps inside a self-contained workspace.
+///
+/// The group directory has its own `[workspace]` and `Cargo.lock`, so every
+/// cargo command runs there through `--manifest-path`. That keeps the nested
+/// build out of the root workspace's feature unification (a package that needs
+/// `foundation_core` without `multi` must not inherit the root's `multi`).
+fn cargo_directory_commands(
+    root: &Path,
+    pkg: &Package,
+    s: &Settings,
+    profile: &str,
+    os: &str,
+    step: &str,
+) -> Result<Vec<CommandStep>, TaskError> {
+    let manifest = root.join(&pkg.dir).join("Cargo.toml");
+    let manifest = manifest.to_string_lossy().to_string();
+    let mut out = Vec::new();
+    match step {
+        "fmt" => out.push(cargo(&["fmt", "--manifest-path", &manifest, "--check"])),
+        "build" => {
+            let mut c = cargo(&[
+                "build",
+                "--all-targets",
+                "--profile",
+                profile,
+                "--manifest-path",
+                &manifest,
+            ]);
+            c.cmd = c.cmd.args(flags(&s.runs[0])?);
+            out.push(c);
+        }
+        "clippy" => {
+            let runs = if s.clippy_runs.is_empty() {
+                &s.runs[..1]
+            } else {
+                &s.clippy_runs[..]
+            };
+            for run in runs {
+                let mut c = cargo(&[
+                    "clippy",
+                    "--all-targets",
+                    "--profile",
+                    profile,
+                    "--manifest-path",
+                    &manifest,
+                ]);
+                c.cmd = c.cmd.args(flags(run)?);
+                if s.clippy_deny_warnings {
+                    c.cmd = c.cmd.args(["--no-deps", "--", "-D", "warnings"]);
+                }
+                out.push(c);
+            }
+        }
+        "test" => {
+            let runs = s.platform_runs(os).unwrap_or(&s.runs);
+            for run in runs {
+                let mut c = cargo(&[
+                    "test",
+                    "--profile",
+                    profile,
+                    "--no-fail-fast",
+                    "--manifest-path",
+                    &manifest,
+                ]);
+                c.cmd = c
+                    .cmd
+                    .args(flags(run)?)
+                    .args(["--", "--nocapture"])
+                    .args(s.test_args.iter().cloned());
+                out.push(c);
+            }
+        }
+        _ => {}
+    }
+    Ok(out)
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(super) fn commands(
     root: &Path,
     pkg: &Package,
@@ -299,9 +474,13 @@ pub(super) fn commands(
     os: &str,
     step: &str,
     host: &CiEnvironment,
+    group: Option<&str>,
 ) -> Result<Vec<CommandStep>, TaskError> {
     let name = &pkg.name;
     let mut out = Vec::new();
+    if let Some(recipe) = pkg.gate {
+        return gate_commands(recipe, profile, step, group);
+    }
     if pkg.recipe == Some(GroupRecipe::WasmRuntimeTests) {
         return Ok(wasm_suite(profile, step, os, host, &pkg.dir));
     }
@@ -316,6 +495,9 @@ pub(super) fn commands(
             }
         }
         return Ok(out);
+    }
+    if pkg.recipe == Some(GroupRecipe::CargoDirectory) {
+        return cargo_directory_commands(root, pkg, s, profile, os, step);
     }
     if matches!(os, "macos" | "windows") {
         if step == "test" {

@@ -63,10 +63,18 @@ use foundation_core::{
     },
 };
 
-use foundation_compact::rng::Rng;
+use foundation_compact::rng::{ChaCha8Rng, Rng, SeedableRng};
 use foundation_core::synca::*;
 use foundation_core::valtron::*;
 use std::sync::{self as sync, Arc};
+
+/// Fixed seed for every executor in this file, so each run replays exactly.
+const TEST_SEED: u64 = 0x5EED_5EED_0000_0003;
+
+/// Draw the executor seed from a local fixed-seed RNG. No host entropy is read.
+fn executor_seed() -> u64 {
+    ChaCha8Rng::seed_from_u64(TEST_SEED).next_u64()
+}
 
 #[derive(Default, Clone)]
 struct NoYielder;
@@ -172,7 +180,7 @@ impl TaskIterator for ListItems {
 
 #[test]
 fn test_task_line_action_directly() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let kill_signal = Arc::new(OnSignal::new());
 
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -227,7 +235,7 @@ fn test_task_line_action_directly() {
 
 #[test]
 fn test_task_line_send_action() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let kill_signal = Arc::new(OnSignal::new());
 
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -277,7 +285,7 @@ fn test_task_line_send_action() {
 
 #[test]
 fn test_task_line_send_action_for_parent_lifted() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let kill_signal = Arc::new(OnSignal::new());
 
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -327,7 +335,7 @@ fn test_task_line_send_action_for_parent_lifted() {
 
 #[test]
 fn test_task_line_send_action_for_sequenced() {
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let kill_signal = Arc::new(OnSignal::new());
 
     let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -386,7 +394,7 @@ fn scenario_0_can_kill_local_executor_via_kill_signal() {
     let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let kill_signal = Arc::new(OnSignal::new());
 
     let executor = LocalThreadExecutor::from_seed(
@@ -439,7 +447,7 @@ fn scenario_one_task_a_runs_to_completion() {
     let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -489,7 +497,7 @@ fn scenario_one_can_use_local_executor_builder_to_queue_task() {
     let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -539,7 +547,7 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration>>>> =
         Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -569,10 +577,22 @@ fn scenario_2_task_a_goes_to_sleep_as_only_task_in_queue() {
     ));
     assert_eq!(&*counts.lock().unwrap(), &vec![TaskStatus::Ready(11),]);
 
-    assert_eq!(
-        executor.run_once(),
-        ProgressIndicator::SpinWait(time::Duration::from_millis(5))
-    );
+    // The wait is the nearest sleeper deadline. The engine reads the clock,
+    // and some microseconds pass after the sleeper registers. So the wait
+    // must not exceed the 5 ms deadline, and it must still wait.
+    match executor.run_once() {
+        ProgressIndicator::SpinWait(wait) => {
+            assert!(
+                wait <= time::Duration::from_millis(5),
+                "the engine must not wait past the 5 ms deadline, got {wait:?}"
+            );
+            assert!(
+                wait > time::Duration::ZERO,
+                "the engine must wait for the sleeper, got {wait:?}"
+            );
+        }
+        other => panic!("a single sleeper must ask for a spin wait, got {other:?}"),
+    }
     assert_eq!(&*counts.lock().unwrap(), &vec![TaskStatus::Ready(11),]);
 
     // wait for 5ms and validate we made progress
@@ -611,7 +631,7 @@ fn scenario_3_task_goes_to_sleep_as_highest_priority_on_wakeup_with_other_tasks(
 
     let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -767,7 +787,7 @@ fn scenario_4_task_goes_to_sleep_as_lowest_priority_on_wakeup_with_other_tasks()
 
     let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -1058,7 +1078,7 @@ fn scenario_5_task_can_spawn_task_via_actions() {
 
     let counts: NamedCounts<(), ()> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -1157,7 +1177,7 @@ fn scenario_5_task_a_spawns_task_b_that_goes_to_sleep_but_also_ties_task_a_to_it
 
     let counts: NamedCounts<(), ()> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -1254,7 +1274,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 
     let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -1318,7 +1338,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_and_no_work_remains_when_condit
 
     let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -1384,7 +1404,7 @@ fn scenario_6_can_run_until_ready_signal_is_seen_with_pending_work() {
 
     let counts: NamedCounts<usize, time::Duration> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
 
     let executor = LocalThreadExecutor::from_seed(
         seed,
@@ -1524,7 +1544,7 @@ fn depends_false_registers_as_sleeper() {
     let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
     let signal = BoolSignal::new(false);
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -1569,7 +1589,7 @@ fn depends_signal_wakes_task_and_continues() {
     let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
     let signal = BoolSignal::new(false);
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -1614,7 +1634,7 @@ fn depends_true_violation_pushed_to_back() {
     // Signal starts true - task will immediately get Depends(true)
     let signal = BoolSignal::new(true);
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -1650,7 +1670,7 @@ fn custom_event_readiness_flips_after_polls() {
     let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
     let signal = sync::Arc::new(CounterSignal::new(2));
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -1720,7 +1740,7 @@ fn bool_signal_clone_and_flip() {
     let signal = BoolSignal::new(false);
     let atomic = signal.clone_inner();
 
-    let seed = foundation_compact::rng::rng().next_u64();
+    let seed = executor_seed();
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),

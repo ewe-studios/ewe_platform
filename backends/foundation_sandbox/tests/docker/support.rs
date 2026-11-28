@@ -140,6 +140,10 @@ pub enum ExportBody {
     /// `count` chunks of `size` zero bytes, made as the stream is read.
     ///
     /// The feature 13 stream test uses 200 MiB and never holds it in memory.
+    #[allow(
+        dead_code,
+        reason = "the image import tests of feature 13 construct this variant"
+    )]
     Chunks {
         /// The chunk count.
         count: usize,

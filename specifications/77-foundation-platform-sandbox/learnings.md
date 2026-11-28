@@ -1793,3 +1793,34 @@ flattened field wins. The Docker driver sets both fields (issue #966).
 **Finding.** The Firecracker probe of a nested host reports `kvm` false, and
 `SlaveInfo.can_control` is then false. A child create fails with `DriverUnavailable`, as
 invariant I2 says. No second code path is needed.
+
+## 26. A log match needs plain text (2026-11-27)
+
+The Cloudflare harness waited for the Worker build with a pattern on the `wrangler dev` log.
+It failed twice, and the second failure was not the pattern's spacing: the log carried ANSI
+colour codes between `[custom build]` and `Finished`, so no whitespace rule could match. The
+harness waited the whole 900 s deadline and killed a Worker that had built in 1 min 20 s.
+
+**Rule.** A script that matches a build log does three things:
+
+1. Start the tool with `CARGO_TERM_COLOR=never`, `NO_COLOR=1` and `CLICOLOR=0`.
+2. Strip escape sequences before the match, for example
+   `sed -E 's/\x1B\[[0-9;]*[mK]//g'`.
+3. Keep a tolerant pattern (`\[custom build\].*Finished`) as the second line of defence.
+
+A pattern that depends on the exact spacing of a human-facing line is a trap. Match the words,
+and read plain text.
+
+## 27. A path API differs on wasm (2026-11-27)
+
+`absolute_without_parent` used `Path::is_absolute()`. Every native test passed. Inside a
+Cloudflare Worker every create was refused, because on `wasm32-unknown-unknown` the std path
+code computes `has_root() && prefix().is_some()`, and wasm has no prefix. The same string,
+`/workspace`, is absolute on a host and not absolute on wasm.
+
+**Rule.** A check on a guest path uses `has_root()`, not `is_absolute()`. `has_root()` is true
+for a leading `/` on every target. The Cloudflare end-to-end job is the only proof for the
+wasm target; a native test cannot see this difference, so the job is not optional.
+
+The diagnostic added earlier paid for itself here: the message printed `got "/workspace"`,
+which showed that the value was correct and the check was wrong.

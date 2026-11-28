@@ -8,8 +8,8 @@
 //! [`guarded_turn`] (the stream that a registry returns).
 //!
 //! HOW: the stream polls the model events and a timer at the same time. The
-//! timer comes from the injected [`Env`], so a simulation can test it with no
-//! real wait.
+//! timer comes from [`Ctx::timer`], so a simulation can test it with no real
+//! wait.
 
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -20,7 +20,6 @@ use foundation_ai::agentic::{TurnEvent as ModelTurnEvent, TurnSummary};
 use foundation_ai::types::UserModelContent;
 use foundation_compact::{Duration, Instant};
 use foundation_context::env::timer::TimerFuture;
-use foundation_context::env::Env;
 use foundation_context::Ctx;
 use futures::Stream;
 
@@ -165,6 +164,51 @@ pub fn usage_of(snapshot: &foundation_ai::agentic::TokenSnapshot) -> pb::Usage {
     }
 }
 
+/// The turn events of the deterministic simulation test (DST) build.
+///
+/// WHY: the generated `AgentService` trait needs a `Send` event stream. With
+/// `multi` off, the single-threaded valtron executor keeps its wake callbacks
+/// as `Box<dyn Fn()>`, which is not `Send`, so the event stream of a session
+/// turn is not `Send` either. The DST build runs on one thread only:
+/// [`SimRuntime`](foundation_core::valtron::sim::SimRuntime) binds the engine,
+/// the clock and the effect bundle to the thread that starts it.
+///
+/// The type exists only in the `dst` build that also lacks `multi` and
+/// `worker`. In every other build the stream is already `Send` and the type is
+/// not compiled.
+///
+/// # Safety
+///
+/// The assertion is sound only while the stream stays on the thread that made
+/// it. The engine that answers its wake callbacks is thread-local, so a move
+/// to another thread would run the callbacks on the wrong engine. The DST
+/// harness keeps the stream on its `SimRuntime` thread and never moves it.
+#[cfg(all(feature = "dst", not(any(feature = "multi", feature = "worker"))))]
+pub struct DstSendStream<S>(S);
+
+#[cfg(all(feature = "dst", not(any(feature = "multi", feature = "worker"))))]
+impl<S> DstSendStream<S> {
+    /// Wrap `inner` for the DST build.
+    #[must_use]
+    pub fn new(inner: S) -> Self {
+        Self(inner)
+    }
+}
+
+// SAFETY: see the type-level documentation. The DST harness keeps the stream
+// on the thread of its single-threaded engine.
+#[cfg(all(feature = "dst", not(any(feature = "multi", feature = "worker"))))]
+unsafe impl<S> Send for DstSendStream<S> {}
+
+#[cfg(all(feature = "dst", not(any(feature = "multi", feature = "worker"))))]
+impl<S: Stream + Unpin> Stream for DstSendStream<S> {
+    type Item = S::Item;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        Pin::new(&mut self.get_mut().0).poll_next(cx)
+    }
+}
+
 /// Wrap a model event stream for one wire turn.
 ///
 /// `guard` keeps the instance's one-turn claim until the stream ends or drops.
@@ -175,7 +219,6 @@ pub fn guarded_turn<E, G>(
     abort: Arc<dyn Fn() + Send + Sync>,
     shutdown: TurnShutdown,
     ctx: Ctx,
-    env: Env,
     limits: &TurnLimits,
 ) -> TurnEventStream
 where
@@ -190,7 +233,6 @@ where
         abort,
         shutdown,
         ctx,
-        env,
         idle_timeout: limits.idle_timeout,
         total_deadline: total,
         timer: None,
@@ -204,7 +246,6 @@ struct GuardedTurn<E, G> {
     abort: Arc<dyn Fn() + Send + Sync>,
     shutdown: TurnShutdown,
     ctx: Ctx,
-    env: Env,
     idle_timeout: Duration,
     total_deadline: Option<Instant>,
     timer: Option<TimerFuture>,
@@ -220,7 +261,9 @@ where
         let now = self.ctx.clock().now();
         let idle = now + self.idle_timeout;
         let deadline = self.total_deadline.map_or(idle, |total| total.min(idle));
-        self.timer = Some(self.env.timer().sleep_until(self.ctx.clone(), deadline));
+        // Spec 92: the context derives the timer. An `Env` timer is only an
+        // override, so the turn reads the timer from the context.
+        self.timer = Some(self.ctx.timer().sleep_until(self.ctx.clone(), deadline));
     }
 
     fn finish(&mut self) {

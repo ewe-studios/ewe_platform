@@ -108,27 +108,32 @@ fn test_multiple_messages_sequence() {
         "Message with special chars: \u{00E9}\u{00F1}\u{00FC}",
     ];
 
+    // Send every message first. Sending and receiving are independent: the
+    // delivery pipe queues the messages and the connection task sends them in
+    // order, so a receive does not have to finish before the next send.
     for msg in &messages {
         delivery
             .send(WebSocketMessage::Text(msg.to_string()))
             .expect("should send");
+    }
 
-        tracing::info!("Sent message: {}", msg);
-        for event in client.messages() {
-            tracing::info!("Received message: {:?}", &event);
-            match event.expect("should receive event") {
-                WebSocketEvent::Skip => {
-                    tracing::info!("Got skip signal");
-                }
-                WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
-                    assert_eq!(&text, msg);
+    // Read exactly the expected echoes, in order. `Skip` is a progress signal,
+    // not a message.
+    let mut received = Vec::with_capacity(messages.len());
+    for event in client.messages() {
+        match event.expect("should receive event") {
+            WebSocketEvent::Skip => {}
+            WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
+                received.push(text);
+                if received.len() == messages.len() {
                     break;
                 }
-                WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
             }
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
         }
     }
-    println!("Finished, no more work");
+
+    assert_eq!(received, messages);
 }
 
 /// Test ping/pong exchange.

@@ -319,5 +319,13 @@ path = "tests/support/slave_main.rs"
 test = false
 required-features = ["slave"]
 
+# The probe child of the unpack write test (issue #977). It writes `ready`,
+# waits, then drains its input, so a blocking writer fills the pipe.
+[[bin]]
+name = "unpack_child_probe"
+path = "tests/support/unpack_child_probe.rs"
+test = false
+required-features = ["slave"]
+
 [lints]
 workspace = true

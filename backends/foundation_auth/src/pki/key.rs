@@ -128,7 +128,7 @@ impl CaKey {
     /// The public key in Distinguished Encoding Rules (DER) form.
     #[must_use]
     pub fn public_key_der(&self) -> Vec<u8> {
-        self.pair.public_key_der()
+        rcgen::PublicKeyData::subject_public_key_info(&self.pair)
     }
 
     /// The private key in PKCS#8 PEM form. Treat the result as a secret.

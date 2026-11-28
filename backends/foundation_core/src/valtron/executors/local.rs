@@ -1407,11 +1407,13 @@ impl ExecutorState {
     }
 
     /// Whether this worker has real work to run on the current tick — an active
-    /// task, an in-flight (processing-queue) task, or a global task waiting to be
-    /// acquired.
+    /// task that is neither sleeping nor packed, an in-flight
+    /// (processing-queue) task, or a global task waiting to be acquired.
     ///
     /// When this is `false` the worker is kept alive solely by sleeping tasks and
     /// is busy-spinning `schedule_and_do_work` until one of them becomes ready.
+    /// A task packed on this thread is not real work: a nested drive runs inside
+    /// it, so it cannot run until that drive returns.
     #[inline]
     #[must_use]
     pub fn has_runnable_work(&self) -> bool {
@@ -1435,7 +1437,24 @@ impl ExecutorState {
         self.local_tasks.borrow().active_slots()
     }
 
-    /// Returns the total remaining tasks that are active and not sleeping.
+    /// Returns the number of tasks that are packed, which means they are being
+    /// polled on this thread right now.
+    ///
+    /// A packed task still holds its slot, but its iterator is with the caller
+    /// of [`ExecutorState::do_work`]. It cannot run again until that poll
+    /// returns, so it is not runnable work. A drive that starts inside a task
+    /// (a nested drive) must not count it, or the loop never sees "no work".
+    #[must_use]
+    pub fn total_parked_tasks(&self) -> usize {
+        self.local_tasks.borrow().parked_slots()
+    }
+
+    /// Returns the total remaining tasks that are active, not sleeping and not
+    /// being polled.
+    ///
+    /// This is the runnable work of the engine. A sleeping task waits for a
+    /// readiness signal or a timer. A packed task is on the current call stack.
+    /// Neither can run until something else happens, so neither counts here.
     ///
     /// # Design Note
     /// Uses `saturating_sub` to prevent underflow panic when sleepers reference
@@ -1445,10 +1464,13 @@ impl ExecutorState {
     #[must_use]
     pub fn total_active_tasks(&self) -> usize {
         let local_task_count = self.local_tasks.borrow().active_slots();
+        let packed_task_count = self.local_tasks.borrow().parked_slots();
         let sleeping_task_count = self.sleepers.count();
         // Use saturating_sub to prevent underflow when sleepers reference
         // entries that have been removed (stale sleeper entries).
-        local_task_count.saturating_sub(sleeping_task_count)
+        local_task_count
+            .saturating_sub(packed_task_count)
+            .saturating_sub(sleeping_task_count)
     }
 
     /// Removes any sleepers referencing the given entry.
@@ -2015,10 +2037,19 @@ impl ExecutorState {
                         return ProgressIndicator::CanProgress(Some(State::Pending(duration)));
                     }
 
+                    // Wait for the NEAREST sleeper deadline, not for this
+                    // task's own deadline. The engine must wake at the
+                    // earliest deadline of every registered sleeper. The old
+                    // wait used the current task's duration. It slept past a
+                    // shorter sleeper that was already registered. At that
+                    // late wake both sleepers were due, and the sleeper map
+                    // order decided which one ran first (GitHub issue #1115).
+                    let wait = self.time_until_next_wakeup().unwrap_or(inner);
+
                     // We will send SpinWait but the engine will decide
                     // if it really wants to spin wait or work on other
                     // tasks if CPU thread becomes free.
-                    ProgressIndicator::SpinWait(inner)
+                    ProgressIndicator::SpinWait(wait)
                 } else {
                     // No progress: treat this like other runnable work and go to
                     // the back of the queue. Pushing it to the front let a
@@ -2459,6 +2490,13 @@ impl ReferencedExecutorState {
     #[must_use]
     pub fn total_tasks(&self) -> usize {
         self.inner.total_tasks()
+    }
+
+    /// See [`ExecutorState::total_parked_tasks`].
+    #[inline]
+    #[must_use]
+    pub fn total_parked_tasks(&self) -> usize {
+        self.inner.total_parked_tasks()
     }
 
     /// Returns true/false if processing queue has task.
@@ -3529,15 +3567,18 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 break;
             }
 
-            // Nothing left to run: with zero tasks, an idle back-off
-            // (`SpinWait` from the idler) or `NoWork` only means the caller
-            // has not scheduled anything else yet. Waiting out the back-off
-            // (up to a second) would stall a caller that drives the engine
-            // between its own steps, so hand control back instead.
+            // Nothing left to run: the only tasks left are the ones packed on
+            // this thread (a nested drive runs inside one of them), or none.
+            // An idle back-off (`SpinWait` from the idler) or `NoWork` then
+            // only means the caller has not scheduled anything else yet.
+            // Waiting out the back-off (up to a second) would stall a caller
+            // that drives the engine between its own steps, so hand control
+            // back instead. A sleeping task is not packed, so a timer still
+            // waits here.
             if matches!(
                 response,
                 ProgressIndicator::NoWork | ProgressIndicator::SpinWait(_)
-            ) && self.state.total_tasks() == 0
+            ) && self.state.total_tasks() == self.state.total_parked_tasks()
             {
                 break;
             }

@@ -117,6 +117,15 @@ directory = "infrastructure/sandbox_worker"
 recipe = "sandbox-worker"
 build-members = []
 
+# The deterministic simulation package is its own workspace root, because its
+# build needs `foundation_core` without `multi` and the root workspace turns
+# `multi` on through feature unification (#1048). The recipe runs the standard
+# steps with `--manifest-path` into this directory.
+[groups.foundation_agent_rpc_dst]
+directory = "backends/foundation_agent_rpc_dst"
+recipe = "cargo-directory"
+build-members = []
+
 [defaults]
 # Most crates are not rustfmt-clean yet; formatting is reported, not enforced,
 # until they are. Packages that are already clean enforce it below.
@@ -187,6 +196,35 @@ fmt = "enforce"
 
 [packages.ewe_platform_tests]
 fmt = "enforce"
+
+# Spec 71 feature 01 T4. This crate depends on `foundation_core` with
+# `default-features = false` and no `valtron` feature, so its build and test
+# prove that the durable protocol core has no valtron type, trait or executor.
+# It uses the default run and has no macOS or Windows opt-out: the test runs on
+# all three operating systems. `foundation_core`'s wasm run above
+# (`--no-default-features --features std`) covers wasm32 without valtron.
+[packages.durable_core_no_valtron]
+runs = [""]
+
+# Spec 71 handoff section 4.6. One Given/When/Then scenario suite runs on the
+# HTTP, WebSocket and ConnectRPC transports. Each driver is checked against the
+# model oracle, then against the other drivers. The crate's default feature set
+# is `multi`, which the native server and the WebSocket client need.
+#
+# Windows cannot run the tests: the native HTTP server and the platform
+# WebSocket client are Unix only (`foundation_http` gates its native server
+# modules on `cfg(unix)`). macOS is Unix and runs them.
+[packages.durable_transport_matrix]
+runs = [""]
+windows-tests = "none"
+windows-reason = "The native HTTP server and the WebSocket client are Unix only: foundation_http gates its native server modules on cfg(unix)."
+
+# Spec 71 feature 08 T6. The valtron reader, writer, wait and wake behaviour
+# tests run in their own gate job, not inside the foundation_core package job.
+# The group matrix runs the four groups in parallel; the gate recipe fails the
+# job when a group fails.
+[packages.durable-valtron]
+timeout-minutes = 20
 
 [packages.foundation_cedar]
 fmt = "enforce"
@@ -337,20 +375,28 @@ windows-reason = "Known bug on Windows: #522: timing tests fail on the slower ru
 # to get `multi` anyway through a dev-dependency (foundation_testing ->
 # foundation_netio's default `multi`), which meant the single-threaded executor
 # was never tested.
-runs = ["", "multi", "test-clock", "testing"]
+# The last run adds the VFS conformance kit (`vfs-testkit`), so
+# `tests/durable/vfs_conformance.rs` runs in CI. It uses the thread-pool
+# executor and the simulated clock, the same set the spec 71 handoff runs.
+# The `testing` run is the deterministic simulation runtime.
+runs = ["", "multi", "test-clock", "testing", "multi,test-clock,vfs-testkit"]
 # The executors differ by feature, so lint both trees: the `multi` tree compiles
 # `valtron/extensions/streams/sendable.rs` and the thread pool, the default tree
 # the single-threaded executor. `test-clock` compiles `SimulatedClock`, which
-# exists in no other tree.
-clippy-runs = ["", "multi", "test-clock", "testing"]
+# exists in no other tree. The kit tree lints `durable/shared/vfs_testkit.rs`,
+# which no other tree compiles.
+clippy-runs = ["", "multi", "test-clock", "testing", "multi,test-clock,vfs-testkit"]
 # At zero clippy warnings in both trees: a new one fails CI (spec 70 feature 116).
 clippy-deny-warnings = true
 wasm = "enforce"
 # The plain wasm build plus both JS backends: `js-foundation-wasm` is the owned
 # path (foundation_compact's `host-abi` time/entropy, no wasm-bindgen glue),
-# `js-wasmbindgen` the one Workers run.
+# `js-wasmbindgen` the one Workers run. The `multi` entry keeps the feature
+# additive on wasm32: Cargo merges features across the graph, so a wasm build
+# that leaves `multi` on must compile (issue #1030).
 wasm-runs = [
   "--no-default-features --features std",
+  "--no-default-features --features std,multi",
   "--no-default-features --features std,js-foundation-wasm",
   "--no-default-features --features std,js-wasmbindgen",
 ]
@@ -388,9 +434,6 @@ runs = [""]
 clippy-deny-warnings = true
 
 [packages.foundation_jsonschema]
-# 14 pedantic warnings; clear them and delete this override (#441).
-clippy-deny-warnings = false
-reason = "14 pedantic warnings; clear them and delete this override (#441)"
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
 # (ewe-studios/ewe_platform#49).
@@ -525,12 +568,15 @@ clippy-runs = ["", "libsql", "testing"]
 # At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
 clippy-deny-warnings = true
 wasm = "enforce"
-# Plain wasm (no JS host), and with the Cloudflare bindings
-# (`wasm-bindgen-storage` turns on valtron's JS mode).
+# Plain wasm (no JS host), with the Cloudflare bindings
+# (`wasm-bindgen-storage` turns on valtron's JS mode), and with the Durable
+# Object SQL executor. Every run disables the default features: `turso` pulls
+# `multi`, which needs threads and does not build on wasm (issue #1056).
 wasm-runs = [
   "--no-default-features --features wasm",
   "--no-default-features --features wasm-bindgen-storage",
   "--no-default-features --features browser-storage",
+  "--no-default-features --features do-sql",
 ]
 
 [packages.foundation_netio]
@@ -547,7 +593,10 @@ clippy-runs = ["", "quic"]
 # Both runs are at zero clippy warnings under `--all-targets`: a new one fails CI.
 clippy-deny-warnings = true
 wasm = "enforce"
-wasm-runs = ["--no-default-features --features wasm-fetch"]
+# The default feature set (which includes `multi`) plus the wasm-only minimal
+# set. The default run is the regression guard for issue #1030: a consumer that
+# adds `wasm-fetch` to the default features must build for wasm32.
+wasm-runs = ["", "--no-default-features --features wasm-fetch"]
 
 [packages.foundation_browser]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
@@ -595,18 +644,20 @@ wasm-runs = [""]
 # not "the full VFS set". It needs a native amd64 kernel: under emulation
 # `PTRACE_GETREGS` returns `EIO`. The last run compiles every remaining VFS
 # backend together so a backend that only breaks under a specific feature set is
-# caught in CI.
-runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow"]
+# caught in CI. `vfs-object-netio` compiles the native S3 transport and its
+# `TcpListener` tests; its live tests skip without `EWE_S3_ENDPOINT` and run in
+# the `durable-conformance` gate, which starts MinIO.
+runs = ["", "fd", "fd,uring", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse", "vfs-preload", "vfs-native,vfs-ptrace", "vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow", "vfs-object-http", "vfs-object-netio"]
 # At zero clippy warnings in the default build, the `vfs-preload` shim tree
 # (spec 70 feature 113) and the `ipc` message bus (issue #487): a new one fails CI.
-clippy-runs = ["", "vfs-preload", "ipc"]
+clippy-runs = ["", "vfs-object-http", "vfs-object-netio", "vfs-preload", "ipc"]
 clippy-deny-warnings = true
 # The crate builds for wasm32 (issue #411): the native and signal modules are
 # gated at the crate root, and only the shared VFS tree compiles. The default
-# set and the `vfs,vfs-search` set that foundation_ai's wasm build enables are
-# both checked.
+# set, the `vfs,vfs-search` set that foundation_ai's wasm build enables, and the
+# `vfs-object-wasm` set that holds the R2 block tier are all checked.
 wasm = "enforce"
-wasm-runs = ["", "--no-default-features --features vfs,vfs-search"]
+wasm-runs = ["", "--no-default-features --features vfs,vfs-search", "--no-default-features --features vfs-object-wasm"]
 # `uring_completion_*` and `completion_source_seam` skip on a kernel without
 # io_uring. Set the variable so CI fails instead of silently losing the suite.
 # The ptrace spawn tests must likewise fail on a kernel that cannot trace a
@@ -620,11 +671,11 @@ container-options = "--security-opt seccomp=unconfined"
 # handler (default `signal`), the polling watcher (`watcher-macos`), the Mach
 # port IPC transport (`vfs-ipc`) and the userspace data plane (`netstack`). The
 # `tun` (needs root), `uring`, `ptrace`, FUSE and preload sets are Linux-only.
-macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc"]
+macos-runs = ["", "fd", "watcher-macos", "netstack", "vfs-native,vfs-ipc", "vfs-object-http"]
 # Windows runs (job `windows-test`): the Windows signal handler (default
 # `signal`), the polling watcher (`watcher-windows`) and the named-pipe IPC
 # transport (`ipc`). `fd`, `uring`, `ptrace`, FUSE and preload are Unix-only.
-windows-runs = ["", "watcher-windows", "ipc"]
+windows-runs = ["", "watcher-windows", "ipc", "vfs-object-http"]
 
 [packages.foundation_iogate]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
@@ -881,3 +932,46 @@ clippy-deny-warnings = true
 # is Unix only.
 macos-runs = ["", "testing", "cli testing", "cloudflare testing", "libkrun libkrun-runner testing", "images docker testing slave", "images docker testing slave cli"]
 windows-runs = ["", "testing", "cli testing", "cloudflare testing"]
+
+[packages.foundation_event_stream]
+# The shared subscription core is the Cloudflare Worker surface, so it must
+# build for wasm32-unknown-unknown.
+wasm = "enforce"
+# The crate carries no clippy warnings in its default and test trees.
+clippy-deny-warnings = true
+
+# ---------------------------------------------------------------------------
+# Gates: checks outside the Cargo package matrix.
+#
+# A gate owns no crate. `foundation-ci affected` selects it when a changed file
+# belongs to one of its `packages`, or starts with an entry of `paths`.
+# `foundation-ci run <name> --step test` runs its recipe in the gate's own
+# workflow job. `plan` lists a selected gate but never puts it in a matrix.
+
+[gates.durable-conformance]
+description = "The four-direction Durable Streams conformance gate"
+recipe = "durable-conformance"
+# The protocol core, its HTTP adapters and the crates the gate starts.
+packages = [
+  "foundation_core",
+  "foundation_http",
+  "foundation_netio",
+  "foundation_event_stream",
+  "foundation_nativeapis",
+  "foundation_connectrpc",
+  "foundation_db",
+]
+# Integration crates sit outside the dependency graph of the packages above.
+paths = ["integration/"]
+
+[packages.durable-conformance]
+# Both reference suites, the example server and client, the cross-runs and the
+# live MinIO S3 run. The owner approved 30 minutes.
+timeout-minutes = 30
+
+[gates.durable-valtron]
+description = "The valtron reader, writer, wait and wake behaviour suite"
+recipe = "durable-valtron"
+# The layer sits in the protocol core. A change to that package selects the
+# gate, and `foundation-ci affected` is the same selector the package jobs use.
+packages = ["foundation_core"]

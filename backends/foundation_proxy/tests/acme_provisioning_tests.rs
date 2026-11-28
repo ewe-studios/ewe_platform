@@ -144,15 +144,17 @@ impl MockAcme {
         let fin: serde_json::Value =
             serde_json::from_slice(&payload).map_err(|e| format!("finalize json: {e}"))?;
         let csr_b64 = fin["csr"].as_str().ok_or("no csr in finalize")?;
-        let csr_der = B64.decode(csr_b64).map_err(|e| format!("csr b64: {e}"))?;
+        let decoded = B64.decode(csr_b64).map_err(|e| format!("csr b64: {e}"))?;
 
-        let der = rustls_pki_types::CertificateSigningRequestDer::from(csr_der);
-        let csr_params = rcgen::CertificateSigningRequestParams::from_der(&der)
+        let der_bytes = rustls_pki_types::CertificateSigningRequestDer::from(decoded);
+        let request = rcgen::CertificateSigningRequestParams::from_der(&der_bytes)
             .map_err(|e| format!("parse csr: {e}"))?;
-        let issued = csr_params
-            .signed_by(&self.ca_cert, &self.ca_key)
+        let issuer = rcgen::Issuer::from_ca_cert_der(self.ca_cert.der(), &self.ca_key)
+            .map_err(|e| format!("build issuer: {e}"))?;
+        let certificate = request
+            .signed_by(&issuer)
             .map_err(|e| format!("sign csr: {e}"))?;
-        *self.issued.lock().unwrap() = Some(issued.pem());
+        *self.issued.lock().unwrap() = Some(certificate.pem());
         Ok(())
     }
 }

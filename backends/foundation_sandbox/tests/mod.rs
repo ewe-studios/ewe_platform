@@ -96,14 +96,9 @@ mod boundary;
 #[cfg(all(feature = "docker", feature = "testing", unix))]
 mod docker;
 
-/// The nested sandbox end-to-end tests (feature 11). They need Linux, Docker,
-/// Kernel-based Virtual Machine (KVM) and the nested host image; a host
-/// without them prints the probe report and returns.
-#[cfg(all(
-    target_os = "linux",
-    feature = "control",
-    feature = "docker",
-    feature = "firecracker",
-    feature = "testing"
-))]
+/// The nested sandbox end-to-end tests (feature 11). They need Docker and the
+/// nested host image; the real child tests also need Linux, Kernel-based
+/// Virtual Machine (KVM) and the Firecracker program. A host without them
+/// prints the probe report and returns.
+#[cfg(all(unix, feature = "control", feature = "docker", feature = "testing"))]
 mod nested;

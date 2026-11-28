@@ -385,4 +385,7 @@ pub enum KeyStoreError {
     /// The key encryption key (KEK) is not available.
     #[display("the key encryption key (KEK) is unavailable: {_0}")]
     KekUnavailable(#[error(not(source))] String),
+    /// The settings of a backend are not complete or not valid.
+    #[display("key store configuration error: {_0}")]
+    Config(#[error(not(source))] String),
 }

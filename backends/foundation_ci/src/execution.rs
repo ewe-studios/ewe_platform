@@ -20,6 +20,7 @@ mod dispatch;
 mod errors;
 mod guards;
 mod linux;
+mod live_kms;
 mod locks;
 mod package;
 mod recipes;
@@ -39,6 +40,9 @@ struct Options {
     base: Option<String>,
     #[arg(long)]
     head: Option<String>,
+    /// The behaviour group of a gate recipe that runs one group per job.
+    #[arg(long)]
+    group: Option<String>,
 }
 #[derive(Args)]
 struct Run {
@@ -139,6 +143,7 @@ pub fn register(set: &mut TaskSet) -> TaskResult {
     attachments::register(set)?;
     binaries::register(set)?;
     linux::register(set)?;
+    live_kms::register(set)?;
     locks::register(set)?;
     package::register(set)?;
     retry::register(set)?;
@@ -346,6 +351,7 @@ async fn execute(ctx: TaskContext, names: Vec<String>, options: Options, many: b
             os,
             github,
             profile: &profile,
+            group: options.group.as_deref(),
         };
         let reports = package.run(&steps).await?;
         for (msg, lines) in &reports {
@@ -397,6 +403,7 @@ struct PackageRun<'a> {
     os: &'a str,
     github: bool,
     profile: &'a str,
+    group: Option<&'a str>,
 }
 
 impl PackageRun<'_> {
@@ -443,6 +450,7 @@ impl PackageRun<'_> {
                 self.os,
                 step,
                 self.env,
+                self.group,
             )? {
                 let (report, expired) = self
                     .run_command(entry, step, mode, &target, deadline)
@@ -506,12 +514,7 @@ impl PackageRun<'_> {
             entry.expected_failure.as_deref(),
             self.settings,
         ));
-        let timer = self
-            .ctx
-            .context()
-            .env()
-            .ok_or(TaskError::MissingService("timer"))?
-            .timer();
+        let timer = self.ctx.context().timer();
         let cancel = Cancellation::new();
         let mut child = task_env
             .process
@@ -592,11 +595,7 @@ pub(crate) async fn sleep(ctx: &TaskContext, time: Duration) -> TaskResult {
         .now()
         .checked_add(time)
         .ok_or_else(|| TaskError::operation("Invalid retry time"))?;
-    let timer = ctx
-        .context()
-        .env()
-        .ok_or(TaskError::MissingService("timer"))?
-        .timer();
+    let timer = ctx.context().timer();
     let wait = timer.sleep_until(ctx.context().clone(), until).fuse();
     let cancel = ctx.cancellation().cancelled().fuse();
     futures_util::pin_mut!(wait, cancel);

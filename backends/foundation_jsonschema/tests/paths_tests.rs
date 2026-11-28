@@ -3,7 +3,7 @@ use foundation_jsonschema::{LazyLocation, Location};
 #[test]
 fn test_location_empty() {
     let loc = Location::new();
-    assert!(loc.as_json_pointer().is_empty());
+    assert_eq!(loc.as_json_pointer(), "");
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn test_lazy_location_materialize() {
 fn test_lazy_location_root_materialize() {
     let root = LazyLocation::new();
     let loc = root.materialize();
-    assert!(loc.as_json_pointer().is_empty());
+    assert_eq!(loc.as_json_pointer(), "");
 }
 
 #[test]

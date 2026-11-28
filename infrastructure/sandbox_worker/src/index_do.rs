@@ -116,11 +116,19 @@ impl SandboxIndexDo {
         let map = storage
             .list_with_options(worker::ListOptions::new().prefix("sbx:"))
             .await?;
-        let values = worker::js_sys::Object::values(&map);
+        // `list_with_options` gives a `js_sys::Map`, not a plain object. A
+        // plain `Object::values` sees none of its entries, so the list was
+        // always empty. Read the Map's own values (issue #1125).
+        let mut values = map.values();
         let mut sandboxes = Vec::new();
-        for index in 0..values.length() {
-            let value = values.get(index);
-            let info: SandboxInfo = serde_wasm_bindgen::from_value(value)
+        loop {
+            let next = values
+                .next()
+                .map_err(|error| worker::Error::from(format!("the index list failed: {error:?}")))?;
+            if next.done() {
+                break;
+            }
+            let info: SandboxInfo = serde_wasm_bindgen::from_value(next.value())
                 .map_err(|error| worker::Error::from(error.to_string()))?;
             sandboxes.push(info);
         }
