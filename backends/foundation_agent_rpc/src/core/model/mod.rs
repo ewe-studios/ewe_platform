@@ -14,7 +14,7 @@
 //! in the same order as its diagram.
 
 pub mod catalog;
-#[cfg(any(feature = "multi", feature = "worker"))]
+#[cfg(any(feature = "multi", feature = "worker", feature = "dst"))]
 pub mod handle;
 #[cfg(any(feature = "multi", feature = "worker"))]
 pub mod remote;
@@ -23,15 +23,15 @@ pub use catalog::{
     select, AgentRpcFuture, CatalogEntry, KindSupport, LoadState, ModelCapabilities, ModelCatalog,
     ModelDescriptor, SelectionError,
 };
-#[cfg(any(feature = "multi", feature = "worker"))]
+#[cfg(any(feature = "multi", feature = "worker", feature = "dst"))]
 pub use handle::ModelHandle;
 #[cfg(any(feature = "multi", feature = "worker"))]
 pub use remote::{ApiModelConfig, RemoteCatalog};
 
 /// A loaded model handle. The real handle needs the agent loop, which the
-/// `multi` build owns. A deterministic simulation harness supplies its own
-/// scripted registry, so it never constructs one.
-#[cfg(not(any(feature = "multi", feature = "worker")))]
+/// `multi` and `dst` builds own. This stub serves a build with neither, so no
+/// model can load.
+#[cfg(not(any(feature = "multi", feature = "worker", feature = "dst")))]
 #[derive(Debug, Clone)]
 pub struct ModelHandle;
 

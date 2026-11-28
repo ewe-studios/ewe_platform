@@ -11,10 +11,10 @@
 //! a [`Caller`]. The registry methods take that caller, so the Worker can
 //! separate clients and the native host can keep one shared name space.
 
-#[cfg(any(feature = "multi", feature = "worker"))]
+#[cfg(any(feature = "multi", feature = "worker", feature = "dst"))]
 pub mod local;
 
-#[cfg(any(feature = "multi", feature = "worker"))]
+#[cfg(any(feature = "multi", feature = "worker", feature = "dst"))]
 pub use local::{
     CreateHookFn, DestroyHookFn, DestroyHookFuture, InMemoryStores, LocalInstanceRegistry,
     SessionStores,
