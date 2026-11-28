@@ -23,6 +23,9 @@ foundation_db = { path = "../foundation_db", version = "0.0.11", default-feature
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
 # RPC engine (Connect + gRPC + gRPC-Web); `rpc_multi` = threaded valtron executor.
 foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false, features = ["rpc"] }
+# The auth layer of the RPC crate (spec 92 feature 05): the interceptor and the
+# caller lookup. It depends on `foundation_auth`; the RPC crate does not.
+foundation_connectrpc_auth = { path = "../foundation_connectrpc_auth", version = "0.0.1" }
 # The listener (h1 + h2c, TLS) and the client/TLS plumbing.
 foundation_http = { path = "../foundation_http", version = "0.0.17", default-features = false, optional = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, optional = true }

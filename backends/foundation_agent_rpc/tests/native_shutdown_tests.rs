@@ -179,11 +179,6 @@ async fn native_shutdown_stops_the_listeners_and_ends_the_sessions() {
 fn native_shutdown_emits_the_terminal_event_for_a_running_turn() {
     let ctx = ctx();
     let shutdown = TurnShutdown::default();
-    let env = ctx
-        .require_env()
-        .expect("the test context installs an Env")
-        .as_ref()
-        .clone();
     let abort: Arc<dyn Fn() + Send + Sync> = Arc::new(|| {});
     let events = futures::stream::pending::<ModelTurnEvent>();
     let mut stream = Box::pin(guarded_turn(
@@ -192,7 +187,6 @@ fn native_shutdown_emits_the_terminal_event_for_a_running_turn() {
         abort,
         shutdown.clone(),
         ctx,
-        env,
         &TurnLimits::default(),
     ));
 

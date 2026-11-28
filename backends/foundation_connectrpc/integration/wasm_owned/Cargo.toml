@@ -16,9 +16,10 @@ edition = "2021"
 
 [dependencies]
 # No `rpc` and no `wasm-fetch`. The router, sink, error and deadline paths are
-# pure Rust and need neither. `rpc` turns on `auth`, and foundation_auth's wasm
-# feature turns on foundation_netio's `wasm-fetch`, which would put wasm-bindgen
-# glue back into the module (measured 2026-11-23, spec 88 feature 03 T7).
+# pure Rust and need neither. The `rpc` feature now carries no auth glue (spec
+# 92 feature 05, #756); `wasm-fetch` still turns on foundation_netio's fetch
+# client, which would put wasm-bindgen glue back into the module (measured
+# 2026-11-23, spec 88 feature 03 T7).
 foundation_connectrpc = { path = "../..", default-features = false }
 foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
 foundation_macros = { path = "../../../foundation_macros" }

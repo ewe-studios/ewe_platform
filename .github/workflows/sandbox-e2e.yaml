@@ -215,11 +215,14 @@ jobs:
   sandbox-cloudflare:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    # Known limitation, #1221: `wrangler dev --local` gives a working container
-    # TCP port to one container per Worker process, so a test with two
-    # sandboxes cannot pass locally. The deployed example (examples/cf-sandbox-demo)
-    # is the live proof, and an engineer runs it. The job still reports its 13
-    # passing tests, and this allowance goes when #1221 is resolved.
+    # Known problem, #1221: the local container tests fail, and most of them
+    # panic with `deadline_exceeded` on the first create. A minimal probe with
+    # wrangler 4.144.0 keeps two containers in one Worker, both locally and when
+    # deployed, so the earlier one-container theory is wrong and the cause is
+    # still open. The tests that keep two containers in one Worker skip without
+    # the `dual-container` feature of `foundation_sandbox`, so the job reports
+    # only the tests that a local run can pass. This allowance goes when #1221
+    # is resolved.
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4.4.0

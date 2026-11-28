@@ -19,7 +19,7 @@ use foundation_sandbox::shared::control::testing::{
 use foundation_sandbox::shared::control::{
     ControlService, ManagerConfig, SandboxManager, SandboxProvider, SandboxState,
 };
-use foundation_sandbox::shared::driver::SubstrateExit;
+use foundation_sandbox::shared::driver::{SandboxDriver, SubstrateExit};
 use foundation_sandbox::shared::drivers::nested::{watch_child, NestedWatchConfig, WatchOutcome};
 use foundation_sandbox::shared::error::SandboxError;
 use foundation_sandbox::shared::ids::{DriverId, SandboxId};
@@ -36,13 +36,26 @@ struct Setup {
     parent_slave: Arc<ScriptedSlave>,
     parent_substrate: Arc<SimSubstrate>,
     inner_slave: Arc<ScriptedSlave>,
+    inner_driver: Arc<SimDriver>,
     inner_substrate: Arc<SimSubstrate>,
 }
 
 /// Builds a parent control plane and its inner control plane.
 fn setup(seed: u64, can_control: bool, info_pending: bool) -> Setup {
+    setup_mode(seed, can_control, info_pending, false)
+}
+
+/// Builds the two control planes with one substrate per inner sandbox.
+///
+/// A shared substrate exits for every sandbox as soon as one sandbox stops, so
+/// a test with two live children needs its own substrate for each one.
+fn setup_multi(seed: u64) -> Setup {
+    setup_mode(seed, true, false, true)
+}
+
+fn setup_mode(seed: u64, can_control: bool, info_pending: bool, per_launch: bool) -> Setup {
     let (ctx, clock) = support::ctx(seed);
-    setup_with(ctx, clock, can_control, info_pending)
+    setup_with(ctx, clock, can_control, info_pending, per_launch)
 }
 
 /// Builds the two control planes over a caller's context and clock.
@@ -51,15 +64,22 @@ fn setup_with(
     clock: Arc<SimulatedClock>,
     can_control: bool,
     info_pending: bool,
+    per_launch: bool,
 ) -> Setup {
     // The inner control plane: a manager with the Firecracker driver.
     let inner_slave = Arc::new(ScriptedSlave::new());
-    let inner_driver = Arc::new(SimDriver::new(DriverId::Firecracker));
+    let inner_driver = Arc::new(if per_launch {
+        SimDriver::new(DriverId::Firecracker).with_substrate_per_launch()
+    } else {
+        SimDriver::new(DriverId::Firecracker)
+    });
     let inner_substrate = inner_driver.substrate();
-    inner_slave.with_shutdown_exit(Arc::clone(&inner_substrate));
+    if !per_launch {
+        inner_slave.with_shutdown_exit(Arc::clone(&inner_substrate));
+    }
     let inner = Arc::new(SandboxManager::new(
         ctx.clone(),
-        vec![inner_driver],
+        vec![Arc::clone(&inner_driver) as Arc<dyn SandboxDriver>],
         in_memory_connector(Arc::clone(&inner_slave)),
         Arc::new(CountingStore::new()),
         ManagerConfig::default(),
@@ -95,6 +115,7 @@ fn setup_with(
         parent_slave,
         parent_substrate,
         inner_slave,
+        inner_driver,
         inner_substrate,
     }
 }
@@ -230,7 +251,7 @@ fn nested_parent_not_ready() {
 #[test]
 fn stop_parent_stops_children() {
     let _serial = support::serial();
-    let setup = setup(33, true, false);
+    let setup = setup_multi(33);
     let parent = create_parent(&setup);
     let first = support::block_on(setup.outer.create(child_spec(&parent))).expect("first child");
     let second = support::block_on(setup.outer.create(child_spec(&parent))).expect("second child");
@@ -240,6 +261,12 @@ fn stop_parent_stops_children() {
             foundation_sandbox::shared::control::SandboxState::Ready
         );
     }
+    // One slave serves both inner sandboxes. Give each sandbox its own
+    // substrate, so the stop of one child does not end the other one before
+    // its own `Shutdown` arrives.
+    setup
+        .inner_slave
+        .with_shutdown_exits(setup.inner_driver.substrates());
     let report = support::block_on(setup.outer.stop(parent)).expect("the parent stops");
     assert!(!report.killed);
     assert!(support::block_on(setup.outer.list())
@@ -370,7 +397,7 @@ fn nested_terminate_waits_within_the_outer_grace() {
     // A two-second grace is longer than the short-wait threshold of the
     // recording timer, so the timer stays pending and the inner stop answers.
     let (ctx, clock, _timer) = support::recording_ctx(39);
-    let setup = setup_with(ctx, clock, true, false);
+    let setup = setup_with(ctx, clock, true, false, false);
     let parent = create_parent(&setup);
     let mut spec = child_spec(&parent);
     spec.limits.shutdown_grace = Duration::from_secs(2);
@@ -392,7 +419,7 @@ fn nested_terminate_kills_after_the_outer_grace() {
     // reaches the child before its own stop does. The forced report is the
     // outer kill branch: the inner stop alone reports `killed: false`.
     let (ctx, clock, _timer) = support::recording_ctx(40);
-    let setup = setup_with(ctx, clock, true, false);
+    let setup = setup_with(ctx, clock, true, false, false);
     let parent = create_parent(&setup);
     let mut spec = child_spec(&parent);
     spec.limits.shutdown_grace = Duration::from_millis(50);

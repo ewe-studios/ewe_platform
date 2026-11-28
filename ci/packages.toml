@@ -759,6 +759,18 @@ windows-reason = "Docker discovery, systemd discovery and cgroup metrics need Li
 # The end-to-end run skips itself when no Docker daemon answers.
 runs = ["", "docker-tests"]
 
+[packages.foundation_connectrpc_auth]
+# The moved auth tests come from foundation_connectrpc. They open no socket and
+# need no platform tool, so they run on macOS. The Windows opt-out mirrors
+# foundation_connectrpc and foundation_auth: #531: tests fail and the kept log
+# shows no cause. Remove this line when the issue is fixed.
+windows-tests = "none"
+windows-reason = "Known bug on Windows: #531: tests fail and the kept log shows no cause. Remove this opt-out when the issue is fixed."
+# The auth layer builds for wasm32: the agent-rpc Worker uses it there.
+wasm = "enforce"
+# At zero clippy warnings: a new one fails CI.
+clippy-deny-warnings = true
+
 [packages.foundation_connectrpc]
 # Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
 macos-tests = "none"

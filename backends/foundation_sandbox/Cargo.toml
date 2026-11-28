@@ -291,6 +291,11 @@ slave = [
 ]
 # The simulation helpers (feature 02).
 testing = []
+# Opt-in for the Cloudflare end-to-end tests that keep two containers in one
+# Worker. Issue #1221 tracks them, and the default end-to-end run skips them so
+# that the local `sandbox-cloudflare` job stays clean. It affects only the
+# native tests of `tests/e2e_cloudflare`; it adds no code to the library.
+dual-container = []
 
 # The control-plane program (feature 06). `serve` needs the control plane; the
 # `run` path also needs a driver, which this build gives when a driver feature

@@ -44,15 +44,16 @@ The page is static HTML and WebAssembly (wasm) from `foundation_http::wasm`; no 
 
 **The count** comes from the sandbox index through `List`. It updates after each create and destroy. Two sandboxes are the case the local runtime cannot run (#1221), so the deployed demo proves it.
 
-**Three model paths, one per sandbox**, so the demo tests every area the platform supports:
+**Two model paths, alternating by tab**, so the demo tests the two supported areas:
 
 | Tab | Model path | Configuration |
 |---|---|---|
-| 1 | Cloudflare Workers AI | The `AI` binding of the Worker; no network key in the page |
+| 1, 3 | Cloudflare Workers AI | The `AI` binding of the Worker; no network key in the page |
 | 2 | OpenRouter | The OpenAI-compatible provider with base URL `https://openrouter.ai/api/v1` and `OPENROUTER_API_KEY` as a Worker secret |
-| 3 | A model served from the sandbox's own container | The model slave inside the sandbox's container, reached over the container port |
 
 Each tab names its model path. A path whose secret or binding is absent shows that plainly, and the live test names it instead of failing silently.
+
+The demo had a third path: a deterministic echo server in the sandbox container. The owner removed it on 2026-11-28. The slave must not have a model mode. The real third path, an agent RPC container host that serves a GGUF file, waits for issue #1276.
 
 **Files of the example:**
 
@@ -61,7 +62,7 @@ Each tab names its model path. A path whose secret or binding is absent shows th
 | `wrangler.toml` | Container image, the three DO bindings, the AI binding, the route and a preview name suffix |
 | `mise.toml` | `deploy` (build and deploy the persistent `ewe-sandbox-demo`, print the URL), `test` (preview run with teardown), `destroy` (remove the Worker and its container) |
 | `test/live.sh` | The four steps, two more sandboxes, one turn per model path, then teardown |
-| `README.md` | What it shows, the three model paths, prerequisites and the three secrets, the `mise run` commands, the URL, how to use each tab, the cost of one run, and the `wrangler dev` limit (#1221) |
+| `README.md` | What it shows, the two model paths, prerequisites and the secrets, the `mise run` commands, the URL, how to use each tab, the cost of one run, and the `wrangler dev` limit (#1221) |
 
 `cd examples/cf-sandbox-demo && mise run deploy` is the whole redeploy. The README must let a reader who does not know the repository deploy and use the demo from that file alone.
 
@@ -71,7 +72,7 @@ Each tab names its model path. A path whose secret or binding is absent shows th
 |---|---|
 | `test/live.sh` against a deployed preview name | create, exec, file write/read, one turn, destroy, then a delete of the Worker and its container |
 | `test/live.sh` creates two more sandboxes | the count rises by two, each tab's command returns its own output, one agent turn in each tab, then destroy all and the count returns to zero |
-| `test/live.sh` one turn per model path | Workers AI, OpenRouter and the container model each produce a non-empty answer, and the result names the provider used |
+| `test/live.sh` one turn per model path | Workers AI and OpenRouter each produce a non-empty answer, and the result names the provider used |
 | the local part that `wrangler dev` supports | the page loads and the control probe answers |
 | teardown runs on every path | conservation: no Worker and no container remain |
 
@@ -92,6 +93,6 @@ record of the proof.
 - The README lets a reader deploy and use the demo from that file alone.
 - `test/live.sh` passes against the deployed preview and leaves nothing behind.
 - The page shows the count, the two new sandboxes and one tab per sandbox.
-- Each of the three tabs answers through its own model path.
+- Each tab answers through its model path.
 - The CI job is green, or says plainly why it did not run.
 - The persistent demo URL is in `progress.md` and in the report to the owner.

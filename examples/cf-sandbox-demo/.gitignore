@@ -1,0 +1,14 @@
+# The build output of `worker-build` and the Node package directory.
+/build
+/node_modules/
+/target/
+# The local Durable Object state of `wrangler dev --persist-to`.
+/.wrangler/
+# The local Worker secrets of `wrangler dev`.
+/.dev.vars
+# The static program that `mise run build` copies into the image context.
+/agent-slave
+# The preview configuration that `test/live.sh` writes.
+/wrangler.preview.toml
+# The logs of the local Worker.
+/wrangler-dev.log

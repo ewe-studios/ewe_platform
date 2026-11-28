@@ -9,11 +9,14 @@ use foundation_connectrpc::{
     ClientOptions, ConnectError, ConnectResult, Request, Response, RpcCtx, ServerStream,
 };
 use foundation_context::Ctx;
-use foundation_core::valtron::{task, Stream, StreamIteratorExt, TaskStatus};
+use foundation_core::valtron::{
+    task, SendWakeCallback, Stream, StreamIteratorExt, StreamSpread, TaskStatus, WakeCallback,
+    WakeResult, WakeableStream,
+};
 use foundation_errstacks::ErrorTrace;
 use futures::{Stream as FuturesStream, StreamExt};
 
-use crate::shared::control::handle::{ScopedCalls, SendIterator};
+use crate::shared::control::handle::ScopedCalls;
 use crate::shared::control::send_box;
 use crate::shared::control::{ExitReport, RemoteSandboxOps, SandboxHandle, SandboxInfo};
 use crate::shared::error::{SandboxError, SandboxResult};
@@ -80,7 +83,10 @@ impl crate::shared::control::SandboxProvider for DisabledControl {
             SandboxResult<SandboxHandle>,
             crate::shared::driver::CreateProgress,
         > = foundation_core::valtron::Stream::Next(Err(disabled()));
-        crate::shared::handles::CreateStream::new(Box::new(std::iter::once(item)))
+        crate::shared::handles::CreateStream::new(
+            Box::new(crate::shared::handles::NoWake::new(std::iter::once(item))),
+            None,
+        )
     }
 
     fn get(
@@ -150,6 +156,88 @@ impl ControlService {
     }
 }
 
+/// One event of the create response stream.
+type CreateStep = ConnectResult<CreateEvent>;
+
+/// Turns the create progress stream into a stream of response events.
+///
+/// The parking adapter treats a raw `Stream::Pending` as a control state on a
+/// driving stream, so it does not yield it. This adapter maps a progress point
+/// and the one result to the same `Next` item, so every progress event reaches
+/// the caller. It forwards `Wait` and the engine wake, so the adapter parks on
+/// the wake. It holds the already-`Send` [`CreateStream`], so the response
+/// stream is `Send` on the single-threaded wasm build too.
+struct CreateSteps {
+    inner: crate::shared::handles::CreateStream,
+    max_error_message: usize,
+}
+
+impl CreateSteps {
+    /// Maps one result to its response event.
+    fn result_event(&self, result: SandboxResult<SandboxHandle>) -> CreateStep {
+        match result {
+            Ok(handle) => Ok(CreateEvent::Created(handle.info())),
+            Err(error) => Err(ErrorTrace::new(
+                error.current_context().to_connect(self.max_error_message),
+            )),
+        }
+    }
+
+    /// Maps one progress point to its response event.
+    fn progress_event(progress: crate::shared::driver::CreateProgress) -> CreateEvent {
+        CreateEvent::Progress(progress)
+    }
+}
+
+impl Iterator for CreateSteps {
+    type Item = Stream<CreateStep, CreateStep>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.inner.next()?;
+        Some(match item {
+            Stream::Pending(progress) => Stream::Next(Ok(Self::progress_event(progress))),
+            Stream::Next(result) => Stream::Next(self.result_event(result)),
+            Stream::Wait => Stream::Wait,
+            Stream::Ignore => Stream::Ignore,
+            Stream::Init => Stream::Init,
+            Stream::Delayed(delay) => Stream::Delayed(delay),
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(result) => StreamSpread::Done(self.result_event(result)),
+                        StreamSpread::Pending(progress) => {
+                            StreamSpread::Pending(Ok(Self::progress_event(progress)))
+                        }
+                    })
+                    .collect(),
+            ),
+        })
+    }
+}
+
+impl WakeableStream for CreateSteps {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+}
+
 #[allow(
     clippy::unused_async_trait_impl,
     reason = "the service trait declares async methods; the bodies only await the control plane"
@@ -170,63 +258,28 @@ impl SandboxService for ControlService {
 
     async fn create(
         &self,
-        ctx: RpcCtx,
+        _ctx: RpcCtx,
         request: Request<CreateRequest>,
     ) -> ConnectResult<Pin<Box<dyn FuturesStream<Item = ConnectResult<CreateEvent>> + Send>>> {
-        let iterator = self.control.create_with_progress(request.msg.spec);
-        let poll_interval = self.limits.create_poll_interval;
-        let max_error_message = self.limits.max_error_message;
-        let call_ctx = ctx.ctx.clone();
-        let stream = futures::stream::unfold(
-            (iterator, call_ctx),
-            move |(mut iterator, call_ctx)| async move {
-                loop {
-                    match iterator.next() {
-                        None => return None,
-                        Some(Stream::Pending(progress)) => {
-                            return Some((
-                                Ok(CreateEvent::Progress(progress)),
-                                (iterator, call_ctx),
-                            ));
-                        }
-                        Some(Stream::Next(result)) => {
-                            let event = match result {
-                                Ok(handle) => Ok(CreateEvent::Created(handle.info())),
-                                Err(error) => Err(ErrorTrace::new(
-                                    error.current_context().to_connect(max_error_message),
-                                )),
-                            };
-                            return Some((event, (iterator, call_ctx)));
-                        }
-                        Some(Stream::Wait) => {
-                            // The create progress iterator is a driving stream:
-                            // it runs its producer inside `next()`. `Wait` means
-                            // "the queue is empty; check again", not "the
-                            // producer is asleep". Pulling it again in this poll
-                            // is a synchronous loop. A wasm host has one thread,
-                            // so that loop starves its event loop: the create
-                            // can never finish and the Durable Object stops
-                            // answering (issue #1125). Park on the injected timer
-                            // so the host runs, then pull again.
-                            if crate::shared::control::wait_until(
-                                call_ctx.clock().now() + poll_interval,
-                                &call_ctx,
-                            )
-                            .await
-                            .is_err()
-                            {
-                                tracing::warn!(
-                                    "the create stream has no timer to yield on; it polls at once"
-                                );
-                            }
-                        }
-                        Some(
-                            Stream::Ignore | Stream::Init | Stream::Delayed(_) | Stream::Spread(_),
-                        ) => {}
-                    }
+        // The create progress iterator is a driving stream: it runs its
+        // producer inside `next()`. It also carries the wake of its engine.
+        // `CreateSteps` turns both the progress points and the one result into a
+        // single step type, so the parking adapter below keeps every progress
+        // point and parks on `Wait` through the engine wake. No timer and no
+        // interval take part.
+        let steps = CreateSteps {
+            inner: self.control.create_with_progress(request.msg.spec),
+            max_error_message: self.limits.max_error_message,
+        };
+        let parked = foundation_core::valtron::StreamParkingFutureStream::new(steps);
+        let stream = futures::stream::unfold(parked, |mut parked| async move {
+            while let Some(item) = futures::StreamExt::next(&mut parked).await {
+                if let Stream::Next(event) = item {
+                    return Some((event, parked));
                 }
-            },
-        );
+            }
+            None
+        });
         Ok(Box::pin(stream))
     }
 
@@ -735,9 +788,10 @@ impl crate::shared::control::SandboxProvider for SandboxRpcClient {
     ) -> crate::shared::handles::CreateStream {
         let task = self.remote_create(spec);
         match foundation_core::valtron::execute(remote_create::new(task), None) {
-            Ok(iterator) => {
-                crate::shared::handles::CreateStream::new(Box::new(SendIterator::new(iterator)))
-            }
+            Ok(iterator) => crate::shared::handles::CreateStream::new(
+                Box::new(foundation_compact::SendWrapper::new(iterator)),
+                None,
+            ),
             Err(error) => {
                 let item: Stream<
                     SandboxResult<SandboxHandle>,
@@ -747,7 +801,10 @@ impl crate::shared::control::SandboxProvider for SandboxRpcClient {
                     message: error.to_string(),
                 }
                 .into()));
-                crate::shared::handles::CreateStream::new(Box::new(std::iter::once(item)))
+                crate::shared::handles::CreateStream::new(
+                    Box::new(crate::shared::handles::NoWake::new(std::iter::once(item))),
+                    None,
+                )
             }
         }
     }

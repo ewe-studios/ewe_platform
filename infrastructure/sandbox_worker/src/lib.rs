@@ -24,18 +24,28 @@ use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse,
 };
-use foundation_sandbox::shared::cloudflare::{route, HttpResponseParts, RouteTarget};
+use foundation_sandbox::shared::cloudflare::HttpResponseParts;
+#[cfg(feature = "entry")]
+use foundation_sandbox::shared::cloudflare::{route, RouteTarget};
+#[cfg(feature = "entry")]
 use foundation_sandbox::shared::control::authorize;
+#[cfg(feature = "entry")]
 use foundation_sandbox::shared::driver::{Capabilities, HostCheck, HostReport};
 use foundation_sandbox::shared::error::{SandboxError, SandboxResult};
+#[cfg(feature = "entry")]
 use foundation_sandbox::shared::ids::{DriverId, SandboxId};
 use foundation_sandbox::shared::limits::SandboxLimits;
+#[cfg(feature = "entry")]
 use foundation_sandbox::shared::rpc::messages::ProbeResponse;
+#[cfg(feature = "entry")]
 use foundation_sandbox::shared::spec::RootMode;
+#[cfg(feature = "entry")]
 use foundation_sandbox::shared::Secret;
 use futures::StreamExt;
 use worker::wasm_bindgen::{JsCast, JsValue};
-use worker::{Env, Request, Response};
+#[cfg(feature = "entry")]
+use worker::Env;
+use worker::{Request, Response};
 
 pub use index_do::{SandboxIndexDo, WorkerSandboxIndex};
 pub use model_slave_do::ModelSlaveDo;
@@ -108,11 +118,7 @@ impl Timer for JsTimer {
                 let millis = u32::try_from(wait.as_millis())
                     .unwrap_or(u32::MAX)
                     .min(u32::try_from(i32::MAX).unwrap_or(u32::MAX));
-                let _ = set_timeout.call2(
-                    &global,
-                    &resolve,
-                    &JsValue::from_f64(f64::from(millis)),
-                );
+                let _ = set_timeout.call2(&global, &resolve, &JsValue::from_f64(f64::from(millis)));
             });
             let _ = worker::js_sys::futures::JsFuture::from(promise).await;
         }))
@@ -129,6 +135,7 @@ pub(crate) fn worker_error_from_sandbox(error: impl std::fmt::Display) -> worker
     worker::Error::RustError(error.to_string())
 }
 
+#[cfg(feature = "entry")]
 /// The entry of the Worker.
 ///
 /// Steps 1 to 5 of feature 08, section 6.2.
@@ -221,6 +228,7 @@ pub async fn fetch(
     }
 }
 
+#[cfg(feature = "entry")]
 /// Removes one index entry and logs a failure. A failure does not fail the call.
 async fn remove_index_entry(env: &Env, id: &SandboxId) {
     let index = WorkerSandboxIndex::new(env.clone());
@@ -231,6 +239,7 @@ async fn remove_index_entry(env: &Env, id: &SandboxId) {
     }
 }
 
+#[cfg(feature = "entry")]
 /// Returns the Durable Object response with a body that removes the index
 /// entry when the stream fails after the head.
 fn stream_response(mut response: Response, env: Env, id: SandboxId) -> worker::Result<Response> {
@@ -353,6 +362,7 @@ fn outgoing_to_worker(response: SimpleOutgoingResponse) -> worker::Result<Respon
     Ok(response.with_status(status).with_headers(headers))
 }
 
+#[cfg(feature = "entry")]
 /// The probe answer of the Worker entry.
 fn probe_response() -> worker::Result<Response> {
     let capabilities = Capabilities {
@@ -386,6 +396,7 @@ fn probe_response() -> worker::Result<Response> {
     })
 }
 
+#[cfg(feature = "entry")]
 /// Forwards one request to a Durable Object and returns its response.
 async fn forward(
     env: &Env,

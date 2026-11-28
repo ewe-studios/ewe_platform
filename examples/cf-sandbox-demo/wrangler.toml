@@ -1,0 +1,88 @@
+# The Cloudflare demo of spec 92 feature 06.
+#
+# `mise run deploy` builds the module and the container image, deploys this
+# file under the persistent name, sets the OpenRouter secret and prints the
+# URL. `mise run test` runs `test/live.sh` against a preview name with
+# teardown. `mise run destroy` removes the Worker and its container.
+#
+# The two model paths:
+#   1. Workers AI through the `AI` binding. It needs no secret.
+#   2. OpenRouter through the agent-rpc catalog. It needs the Worker secret
+#      `OPENROUTER_API_KEY`; set it with `wrangler secret put OPENROUTER_API_KEY`.
+#
+# A third path, an agent-rpc container host that serves a GGUF file, waits for
+# issue #1276.
+name = "ewe-sandbox-demo"
+main = "build/index.js"
+compatibility_date = "2026-05-12"
+workers_dev = true
+
+[build]
+command = "worker-build --release"
+
+[vars]
+# The most sandboxes, and so the most tabs, that the page creates.
+MAX_SANDBOXES = "3"
+# The time limit of one command.
+EXEC_TIMEOUT_MS = "60000"
+# The largest file that the demo writes or reads.
+FILE_MAX_BYTES = "65536"
+# The most bytes of one prompt.
+PROMPT_MAX_BYTES = "4096"
+# The most arguments and bytes of one command.
+COMMAND_MAX_ARGV = "32"
+COMMAND_MAX_BYTES = "4096"
+# The largest control JSON body, and the largest error text that the API reads.
+CONTROL_BODY_MAX_BYTES = "131072"
+ERROR_TEXT_MAX_BYTES = "2048"
+# The two model ids.
+WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+# The provider appends `/v1/chat/completions`, so the base stops at `/api`.
+OPENROUTER_BASE_URL = "https://openrouter.ai/api"
+OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
+OPENROUTER_SECRET = "OPENROUTER_API_KEY"
+# The system prompt of the OpenRouter conversation.
+AGENT_SYSTEM_PROMPT = "You are a concise assistant. Answer in one short sentence."
+# The binding names.
+AI_BINDING = "AI"
+
+# The Durable Object classes of `infrastructure/sandbox_worker`.
+[[durable_objects.bindings]]
+name = "SANDBOX"
+class_name = "SandboxDo"
+
+[[durable_objects.bindings]]
+name = "SANDBOX_INDEX"
+class_name = "SandboxIndexDo"
+
+# The model slave of decision D16. The demo's sandboxes are containers, so the
+# binding is unused; it stays because the reused Worker names it.
+[[durable_objects.bindings]]
+name = "SLAVE"
+class_name = "ModelSlaveDo"
+
+# The Cloudflare Model API of the Workers AI path.
+[ai]
+binding = "AI"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SandboxDo", "SandboxIndexDo", "ModelSlaveDo"]
+
+[[containers]]
+class_name = "SandboxDo"
+name = "ewe-sandbox-demo-container"
+image = "./Dockerfile"
+max_instances = 3
+instance_type = "lite"
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+# The create of a sandbox drives a container start and the readiness wait, so
+# one invocation can run for tens of seconds. The default CPU limit resets the
+# Durable Object in the middle of a cold create; the paid plan allows up to
+# 300 s, and 60 s keeps a runaway bounded.
+[limits]
+cpu_ms = 60000

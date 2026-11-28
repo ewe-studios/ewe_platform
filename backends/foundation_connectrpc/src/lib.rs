@@ -85,13 +85,6 @@ pub use shared::interceptor::{
     StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryInterceptorFunc, UnaryReply,
 };
 
-#[cfg(feature = "auth")]
-pub use shared::auth::{
-    authenticate_request, bearer_token, get_auth_artifact, get_auth_info, infer_procedure,
-    infer_protocol, AuthFunc, AuthInfo, AuthzInterceptor, CompositeAuthenticator, JwtAuthenticator,
-    PerProcedureAuth,
-};
-
 pub use shared::transport::{
     check_compatible, requirements, CallRequirements, ClientConn, ConnReceiver, ConnSender, Frame,
     HandlerConn, MessageSink, MessageSource, ProtocolKind, Transport, TransportCapabilities,

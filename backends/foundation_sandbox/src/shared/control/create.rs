@@ -13,7 +13,7 @@ use foundation_core::valtron::{task, Stream, StreamIteratorExt, TaskStatus};
 use foundation_errstacks::ErrorTrace;
 use futures::future::{select, select_all, Either};
 
-use crate::shared::control::handle::{LocalSandboxOps, SendIterator};
+use crate::shared::control::handle::LocalSandboxOps;
 use crate::shared::control::manager::{apply_default_limits, choose_driver, Inner};
 use crate::shared::control::record::{created_unix_ms, lifetime_deadline, SandboxRecord};
 use crate::shared::control::slave_client::SlaveClient;
@@ -303,26 +303,6 @@ impl CreateGuard {
             Poll::Pending
         })
         .await;
-    }
-}
-
-/// The iterator that the caller receives. Its drop cancels the create.
-struct GuardedCreateIterator<I> {
-    inner: I,
-    guard: Arc<CreateGuard>,
-}
-
-impl<I: Iterator> Iterator for GuardedCreateIterator<I> {
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next()
-    }
-}
-
-impl<I> Drop for GuardedCreateIterator<I> {
-    fn drop(&mut self) {
-        self.guard.cancel();
     }
 }
 
@@ -980,10 +960,10 @@ pub(crate) fn create_stream(inner: Arc<Inner>, spec: SandboxSpec) -> CreateStrea
     let guard = CreateGuard::new(Arc::clone(&inner));
     let task = CreateTask::new(inner, spec, Arc::clone(&guard));
     match foundation_core::valtron::execute(create_sandbox::new(task), None) {
-        Ok(iterator) => CreateStream::new(Box::new(GuardedCreateIterator {
-            inner: SendIterator::new(iterator),
-            guard,
-        })),
+        Ok(iterator) => CreateStream::new(
+            Box::new(foundation_compact::SendWrapper::new(iterator)),
+            Some(Box::new(move || guard.cancel())),
+        ),
         Err(error) => {
             let item: Stream<SandboxResult<SandboxHandle>, CreateProgress> =
                 Stream::Next(Err(SandboxError::Io {
@@ -991,7 +971,10 @@ pub(crate) fn create_stream(inner: Arc<Inner>, spec: SandboxSpec) -> CreateStrea
                     message: error.to_string(),
                 }
                 .into()));
-            CreateStream::new(Box::new(std::iter::once(item)))
+            CreateStream::new(
+                Box::new(crate::shared::handles::NoWake::new(std::iter::once(item))),
+                None,
+            )
         }
     }
 }

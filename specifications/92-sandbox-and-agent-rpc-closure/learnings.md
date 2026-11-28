@@ -111,6 +111,27 @@ Two traps:
    `sim_tests` target imported a module gated on `testing`, and `SimRuntime::start` had no
    `# Panics` section. Run clippy on the crate you change, not only on your own targets.
 
+## The create stream carries its engine wake (2026-11-28)
+
+`CreateStream` boxes `Box<dyn Iterator<Item = Stream<...>> + Send>`. A trait object over
+`WakeableStream` cannot keep the wake. `StreamIterator` is a supertrait with a blanket
+implementation, so the projection through the wrapper does not resolve (E0284). The type
+must name the concrete item type. `CreateSource` names
+`Stream<SandboxResult<SandboxHandle>, CreateProgress>` once, and the boxed `SendWrapper<T>`
+forwards `wake`, `wake_send`, `announce`, `drives_its_producer` and `can_make_progress`. On
+wasm the wrapper needs no `Send` bound; on a native target it needs `T: Send`.
+
+`StreamParkingFutureStream` treats `Stream::Pending` as a control state on a driving stream:
+it re-drives and never yields the progress point. A create that feeds the raw `CreateStream`
+straight into the adapter loses every progress event. A local `CreateSteps` adapter first
+turns the progress point and the result into one step type, so the adapter surfaces both and
+keeps the park on `Wait`. The stock `map_pending_and_done` combinator does this too, but its
+non-`multi` form is not `Send`, so the wasm check rejects it. `CreateSteps` holds the
+already-`Send` `CreateStream` directly.
+
+A drop hook cancels the create. The guard ignores the drop after the create finishes, so a
+consumed stream does not cancel its own sandbox.
+
 ## A `Drop` that blocks a pool worker deadlocks the pool (2026-11-28)
 
 The KMS local test hang (#1169) looked like a stuck error-body read. A trace shows that the
@@ -128,6 +149,40 @@ Two lessons:
 2. The error-body path was healthy. Read the trace before you change the layer that the
    symptom names. The `400` response had `Content-Length: 34` and `Connection: close`. The
    body reader returned all 34 bytes, then `None`.
+
+## Feature 05: the auth layer moves above the RPC crate (2026-11-28)
+
+- **An optional dependency still closes a package cycle.** Cargo rejects
+  `foundation_gcp_kms -> foundation_auth -> foundation_connectrpc ->
+  foundation_auth` even when the last edge is optional and its feature is off.
+  The edge must be deleted, not disabled (#1107).
+- **A feature that carries wasm glue pollutes every consumer.** The old `auth`
+  feature sat in `rpc`, so every wasm build of `foundation_connectrpc` linked
+  `foundation_auth` and its `wasm` feature. The auth code now lives in
+  `foundation_connectrpc_auth`, so `rpc` has no `foundation_auth` dependency
+  (#756).
+- **A module move must move its tests.** The two suites moved with the file and
+  changed only their import paths. The old `#![cfg(feature = "auth")]` gate went
+  away: the new crate always compiles auth.
+- **A moved module still names its old internals.** Every `crate::shared::...`
+  path became `foundation_connectrpc::shared::...`. The connectrpc modules are
+  public, so the new crate needs no new re-exports.
+- **A nested workspace pins the old edge too.** `cargo metadata --locked` fails
+  for every nested `Cargo.lock` that lists `foundation_auth` under
+  `foundation_connectrpc`. Regenerate each lockfile after the manifest change.
+- **A pipe hides the exit code of `cargo fmt --check`.** `cargo fmt ... | head`
+  reports the exit code of `head`. Run the check without a pipe, or read zsh's
+  `pipestatus`, or a formatting failure looks like a pass.
+- **A shared dependency change must refresh every nested lock.** The spec 71
+  merge changed the workspace dependencies and left 17 nested `Cargo.lock` files
+  stale. `check-lockfiles` checks every tracked nested lock, so one workspace
+  change can fail the gate repo-wide (#1239). Run the command before a merge,
+  not only after a feature change.
+- **A signature change must move every caller.** Master's `guarded_turn` lost
+  the `env` argument, but `native_shutdown_tests` still passed it, so the
+  `foundation_agent_rpc` test suite did not compile on master (#1236). A merge
+  that changes a public function must run the crate's tests, not only the tests
+  of the crate it adds.
 
 ## macOS refuses a timeout on a peer-closed socket (2026-11-28)
 
@@ -163,3 +218,67 @@ device attach is a missing configuration step, not a missing command-line flag.
 A third trap: the guest kernel does not configure its own interface. The driver writes
 `ewe.net=<address>/<prefix>,<gateway>` to the kernel command line, and the slave sets
 the address, netmask, up flag and default route before it serves.
+
+## A demo command line has no shell (2026-11-28)
+
+The sandbox `Exec` service takes an argument vector and runs no shell. The
+Evidence panel therefore cannot run `cat /etc/os-release | head -3`. It runs
+`head -n 3 /etc/os-release`, which shows the same three lines. A page command
+that needs a pipeline must pass the pipeline as program arguments, or the
+service must gain a shell mode. The demo does not want a shell mode.
+
+## Worker headers carry the model metadata before the body (2026-11-28)
+
+The demo page must show the model path, the service, the address and the
+protocol above each answer. It must not guess them. The Worker sets them as
+response headers on the streamed chat response. Headers arrive before the first
+body byte, so the page builds the line while the answer streams. The same
+values are JSON fields in `GET /api/sandboxes`, so a tab shows the line before
+its first turn.
+
+## `mise run deploy` ignores the preview name (2026-11-28)
+
+The `deploy` task always uses `wrangler.toml`, whose names are the persistent
+demo. A preview deploy must write its own config, as `test/live.sh` does.
+Issue #1266 tracks the fix. A user who sets `EWE_DEMO_NAME` and runs
+`mise run deploy` changes the public demo.
+
+## The container-hosted agent-rpc path (deferred, 2026-11-28)
+
+The owner discarded the deterministic echo server in the demo container. The
+slave must not have a model mode. The right third model path is the agent-rpc
+capability path. `foundation_agent_rpc` has `NativeHost`, `LocalCatalog`,
+`ModelSource::Gguf` (in-process llama.cpp), `GetCapabilities` with
+`ModelKind::{Api, Candle, Gguf}` and `Device::{Cpu, Gpu, Metal}`,
+`CreateInstance` and `ChatStream`. `AgentContainer` and `AGENT_RPC_PORT`
+already describe the container host. Issue #1276 tracks the work and lists the
+four gaps:
+
+1. No `serve` command starts `NativeHost` with a GGUF file. The `agent-rpc`
+   binary only runs `keys`.
+2. No container entrypoint starts that host beside `agent-slave`.
+3. No Worker or Durable Object (DO) client carries `GetCapabilities`,
+   `CreateInstance` and `ChatStream` through `ContainerService/Fetch`.
+4. No container-network auth mode fits a Worker. `InsecurePlaintext` refuses a
+   non-loopback bind, and certificate (mTLS) enrolment is not possible from a
+   Worker `ContainerFetch`.
+
+Do not build the GGUF image on this host. Kiri emulates linux/amd64 on two
+virtual CPUs (vCPUs) and compiled 26 crates in 24 minutes. Build it on native
+amd64 continuous integration (CI), or use a prebuilt image.
+
+Do not pass `--target x86_64-unknown-linux-gnu` in the CI-image Docker builder.
+It fails with "invalid metadata for crate std". The build without `--target`
+proceeds.
+
+Model research for when the path lands:
+
+- Gemma 3 270M Instruct QAT `Q4_0`: 241,410,624 bytes, SHA-256
+  `3626e245220ca4a1c5911eb4010b3ecb7bdbf5bc53c79403c21355354d1e2dc6`, under the
+  Gemma Terms of Use.
+- Apache-2.0 fallback: SmolLM2-360M-Instruct `Q4_K_M`, 270,590,880 bytes.
+- Use the `standard-1` container class (4 GiB). The `basic` class (1 GiB) is
+  too small.
+
+A slave `--model` mode is the wrong design. `foundation_ai` owns models and
+`foundation_agent_rpc` owns instances and turns.

@@ -828,6 +828,25 @@ jobs:
           fi
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
+      - name: Install the pinned protoc
+        # The build script of foundation_connectrpc runs protoc for the Durable
+        # Streams protos. The job ran only from a warm cargo cache until a
+        # change to that crate rebuilt the script. The version, the asset and
+        # the checksum are the same as in mise.lock and the check workflow.
+        shell: bash
+        run: |
+          version=36.2
+          asset="linux-x86_64"
+          sha="121f6c7afe1d4d0e3ea6aab9432038599250134cbf4474cb1167d2c7decd4278"
+          dir="$RUNNER_TEMP/protoc-$version"
+          mkdir -p "$dir"
+          curl -sSL -o "$dir/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$version/protoc-$version-$asset.zip"
+          echo "$sha  $dir/protoc.zip" | sha256sum -c -
+          python3 -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$dir/protoc.zip" "$dir"
+          chmod +x "$dir"/bin/protoc*
+          "$dir/bin/protoc" --version
+          echo "$dir/bin" >> "$GITHUB_PATH"
+
       - name: Set up Node 20
         uses: actions/setup-node@v6
         with:

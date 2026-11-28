@@ -1,0 +1,38 @@
+[package]
+name = "foundation_connectrpc_auth"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Authentication and authorization for foundation_connectrpc — interceptors, authenticators and client-auth providers"
+keywords = ["connectrpc", "grpc", "auth", "foundation"]
+
+[dependencies]
+# The RPC core only: no `rpc` feature, so this crate never pulls a transport
+# or a compressor. It needs the shared context, error, interceptor and
+# transport types.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.19", default-features = false }
+# The auth primitives, the JWT verifier and the client-auth providers.
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4", features = ["to_structured"] }
+# The HTTP header, request and response types that the interceptors read and
+# write.
+foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false }
+
+# Browser crypto and JavaScript time for the wasm build. This is the wasm glue
+# that #756 kept out of the `rpc` feature: only a crate that uses auth links it.
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false, features = ["wasm"] }
+
+[dev-dependencies]
+# The host context that an interceptor test builds.
+foundation_context = { path = "../foundation_context", version = "0.0.4" }
+bytes = "1.5"
+# The tests run the authenticator futures on the `futures` executor.
+futures = "0.3"
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

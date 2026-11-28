@@ -42,7 +42,7 @@ use foundation_auth::secret::{
 };
 use foundation_auth::trust::{MemoryTrustStore, TrustConfig, TrustStore, TrustedClients};
 use foundation_compact::Duration;
-use foundation_connectrpc::shared::auth::ClientAuthInterceptor;
+use foundation_connectrpc_auth::ClientAuthInterceptor;
 use foundation_connectrpc::testing::{MemNetwork, MemTransport};
 use foundation_connectrpc::{
     ClientOptions, ConnectResult, Interceptor, Request, Router, RpcCtx, Transport,
