@@ -9,7 +9,10 @@ use foundation_connectrpc::{
     ClientOptions, ConnectError, ConnectResult, Request, Response, RpcCtx, ServerStream,
 };
 use foundation_context::Ctx;
-use foundation_core::valtron::{task, Stream, StreamIteratorExt, TaskStatus};
+use foundation_core::valtron::{
+    task, SendWakeCallback, Stream, StreamIteratorExt, StreamSpread, TaskStatus, WakeCallback,
+    WakeResult, WakeableStream,
+};
 use foundation_errstacks::ErrorTrace;
 use futures::{Stream as FuturesStream, StreamExt};
 
@@ -153,6 +156,88 @@ impl ControlService {
     }
 }
 
+/// One event of the create response stream.
+type CreateStep = ConnectResult<CreateEvent>;
+
+/// Turns the create progress stream into a stream of response events.
+///
+/// The parking adapter treats a raw `Stream::Pending` as a control state on a
+/// driving stream, so it does not yield it. This adapter maps a progress point
+/// and the one result to the same `Next` item, so every progress event reaches
+/// the caller. It forwards `Wait` and the engine wake, so the adapter parks on
+/// the wake. It holds the already-`Send` [`CreateStream`], so the response
+/// stream is `Send` on the single-threaded wasm build too.
+struct CreateSteps {
+    inner: crate::shared::handles::CreateStream,
+    max_error_message: usize,
+}
+
+impl CreateSteps {
+    /// Maps one result to its response event.
+    fn result_event(&self, result: SandboxResult<SandboxHandle>) -> CreateStep {
+        match result {
+            Ok(handle) => Ok(CreateEvent::Created(handle.info())),
+            Err(error) => Err(ErrorTrace::new(
+                error.current_context().to_connect(self.max_error_message),
+            )),
+        }
+    }
+
+    /// Maps one progress point to its response event.
+    fn progress_event(progress: crate::shared::driver::CreateProgress) -> CreateEvent {
+        CreateEvent::Progress(progress)
+    }
+}
+
+impl Iterator for CreateSteps {
+    type Item = Stream<CreateStep, CreateStep>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.inner.next()?;
+        Some(match item {
+            Stream::Pending(progress) => Stream::Next(Ok(Self::progress_event(progress))),
+            Stream::Next(result) => Stream::Next(self.result_event(result)),
+            Stream::Wait => Stream::Wait,
+            Stream::Ignore => Stream::Ignore,
+            Stream::Init => Stream::Init,
+            Stream::Delayed(delay) => Stream::Delayed(delay),
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(result) => StreamSpread::Done(self.result_event(result)),
+                        StreamSpread::Pending(progress) => {
+                            StreamSpread::Pending(Ok(Self::progress_event(progress)))
+                        }
+                    })
+                    .collect(),
+            ),
+        })
+    }
+}
+
+impl WakeableStream for CreateSteps {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+}
+
 #[allow(
     clippy::unused_async_trait_impl,
     reason = "the service trait declares async methods; the bodies only await the control plane"
@@ -178,26 +263,16 @@ impl SandboxService for ControlService {
     ) -> ConnectResult<Pin<Box<dyn FuturesStream<Item = ConnectResult<CreateEvent>> + Send>>> {
         // The create progress iterator is a driving stream: it runs its
         // producer inside `next()`. It also carries the wake of its engine.
-        // `map_pending_and_done` turns both the progress points and the one
-        // result into a single step type, so the parking adapter below keeps
-        // every progress point and parks on `Wait` through the engine wake. No
-        // timer and no interval take part.
-        let max_error_message = self.limits.max_error_message;
-        let mapped = self
-            .control
-            .create_with_progress(request.msg.spec)
-            .map_pending_and_done(move |step| match step {
-                Stream::Pending(progress) => Ok(CreateEvent::Progress(progress)),
-                Stream::Next(result) => match result {
-                    Ok(handle) => Ok(CreateEvent::Created(handle.info())),
-                    Err(error) => Err(ErrorTrace::new(
-                        error.current_context().to_connect(max_error_message),
-                    )),
-                },
-                _ => unreachable!("the create mapper sees only a progress point or a result"),
-            });
-        let parked = foundation_core::valtron::StreamParkingFutureStream::new(mapped);
-        let stream = futures::stream::unfold(parked, move |mut parked| async move {
+        // `CreateSteps` turns both the progress points and the one result into a
+        // single step type, so the parking adapter below keeps every progress
+        // point and parks on `Wait` through the engine wake. No timer and no
+        // interval take part.
+        let steps = CreateSteps {
+            inner: self.control.create_with_progress(request.msg.spec),
+            max_error_message: self.limits.max_error_message,
+        };
+        let parked = foundation_core::valtron::StreamParkingFutureStream::new(steps);
+        let stream = futures::stream::unfold(parked, |mut parked| async move {
             while let Some(item) = futures::StreamExt::next(&mut parked).await {
                 if let Stream::Next(event) = item {
                     return Some((event, parked));
