@@ -5,7 +5,7 @@
 use core::str;
 use foundation_core::extensions::strings_ext::TryIntoString;
 use foundation_nostd::embeddable::EmbeddableDirectory;
-use std::{io::Write, path::PathBuf, sync};
+use std::{collections::HashSet, io::Write, path::PathBuf, sync};
 
 use crate::{error::BoxedError, FileContent, FileSystemCommand};
 
@@ -32,114 +32,142 @@ pub trait PackageDirectorate {
     fn list_all(&self) -> Vec<String>;
 }
 
+// Keep the provider key for data access and use the slash name for template lookup.
+struct LogicalEntry {
+    name: String,
+    source_path: &'static str,
+    name_from_parent: Option<String>,
+    is_directory: bool,
+}
+
+fn logical_name(name: &str) -> Option<String> {
+    if name.contains([':', '\0'])
+        || name
+            .split(['/', '\\'])
+            .any(|part| matches!(part, "" | "." | ".."))
+    {
+        return None;
+    }
+    Some(name.replace('\\', "/"))
+}
+
+/// Lists the logical names in an embedded package.
+/// A package with an invalid or duplicate name has no usable entries.
 pub struct Directorate<T: EmbeddableDirectory + Default> {
     store: T,
+    entries: Vec<LogicalEntry>,
+}
+
+impl<T: EmbeddableDirectory + Default> Directorate<T> {
+    fn logical_entries(store: &T) -> Option<Vec<LogicalEntry>> {
+        let mut names = HashSet::new();
+        store
+            .info_iter()
+            .map(|item| {
+                let name = if item.is_directory && item.source_path.is_empty() {
+                    String::new()
+                } else {
+                    logical_name(item.source_path)?
+                };
+                if !names.insert(name.clone()) {
+                    return None;
+                }
+                let name_from_parent =
+                    if item.is_directory || item.source_path_from_parent.is_empty() {
+                        None
+                    } else {
+                        let alias = logical_name(item.source_path_from_parent)?;
+                        if alias != name && !names.insert(alias.clone()) {
+                            return None;
+                        }
+                        Some(alias)
+                    };
+                Some(LogicalEntry {
+                    name,
+                    source_path: item.source_path,
+                    name_from_parent,
+                    is_directory: item.is_directory,
+                })
+            })
+            .collect()
+    }
+
+    fn files_under(&self, directory: &str) -> Option<impl Iterator<Item = &LogicalEntry>> {
+        let prefix = logical_name(directory.trim_end_matches(['/', '\\']))? + "/";
+        Some(
+            self.entries
+                .iter()
+                .filter(move |entry| !entry.is_directory && entry.name.starts_with(&prefix)),
+        )
+    }
 }
 
 impl<T: EmbeddableDirectory + Default> Default for Directorate<T> {
     fn default() -> Self {
-        Self {
-            store: T::default(),
-        }
+        let store = T::default();
+        let entries = Self::logical_entries(&store).unwrap_or_default();
+        Self { store, entries }
     }
 }
 
 impl<T: EmbeddableDirectory + Default> PackageDirectorate for Directorate<T> {
     fn get_file(&self, target_file: &str) -> Option<Vec<u8>> {
-        self.store.read_utf8_for(target_file)
+        let name = logical_name(target_file)?;
+        let entry = self.entries.iter().find(|entry| {
+            !entry.is_directory
+                && (entry.name == name || entry.name_from_parent.as_ref() == Some(&name))
+        })?;
+        self.store.read_utf8_for(entry.source_path)
     }
 
     fn files(&self) -> Vec<String> {
-        self.store
-            .info_iter()
-            .filter(|item| !item.is_directory)
-            .map(|item| item.source_path)
-            .map(String::from)
+        self.entries
+            .iter()
+            .filter(|entry| !entry.is_directory)
+            .map(|entry| entry.name.clone())
             .collect()
     }
 
     fn root_directories(&self) -> Vec<String> {
-        let mut dirs: Vec<String> = self
-            .store
-            .info_iter()
-            .filter(|item| item.is_directory)
-            .filter(|item| !item.source_path.is_empty())
-            .filter_map(|t| {
-                let parts: Vec<&str> = t.source_path.split('/').collect();
-                parts.first().map(|item| String::from(*item))
-            })
+        let mut directories: Vec<String> = self
+            .entries
+            .iter()
+            .filter(|entry| entry.is_directory && !entry.name.is_empty())
+            .filter_map(|entry| entry.name.split('/').next().map(String::from))
             .collect();
-
-        // sort and de-dup
-        dirs.sort();
-        dirs.dedup();
-
-        dirs
+        directories.sort_unstable();
+        directories.dedup();
+        directories
     }
 
     fn list_all(&self) -> Vec<String> {
-        self.store
-            .info_iter()
-            .map(|item| item.source_path)
-            .map(String::from)
+        self.entries
+            .iter()
+            .map(|entry| entry.name.clone())
             .collect()
     }
 
     fn files_for(&self, directory: &str) -> Option<Vec<String>> {
-        let target_dir = if directory.ends_with('/') {
-            directory
-        } else {
-            &format!("{directory}/")
-        };
-
-        let files: Vec<String> = self
-            .store
-            .info_iter()
-            .filter(|item| !item.is_directory)
-            .filter(|item| item.source_path.starts_with(target_dir))
-            .map(|item| item.source_path)
-            .map(String::from)
+        let files: Vec<_> = self
+            .files_under(directory)?
+            .map(|entry| entry.name.clone())
             .collect();
-
-        if files.is_empty() {
-            return None;
-        }
-
-        Some(files)
+        (!files.is_empty()).then_some(files)
     }
 
     fn jinja_for<'a>(&self, directory: &str) -> Option<minijinja::Environment<'a>> {
-        let target_dir = if directory.ends_with('/') {
-            directory
-        } else {
-            &format!("{directory}/")
-        };
-
+        let mut files = self.files_under(directory)?.peekable();
+        files.peek()?;
         let mut jinja_env = minijinja::Environment::new();
-
-        let items: Vec<String> = self
-            .store
-            .info_iter()
-            .filter(|item| !item.is_directory)
-            .filter(|item| item.source_path.starts_with(target_dir))
-            .map(|item| item.source_path)
-            .map(String::from)
-            .collect();
-
-        if items.is_empty() {
-            return None;
-        }
-
-        for relevant_path in items {
-            let relevant_file = self.store.read_utf8_for(&relevant_path).unwrap();
-            let Ok(source) = String::from_utf8(relevant_file) else {
+        for entry in files {
+            let bytes = self.store.read_utf8_for(entry.source_path)?;
+            let Ok(source) = String::from_utf8(bytes) else {
                 continue;
             };
             jinja_env
-                .add_template_owned(relevant_path, source)
+                .add_template_owned(entry.name.clone(), source)
                 .expect("should store template");
         }
-
         Some(jinja_env)
     }
 }
