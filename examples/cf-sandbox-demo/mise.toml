@@ -98,9 +98,13 @@ test/live.sh
 description = "Remove the persistent Worker and its container"
 run = """
 set -euo pipefail
-export CLOUDFLARE_API_TOKEN="${CLOUDFLARE_API_TOKEN:-${CLOUDFLARE_WORKERS_AI_API_TOKEN:-}}"
-if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
-    echo "set CLOUDFLARE_API_TOKEN (or CLOUDFLARE_WORKERS_AI_API_TOKEN) and CLOUDFLARE_ACCOUNT_ID" >&2
+# `wrangler` uses an API token when one is present, and otherwise its own
+# OAuth login (`wrangler login`). Both work here.
+if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    export CLOUDFLARE_API_TOKEN
+fi
+if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ] && [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+    echo "set CLOUDFLARE_ACCOUNT_ID, or log in with wrangler login" >&2
     exit 2
 fi
 wrangler delete --name ewe-sandbox-demo --config wrangler.toml --force || true
