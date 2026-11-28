@@ -98,6 +98,12 @@ jobs:
           # One SDK path for both names. Every command below inherits it.
           export ANDROID_HOME=/usr/local/lib/android/sdk
           export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+          # The runner image ships the SDK but not its cmdline-tools on PATH,
+          # and `toolchain-android` runs `sdkmanager` (issue #1238).
+          sdkmanager=$(find /usr/local/lib/android/sdk -name sdkmanager -type f -print -quit 2>/dev/null || true)
+          if [ -n "${sdkmanager}" ]; then
+            export PATH="$(dirname "${sdkmanager}"):${PATH}"
+          fi
           # The `toolchain:android` mise task runs exactly this command. Call it
           # directly so mise's tool-path environment cannot replace ANDROID_HOME.
           cargo run --locked --profile uat -p foundation_ci -- toolchain-android
