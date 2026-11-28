@@ -513,6 +513,14 @@ impl SandboxLimits {
         self
     }
 
+    /// The deadline of one create: the driver launch, the readiness wait and
+    /// `Prepare`. It is the value of [`Self::boot_timeout`], read through this
+    /// method so a boundary module never names the limit itself.
+    #[must_use]
+    pub fn create_deadline(&self) -> Duration {
+        self.boot_timeout
+    }
+
     /// Replaces [`Self::shutdown_grace`].
     #[must_use]
     pub fn with_shutdown_grace(mut self, value: Duration) -> Self {

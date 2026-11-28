@@ -614,7 +614,7 @@ async fn remote_create(
             // One create runs the driver launch, the readiness wait and
             // `Prepare`, so its deadline is the create deadline and not the
             // deadline of one unary call. The server uses the same field.
-            let rpc_ctx = RpcCtx::client(ctx).with_deadline(task.limits.boot_timeout);
+            let rpc_ctx = RpcCtx::client(ctx).with_deadline(task.limits.create_deadline());
             match task.client.create(rpc_ctx, Request::new(request)).await {
                 Ok(stream) => Some((
                     task.next(RemoteCreateState::Stream(Box::new(stream))),
