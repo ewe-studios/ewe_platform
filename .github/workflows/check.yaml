@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 40
     env:
       PYTHONUTF8: "1"
+      CARGO_HOME: D:/c
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     defaults:
       run:
         shell: bash
@@ -23,13 +25,16 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        suite: [file-store, todo-process]
+        suite: [libsql, file-store, todo-process]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           submodules: false
+
+      - name: Allow long Git paths
+        run: git config --global core.longpaths true
 
       - name: Put CMake on the PATH
         run: |
@@ -121,3 +126,7 @@ jobs:
       - name: Test the normal Todo server process
         if: matrix.suite == 'todo-process'
         run: cargo test --locked --profile uat -p ui_todo --test actions server_writes_and_reads_the_same_database_after_restart
+
+      - name: Test the libSQL stores
+        if: matrix.suite == 'libsql'
+        run: cargo test --locked --profile uat -p foundation_db --no-default-features --features libsql --test libsql_storage_tests --test libsql_state_store_tests --test libsql_batch_tests --test libsql_document_store_tests
