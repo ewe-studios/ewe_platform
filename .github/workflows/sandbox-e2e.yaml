@@ -152,6 +152,21 @@ jobs:
             --features "cli testing slave docker firecracker" \
             --profile uat -- --nocapture
 
+      # Spec 92 feature 00 T5: the Vault Transit test against the dev server of
+      # the local-services compose file. Docker is present on this runner. The
+      # trap stops the services on every path.
+      - name: Run the Vault Transit test
+        timeout-minutes: 30
+        run: |
+          set -euo pipefail
+          compose="ci/local-services/docker-compose.yml"
+          cleanup() { docker compose -f "$compose" down -v; }
+          trap cleanup EXIT
+          docker compose -f "$compose" up -d --wait vault vault-init
+          VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=root \
+            cargo test --locked -p foundation_auth --features testing \
+              --profile uat kms::kms_vault_transit -- --nocapture
+
   # The Cloudflare path (spec 77 feature 08). `wrangler dev` runs the Worker,
   # its three Durable Objects and the Docker container on the runner. The job
   # is green only when the real end-to-end tests run and pass.
