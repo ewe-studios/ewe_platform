@@ -140,6 +140,15 @@ exec_command() {
     printf '%s' "${code}"
 }
 
+# The model path that the page gives the sandbox at its tab.
+tab_path() {
+    local id=$1
+    curl -sS "${URL}/api/sandboxes" \
+        | python3 -c 'import json,sys
+d = json.load(sys.stdin)
+print(next((t["model_path"] for t in d["sandboxes"] if t["id"] == sys.argv[1]), ""))' "${id}"
+}
+
 # One agent turn in one sandbox. Sets REPLY_BODY, REPLY_PATH and REPLY_CODE.
 chat_turn() {
     local id=$1 prompt=$2
@@ -409,24 +418,39 @@ else
     fail "tab 3 (status ${code}): $(cat "${LOG_DIR}/tab-three.txt")"
 fi
 
-step "tab 2: one agent turn on the OpenRouter path"
+# The two new tabs take the next two model paths. The id order and the tab
+# order are the creation order, so the first new sandbox is OpenRouter and the
+# second is the container model. The check reads the path from the page API, so
+# a tie in the creation time cannot make it wrong.
+second_path="$(tab_path "${second_id}")"
+third_path="$(tab_path "${third_id}")"
+if [ "${second_path}" = "openrouter" ] && [ "${third_path}" = "container-model" ]; then
+    pass "the two new tabs name the OpenRouter and container model paths"
+else
+    fail "the new tabs name ${second_path:-none} and ${third_path:-none}, not openrouter and container-model"
+fi
+
+step "tab 2: one agent turn on the ${second_path:-second} path"
 chat_turn "${second_id}" "Reply with the single word ready."
-if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "openrouter" ] \
+if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "${second_path}" ] \
     && [ -n "$(printf '%s' "${REPLY_BODY}" | tr -d '[:space:]')" ]; then
-    pass "OpenRouter (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
+    pass "${second_path} (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
 elif printf '%s' "${REPLY_BODY}" | grep -q "OPENROUTER_API_KEY"; then
     say "the OpenRouter path did not run: $(printf '%s' "${REPLY_BODY}" | head -c 300)"
 else
-    fail "the OpenRouter turn (status ${REPLY_CODE}, path ${REPLY_PATH:-none}): $(printf '%s' "${REPLY_BODY}" | head -c 400)"
+    fail "the ${second_path:-second} turn (status ${REPLY_CODE}, path ${REPLY_PATH:-none}): $(printf '%s' "${REPLY_BODY}" | head -c 400)"
 fi
 
-step "tab 3: one agent turn on the container model path"
+step "tab 3: one agent turn on the ${third_path:-third} path"
 chat_turn "${third_id}" "Say hello from the container."
-if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "container-model" ] \
-    && printf '%s' "${REPLY_BODY}" | grep -q "container-model"; then
-    pass "the container model (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
+if [ "${REPLY_CODE}" = "200" ] && [ "${REPLY_PATH}" = "${third_path}" ] \
+    && [ -n "$(printf '%s' "${REPLY_BODY}" | tr -d '[:space:]')" ]; then
+    pass "${third_path} (${REPLY_PATH}) answered: $(printf '%s' "${REPLY_BODY}" | head -c 200)"
 else
-    fail "the container model turn (status ${REPLY_CODE}, path ${REPLY_PATH:-none}): $(printf '%s' "${REPLY_BODY}" | head -c 400)"
+    fail "the ${third_path:-third} turn (status ${REPLY_CODE}, path ${REPLY_PATH:-none}): $(printf '%s' "${REPLY_BODY}" | head -c 400)"
+fi
+if [ "${third_path}" = "container-model" ] && ! printf '%s' "${REPLY_BODY}" | grep -q "container-model"; then
+    fail "the container model answer does not name container-model"
 fi
 
 step "destroy all and check the count"
