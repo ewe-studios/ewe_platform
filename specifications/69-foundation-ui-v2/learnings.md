@@ -1,5 +1,17 @@
 # Spec 69 learnings
 
+## Samsung rotation and audio output
+
+Android can report a landscape display size before its rotation animation ends.
+A tilted game frame is not a valid source of tap coordinates.
+The replay checks both sides of the surface edges and captures the tap frame after the game dialog is ready.
+It closes the game before it restores rotation. This keeps the explicit close in the same window as the result.
+A completed answer on a subsequent replay does not establish the cause of the historical application timeout.
+[Fixture issue 1264](https://github.com/ewe-studios/ewe_platform/issues/1264) · [Focus issue 1146](https://github.com/ewe-studios/ewe_platform/issues/1146)
+
+A detached Android audio requester can exercise an interruption while the game remains in the foreground.
+An output track can carry zero samples after it restarts. Check both track lifecycle and sample values.
+
 ## Android countdown and physical Mathalley checks
 
 The Android user interface can load Todos when its staged native library has older host actions.
