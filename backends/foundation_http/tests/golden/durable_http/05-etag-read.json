@@ -1,0 +1,12 @@
+{
+  "body": {
+    "kind": "empty"
+  },
+  "content_type": null,
+  "etag": null,
+  "status": 304,
+  "stream_closed": null,
+  "stream_next_offset": null,
+  "stream_up_to_date": null,
+  "x_error_kind": null
+}

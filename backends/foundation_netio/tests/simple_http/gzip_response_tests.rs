@@ -29,8 +29,8 @@ use foundation_netio::shared::client::body_reader::{
 };
 use foundation_netio::shared::client::{CompressionConfig, HttpClient};
 use foundation_netio::shared::http::{
-    HttpClientError, HttpReaderError, HttpResponseReader, IncomingResponseParts, SendSafeBody,
-    SimpleHeader, SimpleHttpBody, Status,
+    Body, BodyExtractor, HttpClientError, HttpReaderError, HttpResponseReader,
+    IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
 };
 use foundation_netio::PreparedRequestBuilder;
 
@@ -83,9 +83,15 @@ fn serve_once(response: Vec<u8>) -> (String, thread::JoinHandle<Vec<u8>>) {
 
 /// Build a raw HTTP/1.1 response with a fixed-length body.
 fn response_with_body(content_encoding: &str, body: &[u8]) -> Vec<u8> {
+    response_with_content_type("application/json", content_encoding, body)
+}
+
+/// Build a raw HTTP/1.1 response with the given content type and fixed-length
+/// body.
+fn response_with_content_type(content_type: &str, content_encoding: &str, body: &[u8]) -> Vec<u8> {
     let mut response = format!(
         "HTTP/1.1 200 OK\r\n\
-         Content-Type: application/json\r\n\
+         Content-Type: {content_type}\r\n\
          Content-Encoding: {content_encoding}\r\n\
          Content-Length: {}\r\n\
          Connection: close\r\n\r\n",
@@ -233,4 +239,90 @@ fn unknown_content_encoding_is_a_typed_error_naming_the_encoding() {
     let client_error: HttpClientError =
         HttpClientError::ReaderError(HttpReaderError::UnsupportedContentEncoding("zstd".into()));
     assert!(client_error.to_string().contains("zstd"));
+}
+
+/// Issue #1220: a gzipped `text/event-stream` response is decoded before the
+/// event parser reads it, so the caller sees events, not compressed bytes.
+#[test]
+fn gzip_event_stream_response_is_decoded_before_the_parser() {
+    let events = b"data: hello\n\ndata: world\n\n";
+    let raw = response_with_content_type("text/event-stream", "gzip", &gzip(events));
+
+    let stream = SharedByteBufferStream::rwrite(std::io::Cursor::new(raw));
+    let reader = HttpResponseReader::<SimpleHttpBody, _>::new(stream, SimpleHttpBody::default());
+
+    let body = read_body(reader);
+    assert!(
+        matches!(body, SendSafeBody::SseStream(_)),
+        "the response must stay an event stream, got {body:?}"
+    );
+    assert_eq!(
+        collect_bytes_from_send_safe(body),
+        b"hello\nworld\n".to_vec(),
+        "the SSE parser must read the decoded events"
+    );
+}
+
+/// Issue #1220: a compressed line-delimited body is decoded before the line
+/// parser reads it.
+#[test]
+fn gzip_line_delimited_body_is_decoded_before_the_parser() {
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec!["text/event-stream".to_string()],
+    );
+    headers.insert(SimpleHeader::CONTENT_ENCODING, vec!["gzip".to_string()]);
+
+    // The content has no trailing newline: the parser's end-of-body handling of
+    // a final newline is not part of this test.
+    let stream = SharedByteBufferStream::rwrite(std::io::Cursor::new(gzip(b"line one\nline two")));
+    let body = SimpleHttpBody::default()
+        .extract(Body::LineFeedBody(headers), stream)
+        .expect("extract the line-delimited body");
+
+    assert!(
+        matches!(body, SendSafeBody::LineFeedStream(_)),
+        "the body must stay line-delimited, got {body:?}"
+    );
+    assert_eq!(
+        collect_bytes_from_send_safe(body),
+        b"line one\nline two\n".to_vec()
+    );
+}
+
+/// Issue #1220: an encoding this build has no decoder for is still a typed
+/// error that names it, never compressed bytes handed to an event parser.
+#[test]
+fn compressed_event_stream_with_unknown_encoding_is_a_typed_error() {
+    let raw = response_with_content_type("text/event-stream", "zstd", b"compressed");
+
+    let stream = SharedByteBufferStream::rwrite(std::io::Cursor::new(raw));
+    let reader = HttpResponseReader::<SimpleHttpBody, _>::new(stream, SimpleHttpBody::default());
+
+    let mut typed = None;
+    for part in reader {
+        match part {
+            Ok(
+                IncomingResponseParts::Intro(..)
+                | IncomingResponseParts::Headers(_)
+                | IncomingResponseParts::SKIP,
+            ) => {}
+            Ok(other) => panic!("expected a typed body error, got {other:?}"),
+            Err(HttpReaderError::BodyBuildFailed(err)) => {
+                if let Some(HttpReaderError::UnsupportedContentEncoding(name)) =
+                    err.downcast_ref::<HttpReaderError>()
+                {
+                    typed = Some(name.clone());
+                }
+                break;
+            }
+            Err(err) => panic!("expected BodyBuildFailed, got {err:?}"),
+        }
+    }
+    assert_eq!(
+        typed.as_deref(),
+        Some("zstd"),
+        "the error must name the encoding"
+    );
 }

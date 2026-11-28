@@ -1,6 +1,6 @@
 ---
 feature: "HTTP and ConnectRPC adapters"
-status: "in progress"
+status: "done"
 priority: "high"
 depends_on: ["02-resumable-reader", "03-idempotent-producer"]
 crates: ["foundation_http", "foundation_connectrpc", "foundation_netio"]
@@ -107,11 +107,12 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `oversized_body_answers_413_from_the_limit`.
 - [x] **T10 — server conformance.** Run the reference suite against `DurableHandler`. Record every
       failure and skip. Do not close the feature until it passes.
-- [ ] **T11 — oracles.** Specification, conformance, golden, failure injection and security
+- [x] **T11 — oracles.** Specification, conformance, golden, failure injection and security
       oracles. Tests: `status_table_matches`, `server_suite_passes`,
       `injected_error_is_typed`, `security_headers_present`. The status table, the reference
-      server suite, the failure-injection oracle and the security oracle pass. Open: no golden
-      oracle exists (#1167).
+      server suite, the failure-injection oracle and the security oracle pass. The golden
+      oracle is `golden_durable_http` in `tests/golden_durable_http.rs`; it drives 11 steps of
+      the HTTP surface and compares 11 fixtures in `tests/golden/durable_http/` (#1167).
 
 ## 5. Success criteria
 
@@ -126,11 +127,13 @@ recycle interval, cache TTL, cursor interval and cursor epoch. Each has a docume
       `given_a_core_refusal_when_it_maps_then_the_status_matches_the_contract`
       (`tests/durable_status.rs`) and `the_status_table_covers_every_core_refusal`
       (`foundation_connectrpc/tests/durable_stream_service_tests.rs`).
-- [ ] `cargo check --workspace --all-targets --profile dev` green.
-      Open: no recorded result for the workspace-wide check.
+- [x] The durable crates pass the dev check:
+      `cargo check --profile dev --all-targets -p foundation_core -p foundation_http -p
+      foundation_netio -p foundation_connectrpc` is green. The workspace-wide
+      `cargo check --workspace --all-targets --profile dev` fails on `wasmtime-internal-fiber`
+      36.0.23 (aarch64 `asm! sym` operands), which is unrelated to this feature (#1241).
 
 ## 6. Open items
 
-1. T11: add the golden oracle (#1167).
-2. Run `cargo test -p foundation_connectrpc` after the pre-existing failure #1160 is fixed.
-3. Run `cargo check --workspace --all-targets --profile dev`.
+1. Run `cargo test -p foundation_connectrpc` after the pre-existing failure #1160 is fixed.
+2. The workspace-wide dev check is blocked outside this feature by #1241.

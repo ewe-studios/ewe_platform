@@ -14,10 +14,18 @@ pub struct Selector {
     kq: OwnedFd,
     /// Waker token, if registered.
     waker_token: Mutex<Option<Token>>,
-    /// Per-fd read-edge tracking. macOS kqueue reports `EVFILT_READ`
-    /// level-triggered for pipes despite `EV_CLEAR`, so the selector records
-    /// the byte count delivered on each readable edge and suppresses a re-fire
-    /// until the count grows (new data) or the caller re-arms it.
+    /// Per-fd read-edge tracking for pipes only.
+    ///
+    /// macOS kqueue reports `EVFILT_READ` level-triggered for pipes despite
+    /// `EV_CLEAR`, so the selector records the byte count delivered on each
+    /// readable pipe edge and suppresses a re-fire until the count grows (new
+    /// data) or the caller re-arms it.
+    ///
+    /// Sockets and every other descriptor kind are edge-triggered by the
+    /// kernel, so they are not tracked. Suppressing a socket event loses an
+    /// edge that arrived before the caller re-armed, and no later re-arm can
+    /// recover it (GitHub issue #1218). The map is therefore bounded by the
+    /// open pipe count.
     read_edges: Mutex<HashMap<RawFd, usize>>,
 }
 
@@ -56,6 +64,23 @@ unsafe fn ev_set(
 fn fd_ident(fd: RawFd) -> io::Result<libc::uintptr_t> {
     libc::uintptr_t::try_from(fd)
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "negative file descriptor"))
+}
+
+/// Whether `fd` is a pipe (FIFO).
+///
+/// Only pipes need the selector's software read-edge tracking, because macOS
+/// kqueue reports their `EVFILT_READ` level-triggered despite `EV_CLEAR`.
+/// Sockets and other descriptor kinds are edge-triggered by the kernel.
+///
+/// A failed `fstat` counts as "not a pipe". Delivering an extra event is safe:
+/// the reader re-checks the fd and gets `WouldBlock`. Suppressing a real socket
+/// edge would lose the wake (GitHub issue #1218).
+fn is_fifo(fd: RawFd) -> bool {
+    // SAFETY: `stat` is a valid output buffer for `fstat`, and `fd` is a live
+    // descriptor that the caller owns and asked to register.
+    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
+    let result = unsafe { libc::fstat(fd, &raw mut stat) };
+    result == 0 && (stat.st_mode & libc::S_IFMT) == libc::S_IFIFO
 }
 
 impl Selector {
@@ -188,6 +213,9 @@ impl Selector {
     /// # Errors
     /// Returns an error if the descriptor is negative or the kernel refuses a
     /// filter.
+    ///
+    /// # Panics
+    /// Panics if the read-edge lock is poisoned.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
         let ident = fd_ident(fd)?;
         let mut events: [libc::kevent; 2] =
@@ -239,6 +267,18 @@ impl Selector {
             };
             if r < 0 {
                 return Err(io::Error::last_os_error());
+            }
+        }
+
+        // Track pipes only; see `read_edges`. The bookkeeping follows the
+        // kernel call so a failed registration leaves no entry behind, and a
+        // fresh registration starts a fresh edge.
+        {
+            let mut edges = self.read_edges.lock().unwrap();
+            if interest.is_readable() && is_fifo(fd) {
+                edges.insert(fd, 0);
+            } else {
+                edges.remove(&fd);
             }
         }
 
@@ -363,12 +403,21 @@ impl Selector {
         Ok(())
     }
 
-    /// Re-arm the read edge for `fd` after the caller drained it.
+    /// Re-arm the read edge for a tracked pipe after the caller drained it.
     ///
-    /// A drained fd must be re-armed so the next data arrival is delivered as
-    /// a fresh readable edge. Called by `Poll::rearm_readable`.
-    pub(crate) fn rearm_readable(&self, fd: RawFd) {
-        self.read_edges.lock().unwrap().remove(&fd);
+    /// Resets the recorded byte count so the next readable event is delivered
+    /// as a fresh edge. Sockets are not tracked, so this is a no-op for them:
+    /// the kernel already delivers their next edge on its own, and a re-arm
+    /// could never recover an edge that the selector did not suppress.
+    /// The reactor's clear path calls this after a consumer clears its
+    /// readiness; it is public so a test can drive the selector directly.
+    ///
+    /// # Panics
+    /// Panics if the read-edge lock is poisoned.
+    pub fn rearm_readable(&self, fd: RawFd) {
+        if let Some(delivered) = self.read_edges.lock().unwrap().get_mut(&fd) {
+            *delivered = 0;
+        }
     }
 
     /// Register the waker (`EVFILT_USER`).
@@ -515,11 +564,13 @@ impl Selector {
         }
 
         // macOS kqueue reports `EVFILT_READ` level-triggered for pipes despite
-        // `EV_CLEAR`, so the selector enforces the read edge itself: a readable
-        // event is delivered once per edge and suppressed while its byte count
-        // has not grown (no new data) since the last delivered event. Read-
-        // closed and error events are never suppressed — they are control
-        // signals, not data.
+        // `EV_CLEAR`, so for a tracked pipe the selector enforces the read edge
+        // itself: it delivers a readable event once per edge and suppresses a
+        // re-fire while the byte count has not grown (no new data) since the
+        // last delivered event. Sockets are not tracked — the kernel is
+        // edge-triggered for them, and suppressing their events dropped a real
+        // edge (GitHub issue #1218). Read-closed and error events are never
+        // suppressed — they are control signals, not data.
         let keep = {
             let len = events.len();
             let (ptr, _cap) = events.as_mut_ptr_and_cap();
@@ -530,19 +581,19 @@ impl Selector {
                 let ev = slice[i];
                 let plain_readable = ev.is_readable() && !ev.is_read_closed() && !ev.is_error();
                 if plain_readable {
-                    // `ident` carries the registered fd. A value that does not
-                    // fit an fd is not one this selector tracks, so keep the
-                    // event and skip edge bookkeeping.
+                    // `ident` carries the registered fd. An untracked fd (a
+                    // socket or another descriptor kind) is edge-triggered by
+                    // the kernel, so keep its event without bookkeeping. A
+                    // value that does not fit an fd is not one this selector
+                    // tracks either.
                     if let Ok(fd) = RawFd::try_from(ev.ident()) {
-                        let data = usize::try_from(ev.data()).unwrap_or_default();
-                        let new_edge = match edges.get(&fd) {
-                            None => true,
-                            Some(&last) => data > last,
-                        };
-                        if !new_edge {
-                            continue;
+                        if let Some(delivered) = edges.get_mut(&fd) {
+                            let data = usize::try_from(ev.data()).unwrap_or_default();
+                            if data <= *delivered {
+                                continue;
+                            }
+                            *delivered = data;
                         }
-                        edges.insert(fd, data);
                     }
                 }
                 slice[keep] = ev;

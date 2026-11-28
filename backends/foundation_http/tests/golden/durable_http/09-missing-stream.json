@@ -1,0 +1,13 @@
+{
+  "body": {
+    "kind": "text",
+    "value": "stream not found"
+  },
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "status": 404,
+  "stream_closed": null,
+  "stream_next_offset": null,
+  "stream_up_to_date": null,
+  "x_error_kind": "not_found"
+}

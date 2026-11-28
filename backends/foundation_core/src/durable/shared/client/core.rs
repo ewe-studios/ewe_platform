@@ -37,7 +37,7 @@ struct ClientSettings {
 }
 
 /// A client failure.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum ClientError {
     /// The transport failed.
     Transport(String),

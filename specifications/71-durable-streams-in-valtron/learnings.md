@@ -1065,3 +1065,20 @@ The spec does not invent a new runtime. It names the contract and binds those pi
 - **The feature files name tests that do not exist under those names.** Many behaviours are
   covered by Given/When/Then test names. Read the test file and cite the real name. Do not
   tick a box from a name in the feature file alone.
+
+## Feature 07 T12: the client oracles (2026-11-28)
+
+- **Both clients must use the same content type on one stream.** The reference client takes
+  its append content type from the handle set at `client.stream(...)`, not from
+  `create_with`. A create with `text/plain` and an append with the default
+  `application/octet-stream` gets a `409`, which the reference client reports as
+  `SeqConflict`. The differential test uses `application/octet-stream` for both.
+- **A property test needs a stateful transport, not a script.** The client appends an unknown
+  number of chunks, so a queue of canned responses cannot answer them. The test uses a small
+  in-memory server: `PUT` stores the body, `POST` appends and returns the next offset, and
+  `GET` returns the log with `stream-up-to-date: true`. Fixed-width hexadecimal offsets keep
+  the order check independent of the real server.
+- **Compare offset presence and order, never the text.** The two clients expose offsets in
+  different types (`Option<String>` and `Offset`). The differential trace stores only
+  presence flags and order results, so the comparison proves the protocol meaning.
+

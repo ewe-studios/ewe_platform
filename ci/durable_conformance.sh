@@ -23,6 +23,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${DURABLE_CONFORMANCE_PORT:-4437}"
 SERVER_URL="http://127.0.0.1:${PORT}"
+# `cargo` honours CARGO_TARGET_DIR (set in this repository's `.envrc`), so the
+# examples are not always under `$ROOT/target`. Ask the environment, then fall
+# back to the worktree default.
+TARGET_DIR="${CARGO_TARGET_DIR:-$ROOT/target}"
 # The pinned wrangler version for the Durable Object driver. `mise.toml` sets
 # the same value; keep the fallback in step with it.
 WRANGLER_VERSION="${WRANGLER_VERSION:-4.156.2}"
@@ -72,7 +76,7 @@ else
 fi
 
 echo "== server conformance =="
-DURABLE_ADDR="127.0.0.1:${PORT}" "$ROOT/target/debug/examples/durable_server" &
+DURABLE_ADDR="127.0.0.1:${PORT}" "$TARGET_DIR/debug/examples/durable_server" &
 SERVER_PID=$!
 
 for _ in $(seq 1 100); do
@@ -115,7 +119,7 @@ if ! (
   cd "$TMP"
   npm install --silent @durable-streams/client-conformance-tests@0.2.13
   npx @durable-streams/client-conformance-tests \
-    --run "$ROOT/target/debug/examples/durable_client_adapter"
+    --run "$TARGET_DIR/debug/examples/durable_client_adapter"
 ) 2>&1 | tee "$CLIENT_LOG"; then
   echo "FAIL: the client conformance suite reported a failure" >&2
   exit 1

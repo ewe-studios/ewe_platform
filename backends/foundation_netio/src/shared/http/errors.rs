@@ -432,9 +432,8 @@ pub enum HttpReaderError {
     FrameTooLarge(super::framing::FrameTooLarge),
 
     /// The response named a `Content-Encoding` this client cannot decode, for
-    /// example `zstd`, a list of encodings, or a compressed line-delimited
-    /// body. The value names the encoding (or the reason) so a caller does not
-    /// hand compressed bytes to a codec.
+    /// example `zstd` or a list of encodings. The value names the encoding (or
+    /// the reason) so a caller does not hand compressed bytes to a codec.
     #[from(ignore)]
     UnsupportedContentEncoding(String),
 
