@@ -173,6 +173,7 @@ impl Harness {
             cache_dir: cache.clone(),
             slave_path: Some(PathBuf::from("/bin/agent-slave")),
             firecracker_path: None,
+            firecracker_net_path: None,
             krun_runner_path: None,
             libkrun_path: None,
             // The fake spawner answers every program, so the path only has to

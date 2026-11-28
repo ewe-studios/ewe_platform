@@ -75,6 +75,7 @@ fn host_config() -> HostConfig {
         cache_dir: PathBuf::from("/cache"),
         slave_path: Some(PathBuf::from("/bin/agent-slave")),
         firecracker_path: None,
+        firecracker_net_path: None,
         krun_runner_path: None,
         libkrun_path: None,
         mkfs_ext4_path: None,

@@ -1490,7 +1490,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "argon2",
  "async-trait",
@@ -1574,12 +1574,14 @@ dependencies = [
  "base64 0.22.1",
  "brotli 8.0.4",
  "buffa",
+ "buffa-build",
  "bytes",
  "concurrent-queue",
  "flate2",
  "foundation_arrow",
  "foundation_auth",
  "foundation_compact",
+ "foundation_connectrpc_codegen",
  "foundation_context",
  "foundation_core",
  "foundation_errstacks",
@@ -1589,6 +1591,8 @@ dependencies = [
  "foundation_reactor",
  "futures",
  "libc",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
  "serde",
  "serde_json",
  "socket2",
@@ -1621,6 +1625,7 @@ dependencies = [
 name = "foundation_core"
 version = "0.0.23"
 dependencies = [
+ "base64 0.22.1",
  "bytes",
  "concurrent-queue",
  "derive_more",
@@ -1701,6 +1706,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "time",
  "tracing",
 ]
 

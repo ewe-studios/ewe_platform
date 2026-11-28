@@ -19,7 +19,7 @@ foundation_context = { path = "../foundation_context", version = "0.0.4" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.7", default-features = false }
 # The one key model and the JSON Web Key Set (JWKS) serialisation. The
 # `default-features = false` build keeps the SQLite and signed-secret trees out.
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false }
 
 ed25519-compact = { workspace = true, features = ["std"] }
 futures-lite = { workspace = true }
@@ -32,7 +32,7 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.16", default-features = false, features = ["wasm"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.17", default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]
 foundation_http = { path = "../foundation_http", version = "0.0.17" }

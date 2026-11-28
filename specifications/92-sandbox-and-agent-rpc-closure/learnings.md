@@ -14,6 +14,28 @@ Specs 77 and 83 merged with three kinds of debt:
 This spec exists to pay those debts. A feature of this spec is done when its issues are
 closed, not when its code compiles.
 
+## Feature 00 tasks T5 and T6 (2026-11-28)
+
+- **A skip can look like a pass.** The Vault test started a dev container, but a Vault dev
+  server mounts no secrets engine. The key call returned 404, the test returned, and the run
+  was green. The test now enables Transit, and the job fails when the output names a skip.
+- **`up --wait` fails on a one-shot service.** The `vault-init` service exits 0 after it
+  enables Transit, and compose treats the exited container as a failed service. The job now
+  waits for `vault` only and runs `vault-init` with `run --rm`.
+- **A test filter can match no case and still pass.** The `kms_tests` target root is
+  `tests/kms/mod.rs`, so its cases are top-level modules. The filter `kms::kms_vault_transit`
+  selected nothing; the filter `kms_vault_transit` selects the test. The job now also fails
+  when the output does not name the case.
+- **A wasm test build compiles every target of the crate.** `wasm-testbed ... bindgen-web`
+  runs `cargo build --tests` for the package, so every native test target and
+  dev-dependency must also build for wasm32. The native suites now declare
+  `cfg(not(target_arch = "wasm32"))`, and their file-system and database dev-dependencies
+  use the same cfg. `socket2` (through `foundation_testing`) was the first failure.
+- **Cranelift cannot build wasm.** mise sets `CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift`.
+  A direct `cargo build --target wasm32-unknown-unknown` then fails with "Support for this
+  target has not been implemented yet". Use `--profile uat`, or unset the variable; the
+  wasm-testbed tool removes it for its nested build.
+
 ## Feature 02: sandbox follow-ups (2026-11-28)
 
 - **A plain layer body hides the decode.** The layer stream test must serve a real gzip
@@ -138,3 +160,25 @@ Lesson: BSD sockets reject a socket option after the peer shuts the socket down,
 the option cannot matter. Map `EINVAL` for every socket arm, not only the Unix-domain one.
 The response bytes and EOF are already at hand, so the missing timeout changes nothing.
 
+
+## A TAP device has one holder, so Firecracker cannot share it (2026-11-28)
+
+The issue text for #1095 proposed a stack in the control plane on the TAP side and
+Firecracker on the same TAP device. A Linux TAP device attaches to one descriptor. A
+second `TUNSETIFF` without `IFF_MULTI_QUEUE` returns `EBUSY`. Multi-queue divides the
+frames between queues, so it cannot give the same frame to both ends either.
+
+The working design is a helper process in the namespace. `agent-fc-net` creates the
+namespace and a persistent TAP device, then reads and writes the device frames with an
+`AF_PACKET` socket. A packet socket does not hold the TAP device, so Firecracker can
+open it. The helper copies frames to the control plane over a Unix datagram pair,
+where the existing smoltcp Ethernet stack and its port relays run. The helper needs no
+root: the new user namespace gives it `CAP_NET_ADMIN` and `CAP_NET_RAW`.
+
+A second trap: Firecracker has no `--tap-device` argument. The interface is
+`PUT /network-interfaces/{iface_id}` with `host_dev_name` and `guest_mac`. A failed
+device attach is a missing configuration step, not a missing command-line flag.
+
+A third trap: the guest kernel does not configure its own interface. The driver writes
+`ewe.net=<address>/<prefix>,<gateway>` to the kernel command line, and the slave sets
+the address, netmask, up flag and default route before it serves.

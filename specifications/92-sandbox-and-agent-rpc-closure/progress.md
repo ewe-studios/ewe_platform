@@ -6,7 +6,7 @@ _Last updated: 2026-11-28._
 
 | Feature | State |
 |---|---|
-| 00 Live proof on the real services | in review: pull request #1144 fixes the Cloudflare create stall; #1055 (moto) merged |
+| 00 Live proof on the real services | in review: pull request #1144 fixes the Cloudflare create stall; #1055 (moto) merged; T5 (Vault Transit) and T6 (WebCrypto) are in pull request #1225 |
 | 01 DST fidelity: the real registry | stages A merged (#1116); stage B #1130 and stage C #1136 in review |
 | 02 Sandbox follow-ups | in review: pull request #1111, 12 issues closed, #1104 fixed |
 | 03 GCP KMS over gRPC | in review: pull request #1121, conflicts resolved |
@@ -180,6 +180,44 @@ A native boundary test also caught that `shared/control/service.rs` read `boot_t
 directly. `SandboxLimits::create_deadline()` gives the value, and the remote client reads
 that accessor.
 
+## Feature 00 tasks T5 and T6: Vault Transit and WebCrypto (2026-11-28)
+
+**T5, Vault Transit in the sandbox job.** The test now reads `VAULT_ADDR` and `VAULT_TOKEN`.
+When `VAULT_ADDR` is set, it uses the dev server of
+`ci/local-services/docker-compose.yml`. When it is absent, the test starts the same pinned
+image in a container. A Vault dev server mounts no secrets engine, so the test now enables
+Transit before it creates the derived key. Before this change the key call returned 404 and
+the test returned as a skip, so the backend had no live proof.
+
+The `sandbox-e2e` job starts the Vault server with `--wait`, runs `vault-init` as a one-off
+with `run --rm`, runs
+`cargo test -p foundation_auth --features testing --profile uat kms_vault_transit`, and
+stops the services with a trap on every path. The job fails when the output names a skip,
+when the output holds no `1 passed` line, and when the output holds no
+`vault_transit_seals_and_opens` case. The filter has no `kms::` prefix: the target root is
+`tests/kms/mod.rs`, so the test is `kms_vault_transit::vault_transit_seals_and_opens`. A
+`kms::` filter selects no case and looks green.
+
+Local result, from a clean state (`down -v` first): `up -d --wait vault`,
+`run -T --rm vault-init`, then
+`cargo test -p foundation_auth --features testing --profile uat kms_vault_transit` gave
+`test kms_vault_transit::vault_transit_seals_and_opens ... ok` and `1 passed; 0 failed`.
+
+**T6, WebCrypto in the browser job.** `foundation_auth/tests/wasm/webcrypto_sealer_tests.rs`
+is a `wasm-bindgen-test` target. It seals a payload, opens it back, refuses a different
+record and proves that `crypto.subtle.exportKey` rejects the sealer's key. The `wasm-tests`
+job runs it in headless Chromium with
+`wasm-testbed test bindgen-web backends/foundation_auth --features secret,wasm-kek`.
+
+`WebCryptoSealer::crypto_key()` is new public API, so `foundation_auth` moves to `0.0.17`
+and every workspace consumer matches. The native test suites are marked native only, and
+their file-system and database dev-dependencies sit behind
+`cfg(not(target_arch = "wasm32"))`. Without that, the wasm test build compiled them and
+failed in `socket2`.
+
+Local result: headless Chromium ran the case through `wasm-testbed`:
+`1 passed; 0 failed`.
+
 ## Feature 04 result (2026-11-28)
 
 `foundation-ci live-kms` passed against the real services:
@@ -222,3 +260,29 @@ every version.
 2. One full `packages=all` run on the final master; close #1104 with its `sandbox-e2e` link.
 3. Feature 05 after #1121.
 4. The Cloudflare demo under `examples/`, after #1144 merges.
+
+## Feature 02 task T11: the Firecracker guest network (2026-11-28)
+
+The guest has a network through a new helper program, `agent-fc-net`, and the shared
+smoltcp data plane. The design changed from the issue text, because a TAP device has
+one holder in the Linux kernel (see `learnings.md`).
+
+- `agent-fc-net` makes a private user and network namespace, creates the persistent
+  TAP device, opens an `AF_PACKET` socket on it, starts Firecracker in the namespace,
+  and copies frames between the packet socket and descriptor 3. Descriptor 3 is one
+  end of a Unix datagram pair that the control plane passed.
+- The control plane runs the smoltcp stack in Ethernet mode over its end of the pair
+  and relays the configured TCP and UDP ports to host services. The guest sees only
+  the stack: there is no host route, no firewall rule and no NAT rule.
+- `FirecrackerDriver::with_network` enables `NetworkMode::Host`. The default driver
+  still refuses it, and the probe reports the capability only when it is configured.
+- The slave applies `ewe.net=<address>/<prefix>,<gateway>` from the kernel command
+  line at boot. `net.ifnames=0` keeps the guest name `eth0`.
+- The namespace ends with its last holder. The helper has a parent-death signal from
+  the control plane, and Firecracker has one from the helper. A stop signals the saved
+  process handle; there is no `pkill`.
+- Tests: the Ethernet path with two stacks over an in-memory wire runs on every
+  operating system; the slave command-line parser has Linux tests; `e2e_host_network`
+  runs only on the KVM runner, because it is the only host with `/dev/kvm`,
+  `/dev/net/tun` and unprivileged user namespaces. #1095 stays open until that row is
+  green on the runner.

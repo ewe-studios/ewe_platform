@@ -88,6 +88,16 @@ impl WebCryptoSealer {
         Ok(Self { kek_id, key, env })
     }
 
+    /// The non-extractable `CryptoKey` that holds the key encryption key (KEK).
+    ///
+    /// A caller can pass it to another `crypto.subtle` operation. The browser
+    /// refuses `exportKey` on this key, because the import marked it
+    /// non-extractable.
+    #[must_use]
+    pub fn crypto_key(&self) -> &CryptoKey {
+        &self.key
+    }
+
     /// A 12-byte nonce from the injected entropy source.
     fn nonce(&self) -> Result<[u8; 12], KeyStoreError> {
         let mut nonce = [0u8; 12];

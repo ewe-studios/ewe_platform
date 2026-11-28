@@ -19,6 +19,16 @@ type IoctlRequest = libc::c_ulong;
 const SIOCGIFFLAGS: IoctlRequest = 0x8913;
 /// The Linux request that writes the flags of a network interface.
 const SIOCSIFFLAGS: IoctlRequest = 0x8914;
+/// The Linux request that sets the IPv4 address of an interface.
+const SIOCSIFADDR: IoctlRequest = 0x8916;
+/// The Linux request that sets the IPv4 netmask of an interface.
+const SIOCSIFNETMASK: IoctlRequest = 0x891c;
+/// The Linux request that adds an IPv4 route.
+const SIOCADDRT: IoctlRequest = 0x890b;
+/// The route is active.
+const RTF_UP: libc::c_ushort = 0x0001;
+/// The route reaches its destination through a gateway.
+const RTF_GATEWAY: libc::c_ushort = 0x0002;
 /// The largest interface name that the kernel accepts.
 const IF_NAMESIZE: usize = 16;
 /// The kernel value of the `IFF_UP` interface flag.
@@ -43,6 +53,15 @@ struct IfReq {
     name: [u8; IF_NAMESIZE],
     flags: i16,
     _rest: [u8; 22],
+}
+
+/// The `struct ifreq` buffer of an interface address request, with one
+/// `sockaddr_in` in the union.
+#[repr(C)]
+struct IfReqAddress {
+    name: [u8; IF_NAMESIZE],
+    address: libc::sockaddr_in,
+    _rest: [u8; 8],
 }
 
 /// The last operating system error of this thread.
@@ -783,6 +802,145 @@ pub fn bring_up_loopback() -> io::Result<()> {
         return Err(io::Error::last_os_error());
     }
     Ok(())
+}
+
+/// Apply a static IPv4 address, prefix and default gateway to one interface.
+///
+/// WHY: A micro virtual machine (microVM) guest has a virtio-net interface, and the
+/// host stack gives it a fixed address on a private link. The guest kernel does not
+/// configure the interface by itself.
+///
+/// WHAT: Sets `SIOCSIFADDR` and `SIOCSIFNETMASK`, sets the interface up, and adds a
+/// default route through the gateway.
+///
+/// HOW: One `AF_INET` datagram socket carries the `ioctl` requests.
+///
+/// # Errors
+/// The operating system error of the first call that fails, or
+/// [`io::ErrorKind::InvalidInput`] for an interface name the kernel cannot hold.
+pub fn configure_interface(network: &crate::native::slave::net::GuestNetwork) -> io::Result<()> {
+    // SAFETY: `socket` takes three integers. The stream is close-on-exec.
+    let socket = unsafe { libc::socket(libc::AF_INET, libc::SOCK_DGRAM | libc::SOCK_CLOEXEC, 0) };
+    if socket < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: the call returned a new descriptor that this process owns.
+    let socket = unsafe { OwnedFd::from_raw_fd(socket) };
+    set_interface_address(
+        socket.as_raw_fd(),
+        &network.interface,
+        SIOCSIFADDR,
+        network.address,
+    )?;
+    set_interface_address(
+        socket.as_raw_fd(),
+        &network.interface,
+        SIOCSIFNETMASK,
+        netmask(network.prefix_len),
+    )?;
+    set_interface_up(socket.as_raw_fd(), &network.interface)?;
+    add_default_route(socket.as_raw_fd(), &network.interface, network.gateway)
+}
+
+/// Copy `name` into the kernel field of an address request and set `address`.
+fn set_interface_address(
+    socket: RawFd,
+    name: &str,
+    request: IoctlRequest,
+    address: std::net::Ipv4Addr,
+) -> io::Result<()> {
+    let bytes = name.as_bytes();
+    if bytes.len() >= IF_NAMESIZE {
+        return Err(error_of(libc::EINVAL));
+    }
+    let mut ifr = IfReqAddress {
+        name: [0; IF_NAMESIZE],
+        address: socket_address(address),
+        _rest: [0; 8],
+    };
+    ifr.name[..bytes.len()].copy_from_slice(bytes);
+    // SAFETY: `ifr` has the kernel layout of `struct ifreq` with a socket address.
+    let result = unsafe { libc::ioctl(socket, request, std::ptr::addr_of!(ifr)) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+/// Set the `IFF_UP` flag of `name`.
+fn set_interface_up(socket: RawFd, name: &str) -> io::Result<()> {
+    let bytes = name.as_bytes();
+    if bytes.len() >= IF_NAMESIZE {
+        return Err(error_of(libc::EINVAL));
+    }
+    let mut request = IfReq {
+        name: [0; IF_NAMESIZE],
+        flags: 0,
+        _rest: [0; 22],
+    };
+    request.name[..bytes.len()].copy_from_slice(bytes);
+    // SAFETY: `request` has the kernel layout of `struct ifreq`.
+    if unsafe { libc::ioctl(socket, SIOCGIFFLAGS, std::ptr::addr_of_mut!(request)) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    request.flags |= IFF_UP;
+    // SAFETY: the same valid `ifreq` buffer.
+    if unsafe { libc::ioctl(socket, SIOCSIFFLAGS, std::ptr::addr_of!(request)) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+/// Add a default IPv4 route through `gateway` on `name`.
+fn add_default_route(socket: RawFd, name: &str, gateway: std::net::Ipv4Addr) -> io::Result<()> {
+    let device = CString::new(name).map_err(|_| error_of(libc::EINVAL))?;
+    let mut route: libc::rtentry = unsafe { std::mem::zeroed() };
+    // A zero destination and a zero mask make the route the default route.
+    // SAFETY: both unions hold a `sockaddr_in` and are fully inside `route`.
+    unsafe {
+        std::ptr::write(
+            std::ptr::addr_of_mut!(route.rt_dst).cast::<libc::sockaddr_in>(),
+            socket_address(std::net::Ipv4Addr::UNSPECIFIED),
+        );
+        std::ptr::write(
+            std::ptr::addr_of_mut!(route.rt_genmask).cast::<libc::sockaddr_in>(),
+            socket_address(std::net::Ipv4Addr::UNSPECIFIED),
+        );
+        std::ptr::write(
+            std::ptr::addr_of_mut!(route.rt_gateway).cast::<libc::sockaddr_in>(),
+            socket_address(gateway),
+        );
+    }
+    route.rt_flags = RTF_UP | RTF_GATEWAY;
+    // The kernel reads the device name only during this call, so the string lives
+    // until the call returns.
+    route.rt_dev = device.as_ptr().cast_mut();
+    // SAFETY: `route` has the kernel layout of `struct rtentry`.
+    let result = unsafe { libc::ioctl(socket, SIOCADDRT, std::ptr::addr_of!(route)) };
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+/// The kernel `sockaddr_in` of one IPv4 address.
+fn socket_address(address: std::net::Ipv4Addr) -> libc::sockaddr_in {
+    libc::sockaddr_in {
+        sin_family: libc::AF_INET as libc::sa_family_t,
+        sin_port: 0,
+        // The bytes of the address in memory are its octets in network order.
+        sin_addr: libc::in_addr {
+            s_addr: u32::from_ne_bytes(address.octets()),
+        },
+        sin_zero: [0; 8],
+    }
+}
+
+/// The IPv4 netmask of one prefix length.
+fn netmask(prefix_len: u8) -> std::net::Ipv4Addr {
+    let bits = u32::from(prefix_len);
+    let mask = u32::MAX.checked_shl(32 - bits).unwrap_or(0);
+    std::net::Ipv4Addr::from(mask.to_be_bytes())
 }
 
 /// Gives `path` the mode `mode`.

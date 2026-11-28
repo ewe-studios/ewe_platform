@@ -91,13 +91,32 @@ jobs:
         run: |
           sudo chmod a+rw /dev/kvm
           mise trust --yes mise.toml
-          mise install --locked --yes github:google/flatbuffers java gradle kotlin http:android-sdk github:bbqsrc/cargo-ndk python
-          mise run toolchain:android
+          # Do not install mise's `http:android-sdk`: the runner image already
+          # provides the SDK, and a second path makes Gradle refuse the build
+          # (issue #1238).
+          mise install --locked --yes github:google/flatbuffers java gradle kotlin github:bbqsrc/cargo-ndk python github:wasm-bindgen/wasm-bindgen
+          # One SDK path for both names. Every command below inherits it.
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+          # The runner image ships the SDK but not its cmdline-tools on PATH,
+          # and `toolchain-android` runs `sdkmanager` (issue #1238).
+          sdkmanager=$(find /usr/local/lib/android/sdk -name sdkmanager -type f -print -quit 2>/dev/null || true)
+          if [ -n "${sdkmanager}" ]; then
+            export PATH="$(dirname "${sdkmanager}"):${PATH}"
+          fi
+          # The `toolchain:android` mise task runs exactly this command. Call it
+          # directly so mise's tool-path environment cannot replace ANDROID_HOME.
+          cargo run --locked --profile uat -p foundation_ci -- toolchain-android
           native-task task run native:bindings:sync-android --check
           native-task task run native:build-android --with-todo
           repo="$RUNNER_TEMP/maven"
           native-task task run native:release:maven-local --repository "$repo"
-          mise exec -- native-task task run native:todo:test-android --maven "$repo"
+          # `mise exec` loads the tool environment; `env` then keeps one SDK path
+          # for the Gradle test (issue #1238).
+          mise exec -- env \
+            ANDROID_HOME=/usr/local/lib/android/sdk \
+            ANDROID_SDK_ROOT=/usr/local/lib/android/sdk \
+            native-task task run native:todo:test-android --maven "$repo"
 
   publish:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/native-ui-v')

@@ -1411,6 +1411,12 @@ fn streaming_head(headers: &[(SimpleHeader, String)]) -> Result<Vec<u8>, String>
     render_message(response)
 }
 
+/// Send the FIN as soon as the SSE response ends, instead of when every shared
+/// handle drops (issue #1246). The caller flushes the last event first.
+fn shutdown_write(conn: &SharedByteBufferStream<RawStream>) {
+    let _ = conn.with_inner_ref(|stream| stream.shutdown(std::net::Shutdown::Write));
+}
+
 // One SSE turn: headers, replay, then the live loop; splitting it hides the sequence.
 #[allow(clippy::too_many_lines)]
 #[tracing::instrument(
@@ -1472,6 +1478,7 @@ async fn serve_sse(
         }
     };
 
+    let control = conn.clone();
     let mut writer = ResponseWriter::new(conn, WriterConfig::default(), ctx.clone());
     if let Err(error) = writer.write_all(&head_bytes).await {
         tracing::debug!("durable sse head write ended: {error}");
@@ -1544,12 +1551,14 @@ async fn serve_sse(
         }
 
         if closed {
+            shutdown_write(&control);
             return ServeOutcome::Close(None);
         }
 
         next = ReadFrom::Offset(page.cursor.next.clone());
         let now = ctx.clock().now();
         if now >= deadline {
+            shutdown_write(&control);
             return ServeOutcome::Close(None);
         }
         if !sent_data {

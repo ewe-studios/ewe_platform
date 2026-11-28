@@ -1189,7 +1189,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "argon2",
  "async-trait",
@@ -1268,12 +1268,14 @@ dependencies = [
  "base64",
  "brotli 8.0.4",
  "buffa",
+ "buffa-build",
  "bytes",
  "concurrent-queue",
  "flate2",
  "foundation_arrow",
  "foundation_auth",
  "foundation_compact",
+ "foundation_connectrpc_codegen",
  "foundation_context",
  "foundation_core",
  "foundation_errstacks",
@@ -1283,6 +1285,8 @@ dependencies = [
  "foundation_reactor",
  "futures",
  "libc",
+ "prost 0.12.6",
+ "prost-types 0.12.6",
  "serde",
  "serde_json",
  "socket2",
@@ -1315,6 +1319,7 @@ dependencies = [
 name = "foundation_core"
 version = "0.0.23"
 dependencies = [
+ "base64",
  "bytes",
  "concurrent-queue",
  "derive_more",
@@ -1395,6 +1400,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "time",
  "tracing",
 ]
 
@@ -3314,6 +3320,7 @@ dependencies = [
  "powerfmt",
  "serde_core",
  "time-core",
+ "time-macros",
 ]
 
 [[package]]
@@ -3321,6 +3328,16 @@ name = "time-core"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1c906769ad99c88eaa54e728060edef082f8e358ff32030cb7c7d315e81109"
+
+[[package]]
+name = "time-macros"
+version = "0.2.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e689342a48d2ea927c87ea50cabf8594854bf940e9310208848d680d668ed85"
+dependencies = [
+ "num-conv",
+ "time-core",
+]
 
 [[package]]
 name = "tiny-keccak"

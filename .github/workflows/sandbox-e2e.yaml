@@ -75,6 +75,21 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger
 
+      # The Firecracker guest network makes a user and network namespace without
+      # root (spec 92, feature 02, task T11). Ubuntu 24.04 restricts
+      # unprivileged user namespaces through AppArmor; the runner enables them.
+      - name: Allow unprivileged user namespaces
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+          if [ ! -e /dev/net/tun ]; then
+            sudo mkdir -p /dev/net
+            sudo mknod /dev/net/tun c 10 200
+            sudo chmod 666 /dev/net/tun
+          fi
+          unshare -Urn true
+          echo "unprivileged user and network namespaces work"
+
       - name: Install the pinned toolchain and the musl targets
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
@@ -93,6 +108,48 @@ jobs:
           # OS and the `agent` Cargo profile, so a cache from another OS or
           # profile never restores here.
           key: sandbox-e2e-${{ runner.os }}-agent
+
+      # Spec 92 feature 00 T5: the Vault Transit test against the dev server of
+      # the local-services compose file. Docker is present on this runner. The
+      # step runs before the microVM steps, so an emulation failure there cannot
+      # hide its result. The trap stops the services on every path.
+      - name: Run the Vault Transit test
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          compose="ci/local-services/docker-compose.yml"
+          cleanup() { docker compose -f "$compose" down -v; }
+          trap cleanup EXIT
+          # `vault-init` is a one-shot service that exits 0. `up --wait` treats
+          # an exited container as a failure, so wait for the server only and
+          # run the init as a one-off.
+          docker compose -f "$compose" up -d --wait vault
+          docker compose -f "$compose" run -T --rm vault-init
+          # A skip must fail the job: the compose server is here, so the test
+          # must run. The filter is the module path of the test binary, not the
+          # `kms` directory, so a filter that matches no case also fails.
+          set +e
+          output=$(VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN=root \
+            cargo test --locked -p foundation_auth --features testing \
+              --profile uat kms_vault_transit -- --nocapture 2>&1)
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
+          if printf '%s' "$output" | grep -q "skipping the Vault test"; then
+            echo "the Vault test skipped: the compose server must make it run" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$output" | grep -q "1 passed"; then
+            echo "the Vault test did not pass: the output has no 1 passed line" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$output" | grep -q "vault_transit_seals_and_opens"; then
+            echo "the Vault test did not run: the filter matched no case" >&2
+            exit 1
+          fi
 
       - name: Read the pinned Firecracker version
         id: firecracker

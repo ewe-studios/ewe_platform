@@ -307,6 +307,30 @@ impl RawStream {
             RawStreamInner::ServerTls(..) | RawStreamInner::ClientTls(..) => true,
         }
     }
+
+    /// Shut down the read, write or both halves of the transport now.
+    ///
+    /// WHY: a response that ends the connection needs its FIN at the moment the
+    /// last bytes are flushed. Relying on the drop of every shared handle defers
+    /// it, and a client that reads to end-of-stream waits for it (issue #1246).
+    /// WHAT: shuts the plain transport directly. A TLS stream's own shutdown
+    /// needs `&mut`, which this shared view cannot give, so it is a no-op there
+    /// and the drop closes the connection, as [`Connection::shutdown`] does for
+    /// its TLS variant.
+    ///
+    /// # Errors
+    /// Returns the socket error from the transport.
+    pub fn shutdown(&self, how: std::net::Shutdown) -> std::io::Result<()> {
+        match &self.inner {
+            RawStreamInner::Plain(inner, _) => inner.get_core_ref().shutdown(how),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStreamInner::ServerTls(..) | RawStreamInner::ClientTls(..) => Ok(()),
+        }
+    }
 }
 
 impl foundation_core::io::ioutils::IsUnixTransport for RawStream {
