@@ -121,12 +121,20 @@ mod imp {
     const IFF_TAP: libc::c_short = 0x0002;
     /// Do not prepend the packet information header.
     const IFF_NO_PI: libc::c_short = 0x1000;
+    /// The type of an `ioctl` request number. The C libraries disagree: the GNU C
+    /// library takes an unsigned long, and musl takes an int.
+    #[cfg(target_env = "musl")]
+    type IoctlRequest = libc::c_int;
+    #[cfg(not(target_env = "musl"))]
+    type IoctlRequest = libc::c_ulong;
     /// The `ioctl` that creates or attaches a TAP device.
-    const TUNSETIFF: libc::c_ulong = 0x4004_54ca;
+    const TUNSETIFF: IoctlRequest = 0x4004_54ca;
+    /// The `ioctl` that reads the interface flags.
+    const SIOCGIFFLAGS: IoctlRequest = 0x8913;
     /// The `ioctl` that sets the interface flags.
-    const SIOCSIFFLAGS: libc::c_ulong = 0x8914;
+    const SIOCSIFFLAGS: IoctlRequest = 0x8914;
     /// The `ioctl` that sets the interface MTU.
-    const SIOCSIFMTU: libc::c_ulong = 0x8922;
+    const SIOCSIFMTU: IoctlRequest = 0x8922;
     /// The flag that makes an interface active.
     const IFF_UP: libc::c_short = 0x1;
 
@@ -299,7 +307,7 @@ mod imp {
 
         let mut ifr: libc::ifreq = unsafe { std::mem::zeroed() };
         ifr.ifr_name = kernel_name(name)?;
-        let rc = unsafe { libc::ioctl(control.as_raw_fd(), libc::SIOCGIFFLAGS, &mut ifr) };
+        let rc = unsafe { libc::ioctl(control.as_raw_fd(), SIOCGIFFLAGS, &mut ifr) };
         if rc < 0 {
             return Err(io::Error::last_os_error());
         }
