@@ -305,3 +305,23 @@ fn test_close_frame_empty_payload() {
     assert_eq!(decoded.opcode, Opcode::Close);
     assert_eq!(decoded.payload, [] as [u8; 0]);
 }
+
+#[test]
+fn one_shot_decoders_report_raw_eof_at_each_frame_boundary() {
+    use foundation_netio::websocket::WebSocketError;
+    use std::io::ErrorKind;
+
+    let wire = [0x81, 0x03, b'o', b'n', b'e'];
+    for end in 0..wire.len() {
+        let mut payload = bytes::BytesMut::new();
+        for result in [
+            WebSocketFrame::decode(&mut &wire[..end]),
+            WebSocketFrame::decode_with_buffer(&mut &wire[..end], &mut payload),
+        ] {
+            assert!(matches!(
+                result,
+                Err(WebSocketError::IoError(error)) if error.kind() == ErrorKind::UnexpectedEof
+            ));
+        }
+    }
+}

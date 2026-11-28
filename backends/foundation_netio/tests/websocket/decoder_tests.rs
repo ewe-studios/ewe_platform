@@ -184,3 +184,78 @@ fn configured_limit_checks_the_declared_length_before_the_payload() {
         assert_eq!(decoder.payload_got(), 0);
     }
 }
+
+#[test]
+fn socket_eof_reports_truncated_frame_at_every_boundary() {
+    use foundation_netio::websocket::WebSocketError;
+    use std::io::ErrorKind;
+
+    let wire = [0x81, 0x03, b'o', b'n', b'e'];
+    for end in 0..wire.len() {
+        let mut decoder = WebSocketFrameDecoder::new();
+        assert!(matches!(
+            decoder.read_frame(&mut &wire[..end]),
+            Err(WebSocketError::IoError(error)) if error.kind() == ErrorKind::UnexpectedEof
+        ));
+    }
+}
+
+#[test]
+fn socket_retries_preserve_partial_extended_length_mask_and_payload() {
+    use foundation_netio::websocket::WebSocketError;
+    use std::io::{self, ErrorKind, Read};
+    struct Paused<'a>(&'a [u8], ErrorKind);
+    impl Read for Paused<'_> {
+        fn read(&mut self, target: &mut [u8]) -> io::Result<usize> {
+            if self.0.is_empty() {
+                return Err(self.1.into());
+            }
+            self.0.read(&mut target[..1])
+        }
+    }
+
+    let payload = vec![b'x'; 126];
+    let frame = foundation_netio::websocket::WebSocketFrame {
+        fin: false,
+        opcode: Opcode::Binary,
+        mask: Some([1, 2, 3, 4]),
+        payload,
+    };
+    let wire = frame.encode();
+    for split in [0, 1, 2, 3, 4, 6, 8, 9, wire.len() - 1] {
+        for kind in [ErrorKind::WouldBlock, ErrorKind::TimedOut] {
+            let mut decoder = WebSocketFrameDecoder::new();
+            assert!(matches!(
+                decoder.read_frame(&mut Paused(&wire[..split], kind)),
+                Err(WebSocketError::IoError(error)) if error.kind() == kind
+            ));
+            assert_eq!(decoder.read_frame(&mut &wire[split..]).unwrap(), frame);
+        }
+    }
+}
+
+#[test]
+fn socket_delivers_close_frames_before_raw_eof() {
+    use foundation_netio::websocket::{WebSocketError, WebSocketMessage};
+    use std::io::ErrorKind;
+
+    let mut stream: &[u8] = &[0x88, 0, 0x88, 4, 0x03, 0xe8, b'o', b'k'];
+    let mut decoder = WebSocketFrameDecoder::new();
+    for expected in [
+        WebSocketMessage::Close(1005, String::new()),
+        WebSocketMessage::Close(1000, "ok".into()),
+    ] {
+        assert_eq!(
+            decoder
+                .read_frame(&mut stream)
+                .unwrap()
+                .to_message()
+                .unwrap(),
+            expected
+        );
+    }
+    assert!(matches!(
+        decoder.read_frame(&mut stream),
+        Err(WebSocketError::IoError(error)) if error.kind() == ErrorKind::UnexpectedEof
+    ));
+}
