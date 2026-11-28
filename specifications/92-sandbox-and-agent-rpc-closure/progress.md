@@ -204,7 +204,8 @@ The auth layer now sits above the RPC crate.
 - `foundation_agent_rpc` and `foundation_agent_rpc_dst` import the interceptor
   and the caller lookup from the new crate.
 - The moved `auth_tests` pass 26 tests and `client_auth_interceptor_tests` pass
-  4 tests in the new crate.
+  4 tests in the new crate. The `foundation_connectrpc` suite passes 275 tests
+  across 36 targets.
 - Every nested `Cargo.lock` that takes the two crates by path is regenerated,
   so `cargo metadata --locked` passes for each one.
 - The wasm `rpc` check passes with zero warnings. `web-sys` is optional now and
@@ -218,6 +219,11 @@ The auth layer now sits above the RPC crate.
 
 ## Today's findings
 
+- **#1236** (`high`, fixed by feature 05): `foundation_agent_rpc/tests/native_shutdown_tests.rs`
+  passed a stale `env` argument to `guarded_turn`, so `cargo test -p foundation_agent_rpc`
+  did not compile on master. The test now matches the six-argument signature.
+- **#1226** (`low`, open): `foundation_db` reports `unused_async` on native without
+  `turso` or `libsql`. CI does not see it because clippy runs with `--no-deps`.
 - **#1125** (`high`, fixed by #1144): `ControlService::create` spun on `Stream::Wait` in a
   synchronous loop on the single-threaded wasm host, so the Durable Object stopped answering.
 - **#1133** (`high`, fixed by #1144): the slave did not recognise the Cloudflare container

@@ -130,6 +130,11 @@ Two lessons:
 - **A pipe hides the exit code of `cargo fmt --check`.** `cargo fmt ... | head`
   reports the exit code of `head`. Run the check without a pipe, or read zsh's
   `pipestatus`, or a formatting failure looks like a pass.
+- **A signature change must move every caller.** Master's `guarded_turn` lost
+  the `env` argument, but `native_shutdown_tests` still passed it, so the
+  `foundation_agent_rpc` test suite did not compile on master (#1236). A merge
+  that changes a public function must run the crate's tests, not only the tests
+  of the crate it adds.
 
 ## macOS refuses a timeout on a peer-closed socket (2026-11-28)
 
