@@ -408,3 +408,41 @@ fn router_reads_the_path_of_an_absolute_url() {
         "the path alone reaches the router"
     );
 }
+
+#[test]
+fn create_readiness_parks_on_the_timer_once_per_attempt() {
+    let h = Harness::new(90, true, false);
+    h.container.set_failures(
+        std::iter::repeat_n(
+            foundation_sandbox::shared::container::PortError::NotListening,
+            40,
+        )
+        .collect(),
+    );
+    let planner = support::planner(&h, Some(h.id()));
+    let mut stream = planner.sandboxes().create_with_progress(spec());
+    let mut progress = 0usize;
+    while let Some(item) = stream.next() {
+        if matches!(item, foundation_core::valtron::Stream::Pending(_)) {
+            progress += 1;
+        }
+    }
+
+    // The typed `Info` client retries one transport error, so one attempt makes
+    // two fetches: 20 attempts for 40 failures, then the successful attempt.
+    assert_eq!(
+        h.container.fetches().len(),
+        42,
+        "one retry attempt makes two fetches and no more"
+    );
+    // Each attempt parks on the injected timer for its back-off, so the host is
+    // not polled in a loop.
+    let short_waits = h
+        .timer
+        .waits()
+        .iter()
+        .filter(|wait| **wait <= Duration::from_millis(100))
+        .count();
+    assert_eq!(short_waits, 20, "one back-off wait for each retry attempt");
+    assert_eq!(progress, 4, "the create reports its four progress points");
+}
