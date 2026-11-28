@@ -118,11 +118,7 @@ impl Timer for JsTimer {
                 let millis = u32::try_from(wait.as_millis())
                     .unwrap_or(u32::MAX)
                     .min(u32::try_from(i32::MAX).unwrap_or(u32::MAX));
-                let _ = set_timeout.call2(
-                    &global,
-                    &resolve,
-                    &JsValue::from_f64(f64::from(millis)),
-                );
+                let _ = set_timeout.call2(&global, &resolve, &JsValue::from_f64(f64::from(millis)));
             });
             let _ = worker::js_sys::futures::JsFuture::from(promise).await;
         }))
