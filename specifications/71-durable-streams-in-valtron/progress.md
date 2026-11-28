@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-28: spec 71 follow-ups on branch `spec71-followups` after the merge into master.
+  #1218: kqueue no longer suppresses a socket read edge; #1152: producer `max_in_flight` and
+  linger pipelining on the injected clock; #1219: parked readiness payloads are `Send + Sync`
+  with no allow; #1220: gzipped event streams and line-delimited bodies are stream-decoded;
+  #1222: `send` and `send_async` keep request extensions and `body_readiness`; #1167: durable
+  HTTP golden oracle with 11 fixtures and a documented `UPDATE_GOLDEN` path. Feature 06 is
+  done. The workspace dev check fails only on third-party `wasmtime-internal-fiber` on aarch64
+  (#1241), so the criterion is amended to the durable crates with that evidence. Feature 08 is
+  done. Feature 07 T6 is done; T12 (client oracles) remains. Open follow-ups: #1230 (a
+  cancelled driving append stalls the queue), #1233 (final line terminator), #1237 (macOS
+  `vfs-preload` clippy), #1229 (pipe race), #1241 (wasmtime aarch64).
 - 2026-11-28: feature 01, 05, 06, 07 and 08 gaps closed. #1134: `DurableStream` keeps a forked
   `Ctx`; the fork shares the clock and copies the map, so the parent context holds the stream
   without an `Arc` cycle. The leak test and the nine TTL tests pass; the TTL tests advance the
