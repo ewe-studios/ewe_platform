@@ -113,7 +113,10 @@ fn receiving_cache_orders_and_deduplicates_confirmed_changes() {
                 input,
             )
         };
-        assert!(deliver(&packets[1]).is_empty());
+        assert_eq!(
+            deliver(&packets[1]),
+            [] as [foundation_ui_wire::MessageT; 0]
+        );
         let changes = deliver(&packets[0]);
         let targets: Vec<_> = changes
             .into_iter()
@@ -125,8 +128,14 @@ fn receiving_cache_orders_and_deduplicates_confirmed_changes() {
             })
             .collect();
         assert_eq!(targets, ["todo-list", "open-count"]);
-        assert!(deliver(&packets[0]).is_empty());
-        assert!(deliver(&packets[1]).is_empty());
+        assert_eq!(
+            deliver(&packets[0]),
+            [] as [foundation_ui_wire::MessageT; 0]
+        );
+        assert_eq!(
+            deliver(&packets[1]),
+            [] as [foundation_ui_wire::MessageT; 0]
+        );
         let state = client.get::<TodoStore>().unwrap().snapshot();
         assert_eq!(
             state

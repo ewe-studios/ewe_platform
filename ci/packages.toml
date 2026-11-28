@@ -556,9 +556,6 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_db]
-# Known-failure opt-outs (CLAUDE.md rule 15). The fix of each issue removes its lines.
-windows-tests = "none"
-windows-reason = "Known bug on Windows: #519: file store paths fail (os error 87 and 123). Remove this opt-out when the issue is fixed."
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 # `testing` adds the fault-injecting storage wrappers (spec 83 feature 04).
 runs = ["", "libsql", "testing"]

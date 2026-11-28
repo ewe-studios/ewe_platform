@@ -13,7 +13,7 @@
 //! complete in-memory response and return a [`ConnectionResult::Async`].
 //!
 //! HOW: A kernel-fd transport parks on the shared reactor through
-//! [`FdReadiness`]; the overlay parks on a one-shot wake callback its driver
+//! `FdReadiness`; the overlay parks on a one-shot wake callback its driver
 //! fires; a transport that cannot report readiness parks on the valtron timer
 //! for one `poll_fallback_interval` and the caller retries the write. The
 //! reactor watch is registered on the first `WouldBlock` only (most small
@@ -27,6 +27,7 @@
 use std::future::{poll_fn, Future};
 use std::io::{self, Write};
 use std::pin::Pin;
+#[cfg(unix)]
 use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::time::Duration;
@@ -34,7 +35,9 @@ use std::time::Duration;
 use foundation_context::Ctx;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::timer::{self, Sleep};
+#[cfg(unix)]
 use foundation_iogate::FdReadiness;
+#[cfg(unix)]
 use foundation_netio::native::connection::{ConnReadiness, ConnWaker};
 use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
@@ -111,7 +114,9 @@ pub struct ResponseWriter {
 
 /// How to wait for write readiness on this connection.
 struct WaitSource {
+    #[cfg(unix)]
     readiness: Option<ConnReadiness>,
+    #[cfg(unix)]
     fd_ready: Option<FdReadiness>,
     fallback: Option<Sleep>,
 }
@@ -246,7 +251,9 @@ impl ReadWait {
 
 impl WaitSource {
     fn new(conn: &SharedByteBufferStream<RawStream>) -> Self {
+        #[cfg(unix)]
         let readiness = conn.with_inner_ref(RawStream::conn_readiness);
+        #[cfg(unix)]
         let fd_ready = match &readiness {
             Some(ConnReadiness::Fd(fd, _)) => match FdReadiness::register(*fd) {
                 Ok(r) => Some(r),
@@ -259,12 +266,17 @@ impl WaitSource {
         };
         // Without a reactor registration a kernel-fd transport falls back to
         // timer-paced retries, like a transport that reports no readiness.
+        #[cfg(unix)]
         let readiness = match (&readiness, &fd_ready) {
             (Some(ConnReadiness::Fd(..)), None) => None,
             _ => readiness,
         };
+        #[cfg(not(unix))]
+        let _ = conn;
         Self {
+            #[cfg(unix)]
             readiness,
+            #[cfg(unix)]
             fd_ready,
             fallback: None,
         }
@@ -277,6 +289,7 @@ impl WaitSource {
         ctx: &Ctx,
         interest: IoInterest,
     ) -> Poll<io::Result<()>> {
+        #[cfg(unix)]
         if let Some(readiness) = &self.readiness {
             // Register before the readiness probe, so an edge between the two
             // still wakes this task.
@@ -309,23 +322,23 @@ impl WaitSource {
                     readiness.register_waker(interest, wake);
                 }
             }
-            match readiness.ready_now(interest) {
+            return match readiness.ready_now(interest) {
                 Ok(true) => Poll::Ready(Ok(())),
                 Ok(false) => Poll::Pending,
                 Err(e) => Poll::Ready(Err(e)),
-            }
+            };
+        }
+
+        #[cfg(not(unix))]
+        let _ = interest;
+        let fallback = self
+            .fallback
+            .get_or_insert_with(|| timer::sleep_for(fallback_interval, ctx));
+        if Pin::new(fallback).poll(cx).is_ready() {
+            self.fallback = None;
+            Poll::Ready(Ok(()))
         } else {
-            // No readiness source: park on the timer for one interval, then
-            // let the caller retry its write.
-            let fallback = self
-                .fallback
-                .get_or_insert_with(|| timer::sleep_for(fallback_interval, ctx));
-            if Pin::new(fallback).poll(cx).is_ready() {
-                self.fallback = None;
-                Poll::Ready(Ok(()))
-            } else {
-                Poll::Pending
-            }
+            Poll::Pending
         }
     }
 }

@@ -12,6 +12,9 @@ use foundation_wasm_ui::server::{BacklogConfig, LiveChannel};
 use std::path::Path;
 use ui_todo::{server_registry, TodoStore};
 
+#[path = "server_store/process.rs"]
+mod process;
+
 const FIRST: &str = "00000000-0000-4000-8000-000000000001";
 const SECOND: &str = "00000000-0000-4000-8000-000000000002";
 
@@ -90,7 +93,10 @@ async fn restart_preserves_input_receipts_and_deletions() {
         assert_eq!(feed.backlog_len(), 0);
         let caps = ClientCaps::web_current();
         assert!(matches!(feed.replay(&caps, 2), Err(ReplayError::Expired)));
-        assert!(feed.replay(&caps, 3).unwrap().is_empty());
+        assert_eq!(
+            feed.replay(&caps, 3).unwrap(),
+            [] as [std::sync::Arc<[u8]>; 0]
+        );
         change(&ctx, "confirm_delete", FIRST).await.unwrap();
     }
     let (ctx, feed) = open(&path).await;
@@ -195,7 +201,10 @@ async fn failed_frame_encoding_preserves_both_store_and_stream() {
     let (ctx, feed) = open_with_writer(&path, writer).await;
     assert!(add(&ctx, FIRST, "first").await.is_err());
     assert_eq!(feed.last_sequence(), 0);
-    assert!(ctx.get::<TodoStore>().unwrap().snapshot().items.is_empty());
+    assert_eq!(
+        ctx.get::<TodoStore>().unwrap().snapshot().items,
+        [] as [ui_todo::Todo; 0]
+    );
     drop(ctx);
     let (ctx, restored) = open(&path).await;
     assert_eq!(restored.last_sequence(), 0);

@@ -482,12 +482,21 @@ jobs:
     # Limit, not a measurement: a cold build of both packages takes about 15 to
     # 20 minutes on this runner, and a warm cache cuts that to a few minutes.
     timeout-minutes: 45
+    env:
+      # The pinned Durable Streams Git dependency contains long paths (#1268).
+      CARGO_HOME: D:/c
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 1
           submodules: false
+
+      - &windows-git-long-paths
+        name: Allow long Git paths
+        shell: bash
+        run: git config --global core.longpaths true
 
       - name: Install the pinned toolchain
         # Same pin as the other jobs. The environment variable also stops
@@ -677,6 +686,9 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     env:
       PYTHONUTF8: "1"
+      # Match the short Cargo home in Windows check (#1268).
+      CARGO_HOME: D:/c
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     defaults:
       run:
         shell: bash
@@ -690,6 +702,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: false
+
+      - *windows-git-long-paths
 
       - name: Fetch the pull request base
         # `foundation-ci run --if-affected` diffs against the base commit. The checkout is
