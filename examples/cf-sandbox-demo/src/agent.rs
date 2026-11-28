@@ -15,7 +15,7 @@ use std::sync::Arc;
 use foundation_agent_rpc::core::config::{RegistryConfig, TurnLimits};
 use foundation_agent_rpc::core::model::{ApiModelConfig, ModelRequest, RemoteCatalog};
 use foundation_agent_rpc::core::registry::{
-    Caller, InMemoryStores, InstanceSpec, LocalInstanceRegistry, ScopePolicy,
+    Caller, InMemoryStores, InstanceRegistry, InstanceSpec, LocalInstanceRegistry, ScopePolicy,
 };
 use foundation_agent_rpc::proto::v1::__buffa::oneof::turn_event::Event;
 use foundation_agent_rpc::AgentRpcError;
@@ -101,14 +101,18 @@ pub async fn workers_ai_turn(
         .ai(&config.ai_binding)
         .map_err(|error| format!("the {} binding is absent: {error}", config.ai_binding))?;
     let output: serde_json::Value = ai
-        .run(&config.workers_ai_model, serde_json::json!({ "prompt": prompt }))
+        .run(
+            &config.workers_ai_model,
+            serde_json::json!({ "prompt": prompt }),
+        )
         .await
         .map_err(|error| format!("the Workers AI turn failed: {error}"))?;
     let text = output
         .get("response")
         .and_then(serde_json::Value::as_str)
         .map_or_else(|| output.to_string(), str::to_string);
-    let stream = futures::stream::once(async move { Ok::<Vec<u8>, worker::Error>(text.into_bytes()) });
+    let stream =
+        futures::stream::once(async move { Ok::<Vec<u8>, worker::Error>(text.into_bytes()) });
     sandbox::text_response(stream)
 }
 

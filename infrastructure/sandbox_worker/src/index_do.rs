@@ -122,9 +122,9 @@ impl SandboxIndexDo {
         let mut values = map.values();
         let mut sandboxes = Vec::new();
         loop {
-            let next = values
-                .next()
-                .map_err(|error| worker::Error::from(format!("the index list failed: {error:?}")))?;
+            let next = values.next().map_err(|error| {
+                worker::Error::from(format!("the index list failed: {error:?}"))
+            })?;
             if next.done() {
                 break;
             }

@@ -18,9 +18,7 @@ fn the_vendored_proto_matches_the_proxy_copy() {
     let mine = manifest.join(PROTO);
     let canonical = manifest.join("../foundation_proxy").join(PROTO);
     if !canonical.is_file() {
-        println!(
-            "skipped: {canonical:?} is absent; this crate is built from its tarball"
-        );
+        println!("skipped: {canonical:?} is absent; this crate is built from its tarball");
         return;
     }
     let mine_bytes = std::fs::read(&mine).expect("read the vendored proto");

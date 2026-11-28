@@ -60,10 +60,7 @@ impl ClientReader {
     /// Build a reader for a stream from the start.
     #[must_use]
     pub fn new(handle: StreamHandle, ctx: Ctx) -> Self {
-        let state = ReaderState {
-            handle,
-            from: None,
-        };
+        let state = ReaderState { handle, from: None };
         Self {
             inner: drive_iterator(read_step::new(state), ctx),
         }

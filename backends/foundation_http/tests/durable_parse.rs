@@ -66,7 +66,10 @@ fn given_an_offset_when_encoded_then_the_text_decodes_back_to_the_same_bytes() {
     let offset = StreamOffset::from_bytes(vec![0x00, 0x01, 0xfe, 0xff]);
     let text = encode_offset(&offset);
     assert_eq!(text, "0001feff");
-    assert_eq!(decode_offset(&text).expect("decode").as_bytes(), offset.as_bytes());
+    assert_eq!(
+        decode_offset(&text).expect("decode").as_bytes(),
+        offset.as_bytes()
+    );
 }
 
 #[test]

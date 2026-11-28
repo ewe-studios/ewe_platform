@@ -1,15 +1,16 @@
 //! Shared todo views and actions for server and on-device stores.
 pub use foundation_compact::uuid::UuidV4 as TodoId;
-pub(crate) mod pending;
-#[cfg(not(target_family = "wasm"))]
-mod mutations;
 #[cfg(all(feature = "server", not(target_family = "wasm")))]
 mod durable;
+#[cfg(not(target_family = "wasm"))]
+mod mutations;
+pub(crate) mod pending;
 use pending::{retry_todo, submit_delete, submit_todo};
 pub use pending::{Pending, PendingChange};
 
 use foundation_context::Ctx;
 use foundation_errstacks::ErrorTrace;
+use foundation_ui_runtime::action::ViewData;
 use foundation_ui_runtime::action::{
     ActionError, ActionRegistry, ActionResult, Context, Interaction, RegistrationError,
 };
@@ -20,7 +21,6 @@ use foundation_ui_runtime::view::{
     full_view, place, template_types::Html, PlacementKind, Target, ViewIds,
 };
 use foundation_ui_runtime::{action, html};
-use foundation_ui_runtime::action::ViewData;
 use foundation_ui_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
@@ -377,7 +377,8 @@ fn dialog(ctx: &Context, state: &TodoApp) -> ActionResult {
 
 #[action(host)]
 async fn open_mathalley(ctx: &Context, _event: Interaction<()>) -> ActionResult {
-    let signal = crate::mathalley::route::open_command().map_err(|cause| error(&cause.to_string()))?;
+    let signal =
+        crate::mathalley::route::open_command().map_err(|cause| error(&cause.to_string()))?;
     ctx.receiver().data_in_view(signal);
     Ok(())
 }
@@ -586,7 +587,10 @@ impl StoreState {
 }
 
 #[action(host)]
-async fn apply_todo_delivery(ctx: &Context, event: Interaction<(), Option<TodoDelivery>>) -> ActionResult {
+async fn apply_todo_delivery(
+    ctx: &Context,
+    event: Interaction<(), Option<TodoDelivery>>,
+) -> ActionResult {
     let Some(delivery) = event.input_value else {
         return Ok(());
     };
@@ -650,7 +654,11 @@ async fn add_todo(ctx: &Context, event: Interaction<(), AddInput>) -> ActionResu
 
 #[action(server)]
 async fn toggle_todo(ctx: &Context, event: Interaction<()>) -> ActionResult {
-    mutations::apply(ctx, mutations::Command::Toggle(todo_id(&event.input_value)?)).await
+    mutations::apply(
+        ctx,
+        mutations::Command::Toggle(todo_id(&event.input_value)?),
+    )
+    .await
 }
 
 #[action(server)]

@@ -101,9 +101,9 @@ impl ServeFactory for DurableHandler {
             .get::<DurableHttpConfig>()
             .map_or_else(DurableHttpConfig::default, |config| *config);
         Self {
-            service: ctx.get::<DurableStream>().map(|stream| {
-                Arc::new(DurableService::with_limits((*stream).clone(), limits))
-            }),
+            service: ctx
+                .get::<DurableStream>()
+                .map(|stream| Arc::new(DurableService::with_limits((*stream).clone(), limits))),
             config,
         }
     }
@@ -178,7 +178,10 @@ pub enum LiveMode {
 /// # Errors
 /// Returns [`StoreError::BadRequest`] for an unknown live mode.
 pub fn live_mode(queries: Option<&BTreeMap<String, String>>) -> Result<LiveMode, StoreError> {
-    match queries.and_then(|queries| queries.get("live")).map(String::as_str) {
+    match queries
+        .and_then(|queries| queries.get("live"))
+        .map(String::as_str)
+    {
         None => Ok(LiveMode::CatchUp),
         Some("long-poll") => Ok(LiveMode::LongPoll),
         Some("sse") => Ok(LiveMode::Sse),
@@ -300,9 +303,8 @@ impl Serve for DurableHandler {
             };
 
             if empty_offset && method == SimpleMethod::GET {
-                let error = StoreError::BadRequest(
-                    foundation_core::durable::BadRequestKind::Offset,
-                );
+                let error =
+                    StoreError::BadRequest(foundation_core::durable::BadRequestKind::Offset);
                 return respond_error(conn, &ctx, &error).await;
             }
 
@@ -419,15 +421,13 @@ async fn read_request_body(
                         read = body.len(),
                         "durable: short request body, closing the connection"
                     );
-                    return Err(
-                        refuse_body(
-                            conn,
-                            ctx,
-                            400,
-                            "request body is shorter than its declared length",
-                        )
-                        .await,
-                    );
+                    return Err(refuse_body(
+                        conn,
+                        ctx,
+                        400,
+                        "request body is shorter than its declared length",
+                    )
+                    .await);
                 }
             }
             Ok(body)
@@ -1087,10 +1087,7 @@ async fn handle_head(
         )),
         Some(Expiry::Absolute(millis)) => {
             if let Some(value) = format_expires_at(millis) {
-                headers.push((
-                    SimpleHeader::custom(header::STREAM_EXPIRES_AT),
-                    value,
-                ));
+                headers.push((SimpleHeader::custom(header::STREAM_EXPIRES_AT), value));
             }
         }
         None => {}
@@ -1214,10 +1211,13 @@ async fn handle_post(
             ));
         }
         service
-            .close(name, CloseRequest {
-                final_chunk: None,
-                producer: producer.clone(),
-            })
+            .close(
+                name,
+                CloseRequest {
+                    final_chunk: None,
+                    producer: producer.clone(),
+                },
+            )
             .await?
     } else {
         // A non-empty append must name its content type.
@@ -1253,10 +1253,7 @@ async fn handle_post(
         ));
         response_headers.push((
             SimpleHeader::custom(header::PRODUCER_SEQ),
-            outcome
-                .producer_seq
-                .unwrap_or(producer.seq)
-                .to_string(),
+            outcome.producer_seq.unwrap_or(producer.seq).to_string(),
         ));
     }
     if outcome.closed {
@@ -1270,8 +1267,10 @@ async fn handle_post(
     // accepted write answers 200; a duplicate answers 204.
     let status = if close_only
         || producer.is_none()
-        || matches!(outcome.kind, foundation_core::durable::AppendKind::Duplicate)
-    {
+        || matches!(
+            outcome.kind,
+            foundation_core::durable::AppendKind::Duplicate
+        ) {
         204
     } else {
         200
@@ -1440,24 +1439,17 @@ async fn serve_sse(
         Ok(head) => head,
         Err(error) => return respond_error(conn, ctx, &error).await,
     };
-    let binary = !(head.content_type.is_json()
-        || head.content_type.as_str().starts_with("text/"));
+    let binary = !(head.content_type.is_json() || head.content_type.as_str().starts_with("text/"));
     let client = client_cursor(queries);
 
     let mut headers = base_headers();
-    headers.push((
-        SimpleHeader::CONTENT_TYPE,
-        "text/event-stream".to_string(),
-    ));
+    headers.push((SimpleHeader::CONTENT_TYPE, "text/event-stream".to_string()));
     headers.push((
         SimpleHeader::CACHE_CONTROL,
         CachePolicy::NoCache.header_value().to_string(),
     ));
     headers.push((SimpleHeader::CONNECTION, "close".to_string()));
-    headers.push((
-        SimpleHeader::custom("x-accel-buffering"),
-        "no".to_string(),
-    ));
+    headers.push((SimpleHeader::custom("x-accel-buffering"), "no".to_string()));
     if binary {
         headers.push((
             SimpleHeader::custom(header::STREAM_SSE_DATA_ENCODING),
@@ -1478,8 +1470,7 @@ async fn serve_sse(
         return ServeOutcome::Close(None);
     }
 
-    let deadline =
-        ctx.clock().now() + Duration::from_millis(service.limits().sse_lifetime_ms);
+    let deadline = ctx.clock().now() + Duration::from_millis(service.limits().sse_lifetime_ms);
     let mut first = true;
     loop {
         let signal = append_wait(service, name);

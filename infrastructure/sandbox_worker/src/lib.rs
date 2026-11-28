@@ -42,9 +42,9 @@ use foundation_sandbox::shared::spec::RootMode;
 #[cfg(feature = "entry")]
 use foundation_sandbox::shared::Secret;
 use futures::StreamExt;
+use worker::wasm_bindgen::{JsCast, JsValue};
 #[cfg(feature = "entry")]
 use worker::Env;
-use worker::wasm_bindgen::{JsCast, JsValue};
 use worker::{Request, Response};
 
 pub use index_do::{SandboxIndexDo, WorkerSandboxIndex};
@@ -118,11 +118,7 @@ impl Timer for JsTimer {
                 let millis = u32::try_from(wait.as_millis())
                     .unwrap_or(u32::MAX)
                     .min(u32::try_from(i32::MAX).unwrap_or(u32::MAX));
-                let _ = set_timeout.call2(
-                    &global,
-                    &resolve,
-                    &JsValue::from_f64(f64::from(millis)),
-                );
+                let _ = set_timeout.call2(&global, &resolve, &JsValue::from_f64(f64::from(millis)));
             });
             let _ = worker::js_sys::futures::JsFuture::from(promise).await;
         }))

@@ -589,7 +589,8 @@ fn compare_runtime_frame(runtime: &str) {
         .parent()
         .unwrap();
     let harness = Harness::setup(TestConfig {
-        html: include_str!("fixtures/wire-parity.html").replace("foundation-ui-runtime.js", runtime),
+        html: include_str!("fixtures/wire-parity.html")
+            .replace("foundation-ui-runtime.js", runtime),
         static_dir: Some(backends.into()),
         static_mount: "/foundation_wasm_ui".into(),
         ..TestConfig::default()

@@ -126,11 +126,9 @@ fn serve_tls_with_key_updates(pieces: Vec<Vec<u8>>, key_updates: usize) -> u16 {
 }
 
 fn serve_tls(pieces: Vec<Vec<u8>>, close_with_final: bool) -> u16 {
-    let acceptor = RustlsAcceptor::from_pem(
-        fixture("cert.pem"),
-        Zeroizing::new(fixture("key.pem")),
-    )
-    .expect("acceptor");
+    let acceptor =
+        RustlsAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
+            .expect("acceptor");
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let port = listener.local_addr().expect("addr").port();

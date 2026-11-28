@@ -38,7 +38,7 @@ pub async fn handle(
             write_file(&mut request, &env, config, id).await
         }
         (worker::Method::Get, ["sandboxes", id, "file"]) => {
-            read_file(&request, &env, id).await
+            read_file(&request, &env, config, id).await
         }
         (worker::Method::Post, ["sandboxes", id, "chat"]) => {
             chat(&mut request, &env, config, id).await
@@ -98,11 +98,7 @@ struct CreateBody {
 /// `POST /api/sandboxes`: creates sandboxes and streams one JSON line per
 /// step. It streams from the first byte, because a container start can take
 /// longer than a Worker may wait before its response head.
-async fn create(
-    request: &mut Request,
-    env: &Env,
-    config: &DemoConfig,
-) -> worker::Result<Response> {
+async fn create(request: &mut Request, env: &Env, config: &DemoConfig) -> worker::Result<Response> {
     let body: CreateBody = match json_body(request, config.control_body_max_bytes).await {
         Ok(body) => body,
         Err(message) => return error_response(400, &message),
@@ -192,7 +188,8 @@ struct CreateState {
 
 /// One JSON line as a stream item.
 fn line(value: serde_json::Value) -> Result<Vec<u8>, worker::Error> {
-    let mut text = serde_json::to_vec(&value).map_err(|error| worker::Error::RustError(error.to_string()))?;
+    let mut text =
+        serde_json::to_vec(&value).map_err(|error| worker::Error::RustError(error.to_string()))?;
     text.push(b'\n');
     Ok(text)
 }
@@ -213,10 +210,7 @@ async fn stop_all(env: &Env, config: &DemoConfig) -> worker::Result<Response> {
         agent::close_openrouter(sandbox.id.as_str()).await;
     }
     let status = if failures.is_empty() { 200 } else { 500 };
-    json_status(
-        status,
-        json!({ "stopped": stopped, "failed": failures }),
-    )
+    json_status(status, json!({ "stopped": stopped, "failed": failures }))
 }
 
 /// `DELETE /api/sandboxes/<id>`: stops one sandbox.
@@ -340,7 +334,12 @@ async fn write_file(
 }
 
 /// `GET /api/sandboxes/<id>/file?path=...`: reads one file and streams it.
-async fn read_file(request: &Request, env: &Env, id: &str) -> worker::Result<Response> {
+async fn read_file(
+    request: &Request,
+    env: &Env,
+    config: &DemoConfig,
+    id: &str,
+) -> worker::Result<Response> {
     let id = match parse_id(id) {
         Ok(id) => id,
         Err(response) => return response,
@@ -494,7 +493,10 @@ fn parse_id(
 }
 
 /// Adds the sandbox identifier header.
-fn with_id(response: Response, id: &foundation_sandbox::shared::ids::SandboxId) -> worker::Result<Response> {
+fn with_id(
+    response: Response,
+    id: &foundation_sandbox::shared::ids::SandboxId,
+) -> worker::Result<Response> {
     response.headers().set("x-ewe-sandbox-id", id.as_str())?;
     Ok(response)
 }
@@ -507,7 +509,7 @@ where
     let response = Response::from_stream(stream)?.with_status(200);
     let headers = worker::Headers::new();
     headers.set("content-type", content_type)?;
-    response.with_headers(headers)
+    Ok(response.with_headers(headers))
 }
 
 /// One JSON error response.

@@ -179,7 +179,8 @@ fn given_an_offset_inside_a_json_message_when_a_read_runs_then_it_is_a_bad_reque
         };
         use std::sync::Arc;
 
-        let streams = DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()));
+        let streams =
+            DurableStreams::new(DurableStream::new(Arc::new(MemoryVfs::new()), &Ctx::host()));
         let stream = streams.stream(StreamName::parse("json/mid-offset").expect("name"));
         stream
             .create(CreateSpec {

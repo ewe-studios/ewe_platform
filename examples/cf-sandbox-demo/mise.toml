@@ -64,9 +64,17 @@ fi
 
 url=$(printf '%s\\n' "${deploy_log}" | sed -E 's/\\x1B\\[[0-9;]*[mK]//g' | grep -Eo 'https://[A-Za-z0-9._-]+\\.workers\\.dev' | head -1) || true
 if [ -z "${url}" ]; then
-    url="https://ewe-sandbox-demo.$(wrangler whoami 2>/dev/null | grep -Eo '[a-z0-9-]+\\.workers\\.dev' | head -1 | cut -d. -f2-)"
+    subdomain=$(wrangler whoami 2>/dev/null \
+        | sed -nE 's/.*Workers\\.dev subdomain: *([A-Za-z0-9-]+).*/\\1/p' | head -1)
+    if [ -n "${subdomain}" ]; then
+        url="https://ewe-sandbox-demo.${subdomain}.workers.dev"
+    fi
 fi
-echo "the demo URL is ${url}"
+if [ -n "${url}" ]; then
+    echo "the demo URL is ${url}"
+else
+    echo "the deploy finished; open the Workers dashboard to read the URL" >&2
+fi
 """
 
 [tasks.test]

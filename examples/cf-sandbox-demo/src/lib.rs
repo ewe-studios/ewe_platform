@@ -60,11 +60,12 @@ impl Timer for JsTimer {
         Box::pin(foundation_compact::SendWrapper::new(async move {
             let global = worker::js_sys::global();
             let promise = worker::js_sys::Promise::new(&mut |resolve, _reject| {
-                let Some(set_timeout) =
-                    worker::js_sys::Reflect::get(&global, &worker::wasm_bindgen::JsValue::from_str("setTimeout"))
-                        .ok()
-                        .and_then(|value| value.dyn_into::<worker::js_sys::Function>().ok())
-                else {
+                let Some(set_timeout) = worker::js_sys::Reflect::get(
+                    &global,
+                    &worker::wasm_bindgen::JsValue::from_str("setTimeout"),
+                )
+                .ok()
+                .and_then(|value| value.dyn_into::<worker::js_sys::Function>().ok()) else {
                     // No host timer: complete at once rather than hang.
                     let _ = resolve.call0(&worker::wasm_bindgen::JsValue::UNDEFINED);
                     return;

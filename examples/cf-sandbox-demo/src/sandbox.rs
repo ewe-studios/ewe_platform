@@ -424,9 +424,7 @@ where
     headers
         .set("content-type", content_type)
         .map_err(|error| format!("the content type: {error}"))?;
-    response
-        .with_headers(headers)
-        .map_err(|error| format!("the response headers: {error}"))
+    Ok(response.with_headers(headers))
 }
 
 /// The text of one `Exec` event.
@@ -439,7 +437,12 @@ fn exec_text(value: serde_json::Value) -> Vec<u8> {
         ExecEventKind::Stdout { data } | ExecEventKind::Stderr { data } => data,
         ExecEventKind::Exit { code, signal } => {
             let exit = code.map_or_else(
-                || signal.map_or_else(|| "unknown".to_string(), |signal| format!("signal {signal}")),
+                || {
+                    signal.map_or_else(
+                        || "unknown".to_string(),
+                        |signal| format!("signal {signal}"),
+                    )
+                },
                 |code| code.to_string(),
             );
             format!("\n[exit {exit}]\n").into_bytes()
@@ -519,14 +522,14 @@ async fn forward(
             .set(SANDBOX_ID_HEADER, id.as_str())
             .map_err(|error| format!("the sandbox identifier header: {error}"))?;
     }
-    let init = worker::RequestInit::new();
+    let mut init = worker::RequestInit::new();
     init.with_method(worker::Method::Post);
     init.with_headers(headers);
     let array = worker::js_sys::Uint8Array::from(body);
     init.with_body(Some(worker::wasm_bindgen::JsValue::from(array)));
     let url = format!("https://sandbox.rpc{path}");
-    let request = Request::new_with_init(&url, &init)
-        .map_err(|error| format!("the request: {error}"))?;
+    let request =
+        Request::new_with_init(&url, &init).map_err(|error| format!("the request: {error}"))?;
     stub.fetch_with_request(request)
         .await
         .map_err(|error| format!("the {path} call: {error}"))
@@ -641,4 +644,3 @@ impl Stream for ConnectFrames {
         }
     }
 }
-

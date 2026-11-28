@@ -95,7 +95,9 @@ fn todo_context(owner: Origin) -> Result<Ctx, CoreError> {
             detail: e.to_string(),
         })?,
     );
-    ctx.store(foundation_ui_runtime::sound::SoundHost(Arc::new(foundation_ui_runtime::sound::PullOutput)));
+    ctx.store(foundation_ui_runtime::sound::SoundHost(Arc::new(
+        foundation_ui_runtime::sound::PullOutput,
+    )));
     if owner == Origin::Server {
         ctx.store(crate::TodoStore::default());
     } else {

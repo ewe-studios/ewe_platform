@@ -30,7 +30,10 @@ pub trait HostResourceSource: Send + Sync {
     ///
     /// # Errors
     /// Returns the operating system open error.
-    fn open_resource_file(&self, name: String) -> Result<Option<Arc<dyn HostResourceFile>>, CoreError>;
+    fn open_resource_file(
+        &self,
+        name: String,
+    ) -> Result<Option<Arc<dyn HostResourceFile>>, CoreError>;
 }
 
 struct File(Option<Arc<dyn HostResourceFile>>);
@@ -79,7 +82,9 @@ impl ResourceReader for MobileReader {
                 move |(mut file, name)| async move {
                     blocking::unblock(move || {
                         let input = file.0.as_ref().expect("open file");
-                        let bytes = input.read(capacity).map_err(|e| read_error(&name, e.to_string()))?;
+                        let bytes = input
+                            .read(capacity)
+                            .map_err(|e| read_error(&name, e.to_string()))?;
                         if bytes.len() > capacity as usize {
                             return Err(read_error(&name, "host exceeded requested chunk size"));
                         }

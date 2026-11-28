@@ -92,10 +92,7 @@ impl ObjectTransport for ObjectMap {
                     let Some(range) = range else {
                         return Ok(ObjectResponse {
                             status: 200,
-                            headers: vec![(
-                                "content-length".to_string(),
-                                stored.len().to_string(),
-                            )],
+                            headers: vec![("content-length".to_string(), stored.len().to_string())],
                             body: stored,
                         });
                     };
@@ -111,10 +108,7 @@ impl ObjectTransport for ObjectMap {
                     let slice = stored[start..end].to_vec();
                     Ok(ObjectResponse {
                         status: 206,
-                        headers: vec![(
-                            "content-length".to_string(),
-                            slice.len().to_string(),
-                        )],
+                        headers: vec![("content-length".to_string(), slice.len().to_string())],
                         body: slice,
                     })
                 }

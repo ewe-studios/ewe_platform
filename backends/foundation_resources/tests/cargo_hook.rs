@@ -77,7 +77,9 @@ fn main() -> std::io::Result<()> {
     #[cfg(unix)]
     assert_eq!(
         fs::metadata(public.join("version")).unwrap().permissions(),
-        fs::metadata(public.join("browser.js")).unwrap().permissions()
+        fs::metadata(public.join("browser.js"))
+            .unwrap()
+            .permissions()
     );
     assert_eq!(fs::read(public.join("art/icon")).unwrap(), b"first");
     assert!(public.join("browser.js").is_file());

@@ -1547,7 +1547,9 @@ impl DurableStreamStore for DurableStream {
             }
 
             let bytes = match &req.final_chunk {
-                Some(chunk) if before.content_type.is_json() => encode_json(chunk.as_bytes(), false)?,
+                Some(chunk) if before.content_type.is_json() => {
+                    encode_json(chunk.as_bytes(), false)?
+                }
                 Some(chunk) => chunk.as_bytes().to_vec(),
                 None => Vec::new(),
             };

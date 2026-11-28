@@ -1,5 +1,5 @@
 //! Replay a seeded Mathalley game and inspect the frames presented by Android.
-use super::{Screen, cleanup, sleep};
+use super::{cleanup, sleep, Screen};
 use foundation_tasks::{ProcessCommand, TaskContext, TaskError, TaskResult};
 use std::{
     fs::File,

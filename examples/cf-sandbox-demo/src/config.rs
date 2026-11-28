@@ -69,8 +69,8 @@ impl Default for DemoConfig {
             workers_ai_model: "@cf/meta/llama-3.1-8b-instruct".to_string(),
             openrouter_base_url: "https://openrouter.ai/api".to_string(),
             openrouter_model: "google/gemma-4-31b-it:free".to_string(),
-            agent_system_prompt:
-                "You are a concise assistant. Answer in one short sentence.".to_string(),
+            agent_system_prompt: "You are a concise assistant. Answer in one short sentence."
+                .to_string(),
             openrouter_secret: "OPENROUTER_API_KEY".to_string(),
             ai_binding: "AI".to_string(),
         }

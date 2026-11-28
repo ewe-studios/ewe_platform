@@ -159,7 +159,12 @@ pub static WEB_KINDS: &[WebKind] = &[
         class: "ewe-cancel-button",
         attrs: &[("type", "button")],
     },
-    WebKind {kind:NodeKind::DRAWING_SURFACE,tag:"canvas",class:"ewe-drawing-surface",attrs:&[]},
+    WebKind {
+        kind: NodeKind::DRAWING_SURFACE,
+        tag: "canvas",
+        class: "ewe-drawing-surface",
+        attrs: &[],
+    },
     WebKind {
         kind: NodeKind::SEARCH_INPUT,
         tag: "input",

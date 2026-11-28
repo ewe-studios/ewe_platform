@@ -3428,12 +3428,7 @@ impl SimpleResponse<SendSafeBody> {
     #[must_use]
     pub fn into_parts_with_wake(
         self,
-    ) -> (
-        Status,
-        SimpleHeaders,
-        SendSafeBody,
-        Option<ReadWakeSource>,
-    ) {
+    ) -> (Status, SimpleHeaders, SendSafeBody, Option<ReadWakeSource>) {
         let Self(status, headers, body, source) = self;
         (status, headers, body, source)
     }
@@ -4674,10 +4669,7 @@ where
                 let decompression = self.bodies.decompression();
                 let decoding = super::decompression::response_decoding(&headers, &decompression);
                 let body_headers = headers.clone();
-                if matches!(
-                    &decoding,
-                    super::decompression::ResponseDecoding::Decode(_)
-                ) {
+                if matches!(&decoding, super::decompression::ResponseDecoding::Decode(_)) {
                     headers.remove(&SimpleHeader::CONTENT_ENCODING);
                     headers.remove(&SimpleHeader::CONTENT_LENGTH);
                 }
@@ -4838,16 +4830,17 @@ where
                     &decompression,
                 );
                 let cloned_stream = self.reader.clone();
-                let extracted = self.bodies.extract(body.clone(), cloned_stream).and_then(
-                    |generated| {
-                        super::decompression::decode_body(
-                            generated,
-                            decoding,
-                            &decompression,
-                            self.bodies.body_batch_size(),
-                        )
-                    },
-                );
+                let extracted =
+                    self.bodies
+                        .extract(body.clone(), cloned_stream)
+                        .and_then(|generated| {
+                            super::decompression::decode_body(
+                                generated,
+                                decoding,
+                                &decompression,
+                                self.bodies.body_batch_size(),
+                            )
+                        });
                 match extracted {
                     Ok(generated_body) => {
                         // once we've gotten a body iterator and gives it to the user
@@ -6304,13 +6297,8 @@ impl SimpleHttpBody {
                 .get(&SimpleHeader::TRANSFER_ENCODING)
                 .cloned()
                 .unwrap_or_default();
-            let reader = ChunkedBodyReader::new(
-                transfer_encoding,
-                headers.clone(),
-                stream,
-                self.2,
-                self.4,
-            );
+            let reader =
+                ChunkedBodyReader::new(transfer_encoding, headers.clone(), stream, self.2, self.4);
             let buffered = SharedByteBufferStream::rwrite(reader);
             Box::new(SimpleSseIterator::new(headers, buffered).with_limits(self.4))
         } else {
