@@ -2549,3 +2549,10 @@ The Ubuntu keyserver returns the public signing certificate to a fresh keyring.
 The owner approves the verified integration commit for 0.1.2. The release tag points to that exact commit.
 The tag run starts the candidate checks. The publication job waits for their results and the required reviewer.
 [Tag run](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056) · [Release start record](features/19-native-package-releases/release-prerequisites.md#approved-012-release-start)
+
+## Tagged native validation retry
+
+The first tag attempt fails the Android plugin resolution and the iPhone simulator destination checks.
+The exact source passes both checks in the earlier unsigned preview.
+The failed-job retry uses the same release tag. Publication still needs a successful prerequisite run and reviewer approval.
+[Attempt 2](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/attempts/2) · [Release retry evidence](features/19-native-package-releases/release-prerequisites.md#tagged-validation-retry)

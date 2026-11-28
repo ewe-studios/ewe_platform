@@ -1891,3 +1891,10 @@ Use the unsigned manifest from the exact integrated revision to verify its archi
 A successful upload response alone does not confirm a public key lookup.
 Use a fresh keyring to retrieve the certificate and compare its full fingerprint before pushing the release tag.
 [Central public key requirements](https://central.sonatype.org/publish/requirements/gpg/#distributing-your-public-key)
+
+## Tagged native validation retry
+
+Compare a tagged failure with a preview of the exact same source.
+Check whether the named Gradle marker exists before you change a version pin.
+A successful simulator boot does not prove that Xcode can resolve the destination.
+[Android issue 1255](https://github.com/ewe-studios/ewe_platform/issues/1255) · [iPhone issue 1259](https://github.com/ewe-studios/ewe_platform/issues/1259)

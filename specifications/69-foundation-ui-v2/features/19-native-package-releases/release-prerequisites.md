@@ -230,3 +230,12 @@ A separate empty keyring retrieves the certificate and confirms fingerprint `965
 The remote `native-ui-v0.1.2` tag resolves to the approved commit.
 The tag run repeats the candidate checks before the publication job requests environment approval.
 [Tag run](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056)
+
+### Tagged validation retry
+
+Attempt 1 passes the release tag version and starter build checks.
+The Android job cannot resolve the pinned Kotlin plugin. The plugin marker later returns HTTP status 200 from both public repositories.
+The iPhone job boots a simulator. Xcode then cannot find the destination and exits with status 70.
+GitHub skips publication because both prerequisite jobs fail.
+The failed-job retry uses the same tag and exact source. The publication approval still belongs to the environment reviewer.
+[Attempt 1](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/attempts/1) · [Attempt 2](https://github.com/ewe-studios/ewe_platform/actions/runs/46121293056/attempts/2) · [Android issue 1255](https://github.com/ewe-studios/ewe_platform/issues/1255) · [iPhone issue 1259](https://github.com/ewe-studios/ewe_platform/issues/1259)
