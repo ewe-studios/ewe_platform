@@ -19,6 +19,9 @@ closed, not when its code compiles.
 - **A skip can look like a pass.** The Vault test started a dev container, but a Vault dev
   server mounts no secrets engine. The key call returned 404, the test returned, and the run
   was green. The test now enables Transit, and the job fails when the output names a skip.
+- **`up --wait` fails on a one-shot service.** The `vault-init` service exits 0 after it
+  enables Transit, and compose treats the exited container as a failed service. The job now
+  waits for `vault` only and runs `vault-init` with `run --rm`.
 - **A test filter can match no case and still pass.** The `kms_tests` target root is
   `tests/kms/mod.rs`, so its cases are top-level modules. The filter `kms::kms_vault_transit`
   selected nothing; the filter `kms_vault_transit` selects the test. The job now also fails

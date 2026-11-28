@@ -176,16 +176,19 @@ image in a container. A Vault dev server mounts no secrets engine, so the test n
 Transit before it creates the derived key. Before this change the key call returned 404 and
 the test returned as a skip, so the backend had no live proof.
 
-The `sandbox-e2e` job starts the compose services with `--wait`, runs
+The `sandbox-e2e` job starts the Vault server with `--wait`, runs `vault-init` as a one-off
+with `run --rm`, runs
 `cargo test -p foundation_auth --features testing --profile uat kms_vault_transit`, and
 stops the services with a trap on every path. The job fails when the output names a skip,
-and when the output holds no `vault_transit_seals_and_opens` case. The filter has no `kms::`
-prefix: the target root is `tests/kms/mod.rs`, so the test is
-`kms_vault_transit::vault_transit_seals_and_opens`. A `kms::` filter selects no case and
-looks green.
+when the output holds no `1 passed` line, and when the output holds no
+`vault_transit_seals_and_opens` case. The filter has no `kms::` prefix: the target root is
+`tests/kms/mod.rs`, so the test is `kms_vault_transit::vault_transit_seals_and_opens`. A
+`kms::` filter selects no case and looks green.
 
-Local result: the compose services were up, and the test binary ran with
-`VAULT_ADDR=http://127.0.0.1:8200`: `1 passed; 0 failed`.
+Local result, from a clean state (`down -v` first): `up -d --wait vault`,
+`run -T --rm vault-init`, then
+`cargo test -p foundation_auth --features testing --profile uat kms_vault_transit` gave
+`test kms_vault_transit::vault_transit_seals_and_opens ... ok` and `1 passed; 0 failed`.
 
 **T6, WebCrypto in the browser job.** `foundation_auth/tests/wasm/webcrypto_sealer_tests.rs`
 is a `wasm-bindgen-test` target. It seals a payload, opens it back, refuses a different
