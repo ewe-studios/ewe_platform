@@ -43,27 +43,6 @@ use crate::shared::{BoxByteStream, BoxFuture, ExecEventStream};
 /// The address that the remote client uses in the request line.
 const CONTROL_AUTHORITY: &str = "http://control.local";
 
-/// An iterator that is `Send` on every target.
-///
-/// On a native target the wrapped iterator is `Send` already. On single
-/// threaded wasm [`foundation_compact::SendWrapper`] supplies the bound, and
-/// the value never crosses a thread because the target has one.
-pub(crate) struct SendIterator<I>(foundation_compact::SendWrapper<I>);
-
-impl<I> SendIterator<I> {
-    pub(crate) fn new(inner: I) -> Self {
-        Self(foundation_compact::SendWrapper::new(inner))
-    }
-}
-
-impl<I: Iterator> Iterator for SendIterator<I> {
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-}
-
 /// The state that one execution session shares between its handle and its
 /// input writer.
 struct ExecShared {

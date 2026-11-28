@@ -10,6 +10,9 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use foundation_core::valtron::Stream as ValtronStream;
+use foundation_core::valtron::{
+    SendWakeCallback, StreamIterator, WakeCallback, WakeResult, WakeableStream,
+};
 use futures::Stream;
 
 use crate::shared::command::{ExecEvent, ExitStatus};
@@ -266,40 +269,113 @@ impl Stream for FileStream {
     }
 }
 
-/// The progress iterator of one create.
+/// The wake-carrying source of a [`CreateStream`].
 ///
-/// `StreamIterator` has a blanket implementation for every `Iterator` whose
-/// item is a valtron `Stream`, so this wrapper is also a `StreamIterator`.
-pub struct CreateStream(
-    Box<
-        dyn Iterator<Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>>
-            + Send
-            + 'static,
-    >,
-);
+/// The create progress iterator is a driving stream with a wake. A trait
+/// object over [`WakeableStream`] cannot keep that wake: `StreamIterator` is a
+/// supertrait with a blanket implementation, so a projection through a wrapper
+/// does not resolve. This trait names the concrete item type once, and both the
+/// item and the wake cross the box.
+pub trait CreateSource: Send {
+    /// The next item of the create stream.
+    fn next_item(&mut self) -> Option<ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>>;
+    /// Register a wake for the next item.
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult;
+    /// Register a wake that may fire on another thread.
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult;
+    /// Announce an async consumer before the first pull.
+    fn announce(&mut self) {}
+    /// Whether `next_item` runs the producer.
+    fn drives_its_producer(&self) -> bool {
+        false
+    }
+    /// Whether the driving stream can make progress now.
+    fn can_make_progress(&self) -> bool {
+        true
+    }
+}
+
+#[cfg(target_family = "wasm")]
+impl<T> CreateSource for foundation_compact::SendWrapper<T>
+where
+    T: WakeableStream + StreamIterator<D = SandboxResult<SandboxHandle>, P = CreateProgress>,
+{
+    fn next_item(&mut self) -> Option<ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>> {
+        Iterator::next(&mut **self)
+    }
+
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        (**self).wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        (**self).wake_send(cb)
+    }
+
+    fn announce(&mut self) {
+        (**self).announce();
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        (**self).drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        (**self).can_make_progress()
+    }
+}
+
+#[cfg(not(target_family = "wasm"))]
+impl<T> CreateSource for foundation_compact::SendWrapper<T>
+where
+    T: WakeableStream + StreamIterator<D = SandboxResult<SandboxHandle>, P = CreateProgress> + Send,
+{
+    fn next_item(&mut self) -> Option<ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>> {
+        Iterator::next(&mut **self)
+    }
+
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        (**self).wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        (**self).wake_send(cb)
+    }
+
+    fn announce(&mut self) {
+        (**self).announce();
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        (**self).drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        (**self).can_make_progress()
+    }
+}
+
+/// The progress iterator of one create.
+pub struct CreateStream {
+    inner: Box<dyn CreateSource>,
+    /// Runs when the stream is dropped before it finishes: it cancels the
+    /// create and removes any substrate it started.
+    on_drop: Option<Box<dyn FnOnce() + Send>>,
+}
 
 impl CreateStream {
     /// Wraps the progress iterator of a create.
     #[must_use]
-    pub fn new(
-        inner: Box<
-            dyn Iterator<Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>>
-                + Send
-                + 'static,
-        >,
-    ) -> Self {
-        Self(inner)
+    pub fn new(inner: Box<dyn CreateSource>, on_drop: Option<Box<dyn FnOnce() + Send>>) -> Self {
+        Self { inner, on_drop }
     }
+}
 
-    /// The wrapped iterator.
-    pub fn into_inner(
-        self,
-    ) -> Box<
-        dyn Iterator<Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>>
-            + Send
-            + 'static,
-    > {
-        self.0
+impl Drop for CreateStream {
+    fn drop(&mut self) {
+        if let Some(on_drop) = self.on_drop.take() {
+            on_drop();
+        }
     }
 }
 
@@ -307,6 +383,70 @@ impl Iterator for CreateStream {
     type Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next_item()
+    }
+}
+
+impl WakeableStream for CreateStream {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.inner.wake(cb)
+    }
+
+    fn wake_send(&mut self, cb: SendWakeCallback) -> WakeResult {
+        self.inner.wake_send(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
+
+    fn drives_its_producer(&self) -> bool {
+        self.inner.drives_its_producer()
+    }
+
+    fn can_make_progress(&self) -> bool {
+        self.inner.can_make_progress()
+    }
+}
+
+/// A stream that cannot deliver a wake.
+///
+/// Used for the immediate error of a failed create: it yields one item and
+/// then ends, so it needs no readiness signal.
+pub struct NoWake<I>(I);
+
+impl<I> NoWake<I> {
+    /// Wraps an iterator that cannot signal readiness.
+    #[must_use]
+    pub fn new(inner: I) -> Self {
+        Self(inner)
+    }
+}
+
+impl<I> Iterator for NoWake<I>
+where
+    I: Iterator<Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>>,
+{
+    type Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>;
+
+    fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
+    }
+}
+
+impl<I> CreateSource for NoWake<I>
+where
+    I: Iterator<Item = ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>> + Send,
+{
+    fn next_item(&mut self) -> Option<ValtronStream<SandboxResult<SandboxHandle>, CreateProgress>> {
+        self.0.next()
+    }
+
+    fn wake(&mut self, _cb: WakeCallback) -> WakeResult {
+        WakeResult::NotSupported
+    }
+
+    fn wake_send(&mut self, _cb: SendWakeCallback) -> WakeResult {
+        WakeResult::NotSupported
     }
 }
