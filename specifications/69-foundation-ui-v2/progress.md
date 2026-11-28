@@ -2501,3 +2501,11 @@ The hosted packager recipe passes all 12 tests with zero ignored tests.
 The three generator tests cover static files, a standalone package, and a workspace member.
 The plan runs this package on Windows with its default recipe.
 [Packager job](https://github.com/ewe-studios/ewe_platform/actions/runs/46090234572/job/140813003158) · [Issue 527](https://github.com/ewe-studios/ewe_platform/issues/527)
+
+### Portable Windows browser gate
+
+The package plan selects the portable browser default recipe on Windows.
+The hosted test runs 19 checks, including both streamed upgrade cases.
+A separate Chrome run passes all three navigation checks after the transport repair.
+The local HTTP server fixture requires Unix. Issue 531 tracks the remaining server scope.
+[Windows browser proof](https://github.com/ewe-studios/ewe_platform/actions/runs/46090234572/job/140813003067) · [Portable gate](https://github.com/ewe-studios/ewe_platform/issues/1203)

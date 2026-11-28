@@ -1845,3 +1845,9 @@ The native preview artifact contains unsigned packages. The protected tag job si
 The packager fixture removes a path prefix with native path components.
 Compare the returned paths directly with the expected file paths.
 The Windows run checks the same package contents and workspace member as macOS.
+
+## Windows browser coverage
+
+Keep the native client tests available on Windows.
+The local browser harness uses the Unix HTTP server and stays on Unix.
+The Windows recipe runs the driver tests without the local server APIs.
