@@ -85,6 +85,15 @@ fn sample(png: &Path, rgb: &Path, color: Option<[u8; 3]>) -> io::Result<Option<S
             break row + 1;
         }
     };
+    // The screen can have landscape dimensions while Android still rotates the view.
+    // Check the opposite edge before using the surface bounds for a tap.
+    let opposite = u64::from(width - width / 4);
+    if width > height
+        && (pixel(opposite, u64::from(top))? != background
+            || pixel(opposite, u64::from(bottom - 1))? != background)
+    {
+        return Ok(None);
+    }
     let mut row = vec![0; width as usize * 3];
     pixels.seek(SeekFrom::Start(3 * u64::from(width) * u64::from(top)))?;
     pixels.read_exact(&mut row)?;
@@ -208,6 +217,10 @@ pub(crate) async fn run(ctx: TaskContext, args: Options) -> TaskResult {
     restore.extend(rotation.split_whitespace());
     screen.shell(&["wm", "user-rotation", "lock", "1"]).await?;
     let result = async {
+        // Wait for the dialog, then read the surface used for the answer tap.
+        screen
+            .wait(&["Back to Todos", "Mathalley game"], &[])
+            .await?;
         let scene = presented(
             &screen,
             &args.captures,
@@ -216,10 +229,6 @@ pub(crate) async fn run(ctx: TaskContext, args: Options) -> TaskResult {
             true,
         )
         .await?;
-        // The rotated surface can appear before the game dialog receives focus.
-        screen
-            .wait(&["Back to Todos", "Mathalley game"], &[])
-            .await?;
         touch(&screen, &scene, 105, 690).await?;
         // Keep the display in landscape until the game processes the answer.
         presented(
@@ -230,11 +239,10 @@ pub(crate) async fn run(ctx: TaskContext, args: Options) -> TaskResult {
             true,
         )
         .await?;
-        Ok(())
+        screen.tap("Back to Todos", &[]).await
     }
     .await;
     cleanup(result, screen.restore(&restore).await)?;
-    screen.tap("Back to Todos", &[]).await?;
     screen.wait(&["Play Mathalley"], &[]).await?;
     Ok(())
 }
