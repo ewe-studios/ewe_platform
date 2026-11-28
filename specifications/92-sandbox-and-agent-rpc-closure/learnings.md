@@ -139,7 +139,20 @@ its first turn.
 
 ## `mise run deploy` ignores the preview name (2026-11-28)
 
-The `deploy` task always uses `wrangler.toml`, whose names are the persistent
-demo. A preview deploy must write its own config, as `test/live.sh` does.
-Issue #1266 tracks the fix. A user who sets `EWE_DEMO_NAME` and runs
-`mise run deploy` changes the public demo.
+The `deploy` task always used `wrangler.toml`, whose names are the persistent
+demo. A preview deploy had to write its own config, as `test/live.sh` does.
+Issue #1266 is fixed in this branch: `EWE_DEMO_NAME` sets the Worker and
+container names through a temporary `wrangler.deploy.toml`, which the task
+removes when it ends. A deploy without `EWE_DEMO_NAME` keeps the persistent
+demo name.
+
+## A read-only Docker runtime (2026-11-28)
+
+Kiri answered every container start with `Read-only file system (os error
+30)`, including a plain `alpine` container. Freeing host space did not help,
+because the runtime's own filesystem was read-only. The Worker module carries
+the page and the API. The container image carries the static slave and the
+model server. When the local runtime cannot build or start a container, deploy
+the Worker with the digest of the existing managed image. The new container
+application pulls the same binaries, and the page and API still arrive from the
+new Worker module.

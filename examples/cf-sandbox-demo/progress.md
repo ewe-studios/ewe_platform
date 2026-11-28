@@ -42,6 +42,20 @@
   Object exceeded its CPU time limit and was reset.`
 - The preview Worker, its container and its managed image are deleted. The
   persistent `ewe-sandbox-demo` and its container are untouched.
+- The persistent user-interface Worker
+  `https://ewe-sandbox-demo-ui.trinoxf.workers.dev` is left up for the owner.
+  It answers the probe with 200, lists zero sandboxes with a maximum of three,
+  and shows the strip, the central chat, the Refresh button and the Evidence
+  text. The central chat answers 409 `there are no sandboxes; create one
+  first`.
+- The local Kiri Docker runtime is read-only and starts no container. The
+  user-interface Worker therefore uses the existing managed image
+  `ewe-sandbox-demo-container@sha256:e437e28e...`. The binaries in that image
+  are the same static slave and model server. Its container application
+  `ewe-sandbox-demo-ui-container` is ready.
+- `mise run deploy` now reads `EWE_DEMO_NAME`. It writes a temporary
+  `wrangler.deploy.toml` with that Worker and container name, and removes the
+  file when it ends. Issue #1266.
 - `test/live.sh` now checks the page controls, the index metadata, the three
   hostnames, the central chat routing and the unknown-name error. The checks
   after the create wait for the create CPU fix.

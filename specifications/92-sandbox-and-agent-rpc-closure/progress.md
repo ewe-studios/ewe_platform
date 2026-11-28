@@ -296,6 +296,15 @@ exceeded its CPU time limit and was reset.`, so the three-sandbox checks wait
 for the create CPU fix. The preview Worker, its container and its managed
 image are deleted. The persistent `ewe-sandbox-demo` is untouched.
 
-**#1266** (`severity: medium`, open): `mise run deploy` ignores
-`EWE_DEMO_NAME`, so it overwrites the persistent demo. A preview deploy writes
-its own `wrangler.preview.toml`, as `test/live.sh` does.
+The persistent user-interface Worker
+`https://ewe-sandbox-demo-ui.trinoxf.workers.dev` is left up for the owner. It
+answers the probe with 200, lists zero sandboxes, and shows the strip, the
+central chat, the Refresh button and the Evidence text. The local Kiri Docker
+runtime is read-only and starts no container, so the Worker uses the existing
+managed image `ewe-sandbox-demo-container@sha256:e437e28e...`. Its container
+application `ewe-sandbox-demo-ui-container` is ready.
+
+**#1266** (`severity: medium`, fixed in this branch): `mise run deploy` now
+reads `EWE_DEMO_NAME`. It writes a temporary `wrangler.deploy.toml` with that
+Worker and container name, and removes the file when it ends. A deploy without
+`EWE_DEMO_NAME` keeps the persistent demo name.
