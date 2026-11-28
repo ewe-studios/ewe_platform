@@ -6,7 +6,7 @@ _Last updated: 2026-11-28._
 
 | Feature | State |
 |---|---|
-| 00 Live proof on the real services | in review: pull request #1144 fixes the Cloudflare create stall; #1055 (moto) merged; T5 (Vault Transit) and T6 (WebCrypto) wait on `feature/vault-webcrypto` |
+| 00 Live proof on the real services | in review: pull request #1144 fixes the Cloudflare create stall; #1055 (moto) merged; T5 (Vault Transit) and T6 (WebCrypto) are in pull request #1225 |
 | 01 DST fidelity: the real registry | stages A merged (#1116); stage B #1130 and stage C #1136 in review |
 | 02 Sandbox follow-ups | in review: pull request #1111, 12 issues closed, #1104 fixed |
 | 03 GCP KMS over gRPC | in review: pull request #1121, conflicts resolved |
