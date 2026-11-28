@@ -229,8 +229,27 @@ every version.
   `mise run test` runs the preview proof with teardown. `mise run destroy`
   removes the persistent Worker.
 
+The wasm check passes on 2026-11-28:
+
+```bash
+cd examples/cf-sandbox-demo
+cargo check --target wasm32-unknown-unknown
+```
+
+The `cargo check` compiled the reused `sandbox_worker` with the `entry` feature
+off and the demo crate with the agent RPC core, `foundation_http::wasm`, the
+sandbox client and the three model paths.
+
 The live run needs a Cloudflare API token with Workers Scripts Edit, Containers
 Edit and Workers AI Read. The owner's `CLOUDFLARE_WORKERS_AI_API_TOKEN` in the
-shell lists Workers scripts but the Containers API answers `Authentication
-error`, so it cannot deploy the container. The demo URL and the per-tab results
-are added here after a token with those permissions runs `mise run deploy`.
+shell lists Workers scripts, but `wrangler containers list` answers
+`Authentication error`, so it cannot deploy the container.
+
+The `worker-build --release` step and the local `wrangler dev` proof were
+stopped on 2026-11-28 because `/Volumes/Outside` had under 10 GiB free while
+other agent lanes were building. A release build and a container image need
+more space than that.
+
+The demo URL and the per-tab results are added here after a machine with the
+token permissions and enough free disk runs `mise run deploy` and
+`mise run test`.
