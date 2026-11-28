@@ -74,6 +74,19 @@ buffa = { version = "0.9.2", features = ["json"] }
 bytes = "1.5"
 foundation_arrow = { path = "../foundation_arrow" }
 futures-lite = "2"
+# The Durable Streams service test starts one process-wide valtron pool, so its
+# tests run one at a time.
+serial_test = { workspace = true }
+
+[build-dependencies]
+# Durable Streams messages from `proto/` (buffa-build, needs `protoc`) and the
+# service stubs (foundation_connectrpc_codegen) — the
+# foundation_agent_rpc pattern. `buffa-build` must match the `buffa` runtime
+# above.
+buffa-build = { workspace = true }
+foundation_connectrpc_codegen = { path = "../foundation_connectrpc_codegen", version = "0.0.6" }
+prost = { workspace = true }
+prost-types = { workspace = true }
 
 [features]
 default = ["rpc_multi"]

@@ -1,0 +1,37 @@
+# A standalone worker that runs the Durable Streams SQL virtual file system
+# (VFS) conformance kit against a real Durable Object (DO) SQLite store and a
+# real local D1 database. It is outside the root workspace, so the native
+# `tests/` of foundation_db never build for wasm32.
+#
+# Run it with `wrangler dev --local`; see the feature document for the exact
+# command:
+#
+#   npx wrangler dev --local --port 8791
+#   curl --fail http://127.0.0.1:8791/run
+#   curl --fail http://127.0.0.1:8791/run-d1
+#
+# The Durable Object uses the SQLite backend, so the migration declares
+# `new_sqlite_classes` in `wrangler.toml`.
+[package]
+name = "foundation_do_sql_worker"
+version = "0.0.1"
+publish = false
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+foundation_core = { path = "../../../foundation_core", features = ["vfs-testkit"] }
+foundation_context = { path = "../../../foundation_context" }
+foundation_db = { path = "../..", default-features = false, features = ["do-sql"] }
+# The shared scenario suite. The wasm build turns the native drivers off and
+# supplies the Durable Object driver from this fixture.
+durable_transport_matrix = { path = "../../../../integration/durable_transport_matrix", default-features = false }
+serde_json = "1"
+worker = "0.8.3"
+# Pin the bridge to the version the workspace uses, so the wasm-bindgen Command
+# Line Interface (CLI) and the crate agree.
+wasm-bindgen = "=0.2.130"
+
+[workspace]

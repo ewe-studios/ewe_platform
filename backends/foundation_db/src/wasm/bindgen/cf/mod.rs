@@ -3,6 +3,11 @@
 use wasm_bindgen::JsCast;
 
 pub mod d1;
+
+/// Durable Object (DO) SQLite storage bindings for the `do-sql` feature.
+#[cfg(feature = "do-sql")]
+pub mod do_sql;
+
 pub mod kv;
 pub mod r2;
 
@@ -26,5 +31,7 @@ pub fn get_binding<T: JsCast>(
 }
 
 pub use d1::*;
+#[cfg(feature = "do-sql")]
+pub use do_sql::*;
 pub use kv::*;
 pub use r2::*;

@@ -9,6 +9,10 @@
 //! The first landed piece is the protocol-agnostic **error model** (Decision 03):
 //! see [`error`].
 
+// Generated service code names this crate by its package name. The alias lets
+// the Durable Streams service compile inside this crate.
+extern crate self as foundation_connectrpc;
+
 // Cross-platform modules (native + wasm).
 pub mod shared;
 

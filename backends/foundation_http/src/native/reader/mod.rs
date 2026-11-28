@@ -37,7 +37,12 @@ pub fn read_next_request<T: std::io::Read + Send + Sync + 'static>(
 ) -> Option<Result<SimpleIncomingRequest, HttpReaderError>> {
     let mut request_stream = streams.next_request();
 
-    let mut builder = SimpleIncomingRequest::builder().with_connection(connection.clone());
+    // A parsed request keeps its wire headers. The builder must not derive
+    // framing headers from the body again, or a streamed `Content-Length` body
+    // would lose its length and corrupt the next keep-alive request.
+    let mut builder = SimpleIncomingRequest::builder()
+        .with_connection(connection.clone())
+        .with_preserved_headers();
 
     let mut total_skips = 0;
     let mut seen_starter: bool = false;

@@ -205,6 +205,13 @@ impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
         self.router.add_route_any_writer(path, &handler);
         self
     }
+
+    /// Register the writer handler for every path that no route matches.
+    pub fn fallback_writer<H: ServeWriterFactory>(&mut self) -> &mut Self {
+        let handler: Arc<dyn crate::shared::serve::ServeWriter> = Arc::new(H::create(&self.ctx));
+        self.router.set_fallback(handler);
+        self
+    }
 }
 
 impl<S> Default for HttpApp<S>

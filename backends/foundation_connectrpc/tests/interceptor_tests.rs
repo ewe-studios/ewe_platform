@@ -246,6 +246,10 @@ fn wrapping_interceptor_observes_frames_both_directions_after_split() {
 // ── panic recovery ────────────────────────────────────────────────────────────
 
 #[test]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding: the panic aborts the process instead of being caught"
+)]
 fn panic_in_handler_becomes_internal_via_recover() {
     let handler: UnaryFunc = Arc::new(|_ctx, _call| {
         Box::pin(async move {

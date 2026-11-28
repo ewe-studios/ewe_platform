@@ -29,7 +29,7 @@ use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
-    SimpleIncomingRequest, SimpleOutgoingResponse,
+    SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 
 use crate::native::reader::read_next_request;
@@ -156,6 +156,19 @@ pub struct ConnectionHandler {
     total_delay_cycles: u32,
     /// The engine context, seeded from the pool root `Ctx`.
     ctx: Ctx,
+    /// The reactor registration this connection is parked on for its next
+    /// request, refreshed at the start of every idle read.
+    ///
+    /// WHY refresh it before the read and not at the park: the reactor keys a
+    /// latched event by the token registered with the fd. If the token is
+    /// replaced at the park, an event for the next request that the drain
+    /// thread has already queued under the previous token is latched against an
+    /// entry that no longer exists, and the parked task never wakes — the
+    /// connection stalls until its idle deadline (issue #1127). Registering
+    /// before the read means the token the park waits on is the one every later
+    /// event carries.
+    #[cfg(unix)]
+    idle_readiness: Option<Arc<SocketReadiness>>,
 }
 
 impl ConnectionHandler {
@@ -202,6 +215,8 @@ impl ConnectionHandler {
             idle_since: None,
             total_delay_cycles: 0,
             ctx,
+            #[cfg(unix)]
+            idle_readiness: None,
         }
     }
 
@@ -341,6 +356,8 @@ impl ConnectionHandler {
 
     // ---- Idle state -------------------------------------------------------
 
+    // One idle turn: the shutdown checkpoint, the keep-alive expiry and the read park.
+    #[allow(clippy::too_many_lines)]
     fn handle_idle(&mut self) -> Option<TaskStatus<(), ()>> {
         // Drain checkpoint (Decision 12 §10): if the server is shutting down and
         // this connection is idle between requests, stop taking new keep-alive
@@ -378,8 +395,39 @@ impl ConnectionHandler {
 
         tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
 
+        // Re-claim the socket on the shared reactor and re-arm its read edge
+        // before the read attempt, never after: an edge that arrives while the
+        // read runs must stay latched, so the park below wakes on it (see
+        // `SocketReadiness::clear`). The claim must happen here, not at the
+        // park, so the park waits on the token every later event carries; see
+        // `Self::refresh_idle_readiness`.
+        #[cfg(unix)]
+        if let Some(readiness) = self.refresh_idle_readiness() {
+            readiness.clear();
+        }
+
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(mut req)) => {
+                // The Durable Streams adapter answers 405 for any method it does
+                // not match. Log the request line here so an intermittent 405 can
+                // be traced back to the parsed method token.
+                if !matches!(
+                    &req.method,
+                    SimpleMethod::GET
+                        | SimpleMethod::HEAD
+                        | SimpleMethod::PUT
+                        | SimpleMethod::POST
+                        | SimpleMethod::DELETE
+                        | SimpleMethod::OPTIONS
+                ) {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        method = %req.method,
+                        request_line = %format!("{} {} {}", req.method, req.request_uri, req.proto),
+                        "Idle: unknown request method on the connection"
+                    );
+                }
+
                 // Version gate, before the body is read and before any
                 // middleware or route lookup can observe the request.
                 if !Self::is_supported_proto(&req.proto) {
@@ -507,38 +555,56 @@ impl ConnectionHandler {
         self.park_on_socket()
     }
 
-    /// Park on the socket's read readiness, the idle deadline and shutdown.
-    /// `None` when the transport has no kernel file descriptor to watch, so the
-    /// caller falls back to the delay and timeout path.
+    /// Register (or re-register) this connection's read readiness.
     ///
-    /// The registration is made here, at each park, and dropped when the task
-    /// runs again. It must not be cached for the life of the connection: other
-    /// code on the same fd (the response writer, the RPC connection IO) also
-    /// registers the fd with the shared reactor and drops that registration
-    /// when it finishes. The reactor keeps one selector registration per fd, so
-    /// a drop deregisters the fd even when another token's entry still exists.
-    /// A cached registration would then wait on an fd that the selector no
-    /// longer watches, and a new request would never wake it. A fresh
-    /// registration always owns the fd at the moment this task parks, and a
-    /// stale drop elsewhere cannot cancel it (the reactor only deregisters the
-    /// live token for the fd).
+    /// WHY at the start of each idle read: the reactor keys a latched event by
+    /// the token registered with the fd, and the fd is shared with the response
+    /// writer, which registers and drops it too. A registration cached for the
+    /// connection's life would stop receiving events after the writer's drop
+    /// deregisters the fd. A fresh registration at the park instead leaves a
+    /// window where an event for the next request is queued under a token that
+    /// is replaced before the drain thread sees it (issue #1127). Claiming the
+    /// fd before the read, and parking on that same registration, closes both
+    /// holes.
+    ///
+    /// The new registration takes ownership of the fd number before the old one
+    /// drops, so the old drop cannot deregister the live selector entry (the
+    /// reactor only deregisters the token that owns the number).
+    ///
+    /// `None` when the transport has no fd the reactor can watch or the reactor
+    /// refuses it; the caller then falls back to the delay and timeout path.
     #[cfg(unix)]
-    fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
+    fn refresh_idle_readiness(&mut self) -> Option<Arc<SocketReadiness>> {
         let fd = self.conn.with_inner_ref(|raw: &RawStream| raw.as_raw_fd());
         if fd < 0 {
             return None;
         }
-        let socket = match SocketReadiness::register(fd) {
-            Ok(readiness) => Arc::new(readiness),
+        match SocketReadiness::register(fd) {
+            Ok(readiness) => {
+                let readiness = Arc::new(readiness);
+                self.idle_readiness = Some(Arc::clone(&readiness));
+                Some(readiness)
+            }
             Err(e) => {
                 tracing::debug!(
                     client_ip = %self.client_ip,
                     error = %e,
                     "Idle: cannot watch the socket on the reactor; polling instead"
                 );
-                return None;
+                None
             }
-        };
+        }
+    }
+
+    /// Park on the socket's read readiness, the idle deadline and shutdown.
+    /// `None` when the transport has no kernel file descriptor to watch, so the
+    /// caller falls back to the delay and timeout path.
+    ///
+    /// The readiness is the one claimed at the start of this idle read; parking
+    /// must not register a new token (see [`Self::refresh_idle_readiness`]).
+    #[cfg(unix)]
+    fn park_on_socket(&mut self) -> Option<TaskStatus<(), ()>> {
+        let socket = self.idle_readiness.clone()?;
         let mut ready = AnyReadiness::either(
             socket as EventReadinessPtr,
             Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),

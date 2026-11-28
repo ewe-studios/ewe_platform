@@ -1,6 +1,6 @@
 //! Construct native tool arguments from package settings.
 use super::{CommandStep, Settings};
-use crate::{CiEnvironment, GroupRecipe, Package};
+use crate::{CiEnvironment, GateRecipe, GroupRecipe, Package};
 use foundation_tasks::TaskError;
 use std::path::Path;
 
@@ -257,6 +257,103 @@ fn example_commands(
     }
     Ok(out)
 }
+/// The behaviour groups of the valtron layer suite.
+///
+/// Each entry is the group name and its libtest filters. The reader group has
+/// two filters because its fork-boundary test has no common prefix with the
+/// other reader tests.
+const VALTRON_GROUPS: [(&str, &[&str]); 4] = [
+    (
+        "reader",
+        &[
+            "durable::valtron_reader::given_",
+            "durable::valtron_reader::valtron_reader_spans_fork_boundary",
+        ],
+    ),
+    ("writer", &["durable::valtron_producer"]),
+    ("wait", &["durable::valtron_reader::now_live_waits"]),
+    (
+        "wake",
+        &["durable::valtron_reader::wake_callback_fires_on_append"],
+    ),
+];
+
+/// One valtron test filter. `multi` enables the wake test, which is gated on
+/// that feature; the thread-pool executor runs every group.
+fn valtron_test(profile: &str, filter: &str) -> CommandStep {
+    cargo(&[
+        "test",
+        "--profile",
+        profile,
+        "-p",
+        "foundation_core",
+        "--features",
+        "multi",
+        "--test",
+        "mod",
+        "--",
+        "--nocapture",
+        filter,
+    ])
+}
+
+fn valtron_commands(
+    profile: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
+    if let Some(name) = group {
+        if !VALTRON_GROUPS.iter().any(|(known, _)| *known == name) {
+            return Err(TaskError::operation(format!(
+                "unknown durable-valtron group: {name}"
+            )));
+        }
+    }
+    let mut out = Vec::new();
+    for (name, filters) in VALTRON_GROUPS {
+        if group.is_some_and(|wanted| wanted != name) {
+            continue;
+        }
+        for filter in filters {
+            out.push(valtron_test(profile, filter));
+        }
+    }
+    Ok(out)
+}
+
+fn gate_commands(
+    recipe: GateRecipe,
+    profile: &str,
+    step: &str,
+    group: Option<&str>,
+) -> Result<Vec<CommandStep>, TaskError> {
+    if step != "test" {
+        return Ok(Vec::new());
+    }
+    match recipe {
+        GateRecipe::DurableConformance => Ok(vec![
+            // The reference server and client suites, and the counts the gate
+            // requires.
+            CommandStep::new("bash", ["ci/durable_conformance.sh"]),
+            // The cross-implementation directions: our client against our
+            // server, and the reference Rust client against our server.
+            cargo(&[
+                "test",
+                "--profile",
+                profile,
+                "-p",
+                "foundation_http",
+                "--features",
+                "multi",
+                "--test",
+                "durable_cross_client",
+                "--test",
+                "durable_reference_cross_run",
+            ]),
+        ]),
+        GateRecipe::DurableValtron => valtron_commands(profile, group),
+    }
+}
+
 /// The checks of the sandbox Worker, a self-contained wasm32 workspace.
 ///
 /// `cargo check`, `cargo clippy` and `cargo fmt` run with the nested
@@ -368,6 +465,7 @@ fn cargo_directory_commands(
     Ok(out)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn commands(
     root: &Path,
     pkg: &Package,
@@ -376,9 +474,13 @@ pub(super) fn commands(
     os: &str,
     step: &str,
     host: &CiEnvironment,
+    group: Option<&str>,
 ) -> Result<Vec<CommandStep>, TaskError> {
     let name = &pkg.name;
     let mut out = Vec::new();
+    if let Some(recipe) = pkg.gate {
+        return gate_commands(recipe, profile, step, group);
+    }
     if pkg.recipe == Some(GroupRecipe::WasmRuntimeTests) {
         return Ok(wasm_suite(profile, step, os, host, &pkg.dir));
     }

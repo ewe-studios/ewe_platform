@@ -9,6 +9,8 @@ pub mod client;
 pub mod codec;
 pub mod compression;
 pub mod context;
+/// The Durable Streams `ConnectRPC` adapter.
+pub mod durable;
 pub mod envelope;
 pub mod error;
 pub mod error_writer;

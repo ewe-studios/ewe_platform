@@ -26,7 +26,7 @@ foundation_nativeapis = { workspace = true, optional = true, default-features = 
 # Signed secrets (spec 81). Ed25519 is pure Rust and builds for wasm; `ssh-key`
 # reads OpenSSH private key files, and `p256` reads the P-256 PKCS#8 and SEC1
 # forms. All three are pure Rust, so the key module builds on every target.
-ed25519-compact = { version = "2.3", default-features = false, features = ["std", "pem"], optional = true }
+ed25519-compact = { workspace = true, features = ["std", "pem"], optional = true }
 ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256", "encryption"], optional = true }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa", "pkcs8", "pem", "std"], optional = true }
 # Encrypted PKCS#8 (`-----BEGIN ENCRYPTED PRIVATE KEY-----`). The `encryption`

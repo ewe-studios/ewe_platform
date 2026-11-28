@@ -14,11 +14,11 @@
 use std::net::SocketAddr;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::shared::client::request::PreparedRequest;
 use foundation_netio::shared::client::request_builder::PreparedRequestBuilder;
-use foundation_netio::shared::http::SimpleMethod;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_netio::HttpClientBuilder;
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
@@ -55,6 +55,10 @@ fn label(parse_result: &ParseResult) -> Option<String> {
 
 /// A server that answers with a `Content-Length` and keeps the connection open (the
 /// shape of the provider mock servers).
+//
+// NOTE: this test predates the `#[valtron_test]` macro and keeps the old
+// `#[serial(valtron_pool)]` + `initialize_pool` pattern. That is an
+// anti-pattern: new tests must use `#[valtron_test]`. Do not copy this.
 #[test]
 #[serial(valtron_pool)]
 fn send_sse_delivers_a_content_length_stream_once_and_ends() {
@@ -99,6 +103,13 @@ fn send_sse_delivers_a_content_length_stream_once_and_ends() {
 
 /// An async consumer is woken by each event of a slow stream: the events come 400 ms
 /// apart and each reaches the consumer about then, with no gap of the 3 s read timeout.
+/// An async consumer is woken by each event of a slow stream: the events come 400 ms
+/// apart and each reaches the consumer about then, with no gap of the 3 s read timeout.
+//
+// NOTE: this test predates the `#[valtron_test]` macro and keeps the old
+// `#[serial(valtron_pool)]` + `initialize_pool` + `smol::block_on` pattern.
+// That is an anti-pattern: new tests must use `#[valtron_test]` (sync or async).
+// Do not copy this.
 #[test]
 #[serial(valtron_pool)]
 fn send_sse_async_consumer_is_woken_by_each_slow_event() {
@@ -156,4 +167,54 @@ fn send_sse_async_consumer_is_woken_by_each_slow_event() {
             pair[1].0
         );
     }
+}
+
+/// A chunked Server-Sent Events (SSE) response must be de-chunked before the
+/// event parser runs. The reference server sends `Transfer-Encoding: chunked`.
+/// Without de-chunking, the parser reads the chunk-size lines as event fields
+/// and loses the `event:` type.
+#[valtron_test(timeout = 10_000)]
+async fn send_async_parses_a_chunked_sse_body() {
+    let data_event = b"event: data\ndata:hello\n\n";
+    let control_event = b"event: control\ndata:{\"streamNextOffset\":\"00ff\",\"upToDate\":true}\n\n";
+    let mut body = Vec::new();
+    for event in [data_event.as_slice(), control_event.as_slice()] {
+        body.extend_from_slice(format!("{:x}\r\n", event.len()).as_bytes());
+        body.extend_from_slice(event);
+        body.extend_from_slice(b"\r\n");
+    }
+    body.extend_from_slice(b"0\r\n\r\n");
+
+    let server = TestHttpServer::with_response(move |_req| HttpResponse {
+        status: 200,
+        status_text: "OK".to_string(),
+        headers: vec![
+            ("Content-Type".to_string(), "text/event-stream".to_string()),
+            ("Transfer-Encoding".to_string(), "chunked".to_string()),
+        ],
+        body: body.clone(),
+    });
+    let url = server.base_url().to_string();
+    let addr = addr_of(&url);
+
+    let client = HttpClientBuilder::new().resolve_to(addr).build();
+    let req = PreparedRequestBuilder::new(SimpleMethod::GET, &url)
+        .expect("url")
+        .header(SimpleHeader::ACCEPT, "text/event-stream".to_string())
+        .build();
+    let response = client.send_async(req).await.expect("send_async");
+    let (_, _, body) = response.into_parts();
+    let SendSafeBody::SseStream(Some(mut iterator)) = body else {
+        panic!("expected an SSE stream body");
+    };
+    let first = iterator.next().expect("data event").expect("parsed");
+    assert_eq!(first.event.event_type(), Some("data"));
+    assert_eq!(first.event.data(), Some("hello"));
+    let second = iterator.next().expect("control event").expect("parsed");
+    assert_eq!(second.event.event_type(), Some("control"));
+    assert_eq!(
+        second.event.data(),
+        Some("{\"streamNextOffset\":\"00ff\",\"upToDate\":true}")
+    );
+    assert!(iterator.next().is_none(), "stream ends after the control");
 }

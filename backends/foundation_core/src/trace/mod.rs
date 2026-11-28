@@ -1,5 +1,5 @@
-/// Crate to abstract out tracing so it never shows up in release builds using macros
-/// See similar: https://doc.rust-lang.org/src/std/macros.rs.html#138-145.
+//! Crate to abstract out tracing so it never shows up in release builds using macros.
+//! See similar: <https://doc.rust-lang.org/src/std/macros.rs.html#138-145>.
 
 #[cfg(not(feature = "log_info"))]
 #[macro_export]
