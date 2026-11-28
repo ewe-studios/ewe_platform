@@ -179,9 +179,15 @@ fn is(error: &ErrorTrace<SandboxError>, predicate: impl Fn(&SandboxError) -> boo
 ///
 /// The test suite runs one test at a time (`--test-threads=1`), so every
 /// matching container belongs to the test that is running.
+///
+/// The local Cloudflare runtime also runs a proxy sidecar for each container.
+/// Its name contains the application name and ends in `-proxy`, and its image is
+/// `cloudflare/proxy-everything`. It belongs to the runtime, not to the sandbox
+/// image, and it stays after a sandbox stops. The tests count only the workload
+/// container.
 fn docker_containers() -> Vec<String> {
     let output = Command::new(DOCKER)
-        .args(["ps", "--format", "{{.ID}} {{.Names}}"])
+        .args(["ps", "--format", "{{.ID}} {{.Names}} {{.Image}}"])
         .output();
     let Ok(output) = output else {
         return Vec::new();
@@ -189,6 +195,8 @@ fn docker_containers() -> Vec<String> {
     String::from_utf8_lossy(&output.stdout)
         .lines()
         .filter(|line| line.contains(CONTAINER_NAME))
+        .filter(|line| !line.contains("-proxy"))
+        .filter(|line| !line.contains("proxy-everything"))
         .filter_map(|line| line.split_whitespace().next().map(str::to_string))
         .collect()
 }
