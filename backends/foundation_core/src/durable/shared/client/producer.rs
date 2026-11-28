@@ -651,7 +651,7 @@ impl Producer {
                     let tickets = drain_pending(&mut state);
                     state.flushing = false;
                     drop(state);
-                    self.complete_error(tickets, ClientError::Detached);
+                    self.complete_error(tickets, &ClientError::Detached);
                     return;
                 }
                 if state.pending.is_empty() {
@@ -667,7 +667,7 @@ impl Producer {
                         state.flushing = false;
                         tickets
                     };
-                    self.complete_error(tickets, error);
+                    self.complete_error(tickets, &error);
                     return;
                 }
                 lingered = true;
@@ -721,7 +721,7 @@ impl Producer {
                 continue;
             }
             if matches!(state.pending.front(), Some(Queued::Batch { .. })) {
-                if let Some(batch) = self.take_batch(state) {
+                if let Some(batch) = Self::take_batch(state) {
                     window.push(batch);
                 }
                 continue;
@@ -744,7 +744,7 @@ impl Producer {
     }
 
     /// Pop one pre-formed batch from the queue and assign its sequence.
-    fn take_batch(&self, state: &mut ProducerState) -> Option<WireBatch> {
+    fn take_batch(state: &mut ProducerState) -> Option<WireBatch> {
         let Queued::Batch {
             body,
             content_type,
@@ -876,7 +876,7 @@ impl Producer {
         if retried {
             return true;
         }
-        self.fail_window(window, failed, &success, first_index, &first_error);
+        self.fail_window(&window, failed, &success, first_index, &first_error);
         false
     }
 
@@ -972,7 +972,7 @@ impl Producer {
     /// the failed batch, because the protocol accepts only the next sequence.
     fn fail_window(
         &self,
-        window: Vec<WireBatch>,
+        window: &[WireBatch],
         failed: Vec<(usize, ClientError)>,
         success: &[bool],
         first_index: usize,
@@ -1003,7 +1003,7 @@ impl Producer {
     }
 
     /// Complete the tickets of a set of batches with one failure.
-    fn complete_error(&self, tickets: Vec<u64>, error: ClientError) {
+    fn complete_error(&self, tickets: Vec<u64>, error: &ClientError) {
         let outcomes = tickets
             .into_iter()
             .map(|ticket| (ticket, Err(error.clone())))
