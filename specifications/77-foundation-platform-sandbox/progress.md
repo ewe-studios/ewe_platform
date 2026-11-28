@@ -592,6 +592,12 @@ The full `check.yaml` run with `packages=all` on `348620340` is the proof for th
 Firecracker, Docker, Cloudflare and image-import paths; its failures, if any, are routed by
 component.
 
+## Feature 16 is rejected (2026-11-27)
+
+The owner rejected the Docker Sandboxes product driver (`sbx`) and closed it out: the
+feature file says `status: rejected`, the requirements table and the graph drop it, and
+decision D18 records the reason. The Docker Sandboxes product stays unsupported.
+
 ## In progress
 
 Feature 06 is pull request #881. Feature 07 is pull request #901, after a fix round for

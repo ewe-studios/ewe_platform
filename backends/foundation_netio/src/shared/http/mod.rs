@@ -1,4 +1,5 @@
 pub mod client_classifier;
+pub mod decompression;
 pub mod errors;
 pub mod extensions;
 pub mod framing;

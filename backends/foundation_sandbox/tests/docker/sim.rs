@@ -174,6 +174,7 @@ fn plan(
             .with_link(link)
             .with_slave_mode(mode),
         spec,
+        kvm_device: false,
     }
 }
 
@@ -306,6 +307,7 @@ fn create_body_nested_host() {
         Some(run_dir()),
     );
     nested_plan.spec.nested_host = true;
+    nested_plan.kvm_device = true;
     let body = serde_json::to_value(sandbox_body(&nested_plan)).expect("the body serializes");
     assert_eq!(
         body["Entrypoint"],
@@ -347,6 +349,36 @@ fn create_body_nested_host() {
     let body = serde_json::to_value(sandbox_body(&plain)).expect("the body serializes");
     assert!(body["HostConfig"]["Devices"].is_null());
     assert!(body["Env"].is_null());
+}
+
+/// A nested host on a daemon without `/dev/kvm` maps no device (issue #972).
+#[test]
+fn create_body_nested_host_without_the_kvm_device() {
+    let mut nested_plan = plan(
+        DockerLink::Unix,
+        SlaveMode::Main,
+        NetworkMode::None,
+        Some(run_dir()),
+    );
+    nested_plan.spec.nested_host = true;
+    nested_plan.kvm_device = false;
+    let body = serde_json::to_value(sandbox_body(&nested_plan)).expect("the body serializes");
+    assert!(
+        body["HostConfig"]["Devices"].is_null(),
+        "the create body maps no missing device"
+    );
+    assert_eq!(
+        body["Entrypoint"],
+        serde_json::json!([
+            "/.ewe/agent-slave",
+            "--listen",
+            "unix:/.ewe/run/slave.sock",
+            "--socket-mode",
+            "666",
+            "--control"
+        ]),
+        "the parent still serves the control plane"
+    );
 }
 
 #[test]

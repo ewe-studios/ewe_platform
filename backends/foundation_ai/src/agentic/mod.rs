@@ -7,6 +7,7 @@
 pub mod access;
 pub mod agent_loop;
 pub mod context;
+pub mod durable_store;
 pub mod embedding;
 pub mod errors;
 pub mod loop_detection;
@@ -18,7 +19,7 @@ pub mod progress;
 pub mod serialization;
 pub mod session;
 pub mod steering;
-#[cfg(any(test, feature = "testing"))]
+#[cfg(any(test, feature = "testing", feature = "testing-mock"))]
 pub mod testing;
 pub mod token_ledger;
 pub mod tool_impl;
@@ -34,6 +35,7 @@ pub use crate::harness::ToolPreset;
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use agent_loop::{AgentConfig, ModelSelection};
 pub use context::ContextConfig;
+pub use durable_store::{DurableDocumentStore, DurableDocumentStoreConfig};
 pub use embedding::{CachedEmbeddingProvider, EmbeddingProvider};
 pub use errors::{
     AgentAction, AgenticError, AuthError, ErrorPolicy, GenKind, GenerationFailure,

@@ -17,6 +17,10 @@ impl SystemTime {
     pub const UNIX_EPOCH: Self = Self(Duration::ZERO);
 
     /// See [`std::time::SystemTime::now()`].
+    ///
+    /// # Panics
+    ///
+    /// Panics when the wall clock gives a negative timestamp.
     #[must_use]
     pub fn now() -> Self {
         #[allow(clippy::as_conversions, clippy::cast_possible_truncation)]
@@ -26,15 +30,23 @@ impl SystemTime {
     }
 
     /// See [`std::time::SystemTime::duration_since()`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SystemTimeError`] when `earlier` is later than `self`.
     pub fn duration_since(&self, earlier: Self) -> Result<Duration, SystemTimeError> {
         if self.0 < earlier.0 {
-            Err(SystemTimeError(earlier.0 - self.0))
+            Err(SystemTimeError(earlier.0.saturating_sub(self.0)))
         } else {
-            Ok(self.0 - earlier.0)
+            Ok(self.0.saturating_sub(earlier.0))
         }
     }
 
     /// See [`std::time::SystemTime::elapsed()`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SystemTimeError`] when the clock moved backwards.
     pub fn elapsed(&self) -> Result<Duration, SystemTimeError> {
         Self::now().duration_since(*self)
     }

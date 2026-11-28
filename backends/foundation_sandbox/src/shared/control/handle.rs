@@ -316,9 +316,10 @@ impl EventsState {
                     }
                 }
             }
-            Some(Err(_error)) => {
+            Some(Err(error)) => {
                 self.done = true;
-                (Some(Err(SandboxError::StreamLost.into())), self)
+                // Keep the reported error; a bare `StreamLost` hid its cause.
+                (Some(Err(error)), self)
             }
             None => {
                 self.done = true;
@@ -375,12 +376,15 @@ pub async fn exec_session_with_id(
         user: command.user.clone(),
     };
     let mut stream = calls.exec(request).await?;
-    let Some(Ok(ExecEventMsg {
-        seq: 0,
-        event: ExecEventKind::Started { pid },
-    })) = stream.next().await
-    else {
-        return Err(SandboxError::StreamLost.into());
+    let pid = match stream.next().await {
+        Some(Ok(ExecEventMsg {
+            seq: 0,
+            event: ExecEventKind::Started { pid },
+        })) => pid,
+        // Keep the error that the slave reported: it names the stage. A bare
+        // `StreamLost` hid a transport or slave failure (issue #1125).
+        Some(Err(error)) => return Err(error),
+        _ => return Err(SandboxError::StreamLost.into()),
     };
 
     let shared = Arc::new(ExecShared {

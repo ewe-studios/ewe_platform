@@ -212,16 +212,17 @@ impl CertManager for AcmeCertManager {
 /// Build the RFC 7638 EC public JWK for a P-256 verifying key.
 fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
     use base64::Engine;
+    // The coordinate array type of the encoded point. The method reference
+    // below names it, so no closure is written.
+    use p256::elliptic_curve::generic_array::GenericArray;
     let point = vk.to_encoded_point(false); // uncompressed: 0x04 || x || y
     let b64 = |b: &[u8]| base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(b);
     serde_json::json!({
         "kty": "EC",
         "crv": "P-256",
-        // `point.x()` and `point.y()` are 32-byte coordinates. `as_slice` works
-        // for both the generic-array and hybrid-array field types, so no
-        // `digest` re-export is named here.
-        "x": b64(point.x().map_or_default(|coordinate| coordinate.as_slice())),
-        "y": b64(point.y().map_or_default(|coordinate| coordinate.as_slice())),
+        // `point.x()` and `point.y()` are 32-byte coordinates.
+        "x": b64(point.x().map_or_default(GenericArray::as_slice)),
+        "y": b64(point.y().map_or_default(GenericArray::as_slice)),
     })
 }
 

@@ -42,7 +42,8 @@ async fn list(ctx: TaskContext, _: List) -> TaskResult {
         let status = s.skip.as_ref().map_or_else(
             || {
                 format!(
-                    "fmt={} build={} clippy={}{} test={} wasm={}",
+                    "{}fmt={} build={} clippy={}{} test={} wasm={}",
+                    if p.gate.is_some() { "GATE " } else { "" },
                     s.fmt,
                     s.build,
                     s.clippy,
@@ -227,6 +228,8 @@ async fn plan(ctx: TaskContext, args: Plan) -> TaskResult {
     let (names, why) = selection(&ws, &ctx, &env, args).await?;
     let entries: Vec<_> = names
         .iter()
+        // A gate runs in its own workflow job, not in the package matrix.
+        .filter(|name| ws.packages[*name].gate.is_none())
         .filter_map(|name| {
             let s = &ws.settings[name];
             s.skip.is_none().then_some(Linux {
@@ -239,8 +242,21 @@ async fn plan(ctx: TaskContext, args: Plan) -> TaskResult {
         .collect();
     let matrix = json!({"include":entries});
     let count = entries.len();
+    let gates: Vec<String> = names
+        .iter()
+        .filter(|name| ws.packages[*name].gate.is_some())
+        .map(|name| match ws.policy.gates.get(name) {
+            Some(gate) if !gate.description.is_empty() => {
+                format!("{name} ({})", gate.description)
+            }
+            _ => name.clone(),
+        })
+        .collect();
     let summary = format!("{count} package(s) selected ({why})");
     eprintln!("{summary}");
+    if !gates.is_empty() {
+        eprintln!("gates: {}", gates.join(", "));
+    }
     let mut output = format!("matrix={matrix}\ncount={count}\n");
     let mut report = format!("### CI plan\n\n{summary}\n\n");
     for item in &entries {
@@ -249,6 +265,14 @@ async fn plan(ctx: TaskContext, args: Plan) -> TaskResult {
             "- `{}`{}",
             item.package,
             if item.llama { " (needs llama.cpp)" } else { "" }
+        )
+        .map_err(TaskError::operation)?;
+    }
+    if !gates.is_empty() {
+        writeln!(
+            report,
+            "\nGates (selected, not matrix jobs): {}",
+            gates.join(", ")
         )
         .map_err(TaskError::operation)?;
     }

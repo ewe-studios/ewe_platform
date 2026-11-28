@@ -832,7 +832,36 @@ impl PoolGuard {
 
 impl Drop for PoolGuard {
     fn drop(&mut self) {
-        self.shutdown();
+        // WHY: a drop that runs while the thread unwinds must never panic. Rust
+        // aborts the process on the second panic ("panic in a destructor during
+        // cleanup"), which hides the first panic and the result of every other
+        // test in the binary (issue #1088). Teardown reads the injected clock,
+        // signals the lifecycle latches, and joins workers, so any dependency
+        // on this path can panic.
+        // WHAT: on the unwind path, catch a teardown panic and log it. The
+        // guard's fields still drop afterwards, so the process-wide lifecycle
+        // gate is released even when teardown failed. Workers that teardown did
+        // not reach stay detached until the process exits; that is the
+        // documented outcome for a worker past its deadline, and the thread is
+        // already unwinding from a panic.
+        // HOW: `thread::panicking()` separates the unwind path from a normal
+        // exit, where a shutdown panic still propagates unchanged.
+        if !std::thread::panicking() {
+            self.shutdown();
+            return;
+        }
+        let shutdown = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.shutdown()));
+        if let Err(payload) = shutdown {
+            let message = payload
+                .downcast_ref::<&str>()
+                .map(|message| (*message).to_string())
+                .or_else(|| payload.downcast_ref::<String>().cloned())
+                .unwrap_or_else(|| "non-string panic payload".to_string());
+            tracing::error!(
+                panic = %message,
+                "PoolGuard::drop - shutdown panicked while the thread was already unwinding; continuing the unwind"
+            );
+        }
     }
 }
 
@@ -929,20 +958,28 @@ impl ThreadYielders {
 
     /// Register a yielder for interrupt tracking.
     ///
-    /// # Panics
-    /// Panics if the yielder lock is poisoned.
+    /// Recovers from a poisoned lock, like every other registry lock. A worker
+    /// respawn can run after a panic poisoned it, and the same registry is read
+    /// on the shutdown path, where a panic would abort the process (issue
+    /// #1088).
     pub fn register(&self, yielder: Arc<ThreadYielder>) {
-        let mut yielders = self.yielders.write().unwrap();
+        let mut yielders = self
+            .yielders
+            .write()
+            .unwrap_or_else(crate::compati::recover_poison);
         yielders.push(yielder);
     }
 
     /// Interrupt all registered yielders.
     /// Call this when new work arrives to wake threads waiting in `yield_for`.
     ///
-    /// # Panics
-    /// Panics if the yielder lock is poisoned.
+    /// Recovers from a poisoned lock: this runs on the pool shutdown path,
+    /// where a panic during an unwind would abort the process (issue #1088).
     pub fn interrupt_all(&self) {
-        let yielders = self.yielders.read().unwrap();
+        let yielders = self
+            .yielders
+            .read()
+            .unwrap_or_else(crate::compati::recover_poison);
         for yielder in yielders.iter() {
             yielder.interrupt();
         }
@@ -1015,6 +1052,24 @@ impl ThreadYielder {
         }
         self.condvar.notify_all();
     }
+
+    /// Wait for `dur`, or until [`Self::interrupt`] notifies the condvar.
+    ///
+    /// `wait_timeout_while` returns the guard still locked, so this method
+    /// resets the state with that guard. A second lock would deadlock.
+    fn wait_once(&self, dur: std::time::Duration) {
+        let guard = self.wait_state.lock().unwrap();
+
+        // Wait while not notified (spurious wakeups are handled by re-checking)
+        let (mut guard, result) = self
+            .condvar
+            .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
+            .unwrap();
+        let _timed_out = result.timed_out();
+
+        // CRITICAL: Reset state using the guard returned by wait_timeout_while.
+        *guard = WaitState::Waiting;
+    }
 }
 
 impl Clone for ThreadYielder {
@@ -1055,23 +1110,20 @@ impl ProcessController for ThreadYielder {
 
         // A parked task becoming ready anywhere interrupts this wait
         // (a wake of a task parked on this worker), so it resumes at once.
-        let interrupter = self.clone();
-        crate::valtron::executors::idle_wake::park_idle(
-            std::sync::Arc::new(move || interrupter.interrupt()),
-            || {
-                let guard = self.wait_state.lock().unwrap();
+        // The idle-wake handle exists only where executor threads run. On wasm
+        // the `multi` feature stays additive: this code compiles and only the
+        // plain wait runs, because no executor thread can park there.
+        #[cfg(not(target_family = "wasm"))]
+        {
+            let interrupter = self.clone();
+            crate::valtron::executors::idle_wake::park_idle(
+                std::sync::Arc::new(move || interrupter.interrupt()),
+                || self.wait_once(dur),
+            );
+        }
 
-                // Wait while not notified (spurious wakeups are handled by re-checking)
-                let (mut guard, result) = self
-                    .condvar
-                    .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
-                    .unwrap();
-                let _timed_out = result.timed_out();
-
-                // CRITICAL: Reset state using the guard returned by wait_timeout_while.
-                *guard = WaitState::Waiting;
-            },
-        );
+        #[cfg(target_family = "wasm")]
+        self.wait_once(dur);
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))
@@ -1976,11 +2028,15 @@ impl ThreadRegistry {
 
     /// Join all thread handles.
     ///
-    /// # Panics
-    /// Panics if the thread-handle lock is poisoned.
+    /// Recovers from a poisoned lock instead of panicking: this runs on the
+    /// pool shutdown path, which a `PoolGuard` drop enters during an unwind.
+    /// A panic there aborts the process (issue #1088).
     pub fn join_all_threads(&self) {
         let handles = {
-            let mut map = self.thread_handles.write().unwrap();
+            let mut map = self
+                .thread_handles
+                .write()
+                .unwrap_or_else(crate::compati::recover_poison);
             std::mem::take(&mut *map)
         };
 

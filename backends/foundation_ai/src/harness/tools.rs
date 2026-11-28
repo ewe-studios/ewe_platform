@@ -19,6 +19,7 @@
 
 use std::sync::Arc;
 
+#[cfg(feature = "multi")]
 use foundation_context::Ctx;
 use foundation_db::traits::DocumentStore;
 use foundation_nativeapis::shared::vfs::AsyncVfsFileSystem;
@@ -32,9 +33,13 @@ use crate::agentic::tools::files::{BashTool, EditTool, ReadTool, WriteTool};
 use crate::agentic::tools::memory::MemoryTool;
 use crate::agentic::tools::search::SearchContextTool;
 use crate::agentic::toolshed::{tool_fn, ToolConstructor, ToolShedError};
+#[cfg(feature = "multi")]
 use crate::agentic::UserId;
+#[cfg(feature = "multi")]
 use crate::types::routable_provider::ProviderRouter;
-use crate::types::{ModelId, SessionId};
+#[cfg(feature = "multi")]
+use crate::types::ModelId;
+use crate::types::SessionId;
 
 // ---------------------------------------------------------------------------
 // ToolPreset

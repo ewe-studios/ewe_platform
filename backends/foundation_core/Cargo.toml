@@ -44,6 +44,7 @@ futures-core = { version = "0.3", default-features = false, optional = true }
 futures-lite = { version = "2", default-features = false, features = ["std"], optional = true }
 derive_more = { version = "2.0", features = ["from", "debug", "error", "display"] }
 serde = { version = "1", features = ["derive"] }
+base64 = "0.22"
 concurrent-queue = { version = "2.5.0" }
 toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }
@@ -65,11 +66,21 @@ web-sys = { workspace = true, optional = true, features = [
 wasm-bindgen-test.workspace = true
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
+proptest = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 libc = "0.2"
+# The SQL VFS tests run against a real SQLite engine, not a fake. The workspace
+# already builds libsql for foundation_db; this crate reuses the same version.
+libsql = "0.6"
 serial_test = { workspace = true }
-tokio = { version = "1", features = ["macros", "rt"] }
+# The property test modules are native only. proptest's fork feature pulls
+# rusty-fork and wait-timeout, which do not build for wasm32; keeping the
+# dependency native means the wasm `--tests` check never sees them.
+proptest = { workspace = true }
+# The external reference Durable Streams client needs tokio in the cross-run
+# test. No shipped code uses it.
+tokio = { version = "1.53.1", features = ["macros", "rt"] }
 smol = "2"
 
 [features]
@@ -85,23 +96,34 @@ log_info = []
 # Valtron utilities features
 alloc = ["futures-core/alloc"]
 std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std", "dep:futures-lite"]
-multi = ["std", "alloc"]  # Multi-threaded executor requires std
-# Test-only `SimulatedClock` for deterministic time control. It needs `std`
-# (the `Ctx` module is std-gated).
-test-clock = ["std"]
+# The task engine: the executors, `valtron::Ctx`, the `#[valtron]` macros and
+# the wrappers built on them. The durable protocol core and the other modules
+# do not need it. It needs `std`, so it implies that feature. It is on by
+# default; turn it off to build only the runtime-neutral core.
+valtron = ["std"]
+multi = ["std", "alloc", "valtron"]  # Multi-threaded executor requires std
+# Test-only `SimulatedClock` for deterministic time control. It lives in the
+# valtron `Ctx`, so it needs `std` and the `valtron` feature.
+test-clock = ["std", "valtron"]
 # The deterministic simulation runtime (`valtron::sim`). It needs the
 # single-threaded engine, so it is absent when `multi` is on.
 testing = ["test-clock", "alloc"]
 
+# A shared conformance kit for `DurableStreamVfs` implementations. A VFS crate
+# enables it in its dev-dependencies and runs the same scenarios. It needs
+# `std`, the simulated clock and `valtron` (the clock lives there). Test-only.
+vfs-testkit = ["std", "test-clock", "valtron"]
+
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-# Each also picks foundation_compact's matching wasm32 time/entropy backend.
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen", "foundation_context/wasm-bindgen"]
+# Each also picks foundation_compact's matching wasm32 time/entropy backend,
+# and each needs the valtron executor that yields to the event loop.
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen", "foundation_context/wasm-bindgen", "valtron"]
 # `js-event-loop` selects foundation_nostd's spin CondVar. Without it, a
 # NotifyQueue wait reaches std's wasm Condvar, which panics (#605).
-js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_nostd/js-event-loop", "foundation_compact/host-abi", "foundation_context/host-abi"]
+js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_nostd/js-event-loop", "foundation_compact/host-abi", "foundation_context/host-abi", "valtron"]
 
 # default flags
-default = ["standard", "std", "alloc"]
+default = ["standard", "std", "alloc", "valtron"]
 
 [build-dependencies]
 foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.3" }

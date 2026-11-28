@@ -19,7 +19,10 @@ mod clock_injection;
 mod clock_wall;
 #[cfg(not(target_family = "wasm"))]
 mod cross_runtime;
+#[cfg(all(feature = "test-clock", not(target_family = "wasm")))]
+mod ctx_timer;
 mod ctx_reexport;
+mod deadline_order;
 #[cfg(feature = "std")]
 #[cfg(not(target_family = "wasm"))]
 mod event_driven_queue_readiness;
@@ -31,6 +34,8 @@ mod map_circuit;
 mod notification_based_waiting;
 mod park_busy_loop;
 mod pool_seed_root;
+#[cfg(not(target_family = "wasm"))]
+mod scoped_block_on;
 mod readiness_deadline_tests;
 mod readiness_register_race;
 #[cfg(not(target_family = "wasm"))]
@@ -56,6 +61,7 @@ mod stream_future;
 mod stream_iterators;
 #[cfg(not(target_family = "wasm"))]
 mod targeted_wake;
+mod wait_redrive;
 mod wake_registry;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
 #[cfg(target_family = "wasm")]
@@ -94,10 +100,18 @@ mod delayed_iterators;
 mod drain;
 #[cfg(not(target_family = "wasm"))]
 mod driven_stream_async_wake;
+#[cfg(feature = "testing")]
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod dst_hang_proof;
 mod limits_config_tests;
 mod multi_allocatable_threads;
 #[cfg(feature = "multi")]
 mod multi_workers;
+#[cfg(feature = "testing")]
+#[cfg(not(feature = "multi"))]
+#[cfg(not(target_family = "wasm"))]
+mod nested_drive;
 #[cfg(not(feature = "multi"))]
 #[cfg(not(target_family = "wasm"))]
 mod non_sendable_split_observer_wake;
@@ -129,6 +143,10 @@ mod valtron_macro_tests;
 mod wakeable_stream;
 #[cfg(not(target_family = "wasm"))]
 mod waker_identity;
+// The issue is about the thread pool's `PoolGuard`, which has a `Drop` impl
+// only under `multi`; the single-threaded guard is a no-op.
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+mod timeout_guard_unwind;
 #[cfg(not(target_family = "wasm"))]
 mod waker_queue_bridge;
 #[cfg(feature = "multi")]

@@ -38,6 +38,9 @@ use foundation_connectrpc::{
 };
 
 const ECHO: &str = "http://t/test.EchoService/Echo";
+/// The router key is the procedure path, never the whole request URL (the
+/// router doc: "the full `/package.Service/Method` path (R1, leading slash)").
+const PROCEDURE: &str = "/test.EchoService/Echo";
 
 #[derive(Clone, Default, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 struct Msg {
@@ -108,7 +111,7 @@ impl CompletionReadWrite for MockCompletion {
 fn echo_serve() -> ConnectRpcServe {
     let mut router = Router::new();
     router.unary(
-        ECHO,
+        PROCEDURE,
         ProcedureCodecs::<Msg, Msg>::of((JsonCodec,)),
         |_ctx, req: Request<Msg>| async move {
             Ok(Response::new(Msg {

@@ -25,7 +25,7 @@ use foundation_deployment_docker::client::ContainerCreateBody;
 use foundation_deployment_docker::error::DockerError;
 use foundation_deployment_docker::generated::create::{ContainerCreateResponse, CreateImageInfo};
 use foundation_deployment_docker::generated::json::{
-    ContainerConfig, ContainerInspectResponse, HostConfig, Resources,
+    ContainerConfig, ContainerInspectResponse, HostConfig,
 };
 use futures::future::{select, Either};
 use serde_json::{json, Map, Value};
@@ -105,6 +105,13 @@ pub struct DockerDriverConfig {
     /// Default 4096: the default of Podman is 2048; a build tool chain needs
     /// more.
     pub pids_limit: i64,
+    /// Whether a nested host maps `/dev/kvm` into its container.
+    ///
+    /// Default true. The driver maps the device only when this is true and the
+    /// daemon's host has `/dev/kvm`. A test or a host without the device sets
+    /// it false, so the container starts and its inner probe reports the
+    /// missing Kernel-based Virtual Machine (KVM).
+    pub map_kvm_device: bool,
 }
 
 impl Default for DockerDriverConfig {
@@ -119,6 +126,7 @@ impl Default for DockerDriverConfig {
             publish_address: "127.0.0.1".to_string(),
             pull_timeout: Duration::from_secs(600),
             pids_limit: 4096,
+            map_kvm_device: true,
         }
     }
 }
@@ -156,6 +164,13 @@ impl DockerDriverConfig {
     #[must_use]
     pub fn with_pids_limit(mut self, limit: i64) -> Self {
         self.pids_limit = limit;
+        self
+    }
+
+    /// Replaces [`Self::map_kvm_device`].
+    #[must_use]
+    pub fn with_map_kvm_device(mut self, map: bool) -> Self {
+        self.map_kvm_device = map;
         self
     }
 }
@@ -507,6 +522,11 @@ pub struct DockerPlan {
     pub config: DockerDriverConfig,
     /// The caller's spec.
     pub spec: SandboxSpec,
+    /// Whether this container maps `/dev/kvm`.
+    ///
+    /// A nested host maps it only when the configuration allows it and the
+    /// daemon's host has the device.
+    pub kvm_device: bool,
 }
 
 /// One step of the launch.
@@ -716,6 +736,8 @@ async fn prepare(
         None
     };
     state.guard.arm_api(Arc::clone(&state.api));
+    let kvm_device =
+        spec.nested_host && state.config.map_kvm_device && host.fs.exists(Path::new("/dev/kvm"));
     let plan = Box::new(DockerPlan {
         id: id.clone(),
         image,
@@ -724,6 +746,7 @@ async fn prepare(
         slave_path,
         config: state.config.clone(),
         spec,
+        kvm_device,
     });
     (
         DockerState::new(
@@ -1244,8 +1267,9 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
         );
         Value::Object(ports)
     });
-    // A nested host gets `/dev/kvm`, and still no privilege (invariant I6).
-    let devices = nested.then(|| {
+    // A nested host gets `/dev/kvm` when the daemon's host has it, and still no
+    // privilege (invariant I6).
+    let devices = plan.kvm_device.then(|| {
         vec![
             foundation_deployment_docker::generated::json::DeviceMapping {
                 cgroup_permissions: Some("rwm".to_string()),
@@ -1257,7 +1281,9 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
     let host = HostConfig {
         auto_remove: Some(false),
         binds: (!binds.is_empty()).then_some(binds),
-        devices: devices.clone(),
+        devices,
+        memory: Some(i64::from(plan.spec.memory_mib) * 1_048_576),
+        nano_cpus: Some(i64::from(plan.spec.vcpus) * 1_000_000_000),
         network_mode: Some(
             match plan.spec.network {
                 NetworkMode::Host => "bridge",
@@ -1265,22 +1291,13 @@ pub fn sandbox_body(plan: &DockerPlan) -> ContainerCreateBody {
             }
             .to_string(),
         ),
+        pids_limit: Some(plan.config.pids_limit),
         port_bindings,
         privileged: Some(false),
         security_opt: Some(vec!["no-new-privileges".to_string()]),
         ..HostConfig::default()
     };
-    let resources = Resources {
-        memory: Some(i64::from(plan.spec.memory_mib) * 1_048_576),
-        nano_cpus: Some(i64::from(plan.spec.vcpus) * 1_000_000_000),
-        pids_limit: Some(plan.config.pids_limit),
-        // `Resources` is flattened after `HostConfig` in the create body, so a
-        // `Devices` value here is the one that serializes (issue: the wrapper
-        // flattens two generated structs that both name `Devices`).
-        devices,
-        ..Resources::default()
-    };
-    create_body(config, host, resources)
+    create_body(config, host)
 }
 
 /// Why one Engine call did not give a result.

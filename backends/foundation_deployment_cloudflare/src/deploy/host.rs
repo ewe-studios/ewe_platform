@@ -72,12 +72,17 @@ pub trait DeploymentApi: Send + Sync + 'static {
 
     /// Promotes a version to serve traffic.
     ///
+    /// `route` is the first route of the plan when the plan names one. The
+    /// route is the public address of the Worker, so the promotion reads the
+    /// account subdomain only when the plan has no route.
+    ///
     /// # Errors
     /// [`DeployError::Api`] when the platform refuses the call.
     fn promote(
         &self,
         worker_name: &str,
         version: &str,
+        route: Option<&Route>,
     ) -> DeployFuture<'_, Result<Promotion, DeployError>>;
 
     /// Reads the state of one deployment.

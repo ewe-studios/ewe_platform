@@ -1,19 +1,29 @@
 [package]
 name = "foundation_agent_rpc_dst"
 version = "0.0.1"
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
+edition = "2021"
+rust-version = "1.98"
+license = "Apache-2.0"
+authors = ["EweStudios Consulting Limited"]
+repository = "https://github.com/ewe-studios/ewe_platform"
 publish = false
 # `tests/mod.rs` is the only test target; do not also build each test file.
 autotests = false
 description = "Deterministic simulation tests for the agent RPC proof of concept"
 
+# This package is its own workspace root. The deterministic simulation build
+# needs `foundation_core` without `multi`; inside the main workspace, Cargo's
+# feature unification turns `multi` on through other members (#1048), which
+# gates `SimRuntime` out. The main workspace excludes this directory.
+[workspace]
+resolver = "3"
+
 [dependencies]
-# The core only: no thread pool, no TLS, no SQLite.
-foundation_agent_rpc = { path = "../foundation_agent_rpc", version = "0.0.4", default-features = false }
+# The core only: no thread pool, no TLS, no SQLite. `dst` adds the core
+# registry, the guarded turn and the `foundation_ai` mock substrate.
+foundation_agent_rpc = { path = "../foundation_agent_rpc", version = "0.0.4", default-features = false, features = ["dst"] }
+# The scripted model provider behind the real `ModelHandle`, without `multi`.
+foundation_ai = { path = "../foundation_ai", version = "0.0.10", default-features = false, features = ["testing-mock"] }
 # The simulation runtime (`SimRuntime`) and the single-threaded engine.
 foundation_core = { path = "../foundation_core", version = "0.0.23", default-features = false, features = ["testing"] }
 foundation_context = { path = "../foundation_context", version = "0.0.4" }
@@ -28,7 +38,6 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.19", default-features = false, features = ["standard", "std", "compression", "wire-native"] }
 # A deterministic Ed25519 client key for the enrollment test.
 ed25519-compact = { version = "2.3", default-features = false, features = ["std"] }
-futures = "0.3"
 
 
 [[test]]
@@ -37,3 +46,14 @@ path = "tests/mod.rs"
 
 [lints]
 workspace = true
+
+[workspace.lints.rust]
+missing_docs = { level = "allow" }
+missing_debug_implementations = { level = "allow" }
+
+[workspace.lints.clippy]
+pedantic = { level = "warn" }
+
+# The CI runner uses the `uat` profile (dev on LLVM) for every package.
+[profile.uat]
+inherits = "dev"

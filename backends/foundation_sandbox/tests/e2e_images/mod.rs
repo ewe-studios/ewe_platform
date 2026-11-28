@@ -321,8 +321,11 @@ mod real {
     /// `e2e_build_network`: a network step needs a driver that gives one.
     ///
     /// A Firecracker guest has no network, so the test returns with the reason.
-    /// The Linux host must run this row on libkrun with block support, with a
-    /// local HTTP server at a known address.
+    /// The `libkrun` form in `krun` runs the row on a host with block support.
+    #[allow(
+        dead_code,
+        reason = "a build with both features uses the libkrun form of this row"
+    )]
     pub fn build_network() {
         let Some((ctx, host)) = usable_host() else {
             return;
@@ -645,7 +648,9 @@ mod real {
     ///
     /// It hides the paths that the drivers mount (`/proc`, `/sys`, `/dev`,
     /// `/run`) and the four entries that `docker export` adds or replaces
-    /// (feature 13, section 6.4).
+    /// (feature 13, section 6.4). Every form works in the BusyBox of Alpine
+    /// 3.22: `find -xdev`, `find -not`, `stat -c` with `%F` and `%N`,
+    /// `sha256sum`, and `find -exec ... +`.
     const TREE_LIST: &str = r#"find / -xdev \
   -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' \
   -not -path '/run/*' -not -path '/tmp/*' -not -path '/.dockerenv' \
@@ -744,30 +749,136 @@ find / -xdev \
         );
     }
 
+    /// Runs one `docker` command and returns its standard output.
+    fn docker_cli(args: &[&str]) -> Option<String> {
+        let output = std::process::Command::new("docker")
+            .args(args)
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        Some(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
+
+    /// A `registry:2` container on `127.0.0.1`, removed on drop.
+    struct LocalRegistry {
+        /// The container name, which the cleanup uses.
+        name: String,
+        /// The host port of the registry.
+        port: u16,
+    }
+
+    impl LocalRegistry {
+        /// Starts a registry and pushes `alpine:3.22` as `test/alpine:1`.
+        fn start() -> Option<Self> {
+            for image in ["registry:2", "alpine:3.22"] {
+                if docker_cli(&["image", "inspect", image]).is_none()
+                    && docker_cli(&["pull", image]).is_none()
+                {
+                    eprintln!("skip: cannot pull {image} for the differential listing");
+                    return None;
+                }
+            }
+            let name = format!("ewe-test-registry-{}", std::process::id());
+            let _ = docker_cli(&["rm", "-f", name.as_str()]);
+            let mut registry = Self { name, port: 0 };
+            docker_cli(&[
+                "run",
+                "-d",
+                "--rm",
+                "--name",
+                registry.name.as_str(),
+                "-p",
+                "127.0.0.1::5000",
+                "registry:2",
+            ])?;
+            let published = docker_cli(&["port", registry.name.as_str(), "5000/tcp"])?;
+            let port = published.rsplit(':').next()?.parse::<u16>().ok()?;
+            registry.port = port;
+            // Wait until the registry accepts connections.
+            for _ in 0..50 {
+                if std::net::TcpStream::connect(("127.0.0.1", port)).is_ok() {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+            let image = format!("127.0.0.1:{port}/test/alpine:1");
+            docker_cli(&["tag", "alpine:3.22", image.as_str()])?;
+            if docker_cli(&["push", image.as_str()]).is_none() {
+                eprintln!("skip: cannot push test/alpine:1 to the local registry");
+                return None;
+            }
+            Some(registry)
+        }
+    }
+
+    impl Drop for LocalRegistry {
+        fn drop(&mut self) {
+            let _ = docker_cli(&["rm", "-f", self.name.as_str()]);
+        }
+    }
+
+    /// The source of the differential test.
+    struct RegistrySource {
+        /// The registry address without a scheme.
+        registry: String,
+        /// The image reference for the registry import.
+        oci: String,
+        /// The image reference for the Docker export.
+        docker: String,
+        /// The local registry, stopped on drop.
+        _local: Option<LocalRegistry>,
+    }
+
+    /// The external registry, or a local one that the test starts.
+    fn registry_source() -> Option<RegistrySource> {
+        if let Ok(registry) = std::env::var("EWE_TEST_REGISTRY") {
+            let image =
+                std::env::var("EWE_TEST_OCI_IMAGE").unwrap_or_else(|_| "test/alpine:1".to_string());
+            return Some(RegistrySource {
+                registry: registry.clone(),
+                oci: format!("{registry}/{image}"),
+                docker: image,
+                _local: None,
+            });
+        }
+        let local = LocalRegistry::start()?;
+        let registry = format!("127.0.0.1:{}", local.port);
+        let image = format!("{registry}/test/alpine:1");
+        Some(RegistrySource {
+            registry,
+            oci: image.clone(),
+            docker: image,
+            _local: Some(local),
+        })
+    }
+
     /// `e2e_layers_equal_docker_export`: the registry image and the same image
     /// through `docker export` give one file tree.
+    ///
+    /// Set `EWE_TEST_REGISTRY` to an external registry that holds
+    /// `test/alpine:1`. Without it, the test starts a local `registry:2`
+    /// container, pushes `alpine:3.22` to it, and uses that.
     pub fn oci_layers_equal_docker_export() {
-        let Ok(registry) = std::env::var("EWE_TEST_REGISTRY") else {
-            eprintln!("skip: set EWE_TEST_REGISTRY to a local registry that holds test/alpine:1");
-            return;
-        };
-        let image =
-            std::env::var("EWE_TEST_OCI_IMAGE").unwrap_or_else(|_| "test/alpine:1".to_string());
         let Some((ctx, host)) = usable_host() else {
             return;
         };
         let Some(docker) = docker() else {
             return;
         };
+        let Some(source) = registry_source() else {
+            return;
+        };
         let store = ImageStore::new(ctx.clone(), host.clone());
         let control = manager(&ctx, &host, &store);
         let importer =
             importer(&ctx, &host, &store, control, Some(docker)).with_registry(RegistryOptions {
-                allow_insecure: vec![registry.clone()],
+                allow_insecure: vec![source.registry.clone()],
                 ..RegistryOptions::default()
             });
         let oci = crate::pool::block_on(importer.import(
-            ImageSource::Oci(format!("{registry}/{image}")),
+            ImageSource::Oci(source.oci.clone()),
             ImportOptions {
                 tag: Some("e2e-oci-tree".to_string()),
                 ..ImportOptions::default()
@@ -775,7 +886,7 @@ find / -xdev \
         ))
         .expect("the registry image imports");
         let exported = crate::pool::block_on(importer.import(
-            ImageSource::Docker(image),
+            ImageSource::Docker(source.docker.clone()),
             ImportOptions {
                 tag: Some("e2e-docker-tree".to_string()),
                 ..ImportOptions::default()
@@ -800,6 +911,169 @@ find / -xdev \
         assert_eq!(oci_code, Some(0), "the registry image listing runs");
         assert_eq!(docker_code, Some(0), "the Docker image listing runs");
         assert_eq!(oci_tree, docker_tree, "the two file trees are equal");
+    }
+}
+
+/// The libkrun form of the network build row (issue #1013).
+///
+/// A Firecracker guest has no network. libkrun gives the guest the host
+/// network, and it needs block device support to run the imported ext4 image.
+#[cfg(feature = "libkrun")]
+mod krun {
+    use std::io::{Read as _, Write as _};
+    use std::net::TcpListener;
+    use std::path::{Path, PathBuf};
+    use std::sync::Arc;
+
+    use foundation_context::Ctx;
+    use foundation_core::env;
+    use foundation_sandbox::native::images::build::executor::ImageBuilder;
+    use foundation_sandbox::native::images::build::BuildOptions;
+    use foundation_sandbox::native::images::import::ImageImporter;
+    use foundation_sandbox::native::images::sandboxfile::Sandboxfile;
+    use foundation_sandbox::native::images::ImageStore;
+    use foundation_sandbox::native::libkrun::driver::LibkrunDriver;
+    use foundation_sandbox::shared::control::{
+        ManagerConfig, MemoryRecordStore, SandboxManager, SandboxProvider,
+    };
+    use foundation_sandbox::shared::driver::SandboxDriver;
+    use foundation_sandbox::shared::host::{HostConfig, SandboxHost};
+
+    /// Whether the image store can start `mkfs.ext4`.
+    fn mkfs_available(config: &HostConfig) -> bool {
+        config.mkfs_ext4_path.is_some()
+            || [
+                "/sbin/mkfs.ext4",
+                "/usr/sbin/mkfs.ext4",
+                "/usr/bin/mkfs.ext4",
+            ]
+            .iter()
+            .any(|path| Path::new(path).exists())
+    }
+
+    /// A libkrun host with block support, or `None` with the printed reason.
+    fn usable_host() -> Option<(Ctx, SandboxHost)> {
+        crate::pool::pool();
+        let ctx = Ctx::host();
+        let effects = env::system(&ctx).ok()?;
+        ctx.store(effects);
+        let exe_dir = std::env::current_exe()
+            .ok()
+            .and_then(|path| path.parent().map(Path::to_path_buf))?;
+        let config = HostConfig::discover(|name| std::env::var(name).ok(), &exe_dir);
+        if !mkfs_available(&config) {
+            eprintln!("skip: mkfs.ext4 is not installed");
+            return None;
+        }
+        let host = SandboxHost::native(config);
+        ctx.store(host.clone());
+        let report = crate::pool::block_on(LibkrunDriver::new().probe(ctx.clone()));
+        if !report.usable {
+            eprintln!("skip: the host cannot run libkrun: {report:?}");
+            return None;
+        }
+        if !report.capabilities.network_host {
+            eprintln!("skip: the libkrun host gives the guest no network");
+            return None;
+        }
+        if !report.capabilities.rootfs_ext4 {
+            eprintln!(
+                "skip: libkrun has no block device support; build it with `BLK=1` for the ext4 image"
+            );
+            return None;
+        }
+        Some((ctx, host))
+    }
+
+    /// A manager over the libkrun driver.
+    fn manager(ctx: &Ctx, host: &SandboxHost) -> Arc<SandboxManager> {
+        Arc::new(SandboxManager::new(
+            ctx.clone(),
+            vec![Arc::new(LibkrunDriver::new())],
+            host.connector.clone(),
+            Arc::new(MemoryRecordStore::default()),
+            ManagerConfig::default(),
+        ))
+    }
+
+    /// A fresh directory below the temporary directory.
+    fn temp_dir(tag: &str) -> PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "ewe-e2e-images-{tag}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |duration| duration.as_nanos())
+        ));
+        let _ = std::fs::remove_dir_all(&path);
+        std::fs::create_dir_all(&path).expect("the temporary directory is made");
+        path
+    }
+
+    /// A server on the host loopback that answers one request.
+    fn start_http_server() -> (String, std::thread::JoinHandle<()>) {
+        let listener =
+            TcpListener::bind("127.0.0.1:0").expect("the test server binds a loopback port");
+        let port = listener
+            .local_addr()
+            .expect("the test server address")
+            .port();
+        let handle = std::thread::spawn(move || {
+            if let Ok((mut stream, _)) = listener.accept() {
+                let mut request = [0_u8; 1024];
+                let _ = stream.read(&mut request);
+                let _ = stream.write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: close\r\n\r\nkrunok",
+                );
+            }
+        });
+        (format!("http://127.0.0.1:{port}/"), handle)
+    }
+
+    /// `e2e_build_network`: a `RUN --network host` step reaches a local server.
+    ///
+    /// Set `EWE_TEST_HTTP_URL` to use a server that the caller started, as the
+    /// other network tests use `EWE_TEST_REGISTRY`. Otherwise the test starts a
+    /// server on the host loopback.
+    pub fn build_network() {
+        let Some((ctx, host)) = usable_host() else {
+            return;
+        };
+        let directory = temp_dir("build-network-krun");
+        let (url, server) = match std::env::var("EWE_TEST_HTTP_URL") {
+            Ok(url) => (url, None),
+            Err(_) => {
+                let (url, server) = start_http_server();
+                (url, Some(server))
+            }
+        };
+        let text =
+            format!("FROM alpine:3.22\nRUN --network host wget -q -T 10 -O /dev/null {url}\n");
+        let store = ImageStore::new(ctx.clone(), host.clone());
+        let control: Arc<dyn SandboxProvider> = manager(&ctx, &host);
+        let importer = ImageImporter::new(
+            ctx.clone(),
+            host.clone(),
+            store.clone(),
+            Arc::clone(&control),
+            None,
+        );
+        let builder =
+            ImageBuilder::new(ctx.clone(), host.clone(), store.clone(), importer, control);
+        let file = Sandboxfile::parse(&text).expect("the build file parses");
+        crate::pool::block_on(builder.build(
+            &file,
+            &directory,
+            BuildOptions {
+                tag: Some("e2e-build-network-krun".to_string()),
+                ..BuildOptions::default()
+            },
+        ))
+        .expect("the network step reaches the host server");
+        if let Some(server) = server {
+            let _ = server.join();
+        }
+        let _ = std::fs::remove_dir_all(&directory);
     }
 }
 
@@ -876,11 +1150,30 @@ e2e_test!(
     build_owners,
     "this test needs a Linux host with the firecracker feature"
 );
-e2e_test!(
-    e2e_build_network,
-    build_network,
-    "this test needs a Linux host with the firecracker feature"
-);
+/// `e2e_build_network`: a `RUN --network host` step reaches a local server.
+///
+/// A libkrun host with block support runs the row. A build without libkrun
+/// falls back to the Firecracker row, which prints the reason that a
+/// Firecracker guest has no network.
+#[test]
+fn e2e_build_network() {
+    #[cfg(feature = "libkrun")]
+    {
+        krun::build_network();
+        return;
+    }
+    #[cfg(all(target_os = "linux", feature = "firecracker", not(feature = "libkrun")))]
+    {
+        real::build_network();
+        return;
+    }
+    #[cfg(not(any(
+        feature = "libkrun",
+        all(target_os = "linux", feature = "firecracker")
+    )))]
+    skip("this test needs a libkrun host with block support, or a Linux host with the firecracker feature");
+}
+
 e2e_test!(
     e2e_build_resume,
     build_resume,

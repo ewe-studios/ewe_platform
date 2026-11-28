@@ -1,0 +1,106 @@
+# Google Cloud KMS over gRPC against localgcp (spec 92 feature 03)
+#
+# localgcp v0.6.0 serves Cloud KMS over gRPC on port 8091. The
+# `foundation_gcp_kms` tests create a key ring and a key, seal and open a
+# record, refuse a wrong key, destroy the key version, and record the answer of
+# the methods that Cloud KMS v1 does not define.
+#
+# No secret is needed: the emulator accepts any token, and the tests set the
+# token themselves. The job runs on the free GitHub-hosted runner.
+
+name: KMS GCP local
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - master
+      - platform/release
+    paths:
+      - "backends/foundation_gcp_kms/**"
+      - "backends/foundation_auth/src/keystore/**"
+      - "backends/foundation_connectrpc/src/**"
+      - "backends/foundation_ci/src/services/**"
+      - "backends/foundation_ci/src/main.rs"
+      - "backends/foundation_ci/src/lib.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/kms-gcp-local.yaml"
+  push:
+    branches:
+      - master
+      - platform/release
+  workflow_dispatch:
+
+# A new push to a pull request cancels the old run of that pull request. Runs on
+# master, platform/release and manual runs queue and never cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  CARGO_PROFILE_UAT_DEBUG: "0"
+  # The emulator endpoint and protocol of the gated tests.
+  GCP_KMS_ENDPOINT: "http://127.0.0.1:8091"
+  GCP_KMS_PROTOCOL: "grpc"
+
+jobs:
+  kms-gcp-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4.4.0
+        with:
+          submodules: false
+
+      - name: Install the pinned toolchain
+        # Skip the install when rustup lists the channel, so a missing network
+        # cannot fail the job (issue #402).
+        run: |
+          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          if ! rustup toolchain list | grep -q "^${toolchain}"; then
+            rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          fi
+          echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
+
+      - name: Install the pinned protoc
+        # The build script of foundation_gcp_kms runs protoc. The version, the
+        # asset and the checksum are the same as in mise.lock and the check
+        # workflow.
+        shell: bash
+        run: |
+          version=36.2
+          case "$(uname -s)-$(uname -m)" in
+            Linux-x86_64)  asset="linux-x86_64"; sha="121f6c7afe1d4d0e3ea6aab9432038599250134cbf4474cb1167d2c7decd4278" ;;
+            *)
+              echo "::error::no pinned protoc $version asset for $(uname -s)-$(uname -m)"
+              exit 1
+              ;;
+          esac
+          dir="$RUNNER_TEMP/protoc-$version"
+          mkdir -p "$dir"
+          curl -sSL -o "$dir/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$version/protoc-$version-$asset.zip"
+          echo "$sha  $dir/protoc.zip" | sha256sum -c -
+          python3 -I -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$dir/protoc.zip" "$dir"
+          chmod +x "$dir"/bin/protoc*
+          "$dir/bin/protoc" --version
+          echo "$dir/bin" >> "$GITHUB_PATH"
+
+      - name: Cache cargo registry and target dir
+        uses: Swatinem/rust-cache@v2.9.2
+        with:
+          key: kms-gcp-local
+
+      - name: Start localgcp
+        run: cargo run --locked --profile uat -p foundation_ci -- services localgcp --keep-running
+
+      - name: Run the Cloud KMS gRPC tests
+        run: cargo test --locked --profile uat -p foundation_gcp_kms
+
+      - name: Stop localgcp
+        if: always()
+        run: cargo run --locked --profile uat -p foundation_ci -- services localgcp-stop

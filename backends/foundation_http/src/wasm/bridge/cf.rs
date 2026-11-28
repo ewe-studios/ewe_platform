@@ -53,6 +53,9 @@ pub fn request_from_cf(
         ))))
     });
 
+    // The host already framed this request. Keep its wire headers, so a
+    // streamed body keeps `Content-Length` and gains no `Transfer-Encoding`
+    // (issue #1019).
     let simple_req = SimpleIncomingRequest::builder()
         .with_parsed_url(url)
         .with_uri(request_uri)
@@ -60,6 +63,7 @@ pub fn request_from_cf(
         .with_proto(Proto::HTTP11)
         .with_headers(simple_headers)
         .with_some_body(body)
+        .with_preserved_headers()
         .build()
         .map_err(|e| JsError::new(&format!("failed to build request: {e}")))?;
 

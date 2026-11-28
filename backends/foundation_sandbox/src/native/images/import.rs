@@ -21,9 +21,7 @@ use foundation_compact::rng::Rng as _;
 use foundation_context::Ctx;
 use foundation_deployment_docker::client::body::{ByteBody, ProgressStream};
 use foundation_deployment_docker::generated::create::CreateImageInfo;
-use foundation_deployment_docker::generated::json::{
-    ContainerConfig, HostConfig, ImageConfig, Resources,
-};
+use foundation_deployment_docker::generated::json::{ContainerConfig, HostConfig, ImageConfig};
 use foundation_errstacks::ErrorTrace;
 use futures::channel::mpsc::UnboundedSender;
 use futures::future::{select, Either};
@@ -721,7 +719,7 @@ impl ImageImporter {
                     network_mode: Some("none".to_string()),
                     ..HostConfig::default()
                 };
-                let body = create_body(container, host, Resources::default());
+                let body = create_body(container, host);
                 let container_name = format!("ewe-import-{}", self.random_name()?);
                 let created = api
                     .create_container(&body, Some(&container_name))

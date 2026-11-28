@@ -48,6 +48,17 @@ pub const DEFAULT_NOTIFY_QUEUE_MAX_SPINS: usize = 1;
 #[cfg(not(target_family = "wasm"))]
 pub const DEFAULT_NOTIFY_QUEUE_MAX_SPINS: usize = 100;
 
+/// `DEFAULT_WAIT_REDRIVE_BUDGET` is how many times a parking adapter re-polls a
+/// driving stream after `Stream::Wait` before it parks on a wake.
+///
+/// The native value matches `DEFAULT_NOTIFY_QUEUE_MAX_SPINS` (100). The wasm
+/// value is 1, so the adapter yields to the event loop at once.
+#[cfg(target_family = "wasm")]
+pub const DEFAULT_WAIT_REDRIVE_BUDGET: usize = 1;
+
+#[cfg(not(target_family = "wasm"))]
+pub const DEFAULT_WAIT_REDRIVE_BUDGET: usize = 100;
+
 /// `DEFAULT_KILL_SIGNAL_CHECK_INTERVAL` is how often to check kill signal in `block_on()` inner loop.
 /// Default is every 16 iterations (instead of checking every iteration or only every 200).
 pub const DEFAULT_KILL_SIGNAL_CHECK_INTERVAL: usize = 16;

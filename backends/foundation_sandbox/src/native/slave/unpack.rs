@@ -11,13 +11,15 @@
 //! error number.
 
 use std::collections::HashMap;
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::Write;
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::path::{Component, Path, PathBuf};
-use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
-use std::sync::Mutex;
+use std::process::{Child, Command, Stdio};
+use std::sync::{Arc, Mutex};
 
 use foundation_compact::Instant;
 use foundation_context::Ctx;
+use foundation_reactor::fd_readiness::FdReadiness;
 use serde::{Deserialize, Serialize};
 
 use crate::shared::error::{SandboxError, SandboxResult, SlaveErrorCode};
@@ -92,8 +94,14 @@ pub enum ChildOutcome {
 /// One running unpack.
 struct Session {
     child: Child,
-    stdin: Option<ChildStdin>,
-    stdout: BufReader<ChildStdout>,
+    /// The write end of the child's standard input, non-blocking.
+    stdin: Option<Arc<OwnedFd>>,
+    /// Write readiness of `stdin`, on while bytes are queued.
+    stdin_ready: Arc<FdReadiness>,
+    /// The read end of the child's standard output, non-blocking.
+    stdout: Arc<OwnedFd>,
+    /// Read readiness of `stdout`.
+    stdout_ready: Arc<FdReadiness>,
     sequence: Sequence,
     last_use: Instant,
 }
@@ -104,18 +112,39 @@ pub struct UnpackSessions {
     ctx: Ctx,
     max_sessions: usize,
     idle_timeout: std::time::Duration,
+    /// The longest line that the child may write before the parent reads it.
+    max_line_bytes: usize,
+    /// The child program, or `None` for this program.
+    child_program: Option<PathBuf>,
 }
 
 impl UnpackSessions {
     /// An empty set of sessions.
     #[must_use]
-    pub fn new(ctx: Ctx, max_sessions: usize, idle_timeout: std::time::Duration) -> Self {
+    pub fn new(
+        ctx: Ctx,
+        max_sessions: usize,
+        idle_timeout: std::time::Duration,
+        max_line_bytes: usize,
+    ) -> Self {
         Self {
             sessions: Mutex::new(HashMap::new()),
             ctx,
             max_sessions,
             idle_timeout,
+            max_line_bytes,
+            child_program: None,
         }
+    }
+
+    /// Runs the unpack child with another program.
+    ///
+    /// Default: this program, which handles `--unpack-child`. A test sets a
+    /// probe program that needs no `chroot`.
+    #[must_use]
+    pub fn with_child_program(mut self, program: PathBuf) -> Self {
+        self.child_program = Some(program);
+        self
     }
 
     fn lock(&self) -> std::sync::MutexGuard<'_, HashMap<UploadId, Session>> {
@@ -126,10 +155,13 @@ impl UnpackSessions {
 
     /// Starts one unpack of `dest`, which is a directory of the guest.
     ///
+    /// The `ready` line is read as a readiness future, so the task parks
+    /// instead of holding a worker while the child starts.
+    ///
     /// # Errors
     /// `BadRequest` for a bad target, `TooManySessions` at the session limit,
     /// `PermissionDenied` when the child cannot `chroot`, and `Io`.
-    pub fn begin(
+    pub async fn begin(
         &self,
         exec_root: &Path,
         dest: &str,
@@ -139,10 +171,13 @@ impl UnpackSessions {
         if self.lock().len() >= self.max_sessions {
             return Err(SandboxError::TooManySessions.into());
         }
-        let program = std::env::current_exe().map_err(|error| SandboxError::Io {
-            op: "find the slave program".to_string(),
-            message: error.to_string(),
-        })?;
+        let program = match &self.child_program {
+            Some(program) => program.clone(),
+            None => std::env::current_exe().map_err(|error| SandboxError::Io {
+                op: "find the slave program".to_string(),
+                message: error.to_string(),
+            })?,
+        };
         let options_json = serde_json::to_string(limits).map_err(|error| SandboxError::Io {
             op: "encode the unpack options".to_string(),
             message: error.to_string(),
@@ -160,14 +195,25 @@ impl UnpackSessions {
                 op: "start the unpack child".to_string(),
                 message: error.to_string(),
             })?;
-        let stdin = child.stdin.take();
+        let stdin = child.stdin.take().ok_or_else(|| SandboxError::Io {
+            op: "write to the unpack child".to_string(),
+            message: "the child has no standard input".to_string(),
+        })?;
+        let stdin: OwnedFd = stdin.into();
         let stdout = child.stdout.take().ok_or_else(|| SandboxError::Io {
             op: "read the unpack child".to_string(),
             message: "the child has no standard output".to_string(),
         })?;
-        let mut stdout = BufReader::new(stdout);
-        let mut line = String::new();
-        let ready = stdout.read_line(&mut line).map(|_| line.trim().to_string());
+        let stdout: OwnedFd = stdout.into();
+        let (stdin, stdin_ready, stdout, stdout_ready) = match child_pipes(stdin, stdout) {
+            Ok(pipes) => pipes,
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(error);
+            }
+        };
+        let ready = read_line(&stdout, &stdout_ready, self.max_line_bytes).await;
         match ready {
             Ok(text) if text == READY_LINE => {}
             Ok(text) => {
@@ -194,8 +240,10 @@ impl UnpackSessions {
             upload_id.clone(),
             Session {
                 child,
-                stdin,
+                stdin: Some(stdin),
+                stdin_ready,
                 stdout,
+                stdout_ready,
                 sequence: Sequence::new(),
                 last_use: self.ctx.clock().now(),
             },
@@ -205,29 +253,73 @@ impl UnpackSessions {
 
     /// Writes one tar chunk.
     ///
+    /// The write parks on the pipe's write readiness instead of holding a
+    /// worker, so several unpacks share the pool while a slow reader drains.
+    /// The session lock is not held across the await: the protocol sends one
+    /// chunk at a time for one upload, so the sequence check already ordered
+    /// the writes.
+    ///
     /// # Errors
     /// `NotFound` for an unknown session, `SequenceGap` for a gap or an
     /// overlap, and `Io`.
-    pub fn chunk(&self, upload_id: &str, offset: u64, data: &[u8]) -> SandboxResult<u64> {
+    pub async fn chunk(&self, upload_id: &str, offset: u64, data: &[u8]) -> SandboxResult<u64> {
         let upload_id = parse_upload_id(upload_id)?;
-        let mut sessions = self.lock();
-        let Some(session) = sessions.get_mut(&upload_id) else {
-            return Err(upload_not_found(&upload_id));
-        };
-        match session.sequence.accept_span(offset, data.len() as u64) {
-            SequenceCheck::Gap => return Err(SandboxError::SequenceGap.into()),
-            SequenceCheck::Duplicate => {
-                session.last_use = self.ctx.clock().now();
-                return Ok(session.sequence.next());
+        let (stdin, readiness, next) = {
+            let mut sessions = self.lock();
+            let Some(session) = sessions.get_mut(&upload_id) else {
+                return Err(upload_not_found(&upload_id));
+            };
+            match session.sequence.accept_span(offset, data.len() as u64) {
+                SequenceCheck::Gap => return Err(SandboxError::SequenceGap.into()),
+                SequenceCheck::Duplicate => {
+                    session.last_use = self.ctx.clock().now();
+                    return Ok(session.sequence.next());
+                }
+                SequenceCheck::Apply => {}
             }
-            SequenceCheck::Apply => {}
-        }
-        let written = match session.stdin.as_mut() {
-            Some(stdin) => stdin.write_all(data),
-            None => Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe)),
+            session.last_use = self.ctx.clock().now();
+            let (Some(stdin), readiness) = (
+                session.stdin.as_ref().map(Arc::clone),
+                Arc::clone(&session.stdin_ready),
+            ) else {
+                return Err(SandboxError::Io {
+                    op: "write the unpack chunk".to_string(),
+                    message: "the child input is closed".to_string(),
+                }
+                .into());
+            };
+            (stdin, readiness, session.sequence.next())
         };
-        if let Err(error) = written {
-            if let Some(mut session) = sessions.remove(&upload_id) {
+        // Watch writability only while bytes are queued: an idle pipe is always
+        // writable, and a standing interest would drive the reactor.
+        if let Err(error) = readiness.set_writable(true) {
+            return Err(SandboxError::Io {
+                op: "watch the unpack child".to_string(),
+                message: error.to_string(),
+            }
+            .into());
+        }
+        let mut written = 0;
+        let result = loop {
+            if written >= data.len() {
+                break Ok(());
+            }
+            match super::sys::write(stdin.as_raw_fd(), &data[written..]) {
+                Ok(0) => {
+                    break Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe));
+                }
+                Ok(count) => written += count,
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    super::wait::ready(Arc::clone(&readiness)).await;
+                    readiness.clear();
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+                Err(error) => break Err(error),
+            }
+        };
+        let _ = readiness.set_writable(false);
+        if let Err(error) = result {
+            if let Some(mut session) = self.lock().remove(&upload_id) {
                 let _ = session.child.kill();
                 let _ = session.child.wait();
             }
@@ -237,8 +329,7 @@ impl UnpackSessions {
             }
             .into());
         }
-        session.last_use = self.ctx.clock().now();
-        Ok(session.sequence.next())
+        Ok(next)
     }
 
     /// Ends the tar stream and reads the child result.
@@ -246,7 +337,7 @@ impl UnpackSessions {
     /// # Errors
     /// `NotFound`, `BadRequest` for a size that is not the next offset, and the
     /// child result as `Io` with the entry path and `errno`.
-    pub fn commit(&self, upload_id: &str, size: u64) -> SandboxResult<(u64, u64)> {
+    pub async fn commit(&self, upload_id: &str, size: u64) -> SandboxResult<(u64, u64)> {
         let upload_id = parse_upload_id(upload_id)?;
         let Some(mut session) = self.lock().remove(&upload_id) else {
             return Err(upload_not_found(&upload_id));
@@ -261,20 +352,23 @@ impl UnpackSessions {
                 format!("the unpack size {size} is not the stream size {next}"),
             ));
         }
+        // Close the write end, so the child reads the end of its input.
         drop(session.stdin.take());
-        let mut output = String::new();
-        let read = session.stdout.read_to_string(&mut output);
+        let output = read_to_end(&session.stdout, &session.stdout_ready, self.max_line_bytes).await;
         let _status = session.child.wait().map_err(|error| SandboxError::Io {
             op: "wait for the unpack child".to_string(),
             message: error.to_string(),
         })?;
-        if let Err(error) = read {
-            return Err(SandboxError::Io {
-                op: "read the unpack result".to_string(),
-                message: error.to_string(),
+        let output = match output {
+            Ok(bytes) => String::from_utf8_lossy(&bytes).to_string(),
+            Err(error) => {
+                return Err(SandboxError::Io {
+                    op: "read the unpack result".to_string(),
+                    message: error.to_string(),
+                }
+                .into());
             }
-            .into());
-        }
+        };
         let outcome = serde_json::from_str::<ChildOutcome>(output.trim()).map_err(|error| {
             SandboxError::Io {
                 op: "parse the unpack result".to_string(),
@@ -352,6 +446,97 @@ impl UnpackSessions {
             let _ = session.child.wait();
         }
     }
+}
+
+/// Sets the child pipes non-blocking and registers their readiness.
+fn child_pipes(
+    stdin: OwnedFd,
+    stdout: OwnedFd,
+) -> SandboxResult<(
+    Arc<OwnedFd>,
+    Arc<FdReadiness>,
+    Arc<OwnedFd>,
+    Arc<FdReadiness>,
+)> {
+    let io_error = |op: &str, error: std::io::Error| {
+        foundation_errstacks::ErrorTrace::new(SandboxError::Io {
+            op: op.to_string(),
+            message: error.to_string(),
+        })
+    };
+    super::sys::set_nonblocking(stdin.as_raw_fd())
+        .map_err(|error| io_error("make the unpack input non-blocking", error))?;
+    super::sys::set_nonblocking(stdout.as_raw_fd())
+        .map_err(|error| io_error("make the unpack output non-blocking", error))?;
+    let stdin_ready = FdReadiness::register(stdin.as_raw_fd())
+        .map_err(|error| io_error("watch the unpack input", error))?;
+    let stdout_ready = FdReadiness::register(stdout.as_raw_fd())
+        .map_err(|error| io_error("watch the unpack output", error))?;
+    Ok((
+        Arc::new(stdin),
+        Arc::new(stdin_ready),
+        Arc::new(stdout),
+        Arc::new(stdout_ready),
+    ))
+}
+
+/// Reads one line from the child, parking on read readiness.
+async fn read_line(
+    fd: &OwnedFd,
+    readiness: &Arc<FdReadiness>,
+    max_bytes: usize,
+) -> std::io::Result<String> {
+    let mut line = Vec::new();
+    let mut buffer = [0_u8; 256];
+    loop {
+        if line.len() >= max_bytes {
+            break;
+        }
+        let take = buffer.len().min(max_bytes.saturating_sub(line.len()));
+        match super::sys::read(fd.as_raw_fd(), &mut buffer[..take]) {
+            Ok(0) => break,
+            Ok(read) => {
+                line.extend_from_slice(&buffer[..read]);
+                if line.contains(&b'\n') {
+                    break;
+                }
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                super::wait::ready(Arc::clone(readiness)).await;
+                readiness.clear();
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(String::from_utf8_lossy(&line).trim().to_string())
+}
+
+/// Reads the child's result to the end of its output, parking on readiness.
+async fn read_to_end(
+    fd: &OwnedFd,
+    readiness: &Arc<FdReadiness>,
+    max_bytes: usize,
+) -> std::io::Result<Vec<u8>> {
+    let mut output = Vec::new();
+    let mut buffer = [0_u8; 4096];
+    loop {
+        if output.len() >= max_bytes {
+            break;
+        }
+        let take = buffer.len().min(max_bytes.saturating_sub(output.len()));
+        match super::sys::read(fd.as_raw_fd(), &mut buffer[..take]) {
+            Ok(0) => break,
+            Ok(read) => output.extend_from_slice(&buffer[..read]),
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                super::wait::ready(Arc::clone(readiness)).await;
+                readiness.clear();
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(output)
 }
 
 /// The target path of one unpack, checked to stay inside `exec_root`.

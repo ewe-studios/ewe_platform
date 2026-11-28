@@ -1671,6 +1671,19 @@ where
         }
         WakeResult::Successful
     }
+
+    fn drives_its_producer(&self) -> bool {
+        // `next()` runs the engine on this thread, so a `Wait` means "run it
+        // again"; on a single-threaded engine no other thread will send a wake.
+        true
+    }
+
+    fn can_make_progress(&self) -> bool {
+        // `next()` returns a cheap `Wait` only when the engine has runnable
+        // work. Otherwise it blocks on the output queue, so a re-poll would
+        // sleep out the driver's budget and change nothing.
+        single::has_runnable_work()
+    }
 }
 
 pub struct DrivenTaskIterator<T>(Option<T>, Ctx)
@@ -2793,3 +2806,4 @@ where
     S::Item: 'static,
 {
 }
+

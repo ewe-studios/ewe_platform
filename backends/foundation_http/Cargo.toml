@@ -23,6 +23,7 @@ rand_chacha = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
+time = { workspace = true, features = ["parsing", "formatting"] }
 
 regex = { version = "1.12" }
 bytes = { version = "1.5" }
@@ -82,16 +83,29 @@ foundation_testing = { path = "../foundation_testing" }
 # Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
 foundation_nativeapis = { path = "../foundation_nativeapis", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
+# The Durable Streams example logs through tracing when `DURABLE_LOG` is set.
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+# The Durable Streams example mounts the subscription control handler beside the
+# stream handler (spec 71 feature 10).
+foundation_event_stream = { path = "../foundation_event_stream" }
+# Cross-implementation run (spec 71 feature 08 T3): the reference Rust client
+# from `packages/client-rust` of the public durable-streams repository. The
+# client is not published on crates.io, so the public commit is pinned.
+durable-streams = { git = "https://github.com/durable-streams/durable-streams", rev = "461b40267aabd644558f9b19dbb9507dd5f691cf" }
+# The external reference client runs on the tokio runtime. Dev only.
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "time", "net"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
 async-trait = "0.1"
+# Drives the futures of the Durable Streams adapter tests.
+smol = "2"
 # `getrusage` for the parking CPU regression tests (utime+stime).
 libc = "0.2"
 # SHA-256 of the received body in the static file byte-exact test.
 sha2 = { workspace = true }
 # mTLS peer-info test: generate a CA, a server certificate and a client
 # certificate, then drive a real rustls handshake.
-rcgen = { version = "0.13", default-features = false, features = ["ring", "pem", "x509-parser"] }
+rcgen = { version = "0.14", default-features = false, features = ["ring", "pem", "x509-parser"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 
 [target.'cfg(unix)'.dev-dependencies]
@@ -154,3 +168,7 @@ workspace = true
 name = "http3_server_tests"
 path = "tests/http3_server_tests.rs"
 required-features = ["quic"]
+
+[[example]]
+name = "durable_server"
+required-features = ["multi"]

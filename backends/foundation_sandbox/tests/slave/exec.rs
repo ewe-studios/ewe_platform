@@ -9,7 +9,7 @@ use foundation_sandbox::shared::error::SlaveErrorCode;
 use foundation_sandbox::shared::rpc::messages::ExecSignalRequest;
 
 use super::support::{
-    drain, exec_request, exit_of, hex, limits, plain_prepare, process_exists, slave_code,
+    drain, exec_request, exit_of, hex, limits, plain_prepare_work, process_exists, slave_code,
     started_pid, stderr_of, stdout_of, wait_until, SlaveProcess,
 };
 
@@ -17,7 +17,7 @@ use super::support::{
 #[test]
 fn exec_echo() {
     let slave = SlaveProcess::start("exec-echo", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(10), &["/bin/echo", "hi"]))
@@ -34,7 +34,7 @@ fn exec_echo() {
 #[test]
 fn exec_not_found() {
     let slave = SlaveProcess::start("exec-not-found", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let error = slave
         .caller
         .exec_error(exec_request(&hex(11), &["/no/such/program"]));
@@ -51,7 +51,7 @@ fn exec_not_found() {
 #[test]
 fn exec_not_executable() {
     let slave = SlaveProcess::start("exec-not-executable", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let error = slave
         .caller
         .exec_error(exec_request(&hex(12), &["/etc/passwd"]));
@@ -68,7 +68,7 @@ fn exec_not_executable() {
 #[test]
 fn exec_stderr_is_separate() {
     let slave = SlaveProcess::start("exec-stderr", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(13), &["sh", "-c", "echo a; echo b >&2"]))
@@ -83,7 +83,7 @@ fn exec_stderr_is_separate() {
 #[test]
 fn exec_output_is_exact() {
     let slave = SlaveProcess::start("exec-output-exact", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let cases = [0_usize, 1, 7, 4095, 65536, 131_073];
     for (index, size) in cases.into_iter().enumerate() {
         let script = format!("yes a | head -c {size}; yes b | head -c {size} >&2");
@@ -120,7 +120,7 @@ proptest! {
     #[test]
     fn exec_output_property(size in 0_usize..200_000) {
         let slave = SlaveProcess::start("exec-output-property", None, 4);
-        slave.prepare(&plain_prepare("/tmp"));
+        slave.prepare(&plain_prepare_work());
         let script = format!("yes a | head -c {size}");
         let stream = slave
             .caller
@@ -136,7 +136,7 @@ proptest! {
 #[test]
 fn signal_group() {
     let slave = SlaveProcess::start("signal-group", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(20), &["sh", "-c", "sleep 60 & wait"]))
@@ -159,7 +159,7 @@ fn signal_group() {
 #[test]
 fn signal_bad_number() {
     let slave = SlaveProcess::start("signal-bad", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(21), &["sleep", "60"]))
@@ -185,7 +185,7 @@ fn signal_bad_number() {
 #[test]
 fn signal_after_exit() {
     let slave = SlaveProcess::start("signal-after", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(22), &["true"]))
@@ -205,7 +205,7 @@ fn signal_after_exit() {
 #[test]
 fn stream_drop_kills() {
     let slave = SlaveProcess::start("stream-drop", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(30), &["sleep", "60"]))
@@ -229,7 +229,7 @@ fn stream_drop_kills() {
 #[test]
 fn exec_id_reuse_after_end() {
     let slave = SlaveProcess::start("exec-id-reuse", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let events = drain(
         slave
             .caller
@@ -250,7 +250,7 @@ fn exec_id_reuse_after_end() {
 #[test]
 fn exec_id_conflict() {
     let slave = SlaveProcess::start("exec-id-conflict", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let stream = slave
         .caller
         .exec(exec_request(&hex(32), &["sleep", "60"]))
@@ -270,7 +270,7 @@ fn exec_id_conflict() {
 #[test]
 fn drain_timeout() {
     let slave = SlaveProcess::start("drain-timeout", None, 4);
-    let mut prepare = plain_prepare("/tmp");
+    let mut prepare = plain_prepare_work();
     prepare.limits.output_drain_timeout_ms = 500;
     slave.prepare(&prepare);
     let clock = foundation_context::Ctx::host();
@@ -293,7 +293,7 @@ fn drain_timeout() {
 #[test]
 fn slow_reader_exact() {
     let slave = SlaveProcess::start("slow-reader", None, 4);
-    slave.prepare(&plain_prepare("/tmp"));
+    slave.prepare(&plain_prepare_work());
     let mut stream = slave
         .caller
         .exec(exec_request(
@@ -327,7 +327,7 @@ fn slow_reader_exact() {
 #[test]
 fn too_many_sessions() {
     let slave = SlaveProcess::start("too-many", None, 4);
-    let mut prepare = plain_prepare("/tmp");
+    let mut prepare = plain_prepare_work();
     prepare.limits = limits();
     prepare.limits.max_exec_sessions = 2;
     slave.prepare(&prepare);
