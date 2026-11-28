@@ -17,6 +17,38 @@ struct Build {
     offline: bool,
 }
 #[derive(Args)]
+struct Prepare {
+    /// Native platform declared in ewe-ui.toml.
+    #[arg(long, value_enum)]
+    target: PrepareTarget,
+    /// Stage libraries and bindings for the release profile.
+    #[arg(long)]
+    release: bool,
+    // Keep accepting the legacy flag. Preparation has no offline option.
+    #[arg(long = "offline", hide = true)]
+    _offline: bool,
+}
+
+#[derive(Clone, clap::ValueEnum)]
+enum PrepareTarget {
+    Android,
+    Ios,
+    // Keep the domain error for calls that still request the web target.
+    #[value(hide = true)]
+    Web,
+}
+
+impl From<PrepareTarget> for Target {
+    fn from(target: PrepareTarget) -> Self {
+        match target {
+            PrepareTarget::Android => Self::Android,
+            PrepareTarget::Ios => Self::Ios,
+            PrepareTarget::Web => Self::Web,
+        }
+    }
+}
+
+#[derive(Args)]
 struct Profile {
     /// Build with the release profile.
     #[arg(long)]
@@ -130,10 +162,10 @@ pub fn register(set: &mut TaskSet) -> TaskResult {
     set.add(
         "prepare",
         "Stage application Rust bindings and libraries for Xcode or Gradle",
-        |ctx, args: Build| async move {
+        |ctx, args: Prepare| async move {
             let root = ctx.require::<Directory>()?;
             let app = Application::load(&root.0).map_err(TaskError::operation)?;
-            project::prepare(&ctx, &root.0, &app, args.target, args.release).await
+            project::prepare(&ctx, &root.0, &app, args.target.into(), args.release).await
         },
     )?;
     set.add(

@@ -249,6 +249,29 @@ fn human_and_automation_help_use_the_real_command_tree() {
 }
 
 #[test]
+fn native_prepare_help_lists_only_native_flags() {
+    let directory = tempfile::tempdir().unwrap();
+    let prepare = cli(directory.path(), &["task", "run", "app:prepare", "--help"]);
+    assert!(prepare.status.success());
+    let prepare = String::from_utf8(prepare.stdout).unwrap();
+    assert!(
+        prepare.contains("[possible values: android, ios]"),
+        "{prepare}"
+    );
+    assert!(prepare.contains("--release"), "{prepare}");
+    assert!(!prepare.contains("--offline"), "{prepare}");
+
+    let build = cli(directory.path(), &["task", "run", "app:build", "--help"]);
+    assert!(build.status.success());
+    let build = String::from_utf8(build.stdout).unwrap();
+    assert!(
+        build.contains("[possible values: web, android, ios]"),
+        "{build}"
+    );
+    assert!(build.contains("--offline"), "{build}");
+}
+
+#[test]
 fn project_task_registration_exposes_arguments_and_rejects_shared_names() {
     use std::fs;
     let tmp = tempfile::tempdir().unwrap();
